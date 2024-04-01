@@ -43,6 +43,7 @@ module.exports = {
               './lib/utils.ts',
               '**/*.test.ts',
               '**/*.test.tsx',
+              'tailwind.config.ts',
             ],
           },
         ],

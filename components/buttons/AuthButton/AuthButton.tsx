@@ -11,10 +11,10 @@ const AuthButton = () => {
   }
 
   if (status === 'authenticated') {
-    return <SignOutButton />;
+    return <SignOutButton className="font-sans" />;
   }
 
-  return <SignInButton />;
+  return <SignInButton className="font-sans" />;
 };
 
 export default AuthButton;

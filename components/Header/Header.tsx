@@ -13,7 +13,9 @@ const Header = ({ className }: HeaderProps) => (
       [className as string]: !!className,
     })}
   >
-    <Link href="/">PCNs ai</Link>
+    <Link href="/" className="font-sans font-bold text-3xl">
+      PCNs AI
+    </Link>
     <nav className="flex items-center gap-x-4">
       {NAVIGATION_ITEMS.map((item) => (
         <Link key={item.id} href={item.href}>
