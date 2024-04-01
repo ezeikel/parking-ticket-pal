@@ -1,0 +1,109 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["driverAdapters"]
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("POSTGRES_PRISMA_URL") // uses connection pooling
+  directUrl = env("POSTGRES_URL_NON_POOLING") // uses a direct connection
+}
+
+enum TicketType {
+  PARKING_CHARGE_NOTICE
+  PENALTY_CHARGE_NOTICE
+}
+
+enum LetterType {
+  CHALLENGE
+  APPEAL
+}
+
+enum TickeStatus {
+  INITIAL
+  PAID
+  APPEALED
+  COUNTY_COURT
+  BAILIFF
+  TRIBUNAL
+  POPLA
+  SUCCESSFUL_APPEAL
+}
+
+model User {
+  id        String    @id @default(cuid())
+  name      String
+  email     String    @unique
+  vehicles  Vehicle[]
+  tickets   Ticket[]
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  @@map("users")
+}
+
+model Vehicle {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+  make        String // e.g. Toyota, Honda
+  model       String // e.g. Camry, Civic
+  year        Int // year of the vehicle - could probably look this up via number plate
+  numberPlate String
+  tickets     Ticket[] // tickets associated with the vehicle
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("vehicles")
+}
+
+model Ticket {
+  id              String        @id @default(cuid())
+  userId          String
+  user            User          @relation(fields: [userId], references: [id])
+  contravention   Contravention @relation(fields: [contraventionId], references: [id])
+  contraventionId String
+  description     String?
+  dateIssued      DateTime
+  status          TickeStatus   @default(INITIAL)
+  letters         Letter[]
+  type            TicketType
+  company         String?
+  council         String?
+  vehicle         Vehicle       @relation(fields: [vehicleId], references: [id])
+  vehicleId       String
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  @@map("tickets")
+}
+
+model Letter {
+  id        String     @id @default(cuid())
+  type      LetterType
+  ticket    Ticket     @relation(fields: [ticketId], references: [id])
+  ticketId  String
+  content   String
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+
+  @@map("letters")
+}
+
+model Contravention {
+  id           String   @id @default(cuid())
+  code         String   @unique
+  description  String
+  legalClauses String[]
+  Ticket       Ticket[]
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@map("contraventions")
+}
