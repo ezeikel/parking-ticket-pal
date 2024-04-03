@@ -12,3 +12,9 @@ export const NAVIGATION_ITEMS = [
     href: '/account',
   },
 ];
+
+export const AUTHENTICATED_PATHS = [
+  '/dashboard',
+  '/account',
+  /\/ticket\/[a-zA-Z0-9]+/,
+];

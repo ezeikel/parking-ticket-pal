@@ -3,7 +3,9 @@ type LayoutWrapProps = {
 };
 
 const LayoutWrap = ({ children }: LayoutWrapProps) => {
-  return <div className="grid grid-rows-[auto,1fr] ">{children}</div>;
+  return (
+    <div className="min-h-screen grid grid-rows-[auto,1fr] ">{children}</div>
+  );
 };
 
 export default LayoutWrap;

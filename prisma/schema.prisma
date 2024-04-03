@@ -26,14 +26,25 @@ enum LetterType {
 }
 
 enum TickeStatus {
-  INITIAL
+  REDUCED_PAYMENT_DUE
+  FULL_PAYMENT_DUE
+  FULL_PAYMENT_PLUS_INCREASE_DUE
   PAID
   APPEALED
+  APPEAL_SUCCESSFUL
+  APPEAL_REJECTED
   COUNTY_COURT
-  BAILIFF
+  COUNTY_COURT_JUDGEMENT
+  ORDER_FOR_RECOVERY
+  DEBT_COLLECTION
   TRIBUNAL
   POPLA
-  SUCCESSFUL_APPEAL
+}
+
+enum IssuerType {
+  COUNCIL
+  TFL
+  PRIVATE_COMPANY
 }
 
 model User {
@@ -49,33 +60,35 @@ model User {
 }
 
 model Vehicle {
-  id          String   @id @default(cuid())
-  userId      String
-  user        User     @relation(fields: [userId], references: [id])
-  make        String // e.g. Toyota, Honda
-  model       String // e.g. Camry, Civic
-  year        Int // year of the vehicle - could probably look this up via number plate
-  numberPlate String
-  tickets     Ticket[] // tickets associated with the vehicle
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id           String   @id @default(cuid())
+  userId       String
+  user         User     @relation(fields: [userId], references: [id])
+  make         String // e.g. Toyota, Honda
+  model        String // e.g. Camry, Civic
+  year         Int // year of the vehicle - could probably look this up via number plate
+  registration String
+  tickets      Ticket[] // tickets associated with the vehicle
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 
   @@map("vehicles")
 }
 
 model Ticket {
   id              String        @id @default(cuid())
+  pcnNumber       String        @unique
   userId          String
   user            User          @relation(fields: [userId], references: [id])
   contravention   Contravention @relation(fields: [contraventionId], references: [id])
   contraventionId String
   description     String?
   dateIssued      DateTime
-  status          TickeStatus   @default(INITIAL)
+  status          TickeStatus[] @default([REDUCED_PAYMENT_DUE])
   letters         Letter[]
   type            TicketType
-  company         String?
-  council         String?
+  amountDue       Int
+  issuer          String
+  issuerType      IssuerType
   vehicle         Vehicle       @relation(fields: [vehicleId], references: [id])
   vehicleId       String
   createdAt       DateTime      @default(now())
