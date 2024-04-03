@@ -25,25 +25,17 @@ export const middleware = async (req: NextRequest) => {
   }
 
   if (pathname === '/') {
-    // home for authenticated users should be dashboard
+    // redirect authenticated users away from landing page
     if (session) {
       return NextResponse.redirect(new URL('/dashboard', req.url));
     }
 
-    // home for unauthenticated users should be landing page
-    return NextResponse.redirect(new URL('/', req.url));
+    return NextResponse.next();
   }
 
   if (AUTHENTICATED_PATHS.includes(pathname)) {
     // users must sign in to access pages that require authentication
     if (!session) {
-      return NextResponse.redirect(new URL('/', req.url));
-    }
-  }
-
-  // redirect authenticated users away from landing page
-  if (pathname === '/') {
-    if (session) {
       return NextResponse.redirect(new URL('/', req.url));
     }
   }
