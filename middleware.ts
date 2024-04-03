@@ -1,11 +1,17 @@
 /* eslint-disable import/prefer-default-export */
-import { NextResponse } from 'next/server';
-import type { NextRequest } from 'next/server';
-import { auth } from '@/auth';
+import { NextRequest, NextResponse } from 'next/server';
 import { AUTHENTICATED_PATHS } from './constants';
 
-export const middleware = async (request: NextRequest) => {
-  const { pathname } = request.nextUrl;
+export const middleware = async (req: NextRequest) => {
+  // object added to req from next-auth wrapper this function
+  const { pathname } = req.nextUrl;
+
+  // https://stackoverflow.com/a/76749457/2491630
+  const session = !!(
+    req.cookies.get('authjs.session-token') ||
+    // in production it seems to get prefixed with __Secure-
+    req.cookies.get('__Secure-authjs.session-token')
+  );
 
   // skip middleware for API routes, images, static files, and specific assets
   if (
@@ -19,38 +25,26 @@ export const middleware = async (request: NextRequest) => {
   }
 
   if (pathname === '/') {
-    // TODO: this seems to cause a timeout when deployed to Vercel
-    const session = await auth();
-    const userId = session?.userId;
-
     // home for authenticated users should be dashboard
-    if (userId) {
-      return NextResponse.redirect(new URL('/dashboard', request.url));
+    if (session) {
+      return NextResponse.redirect(new URL('/dashboard', req.url));
     }
 
-    // home for unauthenticated users should be sign-in
-    return NextResponse.redirect(new URL('/sign-in', request.url));
+    // home for unauthenticated users should be landing page
+    return NextResponse.redirect(new URL('/', req.url));
   }
 
   if (AUTHENTICATED_PATHS.includes(pathname)) {
-    // TODO: this seems to cause a timeout when deployed to Vercel
-    const session = await auth();
-    const userId = session?.userId;
-
     // users must sign in to access pages that require authentication
-    if (!userId) {
-      return NextResponse.redirect(new URL('/sign-in', request.url));
+    if (!session) {
+      return NextResponse.redirect(new URL('/', req.url));
     }
   }
 
-  // redirect authenticated users away from sign-in page
-  if (pathname === '/sign-in') {
-    // TODO: this seems to cause a timeout when deployed to Vercel
-    const session = await auth();
-    const userId = session?.userId;
-
-    if (userId) {
-      return NextResponse.redirect(new URL('/', request.url));
+  // redirect authenticated users away from landing page
+  if (pathname === '/') {
+    if (session) {
+      return NextResponse.redirect(new URL('/', req.url));
     }
   }
 
