@@ -143,7 +143,16 @@ export const createTicket = async (formData: FormData) => {
   return ticket;
 };
 
-export const getTickets = async (): Promise<Partial<Ticket>[] | undefined> => {
+export const getTickets = async (): Promise<
+  | (Partial<Ticket> &
+      {
+        contravention: {
+          code: string;
+          description: string;
+        };
+      }[])
+  | undefined
+> => {
   const session = await auth();
   const userId = session?.userId;
 
