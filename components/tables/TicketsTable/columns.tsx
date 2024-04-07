@@ -13,8 +13,13 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import formatPenniesToPounds from '@/utils/formatPenniesToPounds';
+import { TICKET_STATUS, TICKET_TYPE } from '@/constants';
 
-const columns: ColumnDef<Ticket>[] = [
+const columns: ColumnDef<Partial<Ticket>>[] = [
+  {
+    accessorKey: 'vehicle.registration',
+    header: 'Vehicle Registration',
+  },
   {
     accessorKey: 'pcnNumber',
     header: 'Number',
@@ -27,15 +32,18 @@ const columns: ColumnDef<Ticket>[] = [
   {
     accessorKey: 'type',
     header: 'Type',
+    cell: (info) => TICKET_TYPE[info.getValue() as keyof typeof TICKET_TYPE],
   },
   {
     // TODO: on hover display description
-    accessorKey: 'contraventionId',
+    accessorKey: 'contravention.code',
     header: 'Contravention',
   },
   {
     accessorKey: 'status',
     header: 'Status',
+    cell: (info) =>
+      TICKET_STATUS[info.getValue() as keyof typeof TICKET_STATUS],
   },
   {
     accessorKey: 'amountDue',

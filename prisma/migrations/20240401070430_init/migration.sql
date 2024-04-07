@@ -5,7 +5,7 @@ CREATE TYPE "TicketType" AS ENUM ('PARKING_CHARGE_NOTICE', 'PENALTY_CHARGE_NOTIC
 CREATE TYPE "LetterType" AS ENUM ('CHALLENGE', 'APPEAL');
 
 -- CreateEnum
-CREATE TYPE "TickeStatus" AS ENUM ('INITIAL', 'PAID', 'APPEALED', 'COUNTY_COURT', 'BAILIFF', 'TRIBUNAL', 'POPLA', 'SUCCESSFUL_APPEAL');
+CREATE TYPE "TicketStatus" AS ENUM ('INITIAL', 'PAID', 'APPEALED', 'COUNTY_COURT', 'BAILIFF', 'TRIBUNAL', 'POPLA', 'SUCCESSFUL_APPEAL');
 
 -- CreateTable
 CREATE TABLE "users" (
@@ -38,7 +38,7 @@ CREATE TABLE "tickets" (
     "contraventionId" TEXT NOT NULL,
     "description" TEXT,
     "dateIssued" TIMESTAMP(3) NOT NULL,
-    "status" "TickeStatus" NOT NULL DEFAULT 'INITIAL',
+    "status" "TicketStatus" NOT NULL DEFAULT 'INITIAL',
     "type" "TicketType" NOT NULL,
     "company" TEXT,
     "council" TEXT,

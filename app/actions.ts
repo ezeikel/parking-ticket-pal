@@ -7,7 +7,7 @@ import OpenAI from 'openai';
 import prisma from '@/lib/prisma';
 import { auth } from '@/auth';
 import { FileWithPreview } from '@/types';
-import { MediaType } from '@prisma/client';
+import { MediaType, Ticket } from '@prisma/client';
 import { CREATE_TICKET_PROMPT } from '@/constants';
 import { parseTicketInfo } from '@/utils/parseOpenAIResponse';
 
@@ -141,4 +141,54 @@ export const createTicket = async (formData: FormData) => {
   });
 
   return ticket;
+};
+
+export const getTickets = async (): Promise<Partial<Ticket>[] | undefined> => {
+  const session = await auth();
+  const userId = session?.userId;
+
+  if (!userId) {
+    console.error('You need to be logged in to get tickets.');
+
+    return undefined;
+  }
+
+  const tickets = await prisma.ticket.findMany({
+    where: {
+      vehicle: {
+        userId,
+      },
+    },
+    select: {
+      id: true,
+      pcnNumber: true,
+      type: true,
+      description: true,
+      amountDue: true,
+      issuer: true,
+      issuerType: true,
+      contravention: {
+        select: {
+          code: true,
+          description: true,
+        },
+      },
+      dateOfContravention: true,
+      dateIssued: true,
+      status: true,
+      vehicle: {
+        select: {
+          registration: true,
+        },
+      },
+      media: {
+        select: {
+          url: true,
+        },
+      },
+      createdAt: true,
+    },
+  });
+
+  return tickets;
 };
