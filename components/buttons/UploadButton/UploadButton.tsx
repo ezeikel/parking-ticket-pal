@@ -3,6 +3,7 @@
 import { ChangeEvent, useRef, useState } from 'react';
 import { faUpload } from '@fortawesome/pro-duotone-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import heic2any from 'heic2any';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -17,9 +18,6 @@ import {
 import { createTicket } from '@/app/actions';
 import MediaPreview from '@/components/MediaPreview/MediaPreview';
 import { FileWithPreview } from '@/types';
-
-// FIX: window is not defined
-const heic2any = require('heic2any');
 
 const UploadButton = () => {
   const [imageFile, setImageFile] = useState<FileWithPreview | undefined>();

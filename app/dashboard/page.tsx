@@ -1,6 +1,14 @@
+import dynamic from 'next/dynamic';
 import PageWrap from '@/components/PageWrap/PageWrap';
-import UploadButton from '@/components/buttons/UploadButton/UploadButton';
 import TicketsTable from '@/components/tables/TicketsTable/TicketsTable';
+
+// TODO: does this opt the page out of SSR?
+const UploadButton = dynamic(
+  () => import('@/components/buttons/UploadButton/UploadButton'),
+  {
+    ssr: false,
+  },
+);
 
 const DashboardPage = () => {
   return (
