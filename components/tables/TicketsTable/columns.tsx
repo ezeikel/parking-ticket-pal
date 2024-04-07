@@ -15,7 +15,20 @@ import {
 import formatPenniesToPounds from '@/utils/formatPenniesToPounds';
 import { TICKET_STATUS, TICKET_TYPE } from '@/constants';
 
-const columns: ColumnDef<Partial<Ticket>>[] = [
+const columns: ColumnDef<
+  Partial<Ticket> & {
+    contravention: {
+      code: string;
+      description: string;
+    };
+  },
+  keyof (Partial<Ticket> & {
+    contravention: {
+      code: string;
+      description: string;
+    };
+  })
+>[] = [
   {
     accessorKey: 'vehicle.registration',
     header: 'Vehicle Registration',
@@ -38,6 +51,18 @@ const columns: ColumnDef<Partial<Ticket>>[] = [
     // TODO: on hover display description
     accessorKey: 'contravention.code',
     header: 'Contravention',
+    cell: (info) => (
+      <TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <p className="cursor-pointer">{info.getValue()}</p>
+          </TooltipTrigger>
+          <TooltipContent className="bg-black text-white font-sans max-w-[300px]">
+            <p>{info.row.original.contravention.description}</p>
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
+    ),
   },
   {
     accessorKey: 'status',

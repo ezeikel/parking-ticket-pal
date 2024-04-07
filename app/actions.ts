@@ -192,3 +192,53 @@ export const getTickets = async (): Promise<Partial<Ticket>[] | undefined> => {
 
   return tickets;
 };
+
+export const getTicket = async (
+  id: string,
+): Promise<Partial<Ticket> | null> => {
+  const session = await auth();
+  const userId = session?.userId;
+
+  if (!userId) {
+    console.error('You need to be logged in to get a ticket.');
+
+    return null;
+  }
+
+  const ticket = await prisma.ticket.findUnique({
+    where: {
+      id,
+    },
+    select: {
+      id: true,
+      pcnNumber: true,
+      type: true,
+      description: true,
+      amountDue: true,
+      issuer: true,
+      issuerType: true,
+      contravention: {
+        select: {
+          code: true,
+          description: true,
+        },
+      },
+      dateOfContravention: true,
+      dateIssued: true,
+      status: true,
+      vehicle: {
+        select: {
+          registration: true,
+        },
+      },
+      media: {
+        select: {
+          url: true,
+        },
+      },
+      createdAt: true,
+    },
+  });
+
+  return ticket;
+};
