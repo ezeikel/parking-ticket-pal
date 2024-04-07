@@ -25,6 +25,12 @@ enum LetterType {
   APPEAL
 }
 
+enum MediaType {
+  IMAGE
+  VIDEO
+  AUDIO
+}
+
 enum TickeStatus {
   REDUCED_PAYMENT_DUE
   FULL_PAYMENT_DUE
@@ -51,8 +57,8 @@ model User {
   id        String    @id @default(cuid())
   name      String
   email     String    @unique
+  address   String?
   vehicles  Vehicle[]
-  tickets   Ticket[]
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
 
@@ -75,24 +81,24 @@ model Vehicle {
 }
 
 model Ticket {
-  id              String        @id @default(cuid())
-  pcnNumber       String        @unique
-  userId          String
-  user            User          @relation(fields: [userId], references: [id])
-  contravention   Contravention @relation(fields: [contraventionId], references: [id])
-  contraventionId String
-  description     String?
-  dateIssued      DateTime
-  status          TickeStatus[] @default([REDUCED_PAYMENT_DUE])
-  letters         Letter[]
-  type            TicketType
-  amountDue       Int
-  issuer          String
-  issuerType      IssuerType
-  vehicle         Vehicle       @relation(fields: [vehicleId], references: [id])
-  vehicleId       String
-  createdAt       DateTime      @default(now())
-  updatedAt       DateTime      @updatedAt
+  id                  String        @id @default(cuid())
+  pcnNumber           String        @unique
+  contravention       Contravention @relation(fields: [contraventionId], references: [id])
+  contraventionId     String
+  description         String?
+  dateIssued          DateTime
+  dateOfContravention DateTime
+  status              TickeStatus[] @default([REDUCED_PAYMENT_DUE])
+  letters             Letter[]
+  type                TicketType
+  amountDue           Int
+  issuer              String
+  issuerType          IssuerType
+  vehicle             Vehicle       @relation(fields: [vehicleId], references: [id])
+  vehicleId           String
+  createdAt           DateTime      @default(now())
+  updatedAt           DateTime      @updatedAt
+  media               Media[]
 
   @@map("tickets")
 }
@@ -114,9 +120,23 @@ model Contravention {
   code         String   @unique
   description  String
   legalClauses String[]
-  Ticket       Ticket[]
+  ticket       Ticket[]
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
   @@map("contraventions")
+}
+
+model Media {
+  id          String    @id @default(cuid())
+  url         String
+  name        String
+  description String?
+  type        MediaType
+  ticket      Ticket    @relation(fields: [ticketId], references: [id])
+  ticketId    String
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@map("media")
 }

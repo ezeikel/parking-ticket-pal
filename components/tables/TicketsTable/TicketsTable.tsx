@@ -13,17 +13,17 @@ const DUMMY_TICKETS: Ticket[] = [
     issuerType: IssuerType.COUNCIL,
     contraventionId: 'contravention1',
     description: null,
+    dateOfContravention: previousMonday(new Date()),
     dateIssued: previousMonday(new Date()),
     status: [TickeStatus.REDUCED_PAYMENT_DUE],
-    userId: 'user1',
     vehicleId: 'vehicle1',
     createdAt: new Date(),
     updatedAt: new Date(),
   },
 ];
 
-const TicketTable = () => {
+const TicketsTable = () => {
   return <DataTable columns={columns} data={DUMMY_TICKETS} />;
 };
 
-export default TicketTable;
+export default TicketsTable;
