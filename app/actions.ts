@@ -8,7 +8,7 @@ import prisma from '@/lib/prisma';
 import { auth } from '@/auth';
 import { FileWithPreview } from '@/types';
 import { MediaType, Ticket } from '@prisma/client';
-import { CREATE_TICKET_PROMPT } from '@/constants';
+import { CREATE_TICKET_PROMPT, TICKET_STATUS, TICKET_TYPE } from '@/constants';
 import { parseTicketInfo } from '@/utils/parseOpenAIResponse';
 
 const openai = new OpenAI({
@@ -250,4 +250,98 @@ export const getTicket = async (
   });
 
   return ticket;
+};
+
+export const generateChallengeLetter = async (ticketId: string) => {
+  const session = await auth();
+  const userId = session?.userId;
+
+  if (!userId) {
+    console.error('You need to be logged in to generate a challenge letter.');
+
+    return null;
+  }
+
+  // get user information
+  const user = await prisma.user.findUnique({
+    where: {
+      id: userId,
+    },
+    select: {
+      name: true,
+      address: true,
+    },
+  });
+
+  if (!user) {
+    console.error('User not found.');
+    return null;
+  }
+
+  // get ticket
+  const ticket = await prisma.ticket.findUnique({
+    where: {
+      id: ticketId,
+    },
+    select: {
+      pcnNumber: true,
+      type: true,
+      description: true,
+      amountDue: true,
+      issuer: true,
+      issuerType: true,
+      contravention: {
+        select: {
+          code: true,
+          description: true,
+        },
+      },
+      dateOfContravention: true,
+      dateIssued: true,
+      status: true,
+      vehicle: {
+        select: {
+          registration: true,
+        },
+      },
+      media: {
+        select: {
+          url: true,
+        },
+      },
+      createdAt: true,
+    },
+  });
+
+  if (!ticket) {
+    console.error('Ticket not found.');
+    return null;
+  }
+
+  // convert ticket information into a detailed prompt for generating a challenge letter
+  const ticketDetails = `I wish to challenge the PCN ticket numbered ${ticket.pcnNumber} issued on ${ticket.dateIssued} for vehicle registration ${ticket.vehicle?.registration}. The ticket describes a ${ticket.type} violation for contravention code ${ticket.contravention.code} (${ticket.contravention?.description}) with an amount due of ${ticket.amountDue}. It was issued by ${ticket.issuer} (${TICKET_TYPE[ticket.issuerType as keyof typeof TICKET_TYPE]}), and the status of the ticket is ${TICKET_STATUS[ticket.status[0] as keyof typeof TICKET_STATUS]}. Think of a legal basis based on the contravention code that could work as a challenge and use this information to generate a challenge letter.`;
+
+  // use OpenAI to generate a challenge letter based on the detailed ticket information
+  const response = await openai.chat.completions.create({
+    model: 'gpt-4',
+    messages: [
+      {
+        role: 'user',
+        content: `Imagine you are a paralegal working for ${user.name} of address ${user.address}. Please generate a formal challenge letter based on the following ticket details as if you were ${user.name} so that they can attach it to an email and send to ${ticket.issuer}: ${ticketDetails}`,
+      },
+    ],
+  });
+
+  // DEBUG:
+  // eslint-disable-next-line no-console
+  console.log(
+    'generateChallengeLetter response:',
+    JSON.stringify(response.choices[0].message, null, 2),
+  );
+
+  // TODO: take the response and use a library like `react-pdf` to generate a PDF
+
+  // TODO: take the pdf and email it to the user using react-email and resend
+
+  return response; // Adjust according to how you wish to use the response
 };

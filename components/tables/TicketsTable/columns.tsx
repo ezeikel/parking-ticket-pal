@@ -14,6 +14,7 @@ import {
 } from '@/components/ui/tooltip';
 import formatPenniesToPounds from '@/utils/formatPenniesToPounds';
 import { TICKET_STATUS, TICKET_TYPE } from '@/constants';
+import { generateChallengeLetter } from '@/app/actions';
 
 const columns: ColumnDef<
   Partial<Ticket> & {
@@ -105,13 +106,17 @@ const columns: ColumnDef<
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
-                <Link href={`ticket/${row.original.id}/ai`}>
-                  <FontAwesomeIcon
-                    icon={faWandMagicSparkles}
-                    size="lg"
-                    className="cursor-pointer"
-                  />
-                </Link>
+                <FontAwesomeIcon
+                  icon={faWandMagicSparkles}
+                  size="lg"
+                  className="cursor-pointer"
+                  onClick={() => {
+                    // generate challenge letter
+                    generateChallengeLetter(row.original.id as string);
+
+                    // TODO: show success message in toast
+                  }}
+                />
               </TooltipTrigger>
               <TooltipContent className="bg-black text-white font-sans">
                 <p>Generate a challenge letter using AI</p>
