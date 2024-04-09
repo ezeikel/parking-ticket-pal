@@ -1,10 +1,7 @@
 'use client';
 
-import Link from 'next/link';
 import { Ticket } from '@prisma/client';
 import { ColumnDef } from '@tanstack/react-table';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faWandMagicSparkles, faEye } from '@fortawesome/pro-duotone-svg-icons';
 import { formatDistance } from 'date-fns';
 import {
   Tooltip,
@@ -14,7 +11,7 @@ import {
 } from '@/components/ui/tooltip';
 import formatPenniesToPounds from '@/utils/formatPenniesToPounds';
 import { TICKET_STATUS, TICKET_TYPE } from '@/constants';
-import { generateChallengeLetter } from '@/app/actions';
+import TicketActionsCell from '@/components/TicketActionsCell/TicketActionsCell';
 
 const columns: ColumnDef<
   Partial<Ticket> & {
@@ -49,7 +46,6 @@ const columns: ColumnDef<
     cell: (info) => TICKET_TYPE[info.getValue() as keyof typeof TICKET_TYPE],
   },
   {
-    // TODO: on hover display description
     accessorKey: 'contravention.code',
     header: 'Contravention',
     cell: (info) => (
@@ -84,48 +80,7 @@ const columns: ColumnDef<
   },
   {
     id: 'actions',
-    cell: ({ row }) => {
-      return (
-        <div className="flex gap-4">
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Link href={`ticket/${row.original.id}`}>
-                  <FontAwesomeIcon
-                    icon={faEye}
-                    size="lg"
-                    className="cursor-pointer"
-                  />
-                </Link>
-              </TooltipTrigger>
-              <TooltipContent className="bg-black text-white font-sans">
-                <p>View ticket</p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <FontAwesomeIcon
-                  icon={faWandMagicSparkles}
-                  size="lg"
-                  className="cursor-pointer"
-                  onClick={() => {
-                    // generate challenge letter
-                    generateChallengeLetter(row.original.id as string);
-
-                    // TODO: show success message in toast
-                  }}
-                />
-              </TooltipTrigger>
-              <TooltipContent className="bg-black text-white font-sans">
-                <p>Generate a challenge letter using AI</p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-        </div>
-      );
-    },
+    cell: TicketActionsCell,
   },
 ];
 

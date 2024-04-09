@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { Analytics } from '@vercel/analytics/react';
 import { Bitter as FontSerif, Raleway as FontSans } from 'next/font/google';
 import { config } from '@fortawesome/fontawesome-svg-core';
+import { Toaster } from '@/components/ui/toaster';
 import '@fortawesome/fontawesome-svg-core/styles.css';
 import cn from '@/utils/cn';
 import Header from '@/components/Header/Header';
@@ -48,6 +49,7 @@ export default function RootLayout({
             <main className="row-start-2 row-span-1">{children}</main>
           </LayoutWrap>
         </Providers>
+        <Toaster />
         <Analytics />
       </body>
     </html>

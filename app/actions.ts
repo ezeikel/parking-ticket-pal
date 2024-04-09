@@ -4,16 +4,25 @@
 
 import { put } from '@vercel/blob';
 import OpenAI from 'openai';
+import { MediaType, Ticket } from '@prisma/client';
+import { Readable } from 'stream';
 import prisma from '@/lib/prisma';
+import { Resend } from 'resend';
 import { auth } from '@/auth';
 import { FileWithPreview } from '@/types';
-import { MediaType, Ticket } from '@prisma/client';
-import { CREATE_TICKET_PROMPT, TICKET_STATUS, TICKET_TYPE } from '@/constants';
+import {
+  BACKGROUND_INFORMATION_PROMPT,
+  CREATE_TICKET_PROMPT,
+} from '@/constants';
 import { parseTicketInfo } from '@/utils/parseOpenAIResponse';
+import generatePDF from '@/utils/generatePDF';
+import streamToBuffer from '@/utils/streamToBuffer';
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
+
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 export const createTicket = async (formData: FormData) => {
   const session = await auth();
@@ -270,6 +279,7 @@ export const generateChallengeLetter = async (ticketId: string) => {
     select: {
       name: true,
       address: true,
+      email: true,
     },
   });
 
@@ -318,30 +328,61 @@ export const generateChallengeLetter = async (ticketId: string) => {
     return null;
   }
 
-  // convert ticket information into a detailed prompt for generating a challenge letter
-  const ticketDetails = `I wish to challenge the PCN ticket numbered ${ticket.pcnNumber} issued on ${ticket.dateIssued} for vehicle registration ${ticket.vehicle?.registration}. The ticket describes a ${ticket.type} violation for contravention code ${ticket.contravention.code} (${ticket.contravention?.description}) with an amount due of ${ticket.amountDue}. It was issued by ${ticket.issuer} (${TICKET_TYPE[ticket.issuerType as keyof typeof TICKET_TYPE]}), and the status of the ticket is ${TICKET_STATUS[ticket.status[0] as keyof typeof TICKET_STATUS]}. Think of a legal basis based on the contravention code that could work as a challenge and use this information to generate a challenge letter.`;
-
   // use OpenAI to generate a challenge letter based on the detailed ticket information
-  const response = await openai.chat.completions.create({
+  const createLetterResponse = await openai.chat.completions.create({
     model: 'gpt-4',
     messages: [
       {
         role: 'user',
-        content: `Imagine you are a paralegal working for ${user.name} of address ${user.address}. Please generate a formal challenge letter based on the following ticket details as if you were ${user.name} so that they can attach it to an email and send to ${ticket.issuer}: ${ticketDetails}`,
+        content: `${BACKGROUND_INFORMATION_PROMPT} Please generate a professional letter on behalf of ${user.name} living at address ${user.address} for the ticket ${ticket.pcnNumber} issued by ${ticket.issuer} for the contravention ${ticket.contravention.code} (${ticket.contravention?.description}) for vehicle ${ticket.vehicle?.registration}. The outstanding amount due is ${ticket.amountDue}. Think of a legal basis based on the contravention code that could work as a challenge and use this information to generate a challenge letter. Please note that the letter should be written in a professional manner and should be addressed to the issuer of the ticket. The letter should be written in a way that it can be sent as is - no placeholders or brackets should be included in the response, use the actual values of the name of the person you are writing the letter for and the ticket details`,
       },
     ],
   });
+
+  const generatedLetterFromOpenAI = createLetterResponse.choices[0].message
+    .content as string;
+
+  const createEmailResponse = await openai.chat.completions.create({
+    model: 'gpt-4',
+    messages: [
+      {
+        role: 'user',
+        content: `${BACKGROUND_INFORMATION_PROMPT} Please generate a professional email addressed to ${user.name} in reference to a letter that was generated to challenge ticket number ${ticket.pcnNumber} on their behalf which has been attached to this email as .pdf file. Explain to user to forward the letter on to the ${ticket.issuer} and that they can also edit the .pdf file if they wish to change or add any additional information. Sign off the email with "Kind regards, PCNs Support Team". Please give me the your response as the email content only in html format so that I can send it to the user.`,
+      },
+    ],
+  });
+
+  const generatedEmailFromOpenAI = createEmailResponse.choices[0].message
+    .content as string;
 
   // DEBUG:
   // eslint-disable-next-line no-console
   console.log(
     'generateChallengeLetter response:',
-    JSON.stringify(response.choices[0].message, null, 2),
+    JSON.stringify(generatedLetterFromOpenAI, null, 2),
   );
 
-  // TODO: take the response and use a library like `react-pdf` to generate a PDF
+  // take the response and generate a PDF letter
+  const pdfStream = await generatePDF(generatedLetterFromOpenAI);
 
-  // TODO: take the pdf and email it to the user using react-email and resend
+  // convert PDF stream to buffer
+  const pdfBuffer = await streamToBuffer(pdfStream as Readable);
 
-  return response; // Adjust according to how you wish to use the response
+  // take the pdf and email it to the user
+  resend.emails.send({
+    from: 'letters@pcns.ai',
+    to: user.email,
+    subject: `Re: Ticket Challenge Letter for Your Reference - Ticket No:${ticket.pcnNumber}`,
+    html: generatedEmailFromOpenAI,
+    attachments: [
+      {
+        filename: `challenge-letter-${ticket.pcnNumber}.pdf`,
+        content: pdfBuffer,
+      },
+    ],
+  });
+
+  return {
+    message: 'Challenge letter generated and sent to users email.',
+  };
 };

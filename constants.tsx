@@ -20,6 +20,10 @@ export const AUTHENTICATED_PATHS = [
   /\/ticket\/[a-zA-Z0-9]+/,
 ];
 
+export const BACKGROUND_INFORMATION_PROMPT = `
+Imagine you are working as customer support for a company called "PCNs" that handles the management of fines related parking, moviing trafiic, bus lane, congestion charge, cctv enforcement and private land.
+`;
+
 export const CREATE_TICKET_PROMPT = `
 Please provide the following details from the Penalty Charge Notice (PCN) image in a structured key-value format:
 
@@ -34,8 +38,10 @@ amountDue: [Amount Due in pennies]
 issuer: [Body Issuing the PCN e.g. Lambeth Council or ParkingEye Ltd]
 issuerType: [COUNCIL or TFL or PRIVATE_COMPANY based on the issuer]
 
-
-Please ensure that dates and times are formatted as ISO 8601 strings - no need to include the time. If you are unsure about any of the details, please leave them blank. Just return the key value pairs no need to include any other information or response.
+Some things to note:
+- please ensure that dates and times are formatted as ISO 8601 strings, no need to include the time
+- if you are unsure about any of the details, please leave them blank
+- just return the key value pairs no need to include any other information or response
 `;
 
 export const TICKET_TYPE: {
@@ -63,3 +69,16 @@ export const TICKET_STATUS: {
   [TicketStatus.TRIBUNAL]: 'Tribunal',
   [TicketStatus.POPLA]: 'POPLA',
 };
+
+export const LOADING_TEXT: string[] = [
+  'Assembling your defense team...',
+  'Consulting the parking gods...',
+  'Sharpening the quills for battle...',
+  'Mobilizing the legal eagles...',
+  'Plotting the course through red tape...',
+  'Unearthing hidden loopholes...',
+  'Gathering evidence from the scene...',
+  'Calibrating the justice scales...',
+  'Decoding the traffic law runes...',
+  'Polishing your case to a shine...',
+];

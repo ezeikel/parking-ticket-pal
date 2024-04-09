@@ -16,3 +16,7 @@ export type ParseTicketInfo = {
   issuer: string;
   issuerType: IssuerType;
 };
+
+export enum LoaderType {
+  GENERATING_CHALLENGE_LETTER = 'GENERATING_CHALLENGE_LETTER',
+}
