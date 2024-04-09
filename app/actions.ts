@@ -17,6 +17,7 @@ import {
 import { parseTicketInfo } from '@/utils/parseOpenAIResponse';
 import generatePDF from '@/utils/generatePDF';
 import streamToBuffer from '@/utils/streamToBuffer';
+import formatPenniesToPounds from '@/utils/formatPenniesToPounds';
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -334,7 +335,7 @@ export const generateChallengeLetter = async (ticketId: string) => {
     messages: [
       {
         role: 'user',
-        content: `${BACKGROUND_INFORMATION_PROMPT} Please generate a professional letter on behalf of ${user.name} living at address ${user.address} for the ticket ${ticket.pcnNumber} issued by ${ticket.issuer} for the contravention ${ticket.contravention.code} (${ticket.contravention?.description}) for vehicle ${ticket.vehicle?.registration}. The outstanding amount due is ${ticket.amountDue}. Think of a legal basis based on the contravention code that could work as a challenge and use this information to generate a challenge letter. Please note that the letter should be written in a professional manner and should be addressed to the issuer of the ticket. The letter should be written in a way that it can be sent as is - no placeholders or brackets should be included in the response, use the actual values of the name of the person you are writing the letter for and the ticket details`,
+        content: `${BACKGROUND_INFORMATION_PROMPT} Please generate a professional letter on behalf of ${user.name} living at address ${user.address} for the ticket ${ticket.pcnNumber} issued by ${ticket.issuer} for the contravention ${ticket.contravention.code} (${ticket.contravention?.description}) for vehicle ${ticket.vehicle?.registration}. The outstanding amount due is £${formatPenniesToPounds(ticket.amountDue)}. Think of a legal basis based on the contravention code that could work as a challenge and use this information to generate a challenge letter. Please note that the letter should be written in a professional manner and should be addressed to the issuer of the ticket. The letter should be written in a way that it can be sent as is - no placeholders or brackets should be included in the response, use the actual values of the name of the person you are writing the letter for and the ticket details`,
       },
     ],
   });
@@ -370,7 +371,7 @@ export const generateChallengeLetter = async (ticketId: string) => {
 
   // take the pdf and email it to the user
   resend.emails.send({
-    from: 'letters@pcns.ai',
+    from: 'PCNs AI <letters@pcns.ai>',
     to: user.email,
     subject: `Re: Ticket Challenge Letter for Your Reference - Ticket No:${ticket.pcnNumber}`,
     html: generatedEmailFromOpenAI,

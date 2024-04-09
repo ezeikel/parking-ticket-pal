@@ -5,9 +5,6 @@ const generatePDF = async (content: string) => {
   const doc = <ChallengeLetterDocument content={content} />;
 
   try {
-    // TODO: temporarily save the PDF to the file system for testing
-    ReactPDF.render(doc, `example.pdf`);
-
     const stream = await ReactPDF.renderToStream(doc);
 
     return stream;
