@@ -329,29 +329,30 @@ export const generateChallengeLetter = async (ticketId: string) => {
     return null;
   }
 
-  // use OpenAI to generate a challenge letter based on the detailed ticket information
-  const createLetterResponse = await openai.chat.completions.create({
-    model: 'gpt-4',
-    messages: [
-      {
-        role: 'user',
-        content: `${BACKGROUND_INFORMATION_PROMPT} Please generate a professional letter on behalf of ${user.name} living at address ${user.address} for the ticket ${ticket.pcnNumber} issued by ${ticket.issuer} for the contravention ${ticket.contravention.code} (${ticket.contravention?.description}) for vehicle ${ticket.vehicle?.registration}. The outstanding amount due is £${formatPenniesToPounds(ticket.amountDue)}. Think of a legal basis based on the contravention code that could work as a challenge and use this information to generate a challenge letter. Please note that the letter should be written in a professional manner and should be addressed to the issuer of the ticket. The letter should be written in a way that it can be sent as is - no placeholders or brackets should be included in the response, use the actual values of the name of the person you are writing the letter for and the ticket details`,
-      },
-    ],
-  });
+  // use OpenAI to generate a challenge letter and email based on the detailed ticket information
+  const [createLetterResponse, createEmailResponse] = await Promise.all([
+    openai.chat.completions.create({
+      model: 'gpt-4',
+      messages: [
+        {
+          role: 'user',
+          content: `${BACKGROUND_INFORMATION_PROMPT} Please generate a professional letter on behalf of ${user.name} living at address ${user.address} for the ticket ${ticket.pcnNumber} issued by ${ticket.issuer} for the contravention ${ticket.contravention.code} (${ticket.contravention?.description}) for vehicle ${ticket.vehicle?.registration}. The outstanding amount due is £${formatPenniesToPounds(ticket.amountDue)}. Think of a legal basis based on the contravention code that could work as a challenge and use this information to generate a challenge letter. Please note that the letter should be written in a professional manner and should be addressed to the issuer of the ticket. The letter should be written in a way that it can be sent as is - no placeholders or brackets should be included in the response, use the actual values of the name of the person you are writing the letter for and the ticket details`,
+        },
+      ],
+    }),
+    openai.chat.completions.create({
+      model: 'gpt-4',
+      messages: [
+        {
+          role: 'user',
+          content: `${BACKGROUND_INFORMATION_PROMPT} Please generate a professional email addressed to ${user.name} in reference to a letter that was generated to challenge ticket number ${ticket.pcnNumber} on their behalf which has been attached to this email as .pdf file. Explain to user to forward the letter on to the ${ticket.issuer} and that they can also edit the .pdf file if they wish to change or add any additional information. Sign off the email with "Kind regards, PCNs Support Team". Please give me the your response as the email content only in html format so that I can send it to the user.`,
+        },
+      ],
+    }),
+  ]);
 
   const generatedLetterFromOpenAI = createLetterResponse.choices[0].message
     .content as string;
-
-  const createEmailResponse = await openai.chat.completions.create({
-    model: 'gpt-4',
-    messages: [
-      {
-        role: 'user',
-        content: `${BACKGROUND_INFORMATION_PROMPT} Please generate a professional email addressed to ${user.name} in reference to a letter that was generated to challenge ticket number ${ticket.pcnNumber} on their behalf which has been attached to this email as .pdf file. Explain to user to forward the letter on to the ${ticket.issuer} and that they can also edit the .pdf file if they wish to change or add any additional information. Sign off the email with "Kind regards, PCNs Support Team". Please give me the your response as the email content only in html format so that I can send it to the user.`,
-      },
-    ],
-  });
 
   const generatedEmailFromOpenAI = createEmailResponse.choices[0].message
     .content as string;
@@ -363,6 +364,13 @@ export const generateChallengeLetter = async (ticketId: string) => {
     JSON.stringify(generatedLetterFromOpenAI, null, 2),
   );
 
+  // DEBUG:
+  // eslint-disable-next-line no-console
+  console.log(
+    'generateEmail response:',
+    JSON.stringify(generatedEmailFromOpenAI, null, 2),
+  );
+
   // take the response and generate a PDF letter
   const pdfStream = await generatePDF(generatedLetterFromOpenAI);
 
@@ -370,7 +378,7 @@ export const generateChallengeLetter = async (ticketId: string) => {
   const pdfBuffer = await streamToBuffer(pdfStream as Readable);
 
   // take the pdf and email it to the user
-  resend.emails.send({
+  await resend.emails.send({
     from: 'PCNs AI <letters@pcns.ai>',
     to: user.email,
     subject: `Re: Ticket Challenge Letter for Your Reference - Ticket No:${ticket.pcnNumber}`,
