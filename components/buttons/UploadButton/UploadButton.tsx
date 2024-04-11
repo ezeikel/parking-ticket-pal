@@ -88,7 +88,6 @@ const UploadButton = () => {
           <Input
             type="file"
             accept="image/*, image/heic"
-            capture="user"
             onChange={handleChange}
             className="hidden"
             ref={fileInputRef}
