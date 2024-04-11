@@ -122,20 +122,28 @@ export const createTicket = async (formData: FormData) => {
       issuer,
       issuerType,
       contravention: {
-        // TODO: create or connect to existing contravention
-        create: {
-          code: contraventionCode.toString(), // TODO: parsing function converted it to a number
-          description: contraventionDescription,
+        connectOrCreate: {
+          where: {
+            code: contraventionCode.toString(), // TODO: parsing function converted it to a number
+          },
+          create: {
+            code: contraventionCode.toString(), // TODO: parsing function converted it to a number
+            description: contraventionDescription,
+          },
         },
       },
       vehicle: {
-        // TODO: create or connect to existing vehicle
-        create: {
-          registration: vehicleRegistration,
-          make: 'Toyota', // TODO: get ticket/dvla api based on registration
-          model: 'Corolla', // TODO: get ticket/dvla api based on registration
-          year: 2020, // TODO: get ticket/dvla api based on registration
-          userId,
+        connectOrCreate: {
+          where: {
+            registration: vehicleRegistration,
+          },
+          create: {
+            registration: vehicleRegistration,
+            make: 'Toyota', // TODO: get ticket/dvla api based on registration
+            model: 'Corolla', // TODO: get ticket/dvla api based on registration
+            year: 2020, // TODO: get ticket/dvla api based on registration
+            userId,
+          },
         },
       },
       media: {
