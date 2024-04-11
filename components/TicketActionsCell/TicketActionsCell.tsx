@@ -1,7 +1,11 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faWandMagicSparkles, faEye } from '@fortawesome/pro-duotone-svg-icons';
+import {
+  faWandMagicSparkles,
+  faEye,
+  faTrashAlt,
+} from '@fortawesome/pro-duotone-svg-icons';
 import { LoaderType } from '@/types';
 import {
   Tooltip,
@@ -18,7 +22,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { generateChallengeLetter } from '@/app/actions';
+import { deleteTicket, generateChallengeLetter } from '@/app/actions';
 import { useToast } from '@/components/ui/use-toast';
 import Loader from '../Loader/Loader';
 
@@ -68,13 +72,26 @@ const TicketActionsCell = ({ row }: TicketActionsCellProps) => {
                     description:
                       'Check your email for the generated challenge letter.',
                   });
-
-                  // TODO: show success message in toast
                 }}
               />
             </TooltipTrigger>
             <TooltipContent className="bg-black text-white font-sans">
               <p>Generate a challenge letter using AI</p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <FontAwesomeIcon
+                icon={faTrashAlt}
+                size="lg"
+                className="cursor-pointer"
+                onClick={() => deleteTicket(row.original.id)}
+              />
+            </TooltipTrigger>
+            <TooltipContent className="bg-black text-white font-sans">
+              <p>View ticket</p>
             </TooltipContent>
           </Tooltip>
         </TooltipProvider>
@@ -88,7 +105,7 @@ const TicketActionsCell = ({ row }: TicketActionsCellProps) => {
             <AlertDialogDescription>
               <Loader
                 className="my-8"
-                type={LoaderType.GENERATING_CHALLENGE_LETTER}
+                type={LoaderType.CREATING_CHALLENGE_LETTER}
               />
             </AlertDialogDescription>
           </AlertDialogHeader>

@@ -94,7 +94,7 @@ model Ticket {
   amountDue           Int
   issuer              String
   issuerType          IssuerType
-  vehicle             Vehicle        @relation(fields: [vehicleId], references: [id])
+  vehicle             Vehicle        @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
   vehicleId           String
   createdAt           DateTime       @default(now())
   updatedAt           DateTime       @updatedAt
@@ -106,7 +106,7 @@ model Ticket {
 model Letter {
   id        String     @id @default(cuid())
   type      LetterType
-  ticket    Ticket     @relation(fields: [ticketId], references: [id])
+  ticket    Ticket     @relation(fields: [ticketId], references: [id], onDelete: Cascade)
   ticketId  String
   content   String
   createdAt DateTime   @default(now())
@@ -133,7 +133,7 @@ model Media {
   name        String
   description String?
   type        MediaType
-  ticket      Ticket    @relation(fields: [ticketId], references: [id])
+  ticket      Ticket    @relation(fields: [ticketId], references: [id], onDelete: Cascade)
   ticketId    String
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt

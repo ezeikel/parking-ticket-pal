@@ -2,7 +2,7 @@
 
 'use server';
 
-import { put } from '@vercel/blob';
+import { del, put } from '@vercel/blob';
 import OpenAI from 'openai';
 import { MediaType, Ticket } from '@prisma/client';
 import { Readable } from 'stream';
@@ -18,6 +18,7 @@ import { parseTicketInfo } from '@/utils/parseOpenAIResponse';
 import generatePDF from '@/utils/generatePDF';
 import streamToBuffer from '@/utils/streamToBuffer';
 import formatPenniesToPounds from '@/utils/formatPenniesToPounds';
+import { revalidatePath } from 'next/cache';
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -158,7 +159,65 @@ export const createTicket = async (formData: FormData) => {
     },
   });
 
+  revalidatePath('/dashboard');
+
   return ticket;
+};
+
+export const deleteTicket = async (id: string) => {
+  const session = await auth();
+  const userId = session?.userId;
+
+  if (!userId) {
+    console.error('You need to be logged in to delete a ticket.');
+
+    return null;
+  }
+
+  const ticket = await prisma.ticket.findUnique({
+    where: {
+      id,
+    },
+    select: {
+      vehicle: {
+        select: {
+          userId: true,
+        },
+      },
+    },
+  });
+
+  if (!ticket) {
+    console.error('Ticket not found.');
+    return null;
+  }
+
+  if (ticket.vehicle.userId !== userId) {
+    console.error('You are not authorized to delete this ticket.');
+    return null;
+  }
+
+  const ticketMedia = await prisma.media.findMany({
+    where: {
+      ticketId: id,
+    },
+  });
+
+  // delete ticket and media files from blob storage
+  const [deletedTicket] = await Promise.all([
+    prisma.ticket.delete({
+      where: {
+        id,
+      },
+    }),
+    ticketMedia.map(async (media) => {
+      await del(media.url);
+    }),
+  ]);
+
+  revalidatePath('/dashboard');
+
+  return deletedTicket;
 };
 
 export const getTickets = async (): Promise<

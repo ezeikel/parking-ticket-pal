@@ -17,12 +17,17 @@ import {
 } from '@/components/ui/dialog';
 import { createTicket } from '@/app/actions';
 import MediaPreview from '@/components/MediaPreview/MediaPreview';
-import { FileWithPreview } from '@/types';
+import { FileWithPreview, LoaderType } from '@/types';
+import Loader from '@/components/Loader/Loader';
+import { useToast } from '@/components/ui/use-toast';
 
 const UploadButton = () => {
   const [imageFile, setImageFile] = useState<FileWithPreview | undefined>();
   const [convertingImage, setConvertingImage] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isDialogOpen, setIsDialogOpen] = useState<boolean>(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const { toast } = useToast();
 
   const handleButtonClick = () => fileInputRef.current?.click();
 
@@ -54,7 +59,7 @@ const UploadButton = () => {
   };
 
   return (
-    <Dialog>
+    <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
       <DialogTrigger asChild>
         <Button
           variant="outline"
@@ -66,10 +71,18 @@ const UploadButton = () => {
       </DialogTrigger>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Upload a ticket</DialogTitle>
-          <DialogDescription>
-            Take a photo of the front and back of the ticket.
-          </DialogDescription>
+          <DialogTitle>
+            {isLoading ? 'Uploading ticket' : 'Upload a ticket'}
+          </DialogTitle>
+          {isLoading ? (
+            <DialogDescription>
+              <Loader type={LoaderType.UPLOADING_TICKET_IMAGES} />
+            </DialogDescription>
+          ) : (
+            <DialogDescription>
+              Take a photo of the front and back of the ticket.
+            </DialogDescription>
+          )}
         </DialogHeader>
         <div className="flex flex-col gap-y-4">
           <Input
@@ -80,17 +93,22 @@ const UploadButton = () => {
             className="hidden"
             ref={fileInputRef}
           />
-          <Button
-            variant="outline"
-            className="font-sans flex gap-x-2 items-center"
-            onClick={handleButtonClick}
-          >
-            Select
-          </Button>
-          <MediaPreview
-            files={imageFile ? [imageFile] : []}
-            convertingImage={convertingImage}
-          />
+          {isLoading ? null : (
+            <>
+              <Button
+                variant="outline"
+                className="font-sans flex gap-x-2 items-center"
+                onClick={handleButtonClick}
+                disabled={isLoading}
+              >
+                Select
+              </Button>
+              <MediaPreview
+                files={imageFile ? [imageFile] : []}
+                convertingImage={convertingImage}
+              />
+            </>
+          )}
         </div>
         <DialogFooter>
           <Button
@@ -104,11 +122,28 @@ const UploadButton = () => {
               try {
                 const formData = new FormData();
                 formData.append('imageFront', imageFile, imageFile.name);
+                setIsLoading(true);
+
                 await createTicket(formData);
+
+                setIsLoading(false);
+
+                // reset image file
+                setImageFile(undefined);
+
+                // close dialog
+                setIsDialogOpen(false);
+
+                // show success toast
+                toast({
+                  title: 'Ticket upload',
+                  description: 'Your ticket has been successfully uploaded',
+                });
               } catch (error) {
                 console.error('Error creating ticket:', error);
               }
             }}
+            disabled={!imageFile || isLoading}
           >
             Submit
           </Button>
