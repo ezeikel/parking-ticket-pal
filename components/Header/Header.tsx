@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import cn from '@/utils/cn';
-import { NAVIGATION_ITEMS } from '@/constants';
 import AuthButton from '../buttons/AuthButton/AuthButton';
+import NavigationItems from '../NavigationItems/NavigationItems';
 
 type HeaderProps = {
   className?: string;
@@ -14,14 +14,10 @@ const Header = ({ className }: HeaderProps) => (
     })}
   >
     <Link href="/" className="font-sans font-bold text-3xl">
-      PCNs AI
+      PCNs
     </Link>
     <nav className="flex items-center gap-x-4">
-      {NAVIGATION_ITEMS.map((item) => (
-        <Link key={item.id} href={item.href}>
-          {item.component}
-        </Link>
-      ))}
+      <NavigationItems />
       <AuthButton />
     </nav>
   </header>

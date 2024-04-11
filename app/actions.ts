@@ -395,3 +395,28 @@ export const generateChallengeLetter = async (ticketId: string) => {
     message: 'Challenge letter generated and sent to users email.',
   };
 };
+
+export const getCurrentUser = async () => {
+  const session = await auth();
+  const userId = session?.userId;
+
+  if (!userId) {
+    console.error('You need to be logged in to get the current user.');
+
+    return null;
+  }
+
+  const user = await prisma.user.findUnique({
+    where: {
+      id: userId,
+    },
+    select: {
+      id: true,
+      name: true,
+      email: true,
+      address: true,
+    },
+  });
+
+  return user;
+};

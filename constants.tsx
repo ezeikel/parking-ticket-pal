@@ -21,7 +21,7 @@ export const AUTHENTICATED_PATHS = [
 ];
 
 export const BACKGROUND_INFORMATION_PROMPT = `
-Imagine you are working as customer support for a company called "PCNs AI" that handles the management of fines related parking, moviing trafiic, bus lane, congestion charge, cctv enforcement and private land.
+Imagine you are working as customer support for a company called "PCNs" that handles the management of fines related parking, moving traffic, bus lane, congestion charge, cctv enforcement and private land in the UK.
 `;
 
 export const CREATE_TICKET_PROMPT = `
