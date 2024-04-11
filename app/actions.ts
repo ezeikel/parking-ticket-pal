@@ -6,6 +6,7 @@ import { del, put } from '@vercel/blob';
 import OpenAI from 'openai';
 import { MediaType, Ticket } from '@prisma/client';
 import { Readable } from 'stream';
+import sharp from 'sharp';
 import prisma from '@/lib/prisma';
 import { Resend } from 'resend';
 import { auth } from '@/auth';
@@ -45,14 +46,32 @@ export const createTicket = async (formData: FormData) => {
     throw new Error('No image file provided.');
   }
 
-  // get file extension
-  const extension = rawFormData.imageFront.name.split('.').pop();
+  let extension: string | undefined;
+  let image;
+
+  extension = rawFormData.imageFront.name.split('.').pop();
+
+  if (!extension) {
+    throw new Error('No file extension found.');
+  }
+
+  // convert .heic to .webp - openai doesnt support .heic files
+  if (extension.toLowerCase() === 'heic') {
+    const fileArrayBuffer = await rawFormData.imageFront.arrayBuffer();
+    // BUG: current version of sharp supports ArrayBuffer without having to convert it to Buffer but is broken for .heic files. Using sharp@0.26.2 instead  - https://github.com/lovell/sharp/issues/2518#issuecomment-839705313
+    const fileBuffer = Buffer.from(fileArrayBuffer);
+    image = await sharp(fileBuffer).webp().toBuffer();
+    extension = 'webp';
+  } else {
+    image = rawFormData.imageFront;
+    // get file extension
+    extension = rawFormData.imageFront.name.split('.').pop();
+  }
 
   // store ticket front and back image in blob storage
   const ticketFrontBlob = await put(
     `uploads/users/${userId}/ticket-front.${extension}`,
-    // TODO: openai doesnt support .heic files, convert to .jpg
-    rawFormData.imageFront,
+    image,
     {
       access: 'public',
     },

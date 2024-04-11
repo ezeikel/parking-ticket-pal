@@ -70,6 +70,7 @@
     "react-dom": "^18",
     "react-email": "2.1.1",
     "resend": "^3.2.0",
+    "sharp": "0.26.2",
     "tailwind-merge": "^2.2.2",
     "tailwindcss-animate": "^1.0.7"
   },
@@ -77,6 +78,7 @@
     "@types/node": "^20",
     "@types/react": "^18",
     "@types/react-dom": "^18",
+    "@types/sharp": "0.26.0",
     "autoprefixer": "^10.0.1",
     "eslint": "^8",
     "eslint-config-airbnb": "^19.0.4",
