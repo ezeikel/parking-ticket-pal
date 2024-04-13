@@ -24,9 +24,9 @@ const fontSans = FontSans({
 
 export const metadata: Metadata = {
   title:
-    'PCNs AI: Manage, Track, and Challenge Parking & Penalty Charge Notices with Ease',
+    'PCNs: Manage, Track, and Challenge Parking & Penalty Charge Notices with Ease',
   description:
-    'PCNs AI is your all-in-one solution for handling Parking Charge Notices (PCNs) and Penalty Charge Notices (PCNs). Track your notices, receive reminders for crucial dates, and avoid increased penalties. Utilize our AI-powered system to appeal or challenge notices effortlessly. Take control of your parking tickets today!',
+    'PCNs is your all-in-one solution for handling Parking Charge Notices (PCNs) and Penalty Charge Notices (PCNs). Track your notices, receive reminders for crucial dates, and avoid increased penalties. Utilize our AI-powered system to appeal or challenge notices effortlessly. Take control of your parking tickets today!',
 };
 
 export default function RootLayout({

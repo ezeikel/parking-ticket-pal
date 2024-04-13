@@ -6,7 +6,6 @@ import { del, put } from '@vercel/blob';
 import OpenAI from 'openai';
 import { MediaType, Ticket } from '@prisma/client';
 import { Readable } from 'stream';
-import sharp from 'sharp';
 import prisma from '@/lib/prisma';
 import { Resend } from 'resend';
 import { auth } from '@/auth';
@@ -46,27 +45,8 @@ export const createTicket = async (formData: FormData) => {
     throw new Error('No image file provided.');
   }
 
-  let extension: string | undefined;
-  let image;
-
-  extension = rawFormData.imageFront.name.split('.').pop();
-
-  if (!extension) {
-    throw new Error('No file extension found.');
-  }
-
-  // convert .heic to .webp - openai doesnt support .heic files
-  if (extension.toLowerCase() === 'heic') {
-    const fileArrayBuffer = await rawFormData.imageFront.arrayBuffer();
-    // BUG: current version of sharp supports ArrayBuffer without having to convert it to Buffer but is broken for .heic files. Using sharp@0.26.2 instead  - https://github.com/lovell/sharp/issues/2518#issuecomment-839705313
-    const fileBuffer = Buffer.from(fileArrayBuffer);
-    image = await sharp(fileBuffer).webp().toBuffer();
-    extension = 'webp';
-  } else {
-    image = rawFormData.imageFront;
-    // get file extension
-    extension = rawFormData.imageFront.name.split('.').pop();
-  }
+  const extension = rawFormData.imageFront.name.split('.').pop();
+  const image = rawFormData.imageFront;
 
   // store ticket front and back image in blob storage
   const ticketFrontBlob = await put(
@@ -465,7 +445,7 @@ export const generateChallengeLetter = async (ticketId: string) => {
 
   // take the pdf and email it to the user
   await resend.emails.send({
-    from: 'PCNs AI <letters@pcns.ai>',
+    from: 'PCNs <letters@pcns.ai>',
     to: user.email,
     subject: `Re: Ticket Challenge Letter for Your Reference - Ticket No:${ticket.pcnNumber}`,
     html: generatedEmailFromOpenAI,
@@ -506,3 +486,5 @@ export const getCurrentUser = async () => {
 
   return user;
 };
+
+export const revalidateDashboard = async () => revalidatePath('/dashboard');

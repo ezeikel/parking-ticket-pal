@@ -1,9 +1,8 @@
 'use client';
 
-import { ChangeEvent, useRef, useState } from 'react';
+import { ChangeEvent, useEffect, useRef, useState } from 'react';
 import { faUpload } from '@fortawesome/pro-duotone-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import heic2any from 'heic2any';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -15,15 +14,14 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
-import { createTicket } from '@/app/actions';
 import MediaPreview from '@/components/MediaPreview/MediaPreview';
 import { FileWithPreview, LoaderType } from '@/types';
 import Loader from '@/components/Loader/Loader';
 import { useToast } from '@/components/ui/use-toast';
+import { revalidateDashboard } from '@/app/actions';
 
 const UploadButton = () => {
   const [imageFile, setImageFile] = useState<FileWithPreview | undefined>();
-  const [convertingImage, setConvertingImage] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isDialogOpen, setIsDialogOpen] = useState<boolean>(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -32,7 +30,6 @@ const UploadButton = () => {
   const handleButtonClick = () => fileInputRef.current?.click();
 
   const handleChange = async (event: ChangeEvent<HTMLInputElement>) => {
-    let result;
     const file = event.target.files?.[0];
 
     if (!file) {
@@ -40,23 +37,18 @@ const UploadButton = () => {
       return;
     }
 
-    if (file.type === 'image/heic') {
-      setConvertingImage(true);
-      result = await heic2any({
-        blob: file,
-        toType: 'image/jpeg',
-      });
-      setConvertingImage(false);
-    } else {
-      result = file;
-    }
-
     const fileWithPreview = Object.assign(file, {
-      preview: URL.createObjectURL(result as Blob),
+      preview: URL.createObjectURL(file as Blob),
     }) as FileWithPreview;
 
     setImageFile(fileWithPreview);
   };
+
+  useEffect(() => {
+    if (!isDialogOpen) {
+      setImageFile(undefined);
+    }
+  }, [isDialogOpen]);
 
   return (
     <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
@@ -87,7 +79,7 @@ const UploadButton = () => {
         <div className="flex flex-col gap-y-4">
           <Input
             type="file"
-            accept="image/*, image/heic"
+            accept="image/jpeg, image/png, image/webp"
             onChange={handleChange}
             className="hidden"
             ref={fileInputRef}
@@ -102,10 +94,7 @@ const UploadButton = () => {
               >
                 Select
               </Button>
-              <MediaPreview
-                files={imageFile ? [imageFile] : []}
-                convertingImage={convertingImage}
-              />
+              <MediaPreview files={imageFile ? [imageFile] : []} />
             </>
           )}
         </div>
@@ -123,7 +112,16 @@ const UploadButton = () => {
                 formData.append('imageFront', imageFile, imageFile.name);
                 setIsLoading(true);
 
-                await createTicket(formData);
+                // FIX: calling generateChallengeLetter directly causes timeout on vercel
+                // await createTicket(formData);
+                // create ticket
+                await fetch('/api/ticket/create', {
+                  method: 'POST',
+                  body: formData,
+                });
+
+                // FIX: revalidarPath from route handler seemed to have no effect
+                await revalidateDashboard();
 
                 setIsLoading(false);
 

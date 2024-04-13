@@ -2,13 +2,18 @@
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faUser } from '@fortawesome/pro-regular-svg-icons';
 import { TicketType, TicketStatus } from '@prisma/client';
+import { IconProp } from '@fortawesome/fontawesome-svg-core';
 
 export const NAVIGATION_ITEMS = [
   {
     id: '1',
     label: 'Account',
     component: (
-      <FontAwesomeIcon icon={faUser} size="xl" className="text-black" />
+      <FontAwesomeIcon
+        icon={faUser as IconProp}
+        size="xl"
+        className="text-black"
+      />
     ),
     href: '/account',
   },

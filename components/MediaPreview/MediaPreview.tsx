@@ -4,20 +4,10 @@ import { FileWithPreview } from '@/types';
 
 type MediaPreviewProps = {
   files: FileWithPreview[];
-  convertingImage: boolean;
   className?: string;
 };
 
-const MediaPreview = ({
-  files,
-  convertingImage,
-  className,
-}: MediaPreviewProps) => {
-  if (convertingImage) {
-    // TODO: show spinner instead
-    return <div>Converting image...</div>;
-  }
-
+const MediaPreview = ({ files, className }: MediaPreviewProps) => {
   if (!files?.length) {
     return null;
   }
