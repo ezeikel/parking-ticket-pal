@@ -10,7 +10,13 @@ const TicketsTable = async () => {
     return null;
   }
 
-  return <DataTable columns={columns} data={tickets} />;
+  return (
+    <DataTable
+      columns={columns}
+      data={tickets}
+      emptyText="You haven't uploaded a ticket yet."
+    />
+  );
 };
 
 export default TicketsTable;

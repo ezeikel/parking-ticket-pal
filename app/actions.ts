@@ -2,12 +2,14 @@
 
 'use server';
 
+import { headers } from 'next/headers';
 import { del, put } from '@vercel/blob';
 import OpenAI from 'openai';
 import { MediaType, Ticket } from '@prisma/client';
 import { Readable } from 'stream';
 import prisma from '@/lib/prisma';
 import { Resend } from 'resend';
+import Stripe from 'stripe';
 import { auth } from '@/auth';
 import { FileWithPreview } from '@/types';
 import {
@@ -25,6 +27,10 @@ const openai = new OpenAI({
 });
 
 const resend = new Resend(process.env.RESEND_API_KEY);
+
+const stripe = new Stripe(process.env.STRIPE_SECRET!, {
+  apiVersion: '2024-04-10',
+});
 
 export const createTicket = async (formData: FormData) => {
   const session = await auth();
@@ -485,6 +491,132 @@ export const getCurrentUser = async () => {
   });
 
   return user;
+};
+
+export const getSubscription = async () => {
+  const session = await auth();
+  const userId = session?.userId;
+
+  if (!userId) {
+    console.error('You need to be logged in to get the subscription.');
+
+    return null;
+  }
+
+  const subscription = await prisma.subscription.findFirst({
+    where: {
+      user: {
+        id: userId,
+      },
+    },
+  });
+
+  return subscription;
+};
+
+export const createCheckoutSession = async (): Promise<{
+  id: string;
+} | null> => {
+  const headersList = headers();
+  const origin = headersList.get('origin');
+  const session = await auth();
+  const userId = session?.userId;
+
+  if (!userId) {
+    console.error('You need to be logged in to create a checkout session.');
+
+    return null;
+  }
+
+  // get user information
+  const user = await prisma.user.findUnique({
+    where: {
+      id: userId,
+    },
+    select: {
+      name: true,
+      address: true,
+      email: true,
+    },
+  });
+
+  if (!user) {
+    console.error('User not found.');
+    return null;
+  }
+
+  // TODO: findUnique instead of findFirst
+  const subscription = await prisma.subscription.findFirst({
+    where: {
+      user: {
+        id: userId,
+      },
+    },
+  });
+
+  const stripeSession = await stripe.checkout.sessions.create({
+    payment_method_types: ['card'],
+    line_items: [
+      {
+        // TODO: handle PRO_MONTHLY and PRO_ANNUAL
+        price:
+          process.env.NODE_ENV === 'production'
+            ? 'price_1P5D6e02fXLfPj3Bfj2207PZ'
+            : 'price_1P528Y02fXLfPj3BAu29W2YC',
+        quantity: 1,
+      },
+    ],
+    mode: 'subscription',
+    success_url: `${origin}/billing/success`,
+    cancel_url: `${origin}/billing`,
+    client_reference_id: userId,
+
+    // send stripe customer id if user already exists in stripe
+    customer: subscription?.stripeCustomerId ?? undefined,
+    customer_email: subscription ? undefined : user.email,
+  });
+
+  return {
+    id: stripeSession.id,
+  };
+};
+
+export const createCustomerPortalSession = async () => {
+  const headersList = headers();
+  const origin = headersList.get('origin');
+
+  const session = await auth();
+  const userId = session?.userId;
+
+  if (!userId) {
+    console.error(
+      'You need to be logged in to create a customer portal session.',
+    );
+
+    return null;
+  }
+
+  const subscription = await prisma.subscription.findFirst({
+    where: {
+      user: {
+        id: userId,
+      },
+    },
+  });
+
+  if (!subscription?.stripeCustomerId) {
+    console.error('No subscription found for this user.');
+    return null;
+  }
+
+  const portalSession = await stripe.billingPortal.sessions.create({
+    customer: subscription.stripeCustomerId,
+    return_url: `${origin}/billing`,
+  });
+
+  return {
+    url: portalSession.url,
+  };
 };
 
 export const revalidateDashboard = async () => revalidatePath('/dashboard');

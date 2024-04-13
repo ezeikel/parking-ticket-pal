@@ -53,14 +53,20 @@ enum IssuerType {
   PRIVATE_COMPANY
 }
 
+enum SubscriptionType {
+  BASIC
+  PRO
+}
+
 model User {
-  id        String    @id @default(cuid())
-  name      String
-  email     String    @unique
-  address   String?
-  vehicles  Vehicle[]
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
+  id           String         @id @default(cuid())
+  name         String
+  email        String         @unique
+  address      String?
+  vehicles     Vehicle[]
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+  Subscription Subscription[]
 
   @@map("users")
 }
@@ -139,4 +145,16 @@ model Media {
   updatedAt   DateTime  @updatedAt
 
   @@map("media")
+}
+
+model Subscription {
+  id               String           @id @default(cuid())
+  type             SubscriptionType @default(BASIC)
+  stripeCustomerId String?          @unique
+  user             User             @relation(fields: [userId], references: [id])
+  userId           String
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+
+  @@map("subscriptions")
 }
