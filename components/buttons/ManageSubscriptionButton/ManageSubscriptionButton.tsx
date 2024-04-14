@@ -23,10 +23,7 @@ const ManageSubscriptionButton = () => {
   };
 
   return (
-    <Button
-      title="Manage subscription"
-      onClick={handleManageSubscriptionClick}
-    />
+    <Button onClick={handleManageSubscriptionClick}>Manage subscription</Button>
   );
 };
 

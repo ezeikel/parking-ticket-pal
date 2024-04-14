@@ -1,3 +1,4 @@
+import { SubscriptionType } from '@prisma/client';
 import PageWrap from '@/components/PageWrap/PageWrap';
 import SubscribeButton from '@/components/buttons/SubscribeButton/SubscribeButton';
 import ManageSubscriptionButton from '@/components/buttons/ManageSubscriptionButton/ManageSubscriptionButton';
@@ -9,9 +10,9 @@ const BillingPage = async () => {
   return (
     <PageWrap>
       <h1>Billing</h1>
-      {subscription ? (
+      {subscription?.type === SubscriptionType.PRO ? (
         <>
-          <h1>You are subscribed</h1>
+          <h1>You are subscribed to Pro</h1>
           <ManageSubscriptionButton />
         </>
       ) : (

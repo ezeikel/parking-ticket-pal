@@ -27,6 +27,9 @@ export const {
           data: {
             email: profile?.email as string,
             name: profile?.name as string,
+            subscription: {
+              create: {},
+            },
           },
         }); // Create a new user with these details
         return true;

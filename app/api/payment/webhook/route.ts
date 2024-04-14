@@ -74,6 +74,22 @@ export async function POST(request: NextRequest) {
         `No customer email provided for ${id} to update Subscription to "SUBSCRIBED"`,
       );
     }
+  } else if (stripeEvent.type === 'customer.subscription.updated') {
+    // handle subscription updated event
+    const updatedCustomerSubscription = stripeEvent.data
+      .object as Stripe.Subscription;
+
+    // update user subscription
+
+    await prisma.subscription.updateMany({
+      where: {
+        stripeCustomerId: updatedCustomerSubscription.customer as string,
+      },
+      data: {
+        // will always be PRO since BASIC is the default
+        type: SubscriptionType.PRO,
+      },
+    });
   } else if (stripeEvent.type === 'customer.subscription.deleted') {
     const deletedCustomerSubscription = stripeEvent.data
       .object as Stripe.Subscription;

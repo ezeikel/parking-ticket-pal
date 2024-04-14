@@ -58,15 +58,26 @@ enum SubscriptionType {
   PRO
 }
 
+enum ReminderType {
+  REDUCED_PAYMENT_DUE
+  FULL_PAYMENT_DUE
+  APPEAL
+}
+
+enum NotificationType {
+  EMAIL
+  SMS
+}
+
 model User {
-  id           String         @id @default(cuid())
+  id           String        @id @default(cuid())
   name         String
-  email        String         @unique
+  email        String        @unique
   address      String?
   vehicles     Vehicle[]
-  createdAt    DateTime       @default(now())
-  updatedAt    DateTime       @updatedAt
-  Subscription Subscription[]
+  subscription Subscription?
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
 
   @@map("users")
 }
@@ -102,35 +113,13 @@ model Ticket {
   issuerType          IssuerType
   vehicle             Vehicle        @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
   vehicleId           String
+  media               Media[]
+  appeal              Appeal?
+  reminder            Reminder[]
   createdAt           DateTime       @default(now())
   updatedAt           DateTime       @updatedAt
-  media               Media[]
 
   @@map("tickets")
-}
-
-model Letter {
-  id        String     @id @default(cuid())
-  type      LetterType
-  ticket    Ticket     @relation(fields: [ticketId], references: [id], onDelete: Cascade)
-  ticketId  String
-  content   String
-  createdAt DateTime   @default(now())
-  updatedAt DateTime   @updatedAt
-
-  @@map("letters")
-}
-
-model Contravention {
-  id           String   @id @default(cuid())
-  code         String   @unique
-  description  String
-  legalClauses String[]
-  ticket       Ticket[]
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-
-  @@map("contraventions")
 }
 
 model Media {
@@ -147,14 +136,65 @@ model Media {
   @@map("media")
 }
 
+model Contravention {
+  id           String   @id @default(cuid())
+  code         String   @unique
+  description  String
+  legalClauses String[]
+  ticket       Ticket[]
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@map("contraventions")
+}
+
+model Letter {
+  id        String     @id @default(cuid())
+  type      LetterType
+  ticket    Ticket     @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  ticketId  String
+  content   String
+  appeal    Appeal?    @relation(fields: [appealId], references: [id])
+  appealId  String?
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+
+  @@map("letters")
+}
+
+model Appeal {
+  id        String   @id @default(cuid())
+  ticket    Ticket   @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  ticketId  String   @unique
+  content   String
+  letter    Letter[]
+  letterId  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("appeals")
+}
+
 model Subscription {
   id               String           @id @default(cuid())
   type             SubscriptionType @default(BASIC)
   stripeCustomerId String?          @unique
   user             User             @relation(fields: [userId], references: [id])
-  userId           String
+  userId           String           @unique
   createdAt        DateTime         @default(now())
   updatedAt        DateTime         @updatedAt
 
   @@map("subscriptions")
+}
+
+model Reminder {
+  id                   String           @id @default(cuid())
+  type                 ReminderType
+  notificaticationType NotificationType
+  ticket               Ticket           @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  ticketId             String
+  createdAt            DateTime         @default(now())
+  updatedAt            DateTime         @updatedAt
+
+  @@map("reminders")
 }
