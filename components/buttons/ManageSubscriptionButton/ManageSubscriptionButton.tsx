@@ -1,9 +1,9 @@
 'use client';
 
 import { createCustomerPortalSession } from '@/app/actions';
-import { Button } from '@/components/ui/button';
+import { Button, ButtonProps } from '@/components/ui/button';
 
-const ManageSubscriptionButton = () => {
+const ManageSubscriptionButton = (props: ButtonProps) => {
   const handleManageSubscriptionClick = async () => {
     try {
       // call backend to create portal session
@@ -23,7 +23,13 @@ const ManageSubscriptionButton = () => {
   };
 
   return (
-    <Button onClick={handleManageSubscriptionClick}>Manage subscription</Button>
+    <Button
+      onClick={handleManageSubscriptionClick}
+      // eslint-disable-next-line react/jsx-props-no-spreading
+      {...props}
+    >
+      Manage subscription
+    </Button>
   );
 };
 

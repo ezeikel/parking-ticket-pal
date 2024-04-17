@@ -19,7 +19,8 @@ export const middleware = async (req: NextRequest) => {
     pathname.startsWith('/images') ||
     pathname.startsWith('/_next/static') ||
     pathname.startsWith('/_next/image') ||
-    pathname === '/favicon.ico'
+    pathname === '/favicon.ico' ||
+    pathname === '/monitoring'
   ) {
     return NextResponse.next();
   }

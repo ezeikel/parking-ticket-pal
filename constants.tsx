@@ -1,8 +1,8 @@
 /* eslint-disable import/prefer-default-export */
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faUser } from '@fortawesome/pro-regular-svg-icons';
 import { TicketType, TicketStatus } from '@prisma/client';
 import { IconProp } from '@fortawesome/fontawesome-svg-core';
+import { faCreditCard, faUser } from '@fortawesome/pro-duotone-svg-icons';
 
 export const NAVIGATION_ITEMS = [
   {
@@ -17,12 +17,25 @@ export const NAVIGATION_ITEMS = [
     ),
     href: '/account',
   },
+  {
+    id: '2',
+    label: 'Billing',
+    component: (
+      <FontAwesomeIcon
+        icon={faCreditCard as IconProp}
+        size="xl"
+        className="text-black"
+      />
+    ),
+    href: '/billing',
+  },
 ];
 
 export const AUTHENTICATED_PATHS = [
   '/dashboard',
   '/account',
   /\/ticket\/[a-zA-Z0-9]+/,
+  '/billing',
 ];
 
 export const BACKGROUND_INFORMATION_PROMPT = `

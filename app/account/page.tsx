@@ -5,8 +5,8 @@ const AccountPage = async () => {
   const user = await getCurrentUser();
 
   return (
-    <PageWrap>
-      <h1>Account Page</h1>
+    <PageWrap className="gap-y-16">
+      <h1 className="font-sans text-4xl font-bold text-center">Account</h1>
       <pre>{JSON.stringify(user, null, 2)}</pre>
     </PageWrap>
   );

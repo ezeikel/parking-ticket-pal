@@ -90,6 +90,7 @@ model Vehicle {
   model        String // e.g. Camry, Civic
   year         Int // year of the vehicle - could probably look this up via number plate
   registration String   @unique
+  active       Boolean  @default(true) // indicates if the vehicle is currently owned by the user
   tickets      Ticket[] // tickets associated with the vehicle
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
@@ -106,6 +107,7 @@ model Ticket {
   dateIssued          DateTime
   dateOfContravention DateTime
   status              TicketStatus[] @default([REDUCED_PAYMENT_DUE])
+  paymentLink         String? // TODO: make this required
   letters             Letter[]
   type                TicketType
   amountDue           Int

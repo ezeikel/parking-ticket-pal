@@ -16,7 +16,7 @@ const Header = ({ className }: HeaderProps) => (
     <Link href="/" className="font-sans font-bold text-3xl">
       PCNs
     </Link>
-    <nav className="flex items-center gap-x-4">
+    <nav className="flex items-center gap-x-16">
       <NavigationItems />
       <AuthButton />
     </nav>

@@ -6,7 +6,7 @@
     "seed": "ts-node --compiler-options {\"module\":\"CommonJS\"} prisma/seed.ts"
   },
   "scripts": {
-    "dev": "next dev --turbo",
+    "dev": "next dev",
     "build": "prisma generate && next build",
     "start": "next start",
     "email": "email dev --port 3005",
@@ -53,6 +53,7 @@
     "@radix-ui/react-tooltip": "^1.0.7",
     "@react-email/components": "0.0.16",
     "@react-pdf/renderer": "^3.4.2",
+    "@sentry/nextjs": "^7.105.0",
     "@stripe/stripe-js": "^3.3.0",
     "@tanstack/react-table": "^8.15.3",
     "@vercel/analytics": "^1.2.2",
