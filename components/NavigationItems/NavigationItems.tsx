@@ -2,14 +2,16 @@
 
 import Link from 'next/link';
 import { useSession } from 'next-auth/react';
+import { useMediaQuery } from 'react-responsive';
 import { NAVIGATION_ITEMS } from '@/constants';
 import { isPathAuthenticated } from '@/utils/isAuthenticatedPath';
 
 const NavigationItems = () => {
   const { status } = useSession();
+  const isNotMobile = useMediaQuery({ minWidth: 768 });
 
   return (
-    <ul className="flex gap-x-8 items-center">
+    <ul className="flex gap-x-4 md:gap-x-8 items-center">
       {NAVIGATION_ITEMS.filter((item) => {
         if (isPathAuthenticated(item.href)) {
           return status === 'authenticated';
@@ -23,7 +25,7 @@ const NavigationItems = () => {
             className="flex flex-col gap-y-1 items-center font-sans text-sm font-semibold cursor-pointer"
           >
             {item.component}
-            {item.label}
+            {isNotMobile ? item.label : null}
           </Link>
         </li>
       ))}

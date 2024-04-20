@@ -8,7 +8,7 @@ type SignOutButtonProps = {
 };
 
 const SignOutButton = ({ className }: SignOutButtonProps) => (
-  <Button onClick={() => signOut()} className={className}>
+  <Button onClick={() => signOut()} className={className} variant="ghost">
     Sign out
   </Button>
 );

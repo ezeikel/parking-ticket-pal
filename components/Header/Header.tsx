@@ -29,16 +29,18 @@ const Header = async ({ className }: HeaderProps) => {
       <Link href="/" className="font-sans font-bold text-3xl">
         PCNs
       </Link>
-      <nav className="flex items-center gap-x-16">
+      <nav className="flex items-center gap-x-4 md:gap-x-16">
         <section className="flex items-center gap-x-4">
           <div className="flex flex-col gap-y-1 items-center font-sans text-sm font-semibold">
-            <FontAwesomeIcon
-              icon={faCoinVertical}
-              className="text-gray-600"
-              size="xl"
-            />
-            <div className="flex gap-x-2">
-              <span>{credits}</span>
+            <div className="hidden md:block">
+              <FontAwesomeIcon
+                icon={faCoinVertical}
+                className="text-gray-600"
+                size="xl"
+              />
+            </div>
+            <div className="flex gap-x-2 items-center">
+              <span className="text-xl">{credits}</span>
               <span className="text-gray-500">
                 credit{credits === 0 || credits > 1 ? 's' : ''}
               </span>
