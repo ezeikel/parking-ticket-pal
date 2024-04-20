@@ -13,10 +13,43 @@ import {
 } from '@/components/ui/dialog';
 import { useAccountContext } from '@/contexts/account';
 import { ProductType } from '@/types';
+import { loadStripe } from '@stripe/stripe-js';
+
+// Make sure to call `loadStripe` outside of a component’s render to avoid
+// recreating the `Stripe` object on every render.
+const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_KEY as string);
 
 const FundAccountDialog = () => {
   const { isFundAccountDialogOpen, setIsFundAccountDialogOpen } =
     useAccountContext();
+
+  const handleClick = async (productType: ProductType) => {
+    // get stripe.js instance
+    const stripe = await stripePromise;
+
+    if (!stripe) return;
+
+    // call backend to create checkout session
+    const session = await createCheckoutSession(productType);
+
+    if (!session) {
+      console.error('Error creating checkout session');
+      return;
+    }
+
+    const { id } = session;
+
+    // when customer clicks on the button, redirect them to checkout.
+    const result = await stripe.redirectToCheckout({
+      sessionId: id,
+    });
+
+    if (result.error) {
+      // If `redirectToCheckout` fails due to a browser or network
+      // error, display the localized error message to your customer
+      // using `result.error.message`.
+    }
+  };
 
   return (
     <Dialog
@@ -36,9 +69,9 @@ const FundAccountDialog = () => {
         <div className="grid gap-4 py-4">
           <Button
             className="w-full"
-            variant="ghost"
+            variant="outline"
             onClick={() => {
-              createCheckoutSession(ProductType.PAY_PER_TICKET);
+              handleClick(ProductType.PAY_PER_TICKET);
             }}
           >
             Buy Credits
@@ -47,7 +80,7 @@ const FundAccountDialog = () => {
             className="w-full"
             variant="outline"
             onClick={() => {
-              createCheckoutSession(ProductType.PRO_MONTHLY);
+              handleClick(ProductType.PRO_MONTHLY);
             }}
           >
             Subscribe to Pro Monthly
@@ -56,7 +89,7 @@ const FundAccountDialog = () => {
             className="w-full"
             variant="outline"
             onClick={() => {
-              createCheckoutSession(ProductType.PRO_ANNUAL);
+              handleClick(ProductType.PRO_ANNUAL);
             }}
           >
             Subscribe to Pro Annual

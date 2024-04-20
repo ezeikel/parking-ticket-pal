@@ -30,31 +30,33 @@ const Header = async ({ className }: HeaderProps) => {
         PCNs
       </Link>
       <nav className="flex items-center gap-x-4 md:gap-x-16">
-        <section className="flex items-center gap-x-4">
-          <div className="flex flex-col gap-y-1 items-center font-sans text-sm font-semibold">
-            <div className="hidden md:block">
-              <FontAwesomeIcon
-                icon={faCoinVertical}
-                className="text-gray-600"
-                size="xl"
-              />
+        {user ? (
+          <section className="flex items-center gap-x-4">
+            <div className="flex flex-col gap-y-1 items-center font-sans text-sm font-semibold">
+              <div className="hidden md:block">
+                <FontAwesomeIcon
+                  icon={faCoinVertical}
+                  className="text-gray-600"
+                  size="xl"
+                />
+              </div>
+              <div className="flex gap-x-2 items-center">
+                <span className="text-xl">{credits}</span>
+                <span className="text-gray-500">
+                  credit{credits === 0 || credits > 1 ? 's' : ''}
+                </span>
+              </div>
             </div>
-            <div className="flex gap-x-2 items-center">
-              <span className="text-xl">{credits}</span>
-              <span className="text-gray-500">
-                credit{credits === 0 || credits > 1 ? 's' : ''}
-              </span>
-            </div>
-          </div>
-          {subscription?.type === SubscriptionType.PRO ? (
-            <Badge
-              className="font-sans bg-green-500 text-white hover:bg-green-500"
-              variant="secondary"
-            >
-              Pro
-            </Badge>
-          ) : null}
-        </section>
+            {subscription?.type === SubscriptionType.PRO ? (
+              <Badge
+                className="font-sans bg-green-500 text-white hover:bg-green-500"
+                variant="secondary"
+              >
+                Pro
+              </Badge>
+            ) : null}
+          </section>
+        ) : null}
         <NavigationItems />
         <AuthButton />
       </nav>

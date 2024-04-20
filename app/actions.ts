@@ -567,16 +567,20 @@ export const createCheckoutSession = async (
   id: string;
 } | null> => {
   let priceId;
+  let mode: 'payment' | 'subscription';
 
   switch (productType) {
     case ProductType.PAY_PER_TICKET:
       priceId = process.env.PAY_PER_TICKET_STRIPE_PRICE_ID;
+      mode = 'payment';
       break;
     case ProductType.PRO_MONTHLY:
       priceId = process.env.PRO_MONTHLY_STRIPE_PRICE_ID;
+      mode = 'subscription';
       break;
     case ProductType.PRO_ANNUAL:
       priceId = process.env.PRO_ANNUAL_STRIPE_PRICE_ID;
+      mode = 'subscription';
       break;
     default:
       throw new Error('Invalid product type');
@@ -625,7 +629,7 @@ export const createCheckoutSession = async (
         quantity: 1,
       },
     ],
-    mode: 'subscription',
+    mode,
     success_url: `${origin}/billing/success`,
     cancel_url: `${origin}/billing`,
     client_reference_id: userId,
