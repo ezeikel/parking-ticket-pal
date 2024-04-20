@@ -4,12 +4,14 @@ import { loadStripe } from '@stripe/stripe-js';
 import { createCheckoutSession } from '@/app/actions';
 import { Button, ButtonProps } from '@/components/ui/button';
 import cn from '@/utils/cn';
+import { ProductType } from '@/types';
 
 // Make sure to call `loadStripe` outside of a component’s render to avoid
 // recreating the `Stripe` object on every render.
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_KEY as string);
 
 type SubscribeButtonProps = ButtonProps & {
+  productType: ProductType;
   text?: string;
   className?: string;
 };
@@ -17,6 +19,7 @@ type SubscribeButtonProps = ButtonProps & {
 const SubscribeButton = ({
   text,
   className,
+  productType,
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   ...props
 }: SubscribeButtonProps) => {
@@ -27,7 +30,7 @@ const SubscribeButton = ({
     if (!stripe) return;
 
     // call backend to create checkout session
-    const session = await createCheckoutSession();
+    const session = await createCheckoutSession(productType);
 
     if (!session) {
       console.error('Error creating checkout session');

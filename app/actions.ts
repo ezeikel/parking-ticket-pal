@@ -5,13 +5,13 @@
 import { headers } from 'next/headers';
 import { del, put } from '@vercel/blob';
 import OpenAI from 'openai';
-import { MediaType, Ticket } from '@prisma/client';
+import { MediaType, SubscriptionType, Ticket } from '@prisma/client';
 import { Readable } from 'stream';
 import prisma from '@/lib/prisma';
 import { Resend } from 'resend';
 import Stripe from 'stripe';
 import { auth } from '@/auth';
-import { FileWithPreview } from '@/types';
+import { FileWithPreview, ProductType } from '@/types';
 import {
   BACKGROUND_INFORMATION_PROMPT,
   CREATE_TICKET_PROMPT,
@@ -32,13 +32,59 @@ const stripe = new Stripe(process.env.STRIPE_SECRET!, {
   apiVersion: '2024-04-10',
 });
 
-export const createTicket = async (formData: FormData) => {
+const getUserId = async (action?: string) => {
   const session = await auth();
   const userId = session?.userId;
 
   if (!userId) {
-    console.error('You need to be logged in to create a ticket.');
+    console.error(
+      `You need to be logged in to ${action || 'perform this action'}. `,
+    );
 
+    return null;
+  }
+
+  return userId;
+};
+
+export const createTicket = async (formData: FormData) => {
+  const userId = await getUserId('create a ticket');
+
+  if (!userId) {
+    return null;
+  }
+
+  // check if a user has a pro subscription or enough credits to create a ticket
+  const user = await prisma.user.findUnique({
+    where: {
+      id: userId,
+    },
+    select: {
+      credits: true,
+    },
+  });
+
+  if (!user) {
+    console.error('User not found.');
+    return null;
+  }
+
+  const subscription = await prisma.subscription.findFirst({
+    where: {
+      user: {
+        id: userId,
+      },
+    },
+  });
+
+  // check if user has enough credits or a pro subscription
+  if (
+    (!subscription || subscription.type !== SubscriptionType.PRO) &&
+    user.credits <= 0
+  ) {
+    console.error(
+      'You need to have a pro subscription or enough credits to create a ticket.',
+    );
     return null;
   }
 
@@ -164,18 +210,30 @@ export const createTicket = async (formData: FormData) => {
     },
   });
 
+  // decrement user credits if they dont have a pro subscription
+
+  if (!subscription || subscription?.type !== SubscriptionType.PRO) {
+    await prisma.user.update({
+      where: {
+        id: userId,
+      },
+      data: {
+        credits: {
+          decrement: 1,
+        },
+      },
+    });
+  }
+
   revalidatePath('/dashboard');
 
   return ticket;
 };
 
 export const deleteTicket = async (id: string) => {
-  const session = await auth();
-  const userId = session?.userId;
+  const userId = await getUserId('delete a ticket');
 
   if (!userId) {
-    console.error('You need to be logged in to delete a ticket.');
-
     return null;
   }
 
@@ -233,15 +291,12 @@ export const getTickets = async (): Promise<
           description: string;
         };
       }[])
-  | undefined
+  | null
 > => {
-  const session = await auth();
-  const userId = session?.userId;
+  const userId = await getUserId('get tickets');
 
   if (!userId) {
-    console.error('You need to be logged in to get tickets.');
-
-    return undefined;
+    return null;
   }
 
   const tickets = await prisma.ticket.findMany({
@@ -287,12 +342,9 @@ export const getTickets = async (): Promise<
 export const getTicket = async (
   id: string,
 ): Promise<Partial<Ticket> | null> => {
-  const session = await auth();
-  const userId = session?.userId;
+  const userId = await getUserId('get a ticket');
 
   if (!userId) {
-    console.error('You need to be logged in to get a ticket.');
-
     return null;
   }
 
@@ -335,12 +387,9 @@ export const getTicket = async (
 };
 
 export const generateChallengeLetter = async (ticketId: string) => {
-  const session = await auth();
-  const userId = session?.userId;
+  const userId = await getUserId('generate a challenge letter');
 
   if (!userId) {
-    console.error('You need to be logged in to generate a challenge letter.');
-
     return null;
   }
 
@@ -469,12 +518,9 @@ export const generateChallengeLetter = async (ticketId: string) => {
 };
 
 export const getCurrentUser = async () => {
-  const session = await auth();
-  const userId = session?.userId;
+  const userId = await getUserId('get the current user');
 
   if (!userId) {
-    console.error('You need to be logged in to get the current user.');
-
     return null;
   }
 
@@ -487,6 +533,7 @@ export const getCurrentUser = async () => {
       name: true,
       email: true,
       address: true,
+      credits: true,
     },
   });
 
@@ -514,17 +561,33 @@ export const getSubscription = async () => {
   return subscription;
 };
 
-export const createCheckoutSession = async (): Promise<{
+export const createCheckoutSession = async (
+  productType: ProductType,
+): Promise<{
   id: string;
 } | null> => {
+  let priceId;
+
+  switch (productType) {
+    case ProductType.PAY_PER_TICKET:
+      priceId = process.env.PAY_PER_TICKET_STRIPE_PRICE_ID;
+      break;
+    case ProductType.PRO_MONTHLY:
+      priceId = process.env.PRO_MONTHLY_STRIPE_PRICE_ID;
+      break;
+    case ProductType.PRO_ANNUAL:
+      priceId = process.env.PRO_ANNUAL_STRIPE_PRICE_ID;
+      break;
+    default:
+      throw new Error('Invalid product type');
+  }
+
   const headersList = headers();
   const origin = headersList.get('origin');
-  const session = await auth();
-  const userId = session?.userId;
+
+  const userId = await getUserId('create a checkout session');
 
   if (!userId) {
-    console.error('You need to be logged in to create a checkout session.');
-
     return null;
   }
 
@@ -558,11 +621,7 @@ export const createCheckoutSession = async (): Promise<{
     payment_method_types: ['card'],
     line_items: [
       {
-        // TODO: handle PRO_MONTHLY and PRO_ANNUAL
-        price:
-          process.env.NODE_ENV === 'production'
-            ? 'price_1P5D6e02fXLfPj3Bfj2207PZ'
-            : 'price_1P528Y02fXLfPj3BAu29W2YC',
+        price: priceId,
         quantity: 1,
       },
     ],
@@ -585,14 +644,9 @@ export const createCustomerPortalSession = async () => {
   const headersList = headers();
   const origin = headersList.get('origin');
 
-  const session = await auth();
-  const userId = session?.userId;
+  const userId = await getUserId('create a customer portal session');
 
   if (!userId) {
-    console.error(
-      'You need to be logged in to create a customer portal session.',
-    );
-
     return null;
   }
 

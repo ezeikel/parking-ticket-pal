@@ -69,6 +69,17 @@ enum NotificationType {
   SMS
 }
 
+enum TransactionType {
+  PURCHASE
+  CONSUME
+}
+
+enum ProductType {
+  PAY_PER_TICKET
+  PRO_MONTHLY
+  PRO_ANNUAL
+}
+
 model User {
   id           String        @id @default(cuid())
   name         String
@@ -76,6 +87,7 @@ model User {
   address      String?
   vehicles     Vehicle[]
   subscription Subscription?
+  credits      Int           @default(1) // credits for uploading tickets
   createdAt    DateTime      @default(now())
   updatedAt    DateTime      @updatedAt
 
@@ -113,6 +125,7 @@ model Ticket {
   amountDue           Int
   issuer              String
   issuerType          IssuerType
+  verified            Boolean        @default(false)
   vehicle             Vehicle        @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
   vehicleId           String
   media               Media[]

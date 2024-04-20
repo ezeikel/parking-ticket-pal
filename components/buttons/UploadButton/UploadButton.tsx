@@ -19,15 +19,44 @@ import { FileWithPreview, LoaderType } from '@/types';
 import Loader from '@/components/Loader/Loader';
 import { useToast } from '@/components/ui/use-toast';
 import { revalidateDashboard } from '@/app/actions';
+import { useAccountContext } from '@/contexts/account';
 
-const UploadButton = () => {
+type UploadButtonProps = {
+  hasProSubscription: boolean;
+  numberOfCredits: number;
+  numberOfTickets: number;
+};
+
+const UploadButton = ({
+  hasProSubscription,
+  numberOfCredits,
+  numberOfTickets,
+}: UploadButtonProps) => {
   const [imageFile, setImageFile] = useState<FileWithPreview | undefined>();
   const [isLoading, setIsLoading] = useState(false);
   const [isDialogOpen, setIsDialogOpen] = useState<boolean>(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
+  const { setIsFundAccountDialogOpen } = useAccountContext();
 
-  const handleButtonClick = () => fileInputRef.current?.click();
+  const handleButtonClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  // handles dialog open state and checks if user is subscribed or has credits before opening dialog
+  const onOpenDialogChange = (open: boolean) => {
+    if (!open) {
+      setIsDialogOpen(false);
+      return;
+    }
+
+    if (hasProSubscription || numberOfCredits > 0 || numberOfTickets === 0) {
+      setIsDialogOpen(true);
+    } else {
+      // open dialog to subscribe or pay for a ticket
+      setIsFundAccountDialogOpen(true);
+    }
+  };
 
   const handleChange = async (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -51,7 +80,7 @@ const UploadButton = () => {
   }, [isDialogOpen]);
 
   return (
-    <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+    <Dialog open={isDialogOpen} onOpenChange={onOpenDialogChange}>
       <DialogTrigger asChild>
         <Button
           variant="outline"

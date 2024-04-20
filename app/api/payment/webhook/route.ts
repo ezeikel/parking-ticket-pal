@@ -46,7 +46,47 @@ export async function POST(request: NextRequest) {
   }
 
   // handle the event
-  if (stripeEvent.type === 'customer.subscription.created') {
+  if (stripeEvent.type === 'checkout.session.completed') {
+    const completedCheckoutSession = stripeEvent.data
+      .object as Stripe.Checkout.Session;
+
+    const { id, email } = (await stripe.customers.retrieve(
+      completedCheckoutSession.customer as string,
+    )) as Stripe.Customer; // casting because of union type - https://github.com/stripe/stripe-node/issues/1032
+
+    if (email) {
+      // retrieve the line items from the session
+      const lineItems = await stripe.checkout.sessions.listLineItems(
+        completedCheckoutSession.id,
+        {
+          limit: 5,
+        },
+      );
+
+      // eslint-disable-next-line no-restricted-syntax
+      for (const item of lineItems.data) {
+        if (item.price?.id === process.env.PAY_PER_TICKET_STRIPE_PRICE_ID) {
+          // update user subscription
+          // eslint-disable-next-line no-await-in-loop
+          await prisma.user.update({
+            where: {
+              email,
+            },
+            data: {
+              // increment credits
+              credits: {
+                increment: item.quantity as number,
+              },
+            },
+          });
+        }
+      }
+    } else {
+      console.error(
+        `No customer email provided for ${id} to update credits balance`,
+      );
+    }
+  } else if (stripeEvent.type === 'customer.subscription.created') {
     const createdCustomerSubscription = stripeEvent.data
       .object as Stripe.Subscription;
 

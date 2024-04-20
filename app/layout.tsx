@@ -7,6 +7,7 @@ import '@fortawesome/fontawesome-svg-core/styles.css';
 import cn from '@/utils/cn';
 import Header from '@/components/Header/Header';
 import LayoutWrap from '@/components/LayoutWrap/LayoutWrap';
+import FundAccountDialog from '@/components/dialogs/FundAccountDialog/FundAccountDialog';
 import Providers from './providers';
 import '@/global.css';
 
@@ -47,6 +48,7 @@ export default function RootLayout({
           <LayoutWrap>
             <Header className="row-start-1 row-span-1" />
             <main className="row-start-2 row-span-1">{children}</main>
+            <FundAccountDialog />
           </LayoutWrap>
         </Providers>
         <Toaster />

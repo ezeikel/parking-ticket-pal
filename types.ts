@@ -1,5 +1,11 @@
 import { IssuerType, TicketType } from '@prisma/client';
 
+export enum ProductType {
+  PAY_PER_TICKET = 'PAY_PER_TICKET',
+  PRO_MONTHLY = 'PRO_MONTHLY',
+  PRO_ANNUAL = 'PRO_ANNUAL',
+}
+
 export type FileWithPreview = File & {
   preview: string;
 };

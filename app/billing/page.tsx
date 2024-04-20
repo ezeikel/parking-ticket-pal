@@ -4,6 +4,7 @@ import { CardTitle, CardHeader, CardContent, Card } from '@/components/ui/card';
 import SubscribeButton from '@/components/buttons/SubscribeButton/SubscribeButton';
 import ManageSubscriptionButton from '@/components/buttons/ManageSubscriptionButton/ManageSubscriptionButton';
 import formatPenniesToPounds from '@/utils/formatPenniesToPounds';
+import { ProductType } from '@/types';
 import { getSubscription } from '../actions';
 
 type CardData = {
@@ -13,16 +14,18 @@ type CardData = {
   buttonLabel: string;
   buttonVariant: 'default' | 'outline';
   disabled?: boolean;
+  type: ProductType;
 };
 
 const CARD_DATA: CardData[] = [
   {
-    title: 'Pay per ticket',
+    title: 'Pay per ticket (credit)',
     price: 249,
-    per: 'Per ticket',
+    per: 'Per credit',
     buttonLabel: 'Selected',
     buttonVariant: 'outline',
     disabled: true,
+    type: ProductType.PAY_PER_TICKET,
   },
   {
     title: 'Pro Monthly',
@@ -30,6 +33,7 @@ const CARD_DATA: CardData[] = [
     per: 'Per month',
     buttonLabel: 'Subscribe',
     buttonVariant: 'default',
+    type: ProductType.PRO_MONTHLY,
   },
   {
     title: 'Pro Annual',
@@ -37,6 +41,7 @@ const CARD_DATA: CardData[] = [
     per: 'Per year',
     buttonLabel: 'Subscribe',
     buttonVariant: 'default',
+    type: ProductType.PRO_ANNUAL,
   },
 ];
 
@@ -66,6 +71,7 @@ const BillingPage = async () => {
                 buttonLabel,
                 buttonVariant,
                 disabled = false,
+                type,
               }) => (
                 <Card className={`shadow-lg ${disabled ? 'bg-gray-100' : ''}`}>
                   <CardHeader>
@@ -81,6 +87,7 @@ const BillingPage = async () => {
                       variant={buttonVariant}
                       text={buttonLabel}
                       disabled={disabled}
+                      productType={type}
                     />
                   </CardContent>
                 </Card>
