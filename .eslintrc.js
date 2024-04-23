@@ -49,22 +49,5 @@ module.exports = {
         ],
       },
     },
-    {
-      files: './cypress.config.ts',
-      parser: '@typescript-eslint/parser',
-      parserOptions: {
-        project: './cypress/tsconfig.json',
-      },
-      plugins: ['@typescript-eslint/eslint-plugin'],
-      extends: ['airbnb-typescript', 'plugin:prettier/recommended'],
-      rules: {
-        'import/no-extraneous-dependencies': [
-          'error',
-          {
-            devDependencies: ['./cypress.config.ts'],
-          },
-        ],
-      },
-    },
   ],
 };

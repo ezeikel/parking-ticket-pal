@@ -2,7 +2,7 @@ import PageWrap from '@/components/PageWrap/PageWrap';
 import SignInButton from '@/components/buttons/SignInButton/SignInButton';
 import Image from 'next/image';
 
-export default function HomePage() {
+const HomePage = () => {
   return (
     <PageWrap>
       <section className="w-full my-auto">
@@ -39,4 +39,6 @@ export default function HomePage() {
       </section>
     </PageWrap>
   );
-}
+};
+
+export default HomePage;
