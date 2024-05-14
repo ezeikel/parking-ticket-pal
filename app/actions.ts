@@ -16,7 +16,6 @@ import {
   BACKGROUND_INFORMATION_PROMPT,
   CREATE_TICKET_PROMPT,
 } from '@/constants';
-import { parseTicketInfo } from '@/utils/parseOpenAIResponse';
 import generatePDF from '@/utils/generatePDF';
 import streamToBuffer from '@/utils/streamToBuffer';
 import formatPenniesToPounds from '@/utils/formatPenniesToPounds';
@@ -111,7 +110,8 @@ export const createTicket = async (formData: FormData) => {
 
   // TODO: send ticket front and back image to openai to get ticket information in a JSON format
   const response = await openai.chat.completions.create({
-    model: 'gpt-4-vision-preview',
+    model: 'gpt-4o',
+    response_format: { type: 'json_object' },
     messages: [
       {
         role: 'user',
@@ -133,18 +133,16 @@ export const createTicket = async (formData: FormData) => {
 
   // DEBUG:
   // eslint-disable-next-line no-console
-  console.log('createTicket gpt-4-vision-preview response:', response);
+  console.log('createTicket gpt-4o response:', response);
 
   // DEBUG:
   // eslint-disable-next-line no-console
   console.log(
-    'createTicket gpt-4-vision-preview message: ',
+    'createTicket gpt-4o message: ',
     JSON.stringify(response.choices[0].message, null, 2),
   );
 
-  const ticketInfo = parseTicketInfo(
-    response.choices[0].message.content as string,
-  );
+  const ticketInfo = response.choices[0].message.content;
 
   // DEBUG:
   // eslint-disable-next-line no-console
@@ -161,7 +159,7 @@ export const createTicket = async (formData: FormData) => {
     amountDue,
     issuer,
     issuerType,
-  } = ticketInfo;
+  } = JSON.parse(ticketInfo as string);
 
   // save ticket to database
   const ticket = await prisma.ticket.create({
@@ -453,7 +451,7 @@ export const generateChallengeLetter = async (ticketId: string) => {
   // use OpenAI to generate a challenge letter and email based on the detailed ticket information
   const [createLetterResponse, createEmailResponse] = await Promise.all([
     openai.chat.completions.create({
-      model: 'gpt-4',
+      model: 'gpt-4o',
       messages: [
         {
           role: 'user',
@@ -462,7 +460,7 @@ export const generateChallengeLetter = async (ticketId: string) => {
       ],
     }),
     openai.chat.completions.create({
-      model: 'gpt-4',
+      model: 'gpt-4o',
       messages: [
         {
           role: 'user',
@@ -480,17 +478,11 @@ export const generateChallengeLetter = async (ticketId: string) => {
 
   // DEBUG:
   // eslint-disable-next-line no-console
-  console.log(
-    'generateChallengeLetter response:',
-    JSON.stringify(generatedLetterFromOpenAI, null, 2),
-  );
+  console.log('generateChallengeLetter response:', generatedLetterFromOpenAI);
 
   // DEBUG:
   // eslint-disable-next-line no-console
-  console.log(
-    'generateEmail response:',
-    JSON.stringify(generatedEmailFromOpenAI, null, 2),
-  );
+  console.log('generateEmail response:', generatedEmailFromOpenAI);
 
   // take the response and generate a PDF letter
   const pdfStream = await generatePDF(generatedLetterFromOpenAI);

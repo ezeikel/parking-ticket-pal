@@ -43,7 +43,7 @@ Imagine you are working as customer support for a company called "PCNs" that han
 `;
 
 export const CREATE_TICKET_PROMPT = `
-Please provide the following details from the Penalty Charge Notice (PCN) image in a structured key-value format:
+Please provide the following details from the Penalty Charge Notice (PCN) image in a JSON format:
 
 pcnNumber: [PCN Number]
 type: [PARKING_CHARGE_NOTICE or PENALTY_CHARGE_NOTICE based on who issued the ticket]
@@ -59,7 +59,7 @@ issuerType: [COUNCIL or TFL or PRIVATE_COMPANY based on the issuer]
 Some things to note:
 - please ensure that dates and times are formatted as ISO 8601 strings, no need to include the time
 - if you are unsure about any of the details, please leave them blank
-- just return the key value pairs no need to include any other information or response
+- just return the JSON, no need to include any other information or response
 `;
 
 export const TICKET_TYPE: {
