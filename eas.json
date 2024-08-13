@@ -11,7 +11,8 @@
       },
       "ios": {
         "image": "latest"
-      }
+      },
+      "bun": "1.0.21"
     },
     "development-simulator": {
       "extends": "development",
@@ -27,7 +28,8 @@
       },
       "ios": {
         "image": "latest"
-      }
+      },
+      "bun": "1.0.21"
     },
     "production": {
       "channel": "production",
@@ -36,7 +38,8 @@
       },
       "ios": {
         "image": "latest"
-      }
+      },
+      "bun": "1.0.21"
     }
   },
   "submit": {

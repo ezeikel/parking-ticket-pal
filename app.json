@@ -1,8 +1,8 @@
 {
   "expo": {
-    "name": "PCNs",
+    "name": "PCNs - Manage, Track, and Challenge Parking & Penalty Charge Notices with Ease",
     "slug": "pcns",
-    "version": "1.0.0",
+    "version": "0.0.1",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "myapp",
@@ -29,7 +29,10 @@
       "favicon": "./assets/images/favicon.png"
     },
     "plugins": [
-      "expo-router"
+      "expo-router",
+      ["react-native-document-scanner-plugin", {
+        "cameraPermission": "We need camera access, so you can scan documents"
+      }]
     ],
     "experiments": {
       "typedRoutes": true

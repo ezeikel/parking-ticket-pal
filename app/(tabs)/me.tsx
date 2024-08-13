@@ -1,12 +1,12 @@
 
 import { Text, View } from 'react-native';
 
-const HomeScreen = () => {
+const MeScreen = () => {
   return (
     <View>
-      <Text>Home Screen</Text>
+      <Text>Me Screen</Text>
     </View>
   );
 }
 
-export default HomeScreen;
+export default MeScreen;

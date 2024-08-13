@@ -1,0 +1,4 @@
+[install.scopes]
+"fortawesome" = { token = $FONTAWESOME_NPM_AUTH_TOKEN, url = "https://npm.fontawesome.com/"  }
+
+"react-native-google-signin" = { token = "$NPM_TOKEN_GOOGLE_SIGN_IN", url = "https://npm.pkg.github.com/" }
