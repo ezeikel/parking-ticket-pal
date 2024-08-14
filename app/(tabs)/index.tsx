@@ -1,12 +1,20 @@
+import { SafeAreaView, Text, View, Dimensions } from 'react-native';
+import tw from "twrnc";
 
-import { Text, View } from 'react-native';
+const padding = 16;
+const screenWidth = Dimensions.get('screen').width - padding * 2;
 
-const HomeScreen = () => {
+const RecentsScreen = () => {
   return (
-    <View>
-      <Text>Home Screen</Text>
-    </View>
+    <SafeAreaView style={tw`flex-1 items-center`}>
+      <View style={tw.style(`flex-1`, {
+        marginTop: padding,
+        width: screenWidth,
+      })}>
+        <Text>Recents Screen</Text>
+      </View>
+    </SafeAreaView >
   );
 }
 
-export default HomeScreen;
+export default RecentsScreen;

@@ -4,9 +4,10 @@ import { FontAwesomeIcon } from "@fortawesome/react-native-fontawesome";
 import { faClock as faClockRegular, faTicketsPerforated as faTicketsPerforatedRegular, faCamera as faCameraRegular, faClipboardListCheck as faClipboardListCheckRegular, faUser as faUserRegular } from "@fortawesome/pro-regular-svg-icons";
 import { faClock as faClockSolid, faTicketsPerforated as faTicketsPerforatedSolid, faCamera as faCameraSolid, faClipboardListCheck as faClipboardListCheckSolid, faUser as faUserSolid } from "@fortawesome/pro-solid-svg-icons";
 import tw from "twrnc";
-import { TabBarIcon } from '@/components/navigation/TabBarIcon';
+import { perfect } from "@/styles";
 import { Colors } from '@/constants/Colors';
 import { useColorScheme } from '@/hooks/useColorScheme';
+import { View } from 'react-native';
 
 export default function TabLayout() {
   const colorScheme = useColorScheme();
@@ -16,7 +17,8 @@ export default function TabLayout() {
       screenOptions={{
         tabBarActiveTintColor: Colors[colorScheme ?? 'light'].tint,
         headerShown: false,
-      }}>
+      }}
+    >
       <Tabs.Screen
         name="index"
         options={{
@@ -24,8 +26,7 @@ export default function TabLayout() {
           tabBarIcon: ({ color, focused }) => (
             <FontAwesomeIcon
               icon={focused ? faClockSolid : faClockRegular}
-              size={20}
-              // style={tw`text-3xl text-black`}
+              size={24}
               color={color}
             />
           ),
@@ -38,8 +39,7 @@ export default function TabLayout() {
           tabBarIcon: ({ color, focused }) => (
             <FontAwesomeIcon
               icon={focused ? faTicketsPerforatedSolid : faTicketsPerforatedRegular}
-              size={20}
-              // style={tw`text-3xl text-black`}
+              size={24}
               color={color}
             />
           ),
@@ -49,13 +49,18 @@ export default function TabLayout() {
         name="capture"
         options={{
           tabBarIcon: ({ color, focused }) => (
-            <FontAwesomeIcon
-              icon={focused ? faCameraSolid : faCameraRegular}
-              size={20}
-              // style={tw`text-3xl text-black`}
-              color={color}
-            />
+            <View style={tw.style(`rounded-full p-4 -top-2`, {
+              backgroundColor: Colors[colorScheme ?? 'light'].tint,
+              ...perfect.boxShadow,
+            })}>
+              <FontAwesomeIcon
+                icon={faCameraSolid}
+                size={24}
+                color="white"
+              />
+            </View>
           ),
+          tabBarLabel: () => null,
         }}
       />
       <Tabs.Screen
@@ -65,8 +70,8 @@ export default function TabLayout() {
           tabBarIcon: ({ color, focused }) => (
             <FontAwesomeIcon
               icon={focused ? faClipboardListCheckSolid : faClipboardListCheckRegular}
-              size={20}
-              // style={tw`text-3xl text-black`}
+              size={24}
+              style={tw`text-6xl text-red-100`}
               color={color}
             />
           ),
@@ -79,8 +84,7 @@ export default function TabLayout() {
           tabBarIcon: ({ color, focused }) => (
             <FontAwesomeIcon
               icon={focused ? faUserSolid : faUserRegular}
-              size={20}
-              // style={tw`text-3xl text-black`}
+              size={24}
               color={color}
             />
           ),
