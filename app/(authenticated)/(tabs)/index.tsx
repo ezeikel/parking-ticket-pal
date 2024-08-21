@@ -11,7 +11,7 @@ const RecentsScreen = () => {
         marginTop: padding,
         width: screenWidth,
       })}>
-        <Text>Recents Screen</Text>
+        <Text style={tw`font-bold text-3xl mb-4`}>Recents Screen</Text>
       </View>
     </SafeAreaView >
   );

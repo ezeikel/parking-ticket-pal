@@ -1,5 +1,6 @@
-import { Tabs } from 'expo-router';
 import React from 'react';
+import { View } from 'react-native';
+import { Tabs } from 'expo-router';
 import { FontAwesomeIcon } from "@fortawesome/react-native-fontawesome";
 import { faClock as faClockRegular, faTicketsPerforated as faTicketsPerforatedRegular, faCamera as faCameraRegular, faClipboardListCheck as faClipboardListCheckRegular, faUser as faUserRegular } from "@fortawesome/pro-regular-svg-icons";
 import { faClock as faClockSolid, faTicketsPerforated as faTicketsPerforatedSolid, faCamera as faCameraSolid, faClipboardListCheck as faClipboardListCheckSolid, faUser as faUserSolid } from "@fortawesome/pro-solid-svg-icons";
@@ -7,7 +8,6 @@ import tw from "twrnc";
 import { perfect } from "@/styles";
 import { Colors } from '@/constants/Colors';
 import { useColorScheme } from '@/hooks/useColorScheme';
-import { View } from 'react-native';
 
 export default function TabLayout() {
   const colorScheme = useColorScheme();

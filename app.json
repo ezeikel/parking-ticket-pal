@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "PCNs - Manage, Track, and Challenge Parking & Penalty Charge Notices with Ease",
+    "name": "PCNs",
     "slug": "pcns",
     "version": "0.0.1",
     "orientation": "portrait",
@@ -14,7 +14,16 @@
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.ezeikel.pcns"
+      "bundleIdentifier": "com.ezeikel.pcns",
+      "infoPlist": {
+        "CFBundleURLTypes": [
+          {
+            "CFBundleURLSchemes": [
+              "com.googleusercontent.apps.1069305445287-b0q6oltds0955okb9hg2b3pqvm735di4"
+            ]
+          }
+        ]
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -30,9 +39,13 @@
     },
     "plugins": [
       "expo-router",
-      ["react-native-document-scanner-plugin", {
-        "cameraPermission": "We need camera access, so you can scan documents"
-      }]
+      [
+        "react-native-document-scanner-plugin",
+        {
+          "cameraPermission": "We need camera access, so you can scan documents"
+        }
+      ],
+      "expo-secure-store"
     ],
     "experiments": {
       "typedRoutes": true
