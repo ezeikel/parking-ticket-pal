@@ -22,7 +22,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { deleteTicket } from '@/app/actions';
+import { deleteTicket, generateChallengeLetter } from '@/app/actions';
 import { useToast } from '@/components/ui/use-toast';
 import Loader from '../Loader/Loader';
 
@@ -63,16 +63,8 @@ const TicketActionsCell = ({ row }: TicketActionsCellProps) => {
                 onClick={async () => {
                   setIsLoading(true);
 
-                  // FIX: calling generateChallengeLetter directly causes timeout on vercel
-                  // await generateChallengeLetter(row.original.id);
                   // generate challenge letter
-                  await fetch('/api/ticket/challenge/create', {
-                    method: 'POST',
-                    body: JSON.stringify({ ticketId: row.original.id }),
-                    headers: {
-                      'Content-Type': 'application/json',
-                    },
-                  });
+                  await generateChallengeLetter(row.original.id);
 
                   setIsLoading(false);
 

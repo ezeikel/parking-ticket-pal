@@ -4,6 +4,9 @@ import PageWrap from '@/components/PageWrap/PageWrap';
 import TicketsTable from '@/components/tables/TicketsTable/TicketsTable';
 import { getSubscription, getTickets } from '../actions';
 
+// account for openai api calls
+export const maxDuration = 30;
+
 // TODO: does this opt the page out of SSR?
 const UploadButton = dynamic(
   () => import('@/components/buttons/UploadButton/UploadButton'),

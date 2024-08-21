@@ -63,6 +63,8 @@
     "clsx": "^2.1.1",
     "date-fns": "^3.6.0",
     "formik": "^2.4.6",
+    "google-auth-library": "^9.13.0",
+    "jose": "^5.6.3",
     "lucide-react": "^0.363.0",
     "next": "14.2.3",
     "next-auth": "beta",

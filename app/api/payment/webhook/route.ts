@@ -1,6 +1,5 @@
 /* eslint-disable import/prefer-default-export */
 
-import { NextRequest } from 'next/server';
 import Stripe from 'stripe';
 import prisma from '@/lib/prisma';
 import { SubscriptionType } from '@prisma/client';
@@ -9,7 +8,7 @@ const stripe = new Stripe(process.env.STRIPE_SECRET!, {
   apiVersion: '2024-04-10',
 });
 
-export async function POST(request: NextRequest) {
+export const POST = async (request: Request) => {
   const body = await request.json();
   // Only verify the event if you have an endpoint secret defined.
   // Otherwise use the basic event deserialized with JSON.parse
@@ -157,4 +156,4 @@ export async function POST(request: NextRequest) {
       status: 200,
     },
   );
-}
+};

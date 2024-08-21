@@ -1,15 +1,14 @@
 /* eslint-disable import/prefer-default-export */
 
-import { NextRequest } from 'next/server';
-import { createTicket } from '@/app/actions';
+import { generateChallengeLetter } from '@/app/actions';
 
 // longer duration to account for openai api calls
 export const maxDuration = 30;
 
-export async function POST(request: NextRequest) {
-  const data = await request.formData();
+export const POST = async (request: Request) => {
+  const { ticketId } = await request.json();
 
-  await createTicket(data);
+  await generateChallengeLetter(ticketId);
 
   return Response.json(
     { success: true },
@@ -17,4 +16,4 @@ export async function POST(request: NextRequest) {
       status: 200,
     },
   );
-}
+};

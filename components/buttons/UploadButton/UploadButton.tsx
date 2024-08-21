@@ -18,7 +18,7 @@ import MediaPreview from '@/components/MediaPreview/MediaPreview';
 import { FileWithPreview, LoaderType } from '@/types';
 import Loader from '@/components/Loader/Loader';
 import { useToast } from '@/components/ui/use-toast';
-import { revalidateDashboard } from '@/app/actions';
+import { revalidateDashboard, createTicket } from '@/app/actions';
 import { useAccountContext } from '@/contexts/account';
 
 type UploadButtonProps = {
@@ -141,13 +141,8 @@ const UploadButton = ({
                 formData.append('imageFront', imageFile, imageFile.name);
                 setIsLoading(true);
 
-                // FIX: calling generateChallengeLetter directly causes timeout on vercel
-                // await createTicket(formData);
                 // create ticket
-                await fetch('/api/ticket/create', {
-                  method: 'POST',
-                  body: formData,
-                });
+                await createTicket(formData);
 
                 // FIX: revalidarPath from route handler seemed to have no effect
                 await revalidateDashboard();

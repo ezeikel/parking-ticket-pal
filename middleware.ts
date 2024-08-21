@@ -1,8 +1,14 @@
 /* eslint-disable import/prefer-default-export */
 import { NextRequest, NextResponse } from 'next/server';
 import { AUTHENTICATED_PATHS } from './constants';
+import { decrypt } from './app/lib/session';
 
-export const middleware = async (req: NextRequest) => {
+export const middleware = async (
+  req: NextRequest & {
+    userId?: string;
+    userEmail?: string;
+  },
+) => {
   // object added to req from next-auth wrapper this function
   const { pathname } = req.nextUrl;
 
@@ -15,7 +21,6 @@ export const middleware = async (req: NextRequest) => {
 
   // skip middleware for API routes, images, static files, and specific assets
   if (
-    pathname.startsWith('/api') ||
     pathname.startsWith('/images') ||
     pathname.startsWith('/_next/static') ||
     pathname.startsWith('/_next/image') ||
@@ -23,6 +28,46 @@ export const middleware = async (req: NextRequest) => {
     pathname === '/monitoring'
   ) {
     return NextResponse.next();
+  }
+
+  // middleware for api routes
+  if (pathname.startsWith('/api')) {
+    // skip auth middleware if we have authjs session token
+    if (session) {
+      return NextResponse.next();
+    }
+
+    // skip auth middleware for mobile auth route (no token required)
+    if (pathname === '/api/auth/mobile') {
+      return NextResponse.next();
+    }
+
+    // check request for token in authorization header
+    const token = req.headers.get('authorization')?.split(' ')[1];
+
+    // TODO: should probably check if request is from mobile app and route requires token but not proivded - return 401
+    // skip auth middleware if no token is provided
+    if (!token) {
+      return NextResponse.next();
+    }
+
+    try {
+      const payload = await decrypt(token);
+      const { id, email } = payload || {};
+
+      const response = NextResponse.next();
+
+      // for api requests from mobile app add user id and email to response headers
+      if (id && email) {
+        response.headers.set('x-user-id', id as string);
+        response.headers.set('x-user-email', email as string);
+      }
+
+      return response;
+    } catch (error) {
+      console.error('middleware error', error);
+      return NextResponse.error();
+    }
   }
 
   if (pathname === '/') {

@@ -24,6 +24,6 @@ const sentryOptions = {
 
 const configWithSentry = withSentryConfig(nextConfig, sentryOptions);
 
-const configWithPlausible = withPlausibleProxy(configWithSentry);
+const configWithPlausible = withPlausibleProxy()(configWithSentry);
 
 export default configWithPlausible;

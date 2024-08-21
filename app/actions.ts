@@ -1,15 +1,14 @@
-/* eslint-disable import/prefer-default-export */
-
 'use server';
 
 import { headers } from 'next/headers';
+import { revalidatePath } from 'next/cache';
 import { del, put } from '@vercel/blob';
 import OpenAI from 'openai';
 import { MediaType, SubscriptionType, Ticket } from '@prisma/client';
 import { Readable } from 'stream';
-import prisma from '@/lib/prisma';
 import { Resend } from 'resend';
 import Stripe from 'stripe';
+import prisma from '@/lib/prisma';
 import { auth } from '@/auth';
 import { FileWithPreview, ProductType } from '@/types';
 import {
@@ -19,7 +18,6 @@ import {
 import generatePDF from '@/utils/generatePDF';
 import streamToBuffer from '@/utils/streamToBuffer';
 import formatPenniesToPounds from '@/utils/formatPenniesToPounds';
-import { revalidatePath } from 'next/cache';
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -33,7 +31,8 @@ const stripe = new Stripe(process.env.STRIPE_SECRET!, {
 
 const getUserId = async (action?: string) => {
   const session = await auth();
-  const userId = session?.userId;
+  const headersList = headers();
+  const userId = session?.userId || headersList.get('x-user-id');
 
   if (!userId) {
     console.error(
