@@ -84,7 +84,7 @@ export const AuthContextProvider = ({ children }: AuthContextProviderProps) => {
       setIsAuthenticated(true);
     } catch (error) {
       if (error.code === statusCodes.SIGN_IN_CANCELLED) {
-        console.log('User cancelled sign-in');
+        console.info('User cancelled sign-in');
       } else {
         console.error('Sign-in error', error);
       }
@@ -94,6 +94,7 @@ export const AuthContextProvider = ({ children }: AuthContextProviderProps) => {
 
   const signOut = async () => {
     try {
+      await GoogleSignin.revokeAccess();
       await GoogleSignin.signOut();
       await SecureStore.deleteItemAsync('sessionToken');
       setIsAuthenticated(false);

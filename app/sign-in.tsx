@@ -8,7 +8,7 @@ const padding = 16;
 const screenWidth = Dimensions.get('screen').width - padding * 2;
 
 const AuthScreen = () => {
-  const { signIn, isLoading, isAuthenticated } = useAuthContext();
+  const { signIn } = useAuthContext();
 
   return (
     <SafeAreaView style={tw`flex-1 items-center`}>
