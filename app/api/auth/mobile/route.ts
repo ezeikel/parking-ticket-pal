@@ -4,16 +4,19 @@ import { OAuth2Client } from 'google-auth-library';
 import prisma from '@/lib/prisma';
 import { encrypt } from '@/app/lib/session';
 
-const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+const client = new OAuth2Client(
+  '1069305445287-1m5mhd9lkm8c1trksbhlqd2cia0itjpj.apps.googleusercontent.com',
+);
 
-export const POST = async (request: Request) => {
-  const { idToken } = await request.json();
+export const POST = async (req: Request) => {
+  const { idToken } = await req.json();
   let user;
 
   try {
     const ticket = await client.verifyIdToken({
       idToken,
-      audience: process.env.GOOGLE_CLIENT_ID,
+      audience:
+        '1069305445287-1m5mhd9lkm8c1trksbhlqd2cia0itjpj.apps.googleusercontent.com',
     });
 
     const payload = ticket.getPayload();
@@ -55,6 +58,12 @@ export const POST = async (request: Request) => {
         sessionToken,
       },
       {
+        headers: {
+          'Access-Control-Allow-Origin': '*',
+          'Access-Control-Allow-Methods': 'POST, OPTIONS',
+          'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+          'Content-Type': 'application/json',
+        },
         status: 200,
       },
     );

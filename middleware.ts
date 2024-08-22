@@ -3,12 +3,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { AUTHENTICATED_PATHS } from './constants';
 import { decrypt } from './app/lib/session';
 
-export const middleware = async (
-  req: NextRequest & {
-    userId?: string;
-    userEmail?: string;
-  },
-) => {
+export const middleware = async (req: NextRequest) => {
   // object added to req from next-auth wrapper this function
   const { pathname } = req.nextUrl;
 
@@ -55,17 +50,23 @@ export const middleware = async (
       const payload = await decrypt(token);
       const { id, email } = payload || {};
 
-      const response = NextResponse.next();
+      const reqHeaders = new Headers(req.headers);
 
       // for api requests from mobile app add user id and email to response headers
       if (id && email) {
-        response.headers.set('x-user-id', id as string);
-        response.headers.set('x-user-email', email as string);
+        // add user id and email to request headers
+        reqHeaders.set('x-user-id', id as string);
+        reqHeaders.set('x-user-email', email as string);
       }
 
-      return response;
+      return NextResponse.next({
+        request: {
+          // new request headers
+          headers: reqHeaders,
+        },
+      });
     } catch (error) {
-      console.error('middleware error', error);
+      console.error('Failed to verify token', error);
       return NextResponse.error();
     }
   }

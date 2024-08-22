@@ -12,7 +12,7 @@ const nextConfig = {
 const sentryOptions = {
   silent: true,
   org: 'ezeikel',
-  project: 'outside-ir35-jobs-web',
+  project: 'pcns-web',
   authToken: process.env.SENTRY_AUTH_TOKEN,
   widenClientFileUpload: true,
   transpileClientSDK: true,

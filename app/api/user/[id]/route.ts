@@ -6,7 +6,7 @@ import prisma from '@/lib/prisma';
 export const maxDuration = 30;
 
 export const GET = async (
-  request: Request,
+  req: Request,
   { params }: { params: { id: string } },
 ) => {
   const { id } = params;
@@ -20,6 +20,12 @@ export const GET = async (
   return Response.json(
     { user },
     {
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Methods': 'GET, OPTIONS',
+        'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+        'Content-Type': 'application/json',
+      },
       status: 200,
     },
   );

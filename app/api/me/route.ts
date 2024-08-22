@@ -5,12 +5,8 @@ import prisma from '@/lib/prisma';
 // longer duration to account for openai api calls
 export const maxDuration = 30;
 
-export const GET = async (
-  request: Request & {
-    id?: string;
-  },
-) => {
-  const userId = request.headers.get('x-user-id');
+export const GET = async (req: Request) => {
+  const userId = req.headers.get('x-user-id');
 
   const user = await prisma.user.findUnique({
     where: {
@@ -21,6 +17,13 @@ export const GET = async (
   return Response.json(
     { user },
     {
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Methods': 'GET, OPTIONS',
+        'Access-Control-Allow-Headers':
+          'Content-Type, Authorization, x-user-id, x-user-email',
+        'Content-Type': 'application/json',
+      },
       status: 200,
     },
   );

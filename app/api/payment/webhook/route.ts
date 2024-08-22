@@ -8,8 +8,8 @@ const stripe = new Stripe(process.env.STRIPE_SECRET!, {
   apiVersion: '2024-04-10',
 });
 
-export const POST = async (request: Request) => {
-  const body = await request.json();
+export const POST = async (req: Request) => {
+  const body = await req.json();
   // Only verify the event if you have an endpoint secret defined.
   // Otherwise use the basic event deserialized with JSON.parse
   // if (endpointSecret) {
