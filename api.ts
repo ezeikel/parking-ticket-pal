@@ -22,12 +22,32 @@ export const getTickets = async () => {
   return response.data;
 }
 
+export const getVehicles = async () => {
+  const token = await SecureStore.getItemAsync('sessionToken');
+
+  const response = await axios.get(`${process.env.EXPO_PUBLIC_API_URL}/vehicles`, {
+    headers: { Authorization: `Bearer ${token}` }
+  });
+
+  return response.data;
+}
+
 export const signIn = async () => {
   await GoogleSignin.hasPlayServices();
   const userInfo = await GoogleSignin.signIn();
   
   const response = await axios.post(`${process.env.EXPO_PUBLIC_API_URL}/auth/mobile`, {
     idToken: userInfo.idToken
+  });
+
+  return response.data;
+}
+
+export const createTicket = async (data: FormData) => {
+  const token = await SecureStore.getItemAsync('sessionToken');
+
+  const response = await axios.post(`${process.env.EXPO_PUBLIC_API_URL}/tickets`, data, {
+    headers: { Authorization: `Bearer ${token}` }
   });
 
   return response.data;

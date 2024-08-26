@@ -94,7 +94,6 @@ export const AuthContextProvider = ({ children }: AuthContextProviderProps) => {
 
   const signOut = async () => {
     try {
-      await GoogleSignin.revokeAccess();
       await GoogleSignin.signOut();
       await SecureStore.deleteItemAsync('sessionToken');
       setIsAuthenticated(false);

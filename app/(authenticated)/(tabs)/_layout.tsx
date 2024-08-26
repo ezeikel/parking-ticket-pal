@@ -2,8 +2,8 @@ import React from 'react';
 import { View } from 'react-native';
 import { Tabs } from 'expo-router';
 import { FontAwesomeIcon } from "@fortawesome/react-native-fontawesome";
-import { faClock as faClockRegular, faTicketsPerforated as faTicketsPerforatedRegular, faCamera as faCameraRegular, faClipboardListCheck as faClipboardListCheckRegular, faUser as faUserRegular } from "@fortawesome/pro-regular-svg-icons";
-import { faClock as faClockSolid, faTicketsPerforated as faTicketsPerforatedSolid, faCamera as faCameraSolid, faClipboardListCheck as faClipboardListCheckSolid, faUser as faUserSolid } from "@fortawesome/pro-solid-svg-icons";
+import { faCarMirrors as faCarMirrorsRegular, faHouse as faHouseRegular, faCreditCard as faCreditCardRegular, faUser as faUserRegular, faHouse } from "@fortawesome/pro-regular-svg-icons";
+import { faCarMirrors as faCarMirrorsSolid, faHouse as faHouseSolid, faCamera as faCameraSolid, faCreditCard as faCreditCardSolid, faUser as faUserSolid } from "@fortawesome/pro-solid-svg-icons";
 import tw from "twrnc";
 import { perfect } from "@/styles";
 import { Colors } from '@/constants/Colors';
@@ -22,10 +22,10 @@ export default function TabLayout() {
       <Tabs.Screen
         name="index"
         options={{
-          title: 'Recents',
+          title: 'Tickets',
           tabBarIcon: ({ color, focused }) => (
             <FontAwesomeIcon
-              icon={focused ? faClockSolid : faClockRegular}
+              icon={focused ? faHouseSolid : faHouseRegular}
               size={24}
               color={color}
             />
@@ -33,12 +33,12 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="tickets"
+        name="vehicles"
         options={{
-          title: 'Tickets',
+          title: 'Vehicles',
           tabBarIcon: ({ color, focused }) => (
             <FontAwesomeIcon
-              icon={focused ? faTicketsPerforatedSolid : faTicketsPerforatedRegular}
+              icon={focused ? faCarMirrorsSolid : faCarMirrorsRegular}
               size={24}
               color={color}
             />
@@ -64,12 +64,12 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="outstanding"
+        name="payments"
         options={{
-          title: "Outstanding",
+          title: "Payments",
           tabBarIcon: ({ color, focused }) => (
             <FontAwesomeIcon
-              icon={focused ? faClipboardListCheckSolid : faClipboardListCheckRegular}
+              icon={focused ? faCreditCardSolid : faCreditCardRegular}
               size={24}
               style={tw`text-6xl text-red-100`}
               color={color}

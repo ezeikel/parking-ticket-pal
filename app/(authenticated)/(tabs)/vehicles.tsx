@@ -1,22 +1,22 @@
 import { SafeAreaView, Text, View, Dimensions } from 'react-native';
 import tw from "twrnc";
-import Scanner from '@/components/Scanner/Scanner';
+import VehiclesList from '@/components/VehiclesList/VehiclesList';
 
 const padding = 16;
 const screenWidth = Dimensions.get('screen').width - padding * 2;
 
-const CaptureScreen = () => {
+const VehiclesScreen = () => {
   return (
     <SafeAreaView style={tw`flex-1 items-center`}>
       <View style={tw.style(`flex-1`, {
         marginTop: padding,
         width: screenWidth,
       })}>
-        <Text style={tw`font-bold text-3xl mb-4`}>Capture Screen</Text>
-        <Scanner />
+        <Text style={tw`font-bold text-3xl mb-4`}>Vehicles Screen</Text>
+        <VehiclesList />
       </View>
     </SafeAreaView >
   );
 }
 
-export default CaptureScreen;
+export default VehiclesScreen;
