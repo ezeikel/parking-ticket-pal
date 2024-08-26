@@ -47,19 +47,23 @@ Please provide the following details from the Penalty Charge Notice (PCN) image 
 
 pcnNumber: [PCN Number]
 type: [PARKING_CHARGE_NOTICE or PENALTY_CHARGE_NOTICE based on who issued the ticket]
-dateIssued: [Date of Notice]
+dateIssued: [Date of Notice in ISO 8601 format]
+dateTimeOfContravention: [Date and Time of Contravention in ISO 8601 format]
 vehicleRegistration: [Vehicle Registration Number]
-dateOfContravention: [Date of Contravention]
+location: [Location where the contravention occurred, if available]
+firstSeen: [Time when the vehicle was first seen in contravention, if available]
 contraventionCode: [Contravention Code]
 contraventionDescription: [Contravention Description]
 amountDue: [Amount Due in pennies]
 issuer: [Body Issuing the PCN e.g. Lambeth Council or ParkingEye Ltd]
 issuerType: [COUNCIL or TFL or PRIVATE_COMPANY based on the issuer]
+discountedPaymentDeadline: [Deadline for paying the discounted amount in ISO 8601 format, if available]
+fullPaymentDeadline: [Deadline for paying the full amount in ISO 8601 format, if available]
 
 Some things to note:
-- please ensure that dates and times are formatted as ISO 8601 strings, no need to include the time
-- if you are unsure about any of the details, please leave them blank
-- just return the JSON, no need to include any other information or response
+- Please ensure that dates and times are formatted as ISO 8601 strings.
+- If you are unsure about any of the details, please leave them blank.
+- Just return the JSON, no need to include any other information or response.
 `;
 
 export const TICKET_TYPE: {

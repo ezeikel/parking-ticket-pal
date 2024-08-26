@@ -19,25 +19,21 @@ import { FileWithPreview, LoaderType } from '@/types';
 import Loader from '@/components/Loader/Loader';
 import { useToast } from '@/components/ui/use-toast';
 import { revalidateDashboard, createTicket } from '@/app/actions';
-import { useAccountContext } from '@/contexts/account';
+// import { useAccountContext } from '@/contexts/account';
 
-type UploadButtonProps = {
-  hasProSubscription: boolean;
-  numberOfCredits: number;
-  numberOfTickets: number;
-};
+// type UploadButtonProps = {
+//   hasProSubscription: boolean;
+//   numberOfCredits: number;
+//   numberOfTickets: number;
+// };
 
-const UploadButton = ({
-  hasProSubscription,
-  numberOfCredits,
-  numberOfTickets,
-}: UploadButtonProps) => {
+const UploadButton = () => {
   const [imageFile, setImageFile] = useState<FileWithPreview | undefined>();
   const [isLoading, setIsLoading] = useState(false);
   const [isDialogOpen, setIsDialogOpen] = useState<boolean>(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
-  const { setIsFundAccountDialogOpen } = useAccountContext();
+  // const { setIsFundAccountDialogOpen } = useAccountContext();
 
   const handleButtonClick = () => {
     fileInputRef.current?.click();
@@ -50,12 +46,15 @@ const UploadButton = ({
       return;
     }
 
-    if (hasProSubscription || numberOfCredits > 0 || numberOfTickets === 0) {
-      setIsDialogOpen(true);
-    } else {
-      // open dialog to subscribe or pay for a ticket
-      setIsFundAccountDialogOpen(true);
-    }
+    setIsDialogOpen(true);
+
+    // TODO: figure out flow for letting users upload tickets/pay
+    // if (hasProSubscription || numberOfCredits > 0 || numberOfTickets === 0) {
+    //   setIsDialogOpen(true);
+    // } else {
+    //   // open dialog to subscribe or pay for a ticket
+    //   setIsFundAccountDialogOpen(true);
+    // }
   };
 
   const handleChange = async (event: ChangeEvent<HTMLInputElement>) => {

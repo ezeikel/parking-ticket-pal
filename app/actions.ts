@@ -4,17 +4,19 @@ import { headers } from 'next/headers';
 import { revalidatePath } from 'next/cache';
 import { del, put } from '@vercel/blob';
 import OpenAI from 'openai';
-import { MediaType, SubscriptionType, Ticket } from '@prisma/client';
+import { zodResponseFormat } from 'openai/helpers/zod';
+import {
+  MediaType,
+  // SubscriptionType,
+  Ticket,
+} from '@prisma/client';
 import { Readable } from 'stream';
 import { Resend } from 'resend';
 import Stripe from 'stripe';
 import prisma from '@/lib/prisma';
 import { auth } from '@/auth';
-import { FileWithPreview, ProductType } from '@/types';
-import {
-  BACKGROUND_INFORMATION_PROMPT,
-  CREATE_TICKET_PROMPT,
-} from '@/constants';
+import { FileWithPreview, ProductType, TicketSchema } from '@/types';
+import { BACKGROUND_INFORMATION_PROMPT } from '@/constants';
 import generatePDF from '@/utils/generatePDF';
 import streamToBuffer from '@/utils/streamToBuffer';
 import formatPenniesToPounds from '@/utils/formatPenniesToPounds';
@@ -52,39 +54,41 @@ export const createTicket = async (formData: FormData) => {
     return null;
   }
 
+  // TODO: future - allow user to upload ticket for free and then pay to challenge/get reminders
+  // for now - let everyone upload and challenge tickets for free
   // check if a user has a pro subscription or enough credits to create a ticket
-  const user = await prisma.user.findUnique({
-    where: {
-      id: userId,
-    },
-    select: {
-      credits: true,
-    },
-  });
+  // const user = await prisma.user.findUnique({
+  //   where: {
+  //     id: userId,
+  //   },
+  //   select: {
+  //     credits: true,
+  //   },
+  // });
 
-  if (!user) {
-    console.error('User not found.');
-    return null;
-  }
+  // if (!user) {
+  //   console.error('User not found.');
+  //   return null;
+  // }
 
-  const subscription = await prisma.subscription.findFirst({
-    where: {
-      user: {
-        id: userId,
-      },
-    },
-  });
+  // const subscription = await prisma.subscription.findFirst({
+  //   where: {
+  //     user: {
+  //       id: userId,
+  //     },
+  //   },
+  // });
 
   // check if user has enough credits or a pro subscription
-  if (
-    (!subscription || subscription.type !== SubscriptionType.PRO) &&
-    user.credits <= 0
-  ) {
-    console.error(
-      'You need to have a pro subscription or enough credits to create a ticket.',
-    );
-    return null;
-  }
+  // if (
+  //   (!subscription || subscription.type !== SubscriptionType.PRO) &&
+  //   user.credits <= 0
+  // ) {
+  //   console.error(
+  //     'You need to have a pro subscription or enough credits to create a ticket.',
+  //   );
+  //   return null;
+  // }
 
   // create an easy to use object from the form data
   const rawFormData = {
@@ -109,15 +113,41 @@ export const createTicket = async (formData: FormData) => {
 
   // TODO: send ticket front and back image to openai to get ticket information in a JSON format
   const response = await openai.chat.completions.create({
-    model: 'gpt-4o',
-    response_format: { type: 'json_object' },
+    model: 'gpt-4o-2024-08-06',
     messages: [
+      {
+        role: 'system',
+        content: `
+        You are an AI specialized in extracting structured data from images of parking tickets. 
+        Your task is to analyze the images provided and return a JSON object matching this schema:
+        {
+          "pcnNumber": "string",
+          "type": "PARKING_CHARGE_NOTICE or PENALTY_CHARGE_NOTICE",
+          "dateIssued": "ISO 8601 string",
+          "dateTimeOfContravention": "ISO 8601 string",
+          "location": "string, optional",
+          "firstSeen": "ISO 8601 string, optional",
+          "contraventionCode": "string",
+          "contraventionDescription": "string, optional",
+          "amountDue": "integer (in pennies)",
+          "issuer": "string",
+          "issuerType": "COUNCIL, TFL, or PRIVATE_COMPANY",
+          "discountedPaymentDeadline": "ISO 8601 string, optional",
+          "fullPaymentDeadline": "ISO 8601 string, optional",
+          "verified": "boolean, optional"
+        }.
+        Extract the information accurately from the provided images.
+        When calculating the dates for the discountedPaymentDeadline and fullPaymentDeadline fields, please return them as actual ISO 8601 formatted dates.
+        - The discountedPaymentDeadline should be 14 days after the dateIssued.
+        - The fullPaymentDeadline should be 28 days after the dateIssued.
+      `,
+      },
       {
         role: 'user',
         content: [
           {
             type: 'text',
-            text: CREATE_TICKET_PROMPT,
+            text: 'Please extract the required details from the following parking ticket images.',
           },
           {
             type: 'image_url',
@@ -128,6 +158,7 @@ export const createTicket = async (formData: FormData) => {
         ],
       },
     ],
+    response_format: zodResponseFormat(TicketSchema, 'ticket'),
   });
 
   // DEBUG:
@@ -152,12 +183,15 @@ export const createTicket = async (formData: FormData) => {
     type,
     dateIssued,
     vehicleRegistration,
-    dateOfContravention,
+    dateTimeOfContravention,
     contraventionCode,
     contraventionDescription,
+    location,
     amountDue,
     issuer,
     issuerType,
+    discountedPaymentDeadline,
+    fullPaymentDeadline,
   } = JSON.parse(ticketInfo as string);
 
   // save ticket to database
@@ -166,10 +200,13 @@ export const createTicket = async (formData: FormData) => {
       pcnNumber,
       type,
       dateIssued: new Date(dateIssued),
-      dateOfContravention: new Date(dateOfContravention),
+      dateTimeOfContravention: new Date(dateTimeOfContravention),
+      location,
       amountDue: Number(amountDue),
       issuer,
       issuerType,
+      discountedPaymentDeadline,
+      fullPaymentDeadline,
       contravention: {
         connectOrCreate: {
           where: {
@@ -209,18 +246,18 @@ export const createTicket = async (formData: FormData) => {
 
   // decrement user credits if they dont have a pro subscription
 
-  if (!subscription || subscription?.type !== SubscriptionType.PRO) {
-    await prisma.user.update({
-      where: {
-        id: userId,
-      },
-      data: {
-        credits: {
-          decrement: 1,
-        },
-      },
-    });
-  }
+  // if (!subscription || subscription?.type !== SubscriptionType.PRO) {
+  //   await prisma.user.update({
+  //     where: {
+  //       id: userId,
+  //     },
+  //     data: {
+  //       credits: {
+  //         decrement: 1,
+  //       },
+  //     },
+  //   });
+  // }
 
   revalidatePath('/dashboard');
 
@@ -316,7 +353,7 @@ export const getTickets = async (): Promise<
           description: true,
         },
       },
-      dateOfContravention: true,
+      dateTimeOfContravention: true,
       dateIssued: true,
       status: true,
       vehicle: {
@@ -363,7 +400,7 @@ export const getTicket = async (
           description: true,
         },
       },
-      dateOfContravention: true,
+      dateTimeOfContravention: true,
       dateIssued: true,
       status: true,
       vehicle: {
@@ -381,6 +418,29 @@ export const getTicket = async (
   });
 
   return ticket;
+};
+
+export const getVehicles = async () => {
+  const userId = await getUserId('get vehicles');
+
+  if (!userId) {
+    return null;
+  }
+
+  const vehicles = await prisma.vehicle.findMany({
+    where: {
+      userId,
+    },
+    select: {
+      id: true,
+      registration: true,
+      make: true,
+      model: true,
+      year: true,
+    },
+  });
+
+  return vehicles;
 };
 
 export const generateChallengeLetter = async (ticketId: string) => {
@@ -425,7 +485,7 @@ export const generateChallengeLetter = async (ticketId: string) => {
           description: true,
         },
       },
-      dateOfContravention: true,
+      dateTimeOfContravention: true,
       dateIssued: true,
       status: true,
       vehicle: {

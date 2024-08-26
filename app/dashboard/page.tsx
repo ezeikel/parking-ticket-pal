@@ -1,8 +1,10 @@
 import dynamic from 'next/dynamic';
-import { SubscriptionType } from '@prisma/client';
+// import { SubscriptionType } from '@prisma/client';
 import PageWrap from '@/components/PageWrap/PageWrap';
 import TicketsTable from '@/components/tables/TicketsTable/TicketsTable';
-import { getSubscription, getTickets } from '../actions';
+import {} from // getSubscription,
+// getTickets
+'../actions';
 
 // account for openai api calls
 export const maxDuration = 30;
@@ -16,17 +18,17 @@ const UploadButton = dynamic(
 );
 
 const DashboardPage = async () => {
-  const subscription = await getSubscription();
-  const tickets = await getTickets();
+  // const subscription = await getSubscription();
+  // const tickets = await getTickets();
 
   return (
     <PageWrap>
       <div className="flex justify-between">
         <h1 className="font-semibold text-lg mb-8 md:text-2xl">Tickets</h1>
         <UploadButton
-          hasProSubscription={subscription?.type === SubscriptionType.PRO}
-          numberOfTickets={tickets?.length || 0}
-          numberOfCredits={0}
+        // hasProSubscription={subscription?.type === SubscriptionType.PRO}
+        // numberOfTickets={tickets?.length || 0}
+        // numberOfCredits={0}
         />
       </div>
       <TicketsTable />

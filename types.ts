@@ -1,3 +1,5 @@
+import { z } from 'zod';
+
 export enum ProductType {
   PAY_PER_TICKET = 'PAY_PER_TICKET',
   PRO_MONTHLY = 'PRO_MONTHLY',
@@ -12,3 +14,21 @@ export enum LoaderType {
   CREATING_CHALLENGE_LETTER = 'CREATING_CHALLENGE_LETTER',
   UPLOADING_TICKET_IMAGES = 'UPLOADING_TICKET_IMAGES',
 }
+
+export const TicketSchema = z.object({
+  pcnNumber: z.string(),
+  type: z.enum(['PARKING_CHARGE_NOTICE', 'PENALTY_CHARGE_NOTICE']),
+  dateIssued: z.string(), // ISO 8601 format
+  dateTimeOfContravention: z.string(), // Combined date and time in ISO 8601 format
+  vehicleRegistration: z.string(), // Vehicle Registration Number
+  location: z.string().optional(), // Location where the contravention occurred
+  firstSeen: z.string().optional(), // Time when the vehicle was first seen
+  contraventionCode: z.string(),
+  contraventionDescription: z.string().optional(),
+  amountDue: z.number().int(), // Amount in pennies
+  issuer: z.string(),
+  issuerType: z.enum(['COUNCIL', 'TFL', 'PRIVATE_COMPANY']),
+  discountedPaymentDeadline: z.string().optional(), // Deadline for paying the discounted amount (ISO 8601 format)
+  fullPaymentDeadline: z.string().optional(), // Deadline for paying the full amount (ISO 8601 format)
+  verified: z.boolean().optional(), // Indicates if the ticket has been verified online
+});
