@@ -1,19 +1,24 @@
-import React, { useState, useEffect } from 'react'
-import { Image, Pressable, View, Text } from 'react-native'
-import DocumentScanner from 'react-native-document-scanner-plugin'
-import { Platform } from 'react-native';
-import mime from 'mime';
+import { useEffect, useState } from 'react'
+import { Image, Pressable, Text, ScrollView } from 'react-native'
+import { router } from 'expo-router';
+import DocumentScanner, { ResponseType } from 'react-native-document-scanner-plugin'
 import { createTicket } from '@/api';
 import { queryClient } from "@/providers";
 
+const padding = 20;
+
 export default () => {
   const [scannedImage, setScannedImage] = useState<string>();
+  const [submitting, setSubmitting] = useState(false);
 
   const scanDocument = async () => {
     // start the document scanner
-    const { scannedImages } = await DocumentScanner.scanDocument()
+    const { scannedImages } = await DocumentScanner.scanDocument({
+      // TODO: using base64 instead of file paths for now as Vercel doesn't seem to like File + FormData from React Native
+      responseType: ResponseType.Base64
+    })
 
-    // get back an array with scanned image file paths
+    // get back an array with scanned image base64 strings
     if (scannedImages?.length || 0 > 0) {
       // set the img src, so we can view the first scanned image
       setScannedImage((scannedImages as string[])[0])
@@ -23,48 +28,47 @@ export default () => {
   const handleSubmit = async () => {
     if (!scannedImage) return;
 
-    const uri = scannedImage;
-    const fileType = mime.getType(uri);
-    const fileName = uri.split('/').pop();
+    setSubmitting(true);
 
-    // Create FormData
-    const formData = new FormData();
-    formData.append('imageFront', {
-      uri: Platform.OS === 'ios' ? uri.replace('file://', '') : uri,
-      name: fileName || `scan.${fileType?.split('/')[1]}`,
-      type: fileType,
-    });
-
-    // Send the form data to the Next.js API
+    // send base64 image to the API
     try {
-      await createTicket(formData);
+      await createTicket(scannedImage);
 
       // TODO: refetch only tickets and vehicles queries
       await queryClient.refetchQueries();
 
-      console.log('Ticket submitted successfully');
+      // navigate to home screen
+      router.push('/');
     } catch (error) {
       console.error('Error submitting the ticket:', error);
+    } finally {
+      setSubmitting(false);
     }
   };
 
   useEffect(() => {
-    // call scanDocument on load
-    scanDocument()
+    // call scanDocument on load but only in production
+    if (!__DEV__) {
+      scanDocument()
+    }
+
+    return () => {
+      // cleanup
+      setScannedImage('');
+    }
   }, []);
 
 
-
   return (
-    <View>
-      <Image
-        resizeMode="contain"
-        style={{ width: '100%', height: '100%' }}
-        source={{ uri: scannedImage }}
-      />
+    <ScrollView contentContainerStyle={{
+      padding,
+      alignItems: 'center',
+      gap: 32,
+    }}>
+      {scannedImage ? <Image source={{ uri: scannedImage }} style={{ width: 200, height: 200 }} /> : null}
       <Pressable onPress={handleSubmit}>
-        <Text>Submit Ticket</Text>
+        <Text>{submitting ? "Submitting" : "Submit"} Ticket</Text>
       </Pressable>
-    </View>
+    </ScrollView>
   )
 }

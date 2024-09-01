@@ -61,6 +61,7 @@ export default function TabLayout() {
             </View>
           ),
           tabBarLabel: () => null,
+          unmountOnBlur: true,
         }}
       />
       <Tabs.Screen

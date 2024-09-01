@@ -1,8 +1,8 @@
 import { SafeAreaView, View, Dimensions } from 'react-native';
+import { router } from 'expo-router';
 import tw from "twrnc";
 import { GoogleSigninButton, } from '@react-native-google-signin/google-signin';
 import { useAuthContext } from '@/contexts/auth';
-import { router } from 'expo-router';
 
 const padding = 16;
 const screenWidth = Dimensions.get('screen').width - padding * 2;

@@ -14,9 +14,11 @@ const VehiclesList = () => {
     )
   }
 
-  if (!vehicles || vehicles.length === 0) {
+  if (!vehicles || !vehicles.length) {
     return (
-      <Text>No vehicles found</Text>
+      <View style={tw`flex-1 items-center justify-center`}>
+        <Text>No vehicles found.</Text>
+      </View>
     )
   }
 

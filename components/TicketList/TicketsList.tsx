@@ -1,41 +1,16 @@
-import { Button, Pressable, Text, View } from 'react-native';
+import { useEffect, useState } from 'react';
+import { Pressable, Text, View } from 'react-native';
 import tw from "twrnc";
 import { FlashList } from "@shopify/flash-list";
 import { faCircleExclamation, faClock } from "@fortawesome/pro-regular-svg-icons";
 import { differenceInMinutes, differenceInHours, differenceInDays, differenceInMilliseconds, parseISO } from 'date-fns';
 import useTickets from '@/hooks/api/useTickets';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
-import { useEffect, useState } from 'react';
+import { Ticket, TicketStatus } from '@/types';
 
 const DISCOUNT_THRESHOLD_MS = 172800000; // 48 hours in milliseconds
 
 const gridGap = 16;
-
-// Mock data for tickets
-const tickets = [
-  {
-    id: 1,
-    pcnNumber: "ZY10071576",
-    issuer: "London Borough of Lewisham",
-    issueDate: "2024-08-13T11:06:00",
-    contraventionCode: "622",
-    contraventionDescription: "Parked with one or more wheels on a footpath",
-    paymentStatus: "pending",
-    discountDeadline: "2024-08-27T11:06:00",
-    fullPaymentDeadline: "2024-09-13T11:06:00"
-  },
-  {
-    id: 2,
-    pcnNumber: "AB12345678",
-    issuer: "City of Westminster",
-    issueDate: "2024-08-15T09:30:00",
-    contraventionCode: "301",
-    contraventionDescription: "Parking in a restricted street during prescribed hours",
-    paymentStatus: "discounted",
-    discountDeadline: "2024-08-29T09:30:00",
-    fullPaymentDeadline: "2024-09-15T09:30:00"
-  }
-]
 
 type CountdownTimerProps = {
   deadline: string;
@@ -63,8 +38,6 @@ const CountdownTimer = ({ deadline }: CountdownTimerProps) => {
     return () => clearInterval(timer);
   }, [deadline]);
 
-  console.log('timeLeft', timeLeft);
-
   const { days, hours, minutes } = timeLeft;
 
 
@@ -78,7 +51,10 @@ const CountdownTimer = ({ deadline }: CountdownTimerProps) => {
   );
 };
 
-const TicketItem = ({ ticket, style }) => {
+const TicketItem = ({ ticket, style }: {
+  ticket: Ticket;
+  style: Record<string, unknown>
+}) => {
   return (
     <View style={tw.style(`rounded-lg border border-[#e4e4e7] bg-white text-[#09090b] shadow-sm`, {
       ...style
@@ -89,16 +65,16 @@ const TicketItem = ({ ticket, style }) => {
           whiteSpace: 'nowrap',
         })}>{`${ticket.pcnNumber} - ${ticket.issuer}`}</Text>
         <Text style={tw`text-sm text-[#71717a]`}>
-          {`Issued on ${new Date(ticket.issueDate).toLocaleDateString()} at ${new Date(ticket.issueDate).toLocaleTimeString()}`}
+          {`Issued on ${new Date(ticket.dateIssued).toLocaleDateString()} at ${new Date(ticket.dateIssued).toLocaleTimeString()}`}
         </Text>
       </View>
       <View style={tw`p-6 pt-0`}>
-        <Text style={tw`mb-2`}>Contravention: {`${ticket.contraventionCode} - ${ticket.contraventionDescription}`}</Text>
+        <Text style={tw`mb-2`}>Contravention: {`${ticket.contravention.code} - ${ticket.contravention.description}`}</Text>
         <View style={tw`flex-row flex-wrap items-center justify-between`}>
           <View style={tw`bg-[#18181b] px-2 py-1 rounded-full`}>
-            <Text style={tw`text-white font-bold`}>{ticket.paymentStatus.charAt(0).toUpperCase() + ticket.paymentStatus.slice(1)}</Text>
+            <Text style={tw`text-white font-bold`}>{ticket.status.charAt(0).toUpperCase() + ticket.status.slice(1)}</Text>
           </View>
-          <CountdownTimer deadline={new Date(ticket.paymentStatus === 'pending' ? ticket.discountDeadline : ticket.fullPaymentDeadline).toISOString()} />
+          <CountdownTimer deadline={new Date(ticket.status === TicketStatus.REDUCED_PAYMENT_DUE ? ticket.discountedPaymentDeadline : ticket.fullPaymentDeadline).toISOString()} />
         </View>
       </View>
       <View style={tw`flex-row items-center p-6 pt-0 justify-end gap-x-2`}>
@@ -118,26 +94,26 @@ const TicketItem = ({ ticket, style }) => {
 }
 
 const TicketsList = () => {
-  // const { data: { tickets } = {}, isLoading } = useTickets();
+  const { data: { tickets } = {}, isLoading } = useTickets();
 
-  // if (isLoading) {
-  //   return (
-  //     <View style={tw`flex-1 items-center justify-center`}>
-  //       <Text>Loading...</Text>
-  //     </View>
-  //   )
-  // }
+  if (isLoading) {
+    return (
+      <View style={tw`flex-1 items-center justify-center`}>
+        <Text>Loading...</Text>
+      </View>
+    )
+  }
 
-  // if (!tickets || !tickets.length) {
-  //   return (
-  //     <View style={tw`flex-1 items-center justify-center`}>
-  //       <Text>No tickets found</Text>
-  //     </View>
-  //   )
-  // }
+  if (!tickets || !tickets.length) {
+    return (
+      <View style={tw`flex-1 items-center justify-center`}>
+        <Text>No tickets found.</Text>
+      </View>
+    )
+  }
 
   const hasUpcomingDeadlines = tickets.some(ticket =>
-    differenceInMilliseconds(parseISO(ticket.discountDeadline), new Date()) < DISCOUNT_THRESHOLD_MS
+    differenceInMilliseconds(parseISO(ticket.fullPaymentDeadline), new Date()) < DISCOUNT_THRESHOLD_MS
   );
 
   return (

@@ -97,13 +97,15 @@ export type Ticket = {
   description?: string;
   dateIssued: string;
   dateOfContravention: string;
-  status: TicketStatus[];
+  status: TicketStatus;
   paymentLink?: string;
   letters: Letter[];
   type: TicketType;
   amountDue: number;
   issuer: string;
   issuerType: IssuerType;
+  discountedPaymentDeadline: string;
+  fullPaymentDeadline: string;
   verified: boolean;
   vehicle: Vehicle;
   vehicleId: string;
