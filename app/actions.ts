@@ -15,7 +15,7 @@ import { Resend } from 'resend';
 import Stripe from 'stripe';
 import prisma from '@/lib/prisma';
 import { auth } from '@/auth';
-import { FileWithPreview, ProductType, TicketSchema } from '@/types';
+import { ProductType, TicketSchema } from '@/types';
 import { BACKGROUND_INFORMATION_PROMPT } from '@/constants';
 import generatePDF from '@/utils/generatePDF';
 import streamToBuffer from '@/utils/streamToBuffer';
@@ -47,71 +47,94 @@ const getUserId = async (action?: string) => {
   return userId;
 };
 
-export const createTicket = async (formData: FormData) => {
+const toISODateString = (inputDate: string | Date): string => {
+  if (inputDate instanceof Date) {
+    return inputDate.toISOString();
+  }
+
+  // create a new variable to hold the date string
+  let datestring = inputDate;
+
+  // check if the string already has a time component using a regex
+  const hasTime = /\d{2}:\d{2}:\d{2}/.test(datestring);
+
+  // if no time is included, append midnight UTC ('T00:00:00Z')
+  if (!hasTime) {
+    console.warn('No time provided. Defaulting to midnight UTC.');
+    datestring += 'T00:00:00Z';
+  }
+
+  const parsedDate = new Date(datestring);
+
+  // check for an invalid date
+  if (Number.isNaN(parsedDate.getTime())) {
+    console.error(`Invalid date: ${datestring}`);
+    throw new Error(`Invalid date: ${datestring}`);
+  }
+
+  return parsedDate.toISOString();
+};
+
+export const createTicket = async (input: FormData | string) => {
   const userId = await getUserId('create a ticket');
 
   if (!userId) {
     return null;
   }
 
-  // TODO: future - allow user to upload ticket for free and then pay to challenge/get reminders
-  // for now - let everyone upload and challenge tickets for free
-  // check if a user has a pro subscription or enough credits to create a ticket
-  // const user = await prisma.user.findUnique({
-  //   where: {
-  //     id: userId,
-  //   },
-  //   select: {
-  //     credits: true,
-  //   },
-  // });
+  let base64Image: string;
+  let blobStorageUrl: string;
 
-  // if (!user) {
-  //   console.error('User not found.');
-  //   return null;
-  // }
+  if (input instanceof FormData) {
+    const imageFront = input.get('imageFront') as File | null;
+    if (!imageFront) {
+      throw new Error('No image file provided.');
+    }
 
-  // const subscription = await prisma.subscription.findFirst({
-  //   where: {
-  //     user: {
-  //       id: userId,
-  //     },
-  //   },
-  // });
+    // Convert the image file to a base64 string
+    base64Image = await new Promise<string>((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onloadend = () => resolve(reader.result as string);
+      // eslint-disable-next-line prefer-promise-reject-errors
+      reader.onerror = () => reject('Failed to convert image to base64.');
+      reader.readAsDataURL(imageFront);
+    });
 
-  // check if user has enough credits or a pro subscription
-  // if (
-  //   (!subscription || subscription.type !== SubscriptionType.PRO) &&
-  //   user.credits <= 0
-  // ) {
-  //   console.error(
-  //     'You need to have a pro subscription or enough credits to create a ticket.',
-  //   );
-  //   return null;
-  // }
+    // If base64Image starts with "data:", strip the prefix
+    base64Image = base64Image.replace(/^data:image\/[a-z]+;base64,/, '');
 
-  // create an easy to use object from the form data
-  const rawFormData = {
-    imageFront: (formData.get('imageFront') as FileWithPreview) || undefined,
-  };
+    // Store the image in Vercel Blob storage
+    const extension = imageFront.name.split('.').pop();
+    const ticketFrontBlob = await put(
+      `uploads/users/${userId}/ticket-front.${extension}`,
+      imageFront,
+      {
+        access: 'public',
+      },
+    );
 
-  if (!rawFormData.imageFront) {
-    throw new Error('No image file provided.');
+    // Use the Blob storage URL for further processing
+    blobStorageUrl = ticketFrontBlob.url;
+  } else if (typeof input === 'string') {
+    base64Image = input; // Directly use the provided base64 string
+
+    // Optionally, you could also upload the base64 string as a Blob here
+    const buffer = Buffer.from(base64Image, 'base64');
+    const ticketFrontBlob = await put(
+      `uploads/users/${userId}/ticket-front-from-base64.png`,
+      buffer,
+      {
+        access: 'public',
+        contentType: 'image/png', // adjust content type as needed
+      },
+    );
+
+    blobStorageUrl = ticketFrontBlob.url;
+  } else {
+    throw new Error('Invalid input type. Must be FormData or base64 string.');
   }
 
-  const extension = rawFormData.imageFront.name.split('.').pop();
-  const image = rawFormData.imageFront;
-
-  // store ticket front and back image in blob storage
-  const ticketFrontBlob = await put(
-    `uploads/users/${userId}/ticket-front.${extension}`,
-    image,
-    {
-      access: 'public',
-    },
-  );
-
-  // TODO: send ticket front and back image to openai to get ticket information in a JSON format
+  // Send the image URL to OpenAI for analysis
   const response = await openai.chat.completions.create({
     model: 'gpt-4o-2024-08-06',
     messages: [
@@ -123,21 +146,20 @@ export const createTicket = async (formData: FormData) => {
         {
           "pcnNumber": "string",
           "type": "PARKING_CHARGE_NOTICE or PENALTY_CHARGE_NOTICE",
-          "dateIssued": "ISO 8601 string",
-          "dateTimeOfContravention": "ISO 8601 string",
+          "dateIssued": "ISO 8601 string with the following format: YYYY-MM-DDTHH:MM:SSZ",
+          "dateTimeOfContravention": "ISO 8601 string with the following format: YYYY-MM-DDTHH:MM:SSZ",
           "location": "string, optional",
-          "firstSeen": "ISO 8601 string, optional",
+          "firstSeen": "ISO 8601 string with the following format: YYYY-MM-DDTHH:MM:SSZ, optional",
           "contraventionCode": "string",
           "contraventionDescription": "string, optional",
           "amountDue": "integer (in pennies)",
           "issuer": "string",
           "issuerType": "COUNCIL, TFL, or PRIVATE_COMPANY",
-          "discountedPaymentDeadline": "ISO 8601 string, optional",
-          "fullPaymentDeadline": "ISO 8601 string, optional",
-          "verified": "boolean, optional"
+          "discountedPaymentDeadline": "ISO 8601 string with the following format: YYYY-MM-DDTHH:MM:SSZ",
+          "fullPaymentDeadline": "ISO 8601 string with the following format: YYYY-MM-DDTHH:MM:SSZ",
         }.
         Extract the information accurately from the provided images.
-        When calculating the dates for the discountedPaymentDeadline and fullPaymentDeadline fields, please return them as actual ISO 8601 formatted dates.
+        When calculating the dates for the discountedPaymentDeadline and fullPaymentDeadline fields, please return them as actual ISO 8601 formatted dates with the following format: YYYY-MM-DDTHH:MM:SSZ.
         - The discountedPaymentDeadline should be 14 days after the dateIssued.
         - The fullPaymentDeadline should be 28 days after the dateIssued.
       `,
@@ -152,7 +174,7 @@ export const createTicket = async (formData: FormData) => {
           {
             type: 'image_url',
             image_url: {
-              url: ticketFrontBlob.url,
+              url: blobStorageUrl,
             },
           },
         ],
@@ -164,13 +186,6 @@ export const createTicket = async (formData: FormData) => {
   // DEBUG:
   // eslint-disable-next-line no-console
   console.log('createTicket gpt-4o response:', response);
-
-  // DEBUG:
-  // eslint-disable-next-line no-console
-  console.log(
-    'createTicket gpt-4o message: ',
-    JSON.stringify(response.choices[0].message, null, 2),
-  );
 
   const ticketInfo = response.choices[0].message.content;
 
@@ -187,6 +202,7 @@ export const createTicket = async (formData: FormData) => {
     contraventionCode,
     contraventionDescription,
     location,
+    firstSeen,
     amountDue,
     issuer,
     issuerType,
@@ -199,21 +215,22 @@ export const createTicket = async (formData: FormData) => {
     data: {
       pcnNumber,
       type,
-      dateIssued: new Date(dateIssued),
-      dateTimeOfContravention: new Date(dateTimeOfContravention),
+      dateIssued: toISODateString(dateIssued),
+      dateTimeOfContravention: toISODateString(dateTimeOfContravention),
       location,
+      firstSeen: firstSeen ? toISODateString(firstSeen) : undefined,
       amountDue: Number(amountDue),
       issuer,
       issuerType,
-      discountedPaymentDeadline,
-      fullPaymentDeadline,
+      discountedPaymentDeadline: toISODateString(discountedPaymentDeadline),
+      fullPaymentDeadline: toISODateString(fullPaymentDeadline),
       contravention: {
         connectOrCreate: {
           where: {
-            code: contraventionCode.toString(), // TODO: parsing function converted it to a number
+            code: contraventionCode.toString(),
           },
           create: {
-            code: contraventionCode.toString(), // TODO: parsing function converted it to a number
+            code: contraventionCode.toString(),
             description: contraventionDescription,
           },
         },
@@ -225,9 +242,9 @@ export const createTicket = async (formData: FormData) => {
           },
           create: {
             registration: vehicleRegistration,
-            make: 'Toyota', // TODO: get ticket/dvla api based on registration
-            model: 'Corolla', // TODO: get ticket/dvla api based on registration
-            year: 2020, // TODO: get ticket/dvla api based on registration
+            make: 'Toyota',
+            model: 'Corolla',
+            year: 2020,
             userId,
           },
         },
@@ -235,7 +252,7 @@ export const createTicket = async (formData: FormData) => {
       media: {
         create: [
           {
-            url: ticketFrontBlob.url,
+            url: base64Image,
             name: 'ticket-front',
             type: MediaType.IMAGE,
           },
@@ -243,21 +260,6 @@ export const createTicket = async (formData: FormData) => {
       },
     },
   });
-
-  // decrement user credits if they dont have a pro subscription
-
-  // if (!subscription || subscription?.type !== SubscriptionType.PRO) {
-  //   await prisma.user.update({
-  //     where: {
-  //       id: userId,
-  //     },
-  //     data: {
-  //       credits: {
-  //         decrement: 1,
-  //       },
-  //     },
-  //   });
-  // }
 
   revalidatePath('/dashboard');
 
@@ -347,6 +349,10 @@ export const getTickets = async (): Promise<
       amountDue: true,
       issuer: true,
       issuerType: true,
+      discountedPaymentDeadline: true,
+      fullPaymentDeadline: true,
+      verified: true,
+      location: true,
       contravention: {
         select: {
           code: true,
