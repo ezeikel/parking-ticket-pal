@@ -78,18 +78,26 @@ export const TICKET_STATUS: {
 } = {
   [TicketStatus.REDUCED_PAYMENT_DUE]: 'Reduced Payment Due',
   [TicketStatus.FULL_PAYMENT_DUE]: 'Full Payment Due',
-  [TicketStatus.FULL_PAYMENT_PLUS_INCREASE_DUE]:
-    'Full Payment Plus Increase Due',
-  [TicketStatus.PAID]: 'Paid',
+  [TicketStatus.NOTICE_TO_OWNER_SENT]: 'Notice to Owner Sent',
+
+  // Appeals Process
   [TicketStatus.APPEALED]: 'Appealed',
-  [TicketStatus.APPEAL_SUCCESSFUL]: 'Appeal Successful',
+  [TicketStatus.APPEAL_ACCEPTED]: 'Appeal Accepted',
   [TicketStatus.APPEAL_REJECTED]: 'Appeal Rejected',
-  [TicketStatus.COUNTY_COURT]: 'County Court',
-  [TicketStatus.COUNTY_COURT_JUDGEMENT]: 'County Court Judgement',
+
+  // Post-Notice Appeals (Tribunal/POPLA)
+  [TicketStatus.TRIBUNAL_APPEAL_IN_PROGRESS]: 'Tribunal Appeal In Progress',
+  [TicketStatus.TRIBUNAL_APPEAL_ACCEPTED]: 'Tribunal Appeal Accepted',
+  [TicketStatus.TRIBUNAL_APPEAL_REJECTED]: 'Tribunal Appeal Rejected',
+
+  // Escalation
   [TicketStatus.ORDER_FOR_RECOVERY]: 'Order for Recovery',
-  [TicketStatus.DEBT_COLLECTION]: 'Debt Collection',
-  [TicketStatus.TRIBUNAL]: 'Tribunal',
-  [TicketStatus.POPLA]: 'POPLA',
+  [TicketStatus.CCJ_PENDING]: 'CCJ Pending',
+  [TicketStatus.CCJ_ISSUED]: 'CCJ Issued',
+
+  // Resolution
+  [TicketStatus.PAID]: 'Paid',
+  [TicketStatus.CANCELLED]: 'Cancelled',
 };
 
 export const CREATING_CHALLENGE_LETTER_TEXT: string[] = [

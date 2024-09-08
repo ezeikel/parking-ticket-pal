@@ -21,8 +21,10 @@ enum TicketType {
 }
 
 enum LetterType {
-  CHALLENGE
-  APPEAL
+  INITIAL_NOTICE
+  APPEAL_RESPONSE
+  NOTICE_TO_OWNER
+  CHARGE_CERTIFICATE
 }
 
 enum MediaType {
@@ -32,19 +34,31 @@ enum MediaType {
 }
 
 enum TicketStatus {
-  REDUCED_PAYMENT_DUE
-  FULL_PAYMENT_DUE
-  FULL_PAYMENT_PLUS_INCREASE_DUE
-  PAID
-  APPEALED
-  APPEAL_SUCCESSFUL
-  APPEAL_REJECTED
-  COUNTY_COURT
-  COUNTY_COURT_JUDGEMENT
-  ORDER_FOR_RECOVERY
-  DEBT_COLLECTION
-  TRIBUNAL
-  POPLA
+  // Initial Stages
+  REDUCED_PAYMENT_DUE // Initial ticket with reduced payment option (within 14 days)
+  FULL_PAYMENT_DUE // After 14 days, full amount due (within 28 days)
+
+  // Post 28 Days - Notice to Owner
+  NOTICE_TO_OWNER_SENT // Notice to Owner sent (fine increases after 28 days)
+
+  // Appeals Process (before Notice to Owner)
+  APPEALED // Ticket is under appeal (prior to Notice to Owner)
+  APPEAL_REJECTED // Appeal rejected, waiting for Notice to Owner
+  APPEAL_ACCEPTED // Appeal accepted, no further action required
+
+  // Post-Notice to Owner Appeals (Tribunals/POPLA)
+  TRIBUNAL_APPEAL_IN_PROGRESS // Appeal made to London Tribunals or POPLA after Notice to Owner
+  TRIBUNAL_APPEAL_ACCEPTED // Tribunal/POPLA appeal accepted, no further action required
+  TRIBUNAL_APPEAL_REJECTED // Tribunal/POPLA appeal rejected, full payment or further escalation
+
+  // Escalation after Notice to Owner
+  ORDER_FOR_RECOVERY // Order for Recovery issued (if NTO not paid)
+  CCJ_PENDING // County Court Judgment (CCJ) in process
+  CCJ_ISSUED // CCJ has been issued
+
+  // Ticket Resolution
+  PAID // Ticket has been paid
+  CANCELLED // Ticket has been cancelled (e.g., after successful appeal)
 }
 
 enum IssuerType {
@@ -115,13 +129,12 @@ model Ticket {
   pcnNumber                 String        @unique
   contravention             Contravention @relation(fields: [contraventionId], references: [id])
   contraventionId           String
-  location                  String // TODO: coordinates
+  location                  Decimal[] // array to store lat and long as decimals
   description               String?
   dateIssued                DateTime
   dateTimeOfContravention   DateTime
   firstSeen                 DateTime?
   status                    TicketStatus  @default(REDUCED_PAYMENT_DUE)
-  paymentLink               String? // TODO: make this required
   letters                   Letter[]
   type                      TicketType
   amountDue                 Int
@@ -133,7 +146,7 @@ model Ticket {
   vehicle                   Vehicle       @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
   vehicleId                 String
   media                     Media[]
-  appeal                    Appeal?
+  appeals                   Appeal[]
   reminder                  Reminder[]
   createdAt                 DateTime      @default(now())
   updatedAt                 DateTime      @updatedAt
@@ -168,15 +181,16 @@ model Contravention {
 }
 
 model Letter {
-  id        String     @id @default(cuid())
-  type      LetterType
-  ticket    Ticket     @relation(fields: [ticketId], references: [id], onDelete: Cascade)
-  ticketId  String
-  content   String
-  appeal    Appeal?    @relation(fields: [appealId], references: [id])
-  appealId  String?
-  createdAt DateTime   @default(now())
-  updatedAt DateTime   @updatedAt
+  id            String     @id @default(cuid())
+  type          LetterType
+  ticket        Ticket     @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  ticketId      String
+  extractedText String // full text extracted from the letter
+  summary       String // summary of key points from the letter
+  appeal        Appeal?    @relation(fields: [appealId], references: [id])
+  appealId      String?
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
 
   @@map("letters")
 }

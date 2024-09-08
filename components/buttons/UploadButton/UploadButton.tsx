@@ -18,7 +18,7 @@ import MediaPreview from '@/components/MediaPreview/MediaPreview';
 import { FileWithPreview, LoaderType } from '@/types';
 import Loader from '@/components/Loader/Loader';
 import { useToast } from '@/components/ui/use-toast';
-import { revalidateDashboard, createTicket } from '@/app/actions';
+import { revalidateDashboard, uploadImage } from '@/app/actions';
 // import { useAccountContext } from '@/contexts/account';
 
 // type UploadButtonProps = {
@@ -141,7 +141,7 @@ const UploadButton = () => {
                 setIsLoading(true);
 
                 // create ticket
-                await createTicket(formData);
+                await uploadImage(formData);
 
                 // FIX: revalidarPath from route handler seemed to have no effect
                 await revalidateDashboard();

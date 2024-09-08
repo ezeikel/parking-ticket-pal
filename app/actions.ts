@@ -6,6 +6,7 @@ import { del, put } from '@vercel/blob';
 import OpenAI from 'openai';
 import { zodResponseFormat } from 'openai/helpers/zod';
 import {
+  LetterType,
   MediaType,
   // SubscriptionType,
   Ticket,
@@ -75,8 +76,8 @@ const toISODateString = (inputDate: string | Date): string => {
   return parsedDate.toISOString();
 };
 
-export const createTicket = async (input: FormData | string) => {
-  const userId = await getUserId('create a ticket');
+export const uploadImage = async (input: FormData | string) => {
+  const userId = await getUserId('upload an image');
 
   if (!userId) {
     return null;
@@ -84,84 +85,87 @@ export const createTicket = async (input: FormData | string) => {
 
   let base64Image: string;
   let blobStorageUrl: string;
+  let dbResponse;
 
   if (input instanceof FormData) {
-    const imageFront = input.get('imageFront') as File | null;
-    if (!imageFront) {
+    const image = input.get('image') as File | null;
+
+    if (!image) {
       throw new Error('No image file provided.');
     }
 
-    // Convert the image file to a base64 string
-    base64Image = await new Promise<string>((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onloadend = () => resolve(reader.result as string);
-      // eslint-disable-next-line prefer-promise-reject-errors
-      reader.onerror = () => reject('Failed to convert image to base64.');
-      reader.readAsDataURL(imageFront);
-    });
-
-    // If base64Image starts with "data:", strip the prefix
-    base64Image = base64Image.replace(/^data:image\/[a-z]+;base64,/, '');
-
-    // Store the image in Vercel Blob storage
-    const extension = imageFront.name.split('.').pop();
+    // store the image in Vercel Blob storage
+    const extension = image.name.split('.').pop();
     const ticketFrontBlob = await put(
-      `uploads/users/${userId}/ticket-front.${extension}`,
-      imageFront,
+      `uploads/users/${userId}/image.${extension}`,
+      image,
       {
         access: 'public',
       },
     );
 
-    // Use the Blob storage URL for further processing
+    // update the Blob storage URL for further processing
     blobStorageUrl = ticketFrontBlob.url;
   } else if (typeof input === 'string') {
-    base64Image = input; // Directly use the provided base64 string
+    base64Image = input; // directly use the provided base64 string
 
-    // Optionally, you could also upload the base64 string as a Blob here
+    // if base64Image starts with "data:", strip the prefix
+    base64Image = base64Image.replace(/^data:image\/[a-z]+;base64,/, '');
+
+    // upload the base64 string as a Blob
     const buffer = Buffer.from(base64Image, 'base64');
     const ticketFrontBlob = await put(
-      `uploads/users/${userId}/ticket-front-from-base64.png`,
+      `uploads/users/${userId}/image.png`,
       buffer,
       {
         access: 'public',
-        contentType: 'image/png', // adjust content type as needed
+        contentType: 'image/png', // assuming png format (react-native-document-scanner-plugin uses png)
       },
     );
 
+    // update the Blob storage URL for further processing
     blobStorageUrl = ticketFrontBlob.url;
   } else {
     throw new Error('Invalid input type. Must be FormData or base64 string.');
   }
 
-  // Send the image URL to OpenAI for analysis
+  // send the image URL to OpenAI for analysis
   const response = await openai.chat.completions.create({
     model: 'gpt-4o-2024-08-06',
     messages: [
       {
         role: 'system',
         content: `
-        You are an AI specialized in extracting structured data from images of parking tickets. 
-        Your task is to analyze the images provided and return a JSON object matching this schema:
-        {
-          "pcnNumber": "string",
-          "type": "PARKING_CHARGE_NOTICE or PENALTY_CHARGE_NOTICE",
-          "dateIssued": "ISO 8601 string with the following format: YYYY-MM-DDTHH:MM:SSZ",
-          "dateTimeOfContravention": "ISO 8601 string with the following format: YYYY-MM-DDTHH:MM:SSZ",
-          "location": "string, optional",
-          "firstSeen": "ISO 8601 string with the following format: YYYY-MM-DDTHH:MM:SSZ, optional",
-          "contraventionCode": "string",
-          "contraventionDescription": "string, optional",
-          "amountDue": "integer (in pennies)",
-          "issuer": "string",
-          "issuerType": "COUNCIL, TFL, or PRIVATE_COMPANY",
-          "discountedPaymentDeadline": "ISO 8601 string with the following format: YYYY-MM-DDTHH:MM:SSZ",
-          "fullPaymentDeadline": "ISO 8601 string with the following format: YYYY-MM-DDTHH:MM:SSZ",
-        }.
-        Extract the information accurately from the provided images.
-        When calculating the dates for the discountedPaymentDeadline and fullPaymentDeadline fields, please return them as actual ISO 8601 formatted dates with the following format: YYYY-MM-DDTHH:MM:SSZ.
-        - The discountedPaymentDeadline should be 14 days after the dateIssued.
-        - The fullPaymentDeadline should be 28 days after the dateIssued.
+      You are an AI specialized in extracting structured data from images of parking tickets and related letters.
+      Your task is to analyze the images provided and return a JSON object matching this schema:
+      {
+        "documentType": "TICKET" or "LETTER", // TICKET: a physical PCN attached to a car (usually smaller and compact); LETTER: a formal document mailed to the registered owner about a PCN (usually A4 size).
+        "pcnNumber": "string",
+        "type": "PARKING_CHARGE_NOTICE" or "PENALTY_CHARGE_NOTICE",
+        "dateIssued": "ISO 8601 string with the following format: YYYY-MM-DDTHH:MM:SSZ",
+        "dateTimeOfContravention": "ISO 8601 string with the following format: YYYY-MM-DDTHH:MM:SSZ",
+        "location": "string, optional",
+        "firstSeen": "ISO 8601 string with the following format: YYYY-MM-DDTHH:MM:SSZ, optional",
+        "contraventionCode": "string",
+        "contraventionDescription": "string, optional",
+        "amountDue": "integer (in pennies)",
+        "issuer": "string",
+        "issuerType": "COUNCIL", "TFL", or "PRIVATE_COMPANY",
+        "discountedPaymentDeadline": "ISO 8601 string with the following format: YYYY-MM-DDTHH:MM:SSZ",
+        "fullPaymentDeadline": "ISO 8601 string with the following format: YYYY-MM-DDTHH:MM:SSZ",
+
+        // If the documentType is "LETTER", extract the following additional fields
+        "extractedText": "string",  // full text extracted from the letter
+        "summary": "string"         // summary of the key points from the letter
+      }.
+
+      When determining whether the document is a "TICKET" or a "LETTER", please consider the following:
+      - A "TICKET" is typically a smaller document, often about the size of a receipt, with concise details regarding the violation, and would be found inside an adhesive pack attached to a windshield. The paper quality is often thinner than an A4-sized letter and might be printed with immediate details of the contravention and amount due.
+      - A "LETTER" is usually an A4-sized document, more formally structured, sent through the post. It might include salutation text (e.g., 'Dear Sir/Madam') and more detailed legal information related to the penalty charge, and may also include images of the contravention.
+
+      Both types of documents will contain similar fields such as PCN number, contravention date, and amount due, but the documentType must be distinguished by the layout, size, and presentation style.
+      
+      Ensure ISO 8601 format for all dates, and calculate the discountedPaymentDeadline as 14 days and fullPaymentDeadline as 28 days after the dateIssued.
       `,
       },
       {
@@ -185,15 +189,16 @@ export const createTicket = async (input: FormData | string) => {
 
   // DEBUG:
   // eslint-disable-next-line no-console
-  console.log('createTicket gpt-4o response:', response);
+  console.log('uploadImage gpt-4o response:', response);
 
-  const ticketInfo = response.choices[0].message.content;
+  const imageInfo = response.choices[0].message.content;
 
   // DEBUG:
   // eslint-disable-next-line no-console
-  console.log('createTicket ticketInfo:', ticketInfo);
+  console.log('uploadImage imageInfo:', imageInfo);
 
   const {
+    documentType,
     pcnNumber,
     type,
     dateIssued,
@@ -208,62 +213,137 @@ export const createTicket = async (input: FormData | string) => {
     issuerType,
     discountedPaymentDeadline,
     fullPaymentDeadline,
-  } = JSON.parse(ticketInfo as string);
+    extractedText,
+    summary,
+  } = JSON.parse(imageInfo as string);
 
-  // save ticket to database
-  const ticket = await prisma.ticket.create({
-    data: {
-      pcnNumber,
-      type,
-      dateIssued: toISODateString(dateIssued),
-      dateTimeOfContravention: toISODateString(dateTimeOfContravention),
-      location,
-      firstSeen: firstSeen ? toISODateString(firstSeen) : undefined,
-      amountDue: Number(amountDue),
-      issuer,
-      issuerType,
-      discountedPaymentDeadline: toISODateString(discountedPaymentDeadline),
-      fullPaymentDeadline: toISODateString(fullPaymentDeadline),
-      contravention: {
-        connectOrCreate: {
-          where: {
-            code: contraventionCode.toString(),
+  // if the image is a letter, create a new Letter, otherwise create a new Ticket
+  if (documentType === 'TICKET') {
+    // check if the ticket already exists
+    const existingTicket = await prisma.ticket.findFirst({
+      where: {
+        pcnNumber,
+      },
+    });
+
+    if (existingTicket) {
+      console.error('Ticket already exists.');
+      return null;
+    }
+
+    // save ticket to database
+    dbResponse = await prisma.ticket.create({
+      data: {
+        pcnNumber,
+        type,
+        dateIssued: toISODateString(dateIssued),
+        dateTimeOfContravention: toISODateString(dateTimeOfContravention),
+        location,
+        firstSeen: firstSeen ? toISODateString(firstSeen) : undefined,
+        amountDue: Number(amountDue),
+        issuer,
+        issuerType,
+        discountedPaymentDeadline: toISODateString(discountedPaymentDeadline),
+        fullPaymentDeadline: toISODateString(fullPaymentDeadline),
+        contravention: {
+          connectOrCreate: {
+            where: {
+              code: contraventionCode.toString(),
+            },
+            create: {
+              code: contraventionCode.toString(),
+              description: contraventionDescription,
+            },
           },
-          create: {
-            code: contraventionCode.toString(),
-            description: contraventionDescription,
+        },
+        vehicle: {
+          connectOrCreate: {
+            where: {
+              registration: vehicleRegistration,
+            },
+            create: {
+              registration: vehicleRegistration,
+              // TODO: DVLA API integration to get vehicle make and model
+              make: 'Toyota',
+              model: 'Corolla',
+              year: 2020,
+              userId,
+            },
+          },
+        },
+        media: {
+          create: [
+            {
+              url: blobStorageUrl,
+              name: '   ',
+              type: MediaType.IMAGE,
+            },
+          ],
+        },
+      },
+    });
+  } else {
+    // save letter to database
+    dbResponse = await prisma.letter.create({
+      data: {
+        type: LetterType.INITIAL_NOTICE,
+        extractedText,
+        summary,
+        ticket: {
+          connectOrCreate: {
+            where: {
+              pcnNumber,
+            },
+            create: {
+              pcnNumber,
+              type,
+              dateIssued: toISODateString(dateIssued),
+              dateTimeOfContravention: toISODateString(dateTimeOfContravention),
+              location,
+              firstSeen: firstSeen ? toISODateString(firstSeen) : undefined,
+              amountDue: Number(amountDue),
+              issuer,
+              issuerType,
+              discountedPaymentDeadline: toISODateString(
+                discountedPaymentDeadline,
+              ),
+              fullPaymentDeadline: toISODateString(fullPaymentDeadline),
+              contravention: {
+                connectOrCreate: {
+                  where: {
+                    code: contraventionCode.toString(),
+                  },
+                  create: {
+                    code: contraventionCode.toString(),
+                    description: contraventionDescription,
+                  },
+                },
+              },
+              vehicle: {
+                connectOrCreate: {
+                  where: {
+                    registration: vehicleRegistration,
+                  },
+                  create: {
+                    registration: vehicleRegistration,
+                    // TODO: DVLA API integration to get vehicle make and model
+                    make: 'Toyota',
+                    model: 'Corolla',
+                    year: 2020,
+                    userId,
+                  },
+                },
+              },
+            },
           },
         },
       },
-      vehicle: {
-        connectOrCreate: {
-          where: {
-            registration: vehicleRegistration,
-          },
-          create: {
-            registration: vehicleRegistration,
-            make: 'Toyota',
-            model: 'Corolla',
-            year: 2020,
-            userId,
-          },
-        },
-      },
-      media: {
-        create: [
-          {
-            url: base64Image,
-            name: 'ticket-front',
-            type: MediaType.IMAGE,
-          },
-        ],
-      },
-    },
-  });
+    });
+  }
 
   revalidatePath('/dashboard');
 
-  return ticket;
+  return dbResponse;
 };
 
 export const deleteTicket = async (id: string) => {
