@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { Image, Pressable, Text, ScrollView } from 'react-native'
 import { router } from 'expo-router';
 import DocumentScanner, { ResponseType } from 'react-native-document-scanner-plugin'
-import { createTicket } from '@/api';
+import { uploadImage } from '@/api';
 import { queryClient } from "@/providers";
 
 const padding = 20;
@@ -32,7 +32,7 @@ export default () => {
 
     // send base64 image to the API
     try {
-      await createTicket(scannedImage);
+      await uploadImage(scannedImage);
 
       // TODO: refetch only tickets and vehicles queries
       await queryClient.refetchQueries();
