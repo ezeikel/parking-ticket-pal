@@ -109,12 +109,16 @@ model User {
 }
 
 model Vehicle {
-  id           String   @id @default(cuid())
-  userId       String
-  user         User     @relation(fields: [userId], references: [id])
-  make         String // e.g. Toyota, Honda
-  model        String // e.g. Camry, Civic
-  year         Int // year of the vehicle - could probably look this up via number plate
+  id       String @id @default(cuid())
+  userId   String
+  user     User   @relation(fields: [userId], references: [id])
+  make     String // e.g. Toyota, Honda
+  model    String // e.g. Camry, Civic
+  bodyType String // e.g. Saloon, Hatchback
+  fuelType String // e.g. Petrol, Diesel
+  year     Int // year of the vehicle - could probably look this up via number plate
+  color    String
+
   registration String   @unique
   active       Boolean  @default(true) // indicates if the vehicle is currently owned by the user
   tickets      Ticket[] // tickets associated with the vehicle

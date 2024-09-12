@@ -21,6 +21,8 @@ import { BACKGROUND_INFORMATION_PROMPT } from '@/constants';
 import generatePDF from '@/utils/generatePDF';
 import streamToBuffer from '@/utils/streamToBuffer';
 import formatPenniesToPounds from '@/utils/formatPenniesToPounds';
+import getVehicleInfo from '@/utils/getVehicleInfo';
+import getLatLng from '@/utils/getLatLng';
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -231,20 +233,32 @@ export const uploadImage = async (input: FormData | string) => {
       return null;
     }
 
-    // save ticket to database
+    const { make, model, bodyType, fuelType, color, year } =
+      await getVehicleInfo(vehicleRegistration);
+
+    // TODO: save full address to db in the future
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { lat, lng, fullAddress } = await getLatLng(location);
+
+    // eslint-disable-next-line no-console
+    console.log('fullAddress:', fullAddress);
+
+    // save ticket to db
     dbResponse = await prisma.ticket.create({
       data: {
         pcnNumber,
         type,
         dateIssued: toISODateString(dateIssued),
         dateTimeOfContravention: toISODateString(dateTimeOfContravention),
-        location,
+        location: [lat, lng],
         firstSeen: firstSeen ? toISODateString(firstSeen) : undefined,
         amountDue: Number(amountDue),
         issuer,
         issuerType,
         discountedPaymentDeadline: toISODateString(discountedPaymentDeadline),
         fullPaymentDeadline: toISODateString(fullPaymentDeadline),
+        // TODO: set status based on current date and discountedPaymentDeadline and fullPaymentDeadline
+        // status:
         contravention: {
           connectOrCreate: {
             where: {
@@ -263,10 +277,12 @@ export const uploadImage = async (input: FormData | string) => {
             },
             create: {
               registration: vehicleRegistration,
-              // TODO: DVLA API integration to get vehicle make and model
-              make: 'Toyota',
-              model: 'Corolla',
-              year: 2020,
+              make,
+              model,
+              bodyType,
+              fuelType,
+              color,
+              year,
               userId,
             },
           },
@@ -283,7 +299,14 @@ export const uploadImage = async (input: FormData | string) => {
       },
     });
   } else {
-    // save letter to database
+    const { make, model, bodyType, fuelType, color, year } =
+      await getVehicleInfo(vehicleRegistration);
+
+    // TODO: save full address to db in the future
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { lat, lng, fullAddress } = await getLatLng(location);
+
+    // save letter to db
     dbResponse = await prisma.letter.create({
       data: {
         type: LetterType.INITIAL_NOTICE,
@@ -299,7 +322,7 @@ export const uploadImage = async (input: FormData | string) => {
               type,
               dateIssued: toISODateString(dateIssued),
               dateTimeOfContravention: toISODateString(dateTimeOfContravention),
-              location,
+              location: [lat, lng],
               firstSeen: firstSeen ? toISODateString(firstSeen) : undefined,
               amountDue: Number(amountDue),
               issuer,
@@ -326,10 +349,12 @@ export const uploadImage = async (input: FormData | string) => {
                   },
                   create: {
                     registration: vehicleRegistration,
-                    // TODO: DVLA API integration to get vehicle make and model
-                    make: 'Toyota',
-                    model: 'Corolla',
-                    year: 2020,
+                    make,
+                    model,
+                    bodyType,
+                    fuelType,
+                    color,
+                    year,
                     userId,
                   },
                 },
