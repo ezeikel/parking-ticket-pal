@@ -1,5 +1,6 @@
 export default async (vehicleRegistration: string) => {
-  const [dvlaResponse, mwayResponse] = await Promise.all([
+  // get vehicle information from multiple sources
+  const [mwayResponse, dvlaResponse] = await Promise.all([
     fetch(process.env.MWAY_VRM_CHECK_API_URL as string, {
       method: 'POST',
       headers: {
@@ -11,6 +12,7 @@ export default async (vehicleRegistration: string) => {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        'x-api-key': process.env.DVLA_API_KEY as string,
       },
       body: JSON.stringify({ registrationNumber: vehicleRegistration }),
     }),
@@ -19,10 +21,14 @@ export default async (vehicleRegistration: string) => {
   // if no response from mway api fallback to dvla api
   if (mwayResponse.ok) {
     const {
-      data: {
-        vehicle: { colour, model, body, year, fuel },
+      vehicle: {
+        colour,
+        model,
+        body,
+        year,
+        fuel,
         make: { display_name: displayName },
-        generic_model: { name },
+        genericModel: { name },
       },
     } = await mwayResponse.json();
 
@@ -37,9 +43,8 @@ export default async (vehicleRegistration: string) => {
   }
 
   if (dvlaResponse.ok) {
-    const {
-      data: { make, colour, fuelType, yearOfManufacture },
-    } = await dvlaResponse.json();
+    const { make, colour, fuelType, yearOfManufacture } =
+      await dvlaResponse.json();
 
     return {
       make,
@@ -50,6 +55,5 @@ export default async (vehicleRegistration: string) => {
     };
   }
 
-  // TODO: when calling this function wrap in try catch and handle error
   throw new Error('Failed to retrieve vehicle information');
 };

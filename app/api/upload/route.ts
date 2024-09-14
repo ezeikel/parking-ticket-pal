@@ -1,7 +1,7 @@
 import { uploadImage } from '@/app/actions';
 
 // longer duration to account for openai api calls
-export const maxDuration = 30;
+export const maxDuration = 60;
 
 export const POST = async (req: Request) => {
   // account for image upload via form data or as base64 string

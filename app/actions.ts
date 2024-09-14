@@ -233,6 +233,7 @@ export const uploadImage = async (input: FormData | string) => {
       return null;
     }
 
+    // TODO: this can throw an error, handle this gracefully
     const { make, model, bodyType, fuelType, color, year } =
       await getVehicleInfo(vehicleRegistration);
 
