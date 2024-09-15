@@ -4,7 +4,12 @@ import { withPlausibleProxy } from 'next-plausible';
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   experimental: {
-    serverComponentsExternalPackages: ['@react-pdf/renderer'],
+    serverComponentsExternalPackages: [
+      '@react-pdf/renderer',
+      'playwright-extra',
+      'puppeteer-extra-plugin-stealth',
+      'puppeteer-extra-plugin-recaptcha',
+    ],
   },
 };
 

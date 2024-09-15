@@ -14,7 +14,9 @@ import {
 import { Readable } from 'stream';
 import { Resend } from 'resend';
 import Stripe from 'stripe';
-import { chromium } from 'playwright';
+import { chromium } from 'playwright-extra';
+import stealth from 'puppeteer-extra-plugin-stealth';
+import RecaptchaPlugin from 'puppeteer-extra-plugin-recaptcha';
 import prisma from '@/lib/prisma';
 import { auth } from '@/auth';
 import { ProductType, TicketSchema } from '@/types';
@@ -24,7 +26,7 @@ import streamToBuffer from '@/utils/streamToBuffer';
 import formatPenniesToPounds from '@/utils/formatPenniesToPounds';
 import getVehicleInfo from '@/utils/getVehicleInfo';
 import getLatLng from '@/utils/getLatLng';
-import { getIssuerKey, issuers } from '@/utils/scrape';
+import { getIssuerKey, ISSUERS } from '@/utils/scrape';
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -35,6 +37,19 @@ const resend = new Resend(process.env.RESEND_API_KEY);
 const stripe = new Stripe(process.env.STRIPE_SECRET!, {
   apiVersion: '2024-04-10',
 });
+
+chromium.use(
+  RecaptchaPlugin({
+    provider: {
+      id: '2captcha',
+      token: process.env.TWO_CAPTCHA_API_KEY,
+    },
+    // TODO: only set to true if running on localhost
+    visualFeedback: true, // colorize reCAPTCHAs (violet = detected, green = solved)
+  }),
+);
+
+chromium.use(stealth());
 
 const getUserId = async (action?: string) => {
   const session = await auth();
@@ -845,23 +860,14 @@ export const createCustomerPortalSession = async () => {
 export const revalidateDashboard = async () => revalidatePath('/dashboard');
 
 export const verifyTicket = async (pcnNumber: string) => {
-  // const ticket = await prisma.ticket.findFirst({
-  //   where: {
-  //     pcnNumber,
-  //   },
-  //   include: {
-  //     vehicle: true,
-  //   },
-  // });
-
-  // DEBUG: for testing purposes
-  const ticket = {
-    pcnNumber: 'GX16084549',
-    issuer: 'Lewisham Council',
-    vehicle: {
-      vrm: 'LV72EPC',
+  const ticket = await prisma.ticket.findFirst({
+    where: {
+      pcnNumber,
     },
-  };
+    include: {
+      vehicle: true,
+    },
+  });
 
   if (!ticket) {
     console.error('Ticket not found.');
@@ -869,7 +875,7 @@ export const verifyTicket = async (pcnNumber: string) => {
   }
 
   const issuerKey = getIssuerKey(ticket.issuer);
-  const issuer = issuers[issuerKey as keyof typeof issuers];
+  const issuer = ISSUERS[issuerKey as keyof typeof ISSUERS];
 
   if (!issuer) {
     console.error('Issuer not found.');
@@ -878,13 +884,16 @@ export const verifyTicket = async (pcnNumber: string) => {
 
   // use playwright to check the ticket number on the issuer's website
   const browser = await chromium.launch({
-    // DEBUG: headless mode is disabled for debugging purposes
-    headless: false,
+    headless: true,
   });
   const page = await browser.newPage();
 
   try {
-    const result = await issuer.verifyPcnNumber(page, pcnNumber, ticket);
+    const result = await issuer.verifyPcnNumber({
+      page,
+      pcnNumber,
+      ticket,
+    });
     return result;
   } catch (error) {
     console.error('Error checking ticket:', error);

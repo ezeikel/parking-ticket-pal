@@ -70,7 +70,10 @@
     "next-auth": "beta",
     "next-plausible": "^3.12.0",
     "openai": "latest",
-    "playwright": "^1.47.1",
+    "playwright": "latest",
+    "playwright-extra": "^4.3.6",
+    "puppeteer-extra-plugin-recaptcha": "^3.6.8",
+    "puppeteer-extra-plugin-stealth": "^2.11.2",
     "react": "^18",
     "react-dom": "^18",
     "react-email": "2.1.2",
@@ -108,5 +111,8 @@
     "ts-node": "^10.9.2",
     "tsc-files": "^1.1.4",
     "typescript": "^5"
+  },
+  "peerDependencies": {
+    "puppeteer-extra": "*"
   }
 }
