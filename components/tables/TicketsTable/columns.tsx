@@ -28,7 +28,7 @@ const columns: ColumnDef<
   })
 >[] = [
   {
-    accessorKey: 'vehicle.registration',
+    accessorKey: 'vehicle.vrm',
     header: 'Vehicle Registration',
   },
   {

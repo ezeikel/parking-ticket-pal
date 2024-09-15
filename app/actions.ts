@@ -14,6 +14,7 @@ import {
 import { Readable } from 'stream';
 import { Resend } from 'resend';
 import Stripe from 'stripe';
+import { chromium } from 'playwright';
 import prisma from '@/lib/prisma';
 import { auth } from '@/auth';
 import { ProductType, TicketSchema } from '@/types';
@@ -23,6 +24,7 @@ import streamToBuffer from '@/utils/streamToBuffer';
 import formatPenniesToPounds from '@/utils/formatPenniesToPounds';
 import getVehicleInfo from '@/utils/getVehicleInfo';
 import getLatLng from '@/utils/getLatLng';
+import { getIssuerKey, issuers } from '@/utils/scrape';
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -274,10 +276,10 @@ export const uploadImage = async (input: FormData | string) => {
         vehicle: {
           connectOrCreate: {
             where: {
-              registration: vehicleRegistration,
+              vrm: vehicleRegistration,
             },
             create: {
-              registration: vehicleRegistration,
+              vrm: vehicleRegistration,
               make,
               model,
               bodyType,
@@ -346,10 +348,10 @@ export const uploadImage = async (input: FormData | string) => {
               vehicle: {
                 connectOrCreate: {
                   where: {
-                    registration: vehicleRegistration,
+                    vrm: vehicleRegistration,
                   },
                   create: {
-                    registration: vehicleRegistration,
+                    vrm: vehicleRegistration,
                     make,
                     model,
                     bodyType,
@@ -470,7 +472,7 @@ export const getTickets = async (): Promise<
       status: true,
       vehicle: {
         select: {
-          registration: true,
+          vrm: true,
         },
       },
       media: {
@@ -517,7 +519,7 @@ export const getTicket = async (
       status: true,
       vehicle: {
         select: {
-          registration: true,
+          vrm: true,
         },
       },
       media: {
@@ -545,7 +547,7 @@ export const getVehicles = async () => {
     },
     select: {
       id: true,
-      registration: true,
+      vrm: true,
       make: true,
       model: true,
       year: true,
@@ -602,7 +604,7 @@ export const generateChallengeLetter = async (ticketId: string) => {
       status: true,
       vehicle: {
         select: {
-          registration: true,
+          vrm: true,
         },
       },
       media: {
@@ -626,7 +628,7 @@ export const generateChallengeLetter = async (ticketId: string) => {
       messages: [
         {
           role: 'user',
-          content: `${BACKGROUND_INFORMATION_PROMPT} Please generate a professional letter on behalf of ${user.name} living at address ${user.address} for the ticket ${ticket.pcnNumber} issued by ${ticket.issuer} for the contravention ${ticket.contravention.code} (${ticket.contravention?.description}) for vehicle ${ticket.vehicle?.registration}. The outstanding amount due is £${formatPenniesToPounds(ticket.amountDue)}. Think of a legal basis based on the contravention code that could work as a challenge and use this information to generate a challenge letter. Please note that the letter should be written in a professional manner and should be addressed to the issuer of the ticket. The letter should be written in a way that it can be sent as is - no placeholders or brackets should be included in the response, use the actual values of the name of the person you are writing the letter for and the ticket details`,
+          content: `${BACKGROUND_INFORMATION_PROMPT} Please generate a professional letter on behalf of ${user.name} living at address ${user.address} for the ticket ${ticket.pcnNumber} issued by ${ticket.issuer} for the contravention ${ticket.contravention.code} (${ticket.contravention?.description}) for vehicle ${ticket.vehicle?.vrm}. The outstanding amount due is £${formatPenniesToPounds(ticket.amountDue)}. Think of a legal basis based on the contravention code that could work as a challenge and use this information to generate a challenge letter. Please note that the letter should be written in a professional manner and should be addressed to the issuer of the ticket. The letter should be written in a way that it can be sent as is - no placeholders or brackets should be included in the response, use the actual values of the name of the person you are writing the letter for and the ticket details`,
         },
       ],
     }),
@@ -841,3 +843,53 @@ export const createCustomerPortalSession = async () => {
 };
 
 export const revalidateDashboard = async () => revalidatePath('/dashboard');
+
+export const verifyTicket = async (pcnNumber: string) => {
+  // const ticket = await prisma.ticket.findFirst({
+  //   where: {
+  //     pcnNumber,
+  //   },
+  //   include: {
+  //     vehicle: true,
+  //   },
+  // });
+
+  // DEBUG: for testing purposes
+  const ticket = {
+    pcnNumber: 'GX16084549',
+    issuer: 'Lewisham Council',
+    vehicle: {
+      vrm: 'LV72EPC',
+    },
+  };
+
+  if (!ticket) {
+    console.error('Ticket not found.');
+    return false;
+  }
+
+  const issuerKey = getIssuerKey(ticket.issuer);
+  const issuer = issuers[issuerKey as keyof typeof issuers];
+
+  if (!issuer) {
+    console.error('Issuer not found.');
+    return false;
+  }
+
+  // use playwright to check the ticket number on the issuer's website
+  const browser = await chromium.launch({
+    // DEBUG: headless mode is disabled for debugging purposes
+    headless: false,
+  });
+  const page = await browser.newPage();
+
+  try {
+    const result = await issuer.verifyPcnNumber(page, pcnNumber, ticket);
+    return result;
+  } catch (error) {
+    console.error('Error checking ticket:', error);
+    return false;
+  } finally {
+    await browser.close();
+  }
+};

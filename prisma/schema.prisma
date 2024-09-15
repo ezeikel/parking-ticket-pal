@@ -119,11 +119,11 @@ model Vehicle {
   year     Int // year of the vehicle - could probably look this up via number plate
   color    String
 
-  registration String   @unique
-  active       Boolean  @default(true) // indicates if the vehicle is currently owned by the user
-  tickets      Ticket[] // tickets associated with the vehicle
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  vrm       String   @unique
+  active    Boolean  @default(true) // indicates if the vehicle is currently owned by the user
+  tickets   Ticket[] // tickets associated with the vehicle
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@map("vehicles")
 }
