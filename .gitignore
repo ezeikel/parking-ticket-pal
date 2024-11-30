@@ -36,3 +36,8 @@ yarn-error.*
 
 expo-env.d.ts
 app-example
+
+# Expo prebuild
+ios/
+android/
+

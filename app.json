@@ -2,7 +2,7 @@
   "expo": {
     "name": "PCNs",
     "slug": "pcns",
-    "version": "0.0.1",
+    "version": "0.1.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "myapp",
@@ -30,7 +30,7 @@
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.ezeikel.pcns"
+      "package": "com.chewybytes.pcns"
     },
     "web": {
       "bundler": "metro",
