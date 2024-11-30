@@ -2,11 +2,13 @@
   "expo": {
     "name": "PCNs",
     "slug": "pcns",
+    "owner": "chewybytes",
     "version": "0.1.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "myapp",
     "userInterfaceStyle": "light",
+    "newArchEnabled": true,
     "splash": {
       "image": "./assets/images/splash.png",
       "resizeMode": "contain",
@@ -14,7 +16,7 @@
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.ezeikel.pcns",
+      "bundleIdentifier": "com.chewybytes.pcns",
       "infoPlist": {
         "CFBundleURLTypes": [
           {
@@ -45,22 +47,22 @@
           "cameraPermission": "We need camera access, so you can scan documents"
         }
       ],
-      "expo-secure-store"
+      "expo-secure-store",
+      "expo-font"
     ],
     "experiments": {
       "typedRoutes": true
     },
-    "extra": {
-      "eas": {
-        "projectId": "93b42738-f8ca-4780-b1a7-eb966c8beb4a"
-      }
-    },
-    "owner": "ezeikel",
     "updates": {
       "url": "https://u.expo.dev/93b42738-f8ca-4780-b1a7-eb966c8beb4a"
     },
     "runtimeVersion": {
       "policy": "appVersion"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "70fd9c93-a07b-4b2f-94ea-7dea3bfaa130"
+      }
     }
   }
 }

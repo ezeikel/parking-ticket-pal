@@ -1,48 +1,61 @@
 {
   "cli": {
-    "version": ">= 10.2.2"
+    "promptToConfigurePushNotifications": false
   },
   "build": {
+    "base": {
+      "ios": {
+        "resourceClass": "m-medium"
+      }
+    },
     "development": {
+      "extends": "base",
       "developmentClient": true,
       "distribution": "internal",
       "android": {
         "image": "latest"
       },
       "ios": {
+        "simulator": true,
         "image": "latest"
       },
-      "bun": "1.0.21"
-    },
-    "development-simulator": {
-      "extends": "development",
-      "ios": {
-        "simulator": true
-      }
+      "env": {
+        "EXPO_PUBLIC_ENVIRONMENT": "development"
+      },
+      "autoIncrement": false
     },
     "preview": {
+      "extends": "base",
       "distribution": "internal",
-      "channel": "main",
       "android": {
-        "image": "latest"
+        "buildType": "apk"
       },
       "ios": {
-        "image": "latest"
+        "simulator": false
       },
-      "bun": "1.0.21"
+      "env": {
+        "EXPO_PUBLIC_ENVIRONMENT": "preview"
+      },
+      "autoIncrement": false
     },
     "production": {
-      "channel": "production",
-      "android": {
-        "image": "latest"
+      "extends": "base",
+      "distribution": "store",
+      "env": {
+        "EXPO_PUBLIC_ENVIRONMENT": "production"
       },
-      "ios": {
-        "image": "latest"
+      "autoIncrement": true,
+      "channel": "production"
+    },
+    "beta": {
+      "extends": "production",
+      "distribution": "internal",
+      "env": {
+        "EXPO_PUBLIC_ENVIRONMENT": "beta"
       },
-      "bun": "1.0.21"
+      "autoIncrement": true,
+      "channel": "beta"
     }
   },
-  "submit": {
-    "production": {}
-  }
+  "submit": {}
 }
