@@ -1,4 +1,4 @@
-import { SafeAreaView, Text, View, Dimensions } from 'react-native';
+import { SafeAreaView, Text, View, Dimensions, Button } from 'react-native';
 import tw from "twrnc";
 import TicketsList from '@/components/TicketList/TicketsList';
 

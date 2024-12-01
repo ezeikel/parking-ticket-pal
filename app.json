@@ -48,7 +48,15 @@
         }
       ],
       "expo-secure-store",
-      "expo-font"
+      "expo-font",
+      [
+        "@sentry/react-native/expo",
+        {
+          "url": "https://sentry.io/",
+          "project": "pcns-app",
+          "organization": "chewybytes"
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true

@@ -3,7 +3,7 @@
   "main": "expo-router/entry",
   "version": "0.1.0",
   "scripts": {
-    "clean": "git clean -xdf node_modules", 
+    "clean": "git clean -xdf node_modules",
     "start": "expo start",
     "dev": "expo start --ios",
     "dev:android": "expo start --android",
@@ -33,6 +33,7 @@
     "@fortawesome/react-native-fontawesome": "^0.3.2",
     "@react-native-google-signin/google-signin": "^12.2.1",
     "@react-navigation/native": "^7.0.0",
+    "@sentry/react-native": "^6.3.0",
     "@shopify/flash-list": "1.7.1",
     "@tanstack/react-query": "^5.62.0",
     "axios": "^1.7.8",
