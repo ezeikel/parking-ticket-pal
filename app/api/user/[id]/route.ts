@@ -7,9 +7,9 @@ export const maxDuration = 30;
 
 export const GET = async (
   req: Request,
-  { params }: { params: { id: string } },
+  { params }: { params: Promise<{ id: string }> },
 ) => {
-  const { id } = params;
+  const { id } = await params;
 
   const user = await db.user.findUnique({
     where: {
