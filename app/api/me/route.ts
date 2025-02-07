@@ -1,6 +1,6 @@
 /* eslint-disable import/prefer-default-export */
 
-import prisma from '@/lib/prisma';
+import { db } from '@/lib/prisma';
 
 // longer duration to account for openai api calls
 export const maxDuration = 30;
@@ -8,7 +8,7 @@ export const maxDuration = 30;
 export const GET = async (req: Request) => {
   const userId = req.headers.get('x-user-id');
 
-  const user = await prisma.user.findUnique({
+  const user = await db.user.findUnique({
     where: {
       id: userId as string,
     },

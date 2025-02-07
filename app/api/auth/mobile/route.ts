@@ -1,7 +1,7 @@
 /* eslint-disable import/prefer-default-export */
 
 import { OAuth2Client } from 'google-auth-library';
-import prisma from '@/lib/prisma';
+import { db } from '@/lib/prisma';
 import { encrypt } from '@/app/lib/session';
 
 const client = new OAuth2Client(
@@ -33,11 +33,11 @@ export const POST = async (req: Request) => {
     }
 
     const existingUser = payload.email
-      ? await prisma.user.findUnique({ where: { email: payload.email } })
+      ? await db.user.findUnique({ where: { email: payload.email } })
       : null;
 
     if (!existingUser) {
-      user = await prisma.user.create({
+      user = await db.user.create({
         data: {
           email: payload.email as string,
           name: payload.name as string,

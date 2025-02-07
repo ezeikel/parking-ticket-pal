@@ -17,7 +17,7 @@ import Stripe from 'stripe';
 import { chromium } from 'playwright-extra';
 import stealth from 'puppeteer-extra-plugin-stealth';
 import RecaptchaPlugin from 'puppeteer-extra-plugin-recaptcha';
-import prisma from '@/lib/prisma';
+import { db } from '@/lib/prisma';
 import { auth } from '@/auth';
 import { ProductType, TicketSchema } from '@/types';
 import { BACKGROUND_INFORMATION_PROMPT } from '@/constants';
@@ -27,6 +27,7 @@ import formatPenniesToPounds from '@/utils/formatPenniesToPounds';
 import getVehicleInfo from '@/utils/getVehicleInfo';
 import getLatLng from '@/utils/getLatLng';
 import { getIssuerKey, ISSUERS } from '@/utils/scrape';
+import { convertLocationArray } from '@/utils/prisma-helpers';
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -35,7 +36,7 @@ const openai = new OpenAI({
 const resend = new Resend(process.env.RESEND_API_KEY);
 
 const stripe = new Stripe(process.env.STRIPE_SECRET!, {
-  apiVersion: '2024-04-10',
+  apiVersion: '2025-01-27.acacia',
 });
 
 chromium.use(
@@ -239,7 +240,7 @@ export const uploadImage = async (input: FormData | string) => {
   // if the image is a letter, create a new Letter, otherwise create a new Ticket
   if (documentType === 'TICKET') {
     // check if the ticket already exists
-    const existingTicket = await prisma.ticket.findFirst({
+    const existingTicket = await db.ticket.findFirst({
       where: {
         pcnNumber,
       },
@@ -262,7 +263,7 @@ export const uploadImage = async (input: FormData | string) => {
     console.log('fullAddress:', fullAddress);
 
     // save ticket to db
-    dbResponse = await prisma.ticket.create({
+    dbResponse = await db.ticket.create({
       data: {
         pcnNumber,
         type,
@@ -325,7 +326,7 @@ export const uploadImage = async (input: FormData | string) => {
     const { lat, lng, fullAddress } = await getLatLng(location);
 
     // save letter to db
-    dbResponse = await prisma.letter.create({
+    dbResponse = await db.letter.create({
       data: {
         type: LetterType.INITIAL_NOTICE,
         extractedText,
@@ -396,7 +397,7 @@ export const deleteTicket = async (id: string) => {
     return null;
   }
 
-  const ticket = await prisma.ticket.findUnique({
+  const ticket = await db.ticket.findUnique({
     where: {
       id,
     },
@@ -419,7 +420,7 @@ export const deleteTicket = async (id: string) => {
     return null;
   }
 
-  const ticketMedia = await prisma.media.findMany({
+  const ticketMedia = await db.media.findMany({
     where: {
       ticketId: id,
     },
@@ -427,7 +428,7 @@ export const deleteTicket = async (id: string) => {
 
   // delete ticket and media files from blob storage
   const [deletedTicket] = await Promise.all([
-    prisma.ticket.delete({
+    db.ticket.delete({
       where: {
         id,
       },
@@ -442,23 +443,14 @@ export const deleteTicket = async (id: string) => {
   return deletedTicket;
 };
 
-export const getTickets = async (): Promise<
-  | (Partial<Ticket> &
-      {
-        contravention: {
-          code: string;
-          description: string;
-        };
-      }[])
-  | null
-> => {
+export const getTickets = async () => {
   const userId = await getUserId('get tickets');
 
   if (!userId) {
     return null;
   }
 
-  const tickets = await prisma.ticket.findMany({
+  const tickets = await db.ticket.findMany({
     where: {
       vehicle: {
         userId,
@@ -499,19 +491,21 @@ export const getTickets = async (): Promise<
     },
   });
 
-  return tickets;
+  return tickets.map((ticket) => ({
+    ...ticket,
+    // convert decimal location to numbers before returning
+    location: convertLocationArray(ticket.location),
+  }));
 };
 
-export const getTicket = async (
-  id: string,
-): Promise<Partial<Ticket> | null> => {
+export const getTicket = async (id: string) => {
   const userId = await getUserId('get a ticket');
 
   if (!userId) {
     return null;
   }
 
-  const ticket = await prisma.ticket.findUnique({
+  const ticket = await db.ticket.findUnique({
     where: {
       id,
     },
@@ -523,6 +517,7 @@ export const getTicket = async (
       amountDue: true,
       issuer: true,
       issuerType: true,
+      location: true,
       contravention: {
         select: {
           code: true,
@@ -546,7 +541,13 @@ export const getTicket = async (
     },
   });
 
-  return ticket;
+  if (!ticket) return null;
+
+  return {
+    ...ticket,
+    // convert decimal location to numbers before returning
+    location: convertLocationArray(ticket.location),
+  };
 };
 
 export const getVehicles = async () => {
@@ -556,7 +557,7 @@ export const getVehicles = async () => {
     return null;
   }
 
-  const vehicles = await prisma.vehicle.findMany({
+  const vehicles = await db.vehicle.findMany({
     where: {
       userId,
     },
@@ -580,7 +581,7 @@ export const generateChallengeLetter = async (ticketId: string) => {
   }
 
   // get user information
-  const user = await prisma.user.findUnique({
+  const user = await db.user.findUnique({
     where: {
       id: userId,
     },
@@ -597,7 +598,7 @@ export const generateChallengeLetter = async (ticketId: string) => {
   }
 
   // get ticket
-  const ticket = await prisma.ticket.findUnique({
+  const ticket = await db.ticket.findUnique({
     where: {
       id: ticketId,
     },
@@ -704,7 +705,7 @@ export const getCurrentUser = async () => {
     return null;
   }
 
-  const user = await prisma.user.findUnique({
+  const user = await db.user.findUnique({
     where: {
       id: userId,
     },
@@ -730,7 +731,7 @@ export const getSubscription = async () => {
     return null;
   }
 
-  const subscription = await prisma.subscription.findFirst({
+  const subscription = await db.subscription.findFirst({
     where: {
       user: {
         id: userId,
@@ -776,7 +777,7 @@ export const createCheckoutSession = async (
   }
 
   // get user information
-  const user = await prisma.user.findUnique({
+  const user = await db.user.findUnique({
     where: {
       id: userId,
     },
@@ -793,7 +794,7 @@ export const createCheckoutSession = async (
   }
 
   // TODO: findUnique instead of findFirst
-  const subscription = await prisma.subscription.findFirst({
+  const subscription = await db.subscription.findFirst({
     where: {
       user: {
         id: userId,
@@ -834,7 +835,7 @@ export const createCustomerPortalSession = async () => {
     return null;
   }
 
-  const subscription = await prisma.subscription.findFirst({
+  const subscription = await db.subscription.findFirst({
     where: {
       user: {
         id: userId,
@@ -860,7 +861,7 @@ export const createCustomerPortalSession = async () => {
 export const revalidateDashboard = async () => revalidatePath('/dashboard');
 
 export const verifyTicket = async (pcnNumber: string) => {
-  const ticket = await prisma.ticket.findFirst({
+  const ticket = await db.ticket.findFirst({
     where: {
       pcnNumber,
     },

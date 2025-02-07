@@ -1,7 +1,7 @@
 /* eslint-disable import/prefer-default-export */
 
 import Stripe from 'stripe';
-import prisma from '@/lib/prisma';
+import { db } from '@/lib/prisma';
 import { SubscriptionType } from '@prisma/client';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET!, {
@@ -67,7 +67,7 @@ export const POST = async (req: Request) => {
         if (item.price?.id === process.env.PAY_PER_TICKET_STRIPE_PRICE_ID) {
           // update user subscription
           // eslint-disable-next-line no-await-in-loop
-          await prisma.user.update({
+          await db.user.update({
             where: {
               email,
             },
@@ -96,7 +96,7 @@ export const POST = async (req: Request) => {
     if (email) {
       // update user subscription
       // TODO: had to use updateMany as email is not considered to be unique
-      await prisma.subscription.updateMany({
+      await db.subscription.updateMany({
         where: {
           user: {
             email,
@@ -120,7 +120,7 @@ export const POST = async (req: Request) => {
 
     // update user subscription
 
-    await prisma.subscription.updateMany({
+    await db.subscription.updateMany({
       where: {
         stripeCustomerId: updatedCustomerSubscription.customer as string,
       },
@@ -135,7 +135,7 @@ export const POST = async (req: Request) => {
 
     // reset user subscription to basic
     // TODO: had to use updateMany as stripeCustomerId is not considered to be unique
-    await prisma.subscription.updateMany({
+    await db.subscription.updateMany({
       where: {
         stripeCustomerId: deletedCustomerSubscription.customer as string,
       },

@@ -6,7 +6,10 @@ const config: Config = {
   displayName: 'lint',
   runner: 'jest-runner-eslint',
   testMatch: ['<rootDir>/**/*.+(js|jsx|ts|tsx)'],
-  testPathIgnorePatterns: ['<rootDir>/.react-email/'],
+  testPathIgnorePatterns: [
+    '<rootDir>/.react-email/',
+    '<rootDir>/components/ui/',
+  ],
 };
 
 export default config;

@@ -1,6 +1,6 @@
 import NextAuth from 'next-auth';
 import GoogleProvider from 'next-auth/providers/google';
-import prisma from './lib/prisma';
+import { db } from './lib/prisma';
 
 export const {
   handlers: { GET, POST },
@@ -16,14 +16,14 @@ export const {
     async signIn({ account, profile }) {
       if (account?.provider === 'google') {
         const existingUser = profile?.email
-          ? await prisma.user.findUnique({ where: { email: profile.email } })
+          ? await db.user.findUnique({ where: { email: profile.email } })
           : null;
 
         if (existingUser) {
           return true;
         }
 
-        await prisma.user.create({
+        await db.user.create({
           data: {
             email: profile?.email as string,
             name: profile?.name as string,
@@ -40,7 +40,7 @@ export const {
     },
     async session({ session, token }) {
       const dbUser = token.email
-        ? await prisma.user.findUnique({
+        ? await db.user.findUnique({
             where: { email: token.email },
           })
         : null;
