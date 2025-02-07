@@ -16,8 +16,8 @@ const nextConfig = {
 // sentry configuration options
 const sentryOptions = {
   silent: true,
-  org: 'ezeikel',
-  project: 'pcns-web',
+  org: 'chewybytes',
+  project: 'parking-ticket-pal-web',
   authToken: process.env.SENTRY_AUTH_TOKEN,
   widenClientFileUpload: true,
   transpileClientSDK: true,
