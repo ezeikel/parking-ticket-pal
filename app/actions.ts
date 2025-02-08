@@ -50,7 +50,7 @@ chromium.use(stealth());
 const getUserId = async (action?: string) => {
   const session = await auth();
   const headersList = await headers();
-  const userId = session?.userId || headersList.get('x-user-id');
+  const userId = session?.user.dbId || headersList.get('x-user-id');
 
   if (!userId) {
     console.error(
@@ -439,6 +439,8 @@ export const deleteTicket = async (id: string) => {
 
 export const getTickets = async () => {
   const userId = await getUserId('get tickets');
+
+  console.log('userId', userId);
 
   if (!userId) {
     return null;
