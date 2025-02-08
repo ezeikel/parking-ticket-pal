@@ -1,4 +1,3 @@
-// base.mjs
 import { FlatCompat } from '@eslint/eslintrc';
 import js from '@eslint/js';
 import eslintConfigPrettier from 'eslint-config-prettier';
@@ -31,6 +30,8 @@ export default [
       ...pluginNext.configs['core-web-vitals'].rules,
       ...pluginReactHooks.configs.recommended.rules,
       'react/react-in-jsx-scope': 'off',
+      '@typescript-eslint/no-unused-vars': ['warn'],
+      '@typescript-eslint/no-explicit-any': ['warn'],
     },
   },
   {
@@ -72,24 +73,16 @@ export default [
     settings: {
       'import/resolver': {
         typescript: {
-          project: [
-            'tsconfig.json',
-            'apps/*/tsconfig.json',
-            'packages/*/tsconfig.json',
-            'configs/*/tsconfig.json',
-          ],
+          project: 'tsconfig.json',
         },
         node: {
           extensions: ['.js', '.jsx', '.ts', '.tsx'],
-          moduleDirectory: [
-            'node_modules',
-            '../../packages/',
-            '../../apps/',
-            '../../configs/',
-          ],
         },
       },
-      react: { version: 'detect' },
+      react: {
+        version: 'detect',
+        runtime: 'automatic',
+      },
       next: {
         rootDir: '.',
       },
@@ -102,7 +95,7 @@ export default [
           optionalDependencies: false,
           peerDependencies: false,
           includeTypes: true,
-          packageDir: ['.', '../..'],
+          packageDir: ['.'],
         },
       ],
       'import/extensions': [

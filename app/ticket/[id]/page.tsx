@@ -2,12 +2,13 @@ import { getTicket } from '@/app/actions';
 import PageWrap from '@/components/PageWrap/PageWrap';
 
 type TicketPageProps = {
-  params: {
+  params: Promise<{
     id: string;
-  };
+  }>;
 };
 
-const TicketPage = async ({ params: { id } }: TicketPageProps) => {
+const TicketPage = async ({ params }: TicketPageProps) => {
+  const { id } = await params;
   const ticket = await getTicket(id);
 
   return (

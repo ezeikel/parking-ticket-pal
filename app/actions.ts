@@ -5,12 +5,7 @@ import { revalidatePath } from 'next/cache';
 import { del, put } from '@vercel/blob';
 import OpenAI from 'openai';
 import { zodResponseFormat } from 'openai/helpers/zod';
-import {
-  LetterType,
-  MediaType,
-  // SubscriptionType,
-  Ticket,
-} from '@prisma/client';
+import { LetterType, MediaType } from '@prisma/client';
 import { Readable } from 'stream';
 import { Resend } from 'resend';
 import Stripe from 'stripe';
@@ -54,7 +49,7 @@ chromium.use(stealth());
 
 const getUserId = async (action?: string) => {
   const session = await auth();
-  const headersList = headers();
+  const headersList = await headers();
   const userId = session?.userId || headersList.get('x-user-id');
 
   if (!userId) {
@@ -322,8 +317,7 @@ export const uploadImage = async (input: FormData | string) => {
       await getVehicleInfo(vehicleRegistration);
 
     // TODO: save full address to db in the future
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { lat, lng, fullAddress } = await getLatLng(location);
+    const { lat, lng } = await getLatLng(location);
 
     // save letter to db
     dbResponse = await db.letter.create({
@@ -767,7 +761,7 @@ export const createCheckoutSession = async (
       throw new Error('Invalid product type');
   }
 
-  const headersList = headers();
+  const headersList = await headers();
   const origin = headersList.get('origin');
 
   const userId = await getUserId('create a checkout session');
@@ -826,7 +820,7 @@ export const createCheckoutSession = async (
 };
 
 export const createCustomerPortalSession = async () => {
-  const headersList = headers();
+  const headersList = await headers();
   const origin = headersList.get('origin');
 
   const userId = await getUserId('create a customer portal session');

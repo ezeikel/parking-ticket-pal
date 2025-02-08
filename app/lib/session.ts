@@ -23,6 +23,8 @@ export async function decrypt(session: string | undefined = '') {
     });
     return payload;
   } catch (error) {
+    // eslint-disable-next-line no-console
     console.error('Failed to verify session', error);
+    return null;
   }
 }

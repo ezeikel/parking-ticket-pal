@@ -6,7 +6,7 @@ import { db } from '@/lib/prisma';
 export const maxDuration = 30;
 
 export const GET = async (
-  req: Request,
+  _req: Request,
   { params }: { params: Promise<{ id: string }> },
 ) => {
   const { id } = await params;

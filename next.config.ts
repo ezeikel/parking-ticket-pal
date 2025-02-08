@@ -1,16 +1,13 @@
 import { withSentryConfig } from '@sentry/nextjs';
-import { withPlausibleProxy } from 'next-plausible';
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  experimental: {
-    serverComponentsExternalPackages: [
-      '@react-pdf/renderer',
-      'playwright-extra',
-      'puppeteer-extra-plugin-stealth',
-      'puppeteer-extra-plugin-recaptcha',
-    ],
-  },
+  reactStrictMode: true,
+  serverExternalPackages: [
+    'playwright-extra',
+    'puppeteer-extra-plugin-stealth',
+    'puppeteer-extra-plugin-recaptcha',
+  ],
 };
 
 // sentry configuration options
@@ -29,6 +26,4 @@ const sentryOptions = {
 
 const configWithSentry = withSentryConfig(nextConfig, sentryOptions);
 
-const configWithPlausible = withPlausibleProxy()(configWithSentry);
-
-export default configWithPlausible;
+export default configWithSentry;

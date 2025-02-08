@@ -5,7 +5,7 @@ import { db } from '@/lib/prisma';
 import { SubscriptionType } from '@prisma/client';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET!, {
-  apiVersion: '2024-04-10',
+  apiVersion: '2025-01-27.acacia',
 });
 
 export const POST = async (req: Request) => {
