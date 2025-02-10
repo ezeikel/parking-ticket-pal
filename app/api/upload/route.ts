@@ -8,7 +8,7 @@ export const POST = async (req: Request) => {
   let data:
     | FormData
     | {
-        image: string;
+        scannedImage: string;
         ocrText?: string;
       };
 
@@ -20,7 +20,7 @@ export const POST = async (req: Request) => {
   } else if (contentType.includes('application/json')) {
     const json = await req.json();
     data = {
-      image: json.image,
+      scannedImage: json.scannedImage,
       ocrText: json.ocrText,
     };
   } else {

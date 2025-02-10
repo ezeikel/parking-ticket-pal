@@ -92,7 +92,7 @@ const toISODateString = (inputDate: string | Date): string => {
 };
 
 export const uploadImage = async (
-  input: FormData | { image: string; text?: string; ocrText?: string },
+  input: FormData | { scannedImage: string; ocrText?: string },
 ) => {
   const userId = await getUserId('upload an image');
 
@@ -129,8 +129,8 @@ export const uploadImage = async (
 
     // update the Blob storage URL for further processing
     blobStorageUrl = ticketFrontBlob.url;
-  } else if (typeof input === 'string') {
-    base64Image = input; // directly use the provided base64 string
+  } else if ('scannedImage' in input) {
+    base64Image = input.scannedImage; // use the scannedImage property from the input object
 
     // if base64Image starts with "data:", strip the prefix
     base64Image = base64Image.replace(/^data:image\/[a-z]+;base64,/, '');
