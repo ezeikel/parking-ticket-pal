@@ -18,6 +18,7 @@ const AppLayout = () => {
   return (
     <Stack>
       <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+      <Stack.Screen name="capture-modal" options={{ presentation: 'modal', title: 'Scan Document', headerShown: false }} />
     </Stack>
   );
 }

@@ -68,6 +68,7 @@ export type User = {
   name: string;
   email: string;
   address?: string;
+  phoneNumber?: string;
   vehicles: Vehicle[];
   subscription?: Subscription;
   credits: number;
@@ -82,7 +83,7 @@ export type Vehicle = {
   make: string;
   model: string;
   year: number;
-  registration: string;
+  vrm: string;
   active: boolean;
   tickets: Ticket[];
   createdAt: string;

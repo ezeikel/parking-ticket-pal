@@ -44,11 +44,12 @@ export const signIn = async () => {
 }
 
 // TODO: was previously using FormData, but it's not working with the Next.js API deployed on Vercel
-export const uploadImage = async (data: string) => {
+export const uploadImage = async (data: string, text?: string) => {
   const token = await SecureStore.getItemAsync('sessionToken');
 
   const response = await axios.post(`${process.env.EXPO_PUBLIC_API_URL}/upload`, {
-    image: data
+    scannedImage: data,
+    ocrText: text
   }, {
     headers: { Authorization: `Bearer ${token}` }
   });
