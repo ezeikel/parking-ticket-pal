@@ -91,7 +91,9 @@ const toISODateString = (inputDate: string | Date): string => {
   return parsedDate.toISOString();
 };
 
-export const uploadImage = async (input: FormData | string) => {
+export const uploadImage = async (
+  input: FormData | { image: string; text?: string; ocrText?: string },
+) => {
   const userId = await getUserId('upload an image');
 
   if (!userId) {
@@ -100,7 +102,13 @@ export const uploadImage = async (input: FormData | string) => {
 
   let base64Image: string;
   let blobStorageUrl: string;
+  let ocrText: string | undefined;
   let dbResponse;
+
+  // extract OCR text from input
+  if ('ocrText' in input) {
+    ocrText = input.ocrText;
+  }
 
   if (input instanceof FormData) {
     const image = input.get('image') as File | null;
@@ -144,15 +152,19 @@ export const uploadImage = async (input: FormData | string) => {
     throw new Error('Invalid input type. Must be FormData or base64 string.');
   }
 
-  // send the image URL to OpenAI for analysis
+  // send the image URL and OCR text to OpenAI for analysis
   const response = await openai.chat.completions.create({
     model: 'gpt-4o-2024-08-06',
     messages: [
       {
         role: 'system',
         content: `
-      You are an AI specialized in extracting structured data from images of parking tickets and related letters.
-      Your task is to analyze the images provided and return a JSON object matching this schema:
+      You are an AI specialized in extracting structured data from parking tickets and related letters.
+      You will be provided with both an image and OCR-extracted text (when available) to improve accuracy.
+      Cross-reference both sources of information to ensure the highest accuracy in data extraction.
+      If there are discrepancies between the image and OCR text, use your judgment to determine the most likely correct value.
+      
+      Your task is to analyze the provided sources and return a JSON object matching this schema:
       {
         "documentType": "TICKET" or "LETTER", // TICKET: a physical PCN attached to a car (usually smaller and compact); LETTER: a formal document mailed to the registered owner about a PCN (usually A4 size).
         "pcnNumber": "string",
@@ -188,7 +200,13 @@ export const uploadImage = async (input: FormData | string) => {
         content: [
           {
             type: 'text',
-            text: 'Please extract the required details from the following parking ticket images.',
+            text: `Please extract the required details from the following parking ticket image${
+              ocrText ? ' and OCR text' : ''
+            }.${
+              ocrText
+                ? `\n\nOCR extracted text for cross-reference:\n${ocrText}`
+                : ''
+            }`,
           },
           {
             type: 'image_url',

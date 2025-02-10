@@ -5,7 +5,12 @@ export const maxDuration = 60;
 
 export const POST = async (req: Request) => {
   // account for image upload via form data or as base64 string
-  let data: FormData | string;
+  let data:
+    | FormData
+    | {
+        image: string;
+        ocrText?: string;
+      };
 
   const contentType = req.headers.get('Content-Type') || '';
 
@@ -14,7 +19,10 @@ export const POST = async (req: Request) => {
     data = await req.formData();
   } else if (contentType.includes('application/json')) {
     const json = await req.json();
-    data = json.image;
+    data = {
+      image: json.image,
+      ocrText: json.ocrText,
+    };
   } else {
     // return error for unsupported content type i.e. not form data or json
     return new Response(
