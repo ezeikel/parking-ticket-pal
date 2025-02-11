@@ -40,8 +40,6 @@ const VehicleItem = ({ vehicle, style }: {
 const VehiclesList = () => {
   const { data: { vehicles } = {}, isLoading } = useVehicles();
 
-  console.log('vehicles', vehicles);
-
   if (isLoading) {
     return (
       <View style={tw`flex-1 items-center justify-center`}>
