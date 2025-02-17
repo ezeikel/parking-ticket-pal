@@ -94,12 +94,33 @@ enum ProductType {
   PRO_ANNUAL
 }
 
+enum MediaSource {
+  ISSUER
+  TICKET
+  LETTER
+  USER
+}
+
 model User {
   id           String        @id @default(cuid())
   name         String
   email        String        @unique
   phoneNumber  String?
-  address      String?
+  address      Json? // Changed to include coordinates
+  /**
+   * example address:
+   * const address = {
+   * line1: "123 Main St",
+   * line2: "Apt 4B",
+   * city: "London",
+   * county: "Greater London",
+   * postcode: "SW1A 1AA",
+   * country: "United Kingdom",
+   * coordinates: {
+   * latitude: 51.5074,
+   * longitude: -0.1278
+   * }
+   */
   vehicles     Vehicle[]
   subscription Subscription?
   credits      Int           @default(1) // credits for uploading tickets
@@ -134,6 +155,7 @@ model Ticket {
   pcnNumber                 String        @unique
   contravention             Contravention @relation(fields: [contraventionId], references: [id])
   contraventionId           String
+  // TODO: use address and store as json with coordinates property
   location                  Decimal[] // array to store lat and long as decimals
   description               String?
   dateIssued                DateTime
@@ -160,15 +182,17 @@ model Ticket {
 }
 
 model Media {
-  id          String    @id @default(cuid())
+  id          String      @id @default(cuid())
   url         String
-  name        String
   description String?
   type        MediaType
-  ticket      Ticket    @relation(fields: [ticketId], references: [id], onDelete: Cascade)
-  ticketId    String
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  source      MediaSource
+  ticket      Ticket?     @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  ticketId    String?
+  letter      Letter?     @relation(fields: [letterId], references: [id])
+  letterId    String?
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
 
   @@map("media")
 }
@@ -194,6 +218,7 @@ model Letter {
   summary       String // summary of key points from the letter
   appeal        Appeal?    @relation(fields: [appealId], references: [id])
   appealId      String?
+  media         Media[]
   createdAt     DateTime   @default(now())
   updatedAt     DateTime   @updatedAt
 
@@ -235,4 +260,16 @@ model Reminder {
   updatedAt            DateTime         @updatedAt
 
   @@map("reminders")
+}
+
+model ContraventionCase {
+  id               String   @id @default(cuid())
+  code             String // Contravention code
+  description      String
+  date             DateTime
+  outcome          String // e.g., "Successful", "Rejected"
+  adjudicatorNotes String? // Notes from the adjudicator
+  createdAt        DateTime @default(now())
+
+  @@map("contravention_cases")
 }

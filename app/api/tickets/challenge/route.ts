@@ -1,14 +1,14 @@
 /* eslint-disable import/prefer-default-export */
 
-import { generateChallengeLetter } from '@/app/actions';
+import { challengeTicket } from '@/app/actions';
 
 // longer duration to account for openai api calls
 export const maxDuration = 30;
 
 export const POST = async (req: Request) => {
-  const { ticketId } = await req.json();
+  const { pcnNumber } = await req.json();
 
-  await generateChallengeLetter(ticketId);
+  await challengeTicket(pcnNumber);
 
   return Response.json(
     { success: true },

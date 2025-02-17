@@ -1,4 +1,7 @@
+import { IssuerType } from '@prisma/client';
 import { z } from 'zod';
+import { COUNCIL_CHALLENGE_REASONS } from './constants';
+import { PRIVATE_CHALLENGE_REASONS } from './constants';
 
 export enum ProductType {
   PAY_PER_TICKET = 'PAY_PER_TICKET',
@@ -40,3 +43,27 @@ export const TicketSchema = z.object({
   extractedText: z.string().optional(), // Full text extracted from the letter (only applicable for LETTER)
   summary: z.string().optional(), // Summary of key points from the letter (only applicable for LETTER)
 });
+
+export type Issuer = {
+  name: string;
+  type: IssuerType;
+  automationSupported: boolean;
+  url?: string;
+};
+
+export type ChallengeReasonId =
+  | keyof typeof COUNCIL_CHALLENGE_REASONS
+  | keyof typeof PRIVATE_CHALLENGE_REASONS;
+
+export type Address = {
+  line1: string;
+  line2?: string;
+  city: string;
+  county: string;
+  postcode: string;
+  country: string;
+  coordinates?: {
+    latitude: number;
+    longitude: number;
+  };
+};

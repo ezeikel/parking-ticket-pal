@@ -5,7 +5,7 @@ import { revalidatePath } from 'next/cache';
 import { del, put } from '@vercel/blob';
 import OpenAI from 'openai';
 import { zodResponseFormat } from 'openai/helpers/zod';
-import { LetterType, MediaType } from '@prisma/client';
+import { LetterType, MediaType, MediaSource } from '@prisma/client';
 import { Readable } from 'stream';
 import { Resend } from 'resend';
 import Stripe from 'stripe';
@@ -15,13 +15,16 @@ import RecaptchaPlugin from 'puppeteer-extra-plugin-recaptcha';
 import { db } from '@/lib/prisma';
 import { auth } from '@/auth';
 import { ProductType, TicketSchema } from '@/types';
-import { BACKGROUND_INFORMATION_PROMPT } from '@/constants';
+import {
+  BACKGROUND_INFORMATION_PROMPT,
+  COUNCIL_CHALLENGE_REASONS,
+} from '@/constants';
 import generatePDF from '@/utils/generatePDF';
 import streamToBuffer from '@/utils/streamToBuffer';
 import formatPenniesToPounds from '@/utils/formatPenniesToPounds';
 import getVehicleInfo from '@/utils/getVehicleInfo';
 import getLatLng from '@/utils/getLatLng';
-import { getIssuerKey, ISSUERS } from '@/utils/scrape';
+import { verify, challenge } from '@/utils/automation';
 import { convertLocationArray } from '@/utils/prisma-helpers';
 
 const openai = new OpenAI({
@@ -268,7 +271,7 @@ export const uploadImage = async (
     const { make, model, bodyType, fuelType, color, year } =
       await getVehicleInfo(vehicleRegistration);
 
-    // TODO: save full address to db in the future
+    // TODO: save full address to db in the future using prisma json
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { lat, lng, fullAddress } = await getLatLng(location);
 
@@ -323,8 +326,8 @@ export const uploadImage = async (
           create: [
             {
               url: blobStorageUrl,
-              name: '   ',
               type: MediaType.IMAGE,
+              source: MediaSource.TICKET,
             },
           ],
         },
@@ -392,6 +395,15 @@ export const uploadImage = async (
               },
             },
           },
+        },
+        media: {
+          create: [
+            {
+              url: blobStorageUrl,
+              type: MediaType.IMAGE,
+              source: MediaSource.LETTER,
+            },
+          ],
         },
       },
     });
@@ -875,45 +887,116 @@ export const createCustomerPortalSession = async () => {
 export const revalidateDashboard = async () => revalidatePath('/dashboard');
 
 export const verifyTicket = async (pcnNumber: string) => {
-  const ticket = await db.ticket.findFirst({
-    where: {
-      pcnNumber,
-    },
-    include: {
-      vehicle: true,
-    },
-  });
-
-  if (!ticket) {
-    console.error('Ticket not found.');
-    return false;
-  }
-
-  const issuerKey = getIssuerKey(ticket.issuer);
-  const issuer = ISSUERS[issuerKey as keyof typeof ISSUERS];
-
-  if (!issuer) {
-    console.error('Issuer not found.');
-    return false;
-  }
-
-  // use playwright to check the ticket number on the issuer's website
-  const browser = await chromium.launch({
-    headless: true,
-  });
-  const page = await browser.newPage();
-
   try {
-    const result = await issuer.verifyPcnNumber({
-      page,
-      pcnNumber,
-      ticket,
-    });
+    const result = await verify(pcnNumber);
     return result;
   } catch (error) {
     console.error('Error checking ticket:', error);
     return false;
-  } finally {
-    await browser.close();
   }
+};
+
+export const challengeTicket = async (pcnNumber: string) => {
+  try {
+    const result = await challenge(
+      pcnNumber,
+      COUNCIL_CHALLENGE_REASONS.CONTRAVENTION_DID_NOT_OCCUR.id,
+    );
+
+    return result;
+  } catch (error) {
+    console.error('Error challenging ticket:', error);
+    return false;
+  }
+};
+
+export const generateChallengeDetails = async ({
+  pcnNumber,
+  formFieldPlaceholderText,
+  reason,
+  userEvidenceImageUrls,
+  issuerEvidenceImageUrls,
+}: {
+  pcnNumber: string;
+  formFieldPlaceholderText: string;
+  reason: string;
+  userEvidenceImageUrls: string[];
+  issuerEvidenceImageUrls: string[];
+}) => {
+  const messages = [
+    {
+      role: 'system' as const,
+      content: `You are a professional PCN challenge writer. Write a formal challenge for a parking ticket.
+      - Be polite but firm
+      - Do not mention having photographic evidence
+      - Keep the tone professional and factual
+      - Focus on the specific reason for the challenge
+      - Be concise but thorough
+      - Do not admit to any wrongdoing
+      - When analyzing images, look for details that support the challenge reason
+      - Include relevant details from the images without mentioning them as evidence`,
+    },
+    {
+      role: 'user' as const,
+      content: [
+        {
+          type: 'text' as const,
+          text: `Analyze these images and write a challenge for PCN ${pcnNumber}.
+          
+          Reason for challenge: ${reason}
+          
+          The response should fit this form field hint: "${formFieldPlaceholderText}"`,
+        },
+        ...issuerEvidenceImageUrls.map((url) => ({
+          type: 'image_url' as const,
+          image_url: { url },
+        })),
+        ...userEvidenceImageUrls.map((url) => ({
+          type: 'image_url' as const,
+          image_url: { url },
+        })),
+      ],
+    },
+  ];
+
+  try {
+    const completion = await openai.chat.completions.create({
+      model: 'gpt-4-vision-preview',
+      messages,
+      temperature: 0.7,
+      max_tokens: 1000,
+    });
+
+    return completion.choices[0].message.content;
+  } catch (error) {
+    console.error('Error generating challenge details:', error);
+    return null;
+  }
+};
+
+export const getEvidenceImages = async ({
+  pcnNumber,
+}: {
+  pcnNumber: string;
+}) => {
+  const ticketWithMedia = await db.ticket.findUnique({
+    where: {
+      pcnNumber,
+    },
+    select: {
+      media: {
+        where: {
+          type: MediaType.IMAGE,
+          source: MediaSource.ISSUER,
+        },
+      },
+    },
+  });
+
+  if (!ticketWithMedia) {
+    console.error('Ticket not found.');
+    return null;
+  }
+
+  return ticketWithMedia.media.map((m) => m.url);
 };
