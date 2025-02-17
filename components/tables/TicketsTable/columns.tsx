@@ -10,7 +10,7 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import formatPenniesToPounds from '@/utils/formatPenniesToPounds';
-import { TICKET_STATUS, TICKET_TYPE } from '@/constants';
+import { TICKET_STATUS, TICKET_TYPE } from '@/constants/index';
 import TicketActionsCell from '@/components/TicketActionsCell/TicketActionsCell';
 
 const columns: ColumnDef<

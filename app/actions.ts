@@ -18,7 +18,9 @@ import { ProductType, TicketSchema } from '@/types';
 import {
   BACKGROUND_INFORMATION_PROMPT,
   COUNCIL_CHALLENGE_REASONS,
-} from '@/constants';
+  CHALLENGE_WRITER_PROMPT,
+  IMAGE_ANALYSIS_PROMPT,
+} from '@/constants/index';
 import generatePDF from '@/utils/generatePDF';
 import streamToBuffer from '@/utils/streamToBuffer';
 import formatPenniesToPounds from '@/utils/formatPenniesToPounds';
@@ -161,42 +163,7 @@ export const uploadImage = async (
     messages: [
       {
         role: 'system',
-        content: `
-      You are an AI specialized in extracting structured data from parking tickets and related letters.
-      You will be provided with both an image and OCR-extracted text (when available) to improve accuracy.
-      Cross-reference both sources of information to ensure the highest accuracy in data extraction.
-      If there are discrepancies between the image and OCR text, use your judgment to determine the most likely correct value.
-      
-      Your task is to analyze the provided sources and return a JSON object matching this schema:
-      {
-        "documentType": "TICKET" or "LETTER", // TICKET: a physical PCN attached to a car (usually smaller and compact); LETTER: a formal document mailed to the registered owner about a PCN (usually A4 size).
-        "pcnNumber": "string",
-        "type": "PARKING_CHARGE_NOTICE" or "PENALTY_CHARGE_NOTICE",
-        "dateIssued": "ISO 8601 string with the following format: YYYY-MM-DDTHH:MM:SSZ",
-        "dateTimeOfContravention": "ISO 8601 string with the following format: YYYY-MM-DDTHH:MM:SSZ",
-        "location": "string, optional",
-        "firstSeen": "ISO 8601 string with the following format: YYYY-MM-DDTHH:MM:SSZ, optional",
-        "contraventionCode": "string",
-        "contraventionDescription": "string, optional",
-        "amountDue": "integer (in pennies)",
-        "issuer": "string",
-        "issuerType": "COUNCIL", "TFL", or "PRIVATE_COMPANY",
-        "discountedPaymentDeadline": "ISO 8601 string with the following format: YYYY-MM-DDTHH:MM:SSZ",
-        "fullPaymentDeadline": "ISO 8601 string with the following format: YYYY-MM-DDTHH:MM:SSZ",
-
-        // If the documentType is "LETTER", extract the following additional fields
-        "extractedText": "string",  // full text extracted from the letter
-        "summary": "string"         // summary of the key points from the letter
-      }.
-
-      When determining whether the document is a "TICKET" or a "LETTER", please consider the following:
-      - A "TICKET" is typically a smaller document, often about the size of a receipt, with concise details regarding the violation, and would be found inside an adhesive pack attached to a windshield. The paper quality is often thinner than an A4-sized letter and might be printed with immediate details of the contravention and amount due.
-      - A "LETTER" is usually an A4-sized document, more formally structured, sent through the post. It might include salutation text (e.g., 'Dear Sir/Madam') and more detailed legal information related to the penalty charge, and may also include images of the contravention.
-
-      Both types of documents will contain similar fields such as PCN number, contravention date, and amount due, but the documentType must be distinguished by the layout, size, and presentation style.
-      
-      Ensure ISO 8601 format for all dates, and calculate the discountedPaymentDeadline as 14 days and fullPaymentDeadline as 28 days after the dateIssued.
-      `,
+        content: IMAGE_ANALYSIS_PROMPT,
       },
       {
         role: 'user',
@@ -926,15 +893,7 @@ export const generateChallengeDetails = async ({
   const messages = [
     {
       role: 'system' as const,
-      content: `You are a professional PCN challenge writer. Write a formal challenge for a parking ticket.
-      - Be polite but firm
-      - Do not mention having photographic evidence
-      - Keep the tone professional and factual
-      - Focus on the specific reason for the challenge
-      - Be concise but thorough
-      - Do not admit to any wrongdoing
-      - When analyzing images, look for details that support the challenge reason
-      - Include relevant details from the images without mentioning them as evidence`,
+      content: CHALLENGE_WRITER_PROMPT,
     },
     {
       role: 'user' as const,

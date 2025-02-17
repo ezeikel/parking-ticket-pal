@@ -1,4 +1,4 @@
-import { findIssuer } from '@/constants';
+import { findIssuer } from '@/constants/index';
 import { db } from '@/lib/prisma';
 import { lewisham, horizon } from './issuers';
 import { CommonPcnArgs, setupBrowser } from './shared';

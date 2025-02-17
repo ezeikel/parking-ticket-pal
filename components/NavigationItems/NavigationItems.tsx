@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { useSession } from 'next-auth/react';
 import { useMediaQuery } from 'react-responsive';
-import { NAVIGATION_ITEMS } from '@/constants';
+import { NAVIGATION_ITEMS } from '@/constants/index';
 import { isPathAuthenticated } from '@/utils/isAuthenticatedPath';
 
 const NavigationItems = () => {

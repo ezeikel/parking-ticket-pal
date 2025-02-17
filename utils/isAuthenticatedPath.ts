@@ -4,7 +4,7 @@
  * @returns true if the path is authenticated, false otherwise.
  */
 
-import { AUTHENTICATED_PATHS } from '@/constants';
+import { AUTHENTICATED_PATHS } from '@/constants/index';
 
 // eslint-disable-next-line import/prefer-default-export
 export function isPathAuthenticated(path: string): boolean {

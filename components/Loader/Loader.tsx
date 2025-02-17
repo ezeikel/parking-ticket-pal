@@ -7,7 +7,7 @@ import cn from '@/utils/cn';
 import {
   CREATING_CHALLENGE_LETTER_TEXT,
   UPLOADING_TICKET_TEXT,
-} from '@/constants';
+} from '@/constants/index';
 import { LoaderType } from '@/types';
 
 type LoaderProps = {

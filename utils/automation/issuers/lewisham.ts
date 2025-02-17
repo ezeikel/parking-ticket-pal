@@ -183,11 +183,9 @@ export const challenge = async (
 
   await page.fill('#email-input', args.ticket.vehicle.user.email);
 
-  const address: Address = JSON.parse(
-    args.ticket.vehicle.user.address as unknown as string,
-  );
+  const { postcode } = args.ticket.vehicle.user.address;
 
-  await page.fill('#offender-postcode', address.postcode);
+  await page.fill('#offender-postcode', postcode);
 
   // click postcode lookup button postcodelookup
   await page.click('#postcodelookup');
@@ -200,7 +198,10 @@ export const challenge = async (
   const matchingAddress = await Promise.all(
     addressItems.map(async (item) => {
       const text = (await item.textContent()) || '';
-      return { item, matches: text.includes(address.line1) };
+      return {
+        item,
+        matches: text.includes(args.ticket.vehicle.user.address.line1),
+      };
     }),
   );
 
