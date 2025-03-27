@@ -4,7 +4,7 @@ import { CommonPcnArgs, takeScreenShot } from '../shared';
 export const access = async ({ page, pcnNumber, ticket }: CommonPcnArgs) => {
   await page.goto('https://horizonparkingportal.co.uk/#manage');
   await page.fill('#pcn_reference', pcnNumber);
-  await page.fill('#plate', ticket.vehicle.vrm);
+  await page.fill('#plate', ticket.vehicle.registrationNumber);
   await page.solveRecaptchas();
   await page.click('#view');
   await page.waitForURL('**/#viewPCN/**');

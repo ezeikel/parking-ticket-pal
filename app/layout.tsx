@@ -1,6 +1,8 @@
 import type { Metadata } from 'next';
 import { Analytics } from '@vercel/analytics/react';
-import { Bitter as FontSerif, Raleway as FontSans } from 'next/font/google';
+import { GeistSans } from 'geist/font/sans';
+import 'mapbox-gl/dist/mapbox-gl.css';
+
 import { config } from '@fortawesome/fontawesome-svg-core';
 import { Toaster } from '@/components/ui/toaster';
 import '@fortawesome/fontawesome-svg-core/styles.css';
@@ -13,21 +15,11 @@ import '@/global.css';
 
 config.autoAddCss = false;
 
-const fontSerif = FontSerif({
-  subsets: ['latin'],
-  variable: '--font-serif',
-});
-
-const fontSans = FontSans({
-  subsets: ['latin'],
-  variable: '--font-sans',
-});
-
 export const metadata: Metadata = {
   title:
-    'PCNs: Manage, Track, and Challenge Parking & Penalty Charge Notices with Ease',
+    'Parking Ticket Pal: Manage, Track, and Challenge Parking & Penalty Charge Notices with Ease',
   description:
-    'PCNs is your all-in-one solution for handling Parking Charge Notices (PCNs) and Penalty Charge Notices (PCNs). Track your notices, receive reminders for crucial dates, and avoid increased penalties. Utilize our AI-powered system to appeal or challenge notices effortlessly. Take control of your parking tickets today!',
+    'Parking Ticket Pal is your all-in-one solution for handling Parking Charge Notices (PCNs) and Penalty Charge Notices (PCNs). Track your notices, receive reminders for crucial dates, and avoid increased penalties. Utilize our AI-powered system to appeal or challenge notices effortlessly. Take control of your parking tickets today!',
 };
 
 export default function RootLayout({
@@ -36,14 +28,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body
-        className={cn(
-          'font-serif antialiased',
-          fontSerif.variable,
-          fontSans.variable,
-        )}
-      >
+    <html lang="en" className={GeistSans.className}>
+      <body className={cn('antialiased')}>
         <Providers>
           <LayoutWrap>
             <Header className="row-start-1 row-span-1" />

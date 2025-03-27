@@ -1,9 +1,10 @@
-import * as React from 'react';
+import type * as React from 'react';
 import { cva, type VariantProps } from 'class-variance-authority';
+
 import cn from '@/utils/cn';
 
 const badgeVariants = cva(
-  'inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-hidden focus:ring-2 focus:ring-ring focus:ring-offset-2',
+  'inline-flex items-center rounded-md px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2',
   {
     variants: {
       variant: {
@@ -14,6 +15,9 @@ const badgeVariants = cva(
         destructive:
           'border-transparent bg-destructive text-destructive-foreground hover:bg-destructive/80',
         outline: 'text-foreground',
+        low: 'border-transparent bg-green-100 text-green-800',
+        medium: 'border-transparent bg-orange-100 text-orange-800',
+        high: 'border-transparent bg-red-100 text-red-800',
       },
     },
     defaultVariants: {
@@ -28,7 +32,6 @@ export interface BadgeProps
 
 function Badge({ className, variant, ...props }: BadgeProps) {
   return (
-    // eslint-disable-next-line react/jsx-props-no-spreading
     <div className={cn(badgeVariants({ variant }), className)} {...props} />
   );
 }

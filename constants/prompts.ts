@@ -1,5 +1,5 @@
 export const BACKGROUND_INFORMATION_PROMPT = `
-Imagine you are working as customer support for a company called "PCNs" that handles the management of fines related parking, moving traffic, bus lane, congestion charge, cctv enforcement and private land in the UK.
+Imagine you are working as customer support for a company called "Parking Ticket Pal" that handles the management of fines related parking, moving traffic, bus lane, congestion charge, cctv enforcement and private land in the UK.
 `;
 
 export const CREATE_TICKET_PROMPT = `
@@ -7,7 +7,7 @@ Please provide the following details from the Penalty Charge Notice (PCN) image 
 
 pcnNumber: [PCN Number]
 type: [PARKING_CHARGE_NOTICE or PENALTY_CHARGE_NOTICE based on who issued the ticket]
-dateIssued: [Date of Notice in ISO 8601 format]
+issuedAt: [Date of Notice in ISO 8601 format]
 dateTimeOfContravention: [Date and Time of Contravention in ISO 8601 format]
 vehicleRegistration: [Vehicle Registration Number]
 location: [Location where the contravention occurred, if available]
@@ -53,7 +53,7 @@ Your task is to analyze the provided sources and return a JSON object matching t
   "documentType": "TICKET" or "LETTER", // TICKET: a physical PCN attached to a car (usually smaller and compact); LETTER: a formal document mailed to the registered owner about a PCN (usually A4 size).
   "pcnNumber": "string",
   "type": "PARKING_CHARGE_NOTICE" or "PENALTY_CHARGE_NOTICE",
-  "dateIssued": "ISO 8601 string with the following format: YYYY-MM-DDTHH:MM:SSZ",
+  "issuedAt": "ISO 8601 string with the following format: YYYY-MM-DDTHH:MM:SSZ",
   "dateTimeOfContravention": "ISO 8601 string with the following format: YYYY-MM-DDTHH:MM:SSZ",
   "location": "string, optional",
   "firstSeen": "ISO 8601 string with the following format: YYYY-MM-DDTHH:MM:SSZ, optional",
@@ -76,4 +76,4 @@ When determining whether the document is a "TICKET" or a "LETTER", please consid
 
 Both types of documents will contain similar fields such as PCN number, contravention date, and amount due, but the documentType must be distinguished by the layout, size, and presentation style.
 
-Ensure ISO 8601 format for all dates, and calculate the discountedPaymentDeadline as 14 days and fullPaymentDeadline as 28 days after the dateIssued.`;
+Ensure ISO 8601 format for all dates, and calculate the discountedPaymentDeadline as 14 days and fullPaymentDeadline as 28 days after the issuedAt.`;

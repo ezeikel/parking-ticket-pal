@@ -1,9 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider        = "prisma-client-js"
   previewFeatures = ["driverAdapters"]
@@ -75,12 +69,17 @@ enum SubscriptionType {
 enum ReminderType {
   REDUCED_PAYMENT_DUE
   FULL_PAYMENT_DUE
-  APPEAL
+  APPEAL_DEADLINE
+  NOTICE_TO_OWNER_RESPONSE
+  CHARGE_CERTIFICATE_RESPONSE
+  FORM_DEADLINE
+  OUT_OF_TIME_NOTICE
 }
 
 enum NotificationType {
   EMAIL
   SMS
+  ALL
 }
 
 enum TransactionType {
@@ -101,12 +100,19 @@ enum MediaSource {
   USER
 }
 
+enum FormType {
+  PE2
+  PE3
+  TE7
+  TE9
+}
+
 model User {
   id           String        @id @default(cuid())
   name         String
   email        String        @unique
   phoneNumber  String?
-  address      Json? // Changed to include coordinates
+  address      Json?
   /**
    * example address:
    * const address = {
@@ -123,60 +129,69 @@ model User {
    */
   vehicles     Vehicle[]
   subscription Subscription?
-  credits      Int           @default(1) // credits for uploading tickets
   createdAt    DateTime      @default(now())
   updatedAt    DateTime      @updatedAt
+  signatureUrl String?
 
   @@map("users")
 }
 
 model Vehicle {
-  id       String @id @default(cuid())
-  userId   String
-  user     User   @relation(fields: [userId], references: [id])
-  make     String // e.g. Toyota, Honda
-  model    String // e.g. Camry, Civic
-  bodyType String // e.g. Saloon, Hatchback
-  fuelType String // e.g. Petrol, Diesel
-  year     Int // year of the vehicle - could probably look this up via number plate
-  color    String
-
-  vrm       String   @unique
-  active    Boolean  @default(true) // indicates if the vehicle is currently owned by the user
-  tickets   Ticket[] // tickets associated with the vehicle
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id                 String   @id @default(cuid())
+  userId             String
+  user               User     @relation(fields: [userId], references: [id])
+  make               String // e.g. Toyota, Honda
+  model              String // e.g. Camry, Civic
+  bodyType           String // e.g. Saloon, Hatchback
+  fuelType           String // e.g. Petrol, Diesel
+  year               Int // year of the vehicle - could probably look this up via number plate
+  color              String
+  registrationNumber String   @unique
+  active             Boolean  @default(true) // indicates if the vehicle is currently owned by the user
+  tickets            Ticket[] // tickets associated with the vehicle
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
 
   @@map("vehicles")
 }
 
 model Ticket {
-  id                        String        @id @default(cuid())
-  pcnNumber                 String        @unique
-  contravention             Contravention @relation(fields: [contraventionId], references: [id])
-  contraventionId           String
-  // TODO: use address and store as json with coordinates property
-  location                  Decimal[] // array to store lat and long as decimals
-  description               String?
-  dateIssued                DateTime
-  dateTimeOfContravention   DateTime
-  firstSeen                 DateTime?
-  status                    TicketStatus  @default(REDUCED_PAYMENT_DUE)
-  letters                   Letter[]
-  type                      TicketType
-  amountDue                 Int
-  issuer                    String
-  issuerType                IssuerType
-  discountedPaymentDeadline DateTime
-  fullPaymentDeadline       DateTime
-  verified                  Boolean       @default(false)
-  vehicle                   Vehicle       @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
-  vehicleId                 String
-  media                     Media[]
-  appeals                   Appeal[]
-  reminder                  Reminder[]
-  createdAt                 DateTime      @default(now())
-  updatedAt                 DateTime      @updatedAt
+  id                String       @id @default(cuid())
+  pcnNumber         String       @unique
+  contraventionCode String
+  location          Json
+  /**
+   * example address:
+   * const address = {
+   * line1: "123 Main St",
+   * line2: "Apt 4B",
+   * city: "London",
+   * county: "Greater London",
+   * postcode: "SW1A 1AA",
+   * country: "United Kingdom",
+   * coordinates: {
+   * latitude: 51.5074,
+   * longitude: -0.1278
+   * }
+   */
+  issuedAt          DateTime
+  contraventionAt   DateTime
+  observedAt        DateTime?
+  status            TicketStatus @default(REDUCED_PAYMENT_DUE)
+  type              TicketType
+  initialAmount     Int
+  issuer            String
+  issuerType        IssuerType
+  verified          Boolean      @default(false)
+  vehicle           Vehicle      @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+  vehicleId         String
+  media             Media[]
+  appeals           Appeal[]
+  reminders         Reminder[]
+  letters           Letter[]
+  createdAt         DateTime     @default(now())
+  updatedAt         DateTime     @updatedAt
+  Form              Form[]
 
   @@map("tickets")
 }
@@ -195,18 +210,6 @@ model Media {
   updatedAt   DateTime    @updatedAt
 
   @@map("media")
-}
-
-model Contravention {
-  id           String   @id @default(cuid())
-  code         String   @unique
-  description  String
-  legalClauses String[]
-  ticket       Ticket[]
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-
-  @@map("contraventions")
 }
 
 model Letter {
@@ -251,25 +254,30 @@ model Subscription {
 }
 
 model Reminder {
-  id                   String           @id @default(cuid())
-  type                 ReminderType
-  notificaticationType NotificationType
-  ticket               Ticket           @relation(fields: [ticketId], references: [id], onDelete: Cascade)
-  ticketId             String
-  createdAt            DateTime         @default(now())
-  updatedAt            DateTime         @updatedAt
+  id               String            @id @default(cuid())
+  type             ReminderType // e.g. REDUCED_PAYMENT_DUE, FULL_PAYMENT_DUE, APPEAL, etc.
+  notificationType NotificationType? @default(EMAIL)
+  ticketId         String
+  ticket           Ticket            @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  sendAt           DateTime // When the reminder is scheduled to be sent
+  sentAt           DateTime? // When the reminder was actually sent
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
 
+  @@index([ticketId, sendAt])
   @@map("reminders")
 }
 
-model ContraventionCase {
-  id               String   @id @default(cuid())
-  code             String // Contravention code
-  description      String
-  date             DateTime
-  outcome          String // e.g., "Successful", "Rejected"
-  adjudicatorNotes String? // Notes from the adjudicator
-  createdAt        DateTime @default(now())
+model Form {
+  id        String    @id @default(cuid())
+  ticket    Ticket    @relation(fields: [ticketId], references: [id])
+  ticketId  String
+  formType  FormType
+  fileName  String
+  fileUrl   String
+  dueAt     DateTime? // Optional deadline for submitting this form
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
 
-  @@map("contravention_cases")
+  @@map("forms")
 }

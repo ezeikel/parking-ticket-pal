@@ -1,6 +1,6 @@
 /* eslint-disable import/prefer-default-export */
 import { NextRequest, NextResponse } from 'next/server';
-import { AUTHENTICATED_PATHS } from './constants';
+import { AUTHENTICATED_PATHS } from './constants/index';
 import { decrypt } from './app/lib/session';
 
 export const middleware = async (req: NextRequest) => {

@@ -11,7 +11,6 @@ import GoogleProvider from 'next-auth/providers/google';
 import type { JWT } from 'next-auth/jwt';
 import { db } from './lib/prisma';
 
-// Create the configuration object first
 const config = {
   providers: [
     GoogleProvider({
@@ -41,9 +40,6 @@ const config = {
           data: {
             email: profile?.email as string,
             name: profile?.name as string,
-            subscription: {
-              create: {},
-            },
           },
         });
         return true;

@@ -9,7 +9,7 @@ export type CommonPcnArgs = {
   pcnNumber: string;
   ticket: Partial<Ticket> & {
     vehicle: {
-      vrm: string;
+      registrationNumber: string;
       make: string;
       model: string;
       user: {

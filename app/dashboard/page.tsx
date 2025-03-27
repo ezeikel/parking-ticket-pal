@@ -1,20 +1,17 @@
-import PageWrap from '@/components/PageWrap/PageWrap';
-import TicketsTable from '@/components/tables/TicketsTable/TicketsTable';
-import DynamicUploadButton from '@/components/buttons/DynamicUploadButton';
+import { Suspense } from 'react';
+import TicketsContainer from './TicketsContainer';
+import { getTickets } from '../actions';
 
-// account for openai api calls
-export const maxDuration = 30;
+const TicketsPage = async () => {
+  const tickets = await getTickets();
 
-const DashboardPage = async () => {
   return (
-    <PageWrap>
-      <div className="flex justify-between">
-        <h1 className="font-semibold text-lg mb-8 md:text-2xl">Tickets</h1>
-        <DynamicUploadButton />
-      </div>
-      <TicketsTable />
-    </PageWrap>
+    <div className="container mx-auto py-6 space-y-6">
+      <Suspense fallback={<div>Loading tickets...</div>}>
+        <TicketsContainer tickets={tickets ?? []} />
+      </Suspense>
+    </div>
   );
 };
 
-export default DashboardPage;
+export default TicketsPage;

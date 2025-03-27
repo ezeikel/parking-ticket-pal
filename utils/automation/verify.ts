@@ -1,4 +1,4 @@
-import { findIssuer } from '@/constants/index';
+import { findIssuer, isAutomationSupported } from '@/constants/index';
 import { db } from '@/lib/prisma';
 import { lewisham, horizon } from './issuers';
 import { CommonPcnArgs, setupBrowser } from './shared';
@@ -8,13 +8,15 @@ const VERIFY_FUNCTIONS = {
   horizon: horizon.verify,
 };
 
+type IssuerId = keyof typeof VERIFY_FUNCTIONS;
+
 export default async (pcnNumber: string) => {
   const ticket = await db.ticket.findFirst({
     where: { pcnNumber },
     include: {
       vehicle: {
         select: {
-          vrm: true,
+          registrationNumber: true,
           make: true,
           model: true,
           user: {
@@ -38,12 +40,12 @@ export default async (pcnNumber: string) => {
 
   const issuer = findIssuer(ticket.issuer);
 
-  if (!issuer?.automationSupported) {
+  if (!issuer || !isAutomationSupported(issuer.id)) {
     console.error('Automation not supported for this issuer.');
     return false;
   }
 
-  const verifyFunction = VERIFY_FUNCTIONS[issuer.id];
+  const verifyFunction = VERIFY_FUNCTIONS[issuer.id as IssuerId];
 
   if (!verifyFunction) {
     console.error('Verification function not implemented for this issuer.');

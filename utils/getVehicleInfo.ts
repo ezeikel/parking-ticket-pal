@@ -6,7 +6,7 @@ export default async (vehicleRegistration: string) => {
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ vrm: vehicleRegistration }),
+      body: JSON.stringify({ registrationNumber: vehicleRegistration }),
     }),
     fetch(process.env.DVLA_VEHICLE_ENQUIRY_API_URL as string, {
       method: 'POST',

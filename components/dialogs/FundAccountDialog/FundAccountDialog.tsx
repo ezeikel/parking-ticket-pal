@@ -12,8 +12,8 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { useAccountContext } from '@/contexts/account';
-import { ProductType } from '@/types';
 import { loadStripe } from '@stripe/stripe-js';
+import { ProductType } from '@prisma/client';
 
 // Make sure to call `loadStripe` outside of a component’s render to avoid
 // recreating the `Stripe` object on every render.
@@ -59,11 +59,11 @@ const FundAccountDialog = () => {
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle className="font-sans">
-            Buy Credits or Get a Pro Subscription
+            Pay per ticket or Get a Pro Subscription
           </DialogTitle>
           <DialogDescription>
-            This feature requires credits or a Pro subscription. Please select
-            one of the following options to proceed.
+            This feature requires a Pro subscription. Please select one of the
+            following options to proceed.
           </DialogDescription>
         </DialogHeader>
         <div className="grid gap-4 py-4">
@@ -74,7 +74,7 @@ const FundAccountDialog = () => {
               handleClick(ProductType.PAY_PER_TICKET);
             }}
           >
-            Buy Credits
+            Pay per ticket
           </Button>
           <Button
             className="w-full"

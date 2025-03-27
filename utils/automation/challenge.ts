@@ -1,4 +1,4 @@
-import { findIssuer } from '@/constants/index';
+import { findIssuer, isAutomationSupported } from '@/constants/index';
 import { db } from '@/lib/prisma';
 import { ChallengeReasonId } from '@/types';
 import { lewisham, horizon } from './issuers';
@@ -9,13 +9,19 @@ const CHALLENGE_FUNCTIONS = {
   horizon: horizon.challenge,
 };
 
+type IssuerId = keyof typeof CHALLENGE_FUNCTIONS;
+
 export default async (pcnNumber: string, reason: ChallengeReasonId) => {
   const ticket = await db.ticket.findFirst({
     where: { pcnNumber },
-    include: {
+    select: {
+      pcnNumber: true,
+      issuer: true,
+      contraventionCode: true,
+      media: true,
       vehicle: {
         select: {
-          vrm: true,
+          registrationNumber: true,
           make: true,
           model: true,
           user: {
@@ -29,12 +35,8 @@ export default async (pcnNumber: string, reason: ChallengeReasonId) => {
           },
         },
       },
-      contravention: true,
-      media: true,
     },
   });
-
-  console.log('ticket', ticket);
 
   if (!ticket) {
     console.error('Ticket not found.');
@@ -43,12 +45,12 @@ export default async (pcnNumber: string, reason: ChallengeReasonId) => {
 
   const issuer = findIssuer(ticket.issuer);
 
-  if (!issuer?.automationSupported) {
+  if (!issuer || !isAutomationSupported(issuer.id)) {
     console.error('Automation not supported for this issuer.');
     return false;
   }
 
-  const challengeFunction = CHALLENGE_FUNCTIONS[issuer.id];
+  const challengeFunction = CHALLENGE_FUNCTIONS[issuer.id as IssuerId];
 
   if (!challengeFunction) {
     console.error('Challenge function not implemented for this issuer.');

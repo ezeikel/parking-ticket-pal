@@ -5,7 +5,17 @@ import { revalidatePath } from 'next/cache';
 import { del, put } from '@vercel/blob';
 import OpenAI from 'openai';
 import { zodResponseFormat } from 'openai/helpers/zod';
-import { LetterType, MediaType, MediaSource } from '@prisma/client';
+import {
+  LetterType,
+  MediaType,
+  MediaSource,
+  TicketType,
+  IssuerType,
+  TicketStatus,
+  FormType,
+  User,
+  ProductType,
+} from '@prisma/client';
 import { Readable } from 'stream';
 import { Resend } from 'resend';
 import Stripe from 'stripe';
@@ -14,20 +24,33 @@ import stealth from 'puppeteer-extra-plugin-stealth';
 import RecaptchaPlugin from 'puppeteer-extra-plugin-recaptcha';
 import { db } from '@/lib/prisma';
 import { auth } from '@/auth';
-import { ProductType, TicketSchema } from '@/types';
+import {
+  ticketFormSchema,
+  TicketSchema,
+  PdfFormFields,
+  Address,
+} from '@/types';
 import {
   BACKGROUND_INFORMATION_PROMPT,
   COUNCIL_CHALLENGE_REASONS,
   CHALLENGE_WRITER_PROMPT,
   IMAGE_ANALYSIS_PROMPT,
+  CONTRAVENTION_CODES,
+  CHATGPT_MODEL,
 } from '@/constants/index';
 import generatePDF from '@/utils/generatePDF';
 import streamToBuffer from '@/utils/streamToBuffer';
 import formatPenniesToPounds from '@/utils/formatPenniesToPounds';
 import getVehicleInfo from '@/utils/getVehicleInfo';
-import getLatLng from '@/utils/getLatLng';
 import { verify, challenge } from '@/utils/automation';
-import { convertLocationArray } from '@/utils/prisma-helpers';
+import { z } from 'zod';
+import path from 'path';
+import fs from 'fs';
+import fillPE2Form from '@/utils/automation/forms/PE2';
+import fillPE3Form from '@/utils/automation/forms/PE3';
+import fillTE7Form from '@/utils/automation/forms/TE7';
+import fillTE9Form from '@/utils/automation/forms/TE9';
+import FormEmail from '@/components/emails/FormEmail';
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -36,7 +59,7 @@ const openai = new OpenAI({
 const resend = new Resend(process.env.RESEND_API_KEY);
 
 const stripe = new Stripe(process.env.STRIPE_SECRET!, {
-  apiVersion: '2025-01-27.acacia',
+  apiVersion: '2025-02-24.acacia',
 });
 
 chromium.use(
@@ -52,9 +75,15 @@ chromium.use(
 
 chromium.use(stealth());
 
+const STORAGE_PATHS = {
+  USER_IMAGE: 'users/%s/image.%s',
+  USER_TICKET_FORM: 'users/%s/tickets/%s/forms/%s-%s-%s-%s.pdf',
+};
+
 const getUserId = async (action?: string) => {
   const session = await auth();
   const headersList = await headers();
+
   const userId = session?.user.dbId || headersList.get('x-user-id');
 
   if (!userId) {
@@ -125,7 +154,10 @@ export const uploadImage = async (
     // store the image in Vercel Blob storage
     const extension = image.name.split('.').pop();
     const ticketFrontBlob = await put(
-      `uploads/users/${userId}/image.${extension}`,
+      STORAGE_PATHS.USER_IMAGE.replace('%s', userId).replace(
+        '%s',
+        extension || 'jpg',
+      ),
       image,
       {
         access: 'public',
@@ -143,7 +175,7 @@ export const uploadImage = async (
     // upload the base64 string as a Blob
     const buffer = Buffer.from(base64Image, 'base64');
     const ticketFrontBlob = await put(
-      `uploads/users/${userId}/image.png`,
+      STORAGE_PATHS.USER_IMAGE.replace('%s', userId).replace('%s', 'png'),
       buffer,
       {
         access: 'public',
@@ -159,7 +191,7 @@ export const uploadImage = async (
 
   // send the image URL and OCR text to OpenAI for analysis
   const response = await openai.chat.completions.create({
-    model: 'gpt-4o-2024-08-06',
+    model: CHATGPT_MODEL,
     messages: [
       {
         role: 'system',
@@ -190,32 +222,21 @@ export const uploadImage = async (
     response_format: zodResponseFormat(TicketSchema, 'ticket'),
   });
 
-  // DEBUG:
-  // eslint-disable-next-line no-console
-  console.log('uploadImage gpt-4o response:', response);
-
   const imageInfo = response.choices[0].message.content;
-
-  // DEBUG:
-  // eslint-disable-next-line no-console
-  console.log('uploadImage imageInfo:', imageInfo);
 
   const {
     documentType,
     pcnNumber,
     type,
-    dateIssued,
+    issuedAt,
     vehicleRegistration,
-    dateTimeOfContravention,
+    contraventionAt,
     contraventionCode,
-    contraventionDescription,
     location,
     firstSeen,
     amountDue,
     issuer,
     issuerType,
-    discountedPaymentDeadline,
-    fullPaymentDeadline,
     extractedText,
     summary,
   } = JSON.parse(imageInfo as string);
@@ -238,47 +259,28 @@ export const uploadImage = async (
     const { make, model, bodyType, fuelType, color, year } =
       await getVehicleInfo(vehicleRegistration);
 
-    // TODO: save full address to db in the future using prisma json
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { lat, lng, fullAddress } = await getLatLng(location);
-
-    // eslint-disable-next-line no-console
-    console.log('fullAddress:', fullAddress);
-
     // save ticket to db
     dbResponse = await db.ticket.create({
       data: {
         pcnNumber,
         type,
-        dateIssued: toISODateString(dateIssued),
-        dateTimeOfContravention: toISODateString(dateTimeOfContravention),
-        location: [lat, lng],
-        firstSeen: firstSeen ? toISODateString(firstSeen) : undefined,
-        amountDue: Number(amountDue),
+        issuedAt: toISODateString(issuedAt),
+        contraventionAt: toISODateString(contraventionAt),
+        location,
+        observedAt: firstSeen ? toISODateString(firstSeen) : undefined,
+        initialAmount: Number(amountDue),
         issuer,
         issuerType,
-        discountedPaymentDeadline: toISODateString(discountedPaymentDeadline),
-        fullPaymentDeadline: toISODateString(fullPaymentDeadline),
         // TODO: set status based on current date and discountedPaymentDeadline and fullPaymentDeadline
         // status:
-        contravention: {
-          connectOrCreate: {
-            where: {
-              code: contraventionCode.toString(),
-            },
-            create: {
-              code: contraventionCode.toString(),
-              description: contraventionDescription,
-            },
-          },
-        },
+        contraventionCode,
         vehicle: {
           connectOrCreate: {
             where: {
-              vrm: vehicleRegistration,
+              registrationNumber: vehicleRegistration,
             },
             create: {
-              vrm: vehicleRegistration,
+              registrationNumber: vehicleRegistration,
               make,
               model,
               bodyType,
@@ -304,9 +306,6 @@ export const uploadImage = async (
     const { make, model, bodyType, fuelType, color, year } =
       await getVehicleInfo(vehicleRegistration);
 
-    // TODO: save full address to db in the future
-    const { lat, lng } = await getLatLng(location);
-
     // save letter to db
     dbResponse = await db.letter.create({
       data: {
@@ -321,35 +320,21 @@ export const uploadImage = async (
             create: {
               pcnNumber,
               type,
-              dateIssued: toISODateString(dateIssued),
-              dateTimeOfContravention: toISODateString(dateTimeOfContravention),
-              location: [lat, lng],
-              firstSeen: firstSeen ? toISODateString(firstSeen) : undefined,
-              amountDue: Number(amountDue),
+              issuedAt: toISODateString(issuedAt),
+              contraventionAt: toISODateString(contraventionAt),
+              location,
+              observedAt: firstSeen ? toISODateString(firstSeen) : undefined,
+              initialAmount: Number(amountDue),
               issuer,
               issuerType,
-              discountedPaymentDeadline: toISODateString(
-                discountedPaymentDeadline,
-              ),
-              fullPaymentDeadline: toISODateString(fullPaymentDeadline),
-              contravention: {
-                connectOrCreate: {
-                  where: {
-                    code: contraventionCode.toString(),
-                  },
-                  create: {
-                    code: contraventionCode.toString(),
-                    description: contraventionDescription,
-                  },
-                },
-              },
+              contraventionCode,
               vehicle: {
                 connectOrCreate: {
                   where: {
-                    vrm: vehicleRegistration,
+                    registrationNumber: vehicleRegistration,
                   },
                   create: {
-                    vrm: vehicleRegistration,
+                    registrationNumber: vehicleRegistration,
                     make,
                     model,
                     bodyType,
@@ -379,6 +364,56 @@ export const uploadImage = async (
   revalidatePath('/dashboard');
 
   return dbResponse;
+};
+
+export const createTicket = async (
+  values: z.infer<typeof ticketFormSchema>,
+) => {
+  const userId = await getUserId('create a ticket');
+
+  if (!userId) {
+    return null;
+  }
+
+  try {
+    const ticket = await db.ticket.create({
+      data: {
+        pcnNumber: values.ticketNumber,
+        contraventionCode: CONTRAVENTION_CODES['01'].code,
+        location: values.location,
+        issuedAt: values.issuedAt,
+        contraventionAt: values.issuedAt,
+        status: TicketStatus.REDUCED_PAYMENT_DUE,
+        type: TicketType.PENALTY_CHARGE_NOTICE, // hardcoded for now
+        initialAmount: values.amountDue,
+        issuer: values.issuer,
+        issuerType: IssuerType.COUNCIL, // hardcoded for now
+        vehicle: {
+          connectOrCreate: {
+            where: {
+              registrationNumber: values.vehicleReg,
+            },
+            create: {
+              registrationNumber: values.vehicleReg,
+              make: 'Toyota',
+              model: 'Prius',
+              year: 2020,
+              bodyType: 'Saloon',
+              fuelType: 'Petrol',
+              color: 'Red',
+              userId,
+            },
+          },
+        },
+      },
+    });
+
+    return ticket;
+  } catch (error) {
+    // console.error('Error creating ticket:', error);
+    console.error('Stack trace:', (error as Error).stack);
+    return null;
+  }
 };
 
 export const deleteTicket = async (id: string) => {
@@ -437,8 +472,6 @@ export const deleteTicket = async (id: string) => {
 export const getTickets = async () => {
   const userId = await getUserId('get tickets');
 
-  console.log('userId', userId);
-
   if (!userId) {
     return null;
   }
@@ -449,46 +482,17 @@ export const getTickets = async () => {
         userId,
       },
     },
-    select: {
-      id: true,
-      pcnNumber: true,
-      type: true,
-      description: true,
-      amountDue: true,
-      issuer: true,
-      issuerType: true,
-      discountedPaymentDeadline: true,
-      fullPaymentDeadline: true,
-      verified: true,
-      location: true,
-      contravention: {
-        select: {
-          code: true,
-          description: true,
-        },
-      },
-      dateTimeOfContravention: true,
-      dateIssued: true,
-      status: true,
-      vehicle: {
-        select: {
-          vrm: true,
-        },
-      },
+    include: {
+      vehicle: true,
       media: {
         select: {
           url: true,
         },
       },
-      createdAt: true,
     },
   });
 
-  return tickets.map((ticket) => ({
-    ...ticket,
-    // convert decimal location to numbers before returning
-    location: convertLocationArray(ticket.location),
-  }));
+  return tickets;
 };
 
 export const getTicket = async (id: string) => {
@@ -506,23 +510,17 @@ export const getTicket = async (id: string) => {
       id: true,
       pcnNumber: true,
       type: true,
-      description: true,
-      amountDue: true,
+      initialAmount: true,
       issuer: true,
       issuerType: true,
       location: true,
-      contravention: {
-        select: {
-          code: true,
-          description: true,
-        },
-      },
-      dateTimeOfContravention: true,
-      dateIssued: true,
+      contraventionCode: true,
+      contraventionAt: true,
+      issuedAt: true,
       status: true,
       vehicle: {
         select: {
-          vrm: true,
+          registrationNumber: true,
         },
       },
       media: {
@@ -536,11 +534,7 @@ export const getTicket = async (id: string) => {
 
   if (!ticket) return null;
 
-  return {
-    ...ticket,
-    // convert decimal location to numbers before returning
-    location: convertLocationArray(ticket.location),
-  };
+  return ticket;
 };
 
 export const getVehicles = async () => {
@@ -556,7 +550,7 @@ export const getVehicles = async () => {
     },
     select: {
       id: true,
-      vrm: true,
+      registrationNumber: true,
       make: true,
       model: true,
       year: true,
@@ -586,7 +580,6 @@ export const generateChallengeLetter = async (ticketId: string) => {
   });
 
   if (!user) {
-    console.error('User not found.');
     return null;
   }
 
@@ -598,22 +591,16 @@ export const generateChallengeLetter = async (ticketId: string) => {
     select: {
       pcnNumber: true,
       type: true,
-      description: true,
-      amountDue: true,
+      initialAmount: true,
       issuer: true,
       issuerType: true,
-      contravention: {
-        select: {
-          code: true,
-          description: true,
-        },
-      },
-      dateTimeOfContravention: true,
-      dateIssued: true,
+      contraventionCode: true,
+      contraventionAt: true,
+      issuedAt: true,
       status: true,
       vehicle: {
         select: {
-          vrm: true,
+          registrationNumber: true,
         },
       },
       media: {
@@ -633,20 +620,26 @@ export const generateChallengeLetter = async (ticketId: string) => {
   // use OpenAI to generate a challenge letter and email based on the detailed ticket information
   const [createLetterResponse, createEmailResponse] = await Promise.all([
     openai.chat.completions.create({
-      model: 'gpt-4o',
+      model: CHATGPT_MODEL,
       messages: [
         {
           role: 'user',
-          content: `${BACKGROUND_INFORMATION_PROMPT} Please generate a professional letter on behalf of ${user.name} living at address ${user.address} for the ticket ${ticket.pcnNumber} issued by ${ticket.issuer} for the contravention ${ticket.contravention.code} (${ticket.contravention?.description}) for vehicle ${ticket.vehicle?.vrm}. The outstanding amount due is £${formatPenniesToPounds(ticket.amountDue)}. Think of a legal basis based on the contravention code that could work as a challenge and use this information to generate a challenge letter. Please note that the letter should be written in a professional manner and should be addressed to the issuer of the ticket. The letter should be written in a way that it can be sent as is - no placeholders or brackets should be included in the response, use the actual values of the name of the person you are writing the letter for and the ticket details`,
+          content: `${BACKGROUND_INFORMATION_PROMPT} Please generate a professional letter on behalf of ${user.name} living at address ${user.address} for the ticket ${ticket.pcnNumber} issued by ${ticket.issuer} for the contravention ${ticket.contraventionCode} ${
+            CONTRAVENTION_CODES[
+              ticket.contraventionCode as keyof typeof CONTRAVENTION_CODES
+            ]?.description
+              ? `(${CONTRAVENTION_CODES[ticket.contraventionCode as keyof typeof CONTRAVENTION_CODES].description})`
+              : ''
+          } for vehicle ${ticket.vehicle?.registrationNumber}. The outstanding amount due is £${formatPenniesToPounds(ticket.initialAmount)}. Think of a legal basis based on the contravention code that could work as a challenge and use this information to generate a challenge letter. Please note that the letter should be written in a professional manner and should be addressed to the issuer of the ticket. The letter should be written in a way that it can be sent as is - no placeholders or brackets should be included in the response, use the actual values of the name of the person you are writing the letter for and the ticket details`,
         },
       ],
     }),
     openai.chat.completions.create({
-      model: 'gpt-4o',
+      model: CHATGPT_MODEL,
       messages: [
         {
           role: 'user',
-          content: `${BACKGROUND_INFORMATION_PROMPT} Please generate a professional email addressed to ${user.name} in reference to a letter that was generated to challenge ticket number ${ticket.pcnNumber} on their behalf which has been attached to this email as .pdf file. Explain to user to forward the letter on to the ${ticket.issuer} and that they can also edit the .pdf file if they wish to change or add any additional information. Sign off the email with "Kind regards, PCNs Support Team". Please give me the your response as the email content only in html format so that I can send it to the user.`,
+          content: `${BACKGROUND_INFORMATION_PROMPT} Please generate a professional email addressed to ${user.name} in reference to a letter that was generated to challenge ticket number ${ticket.pcnNumber} on their behalf which has been attached to this email as .pdf file. Explain to user to forward the letter on to the ${ticket.issuer} and that they can also edit the .pdf file if they wish to change or add any additional information. Sign off the email with "Kind regards, Parking Ticket Pal Support Team". Please give me the your response as the email content only in html format so that I can send it to the user.`,
         },
       ],
     }),
@@ -674,7 +667,7 @@ export const generateChallengeLetter = async (ticketId: string) => {
 
   // take the pdf and email it to the user
   await resend.emails.send({
-    from: 'PCNs <letters@pcns.ai>',
+    from: 'Parking Ticket Pal <letters@parkingticketpal.com>',
     to: user.email,
     subject: `Re: Ticket Challenge Letter for Your Reference - Ticket No:${ticket.pcnNumber}`,
     html: generatedEmailFromOpenAI,
@@ -691,7 +684,7 @@ export const generateChallengeLetter = async (ticketId: string) => {
   };
 };
 
-export const getCurrentUser = async () => {
+export const getCurrentUser = async (): Promise<Partial<User> | null> => {
   const userId = await getUserId('get the current user');
 
   if (!userId) {
@@ -707,7 +700,8 @@ export const getCurrentUser = async () => {
       name: true,
       email: true,
       address: true,
-      credits: true,
+      phoneNumber: true,
+      signatureUrl: true,
     },
   });
 
@@ -715,8 +709,7 @@ export const getCurrentUser = async () => {
 };
 
 export const getSubscription = async () => {
-  const session = await auth();
-  const userId = session?.userId;
+  const userId = await getUserId('get the subscription');
 
   if (!userId) {
     console.error('You need to be logged in to get the subscription.');
@@ -804,8 +797,8 @@ export const createCheckoutSession = async (
       },
     ],
     mode,
-    success_url: `${origin}/billing/success`,
-    cancel_url: `${origin}/billing`,
+    success_url: `${origin}/account/billing/success`,
+    cancel_url: `${origin}/account/billing`,
     client_reference_id: userId,
 
     // send stripe customer id if user already exists in stripe
@@ -843,7 +836,7 @@ export const createCustomerPortalSession = async () => {
 
   const portalSession = await stripe.billingPortal.sessions.create({
     customer: subscription.stripeCustomerId,
-    return_url: `${origin}/billing`,
+    return_url: `${origin}/account/billing`,
   });
 
   return {
@@ -920,7 +913,7 @@ export const generateChallengeDetails = async ({
 
   try {
     const completion = await openai.chat.completions.create({
-      model: 'gpt-4o',
+      model: CHATGPT_MODEL,
       messages,
       temperature: 0.7,
       max_tokens: 1000,
@@ -958,4 +951,260 @@ export const getEvidenceImages = async ({
   }
 
   return ticketWithMedia.media.map((m) => m.url);
+};
+
+// generic function to fill a form and follow subsequent steps e.g. upload to blob, save to db, send email
+const handleFormGeneration = async (
+  formType: FormType,
+  formFields: PdfFormFields,
+  fillFormFn: (data: Record<string, any>) => Promise<string | null>,
+) => {
+  // TODO: make try/catches more granular
+  try {
+    // fill pdf form
+    const filledFormPath = await fillFormFn(formFields);
+
+    if (!filledFormPath) {
+      return { success: false, error: `Failed to generate ${formType} form` };
+    }
+
+    // get file name and buffer
+    const fileName = path.basename(filledFormPath);
+    const fileBuffer = fs.readFileSync(filledFormPath);
+
+    // upload to vercel blob with organised path structure
+    const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+    // Format the user's name for the filename (lowercase and hyphenated)
+    const userName = formFields.userName || 'unknown';
+    const formattedUserName = userName.toLowerCase().replace(/\s+/g, '-');
+
+    const blobPath = STORAGE_PATHS.USER_TICKET_FORM.replace(
+      '%s',
+      formFields.userId,
+    )
+      .replace('%s', formFields.ticketId)
+      .replace('%s', formType)
+      .replace('%s', formattedUserName)
+      .replace('%s', formFields.penaltyChargeNo)
+      .replace('%s', timestamp);
+
+    let blob;
+
+    try {
+      blob = await put(blobPath, fileBuffer, {
+        access: 'public',
+        contentType: 'application/pdf',
+      });
+    } catch (error) {
+      console.error('Error uploading form to blob:', error);
+      return {
+        success: false,
+        error: `Error uploading ${formType} form pdf to blob storage`,
+      };
+    }
+
+    // save to database
+    const form = await db.form.create({
+      data: {
+        ticketId: formFields.ticketId,
+        formType,
+        fileName,
+        fileUrl: blob.url,
+      },
+    });
+
+    // send email if email is provided
+    if (formFields.userEmail) {
+      await resend.emails.send({
+        from: 'Parking Ticket Pal <forms@parkingticketpal.com>',
+        to: formFields.userEmail,
+        subject: `Your ${formType} Form`,
+        react: FormEmail({
+          formType,
+          userName: formFields.userName,
+          downloadUrl: blob.url,
+        }),
+        attachments: [
+          {
+            filename: fileName,
+            content: fileBuffer,
+          },
+        ],
+      });
+    }
+
+    // clean up local file
+    fs.unlinkSync(filledFormPath);
+
+    return {
+      success: true,
+      fileUrl: blob.url,
+      fileName,
+      formId: form.id,
+    };
+  } catch (error) {
+    console.error(`Error generating ${formType} form:`, error);
+    return { success: false, error: `Error generating ${formType} form` };
+  }
+};
+
+export async function generatePE2Form(formFields: PdfFormFields) {
+  return handleFormGeneration(FormType.PE2, formFields, fillPE2Form);
+}
+
+export async function generatePE3Form(formFields: PdfFormFields) {
+  return handleFormGeneration(FormType.PE3, formFields, fillPE3Form);
+}
+
+export async function generateTE7Form(formFields: PdfFormFields) {
+  return handleFormGeneration(FormType.TE7, formFields, fillTE7Form);
+}
+
+export async function generateTE9Form(formFields: PdfFormFields) {
+  return handleFormGeneration(FormType.TE9, formFields, fillTE9Form);
+}
+
+export async function getFormFillDataFromTicket(
+  pcnNumber: string,
+): Promise<PdfFormFields | null> {
+  try {
+    const ticket = await db.ticket.findUnique({
+      where: { pcnNumber },
+      include: {
+        vehicle: {
+          include: {
+            user: true,
+          },
+        },
+      },
+    });
+
+    if (!ticket) {
+      console.error('Ticket not found');
+      return null;
+    }
+
+    // Format the user's address
+    const { user } = ticket.vehicle;
+    const addressParts = [];
+
+    if ((user.address as Address)?.line1)
+      addressParts.push((user.address as Address).line1);
+    if ((user.address as Address)?.line2)
+      addressParts.push((user.address as Address).line2);
+    if ((user.address as Address)?.city)
+      addressParts.push((user.address as Address).city);
+    if ((user.address as Address)?.postcode)
+      addressParts.push((user.address as Address).postcode);
+    if ((user.address as Address)?.county)
+      addressParts.push((user.address as Address).county);
+    if ((user.address as Address)?.country)
+      addressParts.push((user.address as Address).country);
+
+    const formattedAddress = addressParts.join('\n');
+
+    // Format the full name and address
+    const fullNameAndAddress = `${user.name}\n${formattedAddress}`;
+
+    // Format the date of contravention
+    const contraventionDate = new Date(ticket.contraventionAt);
+    const formattedDate = `${contraventionDate.getDate().toString().padStart(2, '0')}/${(
+      contraventionDate.getMonth() + 1
+    )
+      .toString()
+      .padStart(2, '0')}/${contraventionDate.getFullYear()}`;
+
+    return {
+      userId: user.id,
+      ticketId: ticket.id,
+      userName: user.name,
+      userEmail: user.email,
+      userAddress: formattedAddress,
+      userPostcode: (user.address as Address)?.postcode,
+      userTitle: 'Mr', // TODO: get title from user
+      penaltyChargeNo: ticket.pcnNumber,
+      vehicleRegistrationNo: ticket.vehicle.registrationNumber,
+      applicant: ticket.issuer,
+      locationOfContravention:
+        typeof ticket.location === 'object' && ticket.location !== null
+          ? ((ticket.location as Address).line1 || '') +
+            ((ticket.location as Address).city
+              ? `, ${(ticket.location as Address).city}`
+              : '') +
+            ((ticket.location as Address).postcode
+              ? `, ${(ticket.location as Address).postcode}`
+              : '')
+          : String(ticket.location),
+      dateOfContravention: formattedDate,
+      fullNameAndAddress,
+      reasonText: '', // This would need to be provided separately
+      signatureUrl: user.signatureUrl || null,
+    };
+  } catch (error) {
+    console.error('Error getting form data from ticket:', error);
+    return null;
+  }
+}
+
+export const getSubscriptionDetails = async () => {
+  const userId = await getUserId('get subscription details');
+
+  if (!userId) {
+    console.error('You need to be logged in to get subscription details.');
+    return null;
+  }
+
+  const subscription = await db.subscription.findFirst({
+    where: {
+      user: {
+        id: userId,
+      },
+    },
+  });
+
+  if (!subscription?.stripeCustomerId) {
+    console.error('no stripe customer id');
+    return null;
+  }
+
+  try {
+    // Get subscription details from Stripe
+    const stripeSubscription = await stripe.subscriptions.list({
+      customer: subscription.stripeCustomerId,
+      status: 'active',
+      expand: ['data.items.data.price.product'],
+    });
+
+    if (stripeSubscription.data.length === 0) {
+      return {
+        type: subscription.type,
+        productType: null,
+      };
+    }
+
+    // Get the product ID from the subscription
+    const { product } = stripeSubscription.data[0].items.data[0].price;
+
+    // Handle different possible types of the product field
+    const productId = typeof product === 'string' ? product : product.id;
+
+    // Determine product type based on product ID
+    let productType = null;
+    if (productId === process.env.PRO_MONTHLY_STRIPE_PRODUCT_ID) {
+      productType = ProductType.PRO_MONTHLY;
+    } else if (productId === process.env.PRO_ANNUAL_STRIPE_PRODUCT_ID) {
+      productType = ProductType.PRO_ANNUAL;
+    }
+
+    return {
+      type: subscription.type,
+      productType,
+    };
+  } catch (error) {
+    console.error('Error fetching subscription details from Stripe:', error);
+    return {
+      type: subscription.type,
+      productType: null,
+    };
+  }
 };

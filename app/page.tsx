@@ -24,10 +24,10 @@ const HomePage = () => {
                   All Your Charge Notices, One Seamless Hub
                 </h2>
                 <p className="max-w-[600px] text-gray-500 md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed dark:text-gray-400">
-                  Manage both Penalty and Parking Charge Notices with ease. PCNs
-                  brings your fines into one view and uses AI to craft solid,
-                  legally grounded challenge letters. Take a picture, submit,
-                  and let intelligence do the heavy lifting.
+                  Manage both Penalty and Parking Charge Notices with ease.
+                  Parking Ticket Pal brings your fines into one view and uses AI
+                  to craft solid, legally grounded challenge letters. Take a
+                  picture, submit, and let intelligence do the heavy lifting.
                 </p>
               </div>
               <div className="flex flex-col gap-2 min-[400px]:flex-row">

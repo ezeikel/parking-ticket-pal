@@ -2,28 +2,21 @@
 
 import { loadStripe } from '@stripe/stripe-js';
 import { createCheckoutSession } from '@/app/actions';
-import { Button, ButtonProps } from '@/components/ui/button';
+import { Button } from '@/components/ui/button';
 import cn from '@/utils/cn';
-import { ProductType } from '@/types';
+import { ProductType } from '@prisma/client';
 
 // Make sure to call `loadStripe` outside of a component’s render to avoid
 // recreating the `Stripe` object on every render.
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_KEY as string);
 
-type SubscribeButtonProps = ButtonProps & {
+type SubscribeButtonProps = {
   productType: ProductType;
-  text?: string;
   className?: string;
 };
 
-const SubscribeButton = ({
-  text,
-  className,
-  productType,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  ...props
-}: SubscribeButtonProps) => {
-  const handleSubscribeClick = async () => {
+const SubscribeButton = ({ className, productType }: SubscribeButtonProps) => {
+  const handleSubscribe = async () => {
     // get stripe.js instance
     const stripe = await stripePromise;
 
@@ -56,11 +49,10 @@ const SubscribeButton = ({
       className={cn({
         [className as string]: !!className,
       })}
-      onClick={handleSubscribeClick}
-      // eslint-disable-next-line react/jsx-props-no-spreading
-      {...props}
+      onClick={handleSubscribe}
+      size="lg"
     >
-      {text || 'Subscribe'}
+      Subscribe Now
     </Button>
   );
 };

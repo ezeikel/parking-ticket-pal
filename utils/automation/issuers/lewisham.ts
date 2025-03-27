@@ -1,11 +1,14 @@
-import { Address, ChallengeReasonId } from '@/types';
+import { ChallengeReasonId } from '@/types';
 import { generateChallengeDetails, getEvidenceImages } from '@/app/actions';
 import { CommonPcnArgs, takeScreenShot, uploadEvidence } from '../shared';
 
 export const access = async ({ page, pcnNumber, ticket }: CommonPcnArgs) => {
   await page.goto('https://pcnevidence.lewisham.gov.uk/pcnonline/index.php');
   await page.fill('#pcn-ref', pcnNumber);
-  await page.fill('#vehicle-registration-mark', ticket.vehicle.vrm);
+  await page.fill(
+    '#vehicle-registration-mark',
+    ticket.vehicle.registrationNumber,
+  );
   await page.click('#ticket-submit');
   await page.waitForURL('**/step2.php');
 };

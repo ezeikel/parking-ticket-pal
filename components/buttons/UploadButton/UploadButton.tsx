@@ -23,7 +23,6 @@ import { revalidateDashboard, uploadImage } from '@/app/actions';
 
 // type UploadButtonProps = {
 //   hasProSubscription: boolean;
-//   numberOfCredits: number;
 //   numberOfTickets: number;
 // };
 
@@ -39,7 +38,7 @@ const UploadButton = () => {
     fileInputRef.current?.click();
   };
 
-  // handles dialog open state and checks if user is subscribed or has credits before opening dialog
+  // handles dialog open state and checks if user is subscribed or has gets ridirected to pay before opening dialog
   const onOpenDialogChange = (open: boolean) => {
     if (!open) {
       setIsDialogOpen(false);
@@ -49,7 +48,7 @@ const UploadButton = () => {
     setIsDialogOpen(true);
 
     // TODO: figure out flow for letting users upload tickets/pay
-    // if (hasProSubscription || numberOfCredits > 0 || numberOfTickets === 0) {
+    // if (hasProSubscription || numberOfTickets === 0) {
     //   setIsDialogOpen(true);
     // } else {
     //   // open dialog to subscribe or pay for a ticket

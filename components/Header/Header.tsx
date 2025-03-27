@@ -1,65 +1,91 @@
 import Link from 'next/link';
-import { SubscriptionType } from '@prisma/client';
-import { faCoinVertical } from '@fortawesome/pro-duotone-svg-icons';
+import { Button } from '@/components/ui/button';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  DropdownMenuSeparator,
+} from '@/components/ui/dropdown-menu';
+import {
+  faParking,
+  faUpload,
+  faUser,
+  faCreditCard,
+} from '@fortawesome/pro-regular-svg-icons';
+import { getCurrentUser } from '@/app/actions';
 import cn from '@/utils/cn';
-import { getCurrentUser, getSubscription } from '@/app/actions';
-import AuthButton from '../buttons/AuthButton/AuthButton';
-import NavigationItems from '../NavigationItems/NavigationItems';
-import { Badge } from '../ui/badge';
+import SignInButton from '../buttons/SignInButton/SignInButton';
+import SignOutButton from '../buttons/SignOutButton/SignOutButton';
 
 type HeaderProps = {
   className?: string;
 };
 
-// TODO: display credits in header and/or label for pro subscription
-
 const Header = async ({ className }: HeaderProps) => {
-  const subscription = await getSubscription();
   const user = await getCurrentUser();
-
-  const credits = user?.credits || 0;
+  const userInitials = user?.name
+    ?.split(' ')
+    .map((name) => name[0])
+    .join('');
 
   return (
-    <header
-      className={cn('flex items-center justify-between p-4', {
-        [className as string]: !!className,
-      })}
-    >
-      <Link href="/" className="font-sans font-bold text-3xl">
-        PCNs
-      </Link>
-      <nav className="flex items-center gap-x-4 md:gap-x-16">
-        {user ? (
-          <section className="flex items-center gap-x-4">
-            <div className="flex flex-col gap-y-1 items-center font-sans text-sm font-semibold">
-              <div className="hidden md:block">
-                <FontAwesomeIcon
-                  icon={faCoinVertical}
-                  className="text-gray-600"
-                  size="xl"
-                />
-              </div>
-              <div className="flex gap-x-2 items-center">
-                <span className="text-xl">{credits}</span>
-                <span className="text-gray-500">
-                  credit{credits === 0 || credits > 1 ? 's' : ''}
-                </span>
-              </div>
-            </div>
-            {subscription?.type === SubscriptionType.PRO ? (
-              <Badge
-                className="font-sans bg-green-500 text-white hover:bg-green-500"
-                variant="secondary"
-              >
-                Pro
-              </Badge>
-            ) : null}
-          </section>
-        ) : null}
-        <NavigationItems />
-        <AuthButton />
-      </nav>
+    <header className={cn('border-b', className)}>
+      <div className="container mx-auto px-4 py-4 flex items-center justify-between">
+        <Link href="/" className="flex items-center space-x-2">
+          <FontAwesomeIcon icon={faParking} className="h-6 w-6" />
+          <span className="font-bold text-xl">Parking Ticket Pal</span>
+        </Link>
+        <div className="flex items-center space-x-4">
+          {user ? (
+            <>
+              <Link href="/upload">
+                <Button variant="outline" className="flex items-center gap-2">
+                  <FontAwesomeIcon icon={faUpload} className="h-4 w-4" />
+                  <span>Upload Document</span>
+                </Button>
+              </Link>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    className="relative h-8 w-8 rounded-full"
+                  >
+                    <Avatar className="h-8 w-8">
+                      <AvatarFallback>{userInitials}</AvatarFallback>
+                    </Avatar>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent className="w-56" align="end" forceMount>
+                  <Link href="/account">
+                    <DropdownMenuItem className="cursor-pointer">
+                      <FontAwesomeIcon icon={faUser} className="mr-2 h-4 w-4" />
+                      <span>Account</span>
+                    </DropdownMenuItem>
+                  </Link>
+                  <Link href="/account/billing">
+                    <DropdownMenuItem className="cursor-pointer">
+                      <FontAwesomeIcon
+                        icon={faCreditCard}
+                        className="mr-2 h-4 w-4"
+                      />
+                      <span>Billing</span>
+                    </DropdownMenuItem>
+                  </Link>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem>
+                    <SignOutButton />
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </>
+          ) : (
+            <SignInButton />
+          )}
+        </div>
+      </div>
     </header>
   );
 };

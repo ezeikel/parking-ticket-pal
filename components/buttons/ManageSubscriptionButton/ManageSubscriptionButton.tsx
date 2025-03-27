@@ -1,9 +1,14 @@
 'use client';
 
 import { createCustomerPortalSession } from '@/app/actions';
-import { Button, ButtonProps } from '@/components/ui/button';
+import { Button, buttonVariants } from '@/components/ui/button';
+import { type ButtonHTMLAttributes } from 'react';
+import { type VariantProps } from 'class-variance-authority';
 
-const ManageSubscriptionButton = (props: ButtonProps) => {
+const ManageSubscriptionButton = (
+  props: ButtonHTMLAttributes<HTMLButtonElement> &
+    VariantProps<typeof buttonVariants>,
+) => {
   const handleManageSubscriptionClick = async () => {
     try {
       // call backend to create portal session

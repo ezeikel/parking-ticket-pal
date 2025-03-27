@@ -1,14 +1,38 @@
-import PageWrap from '@/components/PageWrap/PageWrap';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
+import UserAccountForm from '@/components/forms/UserAccountForm/UserAccountForm';
 import { getCurrentUser } from '../actions';
 
 const AccountPage = async () => {
   const user = await getCurrentUser();
 
+  if (!user) {
+    return <div>Loading...</div>;
+  }
+
   return (
-    <PageWrap className="gap-y-16">
-      <h1 className="font-sans text-4xl font-bold text-center">Account</h1>
-      <pre>{JSON.stringify(user, null, 2)}</pre>
-    </PageWrap>
+    <div className="container mx-auto py-6 space-y-6 max-w-3xl">
+      <div className="flex items-center justify-between">
+        <h1 className="text-3xl font-bold">Account Settings</h1>
+      </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Profile Information</CardTitle>
+          <CardDescription>
+            Update your personal details and address information.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <UserAccountForm user={user} />
+        </CardContent>
+      </Card>
+    </div>
   );
 };
 

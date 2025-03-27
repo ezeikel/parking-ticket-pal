@@ -5,7 +5,7 @@ import { db } from '@/lib/prisma';
 import { SubscriptionType } from '@prisma/client';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET!, {
-  apiVersion: '2025-01-27.acacia',
+  apiVersion: '2025-02-24.acacia',
 });
 
 export const POST = async (req: Request) => {
@@ -65,24 +65,12 @@ export const POST = async (req: Request) => {
       // eslint-disable-next-line no-restricted-syntax
       for (const item of lineItems.data) {
         if (item.price?.id === process.env.PAY_PER_TICKET_STRIPE_PRICE_ID) {
-          // update user subscription
-          // eslint-disable-next-line no-await-in-loop
-          await db.user.update({
-            where: {
-              email,
-            },
-            data: {
-              // increment credits
-              credits: {
-                increment: item.quantity as number,
-              },
-            },
-          });
+          // TODO: complete whatever the user was trying to do
         }
       }
     } else {
       console.error(
-        `No customer email provided for ${id} to update credits balance`,
+        `No customer email provided for ${id} to complete the payment`,
       );
     }
   } else if (stripeEvent.type === 'customer.subscription.created') {
