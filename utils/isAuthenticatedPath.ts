@@ -7,12 +7,11 @@
 import { AUTHENTICATED_PATHS } from '@/constants/index';
 
 // eslint-disable-next-line import/prefer-default-export
-export function isPathAuthenticated(path: string): boolean {
-  return AUTHENTICATED_PATHS.some((authPath) => {
+export const isPathAuthenticated = (path: string): boolean =>
+  AUTHENTICATED_PATHS.some((authPath) => {
     if (typeof authPath === 'string') {
       return authPath === path;
     }
 
     return authPath.test(path);
   });
-}

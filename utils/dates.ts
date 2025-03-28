@@ -12,22 +12,20 @@ import {
 /**
  * Calculate the standard payment due date (28 days after issue date)
  */
-export function calculateDueDate(issueDate: Date): Date {
-  return addDays(issueDate, 28);
-}
+export const calculateDueDate = (issueDate: Date): Date =>
+  addDays(issueDate, 28);
 
 /**
  * Format a date as a string using the format: "dd MMMM yyyy" (e.g. "15 March 2023")
  */
-export function formatDateString(date: Date): string {
-  return format(date, 'dd MMMM yyyy');
-}
+export const formatDateString = (date: Date): string =>
+  format(date, 'dd MMMM yyyy');
 
 /**
  * Get the status of a due date relative to today
  * Returns: { status: 'future' | 'near' | 'today' | 'past', daysMessage: string, color: string }
  */
-export function getDueDateStatus(dueDate: Date) {
+export const getDueDateStatus = (dueDate: Date) => {
   const today = new Date();
   const nearFutureDaysThreshold = 7; // Within 7 days is considered "near"
 
@@ -62,14 +60,14 @@ export function getDueDateStatus(dueDate: Date) {
       color: 'green',
     };
   }
-}
+};
 
 /**
  * Format a date with due date status information
  * @param dateString ISO date string
  * @returns { formattedDate: string, dueDate: Date, status: { status: string, daysMessage: string, color: string } }
  */
-export function formatDateWithDueStatus(dateString: string) {
+export const formatDateWithDueStatus = (dateString: string) => {
   const date = parseISO(dateString);
   const formattedDate = formatDateString(date);
   const dueDate = calculateDueDate(date);
@@ -82,7 +80,7 @@ export function formatDateWithDueStatus(dateString: string) {
     dueDateFormatted,
     status,
   };
-}
+};
 
 /**
  * Calculate the current amount due based on days since issue date
@@ -90,10 +88,10 @@ export function formatDateWithDueStatus(dateString: string) {
  * @param issuedAtString ISO date string when the ticket was issued
  * @returns { amount: number, isDiscounted: boolean, daysUntilIncrease: number | null, message: string }
  */
-export function calculateAmountDue(
+export const calculateAmountDue = (
   initialAmount: number,
   issuedAtString: string,
-) {
+) => {
   const issuedAt = parseISO(issuedAtString);
   const today = new Date();
   const daysSinceIssue = differenceInDays(today, issuedAt);
@@ -135,4 +133,4 @@ export function calculateAmountDue(
       status: 'overdue',
     };
   }
-}
+};

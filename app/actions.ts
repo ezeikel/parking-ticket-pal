@@ -1048,25 +1048,21 @@ const handleFormGeneration = async (
   }
 };
 
-export async function generatePE2Form(formFields: PdfFormFields) {
-  return handleFormGeneration(FormType.PE2, formFields, fillPE2Form);
-}
+export const generatePE2Form = async (formFields: PdfFormFields) =>
+  handleFormGeneration(FormType.PE2, formFields, fillPE2Form);
 
-export async function generatePE3Form(formFields: PdfFormFields) {
-  return handleFormGeneration(FormType.PE3, formFields, fillPE3Form);
-}
+export const generatePE3Form = async (formFields: PdfFormFields) =>
+  handleFormGeneration(FormType.PE3, formFields, fillPE3Form);
 
-export async function generateTE7Form(formFields: PdfFormFields) {
-  return handleFormGeneration(FormType.TE7, formFields, fillTE7Form);
-}
+export const generateTE7Form = async (formFields: PdfFormFields) =>
+  handleFormGeneration(FormType.TE7, formFields, fillTE7Form);
 
-export async function generateTE9Form(formFields: PdfFormFields) {
-  return handleFormGeneration(FormType.TE9, formFields, fillTE9Form);
-}
+export const generateTE9Form = async (formFields: PdfFormFields) =>
+  handleFormGeneration(FormType.TE9, formFields, fillTE9Form);
 
-export async function getFormFillDataFromTicket(
+export const getFormFillDataFromTicket = async (
   pcnNumber: string,
-): Promise<PdfFormFields | null> {
+): Promise<PdfFormFields | null> => {
   try {
     const ticket = await db.ticket.findUnique({
       where: { pcnNumber },
@@ -1144,7 +1140,7 @@ export async function getFormFillDataFromTicket(
     console.error('Error getting form data from ticket:', error);
     return null;
   }
-}
+};
 
 export const getSubscriptionDetails = async () => {
   const userId = await getUserId('get subscription details');
@@ -1208,3 +1204,59 @@ export const getSubscriptionDetails = async () => {
     };
   }
 };
+
+export const updateTicket = async (
+  id: string,
+  values: z.infer<typeof ticketFormSchema>,
+) => {
+  const userId = await getUserId('update a ticket');
+
+  if (!userId) {
+    return null;
+  }
+
+  try {
+    const ticket = await db.ticket.update({
+      where: {
+        id,
+      },
+      data: {
+        pcnNumber: values.ticketNumber,
+        contraventionCode: values.contraventionCode,
+        location: values.location,
+        issuedAt: values.issuedAt,
+        contraventionAt: values.issuedAt,
+        initialAmount: values.amountDue,
+        issuer: values.issuer,
+        vehicle: {
+          connectOrCreate: {
+            where: {
+              registrationNumber: values.vehicleReg,
+            },
+            create: {
+              registrationNumber: values.vehicleReg,
+              make: 'Toyota',
+              model: 'Prius',
+              year: 2020,
+              bodyType: 'Saloon',
+              fuelType: 'Petrol',
+              color: 'Red',
+              userId,
+            },
+          },
+        },
+      },
+    });
+
+    return ticket;
+  } catch (error) {
+    console.error('Stack trace:', (error as Error).stack);
+    return null;
+  }
+};
+
+export const refresh = async (path = '/') => revalidatePath(path);
+
+export const refreshTicket = async (id: string) => refresh(`/tickets/${id}`);
+
+export const refreshTickets = async () => refresh('/dashboard');

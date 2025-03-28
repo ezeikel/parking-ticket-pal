@@ -17,7 +17,7 @@ import {
 import MediaPreview from '@/components/MediaPreview/MediaPreview';
 import { FileWithPreview, LoaderType } from '@/types';
 import Loader from '@/components/Loader/Loader';
-import { useToast } from '@/components/ui/use-toast';
+import { toast } from 'sonner';
 import { revalidateDashboard, uploadImage } from '@/app/actions';
 // import { useAccountContext } from '@/contexts/account';
 
@@ -31,7 +31,6 @@ const UploadButton = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [isDialogOpen, setIsDialogOpen] = useState<boolean>(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const { toast } = useToast();
   // const { setIsFundAccountDialogOpen } = useAccountContext();
 
   const handleButtonClick = () => {
@@ -154,12 +153,10 @@ const UploadButton = () => {
                 setIsDialogOpen(false);
 
                 // show success toast
-                toast({
-                  title: 'Ticket upload',
-                  description: 'Your ticket has been successfully uploaded',
-                });
+                toast.success('Your ticket has been successfully uploaded');
               } catch (error) {
                 console.error('Error creating ticket:', error);
+                toast.error('Failed to upload ticket. Please try again.');
               }
             }}
             disabled={!imageFile || isLoading}

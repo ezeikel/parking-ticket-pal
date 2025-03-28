@@ -4,7 +4,7 @@ import { GeistSans } from 'geist/font/sans';
 import 'mapbox-gl/dist/mapbox-gl.css';
 
 import { config } from '@fortawesome/fontawesome-svg-core';
-import { Toaster } from '@/components/ui/toaster';
+import { Toaster } from 'sonner';
 import '@fortawesome/fontawesome-svg-core/styles.css';
 import cn from '@/utils/cn';
 import Header from '@/components/Header/Header';
@@ -37,7 +37,7 @@ export default function RootLayout({
             <FundAccountDialog />
           </LayoutWrap>
         </Providers>
-        <Toaster />
+        <Toaster richColors />
         <Analytics />
       </body>
     </html>
