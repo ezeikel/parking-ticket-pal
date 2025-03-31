@@ -1,3 +1,5 @@
+'use client';
+
 import Link from 'next/link';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
@@ -111,7 +113,9 @@ const TicketCard = ({ ticket }: TicketCardProps) => {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuItem>View Details</DropdownMenuItem>
+              <DropdownMenuItem>
+                <Link href={`/tickets/${ticket.id}`}>View Details</Link>
+              </DropdownMenuItem>
               <DropdownMenuItem>Pay Fine</DropdownMenuItem>
               <DropdownMenuItem>Generate Appeal</DropdownMenuItem>
               <DropdownMenuItem onClick={() => deleteTicket(ticket.id)}>
