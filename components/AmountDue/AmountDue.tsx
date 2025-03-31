@@ -23,7 +23,7 @@ const AmountDue = ({
   return (
     <div className={cn('flex flex-col', className)}>
       <p className={cn('font-medium', compact ? 'text-sm' : '')}>
-        £{amount.toFixed(2)}
+        £{(amount / 100).toFixed(2)}
       </p>
       {showMessage && message && (
         <span

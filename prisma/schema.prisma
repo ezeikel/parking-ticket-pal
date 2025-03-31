@@ -147,6 +147,7 @@ model Vehicle {
   year               Int // year of the vehicle - could probably look this up via number plate
   color              String
   registrationNumber String   @unique
+  notes              String? // optional notes about the vehicle
   active             Boolean  @default(true) // indicates if the vehicle is currently owned by the user
   tickets            Ticket[] // tickets associated with the vehicle
   createdAt          DateTime @default(now())

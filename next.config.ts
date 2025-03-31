@@ -8,6 +8,11 @@ const nextConfig = {
     'puppeteer-extra-plugin-stealth',
     'puppeteer-extra-plugin-recaptcha',
   ],
+  experimental: {
+    serverActions: {
+      bodySizeLimit: '5mb',
+    },
+  },
 };
 
 // sentry configuration options

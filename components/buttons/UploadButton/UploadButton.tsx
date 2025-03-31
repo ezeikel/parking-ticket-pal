@@ -18,7 +18,7 @@ import MediaPreview from '@/components/MediaPreview/MediaPreview';
 import { FileWithPreview, LoaderType } from '@/types';
 import Loader from '@/components/Loader/Loader';
 import { toast } from 'sonner';
-import { revalidateDashboard, uploadImage } from '@/app/actions';
+import { revalidateDashboard } from '@/app/actions';
 // import { useAccountContext } from '@/contexts/account';
 
 // type UploadButtonProps = {
@@ -76,6 +76,48 @@ const UploadButton = () => {
     }
   }, [isDialogOpen]);
 
+  const handleSubmit = async () => {
+    if (!imageFile) {
+      console.error('No image file selected.');
+      return;
+    }
+
+    try {
+      const formData = new FormData();
+      formData.append('image', imageFile, imageFile.name);
+      setIsLoading(true);
+
+      const response = await fetch('/api/tickets/upload-image', {
+        method: 'POST',
+        body: formData,
+      });
+
+      const result = await response.json();
+
+      if (!result.success) {
+        toast.error(result.message || 'Failed to upload ticket');
+        return;
+      }
+
+      // FIX: revalidarPath from route handler seemed to have no effect
+      await revalidateDashboard();
+
+      setIsLoading(false);
+
+      // reset image file
+      setImageFile(undefined);
+
+      // close dialog
+      setIsDialogOpen(false);
+
+      // show success toast
+      toast.success('Your ticket has been successfully uploaded');
+    } catch (error) {
+      console.error('Error creating ticket:', error);
+      toast.error('Failed to upload ticket. Please try again.');
+    }
+  };
+
   return (
     <Dialog open={isDialogOpen} onOpenChange={onOpenDialogChange}>
       <DialogTrigger asChild>
@@ -127,38 +169,7 @@ const UploadButton = () => {
         <DialogFooter>
           <Button
             className="font-sans"
-            onClick={async () => {
-              if (!imageFile) {
-                console.error('No image file selected.');
-                return;
-              }
-
-              try {
-                const formData = new FormData();
-                formData.append('imageFront', imageFile, imageFile.name);
-                setIsLoading(true);
-
-                // create ticket
-                await uploadImage(formData);
-
-                // FIX: revalidarPath from route handler seemed to have no effect
-                await revalidateDashboard();
-
-                setIsLoading(false);
-
-                // reset image file
-                setImageFile(undefined);
-
-                // close dialog
-                setIsDialogOpen(false);
-
-                // show success toast
-                toast.success('Your ticket has been successfully uploaded');
-              } catch (error) {
-                console.error('Error creating ticket:', error);
-                toast.error('Failed to upload ticket. Please try again.');
-              }
-            }}
+            onClick={handleSubmit}
             disabled={!imageFile || isLoading}
           >
             Submit

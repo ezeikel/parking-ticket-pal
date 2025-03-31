@@ -6,7 +6,6 @@ import { del, put } from '@vercel/blob';
 import OpenAI from 'openai';
 import { zodResponseFormat } from 'openai/helpers/zod';
 import {
-  LetterType,
   MediaType,
   MediaSource,
   TicketType,
@@ -37,11 +36,11 @@ import {
   IMAGE_ANALYSIS_PROMPT,
   CONTRAVENTION_CODES,
   CHATGPT_MODEL,
+  STRIPE_API_VERSION,
 } from '@/constants/index';
 import generatePDF from '@/utils/generatePDF';
 import streamToBuffer from '@/utils/streamToBuffer';
 import formatPenniesToPounds from '@/utils/formatPenniesToPounds';
-import getVehicleInfo from '@/utils/getVehicleInfo';
 import { verify, challenge } from '@/utils/automation';
 import { z } from 'zod';
 import path from 'path';
@@ -59,7 +58,7 @@ const openai = new OpenAI({
 const resend = new Resend(process.env.RESEND_API_KEY);
 
 const stripe = new Stripe(process.env.STRIPE_SECRET!, {
-  apiVersion: '2025-02-24.acacia',
+  apiVersion: STRIPE_API_VERSION,
 });
 
 chromium.use(
@@ -97,47 +96,18 @@ const getUserId = async (action?: string) => {
   return userId;
 };
 
-const toISODateString = (inputDate: string | Date): string => {
-  if (inputDate instanceof Date) {
-    return inputDate.toISOString();
-  }
-
-  // create a new variable to hold the date string
-  let datestring = inputDate;
-
-  // check if the string already has a time component using a regex
-  const hasTime = /\d{2}:\d{2}:\d{2}/.test(datestring);
-
-  // if no time is included, append midnight UTC ('T00:00:00Z')
-  if (!hasTime) {
-    console.warn('No time provided. Defaulting to midnight UTC.');
-    datestring += 'T00:00:00Z';
-  }
-
-  const parsedDate = new Date(datestring);
-
-  // check for an invalid date
-  if (Number.isNaN(parsedDate.getTime())) {
-    console.error(`Invalid date: ${datestring}`);
-    throw new Error(`Invalid date: ${datestring}`);
-  }
-
-  return parsedDate.toISOString();
-};
-
 export const uploadImage = async (
   input: FormData | { scannedImage: string; ocrText?: string },
 ) => {
   const userId = await getUserId('upload an image');
 
   if (!userId) {
-    return null;
+    return { success: false, message: 'User not authenticated' };
   }
 
-  let base64Image: string;
+  let base64Image: string | undefined;
   let blobStorageUrl: string;
   let ocrText: string | undefined;
-  let dbResponse;
 
   // extract OCR text from input
   if ('ocrText' in input) {
@@ -148,7 +118,7 @@ export const uploadImage = async (
     const image = input.get('image') as File | null;
 
     if (!image) {
-      throw new Error('No image file provided.');
+      return { success: false, message: 'No image file provided' };
     }
 
     // store the image in Vercel Blob storage
@@ -186,7 +156,10 @@ export const uploadImage = async (
     // update the Blob storage URL for further processing
     blobStorageUrl = ticketFrontBlob.url;
   } else {
-    throw new Error('Invalid input type. Must be FormData or base64 string.');
+    return {
+      success: false,
+      message: 'Invalid input type. Must be FormData or base64 string.',
+    };
   }
 
   // send the image URL and OCR text to OpenAI for analysis
@@ -224,150 +197,134 @@ export const uploadImage = async (
 
   const imageInfo = response.choices[0].message.content;
 
+  // DEBUG
+  // eslint-disable-next-line no-console
+  console.log('imageInfo', imageInfo);
+
   const {
-    documentType,
     pcnNumber,
-    type,
     issuedAt,
     vehicleRegistration,
-    contraventionAt,
     contraventionCode,
     location,
-    firstSeen,
-    amountDue,
+    initialAmount,
     issuer,
-    issuerType,
-    extractedText,
-    summary,
   } = JSON.parse(imageInfo as string);
 
-  // if the image is a letter, create a new Letter, otherwise create a new Ticket
-  if (documentType === 'TICKET') {
-    // check if the ticket already exists
-    const existingTicket = await db.ticket.findFirst({
-      where: {
-        pcnNumber,
-      },
-    });
+  // get full address from Mapbox if we have a line1
+  let fullAddress: Address;
+  if (typeof location === 'string') {
+    try {
+      const mapboxToken = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN;
 
-    if (existingTicket) {
-      console.error('Ticket already exists.');
-      return null;
-    }
-
-    // TODO: this can throw an error, handle this gracefully
-    const { make, model, bodyType, fuelType, color, year } =
-      await getVehicleInfo(vehicleRegistration);
-
-    // save ticket to db
-    dbResponse = await db.ticket.create({
-      data: {
-        pcnNumber,
-        type,
-        issuedAt: toISODateString(issuedAt),
-        contraventionAt: toISODateString(contraventionAt),
-        location,
-        observedAt: firstSeen ? toISODateString(firstSeen) : undefined,
-        initialAmount: Number(amountDue),
-        issuer,
-        issuerType,
-        // TODO: set status based on current date and discountedPaymentDeadline and fullPaymentDeadline
-        // status:
-        contraventionCode,
-        vehicle: {
-          connectOrCreate: {
-            where: {
-              registrationNumber: vehicleRegistration,
-            },
-            create: {
-              registrationNumber: vehicleRegistration,
-              make,
-              model,
-              bodyType,
-              fuelType,
-              color,
-              year,
-              userId,
-            },
+      if (!mapboxToken) {
+        console.error('Mapbox access token not found');
+        fullAddress = {
+          line1: location,
+          city: '',
+          postcode: '',
+          country: 'United Kingdom',
+          coordinates: {
+            latitude: 0,
+            longitude: 0,
           },
-        },
-        media: {
-          create: [
-            {
-              url: blobStorageUrl,
-              type: MediaType.IMAGE,
-              source: MediaSource.TICKET,
-            },
-          ],
-        },
-      },
-    });
-  } else {
-    const { make, model, bodyType, fuelType, color, year } =
-      await getVehicleInfo(vehicleRegistration);
+        };
+      } else {
+        const mapboxResponse = await fetch(
+          `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(
+            location,
+          )}.json?access_token=${mapboxToken}&country=GB&limit=1`,
+        );
 
-    // save letter to db
-    dbResponse = await db.letter.create({
-      data: {
-        type: LetterType.INITIAL_NOTICE,
-        extractedText,
-        summary,
-        ticket: {
-          connectOrCreate: {
-            where: {
-              pcnNumber,
+        if (!mapboxResponse.ok) {
+          console.error('Mapbox API error:', await mapboxResponse.text());
+          fullAddress = {
+            line1: location,
+            city: '',
+            postcode: '',
+            country: 'United Kingdom',
+            coordinates: {
+              latitude: 0,
+              longitude: 0,
             },
-            create: {
-              pcnNumber,
-              type,
-              issuedAt: toISODateString(issuedAt),
-              contraventionAt: toISODateString(contraventionAt),
-              location,
-              observedAt: firstSeen ? toISODateString(firstSeen) : undefined,
-              initialAmount: Number(amountDue),
-              issuer,
-              issuerType,
-              contraventionCode,
-              vehicle: {
-                connectOrCreate: {
-                  where: {
-                    registrationNumber: vehicleRegistration,
-                  },
-                  create: {
-                    registrationNumber: vehicleRegistration,
-                    make,
-                    model,
-                    bodyType,
-                    fuelType,
-                    color,
-                    year,
-                    userId,
-                  },
-                },
+          };
+        } else {
+          const mapboxData = await mapboxResponse.json();
+
+          if (mapboxData.features?.[0]) {
+            const feature = mapboxData.features[0];
+            const context = feature.context || [];
+            const city = context.find((c: any) =>
+              c.id.startsWith('place'),
+            )?.text;
+            const postcode = context.find((c: any) =>
+              c.id.startsWith('postcode'),
+            )?.text;
+            const county = context.find((c: any) =>
+              c.id.startsWith('region'),
+            )?.text;
+
+            fullAddress = {
+              line1: feature.text,
+              city,
+              postcode,
+              county,
+              country: 'United Kingdom',
+              coordinates: {
+                latitude: feature.center[1],
+                longitude: feature.center[0],
               },
-            },
-          },
+            };
+          } else {
+            fullAddress = {
+              line1: location,
+              city: '',
+              postcode: '',
+              country: 'United Kingdom',
+              coordinates: {
+                latitude: 0,
+                longitude: 0,
+              },
+            };
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Error getting address from Mapbox:', error);
+      fullAddress = {
+        line1: location,
+        city: '',
+        postcode: '',
+        country: 'United Kingdom',
+        coordinates: {
+          latitude: 0,
+          longitude: 0,
         },
-        media: {
-          create: [
-            {
-              url: blobStorageUrl,
-              type: MediaType.IMAGE,
-              source: MediaSource.LETTER,
-            },
-          ],
-        },
-      },
-    });
+      };
+    }
+  } else {
+    fullAddress = location;
   }
 
-  revalidatePath('/dashboard');
-
-  return dbResponse;
+  // return the parsed data
+  return {
+    success: true,
+    data: {
+      ticketNumber: pcnNumber,
+      vehicleReg: vehicleRegistration,
+      issuedAt: new Date(issuedAt),
+      contraventionCode,
+      initialAmount: Math.round(Number(initialAmount) * 100),
+      issuer,
+      location: fullAddress,
+    },
+    image: base64Image,
+    imageUrl: blobStorageUrl,
+  };
 };
 
 export const createTicket = async (
-  values: z.infer<typeof ticketFormSchema>,
+  values: z.infer<typeof ticketFormSchema> & { imageUrl?: string },
 ) => {
   const userId = await getUserId('create a ticket');
 
@@ -379,15 +336,15 @@ export const createTicket = async (
     const ticket = await db.ticket.create({
       data: {
         pcnNumber: values.ticketNumber,
-        contraventionCode: CONTRAVENTION_CODES['01'].code,
+        contraventionCode: values.contraventionCode,
         location: values.location,
         issuedAt: values.issuedAt,
         contraventionAt: values.issuedAt,
         status: TicketStatus.REDUCED_PAYMENT_DUE,
-        type: TicketType.PENALTY_CHARGE_NOTICE, // hardcoded for now
-        initialAmount: values.amountDue,
+        type: TicketType.PENALTY_CHARGE_NOTICE, // TODO: hardcoded for now
+        initialAmount: values.initialAmount,
         issuer: values.issuer,
-        issuerType: IssuerType.COUNCIL, // hardcoded for now
+        issuerType: IssuerType.COUNCIL, // TODO: hardcoded for now
         vehicle: {
           connectOrCreate: {
             where: {
@@ -395,6 +352,7 @@ export const createTicket = async (
             },
             create: {
               registrationNumber: values.vehicleReg,
+              // TODO: getVehicleInfo()
               make: 'Toyota',
               model: 'Prius',
               year: 2020,
@@ -405,12 +363,21 @@ export const createTicket = async (
             },
           },
         },
+        media: values.imageUrl
+          ? {
+              create: {
+                url: values.imageUrl,
+                type: MediaType.IMAGE,
+                source: MediaSource.TICKET,
+                description: 'Ticket image',
+              },
+            }
+          : undefined,
       },
     });
 
     return ticket;
   } catch (error) {
-    // console.error('Error creating ticket:', error);
     console.error('Stack trace:', (error as Error).stack);
     return null;
   }
@@ -554,10 +521,162 @@ export const getVehicles = async () => {
       make: true,
       model: true,
       year: true,
+      color: true,
+      tickets: {
+        select: {
+          id: true,
+        },
+      },
     },
   });
 
   return vehicles;
+};
+
+export const getVehicle = async (id: string) => {
+  const userId = await getUserId('get a vehicle');
+
+  if (!userId) {
+    return null;
+  }
+
+  const vehicle = await db.vehicle.findUnique({
+    where: {
+      id,
+      userId,
+    },
+    select: {
+      id: true,
+      registrationNumber: true,
+      make: true,
+      model: true,
+      year: true,
+      color: true,
+      bodyType: true,
+      fuelType: true,
+      notes: true,
+      tickets: {
+        select: {
+          id: true,
+          pcnNumber: true,
+          issuedAt: true,
+          initialAmount: true,
+          status: true,
+          issuer: true,
+        },
+      },
+    },
+  });
+
+  return vehicle;
+};
+
+export const createVehicle = async (data: {
+  registrationNumber: string;
+  make: string;
+  model: string;
+  year: string;
+  color: string;
+  bodyType?: string;
+  fuelType?: string;
+  notes?: string;
+}) => {
+  const userId = await getUserId('create a vehicle');
+
+  if (!userId) {
+    return null;
+  }
+
+  try {
+    const vehicle = await db.vehicle.create({
+      data: {
+        registrationNumber: data.registrationNumber,
+        make: data.make,
+        model: data.model,
+        year: parseInt(data.year, 10),
+        color: data.color,
+        bodyType: data.bodyType || '',
+        fuelType: data.fuelType || '',
+        notes: data.notes || '',
+        user: {
+          connect: {
+            id: userId,
+          },
+        },
+      },
+    });
+
+    revalidatePath('/vehicles');
+    return vehicle;
+  } catch (error) {
+    console.error('Error creating vehicle:', error);
+    return null;
+  }
+};
+
+export async function updateVehicle(
+  id: string,
+  data: {
+    registrationNumber: string;
+    make: string;
+    model: string;
+    year: string;
+    color: string;
+    bodyType?: string;
+    fuelType?: string;
+    notes?: string;
+  },
+) {
+  const userId = await getUserId();
+  if (!userId) {
+    throw new Error('Unauthorized');
+  }
+
+  try {
+    await db.vehicle.update({
+      where: {
+        id,
+        userId,
+      },
+      data: {
+        registrationNumber: data.registrationNumber,
+        make: data.make,
+        model: data.model,
+        year: parseInt(data.year),
+        color: data.color,
+        bodyType: data.bodyType || '',
+        fuelType: data.fuelType || '',
+        notes: data.notes,
+      },
+    });
+    revalidatePath('/vehicles');
+  } catch (error) {
+    console.error('Error updating vehicle:', error);
+    throw new Error('Failed to update vehicle');
+  }
+}
+
+export const deleteVehicle = async (id: string) => {
+  const userId = await getUserId('delete a vehicle');
+
+  if (!userId) {
+    return null;
+  }
+
+  try {
+    const vehicle = await db.vehicle.delete({
+      where: {
+        id,
+        userId,
+      },
+    });
+
+    revalidatePath('/vehicles');
+    return vehicle;
+  } catch (error) {
+    console.error('Error deleting vehicle:', error);
+    return null;
+  }
 };
 
 export const generateChallengeLetter = async (ticketId: string) => {
@@ -1226,7 +1345,7 @@ export const updateTicket = async (
         location: values.location,
         issuedAt: values.issuedAt,
         contraventionAt: values.issuedAt,
-        initialAmount: values.amountDue,
+        initialAmount: values.initialAmount,
         issuer: values.issuer,
         vehicle: {
           connectOrCreate: {

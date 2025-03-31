@@ -1066,6 +1066,8 @@ export const CONTRAVENTION_CODES_OPTIONS: ReadonlyArray<{
 
 export const CHATGPT_MODEL = 'gpt-4o';
 
+export const STRIPE_API_VERSION = '2025-02-24.acacia';
+
 export const DUMMY_TICKET: Prisma.TicketGetPayload<{
   include: {
     vehicle: true;
@@ -1109,6 +1111,7 @@ export const DUMMY_TICKET: Prisma.TicketGetPayload<{
     color: 'Silver',
     registrationNumber: 'AB12 CDE',
     active: true,
+    notes: '',
     createdAt: new Date('2025-01-01'),
     updatedAt: new Date('2025-01-01'),
   },

@@ -27,7 +27,7 @@ export const TicketSchema = z.object({
   firstSeen: z.string().optional(), // Time when the vehicle was first seen (optional)
   contraventionCode: z.string(), // Code representing the contravention
   contraventionDescription: z.string().optional(), // Description of the contravention (optional)
-  amountDue: z.number().int(), // Amount due in pennies
+  initialAmount: z.number().int(), // Amount due in pennies
   issuer: z.string(), // The entity issuing the ticket (e.g., council, TFL, or private company)
   issuerType: z.enum(['COUNCIL', 'TFL', 'PRIVATE_COMPANY']), // Type of issuer
   // Note: datetime currently not fully supported by OpenAI structured output
@@ -105,7 +105,7 @@ export type TicketType = {
   dueDate: string;
   contravention: string;
   status: TicketStatus;
-  amountDue: number;
+  initialAmount: number;
   issuer: string;
   location: string;
 };
@@ -122,7 +122,7 @@ export const ticketFormSchema = z.object({
   contraventionCode: z
     .string()
     .min(1, { message: 'Contravention code is required' }),
-  amountDue: z.number().min(1, { message: 'Amount due is required' }),
+  initialAmount: z.number().min(1, { message: 'Amount due is required' }),
   issuer: z.string().min(1, { message: 'Issuer is required' }),
   location: z.object({
     line1: z.string().min(1, { message: 'Line 1 is required' }),

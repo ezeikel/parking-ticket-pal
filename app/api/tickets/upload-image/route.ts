@@ -40,10 +40,10 @@ export const POST = async (req: Request) => {
   }
 
   // upload image for processing
-  await uploadImage(data);
+  const result = await uploadImage(data);
 
-  // return success response
-  return new Response(JSON.stringify({ success: true }), {
+  // return success response with parsed data
+  return new Response(JSON.stringify(result), {
     headers: {
       'Access-Control-Allow-Origin': '*',
       'Access-Control-Allow-Methods': 'POST, OPTIONS',

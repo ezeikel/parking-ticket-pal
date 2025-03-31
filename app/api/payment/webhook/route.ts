@@ -3,9 +3,10 @@
 import Stripe from 'stripe';
 import { db } from '@/lib/prisma';
 import { SubscriptionType } from '@prisma/client';
+import { STRIPE_API_VERSION } from '@/constants';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET!, {
-  apiVersion: '2025-02-24.acacia',
+  apiVersion: STRIPE_API_VERSION,
 });
 
 export const POST = async (req: Request) => {

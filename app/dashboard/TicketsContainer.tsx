@@ -28,9 +28,9 @@ const TicketsContainer = ({ tickets }: TicketsContainerProps) => {
     return (
       <EmptyList
         title="No tickets yet"
-        description="You haven't uploaded any tickets yet. Upload your first ticket to get started."
-        buttonText="Upload your first ticket"
-        buttonLink="/upload"
+        description="You haven't added any tickets yet. Add your first ticket to get started."
+        buttonText="Add your first ticket"
+        buttonLink="/new"
       />
     );
   }
@@ -41,7 +41,7 @@ const TicketsContainer = ({ tickets }: TicketsContainerProps) => {
         <h1 className="text-3xl font-bold">Your Tickets</h1>
         <div className="flex items-center gap-4">
           <ViewToggle activeView={activeView} onChange={setActiveView} />
-          <Link href="/upload">
+          <Link href="/new">
             <Button className="flex items-center gap-2">
               <FontAwesomeIcon icon={faPlus} className="h-4 w-4" />
               <span>Add Ticket</span>

@@ -59,7 +59,7 @@ export default function EditTicketForm({ ticket }: EditTicketFormProps) {
       ticketNumber: ticket.pcnNumber,
       issuedAt: new Date(ticket.issuedAt),
       contraventionCode: ticket.contraventionCode,
-      amountDue: ticket.initialAmount,
+      initialAmount: ticket.initialAmount,
       issuer: ticket.issuer,
       location: ticket.location as Address,
     },
@@ -135,12 +135,20 @@ export default function EditTicketForm({ ticket }: EditTicketFormProps) {
 
           <FormField
             control={form.control}
-            name="amountDue"
+            name="initialAmount"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Amount Due (£)</FormLabel>
+                <FormLabel>Initial Amount (£)</FormLabel>
                 <FormControl>
-                  <Input type="number" step="0.01" {...field} />
+                  <Input
+                    type="number"
+                    step="0.01"
+                    {...field}
+                    onChange={(e) =>
+                      field.onChange(Math.round(Number(e.target.value) * 100))
+                    }
+                    value={field.value === 0 ? undefined : field.value / 100}
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>

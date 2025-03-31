@@ -41,6 +41,7 @@ import {
   faSpinner,
 } from '@fortawesome/pro-regular-svg-icons';
 import AddressInput from '@/components/forms/inputs/AddressInput/AddressInput';
+import { toast } from 'sonner';
 
 type UploadFormProps = {
   type: 'ticket' | 'letter';
@@ -48,6 +49,7 @@ type UploadFormProps = {
 
 const UploadDocumentForm = ({ type }: UploadFormProps) => {
   const [isLoading, setIsLoading] = useState(false);
+  const [imageUrl, setImageUrl] = useState<string | undefined>();
   const router = useRouter();
 
   const [contraventionSearch, setContraventionSearch] = useState('');
@@ -64,7 +66,7 @@ const UploadDocumentForm = ({ type }: UploadFormProps) => {
       ticketNumber: '',
       issuedAt: undefined,
       contraventionCode: '',
-      amountDue: 0,
+      initialAmount: 0,
       issuer: '',
       location: undefined,
     },
@@ -73,7 +75,7 @@ const UploadDocumentForm = ({ type }: UploadFormProps) => {
   async function onSubmit(values: z.infer<typeof ticketFormSchema>) {
     setIsLoading(true);
 
-    await createTicket(values);
+    await createTicket({ ...values, imageUrl });
 
     setIsLoading(false);
     router.push('/');
@@ -83,14 +85,44 @@ const UploadDocumentForm = ({ type }: UploadFormProps) => {
     event: React.ChangeEvent<HTMLInputElement>,
   ) => {
     const file = event.target.files?.[0];
-    if (file) {
-      setIsLoading(true);
-      // TODO: add OCR processing + openAI API call to extract data from image
-      // simulate API call for OCR processing
-      await new Promise((resolve) => setTimeout(resolve, 2000));
+    if (!file) return;
 
-      // TODO: use extracted data to pre-fill form where possible
+    setIsLoading(true);
 
+    try {
+      const formData = new FormData();
+      formData.append('image', file);
+
+      const response = await fetch('/api/tickets/upload-image', {
+        method: 'POST',
+        body: formData,
+      });
+
+      const result = await response.json();
+
+      if (!result.success) {
+        toast.error(result.message || 'Failed to parse ticket image');
+        return;
+      }
+
+      // Store the image URL for later use
+      setImageUrl(result.imageUrl);
+
+      // Prefill form with parsed data
+      form.setValue('ticketNumber', result.data.ticketNumber);
+      form.setValue('vehicleReg', result.data.vehicleReg);
+      form.setValue('issuedAt', new Date(result.data.issuedAt));
+      form.setValue('contraventionCode', result.data.contraventionCode);
+      form.setValue('initialAmount', result.data.initialAmount);
+      form.setValue('issuer', result.data.issuer);
+      form.setValue('location', result.data.location);
+
+      // Show success message
+      toast.success('Form prefilled with ticket details');
+    } catch (error) {
+      console.error('Error uploading image:', error);
+      toast.error('Failed to upload image. Please try again.');
+    } finally {
       setIsLoading(false);
     }
   };
@@ -138,12 +170,21 @@ const UploadDocumentForm = ({ type }: UploadFormProps) => {
             className="flex flex-col items-center justify-center w-full h-32 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100"
           >
             <div className="flex flex-col items-center justify-center pt-5 pb-6">
-              <FontAwesomeIcon
-                icon={faCamera}
-                className="w-8 h-8 mb-4 text-gray-500"
-              />
+              {isLoading ? (
+                <FontAwesomeIcon
+                  icon={faSpinner}
+                  className="w-8 h-8 mb-4 text-gray-500 animate-spin"
+                />
+              ) : (
+                <FontAwesomeIcon
+                  icon={faCamera}
+                  className="w-8 h-8 mb-4 text-gray-500"
+                />
+              )}
               <p className="text-sm text-gray-500">
-                Upload image to pre-fill form
+                {isLoading
+                  ? 'Processing image...'
+                  : 'Upload image to pre-fill form'}
               </p>
             </div>
             <input
@@ -152,6 +193,7 @@ const UploadDocumentForm = ({ type }: UploadFormProps) => {
               className="hidden"
               accept="image/*,.pdf"
               onChange={handleFileUpload}
+              disabled={isLoading}
             />
           </label>
         </div>
@@ -271,17 +313,19 @@ const UploadDocumentForm = ({ type }: UploadFormProps) => {
 
             <FormField
               control={form.control}
-              name="amountDue"
+              name="initialAmount"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Amount Due (£)</FormLabel>
+                  <FormLabel>Initial Amount (£)</FormLabel>
                   <FormControl>
                     <Input
                       type="number"
                       placeholder="70"
                       {...field}
-                      onChange={(e) => field.onChange(Number(e.target.value))}
-                      value={field.value === 0 ? '' : field.value}
+                      onChange={(e) =>
+                        field.onChange(Math.round(Number(e.target.value) * 100))
+                      }
+                      value={field.value === 0 ? undefined : field.value / 100}
                     />
                   </FormControl>
                   <FormMessage />

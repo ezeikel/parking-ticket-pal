@@ -24,6 +24,7 @@ import { formatDateWithDueStatus, calculateAmountDue } from '@/utils/dates';
 import AmountDue from '@/components/AmountDue/AmountDue';
 import { deleteTicket } from '@/app/actions';
 import DueDate from '../DueDate/DueDate';
+import getIssuerInitials from '@/utils/getIssuerInitials';
 
 type TicketCardProps = {
   ticket: Prisma.TicketGetPayload<{
@@ -69,14 +70,6 @@ const TicketCard = ({ ticket }: TicketCardProps) => {
         return { color: 'gray', severity: 'low' };
     }
   };
-
-  const getIssuerInitials = (issuer: string) =>
-    issuer
-      .split(' ')
-      .map((word) => word[0])
-      .join('')
-      .toUpperCase()
-      .slice(0, 2);
 
   // Get formatted date and due date info
   const issuedDateInfo = formatDateWithDueStatus(

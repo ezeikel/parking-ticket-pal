@@ -14,6 +14,9 @@ import {
   faUpload,
   faUser,
   faCreditCard,
+  faChartLine,
+  faTicket,
+  faCar,
 } from '@fortawesome/pro-regular-svg-icons';
 import { getCurrentUser } from '@/app/actions';
 import cn from '@/utils/cn';
@@ -41,7 +44,30 @@ const Header = async ({ className }: HeaderProps) => {
         <div className="flex items-center space-x-4">
           {user ? (
             <>
-              <Link href="/upload">
+              <nav className="hidden md:flex items-center space-x-6">
+                <Link
+                  href="/dashboard"
+                  className="flex items-center space-x-2 text-sm font-medium text-muted-foreground hover:text-primary"
+                >
+                  <FontAwesomeIcon icon={faChartLine} className="h-4 w-4" />
+                  <span>Dashboard</span>
+                </Link>
+                <Link
+                  href="/tickets"
+                  className="flex items-center space-x-2 text-sm font-medium text-muted-foreground hover:text-primary"
+                >
+                  <FontAwesomeIcon icon={faTicket} className="h-4 w-4" />
+                  <span>Tickets</span>
+                </Link>
+                <Link
+                  href="/vehicles"
+                  className="flex items-center space-x-2 text-sm font-medium text-muted-foreground hover:text-primary"
+                >
+                  <FontAwesomeIcon icon={faCar} className="h-4 w-4" />
+                  <span>Vehicles</span>
+                </Link>
+              </nav>
+              <Link href="/new">
                 <Button variant="outline" className="flex items-center gap-2">
                   <FontAwesomeIcon icon={faUpload} className="h-4 w-4" />
                   <span>Upload Document</span>
