@@ -1,6 +1,12 @@
 import React from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { TicketType, TicketStatus, IssuerType, Prisma } from '@prisma/client';
+import {
+  TicketType,
+  TicketStatus,
+  IssuerType,
+  Prisma,
+  PredictionType,
+} from '@prisma/client';
 import { IconProp } from '@fortawesome/fontawesome-svg-core';
 import { faCreditCard, faUser } from '@fortawesome/pro-duotone-svg-icons';
 
@@ -1071,6 +1077,7 @@ export const STRIPE_API_VERSION = '2025-02-24.acacia';
 export const DUMMY_TICKET: Prisma.TicketGetPayload<{
   include: {
     vehicle: true;
+    prediction: true;
   };
 }> = {
   id: '1',
@@ -1100,6 +1107,18 @@ export const DUMMY_TICKET: Prisma.TicketGetPayload<{
   verified: false,
   createdAt: new Date('2025-02-28'),
   updatedAt: new Date('2025-02-28'),
+  prediction: {
+    id: '1',
+    type: PredictionType.CHALLENGE_SUCCESS,
+    percentage: 75,
+    numberOfCases: 0,
+    confidence: 0.8,
+    metadata: {},
+    createdAt: new Date('2025-02-28'),
+    updatedAt: new Date('2025-02-28'),
+    ticketId: '1',
+    lastUpdated: new Date('2025-02-28'),
+  },
   vehicle: {
     id: '1',
     userId: 'user1',
@@ -1125,6 +1144,7 @@ export const DUMMY_TICKETS_LIST: Prisma.TicketGetPayload<{
         registrationNumber: true;
       };
     };
+    prediction: true;
   };
 }>[] = [
   {
@@ -1159,6 +1179,18 @@ export const DUMMY_TICKETS_LIST: Prisma.TicketGetPayload<{
       id: '1',
       registrationNumber: 'AB12 CDE',
     },
+    prediction: {
+      id: '1',
+      type: PredictionType.CHALLENGE_SUCCESS,
+      percentage: 75,
+      numberOfCases: 0,
+      confidence: 0.8,
+      metadata: {},
+      createdAt: new Date('2025-02-28'),
+      updatedAt: new Date('2025-02-28'),
+      ticketId: '1',
+      lastUpdated: new Date('2025-02-28'),
+    },
   },
   {
     id: '2',
@@ -1191,6 +1223,18 @@ export const DUMMY_TICKETS_LIST: Prisma.TicketGetPayload<{
     vehicle: {
       id: '2',
       registrationNumber: 'EF34 GHI',
+    },
+    prediction: {
+      id: '2',
+      type: PredictionType.CHALLENGE_SUCCESS,
+      percentage: 75,
+      numberOfCases: 0,
+      confidence: 0.8,
+      metadata: {},
+      createdAt: new Date('2025-02-15'),
+      updatedAt: new Date('2025-02-15'),
+      ticketId: '2',
+      lastUpdated: new Date('2025-02-15'),
     },
   },
   {
@@ -1225,6 +1269,18 @@ export const DUMMY_TICKETS_LIST: Prisma.TicketGetPayload<{
       id: '3',
       registrationNumber: 'CD56 EFG',
     },
+    prediction: {
+      id: '3',
+      type: PredictionType.CHALLENGE_SUCCESS,
+      percentage: 75,
+      numberOfCases: 0,
+      confidence: 0.8,
+      metadata: {},
+      createdAt: new Date('2025-01-10'),
+      updatedAt: new Date('2025-01-10'),
+      ticketId: '3',
+      lastUpdated: new Date('2025-01-10'),
+    },
   },
   {
     id: '4',
@@ -1258,6 +1314,18 @@ export const DUMMY_TICKETS_LIST: Prisma.TicketGetPayload<{
       id: '4',
       registrationNumber: 'GH78 IJK',
     },
+    prediction: {
+      id: '4',
+      type: PredictionType.CHALLENGE_SUCCESS,
+      percentage: 75,
+      numberOfCases: 0,
+      confidence: 0.8,
+      metadata: {},
+      createdAt: new Date('2025-03-05'),
+      updatedAt: new Date('2025-03-05'),
+      ticketId: '4',
+      lastUpdated: new Date('2025-03-05'),
+    },
   },
   {
     id: '5',
@@ -1290,6 +1358,18 @@ export const DUMMY_TICKETS_LIST: Prisma.TicketGetPayload<{
     vehicle: {
       id: '5',
       registrationNumber: 'LM90 NOP',
+    },
+    prediction: {
+      id: '5',
+      type: PredictionType.CHALLENGE_SUCCESS,
+      percentage: 75,
+      numberOfCases: 0,
+      confidence: 0.8,
+      metadata: {},
+      createdAt: new Date('2025-03-10'),
+      updatedAt: new Date('2025-03-10'),
+      ticketId: '5',
+      lastUpdated: new Date('2025-03-10'),
     },
   },
 ];

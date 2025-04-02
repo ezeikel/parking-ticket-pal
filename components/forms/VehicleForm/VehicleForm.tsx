@@ -23,6 +23,8 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { useRouter } from 'next/navigation';
+import VerifiedBadge from '@/components/VerifiedBadge/VerifiedBadge';
+import { VerificationStatus } from '@prisma/client';
 
 const vehicleFormSchema = z.object({
   registrationNumber: z.string().min(1, 'Registration number is required'),
@@ -42,6 +44,7 @@ type VehicleFormProps = {
   onSubmit: (data: VehicleFormValues) => Promise<void>;
   submitLabel?: string;
   vehicleId?: string;
+  verificationStatus?: VerificationStatus;
 };
 
 const VehicleForm = ({
@@ -49,6 +52,7 @@ const VehicleForm = ({
   onSubmit,
   submitLabel = 'Add Vehicle',
   vehicleId,
+  verificationStatus,
 }: VehicleFormProps) => {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
@@ -71,19 +75,22 @@ const VehicleForm = ({
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
-        <FormField
-          control={form.control}
-          name="registrationNumber"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Registration Number</FormLabel>
-              <FormControl>
-                <Input placeholder="Enter registration number" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+        <div className="flex items-center gap-2">
+          <FormField
+            control={form.control}
+            name="registrationNumber"
+            render={({ field }) => (
+              <FormItem className="flex-1">
+                <FormLabel>Registration Number</FormLabel>
+                <FormControl>
+                  <Input placeholder="Enter registration number" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <VerifiedBadge status={verificationStatus || 'UNVERIFIED'} />
+        </div>
 
         <div className="grid grid-cols-2 gap-4">
           <FormField

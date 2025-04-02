@@ -14,6 +14,9 @@ import {
   FormType,
   User,
   ProductType,
+  Prisma,
+  VerificationType,
+  VerificationStatus,
 } from '@prisma/client';
 import { Readable } from 'stream';
 import { Resend } from 'resend';
@@ -50,6 +53,7 @@ import fillPE3Form from '@/utils/automation/forms/PE3';
 import fillTE7Form from '@/utils/automation/forms/TE7';
 import fillTE9Form from '@/utils/automation/forms/TE9';
 import FormEmail from '@/components/emails/FormEmail';
+import getVehicleInfo from '@/utils/getVehicleInfo';
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -197,10 +201,6 @@ export const uploadImage = async (
 
   const imageInfo = response.choices[0].message.content;
 
-  // DEBUG
-  // eslint-disable-next-line no-console
-  console.log('imageInfo', imageInfo);
-
   const {
     pcnNumber,
     issuedAt,
@@ -332,6 +332,10 @@ export const createTicket = async (
     return null;
   }
 
+  const vehicleInfo = await getVehicleInfo(values.vehicleReg);
+
+  const vehicleVerified = vehicleInfo.verification.status === 'VERIFIED';
+
   try {
     const ticket = await db.ticket.create({
       data: {
@@ -352,14 +356,29 @@ export const createTicket = async (
             },
             create: {
               registrationNumber: values.vehicleReg,
-              // TODO: getVehicleInfo()
-              make: 'Toyota',
-              model: 'Prius',
-              year: 2020,
-              bodyType: 'Saloon',
-              fuelType: 'Petrol',
-              color: 'Red',
-              userId,
+              make: vehicleInfo.make,
+              model: vehicleInfo.model,
+              year: vehicleInfo.year,
+              bodyType: vehicleInfo.bodyType,
+              fuelType: vehicleInfo.fuelType,
+              color: vehicleInfo.color,
+              user: {
+                connect: {
+                  id: userId,
+                },
+              },
+              verification: vehicleVerified
+                ? {
+                    create: {
+                      type: VerificationType.VEHICLE,
+                      status: VerificationStatus.VERIFIED,
+                      verifiedAt: new Date(),
+                      metadata:
+                        (vehicleInfo.verification
+                          .metadata as Prisma.JsonValue) || undefined,
+                    },
+                  }
+                : undefined,
             },
           },
         },
@@ -456,6 +475,7 @@ export const getTickets = async () => {
           url: true,
         },
       },
+      prediction: true,
     },
   });
 
@@ -473,18 +493,7 @@ export const getTicket = async (id: string) => {
     where: {
       id,
     },
-    select: {
-      id: true,
-      pcnNumber: true,
-      type: true,
-      initialAmount: true,
-      issuer: true,
-      issuerType: true,
-      location: true,
-      contraventionCode: true,
-      contraventionAt: true,
-      issuedAt: true,
-      status: true,
+    include: {
       vehicle: {
         select: {
           registrationNumber: true,
@@ -495,7 +504,7 @@ export const getTicket = async (id: string) => {
           url: true,
         },
       },
-      createdAt: true,
+      prediction: true,
     },
   });
 
@@ -533,6 +542,13 @@ export const getVehicles = async () => {
   return vehicles;
 };
 
+type VerificationInput = {
+  type: 'VEHICLE' | 'TICKET';
+  status: 'VERIFIED' | 'UNVERIFIED' | 'FAILED';
+  verifiedAt: Date | null;
+  metadata?: Record<string, unknown>;
+};
+
 export const getVehicle = async (id: string) => {
   const userId = await getUserId('get a vehicle');
 
@@ -545,16 +561,7 @@ export const getVehicle = async (id: string) => {
       id,
       userId,
     },
-    select: {
-      id: true,
-      registrationNumber: true,
-      make: true,
-      model: true,
-      year: true,
-      color: true,
-      bodyType: true,
-      fuelType: true,
-      notes: true,
+    include: {
       tickets: {
         select: {
           id: true,
@@ -563,6 +570,13 @@ export const getVehicle = async (id: string) => {
           initialAmount: true,
           status: true,
           issuer: true,
+        },
+      },
+      verification: {
+        select: {
+          status: true,
+          verifiedAt: true,
+          metadata: true,
         },
       },
     },
@@ -580,6 +594,7 @@ export const createVehicle = async (data: {
   bodyType?: string;
   fuelType?: string;
   notes?: string;
+  verification?: VerificationInput;
 }) => {
   const userId = await getUserId('create a vehicle');
 
@@ -587,17 +602,34 @@ export const createVehicle = async (data: {
     return null;
   }
 
+  const vehicleInfo = await getVehicleInfo(data.registrationNumber);
+
+  const vehicleVerified = vehicleInfo.verification.status === 'VERIFIED';
+
   try {
     const vehicle = await db.vehicle.create({
       data: {
         registrationNumber: data.registrationNumber,
-        make: data.make,
-        model: data.model,
-        year: parseInt(data.year, 10),
-        color: data.color,
-        bodyType: data.bodyType || '',
-        fuelType: data.fuelType || '',
+        // TODO: spread data first?
+        make: vehicleInfo.make,
+        model: vehicleInfo.model,
+        year: vehicleInfo.year,
+        color: vehicleInfo.color,
+        bodyType: vehicleInfo.bodyType,
+        fuelType: vehicleInfo.fuelType,
         notes: data.notes || '',
+        verification: vehicleVerified
+          ? {
+              create: {
+                type: VerificationType.VEHICLE,
+                status: VerificationStatus.VERIFIED,
+                verifiedAt: new Date(),
+                metadata:
+                  (vehicleInfo.verification.metadata as Prisma.JsonValue) ||
+                  undefined,
+              },
+            }
+          : undefined,
         user: {
           connect: {
             id: userId,
@@ -605,6 +637,19 @@ export const createVehicle = async (data: {
         },
       },
     });
+
+    if (data.verification) {
+      await db.verification.create({
+        data: {
+          type: data.verification.type,
+          status: data.verification.status,
+          verifiedAt: data.verification.verifiedAt,
+          metadata:
+            (data.verification.metadata as Prisma.JsonValue) || undefined,
+          vehicleId: vehicle.id,
+        },
+      });
+    }
 
     revalidatePath('/vehicles');
     return vehicle;
@@ -625,6 +670,7 @@ export async function updateVehicle(
     bodyType?: string;
     fuelType?: string;
     notes?: string;
+    verification?: VerificationInput;
   },
 ) {
   const userId = await getUserId();
@@ -633,7 +679,7 @@ export async function updateVehicle(
   }
 
   try {
-    await db.vehicle.update({
+    const vehicle = await db.vehicle.update({
       where: {
         id,
         userId,
@@ -642,13 +688,36 @@ export async function updateVehicle(
         registrationNumber: data.registrationNumber,
         make: data.make,
         model: data.model,
-        year: parseInt(data.year),
+        year: parseInt(data.year, 10),
         color: data.color,
         bodyType: data.bodyType || '',
         fuelType: data.fuelType || '',
         notes: data.notes,
       },
     });
+
+    if (data.verification) {
+      await db.verification.upsert({
+        where: {
+          vehicleId: vehicle.id,
+        },
+        create: {
+          type: data.verification.type,
+          status: data.verification.status,
+          verifiedAt: data.verification.verifiedAt,
+          metadata:
+            (data.verification.metadata as Prisma.JsonValue) || undefined,
+          vehicleId: vehicle.id,
+        },
+        update: {
+          status: data.verification.status,
+          verifiedAt: data.verification.verifiedAt,
+          metadata:
+            (data.verification.metadata as Prisma.JsonValue) || undefined,
+        },
+      });
+    }
+
     revalidatePath('/vehicles');
   } catch (error) {
     console.error('Error updating vehicle:', error);
@@ -1334,6 +1403,12 @@ export const updateTicket = async (
     return null;
   }
 
+  let vehicleInfo;
+
+  if (values.vehicleReg) {
+    vehicleInfo = await getVehicleInfo(values.vehicleReg);
+  }
+
   try {
     const ticket = await db.ticket.update({
       where: {
@@ -1354,13 +1429,25 @@ export const updateTicket = async (
             },
             create: {
               registrationNumber: values.vehicleReg,
-              make: 'Toyota',
-              model: 'Prius',
-              year: 2020,
-              bodyType: 'Saloon',
-              fuelType: 'Petrol',
-              color: 'Red',
+              make: vehicleInfo?.make || '',
+              model: vehicleInfo?.model || '',
+              year: vehicleInfo?.year || 0,
+              bodyType: vehicleInfo?.bodyType || '',
+              fuelType: vehicleInfo?.fuelType || '',
+              color: vehicleInfo?.color || '',
               userId,
+              verification: vehicleInfo?.verification
+                ? {
+                    create: {
+                      type: VerificationType.VEHICLE,
+                      status: VerificationStatus.VERIFIED,
+                      verifiedAt: new Date(),
+                      metadata:
+                        (vehicleInfo.verification
+                          .metadata as Prisma.JsonValue) || undefined,
+                    },
+                  }
+                : undefined,
             },
           },
         },

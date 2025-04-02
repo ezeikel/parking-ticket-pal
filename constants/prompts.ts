@@ -2,30 +2,6 @@ export const BACKGROUND_INFORMATION_PROMPT = `
 Imagine you are working as customer support for a company called "Parking Ticket Pal" that handles the management of fines related parking, moving traffic, bus lane, congestion charge, cctv enforcement and private land in the UK.
 `;
 
-export const CREATE_TICKET_PROMPT = `
-Please provide the following details from the Penalty Charge Notice (PCN) image in a JSON format:
-
-pcnNumber: [PCN Number]
-type: [PARKING_CHARGE_NOTICE or PENALTY_CHARGE_NOTICE based on who issued the ticket]
-issuedAt: [Date of Notice in ISO 8601 format]
-dateTimeOfContravention: [Date and Time of Contravention in ISO 8601 format]
-vehicleRegistration: [Vehicle Registration Number]
-location: [Location where the contravention occurred, if available]
-firstSeen: [Time when the vehicle was first seen in contravention, if available]
-contraventionCode: [Contravention Code]
-contraventionDescription: [Contravention Description]
-amountDue: [Amount Due in pennies]
-issuer: [Body Issuing the PCN e.g. Lambeth Council or ParkingEye Ltd]
-issuerType: [COUNCIL or TFL or PRIVATE_COMPANY based on the issuer]
-discountedPaymentDeadline: [Deadline for paying the discounted amount in ISO 8601 format, if available]
-fullPaymentDeadline: [Deadline for paying the full amount in ISO 8601 format, if available]
-
-Some things to note:
-- Please ensure that dates and times are formatted as ISO 8601 strings.
-- If you are unsure about any of the details, please leave them blank.
-- Just return the JSON, no need to include any other information or response.
-`;
-
 export const CHALLENGE_WRITER_PROMPT = `You are a professional PCN challenge writer. Write a clear and concise challenge explanation suitable for a form field input.
 
 Guidelines:
@@ -59,7 +35,7 @@ Your task is to analyze the provided sources and return a JSON object matching t
   "firstSeen": "ISO 8601 string with the following format: YYYY-MM-DDTHH:MM:SSZ, optional",
   "contraventionCode": "string",
   "contraventionDescription": "string, optional",
-  "amountDue": "integer (in pennies)",
+  "initialAmount": "integer (in pounds) - This should be the DISCOUNTED amount (50%) that would be due within 14 days. For example, if the ticket shows £70 (discounted) and £140 (full), use 70 as the initialAmount.",
   "issuer": "string",
   "issuerType": "COUNCIL", "TFL", or "PRIVATE_COMPANY",
   "discountedPaymentDeadline": "ISO 8601 string with the following format: YYYY-MM-DDTHH:MM:SSZ",
@@ -75,5 +51,14 @@ When determining whether the document is a "TICKET" or a "LETTER", please consid
 - A "LETTER" is usually an A4-sized document, more formally structured, sent through the post. It might include salutation text (e.g., 'Dear Sir/Madam') and more detailed legal information related to the penalty charge, and may also include images of the contravention.
 
 Both types of documents will contain similar fields such as PCN number, contravention date, and amount due, but the documentType must be distinguished by the layout, size, and presentation style.
+
+For amount extraction:
+1. Look for two amounts on the ticket:
+   - A discounted amount (usually 50% of the full amount) for payment within 14 days
+   - A full amount (100%) for payment after 14 days
+2. Always use the DISCOUNTED amount (50%) for the initialAmount field, as an integer in pounds
+3. For example:
+   - If ticket shows £70 (discounted) and £140 (full), use 70 as initialAmount
+   - If ticket shows £60 (discounted) and £120 (full), use 60 as initialAmount
 
 Ensure ISO 8601 format for all dates, and calculate the discountedPaymentDeadline as 14 days and fullPaymentDeadline as 28 days after the issuedAt.`;

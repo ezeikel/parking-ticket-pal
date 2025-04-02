@@ -17,10 +17,10 @@ CREATE TYPE "IssuerType" AS ENUM ('COUNCIL', 'TFL', 'PRIVATE_COMPANY');
 CREATE TYPE "SubscriptionType" AS ENUM ('BASIC', 'PRO');
 
 -- CreateEnum
-CREATE TYPE "ReminderType" AS ENUM ('REDUCED_PAYMENT_DUE', 'FULL_PAYMENT_DUE', 'APPEAL');
+CREATE TYPE "ReminderType" AS ENUM ('REDUCED_PAYMENT_DUE', 'FULL_PAYMENT_DUE', 'APPEAL_DEADLINE', 'NOTICE_TO_OWNER_RESPONSE', 'CHARGE_CERTIFICATE_RESPONSE', 'FORM_DEADLINE', 'OUT_OF_TIME_NOTICE');
 
 -- CreateEnum
-CREATE TYPE "NotificationType" AS ENUM ('EMAIL', 'SMS');
+CREATE TYPE "NotificationType" AS ENUM ('EMAIL', 'SMS', 'ALL');
 
 -- CreateEnum
 CREATE TYPE "TransactionType" AS ENUM ('PURCHASE', 'CONSUME');
@@ -34,6 +34,15 @@ CREATE TYPE "MediaSource" AS ENUM ('ISSUER', 'TICKET', 'LETTER', 'USER');
 -- CreateEnum
 CREATE TYPE "FormType" AS ENUM ('PE2', 'PE3', 'TE7', 'TE9');
 
+-- CreateEnum
+CREATE TYPE "PredictionType" AS ENUM ('CHALLENGE_SUCCESS');
+
+-- CreateEnum
+CREATE TYPE "VerificationType" AS ENUM ('VEHICLE', 'TICKET');
+
+-- CreateEnum
+CREATE TYPE "VerificationStatus" AS ENUM ('VERIFIED', 'UNVERIFIED', 'FAILED');
+
 -- CreateTable
 CREATE TABLE "users" (
     "id" TEXT NOT NULL,
@@ -43,6 +52,7 @@ CREATE TABLE "users" (
     "address" JSONB,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
+    "signatureUrl" TEXT,
 
     CONSTRAINT "users_pkey" PRIMARY KEY ("id")
 );
@@ -58,6 +68,7 @@ CREATE TABLE "vehicles" (
     "year" INTEGER NOT NULL,
     "color" TEXT NOT NULL,
     "registrationNumber" TEXT NOT NULL,
+    "notes" TEXT,
     "active" BOOLEAN NOT NULL DEFAULT true,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
@@ -144,8 +155,10 @@ CREATE TABLE "subscriptions" (
 CREATE TABLE "reminders" (
     "id" TEXT NOT NULL,
     "type" "ReminderType" NOT NULL,
-    "notificaticationType" "NotificationType" NOT NULL,
+    "notificationType" "NotificationType" DEFAULT 'EMAIL',
     "ticketId" TEXT NOT NULL,
+    "sendAt" TIMESTAMP(3) NOT NULL,
+    "sentAt" TIMESTAMP(3),
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
@@ -159,10 +172,42 @@ CREATE TABLE "forms" (
     "formType" "FormType" NOT NULL,
     "fileName" TEXT NOT NULL,
     "fileUrl" TEXT NOT NULL,
+    "dueAt" TIMESTAMP(3),
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
     CONSTRAINT "forms_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "predictions" (
+    "id" TEXT NOT NULL,
+    "ticketId" TEXT NOT NULL,
+    "type" "PredictionType" NOT NULL DEFAULT 'CHALLENGE_SUCCESS',
+    "percentage" INTEGER NOT NULL DEFAULT 75,
+    "numberOfCases" INTEGER NOT NULL DEFAULT 0,
+    "confidence" DOUBLE PRECISION NOT NULL DEFAULT 0.8,
+    "lastUpdated" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "metadata" JSONB,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "predictions_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "verifications" (
+    "id" TEXT NOT NULL,
+    "type" "VerificationType" NOT NULL,
+    "status" "VerificationStatus" NOT NULL DEFAULT 'UNVERIFIED',
+    "verifiedAt" TIMESTAMP(3),
+    "metadata" JSONB,
+    "vehicleId" TEXT,
+    "ticketId" TEXT,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "verifications_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateIndex
@@ -183,6 +228,21 @@ CREATE UNIQUE INDEX "subscriptions_stripeCustomerId_key" ON "subscriptions"("str
 -- CreateIndex
 CREATE UNIQUE INDEX "subscriptions_userId_key" ON "subscriptions"("userId");
 
+-- CreateIndex
+CREATE INDEX "reminders_ticketId_sendAt_idx" ON "reminders"("ticketId", "sendAt");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "predictions_ticketId_key" ON "predictions"("ticketId");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "verifications_vehicleId_key" ON "verifications"("vehicleId");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "verifications_ticketId_key" ON "verifications"("ticketId");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "verifications_type_vehicleId_ticketId_key" ON "verifications"("type", "vehicleId", "ticketId");
+
 -- AddForeignKey
 ALTER TABLE "vehicles" ADD CONSTRAINT "vehicles_userId_fkey" FOREIGN KEY ("userId") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
@@ -190,16 +250,16 @@ ALTER TABLE "vehicles" ADD CONSTRAINT "vehicles_userId_fkey" FOREIGN KEY ("userI
 ALTER TABLE "tickets" ADD CONSTRAINT "tickets_vehicleId_fkey" FOREIGN KEY ("vehicleId") REFERENCES "vehicles"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "media" ADD CONSTRAINT "media_ticketId_fkey" FOREIGN KEY ("ticketId") REFERENCES "tickets"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-
--- AddForeignKey
 ALTER TABLE "media" ADD CONSTRAINT "media_letterId_fkey" FOREIGN KEY ("letterId") REFERENCES "letters"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "letters" ADD CONSTRAINT "letters_ticketId_fkey" FOREIGN KEY ("ticketId") REFERENCES "tickets"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "media" ADD CONSTRAINT "media_ticketId_fkey" FOREIGN KEY ("ticketId") REFERENCES "tickets"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "letters" ADD CONSTRAINT "letters_appealId_fkey" FOREIGN KEY ("appealId") REFERENCES "appeals"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "letters" ADD CONSTRAINT "letters_ticketId_fkey" FOREIGN KEY ("ticketId") REFERENCES "tickets"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "appeals" ADD CONSTRAINT "appeals_ticketId_fkey" FOREIGN KEY ("ticketId") REFERENCES "tickets"("id") ON DELETE CASCADE ON UPDATE CASCADE;
@@ -212,3 +272,12 @@ ALTER TABLE "reminders" ADD CONSTRAINT "reminders_ticketId_fkey" FOREIGN KEY ("t
 
 -- AddForeignKey
 ALTER TABLE "forms" ADD CONSTRAINT "forms_ticketId_fkey" FOREIGN KEY ("ticketId") REFERENCES "tickets"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "predictions" ADD CONSTRAINT "predictions_ticketId_fkey" FOREIGN KEY ("ticketId") REFERENCES "tickets"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "verifications" ADD CONSTRAINT "verifications_vehicleId_fkey" FOREIGN KEY ("vehicleId") REFERENCES "vehicles"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "verifications" ADD CONSTRAINT "verifications_ticketId_fkey" FOREIGN KEY ("ticketId") REFERENCES "tickets"("id") ON DELETE CASCADE ON UPDATE CASCADE;

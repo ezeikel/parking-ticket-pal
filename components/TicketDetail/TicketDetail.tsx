@@ -23,14 +23,26 @@ import AmountDue from '@/components/AmountDue/AmountDue';
 import { Button } from '@/components/ui/button';
 import { formatDateWithDueStatus, calculateAmountDue } from '@/utils/dates';
 import { Prisma, TicketStatus } from '@prisma/client';
+import ChallengeSuccessLikelihood from '@/components/ChallengeSuccessLikelihood/ChallengeSuccessLikelihood';
+
+type TicketWithPrediction = Prisma.TicketGetPayload<{
+  include: {
+    vehicle: {
+      select: {
+        registrationNumber: true;
+      };
+    };
+    media: {
+      select: {
+        url: true;
+      };
+    };
+    prediction: true;
+  };
+}>;
 
 type TicketDetailProps = {
-  ticket: Prisma.TicketGetPayload<{
-    include: {
-      vehicle: true;
-      media: true;
-    };
-  }>;
+  ticket: TicketWithPrediction;
 };
 
 const TicketDetail = ({ ticket }: TicketDetailProps) => {
@@ -175,6 +187,14 @@ const TicketDetail = ({ ticket }: TicketDetailProps) => {
                 {(ticket.location as Address)?.line1}
               </p>
             </div>
+          </div>
+          <div className="mt-8">
+            <ChallengeSuccessLikelihood
+              percentage={ticket.prediction?.percentage ?? 75}
+              size="lg"
+              showLabel={true}
+              detailed={true}
+            />
           </div>
         </CardContent>
         <CardFooter className="flex justify-between border-t pt-6">

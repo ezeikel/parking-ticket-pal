@@ -16,8 +16,17 @@ type TicketPageProps = {
 
 type Ticket = Prisma.TicketGetPayload<{
   include: {
-    vehicle: true;
-    media: true;
+    vehicle: {
+      select: {
+        registrationNumber: true;
+      };
+    };
+    media: {
+      select: {
+        url: true;
+      };
+    };
+    prediction: true;
   };
 }>;
 

@@ -17,6 +17,7 @@ type TicketsContainerProps = {
   tickets: Prisma.TicketGetPayload<{
     include: {
       vehicle: true;
+      prediction: true;
     };
   }>[];
 };

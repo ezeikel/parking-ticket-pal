@@ -42,8 +42,17 @@ import { Prisma } from '@prisma/client';
 type EditTicketFormProps = {
   ticket: Prisma.TicketGetPayload<{
     include: {
-      vehicle: true;
-      media: true;
+      vehicle: {
+        select: {
+          registrationNumber: true;
+        };
+      };
+      media: {
+        select: {
+          url: true;
+        };
+      };
+      prediction: true;
     };
   }>;
 };

@@ -5,8 +5,206 @@ generator client {
 
 datasource db {
   provider  = "postgresql"
-  url       = env("POSTGRES_PRISMA_URL") // uses connection pooling
-  directUrl = env("POSTGRES_URL_NON_POOLING") // uses a direct connection
+  url       = env("POSTGRES_PRISMA_URL")
+  directUrl = env("POSTGRES_URL_NON_POOLING")
+}
+
+model User {
+  id           String        @id @default(cuid())
+  name         String
+  email        String        @unique
+  phoneNumber  String?
+  address      Json?
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  signatureUrl String?
+  subscription Subscription?
+  vehicles     Vehicle[]
+
+  @@map("users")
+}
+
+model Vehicle {
+  id                 String        @id @default(cuid())
+  userId             String
+  make               String
+  model              String
+  bodyType           String
+  fuelType           String
+  year               Int
+  color              String
+  registrationNumber String        @unique
+  notes              String?
+  active             Boolean       @default(true)
+  createdAt          DateTime      @default(now())
+  updatedAt          DateTime      @updatedAt
+  tickets            Ticket[]
+  user               User          @relation(fields: [userId], references: [id])
+  verification       Verification?
+
+  @@map("vehicles")
+}
+
+model Ticket {
+  id                String @id @default(cuid())
+  pcnNumber         String @unique
+  contraventionCode String
+  location          Json
+
+  // example address:
+  //  const address = {
+  //  line1: "123 Main St",
+  //  line2: "Apt 4B",
+  //  city: "London",
+  //  county: "Greater London",
+  //  postcode: "SW1A 1AA",
+  //  country: "United Kingdom",
+  //  coordinates: {
+  //  latitude: 51.5074,
+  //  longitude: -0.1278
+  //  }
+
+  issuedAt        DateTime
+  contraventionAt DateTime
+  observedAt      DateTime?
+  status          TicketStatus  @default(REDUCED_PAYMENT_DUE)
+  type            TicketType
+  initialAmount   Int
+  issuer          String
+  issuerType      IssuerType
+  verified        Boolean       @default(false)
+  vehicleId       String
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  appeals         Appeal?
+  Form            Form[]
+  letters         Letter[]
+  media           Media[]
+  prediction      Prediction?
+  reminders       Reminder[]
+  vehicle         Vehicle       @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+  verification    Verification?
+
+  @@map("tickets")
+}
+
+model Media {
+  id          String      @id @default(cuid())
+  url         String
+  description String?
+  type        MediaType
+  source      MediaSource
+  ticketId    String?
+  letterId    String?
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  letter      Letter?     @relation(fields: [letterId], references: [id])
+  ticket      Ticket?     @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+
+  @@map("media")
+}
+
+model Letter {
+  id            String     @id @default(cuid())
+  type          LetterType
+  ticketId      String
+  extractedText String
+  summary       String
+  appealId      String?
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+  appeal        Appeal?    @relation(fields: [appealId], references: [id])
+  ticket        Ticket     @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  media         Media[]
+
+  @@map("letters")
+}
+
+model Appeal {
+  id        String   @id @default(cuid())
+  ticketId  String   @unique
+  content   String
+  letterId  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  ticket    Ticket   @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  letter    Letter[]
+
+  @@map("appeals")
+}
+
+model Subscription {
+  id               String           @id @default(cuid())
+  type             SubscriptionType @default(BASIC)
+  stripeCustomerId String?          @unique
+  userId           String           @unique
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+  user             User             @relation(fields: [userId], references: [id])
+
+  @@map("subscriptions")
+}
+
+model Reminder {
+  id               String            @id @default(cuid())
+  type             ReminderType
+  notificationType NotificationType? @default(EMAIL)
+  ticketId         String
+  sendAt           DateTime
+  sentAt           DateTime?
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+  ticket           Ticket            @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+
+  @@index([ticketId, sendAt])
+  @@map("reminders")
+}
+
+model Form {
+  id        String    @id @default(cuid())
+  ticketId  String
+  formType  FormType
+  fileName  String
+  fileUrl   String
+  dueAt     DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  ticket    Ticket    @relation(fields: [ticketId], references: [id])
+
+  @@map("forms")
+}
+
+model Prediction {
+  id            String         @id @default(cuid())
+  ticketId      String         @unique
+  type          PredictionType @default(CHALLENGE_SUCCESS)
+  percentage    Int            @default(75)
+  numberOfCases Int            @default(0)
+  confidence    Float          @default(0.8)
+  lastUpdated   DateTime       @default(now())
+  metadata      Json?
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  ticket        Ticket         @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+
+  @@map("predictions")
+}
+
+model Verification {
+  id         String             @id @default(cuid())
+  type       VerificationType
+  status     VerificationStatus @default(UNVERIFIED)
+  verifiedAt DateTime?
+  metadata   Json?
+  vehicleId  String?            @unique
+  ticketId   String?            @unique
+  createdAt  DateTime           @default(now())
+  updatedAt  DateTime           @updatedAt
+  vehicle    Vehicle?           @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+  ticket     Ticket?            @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+
+  @@unique([type, vehicleId, ticketId])
+  @@map("verifications")
 }
 
 enum TicketType {
@@ -28,31 +226,20 @@ enum MediaType {
 }
 
 enum TicketStatus {
-  // Initial Stages
-  REDUCED_PAYMENT_DUE // Initial ticket with reduced payment option (within 14 days)
-  FULL_PAYMENT_DUE // After 14 days, full amount due (within 28 days)
-
-  // Post 28 Days - Notice to Owner
-  NOTICE_TO_OWNER_SENT // Notice to Owner sent (fine increases after 28 days)
-
-  // Appeals Process (before Notice to Owner)
-  APPEALED // Ticket is under appeal (prior to Notice to Owner)
-  APPEAL_REJECTED // Appeal rejected, waiting for Notice to Owner
-  APPEAL_ACCEPTED // Appeal accepted, no further action required
-
-  // Post-Notice to Owner Appeals (Tribunals/POPLA)
-  TRIBUNAL_APPEAL_IN_PROGRESS // Appeal made to London Tribunals or POPLA after Notice to Owner
-  TRIBUNAL_APPEAL_ACCEPTED // Tribunal/POPLA appeal accepted, no further action required
-  TRIBUNAL_APPEAL_REJECTED // Tribunal/POPLA appeal rejected, full payment or further escalation
-
-  // Escalation after Notice to Owner
-  ORDER_FOR_RECOVERY // Order for Recovery issued (if NTO not paid)
-  CCJ_PENDING // County Court Judgment (CCJ) in process
-  CCJ_ISSUED // CCJ has been issued
-
-  // Ticket Resolution
-  PAID // Ticket has been paid
-  CANCELLED // Ticket has been cancelled (e.g., after successful appeal)
+  REDUCED_PAYMENT_DUE
+  FULL_PAYMENT_DUE
+  NOTICE_TO_OWNER_SENT
+  APPEALED
+  APPEAL_REJECTED
+  APPEAL_ACCEPTED
+  TRIBUNAL_APPEAL_IN_PROGRESS
+  TRIBUNAL_APPEAL_ACCEPTED
+  TRIBUNAL_APPEAL_REJECTED
+  ORDER_FOR_RECOVERY
+  CCJ_PENDING
+  CCJ_ISSUED
+  PAID
+  CANCELLED
 }
 
 enum IssuerType {
@@ -107,178 +294,17 @@ enum FormType {
   TE9
 }
 
-model User {
-  id           String        @id @default(cuid())
-  name         String
-  email        String        @unique
-  phoneNumber  String?
-  address      Json?
-  /**
-   * example address:
-   * const address = {
-   * line1: "123 Main St",
-   * line2: "Apt 4B",
-   * city: "London",
-   * county: "Greater London",
-   * postcode: "SW1A 1AA",
-   * country: "United Kingdom",
-   * coordinates: {
-   * latitude: 51.5074,
-   * longitude: -0.1278
-   * }
-   */
-  vehicles     Vehicle[]
-  subscription Subscription?
-  createdAt    DateTime      @default(now())
-  updatedAt    DateTime      @updatedAt
-  signatureUrl String?
-
-  @@map("users")
+enum PredictionType {
+  CHALLENGE_SUCCESS
 }
 
-model Vehicle {
-  id                 String   @id @default(cuid())
-  userId             String
-  user               User     @relation(fields: [userId], references: [id])
-  make               String // e.g. Toyota, Honda
-  model              String // e.g. Camry, Civic
-  bodyType           String // e.g. Saloon, Hatchback
-  fuelType           String // e.g. Petrol, Diesel
-  year               Int // year of the vehicle - could probably look this up via number plate
-  color              String
-  registrationNumber String   @unique
-  notes              String? // optional notes about the vehicle
-  active             Boolean  @default(true) // indicates if the vehicle is currently owned by the user
-  tickets            Ticket[] // tickets associated with the vehicle
-  createdAt          DateTime @default(now())
-  updatedAt          DateTime @updatedAt
-
-  @@map("vehicles")
+enum VerificationType {
+  VEHICLE
+  TICKET
 }
 
-model Ticket {
-  id                String       @id @default(cuid())
-  pcnNumber         String       @unique
-  contraventionCode String
-  location          Json
-  /**
-   * example address:
-   * const address = {
-   * line1: "123 Main St",
-   * line2: "Apt 4B",
-   * city: "London",
-   * county: "Greater London",
-   * postcode: "SW1A 1AA",
-   * country: "United Kingdom",
-   * coordinates: {
-   * latitude: 51.5074,
-   * longitude: -0.1278
-   * }
-   */
-  issuedAt          DateTime
-  contraventionAt   DateTime
-  observedAt        DateTime?
-  status            TicketStatus @default(REDUCED_PAYMENT_DUE)
-  type              TicketType
-  initialAmount     Int
-  issuer            String
-  issuerType        IssuerType
-  verified          Boolean      @default(false)
-  vehicle           Vehicle      @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
-  vehicleId         String
-  media             Media[]
-  appeals           Appeal[]
-  reminders         Reminder[]
-  letters           Letter[]
-  createdAt         DateTime     @default(now())
-  updatedAt         DateTime     @updatedAt
-  Form              Form[]
-
-  @@map("tickets")
-}
-
-model Media {
-  id          String      @id @default(cuid())
-  url         String
-  description String?
-  type        MediaType
-  source      MediaSource
-  ticket      Ticket?     @relation(fields: [ticketId], references: [id], onDelete: Cascade)
-  ticketId    String?
-  letter      Letter?     @relation(fields: [letterId], references: [id])
-  letterId    String?
-  createdAt   DateTime    @default(now())
-  updatedAt   DateTime    @updatedAt
-
-  @@map("media")
-}
-
-model Letter {
-  id            String     @id @default(cuid())
-  type          LetterType
-  ticket        Ticket     @relation(fields: [ticketId], references: [id], onDelete: Cascade)
-  ticketId      String
-  extractedText String // full text extracted from the letter
-  summary       String // summary of key points from the letter
-  appeal        Appeal?    @relation(fields: [appealId], references: [id])
-  appealId      String?
-  media         Media[]
-  createdAt     DateTime   @default(now())
-  updatedAt     DateTime   @updatedAt
-
-  @@map("letters")
-}
-
-model Appeal {
-  id        String   @id @default(cuid())
-  ticket    Ticket   @relation(fields: [ticketId], references: [id], onDelete: Cascade)
-  ticketId  String   @unique
-  content   String
-  letter    Letter[]
-  letterId  String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@map("appeals")
-}
-
-model Subscription {
-  id               String           @id @default(cuid())
-  type             SubscriptionType @default(BASIC)
-  stripeCustomerId String?          @unique
-  user             User             @relation(fields: [userId], references: [id])
-  userId           String           @unique
-  createdAt        DateTime         @default(now())
-  updatedAt        DateTime         @updatedAt
-
-  @@map("subscriptions")
-}
-
-model Reminder {
-  id               String            @id @default(cuid())
-  type             ReminderType // e.g. REDUCED_PAYMENT_DUE, FULL_PAYMENT_DUE, APPEAL, etc.
-  notificationType NotificationType? @default(EMAIL)
-  ticketId         String
-  ticket           Ticket            @relation(fields: [ticketId], references: [id], onDelete: Cascade)
-  sendAt           DateTime // When the reminder is scheduled to be sent
-  sentAt           DateTime? // When the reminder was actually sent
-  createdAt        DateTime          @default(now())
-  updatedAt        DateTime          @updatedAt
-
-  @@index([ticketId, sendAt])
-  @@map("reminders")
-}
-
-model Form {
-  id        String    @id @default(cuid())
-  ticket    Ticket    @relation(fields: [ticketId], references: [id])
-  ticketId  String
-  formType  FormType
-  fileName  String
-  fileUrl   String
-  dueAt     DateTime? // Optional deadline for submitting this form
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
-
-  @@map("forms")
+enum VerificationStatus {
+  VERIFIED
+  UNVERIFIED
+  FAILED
 }

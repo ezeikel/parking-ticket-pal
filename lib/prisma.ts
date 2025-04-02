@@ -1,8 +1,15 @@
 import { Pool } from '@neondatabase/serverless';
 import type { User } from '@prisma/client';
-import { $Enums, Prisma, PrismaClient, ReminderType } from '@prisma/client';
+import {
+  $Enums,
+  PredictionType,
+  Prisma,
+  PrismaClient,
+  ReminderType,
+} from '@prisma/client';
 import { PrismaNeon } from '@prisma/adapter-neon';
 import { addDays, isAfter } from 'date-fns';
+import getVehicleInfo from '@/utils/getVehicleInfo';
 
 // PrismaClient is attached to the `global` object in development to prevent
 // exhausting your database connection limit.
@@ -95,6 +102,18 @@ const prismaClientSingleton = () => {
             console.error('Failed to create reminders:', error);
           }
 
+          // TODO: Implement ML-based prediction using historical appeals data
+          await client.prediction.create({
+            data: {
+              ticket: {
+                connect: {
+                  id: ticket.id!,
+                },
+              },
+              type: PredictionType.CHALLENGE_SUCCESS,
+            },
+          });
+
           return ticket;
         },
 
@@ -133,6 +152,24 @@ const prismaClientSingleton = () => {
               }
             }
 
+            // Check if relevant fields were updated
+            const relevantFieldsUpdated =
+              args.data.contraventionCode ||
+              args.data.issuer ||
+              args.data.issuerType;
+
+            if (relevantFieldsUpdated) {
+              // TODO: Implement ML-based prediction using historical appeals data
+              // For now, just update the lastUpdated timestamp
+              await client.prediction.update({
+                where: { ticketId },
+                data: {
+                  lastUpdated: new Date(),
+                  // In the future, we'll update percentage, numberOfCases, confidence, and metadata here
+                },
+              });
+            }
+
             return result;
           }
 
@@ -155,6 +192,69 @@ const prismaClientSingleton = () => {
           const result = await query(args);
 
           return result;
+        },
+      },
+      vehicle: {
+        async create({ args, query }) {
+          // Execute the original create operation
+          const vehicle = await query(args);
+
+          return vehicle;
+        },
+        async update({ args, query }) {
+          // Execute the original update operation
+          const vehicle = await query(args);
+
+          // If registration number was updated, verify the new information
+          const newRegistrationNumber = args.data.registrationNumber as
+            | string
+            | undefined;
+          if (
+            newRegistrationNumber &&
+            newRegistrationNumber !== args.where.registrationNumber
+          ) {
+            try {
+              const vehicleInfo = await getVehicleInfo(newRegistrationNumber);
+
+              // Update vehicle with verified information
+              await client.vehicle.update({
+                where: { id: vehicle.id },
+                data: {
+                  make: vehicleInfo.make,
+                  model: vehicleInfo.model,
+                  bodyType: vehicleInfo.bodyType,
+                  fuelType: vehicleInfo.fuelType,
+                  color: vehicleInfo.color,
+                  year: vehicleInfo.year,
+                  verification: {
+                    upsert: {
+                      create: {
+                        type: vehicleInfo.verification.type,
+                        status: vehicleInfo.verification.status,
+                        verifiedAt:
+                          vehicleInfo.verification.status === 'VERIFIED'
+                            ? new Date()
+                            : null,
+                        metadata: vehicleInfo.verification.metadata,
+                      },
+                      update: {
+                        status: vehicleInfo.verification.status,
+                        verifiedAt:
+                          vehicleInfo.verification.status === 'VERIFIED'
+                            ? new Date()
+                            : null,
+                        metadata: vehicleInfo.verification.metadata,
+                      },
+                    },
+                  },
+                } as Prisma.VehicleUpdateInput,
+              });
+            } catch (error) {
+              console.error('Failed to verify vehicle:', error);
+            }
+          }
+
+          return vehicle;
         },
       },
     },

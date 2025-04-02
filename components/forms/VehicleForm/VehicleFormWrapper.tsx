@@ -1,7 +1,8 @@
 'use client';
 
-import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
+import { VerificationStatus } from '@prisma/client';
+import { toast } from 'sonner';
 import { createVehicle, updateVehicle } from '@/app/actions';
 import VehicleForm from './VehicleForm';
 
@@ -18,12 +19,14 @@ type VehicleFormWrapperProps = {
   };
   vehicleId?: string;
   submitLabel?: string;
+  verificationStatus?: VerificationStatus;
 };
 
 const VehicleFormWrapper = ({
   initialData,
   vehicleId,
   submitLabel,
+  verificationStatus,
 }: VehicleFormWrapperProps) => {
   const router = useRouter();
 
@@ -65,6 +68,7 @@ const VehicleFormWrapper = ({
       onSubmit={handleSubmit}
       submitLabel={submitLabel}
       vehicleId={vehicleId}
+      verificationStatus={verificationStatus}
     />
   );
 };

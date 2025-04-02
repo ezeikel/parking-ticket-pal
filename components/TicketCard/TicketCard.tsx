@@ -27,11 +27,13 @@ import AmountDue from '@/components/AmountDue/AmountDue';
 import { deleteTicket } from '@/app/actions';
 import DueDate from '../DueDate/DueDate';
 import getIssuerInitials from '@/utils/getIssuerInitials';
+import ChallengeSuccessLikelihood from '@/components/ChallengeSuccessLikelihood/ChallengeSuccessLikelihood';
 
 type TicketCardProps = {
   ticket: Prisma.TicketGetPayload<{
     include: {
       vehicle: true;
+      prediction: true;
     };
   }>;
 };
@@ -102,27 +104,34 @@ const TicketCard = ({ ticket }: TicketCardProps) => {
               <p className="text-sm text-muted-foreground">{ticket.issuer}</p>
             </div>
           </div>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon">
-                <FontAwesomeIcon
-                  icon={faEllipsisVertical}
-                  className="h-4 w-4"
-                />
-                <span className="sr-only">Menu</span>
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem>
-                <Link href={`/tickets/${ticket.id}`}>View Details</Link>
-              </DropdownMenuItem>
-              <DropdownMenuItem>Pay Fine</DropdownMenuItem>
-              <DropdownMenuItem>Generate Appeal</DropdownMenuItem>
-              <DropdownMenuItem onClick={() => deleteTicket(ticket.id)}>
-                Delete
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          <div className="flex items-center gap-4">
+            <ChallengeSuccessLikelihood
+              percentage={ticket.prediction?.percentage ?? 75}
+              size="sm"
+              showLabel={false}
+            />
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon">
+                  <FontAwesomeIcon
+                    icon={faEllipsisVertical}
+                    className="h-4 w-4"
+                  />
+                  <span className="sr-only">Menu</span>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem>
+                  <Link href={`/tickets/${ticket.id}`}>View Details</Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem>Pay Fine</DropdownMenuItem>
+                <DropdownMenuItem>Generate Appeal</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => deleteTicket(ticket.id)}>
+                  Delete
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
         </div>
       </CardHeader>
       <CardContent className="pb-2 space-y-4">

@@ -97,19 +97,6 @@ export enum TicketStatus {
   PAID = 'Paid',
 }
 
-export type TicketType = {
-  id: string;
-  vehicleReg: string;
-  ticketNumber: string;
-  issuedAt: string;
-  dueDate: string;
-  contravention: string;
-  status: TicketStatus;
-  initialAmount: number;
-  issuer: string;
-  location: string;
-};
-
 export const ticketFormSchema = z.object({
   vehicleReg: z
     .string()
