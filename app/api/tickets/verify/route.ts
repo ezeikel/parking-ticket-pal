@@ -1,6 +1,6 @@
 /* eslint-disable import/prefer-default-export */
 
-import { verifyTicket } from '@/app/actions';
+import { verifyTicket } from '@/app/actions/ticket';
 
 export const POST = async (req: Request) => {
   const { pcnNumber } = await req.json();

@@ -87,7 +87,7 @@ const UploadButton = () => {
       formData.append('image', imageFile, imageFile.name);
       setIsLoading(true);
 
-      const response = await fetch('/api/tickets/upload-image', {
+      const response = await fetch('/api/upload-image', {
         method: 'POST',
         body: formData,
       });

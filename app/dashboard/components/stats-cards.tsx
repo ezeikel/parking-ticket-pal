@@ -6,7 +6,7 @@ import {
   faMoneyBill,
   faCar,
 } from '@fortawesome/pro-regular-svg-icons';
-import { getTickets } from '@/app/actions';
+import { getTickets } from '@/app/actions/ticket';
 
 const StatsCards = async () => {
   const tickets = (await getTickets()) ?? [];

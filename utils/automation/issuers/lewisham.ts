@@ -1,5 +1,6 @@
 import { ChallengeReasonId } from '@/types';
-import { generateChallengeDetails, getEvidenceImages } from '@/app/actions';
+import { getEvidenceImages } from '@/app/actions';
+import { generateChallengeDetails } from '@/app/actions/ticket';
 import { CommonPcnArgs, takeScreenShot, uploadEvidence } from '../shared';
 
 export const access = async ({ page, pcnNumber, ticket }: CommonPcnArgs) => {

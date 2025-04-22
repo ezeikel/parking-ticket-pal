@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faArrowRight } from '@fortawesome/pro-regular-svg-icons';
-import { getTickets } from '@/app/actions';
+import { getTickets } from '@/app/actions/ticket';
 import TicketCard from '@/components/TicketCard/TicketCard';
 
 const RecentTickets = async () => {

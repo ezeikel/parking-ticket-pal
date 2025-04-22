@@ -3,7 +3,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPlus } from '@fortawesome/pro-regular-svg-icons';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
-import { getVehicles } from '@/app/actions';
+import { getVehicles } from '@/app/actions/vehicle';
 import EmptyList from '@/components/EmptyList/EmptyList';
 
 const VehiclesPage = async () => {

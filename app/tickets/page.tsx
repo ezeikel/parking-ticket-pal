@@ -1,6 +1,6 @@
 import { Suspense } from 'react';
-import TicketsContainer from '../dashboard/TicketsContainer';
-import { getTickets } from '../actions';
+import TicketsContainer from '@/app/dashboard/TicketsContainer';
+import { getTickets } from '@/app/actions/ticket';
 
 const TicketsPage = async () => {
   const tickets = await getTickets();

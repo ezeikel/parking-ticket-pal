@@ -1,8 +1,8 @@
 'use client';
 
-import { deleteTicket } from '@/app/actions';
 import { useRouter } from 'next/navigation';
-import DeleteButton from '../DeleteButton/DeleteButton';
+import { deleteTicket } from '@/app/actions/ticket';
+import DeleteButton from '@/components/buttons/DeleteButton/DeleteButton';
 
 type DeleteTicketButtonProps = {
   ticketId: string;

@@ -32,7 +32,11 @@ import cn from '@/utils/cn';
 import { format } from 'date-fns';
 import { CONTRAVENTION_CODES_OPTIONS } from '@/constants';
 import { Address, ticketFormSchema } from '@/types';
-import { refreshTicket, refreshTickets, updateTicket } from '@/app/actions';
+import {
+  refreshTicket,
+  refreshTickets,
+  updateTicket,
+} from '@/app/actions/ticket';
 import { faCalendar, faSpinner } from '@fortawesome/pro-regular-svg-icons';
 import { toast } from 'sonner';
 import AddressInput from '@/components/forms/inputs/AddressInput/AddressInput';
@@ -65,7 +69,7 @@ export default function EditTicketForm({ ticket }: EditTicketFormProps) {
     resolver: zodResolver(ticketFormSchema),
     defaultValues: {
       vehicleReg: ticket.vehicle.registrationNumber,
-      ticketNumber: ticket.pcnNumber,
+      pcnNumber: ticket.pcnNumber,
       issuedAt: new Date(ticket.issuedAt),
       contraventionCode: ticket.contraventionCode,
       initialAmount: ticket.initialAmount,
@@ -102,10 +106,10 @@ export default function EditTicketForm({ ticket }: EditTicketFormProps) {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <FormField
             control={form.control}
-            name="ticketNumber"
+            name="pcnNumber"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Ticket Number</FormLabel>
+                <FormLabel>PCN Number</FormLabel>
                 <FormControl>
                   <Input {...field} />
                 </FormControl>

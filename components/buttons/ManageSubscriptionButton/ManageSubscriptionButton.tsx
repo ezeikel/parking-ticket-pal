@@ -1,6 +1,6 @@
 'use client';
 
-import { createCustomerPortalSession } from '@/app/actions';
+import { createCustomerPortalSession } from '@/app/actions/stripe';
 import { Button, buttonVariants } from '@/components/ui/button';
 import { type ButtonHTMLAttributes } from 'react';
 import { type VariantProps } from 'class-variance-authority';

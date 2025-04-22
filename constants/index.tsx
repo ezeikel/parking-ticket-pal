@@ -12,6 +12,7 @@ import { faCreditCard, faUser } from '@fortawesome/pro-duotone-svg-icons';
 
 export * from './prompts';
 export * from './loadingMessages';
+export * from './ticketTimelines';
 
 export const PRIVATE_COMPANY_IDS = ['horizon', 'parkingEye'] as const;
 
@@ -1107,6 +1108,9 @@ export const DUMMY_TICKET: Prisma.TicketGetPayload<{
   verified: false,
   createdAt: new Date('2025-02-28'),
   updatedAt: new Date('2025-02-28'),
+  extractedText: '',
+  statusUpdatedAt: new Date('2025-02-28'),
+  statusUpdatedBy: 'system',
   prediction: {
     id: '1',
     type: PredictionType.CHALLENGE_SUCCESS,
@@ -1175,6 +1179,9 @@ export const DUMMY_TICKETS_LIST: Prisma.TicketGetPayload<{
     verified: false,
     createdAt: new Date('2025-02-28'),
     updatedAt: new Date('2025-02-28'),
+    extractedText: '',
+    statusUpdatedAt: new Date('2025-02-28'),
+    statusUpdatedBy: 'system',
     vehicle: {
       id: '1',
       registrationNumber: 'AB12 CDE',
@@ -1220,6 +1227,9 @@ export const DUMMY_TICKETS_LIST: Prisma.TicketGetPayload<{
     verified: true,
     createdAt: new Date('2025-02-15'),
     updatedAt: new Date('2025-02-15'),
+    extractedText: '',
+    statusUpdatedAt: new Date('2025-02-15'),
+    statusUpdatedBy: 'system',
     vehicle: {
       id: '2',
       registrationNumber: 'EF34 GHI',
@@ -1265,6 +1275,9 @@ export const DUMMY_TICKETS_LIST: Prisma.TicketGetPayload<{
     verified: false,
     createdAt: new Date('2025-01-10'),
     updatedAt: new Date('2025-01-10'),
+    extractedText: '',
+    statusUpdatedAt: new Date('2025-01-10'),
+    statusUpdatedBy: 'system',
     vehicle: {
       id: '3',
       registrationNumber: 'CD56 EFG',
@@ -1310,6 +1323,9 @@ export const DUMMY_TICKETS_LIST: Prisma.TicketGetPayload<{
     verified: false,
     createdAt: new Date('2025-03-05'),
     updatedAt: new Date('2025-03-05'),
+    extractedText: '',
+    statusUpdatedAt: new Date('2025-03-05'),
+    statusUpdatedBy: 'system',
     vehicle: {
       id: '4',
       registrationNumber: 'GH78 IJK',
@@ -1355,6 +1371,9 @@ export const DUMMY_TICKETS_LIST: Prisma.TicketGetPayload<{
     verified: true,
     createdAt: new Date('2025-03-10'),
     updatedAt: new Date('2025-03-10'),
+    extractedText: '',
+    statusUpdatedAt: new Date('2025-03-10'),
+    statusUpdatedBy: 'system',
     vehicle: {
       id: '5',
       registrationNumber: 'LM90 NOP',
@@ -1375,3 +1394,8 @@ export const DUMMY_TICKETS_LIST: Prisma.TicketGetPayload<{
 ];
 
 export const USER_SIGNATURE_PATH = 'users/%s/signature.svg';
+
+export const STORAGE_PATHS = {
+  USER_IMAGE: 'users/%s/image.%s',
+  USER_TICKET_FORM: 'users/%s/tickets/%s/forms/%s-%s-%s-%s.pdf',
+};

@@ -3,7 +3,7 @@
 import { useRouter } from 'next/navigation';
 import { VerificationStatus } from '@prisma/client';
 import { toast } from 'sonner';
-import { createVehicle, updateVehicle } from '@/app/actions';
+import { createVehicle, updateVehicle } from '@/app/actions/vehicle';
 import VehicleForm from './VehicleForm';
 
 type VehicleFormWrapperProps = {

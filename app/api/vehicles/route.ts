@@ -1,4 +1,4 @@
-import { getVehicles } from '@/app/actions';
+import { getVehicles } from '@/app/actions/vehicle';
 
 // longer duration to account for openai api calls
 export const maxDuration = 30;

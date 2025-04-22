@@ -7,7 +7,7 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import SubscriptionPlan from '@/components/SubscriptionPlan/SubscriptionPlan';
-import { getSubscriptionDetails } from '@/app/actions';
+import { getSubscriptionDetails } from '@/app/actions/stripe';
 import SubscribeButton from '@/components/buttons/SubscribeButton/SubscribeButton';
 import ManageSubscriptionButton from '@/components/buttons/ManageSubscriptionButton/ManageSubscriptionButton';
 import { ProductType, SubscriptionType } from '@prisma/client';

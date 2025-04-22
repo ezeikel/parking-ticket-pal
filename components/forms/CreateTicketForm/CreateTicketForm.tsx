@@ -1,6 +1,5 @@
 'use client';
 
-import type React from 'react';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -34,7 +33,7 @@ import cn from '@/utils/cn';
 import { format } from 'date-fns';
 import { CONTRAVENTION_CODES_OPTIONS } from '@/constants';
 import { ticketFormSchema } from '@/types';
-import { createTicket } from '@/app/actions';
+import { createTicket } from '@/app/actions/ticket';
 import {
   faCalendar,
   faCamera,
@@ -43,11 +42,7 @@ import {
 import AddressInput from '@/components/forms/inputs/AddressInput/AddressInput';
 import { toast } from 'sonner';
 
-type UploadFormProps = {
-  type: 'ticket' | 'letter';
-};
-
-const UploadDocumentForm = ({ type }: UploadFormProps) => {
+const CreateTicketForm = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [imageUrl, setImageUrl] = useState<string | undefined>();
   const router = useRouter();
@@ -63,7 +58,7 @@ const UploadDocumentForm = ({ type }: UploadFormProps) => {
     resolver: zodResolver(ticketFormSchema),
     defaultValues: {
       vehicleReg: '',
-      ticketNumber: '',
+      pcnNumber: '',
       issuedAt: undefined,
       contraventionCode: '',
       initialAmount: 0,
@@ -72,14 +67,20 @@ const UploadDocumentForm = ({ type }: UploadFormProps) => {
     },
   });
 
-  async function onSubmit(values: z.infer<typeof ticketFormSchema>) {
+  const onSubmit = async (values: z.infer<typeof ticketFormSchema>) => {
     setIsLoading(true);
 
-    await createTicket({ ...values, imageUrl });
-
-    setIsLoading(false);
-    router.push('/');
-  }
+    try {
+      await createTicket({ ...values, imageUrl });
+      toast.success('Ticket created successfully');
+      router.push('/');
+    } catch (error) {
+      console.error('Error creating ticket:', error);
+      toast.error('Failed to create ticket. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const handleFileUpload = async (
     event: React.ChangeEvent<HTMLInputElement>,
@@ -93,7 +94,7 @@ const UploadDocumentForm = ({ type }: UploadFormProps) => {
       const formData = new FormData();
       formData.append('image', file);
 
-      const response = await fetch('/api/tickets/upload-image', {
+      const response = await fetch('/api/upload-image', {
         method: 'POST',
         body: formData,
       });
@@ -109,7 +110,7 @@ const UploadDocumentForm = ({ type }: UploadFormProps) => {
       setImageUrl(result.imageUrl);
 
       // Prefill form with parsed data
-      form.setValue('ticketNumber', result.data.ticketNumber);
+      form.setValue('pcnNumber', result.data.pcnNumber);
       form.setValue('vehicleReg', result.data.vehicleReg);
       form.setValue('issuedAt', new Date(result.data.issuedAt));
       form.setValue('contraventionCode', result.data.contraventionCode);
@@ -117,7 +118,6 @@ const UploadDocumentForm = ({ type }: UploadFormProps) => {
       form.setValue('issuer', result.data.issuer);
       form.setValue('location', result.data.location);
 
-      // Show success message
       toast.success('Form prefilled with ticket details');
     } catch (error) {
       console.error('Error uploading image:', error);
@@ -126,40 +126,6 @@ const UploadDocumentForm = ({ type }: UploadFormProps) => {
       setIsLoading(false);
     }
   };
-
-  if (type === 'letter') {
-    return (
-      <div className="space-y-4">
-        <div className="flex items-center justify-center w-full">
-          <label
-            htmlFor="letter-file-upload"
-            className="flex flex-col items-center justify-center w-full h-64 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100"
-          >
-            <div className="flex flex-col items-center justify-center pt-5 pb-6">
-              <FontAwesomeIcon
-                icon={faCamera}
-                className="w-8 h-8 mb-4 text-gray-500"
-              />
-              <p className="mb-2 text-sm text-gray-500">
-                <span className="font-semibold">Click to upload</span> or drag
-                and drop
-              </p>
-              <p className="text-xs text-gray-500">PNG, JPG, PDF (MAX. 10MB)</p>
-            </div>
-            <input
-              id="letter-file-upload"
-              type="file"
-              className="hidden"
-              accept="image/*,.pdf"
-            />
-          </label>
-        </div>
-        <Button className="w-full" onClick={() => router.push('/')}>
-          Add Letter
-        </Button>
-      </div>
-    );
-  }
 
   return (
     <Form {...form}>
@@ -220,10 +186,10 @@ const UploadDocumentForm = ({ type }: UploadFormProps) => {
 
             <FormField
               control={form.control}
-              name="ticketNumber"
+              name="pcnNumber"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Ticket Number</FormLabel>
+                  <FormLabel>PCN Number</FormLabel>
                   <FormControl>
                     <Input placeholder="PCN12345678" {...field} />
                   </FormControl>
@@ -373,16 +339,9 @@ const UploadDocumentForm = ({ type }: UploadFormProps) => {
           </div>
         )}
 
-        <div className="flex justify-end space-x-4">
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => router.push('/')}
-          >
-            Cancel
-          </Button>
+        <div className="flex justify-end">
           <Button type="submit" disabled={isLoading}>
-            {isLoading ? 'Adding...' : 'Add Ticket'}
+            {isLoading ? 'Creating...' : 'Create Ticket'}
           </Button>
         </div>
       </form>
@@ -390,4 +349,4 @@ const UploadDocumentForm = ({ type }: UploadFormProps) => {
   );
 };
 
-export default UploadDocumentForm;
+export default CreateTicketForm;

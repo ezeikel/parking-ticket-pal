@@ -9,7 +9,8 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import UploadDocumentForm from '@/components/forms/UploadDocumentForm/UploadDocumentForm';
+import CreateTicketForm from '@/components/forms/CreateTicketForm/CreateTicketForm';
+import CreateLetterForm from '@/components/forms/CreateLetterForm/CreateLetterForm';
 
 const UploadPage = () => {
   const [activeTab, setActiveTab] = useState<'ticket' | 'letter'>('ticket');
@@ -25,7 +26,7 @@ const UploadPage = () => {
             <CardDescription>
               {activeTab === 'ticket'
                 ? 'Enter the details of your parking ticket or upload an image to pre-fill the form.'
-                : 'Upload an image or PDF of your letter.'}
+                : 'Enter the details of your letter or upload an image to pre-fill the form.'}
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -41,7 +42,11 @@ const UploadPage = () => {
                 <TabsTrigger value="letter">Letter</TabsTrigger>
               </TabsList>
 
-              <UploadDocumentForm type={activeTab} />
+              {activeTab === 'ticket' ? (
+                <CreateTicketForm />
+              ) : (
+                <CreateLetterForm />
+              )}
             </Tabs>
           </CardContent>
         </Card>

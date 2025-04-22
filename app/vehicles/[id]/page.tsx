@@ -7,7 +7,7 @@ import {
   faExclamationCircle,
 } from '@fortawesome/pro-regular-svg-icons';
 import Link from 'next/link';
-import { getVehicle } from '@/app/actions';
+import { getVehicle } from '@/app/actions/vehicle';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import VehicleFormWrapper from '@/components/forms/VehicleForm/VehicleFormWrapper';

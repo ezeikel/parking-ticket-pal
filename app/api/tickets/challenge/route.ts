@@ -1,6 +1,6 @@
 /* eslint-disable import/prefer-default-export */
 
-import { challengeTicket } from '@/app/actions';
+import { challengeTicket } from '@/app/actions/ticket';
 
 // longer duration to account for openai api calls
 export const maxDuration = 30;

@@ -6,7 +6,7 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import UserAccountForm from '@/components/forms/UserAccountForm/UserAccountForm';
-import { getCurrentUser } from '../actions';
+import { getCurrentUser } from '@/app/actions/user';
 
 const AccountPage = async () => {
   const user = await getCurrentUser();

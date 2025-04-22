@@ -40,10 +40,11 @@ Your task is to analyze the provided sources and return a JSON object matching t
   "issuerType": "COUNCIL", "TFL", or "PRIVATE_COMPANY",
   "discountedPaymentDeadline": "ISO 8601 string with the following format: YYYY-MM-DDTHH:MM:SSZ",
   "fullPaymentDeadline": "ISO 8601 string with the following format: YYYY-MM-DDTHH:MM:SSZ",
+  "extractedText": "string",  // full text extracted from the document (both tickets and letters)
+  "summary": "string"         // summary of the key points from the document (both tickets and letters)
 
   // If the documentType is "LETTER", extract the following additional fields
-  "extractedText": "string",  // full text extracted from the letter
-  "summary": "string"         // summary of the key points from the letter
+  "sentAt": "ISO 8601 string with the following format: YYYY-MM-DDTHH:MM:SSZ, required for LETTER type only. Look for phrases like 'Date of this Notice', 'Date sent', 'Date posted', or similar patterns indicating when the letter was actually sent/posted. Do not use the date of issue or contravention date. If no sent date is found, use today's date."
 }
 
 When determining whether the document is a "TICKET" or a "LETTER", please consider the following:

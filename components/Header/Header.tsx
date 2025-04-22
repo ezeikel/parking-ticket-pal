@@ -18,7 +18,7 @@ import {
   faTicket,
   faCar,
 } from '@fortawesome/pro-regular-svg-icons';
-import { getCurrentUser } from '@/app/actions';
+import { getCurrentUser } from '@/app/actions/user';
 import cn from '@/utils/cn';
 import SignInButton from '../buttons/SignInButton/SignInButton';
 import SignOutButton from '../buttons/SignOutButton/SignOutButton';
@@ -70,7 +70,7 @@ const Header = async ({ className }: HeaderProps) => {
               <Link href="/new">
                 <Button variant="outline" className="flex items-center gap-2">
                   <FontAwesomeIcon icon={faUpload} className="h-4 w-4" />
-                  <span>Upload Document</span>
+                  <span>Add Document</span>
                 </Button>
               </Link>
               <DropdownMenu>

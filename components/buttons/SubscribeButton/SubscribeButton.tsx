@@ -1,7 +1,7 @@
 'use client';
 
 import { loadStripe } from '@stripe/stripe-js';
-import { createCheckoutSession } from '@/app/actions';
+import { createCheckoutSession } from '@/app/actions/stripe';
 import { Button } from '@/components/ui/button';
 import cn from '@/utils/cn';
 import { ProductType } from '@prisma/client';

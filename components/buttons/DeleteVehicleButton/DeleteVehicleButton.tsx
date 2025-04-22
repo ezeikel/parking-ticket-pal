@@ -1,6 +1,6 @@
 'use client';
 
-import { deleteVehicle } from '@/app/actions';
+import { deleteVehicle } from '@/app/actions/vehicle';
 import { useRouter } from 'next/navigation';
 import DeleteButton from '../DeleteButton/DeleteButton';
 

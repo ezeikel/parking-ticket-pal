@@ -1,6 +1,6 @@
 /* eslint-disable import/prefer-default-export */
 
-import { getTickets } from '@/app/actions';
+import { getTickets } from '@/app/actions/ticket';
 
 export async function GET() {
   const tickets = await getTickets();

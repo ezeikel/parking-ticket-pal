@@ -4,6 +4,7 @@ import {
   COUNCIL_CHALLENGE_REASONS,
   PRIVATE_CHALLENGE_REASONS,
 } from './constants';
+import { LetterType } from '@prisma/client';
 
 export type FileWithPreview = File & {
   preview: string;
@@ -14,7 +15,7 @@ export enum LoaderType {
   UPLOADING_TICKET_IMAGES = 'UPLOADING_TICKET_IMAGES',
 }
 
-export const TicketSchema = z.object({
+export const DocumentSchema = z.object({
   documentType: z.enum(['TICKET', 'LETTER']), // New field to distinguish between a ticket or letter
   pcnNumber: z.string(), // The penalty charge notice (PCN) number
   type: z.enum(['PARKING_CHARGE_NOTICE', 'PENALTY_CHARGE_NOTICE']), // Type of ticket
@@ -38,6 +39,7 @@ export const TicketSchema = z.object({
   // Additional fields for letters
   extractedText: z.string().optional(), // Full text extracted from the letter (only applicable for LETTER)
   summary: z.string().optional(), // Summary of key points from the letter (only applicable for LETTER)
+  sentAt: z.string().optional(), // Date letter was sent (only applicable for LETTER)
 });
 
 export type Issuer = {
@@ -104,7 +106,7 @@ export const ticketFormSchema = z.object({
     .regex(/^[A-Z]{2}[0-9]{2}\s?[A-Z]{3}$/, {
       message: 'Invalid UK vehicle registration format. Example: AB12 CDE',
     }),
-  ticketNumber: z.string().min(1, { message: 'Ticket number is required' }),
+  pcnNumber: z.string().min(1, { message: 'PCN number is required' }),
   issuedAt: z.date({ required_error: 'Date issued is required' }),
   contraventionCode: z
     .string()
@@ -131,6 +133,17 @@ export const ticketFormSchema = z.object({
   }) satisfies z.ZodType<Address>,
 });
 
+export const letterFormSchema = z.object({
+  pcnNumber: z.string().min(1, { message: 'PCN number is required' }),
+  vehicleReg: z
+    .string()
+    .min(1, { message: 'Vehicle registration is required' }),
+  type: z.nativeEnum(LetterType),
+  summary: z.string().min(1, { message: 'Summary is required' }),
+  sentAt: z.date({ required_error: 'Date sent is required' }),
+  extractedText: z.string().optional(),
+});
+
 export type PdfFormFields = {
   penaltyChargeNo: string;
   vehicleRegistrationNo: string;
@@ -149,3 +162,5 @@ export type PdfFormFields = {
   signatureDataUrl?: string | null;
   [key: string]: any; // allow for additional form-specific fields
 };
+
+export type CreateLetterValues = z.infer<typeof letterFormSchema>;

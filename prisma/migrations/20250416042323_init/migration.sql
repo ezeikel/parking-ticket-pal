@@ -2,7 +2,7 @@
 CREATE TYPE "TicketType" AS ENUM ('PARKING_CHARGE_NOTICE', 'PENALTY_CHARGE_NOTICE');
 
 -- CreateEnum
-CREATE TYPE "LetterType" AS ENUM ('INITIAL_NOTICE', 'APPEAL_RESPONSE', 'NOTICE_TO_OWNER', 'CHARGE_CERTIFICATE');
+CREATE TYPE "LetterType" AS ENUM ('INITIAL_NOTICE', 'NOTICE_TO_OWNER', 'CHARGE_CERTIFICATE', 'ORDER_FOR_RECOVERY', 'CCJ_NOTICE', 'FINAL_DEMAND', 'BAILIFF_NOTICE', 'APPEAL_RESPONSE', 'GENERIC');
 
 -- CreateEnum
 CREATE TYPE "MediaType" AS ENUM ('IMAGE', 'VIDEO', 'AUDIO');
@@ -42,6 +42,9 @@ CREATE TYPE "VerificationType" AS ENUM ('VEHICLE', 'TICKET');
 
 -- CreateEnum
 CREATE TYPE "VerificationStatus" AS ENUM ('VERIFIED', 'UNVERIFIED', 'FAILED');
+
+-- CreateEnum
+CREATE TYPE "AmountIncreaseSourceType" AS ENUM ('LETTER', 'MANUAL_UPDATE', 'SYSTEM');
 
 -- CreateTable
 CREATE TABLE "users" (
@@ -88,6 +91,9 @@ CREATE TABLE "tickets" (
     "status" "TicketStatus" NOT NULL DEFAULT 'REDUCED_PAYMENT_DUE',
     "type" "TicketType" NOT NULL,
     "initialAmount" INTEGER NOT NULL,
+    "currentAmount" INTEGER,
+    "statusUpdatedAt" TIMESTAMP(3),
+    "statusUpdatedBy" TEXT,
     "issuer" TEXT NOT NULL,
     "issuerType" "IssuerType" NOT NULL,
     "verified" BOOLEAN NOT NULL DEFAULT false,
@@ -120,6 +126,10 @@ CREATE TABLE "letters" (
     "ticketId" TEXT NOT NULL,
     "extractedText" TEXT NOT NULL,
     "summary" TEXT NOT NULL,
+    "sentAt" TIMESTAMP(3),
+    "parsedStatus" "TicketStatus",
+    "parsedAmount" INTEGER,
+    "parsedAt" TIMESTAMP(3),
     "appealId" TEXT,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
@@ -196,6 +206,22 @@ CREATE TABLE "predictions" (
 );
 
 -- CreateTable
+CREATE TABLE "amount_increases" (
+    "id" TEXT NOT NULL,
+    "ticketId" TEXT NOT NULL,
+    "amount" INTEGER NOT NULL,
+    "reason" TEXT,
+    "sourceType" "AmountIncreaseSourceType" NOT NULL,
+    "sourceId" TEXT,
+    "effectiveAt" TIMESTAMP(3) NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+    "letterId" TEXT,
+
+    CONSTRAINT "amount_increases_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
 CREATE TABLE "verifications" (
     "id" TEXT NOT NULL,
     "type" "VerificationType" NOT NULL,
@@ -235,6 +261,12 @@ CREATE INDEX "reminders_ticketId_sendAt_idx" ON "reminders"("ticketId", "sendAt"
 CREATE UNIQUE INDEX "predictions_ticketId_key" ON "predictions"("ticketId");
 
 -- CreateIndex
+CREATE UNIQUE INDEX "amount_increases_letterId_key" ON "amount_increases"("letterId");
+
+-- CreateIndex
+CREATE INDEX "amount_increases_ticketId_effectiveAt_idx" ON "amount_increases"("ticketId", "effectiveAt");
+
+-- CreateIndex
 CREATE UNIQUE INDEX "verifications_vehicleId_key" ON "verifications"("vehicleId");
 
 -- CreateIndex
@@ -256,10 +288,10 @@ ALTER TABLE "media" ADD CONSTRAINT "media_letterId_fkey" FOREIGN KEY ("letterId"
 ALTER TABLE "media" ADD CONSTRAINT "media_ticketId_fkey" FOREIGN KEY ("ticketId") REFERENCES "tickets"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "letters" ADD CONSTRAINT "letters_appealId_fkey" FOREIGN KEY ("appealId") REFERENCES "appeals"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE "letters" ADD CONSTRAINT "letters_ticketId_fkey" FOREIGN KEY ("ticketId") REFERENCES "tickets"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "letters" ADD CONSTRAINT "letters_ticketId_fkey" FOREIGN KEY ("ticketId") REFERENCES "tickets"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "letters" ADD CONSTRAINT "letters_appealId_fkey" FOREIGN KEY ("appealId") REFERENCES "appeals"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "appeals" ADD CONSTRAINT "appeals_ticketId_fkey" FOREIGN KEY ("ticketId") REFERENCES "tickets"("id") ON DELETE CASCADE ON UPDATE CASCADE;
@@ -275,6 +307,12 @@ ALTER TABLE "forms" ADD CONSTRAINT "forms_ticketId_fkey" FOREIGN KEY ("ticketId"
 
 -- AddForeignKey
 ALTER TABLE "predictions" ADD CONSTRAINT "predictions_ticketId_fkey" FOREIGN KEY ("ticketId") REFERENCES "tickets"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "amount_increases" ADD CONSTRAINT "amount_increases_ticketId_fkey" FOREIGN KEY ("ticketId") REFERENCES "tickets"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "amount_increases" ADD CONSTRAINT "amount_increases_letterId_fkey" FOREIGN KEY ("letterId") REFERENCES "letters"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "verifications" ADD CONSTRAINT "verifications_vehicleId_fkey" FOREIGN KEY ("vehicleId") REFERENCES "vehicles"("id") ON DELETE CASCADE ON UPDATE CASCADE;

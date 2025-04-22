@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { createCheckoutSession } from '@/app/actions';
+import { createCheckoutSession } from '@/app/actions/stripe';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,

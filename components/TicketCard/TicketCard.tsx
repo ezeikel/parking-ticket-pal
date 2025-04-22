@@ -24,8 +24,8 @@ import {
 import { Prisma } from '@prisma/client';
 import { formatDateWithDueStatus, calculateAmountDue } from '@/utils/dates';
 import AmountDue from '@/components/AmountDue/AmountDue';
-import { deleteTicket } from '@/app/actions';
-import DueDate from '../DueDate/DueDate';
+import { deleteTicket } from '@/app/actions/ticket';
+import DueDate from '@/components/DueDate/DueDate';
 import getIssuerInitials from '@/utils/getIssuerInitials';
 import ChallengeSuccessLikelihood from '@/components/ChallengeSuccessLikelihood/ChallengeSuccessLikelihood';
 

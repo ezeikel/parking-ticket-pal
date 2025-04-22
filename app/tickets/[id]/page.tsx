@@ -1,13 +1,13 @@
 import Link from 'next/link';
+import { Prisma } from '@prisma/client';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { Button } from '@/components/ui/button';
 import { faArrowLeft } from '@fortawesome/pro-regular-svg-icons';
-import { getTicket } from '@/app/actions';
+import { getTicket } from '@/app/actions/ticket';
 import TicketDetail from '@/components/TicketDetail/TicketDetail';
 import EditTicketForm from '@/components/forms/EditTicketForm/EditTicketForm';
 import EditButton from '@/components/buttons/EditButton/EditButton';
 import DeleteTicketButton from '@/components/buttons/DeleteTicketButton/DeleteTicketButton';
-import { Prisma } from '@prisma/client';
 
 type TicketPageProps = {
   params: Promise<{ id: string }>;
