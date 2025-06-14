@@ -9,8 +9,8 @@ import {
   DropdownMenuTrigger,
   DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu';
+import { faSquareParking } from '@fortawesome/pro-solid-svg-icons';
 import {
-  faParking,
   faUpload,
   faUser,
   faCreditCard,
@@ -37,8 +37,8 @@ const Header = async ({ className }: HeaderProps) => {
   return (
     <header className={cn('border-b', className)}>
       <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-        <Link href="/" className="flex items-center space-x-2">
-          <FontAwesomeIcon icon={faParking} className="h-6 w-6" />
+        <Link href="/" className="flex items-center gap-x-2">
+          <FontAwesomeIcon icon={faSquareParking} size="2x" color="#266696" />
           <span className="font-bold text-xl">Parking Ticket Pal</span>
         </Link>
         <div className="flex items-center space-x-4">

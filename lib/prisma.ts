@@ -72,7 +72,7 @@ const prismaClientSingleton = () => {
         : undefined,
   });
 
-  // Add Ticket-specific middleware using $extends
+  // add Ticket-specific middleware using $extends
   return client.$extends({
     query: {
       ticket: {
