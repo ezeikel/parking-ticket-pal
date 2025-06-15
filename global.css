@@ -3,10 +3,10 @@
 @custom-variant dark (&:is(.dark *));
 
 @theme {
-  --font-sans: var(--font-sans), ui-sans-serif, system-ui, sans-serif,
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif,
     'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
-  --font-serif: var(--font-serif), ui-serif, Georgia, Cambria,
-    'Times New Roman', Times, serif;
+  --font-slab: var(--font-roboto-slab), serif;
+  --font-display: var(--font-lato), sans-serif;
 
   --color-border: hsl(var(--border));
   --color-input: hsl(var(--input));

@@ -39,7 +39,9 @@ const Header = async ({ className }: HeaderProps) => {
       <div className="container mx-auto px-4 py-4 flex items-center justify-between">
         <Link href="/" className="flex items-center gap-x-2">
           <FontAwesomeIcon icon={faSquareParking} size="2x" color="#266696" />
-          <span className="font-bold text-xl">Parking Ticket Pal</span>
+          <span className="font-bold font-display text-xl">
+            Parking Ticket Pal
+          </span>
         </Link>
         <div className="flex items-center space-x-4">
           {user ? (

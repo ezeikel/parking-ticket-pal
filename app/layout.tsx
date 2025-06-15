@@ -1,6 +1,5 @@
 import type { Metadata } from 'next';
 import { Analytics } from '@vercel/analytics/react';
-import { GeistSans } from 'geist/font/sans';
 import PlausibleProvider from 'next-plausible';
 import { config } from '@fortawesome/fontawesome-svg-core';
 import { Toaster } from 'sonner';
@@ -10,6 +9,7 @@ import Header from '@/components/Header/Header';
 import LayoutWrap from '@/components/LayoutWrap/LayoutWrap';
 import FundAccountDialog from '@/components/dialogs/FundAccountDialog/FundAccountDialog';
 import Providers from './providers';
+import { inter, robotoSlab, lato } from './fonts';
 import '@/global.css';
 import 'mapbox-gl/dist/mapbox-gl.css';
 
@@ -33,7 +33,15 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={GeistSans.className}>
+    <html
+      lang="en"
+      className={cn(
+        inter.variable,
+        robotoSlab.variable,
+        lato.variable,
+        'font-sans',
+      )}
+    >
       <head>
         <PlausibleProvider domain="parkingticketpal.com" />
       </head>
