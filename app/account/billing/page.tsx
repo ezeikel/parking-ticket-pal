@@ -20,12 +20,14 @@ const BillingPage = async () => {
   return (
     <div className="container mx-auto py-6 space-y-6 max-w-4xl">
       <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold">Billing & Subscription</h1>
+        <h1 className="font-slab font-bold text-3xl">Billing & Subscription</h1>
       </div>
 
       <Card>
         <CardHeader>
-          <CardTitle>Current Plan</CardTitle>
+          <CardTitle className="font-slab font-bold text-2xl">
+            Current Plan
+          </CardTitle>
           <CardDescription>
             {isProSubscriber
               ? 'You are currently on the Pro Plan.'

@@ -2,12 +2,11 @@
 
 import { headers } from 'next/headers';
 import { User } from '@prisma/client';
-import { auth } from '@/auth';
+import { auth, signOut } from '@/auth';
 import { db } from '@/lib/prisma';
 import { del, put, list } from '@vercel/blob';
 import { USER_SIGNATURE_PATH } from '@/constants';
 
-// Define the Point type from SignaturePad
 type Point = {
   x: number;
   y: number;
@@ -80,6 +79,11 @@ export const getUserId = async (action?: string) => {
   const headersList = await headers();
 
   const userId = session?.user.dbId || headersList.get('x-user-id');
+
+  // TODO: create action constants
+  if (action === 'get the current user') {
+    return userId;
+  }
 
   if (!userId) {
     console.error(
@@ -179,4 +183,8 @@ export const updateUserProfile = async (userId: string, formData: FormData) => {
     console.error('Error updating profile:', error);
     return { success: false, error: 'Failed to update profile' };
   }
+};
+
+export const signOutAction = async () => {
+  await signOut();
 };

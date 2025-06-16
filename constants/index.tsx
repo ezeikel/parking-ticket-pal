@@ -9,6 +9,13 @@ import {
 } from '@prisma/client';
 import { IconProp } from '@fortawesome/fontawesome-svg-core';
 import { faCreditCard, faUser } from '@fortawesome/pro-duotone-svg-icons';
+import {
+  faFacebookF,
+  faInstagram,
+  faThreads,
+  faTiktok,
+  faXTwitter,
+} from '@fortawesome/free-brands-svg-icons';
 
 export * from './prompts';
 export * from './loadingMessages';
@@ -557,9 +564,7 @@ export const ISSUERS = [
 // Helper to check if an issuer supports automation
 export const isAutomationSupported = (
   issuerId: string,
-): issuerId is AutomationIssuerId => {
-  return !!AUTOMATIONS[issuerId as AutomationIssuerId];
-};
+): issuerId is AutomationIssuerId => !!AUTOMATIONS[issuerId as AutomationIssuerId];
 
 export const findIssuer = (text: string) =>
   ISSUERS.find((issuer) =>
@@ -1073,7 +1078,7 @@ export const CONTRAVENTION_CODES_OPTIONS: ReadonlyArray<{
 
 export const CHATGPT_MODEL = 'gpt-4o';
 
-export const STRIPE_API_VERSION = '2025-02-24.acacia';
+export const STRIPE_API_VERSION = '2025-05-28.basil';
 
 export const DUMMY_TICKET: Prisma.TicketGetPayload<{
   include: {
@@ -1399,3 +1404,48 @@ export const STORAGE_PATHS = {
   USER_IMAGE: 'users/%s/image.%s',
   USER_TICKET_FORM: 'users/%s/tickets/%s/forms/%s-%s-%s-%s.pdf',
 };
+
+export const SOCIAL_LINKS = [
+  {
+    id: 'instagram',
+    label: 'Instagram',
+    href: 'https://instagram.com/parkingticketpal',
+    icon: faInstagram,
+  },
+  {
+    id: 'facebook',
+    label: 'Facebook',
+    href: 'https://facebook.com/parkingticketpal',
+    icon: faFacebookF,
+  },
+  {
+    id: 'tiktok',
+    label: 'TikTok',
+    href: 'https://tiktok.com/@parkingticketpal',
+    icon: faTiktok,
+  },
+  {
+    id: 'x',
+    label: 'X',
+    href: 'https://x.com/parkingticketpal',
+    icon: faXTwitter,
+  },
+  {
+    id: 'threads',
+    label: 'Threads',
+    href: 'https://threads.net/@parkingticketpal',
+    icon: faThreads,
+  },
+  // {
+  //   id: 'youtube',
+  //   label: 'YouTube',
+  //   href: 'https://youtube.com/@parkingticketpal',
+  //   icon: faYoutube,
+  // },
+  // {
+  //   id: 'whatsapp',
+  //   label: 'WhatsApp',
+  //   href: 'https://wa.me/parkingticketpal',
+  //   icon: faWhatsapp,
+  // }
+];

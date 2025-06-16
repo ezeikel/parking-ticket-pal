@@ -285,8 +285,6 @@ export const getSubscription = async () => {
   return subscription;
 };
 
-export const revalidateDashboard = async () => revalidatePath('/dashboard');
-
 export const getEvidenceImages = async ({
   pcnNumber,
 }: {

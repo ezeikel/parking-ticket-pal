@@ -18,7 +18,7 @@ import MediaPreview from '@/components/MediaPreview/MediaPreview';
 import { FileWithPreview, LoaderType } from '@/types';
 import Loader from '@/components/Loader/Loader';
 import { toast } from 'sonner';
-import { revalidateDashboard } from '@/app/actions';
+import { refresh } from '@/app/actions';
 // import { useAccountContext } from '@/contexts/account';
 
 // type UploadButtonProps = {
@@ -100,7 +100,7 @@ const UploadButton = () => {
       }
 
       // FIX: revalidarPath from route handler seemed to have no effect
-      await revalidateDashboard();
+      await refresh('/dashboard');
 
       setIsLoading(false);
 

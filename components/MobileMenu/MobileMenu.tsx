@@ -1,0 +1,126 @@
+'use client';
+
+import { useState } from 'react';
+import Link from 'next/link';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faBars, faXmark } from '@fortawesome/pro-regular-svg-icons';
+import { signOut } from 'next-auth/react';
+import cn from '@/utils/cn';
+
+type MobileNavItem = {
+  label: string;
+  iconName?: any;
+  href?: string;
+  liClass?: string;
+  action?: 'signout';
+};
+
+type MobileMenuProps = {
+  items: MobileNavItem[];
+};
+
+const MobileMenu = ({ items }: MobileMenuProps) => {
+  const [isOpen, setIsOpen] = useState(false);
+
+  const renderMenuItem = (item: MobileNavItem) => {
+    if (item.action === 'signout') {
+      return (
+        <button
+          type="button"
+          className="flex items-center gap-2 p-2 w-full text-left hover:bg-muted/50 rounded-lg transition-colors"
+          onClick={async () => {
+            setIsOpen(false);
+            await signOut({ callbackUrl: '/' });
+          }}
+        >
+          {item.iconName && <FontAwesomeIcon icon={item.iconName} size="lg" />}
+          {item.label}
+        </button>
+      );
+    }
+
+    if (item.href) {
+      if (item.href.startsWith('mailto:')) {
+        return (
+          <a
+            href={item.href}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-2 p-2 hover:bg-muted/50 rounded-lg transition-colors"
+            onClick={() => setIsOpen(false)}
+          >
+            {item.iconName && (
+              <FontAwesomeIcon icon={item.iconName} size="lg" />
+            )}
+            {item.label}
+          </a>
+        );
+      }
+
+      return (
+        <Link
+          href={item.href}
+          className="flex items-center gap-2 p-2 hover:bg-muted/50 rounded-lg transition-colors"
+          onClick={() => setIsOpen(false)}
+        >
+          {item.iconName && <FontAwesomeIcon icon={item.iconName} size="lg" />}
+          {item.label}
+        </Link>
+      );
+    }
+
+    return (
+      <div className="flex items-center gap-2 p-2">
+        {item.iconName && <FontAwesomeIcon icon={item.iconName} size="lg" />}
+        {item.label}
+      </div>
+    );
+  };
+
+  return (
+    <div className="md:hidden">
+      <button
+        type="button"
+        onClick={() => setIsOpen(true)}
+        className="p-2 hover:bg-muted/50 rounded-lg transition-colors"
+        aria-label="Open menu"
+      >
+        <FontAwesomeIcon icon={faBars} size="lg" />
+      </button>
+
+      {/* Overlay */}
+      {isOpen && (
+        <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50">
+          <div className="fixed inset-y-0 right-0 w-full max-w-sm bg-background shadow-lg">
+            <div className="flex items-center justify-between p-4 border-b">
+              <h2 className="font-semibold">Menu</h2>
+              <button
+                type="button"
+                onClick={() => setIsOpen(false)}
+                className="hover:bg-muted/50 rounded-lg transition-colors"
+                aria-label="Close menu"
+              >
+                <FontAwesomeIcon icon={faXmark} size="lg" />
+              </button>
+            </div>
+
+            <nav className="p-4">
+              <ul className="space-y-4">
+                {items.map((item) => (
+                  <li
+                    key={item.href || item.label}
+                    className={cn(item.liClass)}
+                  >
+                    {renderMenuItem(item)}
+                  </li>
+                ))}
+              </ul>
+            </nav>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default MobileMenu;

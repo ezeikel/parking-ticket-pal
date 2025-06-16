@@ -17,7 +17,7 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import AddressInput from '@/components/forms/inputs/AddressInput/AddressInput';
-import SignatureInput from '@/components/SignatureInput';
+import SignatureInput from '@/components/SignatureInput/SignatureInput';
 import { User } from '@prisma/client';
 import { Address } from '@/types';
 

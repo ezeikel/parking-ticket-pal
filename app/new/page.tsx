@@ -20,7 +20,7 @@ const UploadPage = () => {
       <div className="max-w-3xl mx-auto">
         <Card>
           <CardHeader>
-            <CardTitle>
+            <CardTitle className="font-slab font-medium text-2xl">
               Add {activeTab === 'ticket' ? 'Parking Ticket' : 'Letter'}
             </CardTitle>
             <CardDescription>

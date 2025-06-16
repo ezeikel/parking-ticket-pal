@@ -10,7 +10,9 @@ import {
   faTrash,
   faXmark,
 } from '@fortawesome/pro-regular-svg-icons';
-import SignatureCanvas, { SignatureCanvasHandle } from './SignatureCanvas';
+import SignatureCanvas, {
+  SignatureCanvasHandle,
+} from '../SignatureCanvas/SignatureCanvas';
 
 type SignatureInputProps = {
   onSignatureChange: (dataUrl: string | null) => void;

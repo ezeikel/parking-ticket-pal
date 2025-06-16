@@ -21,7 +21,9 @@ const RecentTickets = async () => {
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between">
-        <CardTitle>Recent Tickets</CardTitle>
+        <CardTitle className="font-slab font-medium text-2xl">
+          Recent Tickets
+        </CardTitle>
         <Link href="/tickets">
           <Button variant="ghost" size="sm">
             View All

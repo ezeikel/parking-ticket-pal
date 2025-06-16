@@ -46,7 +46,7 @@ const VehicleDetailPage = async ({
                 <FontAwesomeIcon icon={faArrowLeft} className="h-4 w-4" />
               </Button>
             </Link>
-            <h1 className="text-3xl font-bold">Edit Vehicle</h1>
+            <h1 className="font-slab font-bold text-3xl">Edit Vehicle</h1>
           </div>
         </div>
 
@@ -85,7 +85,7 @@ const VehicleDetailPage = async ({
               <FontAwesomeIcon icon={faArrowLeft} className="h-4 w-4" />
             </Button>
           </Link>
-          <h1 className="text-3xl font-bold">Vehicle Details</h1>
+          <h1 className="font-slab font-bold text-3xl">Vehicle Details</h1>
         </div>
         <Link href={`/vehicles/${id}?mode=edit`}>
           <Button>

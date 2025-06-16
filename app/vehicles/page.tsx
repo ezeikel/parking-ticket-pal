@@ -13,7 +13,7 @@ const VehiclesPage = async () => {
     return (
       <div className="container mx-auto py-6 space-y-6">
         <div className="flex items-center justify-between">
-          <h1 className="text-3xl font-bold">Your Vehicles</h1>
+          <h1 className="font-slab font-bold text-3xl">Your Vehicles</h1>
           <Button className="flex items-center gap-2">
             <FontAwesomeIcon icon={faPlus} className="h-4 w-4" />
             <span>Add Vehicle</span>
@@ -32,7 +32,7 @@ const VehiclesPage = async () => {
   return (
     <div className="container mx-auto py-6 space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold">Your Vehicles</h1>
+        <h1 className="font-slab font-bold text-3xl">Your Vehicles</h1>
         <Link href="/vehicles/new">
           <Button className="flex items-center gap-2">
             <FontAwesomeIcon icon={faPlus} className="h-4 w-4" />

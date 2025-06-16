@@ -1,3 +1,5 @@
+'use server';
+
 import { revalidatePath } from 'next/cache';
 import { Prisma, VerificationStatus, VerificationType } from '@prisma/client';
 import getVehicleInfo from '@/utils/getVehicleInfo';

@@ -1,14 +1,13 @@
 import { Suspense } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import StatsCards from './components/stats-cards';
 import QuickActions from './components/quick-actions';
 import RecentTickets from './components/recent-tickets';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
-const DashboardPage = async () => {
-  return (
+const DashboardPage = async () => (
     <div className="container mx-auto py-6 space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold">Dashboard</h1>
+        <h1 className="font-slab font-bold text-3xl">Dashboard</h1>
       </div>
 
       <Suspense fallback={<div>Loading stats...</div>}>
@@ -26,7 +25,9 @@ const DashboardPage = async () => {
 
         <Card>
           <CardHeader>
-            <CardTitle>Coming Soon</CardTitle>
+            <CardTitle className="font-slab font-medium text-2xl">
+              Coming Soon
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <p className="text-muted-foreground">
@@ -43,6 +44,5 @@ const DashboardPage = async () => {
       </div>
     </div>
   );
-};
 
 export default DashboardPage;

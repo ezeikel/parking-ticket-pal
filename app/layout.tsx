@@ -12,6 +12,7 @@ import Providers from './providers';
 import { inter, robotoSlab, lato } from './fonts';
 import '@/global.css';
 import 'mapbox-gl/dist/mapbox-gl.css';
+import Footer from '@/components/Footer/Footer';
 
 config.autoAddCss = false;
 
@@ -50,6 +51,7 @@ export default function RootLayout({
           <LayoutWrap>
             <Header className="row-start-1 row-span-1" />
             <main className="row-start-2 row-span-1">{children}</main>
+            <Footer />
             <FundAccountDialog />
           </LayoutWrap>
         </Providers>

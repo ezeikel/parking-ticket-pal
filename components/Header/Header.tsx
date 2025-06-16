@@ -1,118 +1,226 @@
 import Link from 'next/link';
-import { Button } from '@/components/ui/button';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-  DropdownMenuSeparator,
-} from '@/components/ui/dropdown-menu';
+import { User } from '@prisma/client';
 import { faSquareParking } from '@fortawesome/pro-solid-svg-icons';
 import {
   faUpload,
-  faUser,
-  faCreditCard,
-  faChartLine,
   faTicket,
   faCar,
+  faCreditCard,
+  faHeadset,
+  faRightToBracket,
+  faHome,
+  faUser,
+  faSignOut,
+  faTag,
 } from '@fortawesome/pro-regular-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import type { IconDefinition } from '@fortawesome/fontawesome-svg-core';
 import { getCurrentUser } from '@/app/actions/user';
 import cn from '@/utils/cn';
-import SignInButton from '../buttons/SignInButton/SignInButton';
-import SignOutButton from '../buttons/SignOutButton/SignOutButton';
+import MobileMenu from '@/components/MobileMenu/MobileMenu';
+import UserDropdown from '@/components/UserDropdown/UserDropdown';
 
 type HeaderProps = {
   className?: string;
 };
 
+export type Visibility = 'always' | 'authenticated' | 'unauthenticated';
+
+export type NavItem = {
+  label: string;
+  icon?: React.ReactNode;
+  href?: string;
+  liClass?: string;
+  component?: (user: Partial<User>) => React.ReactNode;
+  visibility: Visibility;
+};
+
+export type MobileNavItem = {
+  label: string;
+  iconName?: IconDefinition;
+  href?: string;
+  liClass?: string;
+  action?: 'signout';
+};
+
+const ITEMS: NavItem[] = [
+  {
+    label: 'Home',
+    icon: <FontAwesomeIcon icon={faHome} size="lg" />,
+    href: '/',
+    visibility: 'always',
+  },
+  {
+    label: 'Pricing',
+    icon: <FontAwesomeIcon icon={faTag} size="lg" />,
+    href: '/pricing',
+    visibility: 'unauthenticated',
+  },
+  {
+    label: 'Support',
+    icon: <FontAwesomeIcon icon={faHeadset} size="lg" />,
+    href: 'mailto:support@parkticketpal.com',
+    visibility: 'unauthenticated',
+  },
+  {
+    label: 'Tickets',
+    icon: <FontAwesomeIcon icon={faTicket} size="lg" />,
+    href: '/tickets',
+    visibility: 'authenticated',
+  },
+  {
+    label: 'Vehicles',
+    icon: <FontAwesomeIcon icon={faCar} size="lg" />,
+    href: '/vehicles',
+    visibility: 'authenticated',
+  },
+  {
+    label: 'Add Document',
+    icon: <FontAwesomeIcon icon={faUpload} size="lg" />,
+    href: '/new',
+    visibility: 'authenticated',
+  },
+  {
+    label: 'UserDropdown',
+    liClass: 'p-0 flex',
+    component: (user: Partial<User>) => <UserDropdown user={user} />,
+    visibility: 'authenticated',
+  },
+];
+
+const getMobileNav = (user: Partial<User> | null): MobileNavItem[] => {
+  if (!user) {
+    return [
+      { label: 'Home', iconName: faHome, href: '/' },
+      { label: 'Pricing', iconName: faTag, href: '/pricing' },
+      {
+        label: 'Support',
+        iconName: faHeadset,
+        href: 'mailto:support@parkticketpal.com',
+      },
+      { label: 'Sign in', iconName: faRightToBracket, href: '/signin' },
+    ];
+  }
+
+  return [
+    { label: 'Home', iconName: faHome, href: '/' },
+    { label: 'Add Document', iconName: faUpload, href: '/new' },
+    { label: 'Tickets', iconName: faTicket, href: '/tickets' },
+    { label: 'Vehicles', iconName: faCar, href: '/vehicles' },
+    { label: 'Account', iconName: faUser, href: '/account' },
+    { label: 'Billing', iconName: faCreditCard, href: '/account/billing' },
+    {
+      label: 'Support',
+      iconName: faHeadset,
+      href: 'mailto:support@parkticketpal.com',
+    },
+    { label: 'Sign out', iconName: faSignOut, action: 'signout' },
+  ];
+};
+
+const renderNavLink = (item: NavItem, user: Partial<User> | null) => {
+  if (item.href?.startsWith('mailto:')) {
+    return (
+      <a
+        href={item.href}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="flex items-center gap-2"
+      >
+        {item.icon}
+        {item.label}
+      </a>
+    );
+  }
+
+  if (item.href) {
+    return (
+      <Link href={item.href} className="flex items-center gap-2">
+        {item.icon}
+        {item.label}
+      </Link>
+    );
+  }
+
+  return (
+    <div className="flex items-center gap-2">
+      {item.icon}
+      {item.component?.(user as Partial<User>)}
+    </div>
+  );
+};
+
 const Header = async ({ className }: HeaderProps) => {
   const user = await getCurrentUser();
-  const userInitials = user?.name
-    ?.split(' ')
-    .map((name) => name[0])
-    .join('');
+
+  const mobileItems = getMobileNav(user);
+
+  const renderItems = () => {
+    const visibleItems = ITEMS.filter((item) => {
+      switch (item.visibility) {
+        case 'always':
+          return true;
+        case 'authenticated':
+          return !!user;
+        case 'unauthenticated':
+          return !user;
+        default:
+          return false;
+      }
+    });
+
+    if (user) {
+      return (
+        <div className="flex items-center gap-4">
+          <ul className="hidden md:flex gap-8">
+            {visibleItems.map((item) => (
+              <li
+                key={item.href || item.label}
+                className={cn('p-2', item.liClass)}
+              >
+                {renderNavLink(item, user)}
+              </li>
+            ))}
+          </ul>
+          <MobileMenu items={mobileItems} />
+        </div>
+      );
+    }
+
+    return (
+      <div className="flex items-center gap-4">
+        <ul className="hidden md:flex gap-8">
+          {visibleItems.map((item) => (
+            <li
+              key={item.href || item.label}
+              className={cn('p-2', item.liClass)}
+            >
+              {renderNavLink(item, null)}
+            </li>
+          ))}
+        </ul>
+        <Link
+          href="/signin"
+          className="hidden md:flex items-center gap-2 font-medium px-4 py-2 rounded hover:bg-muted/50 transition-colors"
+        >
+          <FontAwesomeIcon icon={faRightToBracket} size="lg" />
+          Sign in
+        </Link>
+        <MobileMenu items={mobileItems} />
+      </div>
+    );
+  };
 
   return (
     <header className={cn('border-b', className)}>
       <div className="container mx-auto px-4 py-4 flex items-center justify-between">
         <Link href="/" className="flex items-center gap-x-2">
           <FontAwesomeIcon icon={faSquareParking} size="2x" color="#266696" />
-          <span className="font-bold font-display text-xl">
+          <span className="font-display font-bold text-2xl">
             Parking Ticket Pal
           </span>
         </Link>
-        <div className="flex items-center space-x-4">
-          {user ? (
-            <>
-              <nav className="hidden md:flex items-center space-x-6">
-                <Link
-                  href="/dashboard"
-                  className="flex items-center space-x-2 text-sm font-medium text-muted-foreground hover:text-primary"
-                >
-                  <FontAwesomeIcon icon={faChartLine} className="h-4 w-4" />
-                  <span>Dashboard</span>
-                </Link>
-                <Link
-                  href="/tickets"
-                  className="flex items-center space-x-2 text-sm font-medium text-muted-foreground hover:text-primary"
-                >
-                  <FontAwesomeIcon icon={faTicket} className="h-4 w-4" />
-                  <span>Tickets</span>
-                </Link>
-                <Link
-                  href="/vehicles"
-                  className="flex items-center space-x-2 text-sm font-medium text-muted-foreground hover:text-primary"
-                >
-                  <FontAwesomeIcon icon={faCar} className="h-4 w-4" />
-                  <span>Vehicles</span>
-                </Link>
-              </nav>
-              <Link href="/new">
-                <Button variant="outline" className="flex items-center gap-2">
-                  <FontAwesomeIcon icon={faUpload} className="h-4 w-4" />
-                  <span>Add Document</span>
-                </Button>
-              </Link>
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    className="relative h-8 w-8 rounded-full"
-                  >
-                    <Avatar className="h-8 w-8">
-                      <AvatarFallback>{userInitials}</AvatarFallback>
-                    </Avatar>
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent className="w-56" align="end" forceMount>
-                  <Link href="/account">
-                    <DropdownMenuItem className="cursor-pointer">
-                      <FontAwesomeIcon icon={faUser} className="mr-2 h-4 w-4" />
-                      <span>Account</span>
-                    </DropdownMenuItem>
-                  </Link>
-                  <Link href="/account/billing">
-                    <DropdownMenuItem className="cursor-pointer">
-                      <FontAwesomeIcon
-                        icon={faCreditCard}
-                        className="mr-2 h-4 w-4"
-                      />
-                      <span>Billing</span>
-                    </DropdownMenuItem>
-                  </Link>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem>
-                    <SignOutButton />
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </>
-          ) : (
-            <SignInButton />
-          )}
-        </div>
+        {renderItems()}
       </div>
     </header>
   );
