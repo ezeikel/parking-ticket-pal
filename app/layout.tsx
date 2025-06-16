@@ -6,13 +6,12 @@ import { Toaster } from 'sonner';
 import '@fortawesome/fontawesome-svg-core/styles.css';
 import cn from '@/utils/cn';
 import Header from '@/components/Header/Header';
-import LayoutWrap from '@/components/LayoutWrap/LayoutWrap';
 import FundAccountDialog from '@/components/dialogs/FundAccountDialog/FundAccountDialog';
+import Footer from '@/components/Footer/Footer';
 import Providers from './providers';
 import { inter, robotoSlab, lato } from './fonts';
 import '@/global.css';
 import 'mapbox-gl/dist/mapbox-gl.css';
-import Footer from '@/components/Footer/Footer';
 
 config.autoAddCss = false;
 
@@ -34,26 +33,25 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html
-      lang="en"
-      className={cn(
-        inter.variable,
-        robotoSlab.variable,
-        lato.variable,
-        'font-sans',
-      )}
-    >
+    <html lang="en">
       <head>
         <PlausibleProvider domain="parkingticketpal.com" />
       </head>
-      <body className={cn('antialiased')}>
+      <body
+        className={cn(
+          'font-sans antialiased relative',
+          inter.variable,
+          robotoSlab.variable,
+          lato.variable,
+        )}
+      >
         <Providers>
-          <LayoutWrap>
-            <Header className="row-start-1 row-span-1" />
-            <main className="row-start-2 row-span-1">{children}</main>
-            <Footer />
-            <FundAccountDialog />
-          </LayoutWrap>
+          <Header />
+          <main className="flex flex-col min-h-[calc(100vh-72px)] [&>div]:flex-1">
+            {children}
+          </main>
+          <Footer />
+          <FundAccountDialog />
         </Providers>
         <Toaster richColors />
         <Analytics />

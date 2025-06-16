@@ -212,16 +212,19 @@ const Header = async ({ className }: HeaderProps) => {
   };
 
   return (
-    <header className={cn('border-b', className)}>
-      <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-        <Link href="/" className="flex items-center gap-x-2">
-          <FontAwesomeIcon icon={faSquareParking} size="2x" color="#266696" />
-          <span className="font-display font-bold text-2xl">
-            Parking Ticket Pal
-          </span>
-        </Link>
-        {renderItems()}
-      </div>
+    <header
+      className={cn(
+        'flex items-center justify-between p-4 sticky top-0 z-50 bg-white border-b',
+        className,
+      )}
+    >
+      <Link href="/" className="flex items-center gap-x-2">
+        <FontAwesomeIcon icon={faSquareParking} size="2x" color="#266696" />
+        <span className="font-display font-bold text-2xl">
+          Parking Ticket Pal
+        </span>
+      </Link>
+      {renderItems()}
     </header>
   );
 };
