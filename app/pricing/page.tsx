@@ -1,7 +1,5 @@
 'use client';
 
-import { useState } from 'react';
-import { loadStripe } from '@stripe/stripe-js';
 import {
   Card,
   CardHeader,
@@ -11,181 +9,74 @@ import {
   CardFooter,
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCheck } from '@fortawesome/pro-regular-svg-icons';
 import cn from '@/utils/cn';
-import { createCheckoutSession } from '@/app/actions/stripe';
 
-// make sure to call `loadStripe` outside of a component's render to avoid
-// recreating the `Stripe` object on every render
-const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_KEY as string);
+const PRICING_TIERS = [
+  {
+    name: 'Free',
+    tagline: 'Track your tickets, no charge',
+    price: '£0',
+    description:
+      'Great for anyone wanting to stay informed without actioning anything yet.',
+    features: [
+      'Add unlimited tickets',
+      'See key fine deadlines',
+      'Manage notes and uploads',
+    ],
+    disabled: true,
+    cta: 'Included with every account',
+    href: '',
+  },
+  {
+    name: 'Basic',
+    tagline: 'Get reminders before you pay too much',
+    price: '£2.99',
+    description: 'SMS + email reminders so you don’t miss deadlines.',
+    features: ['All Free features', 'SMS + email reminders'],
+    disabled: false,
+    cta: 'Sign up to get reminders',
+    href: '/sign-up?utm_source=pricing_basic',
+  },
+  {
+    name: 'Pro',
+    tagline: 'Challenge your ticket the smart way',
+    price: '£9.99',
+    description:
+      'Everything included: appeal letter, success score, auto-submit.',
+    features: [
+      'All Basic features',
+      'AI appeal letter',
+      'Success prediction',
+      'Automatic appeal submission',
+    ],
+    disabled: false,
+    cta: 'Sign up for full help',
+    href: '/sign-up?utm_source=pricing_pro',
+  },
+];
 
-type PlanInterval = 'monthly' | 'annual';
-type ProductType = 'PRO_MONTHLY' | 'PRO_ANNUAL';
-
-const intervalLabels: Record<PlanInterval, string> = {
-  monthly: 'Monthly',
-  annual: 'Annual (save 20%)',
-};
-
-const SUBSCRIPTION_PLANS = {
-  monthly: [
-    {
-      name: 'Free',
-      tagline: 'Basic features for occasional users',
-      price: '£0',
-      credits: '5',
-      audience: 'For occasional users',
-      features: [
-        'Store up to 5 tickets',
-        'Basic appeal templates',
-        'Email notifications',
-      ],
-      mostPopular: false,
-      bonus: '',
-    },
-    {
-      name: 'Pro',
-      tagline: 'Advanced features for regular users',
-      price: '£4.99',
-      credits: 'unlimited',
-      audience: 'For regular users',
-      features: [
-        'Unlimited tickets storage',
-        'Premium appeal templates',
-        'SMS reminders and notifications',
-        'Fast-track support',
-        'Analytics dashboard',
-      ],
-      mostPopular: true,
-      bonus: '',
-      stripePriceEnv: 'PRO_MONTHLY' as ProductType,
-    },
-  ],
-  annual: [
-    {
-      name: 'Free',
-      tagline: 'Basic features for occasional users',
-      price: '£0',
-      credits: '5',
-      audience: 'For occasional users',
-      features: [
-        'Store up to 5 tickets',
-        'Basic appeal templates',
-        'Email notifications',
-      ],
-      mostPopular: false,
-      bonus: '',
-    },
-    {
-      name: 'Pro',
-      tagline: 'Advanced features for regular users',
-      price: '£47.88',
-      credits: 'unlimited',
-      audience: 'For regular users',
-      features: [
-        'Unlimited tickets storage',
-        'Premium appeal templates',
-        'SMS reminders and notifications',
-        'Fast-track support',
-        'Analytics dashboard',
-        'Early access to new features',
-      ],
-      mostPopular: true,
-      bonus: 'Save 20% with annual billing',
-      stripePriceEnv: 'PRO_ANNUAL' as ProductType,
-    },
-  ],
-};
-
-type Plan = (typeof SUBSCRIPTION_PLANS.monthly)[0];
-
-const PricingPage = () => {
-  const [interval, setInterval] = useState<PlanInterval>('monthly');
-  const [loadingPlan, setLoadingPlan] = useState<string | null>(null);
-  const plans = SUBSCRIPTION_PLANS[interval];
-
-  const handlePurchase = async (plan: Plan) => {
-    if (!plan.stripePriceEnv) return; // Free plan
-
-    setLoadingPlan(plan.name);
-    try {
-      // get stripe.js instance
-      const stripe = await stripePromise;
-
-      if (!stripe) {
-        throw new Error('Stripe failed to load');
-      }
-
-      const session = await createCheckoutSession(plan.stripePriceEnv);
-
-      if (!session) {
-        throw new Error('Failed to create checkout session');
-      }
-
-      const { error } = await stripe.redirectToCheckout({
-        sessionId: session.id,
-      });
-
-      if (error) {
-        console.error('Stripe redirect error:', error);
-        // TODO: show error to user (toast, etc.)
-      }
-    } catch (error) {
-      console.error('Error purchasing plan:', error);
-      // TODO: show error to user (toast, etc.)
-    } finally {
-      setLoadingPlan(null);
-    }
-  };
-
-  return (
+const PricingPage = () => (
     <div className="max-w-5xl mx-auto py-12 px-4">
       <header className="text-center mb-16">
         <h1 className="font-slab text-4xl font-extrabold mb-2 text-primary">
-          Choose Your Parking Ticket Pal Plan
+          Simple, One-Time Pricing
         </h1>
         <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-          Whether you're dealing with occasional parking tickets or need
-          comprehensive support, we've got a plan that fits your needs. Start
-          managing your parking tickets with confidence today!
+          No subscriptions. No hidden fees. Just pay when you want help with a
+          parking ticket.
         </p>
-        <div className="flex justify-center items-center gap-4 mt-6">
-          {(['monthly', 'annual'] as PlanInterval[]).map((key) => (
-            <button
-              key={key}
-              type="button"
-              className={cn(
-                'px-4 py-2 rounded-full font-semibold transition',
-                interval === key
-                  ? 'bg-primary text-primary-foreground shadow'
-                  : 'bg-primary/10 text-primary hover:bg-primary/20',
-              )}
-              onClick={() => setInterval(key)}
-              aria-pressed={interval === key}
-            >
-              {intervalLabels[key]}
-            </button>
-          ))}
-        </div>
       </header>
-      <section className="grid grid-cols-1 md:grid-cols-2 gap-8">
-        {plans.map((plan) => (
+      <section className="grid grid-cols-1 md:grid-cols-3 gap-8">
+        {PRICING_TIERS.map((plan) => (
           <Card
             key={plan.name}
             className={cn(
               'flex flex-col h-full border-2 transition-shadow',
-              plan.mostPopular
-                ? 'border-primary shadow-lg scale-105 relative z-10'
-                : 'border-border',
+              plan.disabled ? 'border-muted' : 'border-border',
             )}
           >
-            {plan.mostPopular && (
-              <Badge className="absolute -top-4 right-1/2 translate-x-1/2 bg-primary text-primary-foreground">
-                Most Popular
-              </Badge>
-            )}
             <CardHeader>
               <CardTitle className="flex flex-col gap-1">
                 <span className="text-center mb-4">
@@ -196,17 +87,10 @@ const PricingPage = () => {
                 </span>
               </CardTitle>
               <CardDescription className="mt-2 text-lg font-bold text-primary">
-                {plan.price}{' '}
-                <span className="text-sm font-normal text-muted-foreground">
-                  /{interval === 'monthly' ? 'mo' : 'year'}
-                </span>
+                {plan.price}
               </CardDescription>
-              <div className="text-sm text-muted-foreground mt-1">
-                {plan.credits === 'unlimited' ? 'Unlimited' : plan.credits}{' '}
-                tickets
-              </div>
               <div className="text-xs text-muted-foreground mt-1">
-                {plan.audience}
+                {plan.description}
               </div>
             </CardHeader>
             <CardContent className="flex-1 flex flex-col gap-2">
@@ -221,24 +105,21 @@ const PricingPage = () => {
                   </li>
                 ))}
               </ul>
-              {plan.bonus && (
-                <div className="text-xs text-primary font-semibold mt-2">
-                  {plan.bonus}
-                </div>
-              )}
             </CardContent>
             <CardFooter className="flex flex-col gap-2">
-              <Button
-                className="w-full text-lg py-2"
-                variant={plan.mostPopular ? 'default' : 'outline'}
-                onClick={() => handlePurchase(plan)}
-                disabled={loadingPlan === plan.name || !plan.stripePriceEnv}
-              >
-                {plan.stripePriceEnv ? 'Subscribe Now' : 'Current Plan'}
-              </Button>
-              <span className="text-xs text-muted-foreground">
-                {plan.stripePriceEnv ? 'No commitment. Cancel anytime.' : ''}
-              </span>
+              {plan.disabled ? (
+                <Button
+                  className="w-full text-lg py-2"
+                  variant="outline"
+                  disabled
+                >
+                  {plan.cta}
+                </Button>
+              ) : (
+                <Button className="w-full text-lg py-2" asChild>
+                  <a href={plan.href}>{plan.cta}</a>
+                </Button>
+              )}
             </CardFooter>
           </Card>
         ))}
@@ -249,27 +130,24 @@ const PricingPage = () => {
         </h2>
         <ul className="space-y-4 text-sm text-muted-foreground">
           <li>
-            <strong>Can I cancel anytime?</strong> Yes! You can cancel your
-            subscription at any time, no questions asked.
+            <strong>Do I need a subscription?</strong> No — you pay only when
+            you want help with a specific ticket.
           </li>
           <li>
-            <strong>What happens to my tickets if I downgrade?</strong> Your
-            existing tickets will remain accessible, but you won't be able to
-            add new ones if you exceed the free plan limit.
+            <strong>Can I use it for free?</strong> Yes — you can add and view
+            tickets without paying anything.
           </li>
           <li>
-            <strong>Do I need a subscription to use the app?</strong> No! You
-            can start with our free plan and upgrade anytime you need more
-            features.
+            <strong>What’s the difference between Basic and Pro?</strong> Basic
+            sends reminders. Pro writes your letter and even submits it.
           </li>
           <li>
-            <strong>How do I get started?</strong> Just pick a plan and start
-            managing your parking tickets instantly!
+            <strong>How do I get started?</strong> Just sign up and add your
+            first ticket. You’ll only pay if you want help with it.
           </li>
         </ul>
       </section>
     </div>
   );
-};
 
 export default PricingPage;

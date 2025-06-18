@@ -42,6 +42,9 @@
   --animate-accordion-down: accordion-down 0.2s ease-out;
   --animate-accordion-up: accordion-up 0.2s ease-out;
 
+  --color-parking-blue: #266696;
+  --color-parking-ticket-yellow: #fdfa64;
+
   @keyframes accordion-down {
     from {
       height: 0;
@@ -56,6 +59,26 @@
     }
     to {
       height: 0;
+    }
+  }
+
+  @keyframes draw {
+    0% {
+      stroke-dashoffset: 200;
+    }
+    100% {
+      stroke-dashoffset: 0;
+    }
+  }
+
+  @keyframes draw-line {
+    0% {
+      transform: scaleX(0) rotate(-1deg);
+      transform-origin: left;
+    }
+    100% {
+      transform: scaleX(1) rotate(-1deg);
+      transform-origin: left;
     }
   }
 }
@@ -160,4 +183,8 @@
   body {
     @apply bg-background text-foreground;
   }
+}
+
+.animate-draw-line {
+  animation: draw-line 1s ease-out forwards;
 }

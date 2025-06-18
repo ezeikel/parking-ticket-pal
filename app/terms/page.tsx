@@ -1,5 +1,4 @@
 import type { Metadata } from 'next';
-import PageWrap from '@/components/PageWrap/PageWrap';
 
 export const metadata: Metadata = {
   title: 'Terms of Service - Parking Ticket Pal',
@@ -8,7 +7,7 @@ export const metadata: Metadata = {
 };
 
 const TermsOfService = () => (
-  <PageWrap className="max-w-4xl mx-auto py-12 px-4">
+  <div className="max-w-4xl mx-auto py-12 px-4">
     <h1 className="text-4xl font-bold mb-8">Terms of Service</h1>
     <p className="text-gray-600 mb-8">
       Last updated: {new Date().toLocaleDateString()}
@@ -195,7 +194,7 @@ const TermsOfService = () => (
         </a>
       </p>
     </section>
-  </PageWrap>
+  </div>
 );
 
 export default TermsOfService;

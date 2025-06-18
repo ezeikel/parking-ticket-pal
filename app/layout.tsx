@@ -33,21 +33,23 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html
+      lang="en"
+      className={cn(
+        'antialiased relative',
+        inter.variable,
+        robotoSlab.variable,
+        lato.variable,
+        'font-sans',
+      )}
+    >
       <head>
         <PlausibleProvider domain="parkingticketpal.com" />
       </head>
-      <body
-        className={cn(
-          'font-sans antialiased relative',
-          inter.variable,
-          robotoSlab.variable,
-          lato.variable,
-        )}
-      >
+      <body>
         <Providers>
           <Header />
-          <main className="flex flex-col min-h-[calc(100vh-72px)] [&>div]:flex-1">
+          <main className="flex flex-col min-h-[calc(100vh-72px)] [&>div]:flex-1 px-4">
             {children}
           </main>
           <Footer />
