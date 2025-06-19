@@ -176,15 +176,121 @@
   }
 }
 
-@layer base {
-  * {
-    @apply border-border;
+.animate-draw-line {
+  animation: draw-line 1s ease-out forwards;
+}
+
+
+@layer utilities {
+  .line-clamp-1 {
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 1;
   }
-  body {
-    @apply bg-background text-foreground;
+
+  .line-clamp-2 {
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
   }
 }
 
-.animate-draw-line {
-  animation: draw-line 1s ease-out forwards;
+@layer components {
+  .ios-notification-card {
+    @apply p-4 rounded-2xl shadow-lg;
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1), 0 1px 0 rgba(255, 255, 255, 0.5) inset, 0 -1px 0 rgba(0, 0, 0, 0.05) inset;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .ios-notification-card:hover {
+    background: rgba(255, 255, 255, 0.9);
+    transform: translateY(-1px);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15), 0 1px 0 rgba(255, 255, 255, 0.6) inset, 0 -1px 0 rgba(0, 0, 0, 0.05) inset;
+  }
+
+  .ios-toast {
+    @apply !bg-transparent !border-none !shadow-none !p-0;
+  }
+
+  /* Dark mode support for notifications */
+  .dark .ios-notification-card {
+    background: rgba(30, 30, 30, 0.85);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3), 0 1px 0 rgba(255, 255, 255, 0.1) inset, 0 -1px 0 rgba(0, 0, 0, 0.2) inset;
+  }
+
+  .dark .ios-notification-card:hover {
+    background: rgba(40, 40, 40, 0.9);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4), 0 1px 0 rgba(255, 255, 255, 0.15) inset, 0 -1px 0 rgba(0, 0, 0, 0.2) inset;
+  }
+
+  .dark .ios-notification-card .text-slate-900 {
+    @apply text-white;
+  }
+
+  .dark .ios-notification-card .text-slate-800 {
+    @apply text-slate-200;
+  }
+
+  .dark .ios-notification-card .text-slate-700 {
+    @apply text-slate-300;
+  }
+
+  .dark .ios-notification-card .text-slate-600 {
+    @apply text-slate-400;
+  }
+}
+
+/* Ensure proper stacking context and click-through */
+[data-sonner-toaster] {
+  z-index: 9998;
+  pointer-events: none !important; /* Allow clicks to pass through the container */
+}
+
+[data-sonner-toast] {
+  margin-bottom: 8px !important;
+  z-index: 9998 !important;
+  pointer-events: auto !important; /* Keep toasts clickable */
+}
+
+/* Mobile-specific toaster positioning */
+@media (max-width: 768px) {
+  [data-sonner-toaster] {
+    bottom: 32px !important;
+    top: auto !important;
+    left: 16px !important;
+    right: 16px !important;
+    transform: none !important;
+    width: auto !important;
+    max-width: none !important;
+  }
+  
+  [data-sonner-toast] {
+    width: 100% !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+    margin-bottom: 8px !important;
+    display: flex !important;
+    justify-content: center !important;
+  }
+  
+  /* Center the notification card content */
+  [data-sonner-toast] .ios-notification-card {
+    margin: 0 auto !important;
+    max-width: 400px !important;
+    pointer-events: auto !important; /* Ensure notification cards remain clickable */
+  }
+}
+
+/* Desktop toaster positioning */
+@media (min-width: 769px) {
+  [data-sonner-toaster] {
+    top: 0px !important;
+  }
 }

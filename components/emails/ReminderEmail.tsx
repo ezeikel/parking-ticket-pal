@@ -7,14 +7,14 @@ import {
   Container,
 } from '@react-email/components';
 
-interface ReminderEmailProps {
+type ReminderEmailProps = {
   name: string;
   reminderType: '14-day' | '28-day';
   pcnNumber: string;
   vehicleRegistration: string;
   issueDate: string;
   issuer: string;
-}
+};
 
 export default function ReminderEmail({
   name,

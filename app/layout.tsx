@@ -55,7 +55,19 @@ export default function RootLayout({
           <Footer />
           <FundAccountDialog />
         </Providers>
-        <Toaster richColors />
+        <Toaster
+          richColors
+          toastOptions={{
+            // Default styling for regular app notifications
+            style: {
+              background: 'hsl(var(--background))',
+              border: '1px solid hsl(var(--border))',
+              color: 'hsl(var(--foreground))',
+            },
+            // Custom styling for fake notifications (ios-toast class)
+            className: 'default-toast',
+          }}
+        />
         <Analytics />
       </body>
     </html>

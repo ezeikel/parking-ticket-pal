@@ -1,13 +1,13 @@
 import cn from '@/utils/cn';
 
-interface AmountDueProps {
+type AmountDueProps = {
   amount: number;
   showMessage?: boolean;
   message?: string;
   status: 'discount' | 'standard' | 'overdue';
   className?: string;
   compact?: boolean;
-}
+};
 
 /**
  * A component that displays the amount due with a status indicator
@@ -19,8 +19,7 @@ const AmountDue = ({
   status,
   className,
   compact = false,
-}: AmountDueProps) => {
-  return (
+}: AmountDueProps) => (
     <div className={cn('flex flex-col', className)}>
       <p className={cn('font-medium', compact ? 'text-sm' : '')}>
         £{(amount / 100).toFixed(2)}
@@ -42,6 +41,5 @@ const AmountDue = ({
       )}
     </div>
   );
-};
 
 export default AmountDue;

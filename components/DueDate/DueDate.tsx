@@ -1,12 +1,12 @@
 import cn from '@/utils/cn';
 
-interface DueDateProps {
+type DueDateProps = {
   date: string;
   showMessage?: boolean;
   daysMessage?: string;
   colorClass: string;
   className?: string;
-}
+};
 
 /**
  * A component that displays a date with a status indicator
@@ -17,8 +17,7 @@ const DueDate = ({
   colorClass,
   className,
   showMessage = true,
-}: DueDateProps) => {
-  return (
+}: DueDateProps) => (
     <div className={cn('flex flex-col', className)}>
       <p className="font-medium">{date}</p>
       {showMessage && daysMessage && (
@@ -38,6 +37,5 @@ const DueDate = ({
       )}
     </div>
   );
-};
 
 export default DueDate;
