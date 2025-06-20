@@ -16,12 +16,12 @@ const PRICING_TIERS = [
       'Upload letters & photos',
     ],
     cta: 'Included with every account',
-    href: '', // No link for a disabled/default state
+    href: '',
     isPopular: false,
     disabled: true,
   },
   {
-    name: 'Reminders',
+    name: 'Ticket Basic',
     price: '£2.99',
     highlight: 'SMS + Email Alerts',
     features: [
@@ -35,7 +35,7 @@ const PRICING_TIERS = [
     disabled: false,
   },
   {
-    name: 'AI Appeal Pro',
+    name: 'Ticket Pro',
     price: '£9.99',
     highlight: 'Full AI Support & Submission',
     features: [
@@ -46,13 +46,13 @@ const PRICING_TIERS = [
     ],
     cta: 'Get Full AI Help',
     href: '/sign-up?tier=pro&utm_source=homepage_pricing',
-    isPopular: true, // Highlight this as the best value or most popular
+    isPopular: true,
     disabled: false,
   },
 ];
 
 const PricingTeaser = () => (
-  <section className="py-16 md:py-24 bg-slate-50 dark:bg-slate-800/30">
+  <section className="py-16 md:py-24 bg-white dark:bg-slate-900">
     <div className="container mx-auto px-4 md:px-6 max-w-6xl">
       <div className="text-center mb-12 md:mb-16">
         <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight mb-4 text-slate-800 dark:text-slate-100">

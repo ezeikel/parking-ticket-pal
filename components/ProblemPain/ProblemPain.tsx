@@ -32,7 +32,7 @@ const ProblemPain = () => {
   ];
 
   return (
-    <section className="pt-12 md:pt-24 bg-slate-50 dark:bg-slate-800/30">
+    <section className="py-16 md:py-24 bg-slate-50 dark:bg-slate-800/30">
       <div className="mx-auto max-w-5xl">
         <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight text-center mb-12 md:mb-16 leading-tight">
           Parking Tickets Are{' '}

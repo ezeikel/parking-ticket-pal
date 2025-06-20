@@ -42,7 +42,7 @@ const HowItWorks = () => {
   ];
 
   return (
-    <section className="py-16 md:py-24 bg-white dark:bg-slate-900">
+    <section className="py-16 md:py-24 bg-slate-50 dark:bg-slate-800/30">
       <div className="container mx-auto px-4 md:px-6 max-w-5xl">
         <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight text-center mb-12 md:mb-16 leading-tight text-slate-800 dark:text-slate-100">
           How It Works
@@ -51,7 +51,7 @@ const HowItWorks = () => {
           {steps.map((step, index) => (
             <div
               key={index}
-              className="flex flex-col sm:flex-row items-center md:items-start gap-6 md:gap-8 p-6 rounded-lg shadow-lg hover:shadow-xl transition-shadow duration-300"
+              className="flex flex-col sm:flex-row items-center md:items-start gap-6 md:gap-8 p-6 rounded-lg bg-white dark:bg-slate-800/50 shadow-lg hover:shadow-xl transition-shadow duration-300"
             >
               <div className="flex-shrink-0 flex items-center justify-center size-16 rounded-full bg-primary/10 dark:bg-primary/20 mb-4 sm:mb-0">
                 <FontAwesomeIcon icon={step.icon} size="2xl" />

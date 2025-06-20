@@ -4,8 +4,8 @@ import { useEffect, useState } from 'react';
 import Image from 'next/image';
 import { toast } from 'sonner';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faComment, faBellSlash } from '@fortawesome/pro-regular-svg-icons';
-import { faBellOn } from '@fortawesome/pro-solid-svg-icons';
+import { faBellSlash } from '@fortawesome/pro-regular-svg-icons';
+import { faBellOn, faComment } from '@fortawesome/pro-solid-svg-icons';
 
 type EmailNotification = {
   type: 'email';
@@ -34,7 +34,7 @@ const notifications: NotificationData[] = [
     type: 'sms',
     sender: 'PTPal',
     message:
-      'Reminder: Your Islington ticket doubles in 3 days. Tap to act now.',
+      'Reminder: Your London Borough of Islington ticket (IZ3112456A) doubles in 3 days. Tap to act now.',
   },
   {
     type: 'email',
@@ -46,27 +46,28 @@ const notifications: NotificationData[] = [
   {
     type: 'sms',
     sender: 'PTPal',
-    message: 'Good news! Your Camden ticket has an 87% predicted success rate.',
+    message:
+      'Good news! Your London Borough of Camden ticket (CA12345678) has an 87% predicted challenge success rate.',
   },
   {
     type: 'email',
     sender: 'Parking Ticket Pal',
     subject: '📊 Case analysis complete',
     preview:
-      'AI found 3 strong grounds for challenge on your ParkingEye ticket (PE112398). View details.',
+      "We've found 3 strong grounds for challenge on your ParkingEye ticket (PE112398). View details.",
   },
   {
     type: 'sms',
     sender: 'PTPal',
     message:
-      'Update: Hackney ticket result expected in 5 days. We’ll notify you.',
+      'Update: Your London Borough of Hackney ticket (HK12345678) result expected in 5 days. We’ll notify you.',
   },
   {
     type: 'email',
     sender: 'Parking Ticket Pal',
     subject: '🎉 Challenge successful – £120 saved!',
     preview:
-      'Congratulations! Your Westminster ticket has been cancelled. No payment needed.',
+      'Congratulations! Your London Borough of Westminster ticket (WE12345678) has been cancelled. No payment needed.',
   },
   {
     type: 'sms',
@@ -77,7 +78,7 @@ const notifications: NotificationData[] = [
     type: 'sms',
     sender: 'PTPal',
     message:
-      'Final notice: Fine for ticket AB992311 increases tomorrow. Take action now.',
+      'Final notice: Fine for ticket ZY12571693 increases tomorrow. Take action now.',
   },
 ];
 
@@ -108,16 +109,18 @@ const renderEmailNotification = (note: EmailNotification) => (
     </div>
     <div className="flex-1 min-w-0">
       <div className="flex items-start justify-between">
-        <span className="text-sm font-bold text-slate-900 truncate">
+        <span className="text-sm font-bold text-slate-900 truncate select-none">
           {note.sender}
         </span>
-        <span className="text-xs font-light text-slate-600">now</span>
+        <span className="text-xs font-light text-slate-600 select-none">
+          now
+        </span>
       </div>
       <div className="flex flex-col gap-y-0.5">
-        <h4 className="text-sm font-bold text-slate-800 mb-0 line-clamp-1">
+        <h4 className="text-sm font-bold text-slate-800 mb-0 line-clamp-1 select-none">
           {note.subject}
         </h4>
-        <p className="text-xs font-medium text-slate-700 line-clamp-2 leading-tight">
+        <p className="text-xs font-medium text-slate-700 line-clamp-2 leading-tight select-none">
           {note.preview}
         </p>
       </div>
@@ -131,12 +134,14 @@ const renderSMSNotification = (note: SMSNotification) => (
       <FontAwesomeIcon icon={faComment} size="lg" color="#FFFFFF" />
     </div>
     <div className="flex-1 min-w-0">
-      <h4 className="text-sm font-bold text-slate-800 mb-0">{note.sender}</h4>
-      <p className="text-xs text-slate-700 line-clamp-2 leading-tight">
+      <h4 className="text-sm font-bold text-slate-800 mb-0 select-none">
+        {note.sender}
+      </h4>
+      <p className="text-xs font-medium text-slate-700 line-clamp-2 leading-tight select-none">
         {note.message}
       </p>
     </div>
-    <span className="text-xs font-light text-slate-600">now</span>
+    <span className="text-xs font-light text-slate-600 select-none">now</span>
   </Wrapper>
 );
 
