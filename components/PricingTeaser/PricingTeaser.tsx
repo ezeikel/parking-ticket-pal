@@ -39,7 +39,7 @@ const PRICING_TIERS = [
     price: '£9.99',
     highlight: 'Full AI Support & Submission',
     features: [
-      'Everything in Reminders',
+      'Everything in Ticket Basic',
       'AI-generated appeal letters',
       'Appeal success prediction',
       'Optional auto-submission for common fines',

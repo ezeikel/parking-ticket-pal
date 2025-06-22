@@ -218,7 +218,7 @@ const FakeNotifications = () => {
     >
       <FontAwesomeIcon
         icon={isSilenced ? faBellSlash : faBellOn}
-        className={`text-lg ${isSilenced ? 'text-gray-400' : 'text-[#FFD700]'}`}
+        className={`text-lg text-gray-400`}
       />
     </button>
   );
