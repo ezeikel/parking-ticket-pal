@@ -1,10 +1,9 @@
-import { IssuerType } from '@prisma/client';
+import { IssuerType , LetterType } from '@prisma/client';
 import { z } from 'zod';
 import {
   COUNCIL_CHALLENGE_REASONS,
   PRIVATE_CHALLENGE_REASONS,
 } from './constants';
-import { LetterType } from '@prisma/client';
 
 export type FileWithPreview = File & {
   preview: string;
@@ -23,23 +22,23 @@ export const DocumentSchema = z.object({
   // Note: datetime currently not fully supported by OpenAI structured output
   dateTimeOfContravention: z.string(), // Date and time of the contravention in ISO 8601 format
   vehicleRegistration: z.string(), // Vehicle Registration Number
-  location: z.string().optional(), // Location where the contravention occurred (optional)
+  location: z.string().nullable(), // Location where the contravention occurred (optional)
   // Note: datetime currently not fully supported by OpenAI structured output
-  firstSeen: z.string().optional(), // Time when the vehicle was first seen (optional)
+  firstSeen: z.string().nullable(), // Time when the vehicle was first seen (optional)
   contraventionCode: z.string(), // Code representing the contravention
-  contraventionDescription: z.string().optional(), // Description of the contravention (optional)
+  contraventionDescription: z.string().nullable(), // Description of the contravention (optional)
   initialAmount: z.number().int(), // Amount due in pennies
   issuer: z.string(), // The entity issuing the ticket (e.g., council, TFL, or private company)
   issuerType: z.enum(['COUNCIL', 'TFL', 'PRIVATE_COMPANY']), // Type of issuer
   // Note: datetime currently not fully supported by OpenAI structured output
-  discountedPaymentDeadline: z.string().optional(), // Deadline for paying the discounted amount (optional)
+  discountedPaymentDeadline: z.string().nullable(), // Deadline for paying the discounted amount (optional)
   // Note: datetime currently not fully supported by OpenAI structured output
-  fullPaymentDeadline: z.string().optional(), // Deadline for paying the full amount (optional)
+  fullPaymentDeadline: z.string().nullable(), // Deadline for paying the full amount (optional)
 
   // Additional fields for letters
-  extractedText: z.string().optional(), // Full text extracted from the letter (only applicable for LETTER)
-  summary: z.string().optional(), // Summary of key points from the letter (only applicable for LETTER)
-  sentAt: z.string().optional(), // Date letter was sent (only applicable for LETTER)
+  extractedText: z.string().nullable(), // Full text extracted from the letter (only applicable for LETTER)
+  summary: z.string().nullable(), // Summary of key points from the letter (only applicable for LETTER)
+  sentAt: z.string().nullable(), // Date letter was sent (only applicable for LETTER)
 });
 
 export type Issuer = {
