@@ -5,7 +5,7 @@ import { User } from '@prisma/client';
 import { auth, signOut } from '@/auth';
 import { db } from '@/lib/prisma';
 import { del, put, list } from '@vercel/blob';
-import { USER_SIGNATURE_PATH } from '@/constants';
+import { STORAGE_PATHS } from '@/constants';
 
 type Point = {
   x: number;
@@ -149,7 +149,7 @@ export const updateUserProfile = async (userId: string, formData: FormData) => {
         await deleteExistingSignature(userId);
 
         // Save to Vercel Blob storage
-        const blobPath = USER_SIGNATURE_PATH.replace('%s', userId);
+        const blobPath = STORAGE_PATHS.USER_SIGNATURE.replace('%s', userId);
         const signatureBlob = await put(blobPath, svgBuffer, {
           access: 'public',
           contentType: 'image/svg+xml',

@@ -37,11 +37,13 @@ import { CalendarIcon } from 'lucide-react';
 import { toast } from 'sonner';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCamera, faSpinner } from '@fortawesome/pro-regular-svg-icons';
+import { uploadImage } from '@/app/actions/ocr';
 
 const CreateLetterForm = () => {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
-  const [imageUrl, setImageUrl] = useState<string | undefined>();
+  const [tempImageUrl, setTempImageUrl] = useState<string | undefined>();
+  const [tempImagePath, setTempImagePath] = useState<string | undefined>();
   const [extractedText, setExtractedText] = useState<string>('');
 
   const form = useForm<CreateLetterValues>({
@@ -67,37 +69,29 @@ const CreateLetterForm = () => {
       const formData = new FormData();
       formData.append('image', file);
 
-      const response = await fetch('/api/upload-image', {
-        method: 'POST',
-        body: formData,
-      });
-
-      const result = await response.json();
+      const result = await uploadImage(formData);
 
       if (!result.success) {
         toast.error(result.message || 'Failed to parse letter image');
         return;
       }
 
-      // Store the image URL for later use
-      setImageUrl(result.imageUrl);
+      // store the temporary image information for later use
+      setTempImageUrl(result.tempImageUrl);
+      setTempImagePath(result.tempImagePath);
 
-      // Prefill form with parsed data
-      if (result.data.pcnNumber) {
-        form.setValue('pcnNumber', result.data.pcnNumber);
+      if (!result.data) {
+        toast.error('Failed to parse letter image');
+        return;
       }
-      if (result.data.vehicleReg) {
-        form.setValue('vehicleReg', result.data.vehicleReg);
-      }
-      if (result.data.summary) {
-        form.setValue('summary', result.data.summary);
-      }
-      if (result.data.sentAt) {
-        form.setValue('sentAt', new Date(result.data.sentAt));
-      }
-      if (result.data.extractedText) {
-        setExtractedText(result.data.extractedText);
-      }
+
+      // prefill form with parsed data
+      form.setValue('pcnNumber', result.data.pcnNumber);
+      form.setValue('vehicleReg', result.data.vehicleReg);
+      form.setValue('summary', result.data.summary);
+      form.setValue('sentAt', new Date(result.data.sentAt));
+
+      setExtractedText(result.data.extractedText);
 
       toast.success('Form prefilled with letter details');
     } catch (error) {
@@ -111,7 +105,12 @@ const CreateLetterForm = () => {
   const onSubmit = async (values: CreateLetterValues) => {
     try {
       setIsLoading(true);
-      const letter = await createLetter({ ...values, extractedText, imageUrl });
+      const letter = await createLetter({
+        ...values,
+        extractedText,
+        tempImageUrl,
+        tempImagePath,
+      });
 
       if (!letter) {
         toast.error('Failed to create letter. Please try again.');

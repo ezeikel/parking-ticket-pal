@@ -21,7 +21,7 @@ export const verify = async (args: CommonPcnArgs) => {
   await page.waitForSelector('h1:has-text("Penalty Charge Notice details")');
 
   // DEBUG: take screenshot
-  await takeScreenShot(page, pcnNumber, ticket.vehicle.user.id);
+  await takeScreenShot(page, pcnNumber, ticket.vehicle.user.id, ticket.id);
 
   // click the first image to open the gallery
   await page.click('#links a:first-child');
@@ -48,6 +48,7 @@ export const verify = async (args: CommonPcnArgs) => {
       page,
       pcnNumber,
       ticket.vehicle.user.id,
+      ticket.id,
       fullSizeImages,
     );
   }
@@ -176,7 +177,7 @@ export const challenge = async (
   // fill out textarea with challenge details
   await page.fill('#notesdetails', challengeDetails ?? '');
 
-  // Click the Next button to submit the challenge
+  // click the Next button to submit the challenge
   await page.click('#submit-btn:has-text("Next")');
 
   // wait for /challenge_final.php
@@ -222,6 +223,7 @@ export const challenge = async (
     args.page,
     args.pcnNumber,
     args.ticket.vehicle.user.id,
+    args.ticket.id,
     'challenge-submitted',
   );
 

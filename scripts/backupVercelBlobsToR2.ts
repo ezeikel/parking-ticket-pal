@@ -60,8 +60,6 @@ const fetchWithRetry = async (
 };
 
 const backupVercelBlobsToR2 = async () => {
-  console.log('YOYO 1');
-
   const prodBlobs = await list({ token: prodToken });
 
   console.log(`Backing up ${prodBlobs.blobs.length} blobs to R2...`);

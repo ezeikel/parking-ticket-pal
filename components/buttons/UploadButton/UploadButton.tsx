@@ -19,6 +19,7 @@ import { FileWithPreview, LoaderType } from '@/types';
 import Loader from '@/components/Loader/Loader';
 import { toast } from 'sonner';
 import { refresh } from '@/app/actions';
+import { uploadImage } from '@/app/actions/ocr';
 // import { useAccountContext } from '@/contexts/account';
 
 // type UploadButtonProps = {
@@ -87,12 +88,7 @@ const UploadButton = () => {
       formData.append('image', imageFile, imageFile.name);
       setIsLoading(true);
 
-      const response = await fetch('/api/upload-image', {
-        method: 'POST',
-        body: formData,
-      });
-
-      const result = await response.json();
+      const result = await uploadImage(formData);
 
       if (!result.success) {
         toast.error(result.message || 'Failed to upload ticket');

@@ -37,10 +37,7 @@ const handleFormGeneration = async (
     const userName = formFields.userName || 'unknown';
     const formattedUserName = userName.toLowerCase().replace(/\s+/g, '-');
 
-    const blobPath = STORAGE_PATHS.USER_TICKET_FORM.replace(
-      '%s',
-      formFields.userId,
-    )
+    const blobPath = STORAGE_PATHS.TICKET_FORM.replace('%s', formFields.userId)
       .replace('%s', formFields.ticketId)
       .replace('%s', formType)
       .replace('%s', formattedUserName)

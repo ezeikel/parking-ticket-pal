@@ -1,7 +1,9 @@
 'use server';
 
+import { after } from 'next/server';
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
+import { del, put } from '@vercel/blob';
 import {
   MediaSource,
   MediaType,
@@ -23,6 +25,7 @@ import {
   BACKGROUND_INFORMATION_PROMPT,
   CHATGPT_MODEL,
   CONTRAVENTION_CODES,
+  STORAGE_PATHS,
 } from '@/constants';
 import { resend } from '@/lib/resend';
 import generatePDF from '@/utils/generatePDF';
@@ -31,14 +34,16 @@ import formatPenniesToPounds from '@/utils/formatPenniesToPounds';
 
 export const createLetter = async (
   values: z.infer<typeof letterFormSchema> & {
-    imageUrl?: string;
+    tempImageUrl?: string;
+    tempImagePath?: string;
     extractedText?: string;
   },
 ): Promise<Letter | null> => {
   const validatedData = letterFormSchema.parse(values) as z.infer<
     typeof letterFormSchema
   > & {
-    imageUrl?: string;
+    tempImageUrl?: string;
+    tempImagePath?: string;
     extractedText?: string;
   };
 
@@ -115,24 +120,71 @@ export const createLetter = async (
     update: {},
   });
 
+  let letter: any;
+
+  // Schedule file move and media record creation after response
+  after(async () => {
+    if (letter && validatedData.tempImagePath && validatedData.tempImageUrl) {
+      try {
+        // Extract file extension from temp path
+        const extension =
+          validatedData.tempImagePath!.split('.').pop() || 'jpg';
+
+        // Move file to permanent location with letter ID
+        const permanentPath = STORAGE_PATHS.LETTER_IMAGE.replace('%s', userId)
+          .replace('%s', ticket.id)
+          .replace('%s', letter.id)
+          .replace('%s', extension);
+
+        // Download temp file and upload to permanent location
+        const tempResponse = await fetch(validatedData.tempImageUrl!);
+        if (!tempResponse.ok) {
+          throw new Error(
+            `Failed to fetch temp file: ${tempResponse.statusText}`,
+          );
+        }
+
+        const tempBuffer = await tempResponse.arrayBuffer();
+
+        const permanentBlob = await put(permanentPath, tempBuffer, {
+          access: 'public',
+          contentType: `image/${extension === 'jpg' ? 'jpeg' : extension}`,
+        });
+
+        // Create media record with permanent URL
+        await db.media.create({
+          data: {
+            ticketId: ticket.id,
+            url: permanentBlob.url,
+            type: MediaType.IMAGE,
+            source: MediaSource.LETTER,
+            description: 'Letter image',
+          },
+        });
+
+        // Delete temporary file
+        await del(validatedData.tempImageUrl!);
+
+        console.log(
+          `Successfully moved image for letter ${letter.id} from ${validatedData.tempImagePath} to ${permanentPath}`,
+        );
+      } catch (error) {
+        console.error(`Failed to move image for letter ${letter.id}:`, error);
+        // Optionally, you could create a cleanup job to handle failed moves
+        // or retry the operation
+      }
+    }
+  });
+
   try {
-    const letter = await db.letter.create({
+    // Create letter first (without image)
+    letter = await db.letter.create({
       data: {
         type: validatedData.type,
         ticketId: ticket.id,
         extractedText: validatedData.extractedText || '',
         summary: validatedData.summary,
         sentAt: validatedData.sentAt,
-        media: validatedData.imageUrl
-          ? {
-              create: {
-                url: validatedData.imageUrl,
-                type: MediaType.IMAGE,
-                source: MediaSource.LETTER,
-                description: 'Letter image',
-              },
-            }
-          : undefined,
       },
     });
 
@@ -222,7 +274,7 @@ export const updateLetter = async (
     }
 
     // If pcnNumber is being updated, verify the new ticket exists
-    let ticketId = existingLetter.ticketId;
+    let {ticketId} = existingLetter;
     if (validatedData.pcnNumber) {
       const newTicket = await db.ticket.findUnique({
         where: { pcnNumber: validatedData.pcnNumber },

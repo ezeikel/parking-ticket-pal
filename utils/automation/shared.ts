@@ -3,11 +3,13 @@ import { chromium } from 'playwright-extra';
 import { Ticket } from '@prisma/client';
 import { put, list } from '@vercel/blob';
 import { Address } from '@/types';
+import { STORAGE_PATHS } from '@/constants';
 
 export type CommonPcnArgs = {
   page: Page;
   pcnNumber: string;
   ticket: Partial<Ticket> & {
+    id: string;
     vehicle: {
       registrationNumber: string;
       make: string;
@@ -34,12 +36,18 @@ export const takeScreenShot = async (
   page: Page,
   pcnNumber: string,
   userId: string,
+  ticketId: string,
   name?: string,
 ) => {
   const buffer = await page.screenshot();
+  const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+  const screenshotName = name || `${timestamp}-screenshot`;
 
   await put(
-    `uploads/users/${userId}/${pcnNumber}/screenshots/${name || `${new Date().toISOString()}-screenshot`}.png`,
+    STORAGE_PATHS.AUTOMATION_SCREENSHOT.replace('%s', userId)
+      .replace('%s', ticketId)
+      .replace('%s', screenshotName)
+      .replace('%s', timestamp),
     buffer,
     {
       access: 'public',
@@ -52,13 +60,18 @@ export const uploadEvidence = async (
   page: Page,
   pcnNumber: string,
   userId: string,
+  ticketId: string,
   imageSources: string[],
 ) => {
-  // Check if evidence folder exists by trying to list blobs with the evidence prefix
-  const evidencePath = `uploads/users/${userId}/${pcnNumber}/evidence/`;
+  // check if evidence folder exists by trying to list blobs with the evidence prefix
+  const evidencePath = STORAGE_PATHS.AUTOMATION_EVIDENCE.replace('%s', userId)
+    .replace('%s', ticketId)
+    .replace('%s', '1')
+    .replace('/evidence-1.jpg', '/');
+
   const existingEvidence = await list({ prefix: evidencePath });
 
-  // If evidence already exists, skip uploading
+  // if evidence already exists, skip uploading
   if (existingEvidence.blobs.length > 0) {
     console.log('Evidence folder already exists, skipping upload');
     return true;
@@ -69,10 +82,16 @@ export const uploadEvidence = async (
       const imageResponse = await page.request.get(src);
       const imageBuffer = await imageResponse.body();
 
-      await put(`${evidencePath}evidence-${i + 1}.jpg`, imageBuffer, {
-        access: 'public',
-        contentType: 'image/jpeg',
-      });
+      await put(
+        STORAGE_PATHS.AUTOMATION_EVIDENCE.replace('%s', userId)
+          .replace('%s', ticketId)
+          .replace('%s', (i + 1).toString()),
+        imageBuffer,
+        {
+          access: 'public',
+          contentType: 'image/jpeg',
+        },
+      );
     } catch (error) {
       console.error(`Failed to process evidence image ${i + 1}:`, error);
     }

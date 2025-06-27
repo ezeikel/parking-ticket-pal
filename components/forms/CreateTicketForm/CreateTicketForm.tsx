@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { ChangeEvent, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -41,10 +41,12 @@ import {
 } from '@fortawesome/pro-regular-svg-icons';
 import AddressInput from '@/components/forms/inputs/AddressInput/AddressInput';
 import { toast } from 'sonner';
+import { uploadImage } from '@/app/actions/ocr';
 
 const CreateTicketForm = () => {
   const [isLoading, setIsLoading] = useState(false);
-  const [imageUrl, setImageUrl] = useState<string | undefined>();
+  const [tempImageUrl, setTempImageUrl] = useState<string | undefined>();
+  const [tempImagePath, setTempImagePath] = useState<string | undefined>();
   const router = useRouter();
 
   const [contraventionSearch, setContraventionSearch] = useState('');
@@ -71,7 +73,11 @@ const CreateTicketForm = () => {
     setIsLoading(true);
 
     try {
-      await createTicket({ ...values, imageUrl });
+      await createTicket({
+        ...values,
+        tempImageUrl,
+        tempImagePath,
+      });
       toast.success('Ticket created successfully');
       router.push('/');
     } catch (error) {
@@ -82,9 +88,7 @@ const CreateTicketForm = () => {
     }
   };
 
-  const handleFileUpload = async (
-    event: React.ChangeEvent<HTMLInputElement>,
-  ) => {
+  const handleFileUpload = async (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
 
@@ -94,22 +98,23 @@ const CreateTicketForm = () => {
       const formData = new FormData();
       formData.append('image', file);
 
-      const response = await fetch('/api/upload-image', {
-        method: 'POST',
-        body: formData,
-      });
-
-      const result = await response.json();
+      const result = await uploadImage(formData);
 
       if (!result.success) {
         toast.error(result.message || 'Failed to parse ticket image');
         return;
       }
 
-      // Store the image URL for later use
-      setImageUrl(result.imageUrl);
+      // store the temporary image information for later use
+      setTempImageUrl(result.imageUrl);
+      setTempImagePath(result.tempImagePath);
 
-      // Prefill form with parsed data
+      if (!result.data) {
+        toast.error('Failed to parse ticket image');
+        return;
+      }
+
+      // prefill form with parsed data
       form.setValue('pcnNumber', result.data.pcnNumber);
       form.setValue('vehicleReg', result.data.vehicleReg);
       form.setValue('issuedAt', new Date(result.data.issuedAt));

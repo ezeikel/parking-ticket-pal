@@ -1,4 +1,4 @@
-import { uploadImage } from '@/app/actions';
+import { uploadImage } from '@/app/actions/ocr';
 
 // longer duration to account for openai api calls
 export const maxDuration = 60;

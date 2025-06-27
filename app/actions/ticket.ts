@@ -1,8 +1,9 @@
 'use server';
 
-import { del } from '@vercel/blob';
+import { del, put } from '@vercel/blob';
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
+import { after } from 'next/server';
 import {
   IssuerType,
   MediaSource,
@@ -12,6 +13,7 @@ import {
   VerificationType,
   VerificationStatus,
   Prisma,
+  Ticket,
 } from '@prisma/client';
 import getVehicleInfo from '@/utils/getVehicleInfo';
 import { ticketFormSchema } from '@/types';
@@ -21,14 +23,16 @@ import {
   CHALLENGE_WRITER_PROMPT,
   CHATGPT_MODEL,
   COUNCIL_CHALLENGE_REASONS,
+  STORAGE_PATHS,
 } from '@/constants';
+import { openai } from '@/lib/openai';
 import { getUserId } from './user';
 import { refresh } from '../actions';
-import { openai } from '@/lib/openai';
 
 export const createTicket = async (
   values: z.infer<typeof ticketFormSchema> & {
-    imageUrl?: string;
+    tempImageUrl?: string;
+    tempImagePath?: string;
     extractedText?: string;
   },
 ) => {
@@ -42,8 +46,68 @@ export const createTicket = async (
 
   const vehicleVerified = vehicleInfo.verification.status === 'VERIFIED';
 
+  let ticket: Ticket;
+
+  // TODO: after() fires but doesnt move the file or create the media record
+  // TODO: tempImageUrl is undefined
+  // schedule file move and media record creation after response
+  after(async () => {
+    console.log('after');
+    console.log(ticket, values.tempImagePath, values.tempImageUrl);
+
+    if (ticket && values.tempImagePath && values.tempImageUrl) {
+      try {
+        // extract file extension from temp path
+        const extension = values.tempImagePath!.split('.').pop() || 'jpg';
+
+        // move file to permanent location
+        const permanentPath = STORAGE_PATHS.TICKET_IMAGE.replace('%s', userId)
+          .replace('%s', ticket.id)
+          .replace('%s', extension);
+
+        // download temp file and upload to permanent location
+        const tempResponse = await fetch(values.tempImageUrl!);
+        if (!tempResponse.ok) {
+          throw new Error(
+            `Failed to fetch temp file: ${tempResponse.statusText}`,
+          );
+        }
+
+        const tempBuffer = await tempResponse.arrayBuffer();
+
+        const permanentBlob = await put(permanentPath, tempBuffer, {
+          access: 'public',
+          contentType: `image/${extension === 'jpg' ? 'jpeg' : extension}`,
+        });
+
+        // create media record with permanent URL
+        await db.media.create({
+          data: {
+            ticketId: ticket.id,
+            url: permanentBlob.url,
+            type: MediaType.IMAGE,
+            source: MediaSource.TICKET,
+            description: 'Ticket image',
+          },
+        });
+
+        // delete temporary file
+        await del(values.tempImageUrl!);
+
+        console.log(
+          `Successfully moved image for ticket ${ticket.id} from ${values.tempImagePath} to ${permanentPath}`,
+        );
+      } catch (error) {
+        console.error(`Failed to move image for ticket ${ticket.id}:`, error);
+        // TODO: optionally create a cleanup job to handle failed moves
+        // or retry the operation
+      }
+    }
+  });
+
   try {
-    const ticket = await db.ticket.create({
+    // create ticket without image URL initially
+    ticket = await db.ticket.create({
       data: {
         pcnNumber: values.pcnNumber,
         contraventionCode: values.contraventionCode,
@@ -89,16 +153,6 @@ export const createTicket = async (
             },
           },
         },
-        media: values.imageUrl
-          ? {
-              create: {
-                url: values.imageUrl,
-                type: MediaType.IMAGE,
-                source: MediaSource.TICKET,
-                description: 'Ticket image',
-              },
-            }
-          : undefined,
       },
     });
 

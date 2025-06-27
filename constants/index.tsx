@@ -564,7 +564,8 @@ export const ISSUERS = [
 // Helper to check if an issuer supports automation
 export const isAutomationSupported = (
   issuerId: string,
-): issuerId is AutomationIssuerId => !!AUTOMATIONS[issuerId as AutomationIssuerId];
+): issuerId is AutomationIssuerId =>
+  !!AUTOMATIONS[issuerId as AutomationIssuerId];
 
 export const findIssuer = (text: string) =>
   ISSUERS.find((issuer) =>
@@ -1398,9 +1399,31 @@ export const DUMMY_TICKETS_LIST: Prisma.TicketGetPayload<{
   },
 ];
 
-export const USER_SIGNATURE_PATH = 'users/%s/signature.svg';
+export const USER_SIGNATURE_PATH = 'users/%s/profile/signature.svg';
 
 export const STORAGE_PATHS = {
+  // Temporary uploads (auto-cleanup after 48 hours)
+  TEMP_UPLOAD: 'temp/%s/%s.%s', // temp/{userId}/{timestamp}.{extension}
+
+  // User profile files
+  USER_AVATAR: 'users/%s/profile/avatar.%s',
+  USER_SIGNATURE: 'users/%s/profile/signature.svg',
+
+  // Ticket-related files (organized by ticketId)
+  TICKET_IMAGE: 'users/%s/tickets/%s/images/ticket-front.%s',
+  TICKET_FORM: 'users/%s/tickets/%s/forms/%s-%s-%s-%s.pdf',
+  TICKET_EVIDENCE: 'users/%s/tickets/%s/evidence/evidence-%s.jpg',
+  TICKET_SCREENSHOT: 'users/%s/tickets/%s/evidence/screenshots/%s-%s.png',
+
+  // Letter files (stored under the associated ticket)
+  LETTER_IMAGE: 'users/%s/tickets/%s/letters/%s/images/letter-front.%s',
+
+  // Automation files (stored under the associated ticket)
+  AUTOMATION_SCREENSHOT: 'users/%s/tickets/%s/automation/screenshots/%s-%s.png',
+  AUTOMATION_EVIDENCE:
+    'users/%s/tickets/%s/automation/evidence/evidence-%s.jpg',
+
+  // Legacy paths for backward compatibility (deprecated)
   USER_IMAGE: 'users/%s/image.%s',
   USER_TICKET_FORM: 'users/%s/tickets/%s/forms/%s-%s-%s-%s.pdf',
 };
