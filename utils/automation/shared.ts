@@ -32,13 +32,19 @@ export const setupBrowser = async () => {
   return { browser, page };
 };
 
-export const takeScreenShot = async (
-  page: Page,
-  pcnNumber: string,
-  userId: string,
-  ticketId: string,
-  name?: string,
-) => {
+type TakeScreenShotArgs = {
+  page: Page;
+  userId: string;
+  ticketId: string;
+  name?: string;
+};
+
+export const takeScreenShot = async ({
+  page,
+  userId,
+  ticketId,
+  name,
+}: TakeScreenShotArgs) => {
   const buffer = await page.screenshot();
   const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
   const screenshotName = name || `${timestamp}-screenshot`;
@@ -56,13 +62,19 @@ export const takeScreenShot = async (
   );
 };
 
-export const uploadEvidence = async (
-  page: Page,
-  pcnNumber: string,
-  userId: string,
-  ticketId: string,
-  imageSources: string[],
-) => {
+type UploadEvidenceArgs = {
+  page: Page;
+  userId: string;
+  ticketId: string;
+  imageSources: string[];
+};
+
+export const uploadEvidence = async ({
+  page,
+  userId,
+  ticketId,
+  imageSources,
+}: UploadEvidenceArgs) => {
   // check if evidence folder exists by trying to list blobs with the evidence prefix
   const evidencePath = STORAGE_PATHS.AUTOMATION_EVIDENCE.replace('%s', userId)
     .replace('%s', ticketId)

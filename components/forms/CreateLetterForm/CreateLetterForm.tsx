@@ -77,7 +77,7 @@ const CreateLetterForm = () => {
       }
 
       // store the temporary image information for later use
-      setTempImageUrl(result.tempImageUrl);
+      setTempImageUrl(result.imageUrl);
       setTempImagePath(result.tempImagePath);
 
       if (!result.data) {
@@ -88,10 +88,10 @@ const CreateLetterForm = () => {
       // prefill form with parsed data
       form.setValue('pcnNumber', result.data.pcnNumber);
       form.setValue('vehicleReg', result.data.vehicleReg);
-      form.setValue('summary', result.data.summary);
-      form.setValue('sentAt', new Date(result.data.sentAt));
+      form.setValue('summary', result.data.summary || '');
+      form.setValue('sentAt', new Date(result.data.sentAt || ''));
 
-      setExtractedText(result.data.extractedText);
+      setExtractedText(result.data.extractedText || '');
 
       toast.success('Form prefilled with letter details');
     } catch (error) {

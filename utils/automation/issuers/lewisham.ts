@@ -16,12 +16,16 @@ export const access = async ({ page, pcnNumber, ticket }: CommonPcnArgs) => {
 
 export const verify = async (args: CommonPcnArgs) => {
   await access(args);
-  const { page, pcnNumber, ticket } = args;
+  const { page, ticket } = args;
 
   await page.waitForSelector('h1:has-text("Penalty Charge Notice details")');
 
   // DEBUG: take screenshot
-  await takeScreenShot(page, pcnNumber, ticket.vehicle.user.id, ticket.id);
+  await takeScreenShot({
+    page,
+    userId: ticket.vehicle.user.id,
+    ticketId: ticket.id,
+  });
 
   // click the first image to open the gallery
   await page.click('#links a:first-child');
@@ -44,13 +48,12 @@ export const verify = async (args: CommonPcnArgs) => {
 
   // upload evidence images to blob storage
   if (fullSizeImages.length > 0) {
-    await uploadEvidence(
+    await uploadEvidence({
       page,
-      pcnNumber,
-      ticket.vehicle.user.id,
-      ticket.id,
-      fullSizeImages,
-    );
+      userId: ticket.vehicle.user.id,
+      ticketId: ticket.id,
+      imageSources: fullSizeImages,
+    });
   }
 
   // close the gallery
@@ -219,13 +222,12 @@ export const challenge = async (
 
   await page.check('#checkinput');
 
-  await takeScreenShot(
-    args.page,
-    args.pcnNumber,
-    args.ticket.vehicle.user.id,
-    args.ticket.id,
-    'challenge-submitted',
-  );
+  await takeScreenShot({
+    page: args.page,
+    userId: args.ticket.vehicle.user.id,
+    ticketId: args.ticket.id,
+    name: 'challenge-submitted',
+  });
 
   // pause for 3 minutes
   await new Promise((resolve) => setTimeout(resolve, 3 * 60 * 1000));
