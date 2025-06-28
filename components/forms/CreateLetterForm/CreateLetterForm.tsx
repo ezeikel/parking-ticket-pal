@@ -37,7 +37,7 @@ import { CalendarIcon } from 'lucide-react';
 import { toast } from 'sonner';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCamera, faSpinner } from '@fortawesome/pro-regular-svg-icons';
-import { uploadImage } from '@/app/actions/ocr';
+import { extractOCRTextWithVision } from '@/app/actions/ocr';
 
 const CreateLetterForm = () => {
   const router = useRouter();
@@ -69,7 +69,7 @@ const CreateLetterForm = () => {
       const formData = new FormData();
       formData.append('image', file);
 
-      const result = await uploadImage(formData);
+      const result = await extractOCRTextWithVision(formData);
 
       if (!result.success) {
         toast.error(result.message || 'Failed to parse letter image');

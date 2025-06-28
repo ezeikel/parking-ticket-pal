@@ -41,7 +41,7 @@ import {
 } from '@fortawesome/pro-regular-svg-icons';
 import AddressInput from '@/components/forms/inputs/AddressInput/AddressInput';
 import { toast } from 'sonner';
-import { uploadImage } from '@/app/actions/ocr';
+import { extractOCRTextWithVision } from '@/app/actions/ocr';
 
 const CreateTicketForm = () => {
   const [isLoading, setIsLoading] = useState(false);
@@ -98,7 +98,7 @@ const CreateTicketForm = () => {
       const formData = new FormData();
       formData.append('image', file);
 
-      const result = await uploadImage(formData);
+      const result = await extractOCRTextWithVision(formData);
 
       if (!result.success) {
         toast.error(result.message || 'Failed to parse ticket image');
