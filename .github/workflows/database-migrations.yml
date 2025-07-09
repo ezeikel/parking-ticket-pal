@@ -9,7 +9,6 @@ env:
   NODE_VERSION: '20'
 
 jobs:
-  # Schema validation (runs first)
   validate-schema:
     runs-on: ubuntu-latest
     name: Validate Prisma Schema
@@ -18,16 +17,16 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 8
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'pnpm'
-
-      - name: Install pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          version: 8
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
@@ -38,7 +37,6 @@ jobs:
       - name: Check for formatting issues
         run: npx prisma format --check
 
-  # Database migrations (depends on validation)
   migrate:
     runs-on: ubuntu-latest
     name: Migrate Database
@@ -48,16 +46,16 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 8
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'pnpm'
-
-      - name: Install pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          version: 8
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
