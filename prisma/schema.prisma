@@ -39,7 +39,7 @@ model Vehicle {
   createdAt          DateTime      @default(now())
   updatedAt          DateTime      @updatedAt
   tickets            Ticket[]
-  user               User          @relation(fields: [userId], references: [id])
+  user               User          @relation(fields: [userId], references: [id], onDelete: Cascade)
   verification       Verification?
 
   @@map("vehicles")
@@ -164,7 +164,7 @@ model Form {
   dueAt     DateTime?
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
-  ticket    Ticket    @relation(fields: [ticketId], references: [id])
+  ticket    Ticket    @relation(fields: [ticketId], references: [id], onDelete: Cascade)
 
   @@map("forms")
 }

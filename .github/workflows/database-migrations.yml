@@ -1,0 +1,68 @@
+name: Database Migrations
+
+on:
+  push:
+    branches:
+      - main
+
+env:
+  NODE_VERSION: '20'
+
+jobs:
+  # Schema validation (runs first)
+  validate-schema:
+    runs-on: ubuntu-latest
+    name: Validate Prisma Schema
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Validate Prisma schema
+        run: npx prisma validate
+
+      - name: Check for formatting issues
+        run: npx prisma format --check
+
+  # Database migrations (depends on validation)
+  migrate:
+    runs-on: ubuntu-latest
+    name: Migrate Database
+    needs: validate-schema
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Generate Prisma client
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: npx prisma generate
+
+      - name: Check migration status
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: npx prisma migrate status
+
+      - name: Run database migrations
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: npx prisma migrate deploy
