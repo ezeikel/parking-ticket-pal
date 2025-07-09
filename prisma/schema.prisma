@@ -68,7 +68,7 @@ model Ticket {
   issuedAt        DateTime
   contraventionAt DateTime
   observedAt      DateTime?
-  status          TicketStatus     @default(REDUCED_PAYMENT_DUE)
+  status          TicketStatus     @default(ISSUED_DISCOUNT_PERIOD)
   type            TicketType
   initialAmount   Int
   statusUpdatedAt DateTime? // When status was last updated
@@ -76,15 +76,18 @@ model Ticket {
   issuer          String
   issuerType      IssuerType
   verified        Boolean          @default(false)
+  notes           String?
+  tier            TicketTier       @default(FREE)
   vehicleId       String
   createdAt       DateTime         @default(now())
   updatedAt       DateTime         @updatedAt
-  Form            Form[]
+  forms           Form[]
   letters         Letter[]
   media           Media[]
   prediction      Prediction?
   reminders       Reminder[]
   amountIncreases AmountIncrease[]
+  challenges      Challenge[]
   vehicle         Vehicle          @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
   verification    Verification?
 
@@ -92,17 +95,18 @@ model Ticket {
 }
 
 model Media {
-  id          String      @id @default(cuid())
-  url         String
-  description String?
-  type        MediaType
-  source      MediaSource
-  ticketId    String?
-  letterId    String?
-  createdAt   DateTime    @default(now())
-  updatedAt   DateTime    @updatedAt
-  letter      Letter?     @relation(fields: [letterId], references: [id])
-  ticket      Ticket?     @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  id           String        @id @default(cuid())
+  url          String
+  description  String?
+  type         MediaType
+  source       MediaSource
+  evidenceType EvidenceType? // for user uploaded evidence categorisation
+  ticketId     String?
+  letterId     String?
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  letter       Letter?       @relation(fields: [letterId], references: [id])
+  ticket       Ticket?       @relation(fields: [ticketId], references: [id], onDelete: Cascade)
 
   @@map("media")
 }
@@ -169,7 +173,7 @@ model Prediction {
   id            String         @id @default(cuid())
   ticketId      String         @unique
   type          PredictionType @default(CHALLENGE_SUCCESS)
-  percentage    Int            @default(75)
+  percentage    Int            @default(50)
   numberOfCases Int            @default(0)
   confidence    Float          @default(0.8)
   lastUpdated   DateTime       @default(now())
@@ -217,6 +221,39 @@ model Verification {
   @@map("verifications")
 }
 
+enum ChallengeResponseStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+  UNDER_REVIEW
+  CANCELLED
+  OTHER
+}
+
+model Challenge {
+  id           String          @id @default(cuid())
+  ticketId     String
+  type         ChallengeType
+  reason       String
+  customReason String?
+  status       ChallengeStatus @default(PENDING)
+  metadata     Json? // Store additional data like download URLs, error messages, etc.
+
+  // enhanced fields for better tracking
+  submittedAt        DateTime? // when the challenge was actually submitted (for auto-challenges)
+  responseReceivedAt DateTime? // when response was received from authority
+  responseStatus     ChallengeResponseStatus? // status of authority response
+  responseDetails    Json? // store response details, appeal rights, etc.
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  ticket Ticket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+
+  @@index([ticketId, createdAt])
+  @@map("challenges")
+}
+
 enum TicketType {
   PARKING_CHARGE_NOTICE
   PENALTY_CHARGE_NOTICE
@@ -241,19 +278,38 @@ enum MediaType {
 }
 
 enum TicketStatus {
-  REDUCED_PAYMENT_DUE
-  FULL_PAYMENT_DUE
-  NOTICE_TO_OWNER_SENT
-  APPEALED
-  APPEAL_REJECTED
-  APPEAL_ACCEPTED
-  TRIBUNAL_APPEAL_IN_PROGRESS
-  TRIBUNAL_APPEAL_ACCEPTED
-  TRIBUNAL_APPEAL_REJECTED
+  // Common initial stages
+  ISSUED_DISCOUNT_PERIOD
+  ISSUED_FULL_CHARGE
+
+  // Council / TfL (public) flow
+  NOTICE_TO_OWNER
+  FORMAL_REPRESENTATION
+  NOTICE_OF_REJECTION
+  REPRESENTATION_ACCEPTED
+  CHARGE_CERTIFICATE
   ORDER_FOR_RECOVERY
-  CCJ_PENDING
+  TEC_OUT_OF_TIME_APPLICATION
+  PE2_PE3_APPLICATION
+  APPEAL_TO_TRIBUNAL
+  ENFORCEMENT_BAILIFF_STAGE
+
+  // Private parking flow
+  NOTICE_TO_KEEPER
+  APPEAL_SUBMITTED_TO_OPERATOR
+  APPEAL_REJECTED_BY_OPERATOR
+  POPLA_APPEAL
+  IAS_APPEAL
+  APPEAL_UPHELD
+  APPEAL_REJECTED
+  DEBT_COLLECTION
+  COURT_PROCEEDINGS
   CCJ_ISSUED
+
+  // Final stage if user decides to pay
   PAID
+
+  // Cancelled tickets
   CANCELLED
 }
 
@@ -269,8 +325,8 @@ enum SubscriptionType {
 }
 
 enum ReminderType {
-  REDUCED_PAYMENT_DUE
-  FULL_PAYMENT_DUE
+  DISCOUNT_PERIOD
+  FULL_CHARGE
   APPEAL_DEADLINE
   NOTICE_TO_OWNER_RESPONSE
   CHARGE_CERTIFICATE_RESPONSE
@@ -300,6 +356,7 @@ enum MediaSource {
   TICKET
   LETTER
   USER
+  EVIDENCE
 }
 
 enum FormType {
@@ -328,4 +385,33 @@ enum AmountIncreaseSourceType {
   LETTER
   MANUAL_UPDATE
   SYSTEM
+}
+
+enum ChallengeType {
+  LETTER
+  AUTO_CHALLENGE
+}
+
+enum ChallengeStatus {
+  PENDING
+  IN_PROGRESS
+  SUCCESS
+  ERROR
+  TIMEOUT
+  CANCELLED
+}
+
+enum TicketTier {
+  FREE
+  BASIC
+  PRO
+}
+
+enum EvidenceType {
+  PHOTO_OF_SIGNAGE
+  PHOTO_OF_VEHICLE
+  WITNESS_STATEMENT
+  PAYMENT_PROOF
+  CORRESPONDENCE
+  OTHER
 }

@@ -1,4 +1,4 @@
-import { IssuerType , LetterType } from '@prisma/client';
+import { Form, IssuerType, Letter, LetterType, Prisma } from '@prisma/client';
 import { z } from 'zod';
 import {
   COUNCIL_CHALLENGE_REASONS,
@@ -65,38 +65,8 @@ export type Address = {
   };
 };
 
-export enum TicketStatus {
-  // Common initial stages
-  ISSUED_DISCOUNT_PERIOD = 'Issued (Discount Period)',
-  ISSUED_FULL_CHARGE = 'Issued (Full Charge)',
-
-  // Council / TfL (public) flow
-  NOTICE_TO_OWNER = 'Notice to Owner',
-  FORMAL_REPRESENTATION = 'Formal Representation',
-  NOTICE_OF_REJECTION = 'Notice of Rejection',
-  REPRESENTATION_ACCEPTED = 'Representation Accepted',
-  CHARGE_CERTIFICATE = 'Charge Certificate',
-  ORDER_FOR_RECOVERY = 'Order for Recovery',
-  TEC_OUT_OF_TIME_APPLICATION = 'TEC Out of Time Application',
-  PE2_PE3_APPLICATION = 'PE2/PE3 Application',
-  APPEAL_TO_TRIBUNAL = 'Appeal to Tribunal',
-  ENFORCEMENT_BAILIFF_STAGE = 'Enforcement/Bailiff Stage',
-
-  // Private parking flow
-  NOTICE_TO_KEEPER = 'Notice to Keeper',
-  APPEAL_SUBMITTED_TO_OPERATOR = 'Appeal Submitted to Operator',
-  APPEAL_REJECTED_BY_OPERATOR = 'Appeal Rejected by Operator',
-  POPLA_APPEAL = 'POPLA Appeal',
-  IAS_APPEAL = 'IAS Appeal',
-  APPEAL_UPHELD = 'Appeal Upheld',
-  APPEAL_REJECTED = 'Appeal Rejected',
-  DEBT_COLLECTION = 'Debt Collection',
-  COURT_PROCEEDINGS = 'Court Proceedings',
-  CCJ_ISSUED = 'CCJ Issued',
-
-  // Final stage if user decides to pay
-  PAID = 'Paid',
-}
+// Re-export TicketStatus from Prisma client for consistency
+export { TicketStatus } from '@prisma/client';
 
 export const ticketFormSchema = z.object({
   vehicleReg: z
@@ -163,3 +133,67 @@ export type PdfFormFields = {
 };
 
 export type CreateLetterValues = z.infer<typeof letterFormSchema>;
+
+export type TicketWithPrediction = Prisma.TicketGetPayload<{
+  select: {
+    id: true;
+    pcnNumber: true;
+    contraventionCode: true;
+    location: true;
+    issuedAt: true;
+    contraventionAt: true;
+    initialAmount: true;
+    issuer: true;
+    issuerType: true;
+    status: true;
+    type: true;
+    extractedText: true;
+    tier: true;
+    notes: true;
+    vehicle: {
+      select: {
+        id: true;
+        registrationNumber: true;
+      };
+    };
+    media: {
+      select: {
+        id: true;
+        url: true;
+        source: true;
+        description: true;
+        evidenceType: true;
+      };
+    };
+    prediction: true;
+    letters: {
+      select: {
+        id: true;
+        media: true;
+        sentAt: true;
+        summary: true;
+        type: true;
+      };
+    };
+    forms: {
+      select: {
+        id: true;
+        createdAt: true;
+        formType: true;
+      };
+    };
+    reminders: true;
+  };
+}>;
+
+export type HistoryEvent =
+  | {
+      type: 'letter';
+      date: Date;
+      data: Pick<Letter, 'id' | 'type' | 'summary'>;
+    }
+  | {
+      type: 'form';
+      date: Date;
+      data: Pick<Form, 'id' | 'formType'>;
+    };

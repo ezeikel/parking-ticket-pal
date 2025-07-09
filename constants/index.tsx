@@ -1,12 +1,6 @@
 import React from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import {
-  TicketType,
-  TicketStatus,
-  IssuerType,
-  Prisma,
-  PredictionType,
-} from '@prisma/client';
+import { TicketType, TicketStatus, IssuerType } from '@prisma/client';
 import { IconProp } from '@fortawesome/fontawesome-svg-core';
 import { faCreditCard, faUser } from '@fortawesome/pro-duotone-svg-icons';
 import {
@@ -19,7 +13,7 @@ import {
 
 export * from './prompts';
 export * from './loadingMessages';
-export * from './ticketTimelines';
+export * from './timelines';
 
 export const PRIVATE_COMPANY_IDS = ['horizon', 'parkingEye'] as const;
 
@@ -440,27 +434,38 @@ export const TICKET_TYPE: Record<TicketType, string> = {
 };
 
 export const TICKET_STATUS: Record<TicketStatus, string> = {
-  [TicketStatus.REDUCED_PAYMENT_DUE]: 'Reduced Payment Due',
-  [TicketStatus.FULL_PAYMENT_DUE]: 'Full Payment Due',
-  [TicketStatus.NOTICE_TO_OWNER_SENT]: 'Notice to Owner Sent',
+  // Common initial stages
+  [TicketStatus.ISSUED_DISCOUNT_PERIOD]: 'Issued (Discount Period)',
+  [TicketStatus.ISSUED_FULL_CHARGE]: 'Issued (Full Charge)',
 
-  // Appeals Process
-  [TicketStatus.APPEALED]: 'Appealed',
-  [TicketStatus.APPEAL_ACCEPTED]: 'Appeal Accepted',
-  [TicketStatus.APPEAL_REJECTED]: 'Appeal Rejected',
-
-  // Post-Notice Appeals (Tribunal/POPLA)
-  [TicketStatus.TRIBUNAL_APPEAL_IN_PROGRESS]: 'Tribunal Appeal In Progress',
-  [TicketStatus.TRIBUNAL_APPEAL_ACCEPTED]: 'Tribunal Appeal Accepted',
-  [TicketStatus.TRIBUNAL_APPEAL_REJECTED]: 'Tribunal Appeal Rejected',
-
-  // Escalation
+  // Council / TfL (public) flow
+  [TicketStatus.NOTICE_TO_OWNER]: 'Notice to Owner',
+  [TicketStatus.FORMAL_REPRESENTATION]: 'Formal Representation',
+  [TicketStatus.NOTICE_OF_REJECTION]: 'Notice of Rejection',
+  [TicketStatus.REPRESENTATION_ACCEPTED]: 'Representation Accepted',
+  [TicketStatus.CHARGE_CERTIFICATE]: 'Charge Certificate',
   [TicketStatus.ORDER_FOR_RECOVERY]: 'Order for Recovery',
-  [TicketStatus.CCJ_PENDING]: 'CCJ Pending',
+  [TicketStatus.TEC_OUT_OF_TIME_APPLICATION]: 'TEC Out of Time Application',
+  [TicketStatus.PE2_PE3_APPLICATION]: 'PE2/PE3 Application',
+  [TicketStatus.APPEAL_TO_TRIBUNAL]: 'Appeal to Tribunal',
+  [TicketStatus.ENFORCEMENT_BAILIFF_STAGE]: 'Enforcement/Bailiff Stage',
+
+  // Private parking flow
+  [TicketStatus.NOTICE_TO_KEEPER]: 'Notice to Keeper',
+  [TicketStatus.APPEAL_SUBMITTED_TO_OPERATOR]: 'Appeal Submitted to Operator',
+  [TicketStatus.APPEAL_REJECTED_BY_OPERATOR]: 'Appeal Rejected by Operator',
+  [TicketStatus.POPLA_APPEAL]: 'POPLA Appeal',
+  [TicketStatus.IAS_APPEAL]: 'IAS Appeal',
+  [TicketStatus.APPEAL_UPHELD]: 'Appeal Upheld',
+  [TicketStatus.APPEAL_REJECTED]: 'Appeal Rejected',
+  [TicketStatus.DEBT_COLLECTION]: 'Debt Collection',
+  [TicketStatus.COURT_PROCEEDINGS]: 'Court Proceedings',
   [TicketStatus.CCJ_ISSUED]: 'CCJ Issued',
 
-  // Resolution
+  // Final stage if user decides to pay
   [TicketStatus.PAID]: 'Paid',
+
+  // Cancelled tickets
   [TicketStatus.CANCELLED]: 'Cancelled',
 };
 
@@ -1052,6 +1057,23 @@ export const CONTRAVENTION_CODES = {
   },
 } as const;
 
+export const getContraventionDetails = (code: string) => {
+  const codeData =
+    CONTRAVENTION_CODES[code as keyof typeof CONTRAVENTION_CODES];
+
+  if (codeData) {
+    return {
+      title: codeData.description,
+      description: codeData.notes,
+    };
+  }
+
+  return {
+    title: 'Contravention code not found',
+    description: 'No details available for this code.',
+  };
+};
+
 export const CONTRAVENTION_CODES_OPTIONS: ReadonlyArray<{
   value: string;
   label: string;
@@ -1079,325 +1101,7 @@ export const CONTRAVENTION_CODES_OPTIONS: ReadonlyArray<{
 
 export const CHATGPT_MODEL = 'gpt-4o';
 
-export const STRIPE_API_VERSION = '2025-05-28.basil';
-
-export const DUMMY_TICKET: Prisma.TicketGetPayload<{
-  include: {
-    vehicle: true;
-    prediction: true;
-  };
-}> = {
-  id: '1',
-  pcnNumber: 'PCN12345678',
-  contraventionCode: '01',
-  location: {
-    line1: '123 High Street',
-    line2: '',
-    city: 'London',
-    county: 'Greater London',
-    postcode: 'SW1A 1AA',
-    country: 'United Kingdom',
-    coordinates: {
-      latitude: 51.5074,
-      longitude: -0.1278,
-    },
-  },
-  issuedAt: new Date('2025-02-28'),
-  contraventionAt: new Date('2025-02-28'),
-  observedAt: new Date('2025-02-28'),
-  status: TicketStatus.REDUCED_PAYMENT_DUE,
-  type: TicketType.PENALTY_CHARGE_NOTICE,
-  initialAmount: 70,
-  issuer: 'Local Council',
-  issuerType: IssuerType.COUNCIL,
-  vehicleId: '1',
-  verified: false,
-  createdAt: new Date('2025-02-28'),
-  updatedAt: new Date('2025-02-28'),
-  extractedText: '',
-  statusUpdatedAt: new Date('2025-02-28'),
-  statusUpdatedBy: 'system',
-  prediction: {
-    id: '1',
-    type: PredictionType.CHALLENGE_SUCCESS,
-    percentage: 75,
-    numberOfCases: 0,
-    confidence: 0.8,
-    metadata: {},
-    createdAt: new Date('2025-02-28'),
-    updatedAt: new Date('2025-02-28'),
-    ticketId: '1',
-    lastUpdated: new Date('2025-02-28'),
-  },
-  vehicle: {
-    id: '1',
-    userId: 'user1',
-    make: 'Toyota',
-    model: 'Corolla',
-    bodyType: 'Sedan',
-    fuelType: 'Petrol',
-    year: 2020,
-    color: 'Silver',
-    registrationNumber: 'AB12 CDE',
-    active: true,
-    notes: '',
-    createdAt: new Date('2025-01-01'),
-    updatedAt: new Date('2025-01-01'),
-  },
-};
-
-export const DUMMY_TICKETS_LIST: Prisma.TicketGetPayload<{
-  include: {
-    vehicle: {
-      select: {
-        id: true;
-        registrationNumber: true;
-      };
-    };
-    prediction: true;
-  };
-}>[] = [
-  {
-    id: '1',
-    pcnNumber: 'PCN12345678',
-    contraventionCode: '01',
-    location: {
-      line1: '123 High Street',
-      line2: '',
-      city: 'London',
-      county: 'Greater London',
-      postcode: 'SW1A 1AA',
-      country: 'United Kingdom',
-      coordinates: {
-        latitude: 51.5074,
-        longitude: -0.1278,
-      },
-    },
-    issuedAt: new Date('2025-02-28'),
-    contraventionAt: new Date('2025-02-28'),
-    observedAt: new Date('2025-02-28'),
-    status: TicketStatus.REDUCED_PAYMENT_DUE,
-    type: TicketType.PENALTY_CHARGE_NOTICE,
-    initialAmount: 70,
-    issuer: 'Local Council',
-    issuerType: IssuerType.COUNCIL,
-    vehicleId: '1',
-    verified: false,
-    createdAt: new Date('2025-02-28'),
-    updatedAt: new Date('2025-02-28'),
-    extractedText: '',
-    statusUpdatedAt: new Date('2025-02-28'),
-    statusUpdatedBy: 'system',
-    vehicle: {
-      id: '1',
-      registrationNumber: 'AB12 CDE',
-    },
-    prediction: {
-      id: '1',
-      type: PredictionType.CHALLENGE_SUCCESS,
-      percentage: 75,
-      numberOfCases: 0,
-      confidence: 0.8,
-      metadata: {},
-      createdAt: new Date('2025-02-28'),
-      updatedAt: new Date('2025-02-28'),
-      ticketId: '1',
-      lastUpdated: new Date('2025-02-28'),
-    },
-  },
-  {
-    id: '2',
-    pcnNumber: 'PCN87654321',
-    contraventionCode: '12',
-    location: {
-      line1: '45 Shopping Centre Car Park',
-      line2: 'Level 2',
-      city: 'London',
-      county: 'Greater London',
-      postcode: 'W1T 1JY',
-      country: 'United Kingdom',
-      coordinates: {
-        latitude: 51.5152,
-        longitude: -0.1315,
-      },
-    },
-    issuedAt: new Date('2025-02-15'),
-    contraventionAt: new Date('2025-02-15'),
-    observedAt: new Date('2025-02-15'),
-    status: TicketStatus.PAID,
-    type: TicketType.PARKING_CHARGE_NOTICE,
-    initialAmount: 50,
-    issuer: 'Private Parking Company',
-    issuerType: IssuerType.PRIVATE_COMPANY,
-    vehicleId: '2',
-    verified: true,
-    createdAt: new Date('2025-02-15'),
-    updatedAt: new Date('2025-02-15'),
-    extractedText: '',
-    statusUpdatedAt: new Date('2025-02-15'),
-    statusUpdatedBy: 'system',
-    vehicle: {
-      id: '2',
-      registrationNumber: 'EF34 GHI',
-    },
-    prediction: {
-      id: '2',
-      type: PredictionType.CHALLENGE_SUCCESS,
-      percentage: 75,
-      numberOfCases: 0,
-      confidence: 0.8,
-      metadata: {},
-      createdAt: new Date('2025-02-15'),
-      updatedAt: new Date('2025-02-15'),
-      ticketId: '2',
-      lastUpdated: new Date('2025-02-15'),
-    },
-  },
-  {
-    id: '3',
-    pcnNumber: 'PCN23456789',
-    contraventionCode: '23',
-    location: {
-      line1: '78 Residential Zone B',
-      line2: '',
-      city: 'London',
-      county: 'Greater London',
-      postcode: 'E1 6AN',
-      country: 'United Kingdom',
-      coordinates: {
-        latitude: 51.5194,
-        longitude: -0.0738,
-      },
-    },
-    issuedAt: new Date('2025-01-10'),
-    contraventionAt: new Date('2025-01-10'),
-    observedAt: new Date('2025-01-10'),
-    status: TicketStatus.NOTICE_TO_OWNER_SENT,
-    type: TicketType.PENALTY_CHARGE_NOTICE,
-    initialAmount: 120,
-    issuer: 'County Council',
-    issuerType: IssuerType.COUNCIL,
-    vehicleId: '3',
-    verified: false,
-    createdAt: new Date('2025-01-10'),
-    updatedAt: new Date('2025-01-10'),
-    extractedText: '',
-    statusUpdatedAt: new Date('2025-01-10'),
-    statusUpdatedBy: 'system',
-    vehicle: {
-      id: '3',
-      registrationNumber: 'CD56 EFG',
-    },
-    prediction: {
-      id: '3',
-      type: PredictionType.CHALLENGE_SUCCESS,
-      percentage: 75,
-      numberOfCases: 0,
-      confidence: 0.8,
-      metadata: {},
-      createdAt: new Date('2025-01-10'),
-      updatedAt: new Date('2025-01-10'),
-      ticketId: '3',
-      lastUpdated: new Date('2025-01-10'),
-    },
-  },
-  {
-    id: '4',
-    pcnNumber: 'PCN34567890',
-    contraventionCode: '16',
-    location: {
-      line1: '92 Main Road',
-      line2: 'Corner of Church Street',
-      city: 'London',
-      county: 'Greater London',
-      postcode: 'SE1 9SG',
-      country: 'United Kingdom',
-      coordinates: {
-        latitude: 51.5031,
-        longitude: -0.0876,
-      },
-    },
-    issuedAt: new Date('2025-03-05'),
-    contraventionAt: new Date('2025-03-05'),
-    observedAt: new Date('2025-03-05'),
-    status: TicketStatus.APPEALED,
-    type: TicketType.PENALTY_CHARGE_NOTICE,
-    initialAmount: 90,
-    issuer: 'City Council',
-    issuerType: IssuerType.COUNCIL,
-    vehicleId: '4',
-    verified: false,
-    createdAt: new Date('2025-03-05'),
-    updatedAt: new Date('2025-03-05'),
-    extractedText: '',
-    statusUpdatedAt: new Date('2025-03-05'),
-    statusUpdatedBy: 'system',
-    vehicle: {
-      id: '4',
-      registrationNumber: 'GH78 IJK',
-    },
-    prediction: {
-      id: '4',
-      type: PredictionType.CHALLENGE_SUCCESS,
-      percentage: 75,
-      numberOfCases: 0,
-      confidence: 0.8,
-      metadata: {},
-      createdAt: new Date('2025-03-05'),
-      updatedAt: new Date('2025-03-05'),
-      ticketId: '4',
-      lastUpdated: new Date('2025-03-05'),
-    },
-  },
-  {
-    id: '5',
-    pcnNumber: 'PCN45678901',
-    contraventionCode: '99',
-    location: {
-      line1: '156 High Street Bus Lane',
-      line2: '',
-      city: 'London',
-      county: 'Greater London',
-      postcode: 'N1 7QP',
-      country: 'United Kingdom',
-      coordinates: {
-        latitude: 51.5385,
-        longitude: -0.0963,
-      },
-    },
-    issuedAt: new Date('2025-03-10'),
-    contraventionAt: new Date('2025-03-10'),
-    observedAt: new Date('2025-03-10'),
-    status: TicketStatus.TRIBUNAL_APPEAL_IN_PROGRESS,
-    type: TicketType.PENALTY_CHARGE_NOTICE,
-    initialAmount: 110,
-    issuer: 'Transport for London',
-    issuerType: IssuerType.TFL,
-    vehicleId: '5',
-    verified: true,
-    createdAt: new Date('2025-03-10'),
-    updatedAt: new Date('2025-03-10'),
-    extractedText: '',
-    statusUpdatedAt: new Date('2025-03-10'),
-    statusUpdatedBy: 'system',
-    vehicle: {
-      id: '5',
-      registrationNumber: 'LM90 NOP',
-    },
-    prediction: {
-      id: '5',
-      type: PredictionType.CHALLENGE_SUCCESS,
-      percentage: 75,
-      numberOfCases: 0,
-      confidence: 0.8,
-      metadata: {},
-      createdAt: new Date('2025-03-10'),
-      updatedAt: new Date('2025-03-10'),
-      ticketId: '5',
-      lastUpdated: new Date('2025-03-10'),
-    },
-  },
-];
+export const STRIPE_API_VERSION = '2025-06-30.basil';
 
 export const USER_SIGNATURE_PATH = 'users/%s/profile/signature.svg';
 

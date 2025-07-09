@@ -76,7 +76,7 @@ export const createLetter = async (
       },
       issuedAt: new Date(),
       contraventionAt: new Date(),
-      status: TicketStatus.REDUCED_PAYMENT_DUE,
+      status: TicketStatus.ISSUED_DISCOUNT_PERIOD,
       type: TicketType.PENALTY_CHARGE_NOTICE,
       initialAmount: 0, // Default value since we don't have this info
       issuer: 'Unknown', // Default value since we don't have this info
@@ -274,7 +274,7 @@ export const updateLetter = async (
     }
 
     // If pcnNumber is being updated, verify the new ticket exists
-    let {ticketId} = existingLetter;
+    let { ticketId } = existingLetter;
     if (validatedData.pcnNumber) {
       const newTicket = await db.ticket.findUnique({
         where: { pcnNumber: validatedData.pcnNumber },

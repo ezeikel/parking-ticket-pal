@@ -2,19 +2,17 @@
 
 import Link from 'next/link';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
 import { Address, TicketStatus } from '@/types';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import {
-  faEllipsisVertical,
   faCar,
   faCalendar,
   faClock,
@@ -24,10 +22,10 @@ import {
 import { Prisma } from '@prisma/client';
 import { formatDateWithDueStatus, calculateAmountDue } from '@/utils/dates';
 import AmountDue from '@/components/AmountDue/AmountDue';
-import { deleteTicket } from '@/app/actions/ticket';
 import DueDate from '@/components/DueDate/DueDate';
 import getIssuerInitials from '@/utils/getIssuerInitials';
-import ChallengeSuccessLikelihood from '@/components/ChallengeSuccessLikelihood/ChallengeSuccessLikelihood';
+import PercentageIndicator from '@/components/PercentageIndicator/PercentageIndicator';
+import TicketCardControls from '../TicketCardControls/TicketCardControls';
 
 type TicketCardProps = {
   ticket: Prisma.TicketGetPayload<{
@@ -39,7 +37,7 @@ type TicketCardProps = {
 };
 
 const TicketCard = ({ ticket }: TicketCardProps) => {
-  // Status color and severity
+  // status color and severity
   const getStatusInfo = (
     status: TicketStatus,
   ): { color: string; severity: 'low' | 'medium' | 'high' } => {
@@ -90,51 +88,31 @@ const TicketCard = ({ ticket }: TicketCardProps) => {
   const statusInfo = getStatusInfo(ticket.status as TicketStatus);
 
   return (
-    <Card className="overflow-hidden border hover:shadow-md transition-all">
-      <CardHeader className="pb-2">
-        <div className="flex justify-between items-start">
-          <div className="flex items-center space-x-3">
-            <Avatar className="h-10 w-10">
+    <Card className="flex flex-col justify-between transition-all hover:shadow-lg">
+      <CardHeader>
+        <div className="flex items-start justify-between gap-2">
+          <div className="flex items-center gap-3">
+            <Avatar>
               <AvatarFallback>
                 {getIssuerInitials(ticket.issuer)}
               </AvatarFallback>
             </Avatar>
             <div>
-              <p className="font-semibold">{ticket.pcnNumber}</p>
-              <p className="text-sm text-muted-foreground">{ticket.issuer}</p>
+              <CardTitle>{ticket.pcnNumber}</CardTitle>
+              <CardDescription>{ticket.issuer}</CardDescription>
             </div>
           </div>
-          <div className="flex items-center gap-4">
-            <ChallengeSuccessLikelihood
+          <div className="flex items-center gap-2 flex-shrink-0">
+            <PercentageIndicator
               percentage={ticket.prediction?.percentage ?? 75}
-              size="sm"
+              size={64}
               showLabel={false}
             />
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon">
-                  <FontAwesomeIcon
-                    icon={faEllipsisVertical}
-                    className="h-4 w-4"
-                  />
-                  <span className="sr-only">Menu</span>
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem>
-                  <Link href={`/tickets/${ticket.id}`}>View Details</Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem>Pay Fine</DropdownMenuItem>
-                <DropdownMenuItem>Generate Appeal</DropdownMenuItem>
-                <DropdownMenuItem onClick={() => deleteTicket(ticket.id)}>
-                  Delete
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+            <TicketCardControls ticket={ticket} />
           </div>
         </div>
       </CardHeader>
-      <CardContent className="pb-2 space-y-4">
+      <CardContent className="space-y-4">
         <Badge
           variant={statusInfo.severity}
           className="w-full justify-center py-1 text-sm"
@@ -192,11 +170,12 @@ const TicketCard = ({ ticket }: TicketCardProps) => {
           </div>
         </div>
       </CardContent>
-      <div className="px-6 py-4 bg-muted/10">
-        <Link href={`/tickets/${ticket.id}`}>
-          <Button variant="outline" size="sm" className="w-full">
-            View Details
-          </Button>
+      <div className="p-4 bg-muted/50 border-t">
+        <Link
+          href={`/tickets/${ticket.id}`}
+          className="text-sm font-semibold text-primary text-center block w-full"
+        >
+          View Details &rarr;
         </Link>
       </div>
     </Card>

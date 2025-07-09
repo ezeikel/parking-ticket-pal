@@ -46,7 +46,7 @@ const generateReminders = (ticket: {
     reminders.push({
       ticketId: ticket.id,
       sendAt: addDays(baseDate, 14),
-      type: ReminderType.REDUCED_PAYMENT_DUE,
+      type: ReminderType.DISCOUNT_PERIOD,
     });
   }
 
@@ -54,7 +54,7 @@ const generateReminders = (ticket: {
     reminders.push({
       ticketId: ticket.id,
       sendAt: addDays(baseDate, 28),
-      type: ReminderType.FULL_PAYMENT_DUE,
+      type: ReminderType.FULL_CHARGE,
     });
   }
 

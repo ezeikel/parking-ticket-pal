@@ -1,40 +1,18 @@
 import Link from 'next/link';
-import { Prisma } from '@prisma/client';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { Button } from '@/components/ui/button';
 import { faArrowLeft } from '@fortawesome/pro-regular-svg-icons';
 import { getTicket } from '@/app/actions/ticket';
 import TicketDetail from '@/components/TicketDetail/TicketDetail';
-import EditTicketForm from '@/components/forms/EditTicketForm/EditTicketForm';
-import EditButton from '@/components/buttons/EditButton/EditButton';
-import DeleteTicketButton from '@/components/buttons/DeleteTicketButton/DeleteTicketButton';
 
 type TicketPageProps = {
   params: Promise<{ id: string }>;
   searchParams: Promise<{ edit: string }>;
 };
 
-type Ticket = Prisma.TicketGetPayload<{
-  include: {
-    vehicle: {
-      select: {
-        registrationNumber: true;
-      };
-    };
-    media: {
-      select: {
-        url: true;
-      };
-    };
-    prediction: true;
-  };
-}>;
-
-const TicketPage = async ({ params, searchParams }: TicketPageProps) => {
+const TicketPage = async ({ params }: TicketPageProps) => {
   const { id } = await params;
   const ticket = await getTicket(id);
-  const { edit } = await searchParams;
-  const isEditMode = edit === 'true';
 
   if (!ticket) {
     return <div>Ticket not found</div>;
@@ -49,20 +27,8 @@ const TicketPage = async ({ params, searchParams }: TicketPageProps) => {
             <span>Back to Tickets</span>
           </Button>
         </Link>
-        {!isEditMode && (
-          <div className="flex items-center gap-2">
-            <Link href={`/tickets/${id}?edit=true`}>
-              <EditButton label="Edit Ticket" />
-            </Link>
-            <DeleteTicketButton ticketId={id} />
-          </div>
-        )}
       </div>
-      {isEditMode ? (
-        <EditTicketForm ticket={ticket as Ticket} />
-      ) : (
-        <TicketDetail ticket={ticket as Ticket} />
-      )}
+      <TicketDetail ticket={ticket} />
     </div>
   );
 };

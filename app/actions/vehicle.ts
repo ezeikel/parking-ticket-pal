@@ -4,48 +4,50 @@ import { revalidatePath } from 'next/cache';
 import { Prisma, VerificationStatus, VerificationType } from '@prisma/client';
 import getVehicleInfo from '@/utils/getVehicleInfo';
 import { db } from '@/lib/prisma';
-import { getUserId } from './user';
+import { getUserId } from '@/app/actions/user';
+import type { VehicleInfo } from '@/utils/getVehicleInfo';
 
-type VerificationInput = {
-  type: 'VEHICLE' | 'TICKET';
-  status: 'VERIFIED' | 'UNVERIFIED' | 'FAILED';
-  verifiedAt: Date | null;
-  metadata?: Record<string, unknown>;
-};
-
-export const createVehicle = async (data: {
-  registrationNumber: string;
-  make: string;
-  model: string;
-  year: string;
-  color: string;
-  bodyType?: string;
-  fuelType?: string;
-  notes?: string;
-  verification?: VerificationInput;
-}) => {
+export const createVehicle = async (
+  _prevState: { success: boolean; error?: string; data?: any } | null,
+  formData: FormData,
+) => {
   const userId = await getUserId('create a vehicle');
 
   if (!userId) {
-    return null;
+    return { success: false, error: 'Unauthorized' };
   }
 
-  const vehicleInfo = await getVehicleInfo(data.registrationNumber);
+  const registrationNumber = formData.get('registrationNumber') as string;
+  const make = formData.get('make') as string;
+  const model = formData.get('model') as string;
+  const color = formData.get('color') as string;
+  const year = formData.get('year') as string;
+  const bodyType = formData.get('bodyType') as string;
+  const fuelType = formData.get('fuelType') as string;
+  const notes = formData.get('notes') as string;
 
-  const vehicleVerified = vehicleInfo.verification.status === 'VERIFIED';
+  if (!registrationNumber || !make || !model) {
+    return {
+      success: false,
+      error: 'Registration number, make, and model are required.',
+    };
+  }
 
   try {
+    // Get vehicle info from the API to ensure we have the most up-to-date information
+    const vehicleInfo = await getVehicleInfo(registrationNumber);
+    const vehicleVerified = vehicleInfo.verification.status === 'VERIFIED';
+
     const vehicle = await db.vehicle.create({
       data: {
-        registrationNumber: data.registrationNumber,
-        // TODO: spread data first?
-        make: vehicleInfo.make,
-        model: vehicleInfo.model,
-        year: vehicleInfo.year,
-        color: vehicleInfo.color,
-        bodyType: vehicleInfo.bodyType,
-        fuelType: vehicleInfo.fuelType,
-        notes: data.notes || '',
+        registrationNumber: registrationNumber.toUpperCase(),
+        make: make || vehicleInfo.make,
+        model: model || vehicleInfo.model,
+        year: parseInt(year || vehicleInfo.year.toString(), 10),
+        color: color || vehicleInfo.color,
+        bodyType: bodyType || vehicleInfo.bodyType || '',
+        fuelType: fuelType || vehicleInfo.fuelType || '',
+        notes: notes || '',
         verification: vehicleVerified
           ? {
               create: {
@@ -66,44 +68,52 @@ export const createVehicle = async (data: {
       },
     });
 
-    if (data.verification) {
+    // Handle additional verification if provided
+    const verificationType = formData.get('verificationType') as string;
+    const verificationStatus = formData.get('verificationStatus') as string;
+
+    if (verificationType && verificationStatus) {
       await db.verification.create({
         data: {
-          type: data.verification.type,
-          status: data.verification.status,
-          verifiedAt: data.verification.verifiedAt,
-          metadata:
-            (data.verification.metadata as Prisma.JsonValue) || undefined,
+          type: verificationType as VerificationType,
+          status: verificationStatus as VerificationStatus,
+          verifiedAt: new Date(),
+          metadata: undefined,
           vehicleId: vehicle.id,
         },
       });
     }
 
     revalidatePath('/vehicles');
-    return vehicle;
+    return { success: true, data: vehicle };
   } catch (error) {
     console.error('Error creating vehicle:', error);
-    return null;
+    return { success: false, error: 'Failed to create vehicle' };
   }
 };
 
-export async function updateVehicle(
-  id: string,
-  data: {
-    registrationNumber: string;
-    make: string;
-    model: string;
-    year: string;
-    color: string;
-    bodyType?: string;
-    fuelType?: string;
-    notes?: string;
-    verification?: VerificationInput;
-  },
-) {
-  const userId = await getUserId();
+export const updateVehicle = async (
+  _prevState: { success: boolean; error?: string; data?: any } | null,
+  formData: FormData,
+) => {
+  const userId = await getUserId('update a vehicle');
   if (!userId) {
-    throw new Error('Unauthorized');
+    return { success: false, error: 'Unauthorized' };
+  }
+
+  const id = formData.get('id') as string;
+  const registrationNumber = formData.get('registrationNumber') as string;
+  const make = formData.get('make') as string;
+  const model = formData.get('model') as string;
+  const color = formData.get('color') as string;
+  const year = formData.get('year') as string;
+  const notes = formData.get('notes') as string;
+
+  if (!id || !registrationNumber || !make || !model) {
+    return {
+      success: false,
+      error: 'Vehicle ID, registration number, make, and model are required.',
+    };
   }
 
   try {
@@ -113,51 +123,37 @@ export async function updateVehicle(
         userId,
       },
       data: {
-        registrationNumber: data.registrationNumber,
-        make: data.make,
-        model: data.model,
-        year: parseInt(data.year, 10),
-        color: data.color,
-        bodyType: data.bodyType || '',
-        fuelType: data.fuelType || '',
-        notes: data.notes,
+        registrationNumber: registrationNumber.toUpperCase(),
+        make,
+        model,
+        year: parseInt(year, 10),
+        color,
+        notes: notes || '',
       },
     });
 
-    if (data.verification) {
-      await db.verification.upsert({
-        where: {
-          vehicleId: vehicle.id,
-        },
-        create: {
-          type: data.verification.type,
-          status: data.verification.status,
-          verifiedAt: data.verification.verifiedAt,
-          metadata:
-            (data.verification.metadata as Prisma.JsonValue) || undefined,
-          vehicleId: vehicle.id,
-        },
-        update: {
-          status: data.verification.status,
-          verifiedAt: data.verification.verifiedAt,
-          metadata:
-            (data.verification.metadata as Prisma.JsonValue) || undefined,
-        },
-      });
-    }
-
     revalidatePath('/vehicles');
+    return { success: true, data: vehicle };
   } catch (error) {
     console.error('Error updating vehicle:', error);
-    throw new Error('Failed to update vehicle');
+    return { success: false, error: 'Failed to update vehicle' };
   }
-}
+};
 
-export const deleteVehicle = async (id: string) => {
+export const deleteVehicle = async (
+  _prevState: { success: boolean; error?: string; data?: any } | null,
+  formData: FormData,
+) => {
   const userId = await getUserId('delete a vehicle');
 
   if (!userId) {
-    return null;
+    return { success: false, error: 'Unauthorized' };
+  }
+
+  const id = formData.get('id') as string;
+
+  if (!id) {
+    return { success: false, error: 'Vehicle ID is required' };
   }
 
   try {
@@ -169,10 +165,10 @@ export const deleteVehicle = async (id: string) => {
     });
 
     revalidatePath('/vehicles');
-    return vehicle;
+    return { success: true, data: vehicle };
   } catch (error) {
     console.error('Error deleting vehicle:', error);
-    return null;
+    return { success: false, error: 'Failed to delete vehicle' };
   }
 };
 
@@ -197,6 +193,7 @@ export const getVehicles = async () => {
       tickets: {
         select: {
           id: true,
+          status: true,
         },
       },
     },
@@ -239,4 +236,34 @@ export const getVehicle = async (id: string) => {
   });
 
   return vehicle;
+};
+
+export const getVehicleDetails = async (
+  // The first argument to a formAction is the previous state, which we aren't using here.
+  // The second is the FormData.
+  _prevState: any,
+  formData: FormData,
+): Promise<{
+  success: boolean;
+  data?: VehicleInfo;
+  error?: string;
+}> => {
+  const registrationNumber = formData.get('registrationNumber') as string;
+  if (!registrationNumber || registrationNumber.length < 2) {
+    return {
+      success: false,
+      error: 'Please enter a valid registration number.',
+    };
+  }
+
+  const vehicleInfo = await getVehicleInfo(registrationNumber);
+
+  if (vehicleInfo.verification.status === 'FAILED') {
+    return {
+      success: false,
+      error: 'Could not find vehicle details. Please enter them manually.',
+    };
+  }
+
+  return { success: true, data: vehicleInfo };
 };

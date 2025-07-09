@@ -48,13 +48,8 @@ export const createTicket = async (
 
   let ticket: Ticket;
 
-  // TODO: after() fires but doesnt move the file or create the media record
-  // TODO: tempImageUrl is undefined
   // schedule file move and media record creation after response
   after(async () => {
-    console.log('after');
-    console.log(ticket, values.tempImagePath, values.tempImageUrl);
-
     if (ticket && values.tempImagePath && values.tempImageUrl) {
       try {
         // extract file extension from temp path
@@ -93,10 +88,6 @@ export const createTicket = async (
 
         // delete temporary file
         await del(values.tempImageUrl!);
-
-        console.log(
-          `Successfully moved image for ticket ${ticket.id} from ${values.tempImagePath} to ${permanentPath}`,
-        );
       } catch (error) {
         console.error(`Failed to move image for ticket ${ticket.id}:`, error);
         // TODO: optionally create a cleanup job to handle failed moves
@@ -114,7 +105,7 @@ export const createTicket = async (
         location: values.location,
         issuedAt: values.issuedAt,
         contraventionAt: values.issuedAt,
-        status: TicketStatus.REDUCED_PAYMENT_DUE,
+        status: TicketStatus.ISSUED_DISCOUNT_PERIOD,
         type: TicketType.PENALTY_CHARGE_NOTICE, // TODO: hardcoded for now
         initialAmount: values.initialAmount,
         issuer: values.issuer,
@@ -231,11 +222,44 @@ export const updateTicket = async (
   }
 };
 
-export const deleteTicket = async (id: string) => {
+export const updateTicketNotes = async (
+  _prevState: any,
+  formData: FormData,
+) => {
+  const ticketId = formData.get('ticketId') as string;
+  const notes = formData.get('notes') as string;
+
+  if (!ticketId) {
+    return { success: false, error: 'Ticket ID is missing.' };
+  }
+
+  try {
+    await db.ticket.update({
+      where: { id: ticketId },
+      data: { notes },
+    });
+
+    revalidatePath(`/tickets/${ticketId}`);
+    return { success: true };
+  } catch (error) {
+    return { success: false, error: 'Failed to save notes.' };
+  }
+};
+
+export const deleteTicket = async (
+  _prevState: { success: boolean; error?: string; data?: any } | null,
+  formData: FormData,
+) => {
   const userId = await getUserId('delete a ticket');
 
   if (!userId) {
-    return null;
+    return { success: false, error: 'Unauthorized' };
+  }
+
+  const id = formData.get('ticketId') as string;
+
+  if (!id) {
+    return { success: false, error: 'Ticket ID is required' };
   }
 
   const ticket = await db.ticket.findUnique({
@@ -252,13 +276,14 @@ export const deleteTicket = async (id: string) => {
   });
 
   if (!ticket) {
-    console.error('Ticket not found.');
-    return null;
+    return { success: false, error: 'Ticket not found' };
   }
 
   if (ticket.vehicle.userId !== userId) {
-    console.error('You are not authorized to delete this ticket.');
-    return null;
+    return {
+      success: false,
+      error: 'You are not authorized to delete this ticket',
+    };
   }
 
   const ticketMedia = await db.media.findMany({
@@ -267,21 +292,25 @@ export const deleteTicket = async (id: string) => {
     },
   });
 
-  // delete ticket and media files from blob storage
-  const [deletedTicket] = await Promise.all([
-    db.ticket.delete({
-      where: {
-        id,
-      },
-    }),
-    ticketMedia.map(async (media) => {
-      await del(media.url);
-    }),
-  ]);
+  try {
+    // delete ticket and media files from blob storage
+    const [deletedTicket] = await Promise.all([
+      db.ticket.delete({
+        where: {
+          id,
+        },
+      }),
+      ticketMedia.map(async (media) => {
+        await del(media.url);
+      }),
+    ]);
 
-  revalidatePath('/dashboard');
-
-  return deletedTicket;
+    revalidatePath('/dashboard');
+    return { success: true, data: deletedTicket };
+  } catch (error) {
+    console.error('Error deleting ticket:', error);
+    return { success: false, error: 'Failed to delete ticket' };
+  }
 };
 
 export const getTickets = async () => {
@@ -322,18 +351,57 @@ export const getTicket = async (id: string) => {
     where: {
       id,
     },
-    include: {
+    select: {
+      id: true,
+      pcnNumber: true,
+      contraventionCode: true,
+      location: true,
+      issuedAt: true,
+      contraventionAt: true,
+      initialAmount: true,
+      issuer: true,
+      issuerType: true,
+      status: true,
+      type: true,
+      extractedText: true,
+      tier: true,
+      notes: true,
       vehicle: {
         select: {
+          id: true,
           registrationNumber: true,
         },
       },
       media: {
         select: {
+          id: true,
           url: true,
+          source: true,
+          description: true,
+          evidenceType: true,
         },
       },
       prediction: true,
+      letters: {
+        select: {
+          id: true,
+          media: true,
+          sentAt: true,
+          type: true,
+          summary: true,
+        },
+        orderBy: {
+          createdAt: 'desc',
+        },
+      },
+      forms: {
+        select: {
+          id: true,
+          createdAt: true,
+          formType: true,
+        },
+      },
+      reminders: true,
     },
   });
 

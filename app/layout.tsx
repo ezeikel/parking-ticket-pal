@@ -49,7 +49,8 @@ export default function RootLayout({
       <body>
         <Providers>
           <Header />
-          <main className="flex flex-col min-h-[calc(100vh-72px)] [&>div]:flex-1 px-4">
+          <main className="flex flex-col min-h-[calc(100vh-72px)] [&>div:not(#modal-root)]:flex-1 px-4">
+            <div id="modal-root" />
             {children}
           </main>
           <Footer />

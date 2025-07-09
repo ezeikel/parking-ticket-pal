@@ -11,10 +11,9 @@ export const GET = async (req: NextRequest) => {
   if (mode === 'subscribe' && token === VERIFY_TOKEN) {
     console.log('✅ Webhook verified');
     return new NextResponse(challenge, { status: 200 });
-  } 
-    console.warn('❌ Webhook verification failed');
-    return new NextResponse('Verification failed', { status: 403 });
-  
+  }
+  console.warn('❌ Webhook verification failed');
+  return new NextResponse('Verification failed', { status: 403 });
 };
 
 export const POST = async (req: NextRequest) => {

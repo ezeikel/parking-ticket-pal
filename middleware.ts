@@ -1,6 +1,6 @@
 /* eslint-disable import/prefer-default-export */
 import { NextRequest, NextResponse } from 'next/server';
-import { AUTHENTICATED_PATHS } from './constants/index';
+import { isPathAuthenticated } from './utils/isAuthenticatedPath';
 import { decrypt } from './app/lib/session';
 
 export const middleware = async (req: NextRequest) => {
@@ -74,13 +74,17 @@ export const middleware = async (req: NextRequest) => {
   if (pathname === '/') {
     // redirect authenticated users away from landing page
     if (session) {
+      console.log('redirecting to dashboard');
+      console.log('session', session);
       return NextResponse.redirect(new URL('/dashboard', req.url));
     }
 
     return NextResponse.next();
   }
 
-  if (AUTHENTICATED_PATHS.includes(pathname)) {
+  if (isPathAuthenticated(pathname)) {
+    console.log('isPathAuthenticated', pathname);
+    console.log('session', session);
     // users must sign in to access pages that require authentication
     if (!session) {
       return NextResponse.redirect(new URL('/', req.url));

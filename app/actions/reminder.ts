@@ -1,5 +1,3 @@
-/* eslint-disable import/prefer-default-export */
-
 'use server';
 
 import { Resend } from 'resend';
@@ -15,6 +13,7 @@ const twilioClient = twilio(
   process.env.TWILIO_AUTH_TOKEN!,
 );
 
+// eslint-disable-next-line import/prefer-default-export
 export const sendReminder = async (reminderId: string) => {
   const reminder = await db.reminder.findUnique({
     where: { id: reminderId },
@@ -38,7 +37,7 @@ export const sendReminder = async (reminderId: string) => {
   const { user } = reminder.ticket.vehicle;
 
   const reminderLabel =
-    reminder.type === ReminderType.REDUCED_PAYMENT_DUE ? '14-day' : '28-day';
+    reminder.type === ReminderType.DISCOUNT_PERIOD ? '14-day' : '28-day';
   const text = `Reminder: Your parking ticket ${reminder.ticket.pcnNumber} for vehicle registration ${reminder.ticket.vehicle.registrationNumber} issued on ${reminder.ticket.issuedAt.toLocaleDateString()} by ${reminder.ticket.issuer} is approaching the ${reminderLabel} deadline. Please check the app.`;
 
   try {

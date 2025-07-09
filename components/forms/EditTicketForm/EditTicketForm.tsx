@@ -31,7 +31,7 @@ import {
 import cn from '@/utils/cn';
 import { format } from 'date-fns';
 import { CONTRAVENTION_CODES_OPTIONS } from '@/constants';
-import { Address, ticketFormSchema } from '@/types';
+import { Address, ticketFormSchema, TicketWithPrediction } from '@/types';
 import {
   refreshTicket,
   refreshTickets,
@@ -41,24 +41,9 @@ import { faCalendar, faSpinner } from '@fortawesome/pro-regular-svg-icons';
 import { toast } from 'sonner';
 import AddressInput from '@/components/forms/inputs/AddressInput/AddressInput';
 import { useRouter } from 'next/navigation';
-import { Prisma } from '@prisma/client';
 
 type EditTicketFormProps = {
-  ticket: Prisma.TicketGetPayload<{
-    include: {
-      vehicle: {
-        select: {
-          registrationNumber: true;
-        };
-      };
-      media: {
-        select: {
-          url: true;
-        };
-      };
-      prediction: true;
-    };
-  }>;
+  ticket: TicketWithPrediction;
 };
 
 export default function EditTicketForm({ ticket }: EditTicketFormProps) {

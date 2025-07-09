@@ -1,3 +1,5 @@
+'use server';
+
 import path from 'path';
 import fs from 'fs';
 import fillPE2Form from '@/utils/automation/forms/PE2';

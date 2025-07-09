@@ -22,6 +22,38 @@ type Ticket = {
 };
 
 /**
+ * Calculate the standard amount due based on ticket status and days since issued
+ * @param ticket The ticket object
+ * @returns The standard amount due in pence
+ */
+const calculateStandardAmount = (ticket: Ticket): number => {
+  const { initialAmount, status, issuedAt } = ticket;
+
+  // Calculate days since the ticket was issued using date-fns
+  const daysSinceIssued = differenceInDays(new Date(), issuedAt);
+
+  // During discount period (usually first 14 days)
+  if (status === TicketStatus.ISSUED_DISCOUNT_PERIOD || daysSinceIssued <= 14) {
+    return Math.floor(initialAmount * 0.5); // 50% of full amount
+  }
+
+  // For more advanced stages, apply standard multipliers
+  const stageMultipliers: Partial<Record<TicketStatus, number>> = {
+    [TicketStatus.ISSUED_FULL_CHARGE]: 1.0,
+    [TicketStatus.NOTICE_TO_OWNER]: 1.0,
+    [TicketStatus.FORMAL_REPRESENTATION]: 1.0,
+    [TicketStatus.NOTICE_OF_REJECTION]: 1.0,
+    [TicketStatus.CHARGE_CERTIFICATE]: 1.0,
+    [TicketStatus.ORDER_FOR_RECOVERY]: 1.5, // Usually 50% more than full amount
+    [TicketStatus.ENFORCEMENT_BAILIFF_STAGE]: 1.5,
+    [TicketStatus.CCJ_ISSUED]: 1.5,
+  };
+
+  const multiplier = stageMultipliers[status] ?? 1.0;
+  return Math.floor(initialAmount * multiplier);
+};
+
+/**
  * Gets the current amount due for a ticket based on:
  * 1. The most recent price increase if any exist
  * 2. The initial amount with standard rules applied
@@ -58,39 +90,6 @@ export const getCurrentAmountDue = (ticket: Ticket): number => {
 
   // If no price increases are available or effective, calculate standard amount
   return calculateStandardAmount(ticket);
-};
-
-/**
- * Calculate the standard amount due based on ticket status and days since issued
- * @param ticket The ticket object
- * @returns The standard amount due in pence
- */
-const calculateStandardAmount = (ticket: Ticket): number => {
-  const { initialAmount, status, issuedAt } = ticket;
-
-  // Calculate days since the ticket was issued using date-fns
-  const daysSinceIssued = differenceInDays(new Date(), issuedAt);
-
-  // During discount period (usually first 14 days)
-  if (status === 'REDUCED_PAYMENT_DUE' || daysSinceIssued <= 14) {
-    return Math.floor(initialAmount * 0.5); // 50% of full amount
-  }
-
-  // For more advanced stages, apply standard multipliers
-  const stageMultipliers: Partial<Record<TicketStatus, number>> = {
-    FULL_PAYMENT_DUE: 1.0,
-    NOTICE_TO_OWNER_SENT: 1.0,
-    APPEALED: 1.0,
-    APPEAL_REJECTED: 1.0,
-    TRIBUNAL_APPEAL_IN_PROGRESS: 1.0,
-    TRIBUNAL_APPEAL_REJECTED: 1.0,
-    ORDER_FOR_RECOVERY: 1.5, // Usually 50% more than full amount
-    CCJ_PENDING: 1.5,
-    CCJ_ISSUED: 1.5,
-  };
-
-  const multiplier = stageMultipliers[status] ?? 1.0;
-  return Math.floor(initialAmount * multiplier);
 };
 
 /**
