@@ -58,96 +58,96 @@ const PRICING_TIERS = [
 ];
 
 const PricingPage = () => (
-    <div className="max-w-5xl mx-auto py-12 px-4">
-      <header className="text-center mb-16">
-        <h1 className="font-slab text-4xl font-extrabold mb-2 text-primary">
-          Simple, One-Time Pricing
-        </h1>
-        <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-          No subscriptions. No hidden fees. Just pay when you want help with a
-          parking ticket.
-        </p>
-      </header>
-      <section className="grid grid-cols-1 md:grid-cols-3 gap-8">
-        {PRICING_TIERS.map((plan) => (
-          <Card
-            key={plan.name}
-            className={cn(
-              'flex flex-col h-full border-2 transition-shadow',
-              plan.disabled ? 'border-muted' : 'border-border',
+  <div className="max-w-5xl mx-auto py-12 px-4">
+    <header className="text-center mb-16">
+      <h1 className="font-slab text-4xl font-extrabold mb-2 text-primary">
+        Simple, One-Time Pricing
+      </h1>
+      <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+        No subscriptions. No hidden fees. Just pay when you want help with a
+        parking ticket.
+      </p>
+    </header>
+    <section className="grid grid-cols-1 md:grid-cols-3 gap-8">
+      {PRICING_TIERS.map((plan) => (
+        <Card
+          key={plan.name}
+          className={cn(
+            'flex flex-col h-full border-2 transition-shadow',
+            plan.disabled ? 'border-muted' : 'border-border',
+          )}
+        >
+          <CardHeader>
+            <CardTitle className="flex flex-col gap-1">
+              <span className="text-center mb-4">
+                <span className="font-slab">{plan.name}</span>
+              </span>
+              <span className="text-base font-normal text-muted-foreground">
+                {plan.tagline}
+              </span>
+            </CardTitle>
+            <CardDescription className="mt-2 text-lg font-bold text-primary">
+              {plan.price}
+            </CardDescription>
+            <div className="text-xs text-muted-foreground mt-1">
+              {plan.description}
+            </div>
+          </CardHeader>
+          <CardContent className="flex-1 flex flex-col gap-2">
+            <ul className="mb-2 space-y-1">
+              {plan.features.map((feature) => (
+                <li key={feature} className="flex items-center gap-2">
+                  <FontAwesomeIcon
+                    icon={faCheck}
+                    className="h-4 w-4 text-green-500"
+                  />
+                  <span>{feature}</span>
+                </li>
+              ))}
+            </ul>
+          </CardContent>
+          <CardFooter className="flex flex-col gap-2">
+            {plan.disabled ? (
+              <Button
+                className="w-full text-lg py-2"
+                variant="outline"
+                disabled
+              >
+                {plan.cta}
+              </Button>
+            ) : (
+              <Button className="w-full text-lg py-2" asChild>
+                <a href={plan.href}>{plan.cta}</a>
+              </Button>
             )}
-          >
-            <CardHeader>
-              <CardTitle className="flex flex-col gap-1">
-                <span className="text-center mb-4">
-                  <span className="font-slab">{plan.name}</span>
-                </span>
-                <span className="text-base font-normal text-muted-foreground">
-                  {plan.tagline}
-                </span>
-              </CardTitle>
-              <CardDescription className="mt-2 text-lg font-bold text-primary">
-                {plan.price}
-              </CardDescription>
-              <div className="text-xs text-muted-foreground mt-1">
-                {plan.description}
-              </div>
-            </CardHeader>
-            <CardContent className="flex-1 flex flex-col gap-2">
-              <ul className="mb-2 space-y-1">
-                {plan.features.map((feature) => (
-                  <li key={feature} className="flex items-center gap-2">
-                    <FontAwesomeIcon
-                      icon={faCheck}
-                      className="h-4 w-4 text-green-500"
-                    />
-                    <span>{feature}</span>
-                  </li>
-                ))}
-              </ul>
-            </CardContent>
-            <CardFooter className="flex flex-col gap-2">
-              {plan.disabled ? (
-                <Button
-                  className="w-full text-lg py-2"
-                  variant="outline"
-                  disabled
-                >
-                  {plan.cta}
-                </Button>
-              ) : (
-                <Button className="w-full text-lg py-2" asChild>
-                  <a href={plan.href}>{plan.cta}</a>
-                </Button>
-              )}
-            </CardFooter>
-          </Card>
-        ))}
-      </section>
-      <section className="mt-16 max-w-3xl mx-auto">
-        <h2 className="font-slab text-2xl font-bold mb-4 text-center">
-          Frequently Asked Questions
-        </h2>
-        <ul className="space-y-4 text-sm text-muted-foreground">
-          <li>
-            <strong>Do I need a subscription?</strong> No — you pay only when
-            you want help with a specific ticket.
-          </li>
-          <li>
-            <strong>Can I use it for free?</strong> Yes — you can add and view
-            tickets without paying anything.
-          </li>
-          <li>
-            <strong>What’s the difference between Basic and Pro?</strong> Basic
-            sends reminders. Pro writes your letter and even submits it.
-          </li>
-          <li>
-            <strong>How do I get started?</strong> Just sign up and add your
-            first ticket. You’ll only pay if you want help with it.
-          </li>
-        </ul>
-      </section>
-    </div>
-  );
+          </CardFooter>
+        </Card>
+      ))}
+    </section>
+    <section className="mt-16 max-w-3xl mx-auto">
+      <h2 className="font-slab text-2xl font-bold mb-4 text-center">
+        Frequently Asked Questions
+      </h2>
+      <ul className="space-y-4 text-sm text-muted-foreground">
+        <li>
+          <strong>Do I need a subscription?</strong> No — you pay only when you
+          want help with a specific ticket.
+        </li>
+        <li>
+          <strong>Can I use it for free?</strong> Yes — you can add and view
+          tickets without paying anything.
+        </li>
+        <li>
+          <strong>What’s the difference between Basic and Pro?</strong> Basic
+          sends reminders. Pro writes your letter and even submits it.
+        </li>
+        <li>
+          <strong>How do I get started?</strong> Just sign up and add your first
+          ticket. You’ll only pay if you want help with it.
+        </li>
+      </ul>
+    </section>
+  </div>
+);
 
 export default PricingPage;

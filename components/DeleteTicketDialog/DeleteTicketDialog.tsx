@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect , useActionState } from 'react';
+import { useEffect, useActionState } from 'react';
 import {
   AlertDialog,
   AlertDialogAction,

@@ -169,10 +169,9 @@ async function addSvgSignatureToField(
           // Create a simplified version by keeping just the movement commands
           const simplifiedPath = pathData.replace(
             /[a-zA-Z][^a-zA-Z]*/g,
-            (match) => 
+            (match) =>
               // Keep only M, L, C, Q commands and their parameters
-               match.charAt(0).match(/[MLCQ]/i) ? match : ''
-            ,
+              match.charAt(0).match(/[MLCQ]/i) ? match : '',
           );
           if (simplifiedPath) {
             console.log(

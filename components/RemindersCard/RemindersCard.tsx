@@ -21,7 +21,8 @@ type RemindersCardProps = {
   reminders: Reminder[];
 };
 
-const formatReminderType = (type: string) => type
+const formatReminderType = (type: string) =>
+  type
     .split('_')
     .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
     .join(' ');

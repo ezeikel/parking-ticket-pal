@@ -7,10 +7,10 @@ const TicketsLayout = ({
   children: React.ReactNode;
   modal: React.ReactNode;
 }) => (
-    <>
-      {children}
-      {modal}
-    </>
-  );
+  <>
+    {children}
+    {modal}
+  </>
+);
 
 export default TicketsLayout;

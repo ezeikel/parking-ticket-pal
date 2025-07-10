@@ -3,7 +3,8 @@
 @custom-variant dark (&:is(.dark *));
 
 @theme {
-  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif,
+  --font-sans:
+    var(--font-inter), ui-sans-serif, system-ui, sans-serif,
     'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
   --font-slab: var(--font-roboto-slab), serif;
   --font-display: var(--font-lato), sans-serif;
@@ -180,7 +181,6 @@
   animation: draw-line 1s ease-out forwards;
 }
 
-
 @layer utilities {
   .line-clamp-1 {
     overflow: hidden;
@@ -197,29 +197,35 @@
   }
 
   .scrollbar-hide {
-    -ms-overflow-style: none;  /* Internet Explorer 10+ */
-    scrollbar-width: none;  /* Firefox */
+    -ms-overflow-style: none; /* Internet Explorer 10+ */
+    scrollbar-width: none; /* Firefox */
   }
   .scrollbar-hide::-webkit-scrollbar {
-    display: none;  /* Safari and Chrome */
+    display: none; /* Safari and Chrome */
   }
 }
 
 @layer components {
   .ios-notification-card {
     @apply p-4 rounded-2xl shadow-lg;
-    background: rgba(229, 231, 235, .85);
+    background: rgba(229, 231, 235, 0.85);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
     border: 1px solid rgba(255, 255, 255, 0.2);
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1), 0 1px 0 rgba(255, 255, 255, 0.5) inset, 0 -1px 0 rgba(0, 0, 0, 0.05) inset;
+    box-shadow:
+      0 8px 32px rgba(0, 0, 0, 0.1),
+      0 1px 0 rgba(255, 255, 255, 0.5) inset,
+      0 -1px 0 rgba(0, 0, 0, 0.05) inset;
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
   .ios-notification-card:hover {
     background: rgba(229, 231, 235, 0.9);
     transform: translateY(-1px);
-    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15), 0 1px 0 rgba(255, 255, 255, 0.6) inset, 0 -1px 0 rgba(0, 0, 0, 0.05) inset;
+    box-shadow:
+      0 12px 40px rgba(0, 0, 0, 0.15),
+      0 1px 0 rgba(255, 255, 255, 0.6) inset,
+      0 -1px 0 rgba(0, 0, 0, 0.05) inset;
   }
 
   .ios-toast {
@@ -230,12 +236,18 @@
   .dark .ios-notification-card {
     background: rgba(30, 30, 30, 0.85);
     border: 1px solid rgba(255, 255, 255, 0.1);
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3), 0 1px 0 rgba(255, 255, 255, 0.1) inset, 0 -1px 0 rgba(0, 0, 0, 0.2) inset;
+    box-shadow:
+      0 8px 32px rgba(0, 0, 0, 0.3),
+      0 1px 0 rgba(255, 255, 255, 0.1) inset,
+      0 -1px 0 rgba(0, 0, 0, 0.2) inset;
   }
 
   .dark .ios-notification-card:hover {
     background: rgba(40, 40, 40, 0.9);
-    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4), 0 1px 0 rgba(255, 255, 255, 0.15) inset, 0 -1px 0 rgba(0, 0, 0, 0.2) inset;
+    box-shadow:
+      0 12px 40px rgba(0, 0, 0, 0.4),
+      0 1px 0 rgba(255, 255, 255, 0.15) inset,
+      0 -1px 0 rgba(0, 0, 0, 0.2) inset;
   }
 
   .dark .ios-notification-card .text-slate-900 {
@@ -278,7 +290,7 @@
     width: auto !important;
     max-width: none !important;
   }
-  
+
   [data-sonner-toast] {
     width: 100% !important;
     margin-left: auto !important;
@@ -287,7 +299,7 @@
     display: flex !important;
     justify-content: center !important;
   }
-  
+
   /* Center the notification card content */
   [data-sonner-toast] .ios-notification-card {
     margin: 0 auto !important;

@@ -15,7 +15,7 @@
     "test": "jest",
     "test:watch": "jest --watch",
     "check-types": "tsc",
-    "prettier": "prettier . --ignore-path .gitignore '**/*.+(js|mjs|jsx|json|ts|tsx|css|html|md)'",
+    "prettier": "prettier . --ignore-path .gitignore '!pnpm-lock.yaml' '**/*.+(js|mjs|jsx|json|ts|tsx|css|html|md)'",
     "format": "pnpm prettier --write",
     "check-format": "pnpm prettier --list-different",
     "preinstall": "pnpm dlx only-allow pnpm",
