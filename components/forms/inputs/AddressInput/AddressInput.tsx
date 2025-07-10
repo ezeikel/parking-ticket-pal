@@ -130,6 +130,7 @@ const AddressInput = ({
 
     initializedRef.current = true;
 
+    // eslint-disable-next-line consistent-return
     return () => {
       if (geocoderRef.current) {
         geocoderRef.current.onRemove();

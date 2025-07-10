@@ -9,6 +9,6 @@ const UploadButton = dynamic(
   },
 );
 
-export default function DynamicUploadButton() {
-  return <UploadButton />;
-}
+const DynamicUploadButton = () => <UploadButton />;
+
+export default DynamicUploadButton;

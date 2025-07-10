@@ -5,6 +5,7 @@ import {
   faStar as faStarOutline,
 } from '@fortawesome/pro-regular-svg-icons';
 import { faStar } from '@fortawesome/pro-solid-svg-icons';
+import cn from '@/utils/cn';
 
 const testimonials = [
   {
@@ -47,9 +48,9 @@ const SocialProof = () => (
       </div>
 
       <div className="grid md:grid-cols-1 lg:grid-cols-3 gap-8">
-        {testimonials.map((testimonial, index) => (
+        {testimonials.map((testimonial) => (
           <div
-            key={index}
+            key={testimonial.name}
             className="bg-slate-50 dark:bg-slate-800/50 p-6 md:p-8 rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-300 flex flex-col"
           >
             <div className="flex items-center mb-4">
@@ -57,8 +58,13 @@ const SocialProof = () => (
                 <FontAwesomeIcon
                   icon={i < testimonial.rating ? faStar : faStarOutline}
                   size="lg"
-                  key={i}
-                  className={`${i < testimonial.rating ? 'text-yellow-400' : 'text-slate-300 dark:text-slate-600'}`}
+                  // eslint-disable-next-line react/no-array-index-key
+                  key={`${testimonial.name}-star-${i}`}
+                  className={cn(
+                    i < testimonial.rating
+                      ? 'text-yellow-400'
+                      : 'text-slate-300 dark:text-slate-600',
+                  )}
                 />
               ))}
             </div>

@@ -27,50 +27,50 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({
+const RootLayout = ({
   children,
 }: Readonly<{
   children: React.ReactNode;
-}>) {
-  return (
-    <html
-      lang="en"
-      className={cn(
-        'antialiased relative',
-        inter.variable,
-        robotoSlab.variable,
-        lato.variable,
-        'font-sans',
-      )}
-    >
-      <head>
-        <PlausibleProvider domain="parkingticketpal.com" />
-      </head>
-      <body>
-        <Providers>
-          <Header />
-          <main className="flex flex-col min-h-[calc(100vh-72px)] [&>div:not(#modal-root)]:flex-1 px-4">
-            <div id="modal-root" />
-            {children}
-          </main>
-          <Footer />
-          <FundAccountDialog />
-        </Providers>
-        <Toaster
-          richColors
-          toastOptions={{
-            // Default styling for regular app notifications
-            style: {
-              background: 'hsl(var(--background))',
-              border: '1px solid hsl(var(--border))',
-              color: 'hsl(var(--foreground))',
-            },
-            // Custom styling for fake notifications (ios-toast class)
-            className: 'default-toast',
-          }}
-        />
-        <Analytics />
-      </body>
-    </html>
-  );
-}
+}>) => (
+  <html
+    lang="en"
+    className={cn(
+      'antialiased relative',
+      inter.variable,
+      robotoSlab.variable,
+      lato.variable,
+      'font-sans',
+    )}
+  >
+    <head>
+      <PlausibleProvider domain="parkingticketpal.com" />
+    </head>
+    <body>
+      <Providers>
+        <Header />
+        <main className="flex flex-col min-h-[calc(100vh-72px)] [&>div:not(#modal-root)]:flex-1 px-4">
+          <div id="modal-root" />
+          {children}
+        </main>
+        <Footer />
+        <FundAccountDialog />
+      </Providers>
+      <Toaster
+        richColors
+        toastOptions={{
+          // Default styling for regular app notifications
+          style: {
+            background: 'hsl(var(--background))',
+            border: '1px solid hsl(var(--border))',
+            color: 'hsl(var(--foreground))',
+          },
+          // Custom styling for fake notifications (ios-toast class)
+          className: 'default-toast',
+        }}
+      />
+      <Analytics />
+    </body>
+  </html>
+);
+
+export default RootLayout;

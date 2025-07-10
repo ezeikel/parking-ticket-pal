@@ -68,7 +68,7 @@ const ProblemPain = () => {
             <FontAwesomeIcon icon={faRobot} size="3x" />
           </div>
           <h3 className="font-bold tracking-tight text-2xl sm:text-3xl md:text-4xl font-semibold">
-            That's Where{' '}
+            That&apos;s Where{' '}
             <span className="bg-parking-blue text-white font-display px-2 py-1 rounded-md whitespace-nowrap">
               Parking Ticket Pal
             </span>{' '}

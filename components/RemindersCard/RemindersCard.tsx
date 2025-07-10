@@ -47,43 +47,7 @@ const RemindersCard = ({ tier, reminders }: RemindersCardProps) => {
         </div>
       </CardHeader>
       <CardContent>
-        {hasRemindersAccess ? (
-          reminders.length > 0 ? (
-            <ul className="space-y-3">
-              {reminders.map((reminder) => {
-                const isSent = !!reminder.sentAt;
-                const statusIcon = isSent ? faCircleCheck : faClock;
-                const statusColor = isSent
-                  ? 'text-green-500'
-                  : 'text-amber-500';
-                const statusText = isSent
-                  ? `Sent on ${new Date(reminder.sentAt!).toLocaleDateString()}`
-                  : `Scheduled for ${new Date(reminder.sendAt).toLocaleDateString()}`;
-
-                return (
-                  <li key={reminder.id} className="flex items-center gap-3">
-                    <FontAwesomeIcon
-                      icon={statusIcon}
-                      className={`h-5 w-5 flex-shrink-0 ${statusColor}`}
-                    />
-                    <span className="font-medium flex-1">
-                      {formatReminderType(reminder.type)}
-                    </span>
-                    <span
-                      className={`text-sm font-medium ${isSent ? 'text-muted-foreground' : 'text-amber-600'}`}
-                    >
-                      {statusText}
-                    </span>
-                  </li>
-                );
-              })}
-            </ul>
-          ) : (
-            <p className="text-center text-muted-foreground">
-              No reminders are currently scheduled for this ticket.
-            </p>
-          )
-        ) : (
+        {!hasRemindersAccess && (
           <div className="text-center">
             <p className="mb-4 text-muted-foreground">
               Stay on top of your ticket with timely notifications for payment
@@ -91,6 +55,42 @@ const RemindersCard = ({ tier, reminders }: RemindersCardProps) => {
             </p>
             <Button>Get Reminders (£2.99)</Button>
           </div>
+        )}
+
+        {hasRemindersAccess && reminders.length === 0 && (
+          <p className="text-center text-muted-foreground">
+            No reminders are currently scheduled for this ticket.
+          </p>
+        )}
+
+        {hasRemindersAccess && reminders.length > 0 && (
+          <ul className="space-y-3">
+            {reminders.map((reminder) => {
+              const isSent = !!reminder.sentAt;
+              const statusIcon = isSent ? faCircleCheck : faClock;
+              const statusColor = isSent ? 'text-green-500' : 'text-amber-500';
+              const statusText = isSent
+                ? `Sent on ${new Date(reminder.sentAt!).toLocaleDateString()}`
+                : `Scheduled for ${new Date(reminder.sendAt).toLocaleDateString()}`;
+
+              return (
+                <li key={reminder.id} className="flex items-center gap-3">
+                  <FontAwesomeIcon
+                    icon={statusIcon}
+                    className={`h-5 w-5 flex-shrink-0 ${statusColor}`}
+                  />
+                  <span className="font-medium flex-1">
+                    {formatReminderType(reminder.type)}
+                  </span>
+                  <span
+                    className={`text-sm font-medium ${isSent ? 'text-muted-foreground' : 'text-amber-600'}`}
+                  >
+                    {statusText}
+                  </span>
+                </li>
+              );
+            })}
+          </ul>
         )}
       </CardContent>
     </Card>

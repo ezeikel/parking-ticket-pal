@@ -23,6 +23,7 @@ const IssueNotification = ({ issueCount }: IssueNotificationProps) => {
           {issueCount === 1 ? 'vehicle requires' : 'vehicles require'} attention
         </span>
         <button
+          type="button"
           onClick={() => setIsVisible(false)}
           className="ml-2 rounded-full hover:bg-red-700/50 p-0.5"
         >

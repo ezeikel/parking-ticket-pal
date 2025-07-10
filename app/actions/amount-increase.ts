@@ -112,7 +112,6 @@ export async function createAmountIncreaseFromLetter(
   effectiveAt: Date = new Date(),
 ) {
   try {
-    // @ts-ignore - This will work after running prisma generate
     const amountIncrease = await db.amountIncrease.create({
       data: {
         ticketId,
@@ -154,7 +153,6 @@ export async function getCurrentAmountIncrease(ticketId: string) {
   try {
     const now = new Date();
 
-    // @ts-ignore - This will work after running prisma generate
     const amountIncrease = await db.amountIncrease.findFirst({
       where: {
         ticketId,
@@ -185,7 +183,6 @@ export async function deleteAmountIncrease(
 ) {
   try {
     // Get the current amount increase before deletion
-    // @ts-ignore - This will work after running prisma generate
     const amountIncreaseToDelete = await db.amountIncrease.findUnique({
       where: { id: amountIncreaseId },
     });
@@ -195,7 +192,6 @@ export async function deleteAmountIncrease(
     }
 
     // Delete the amount increase
-    // @ts-ignore - This will work after running prisma generate
     await db.amountIncrease.delete({
       where: { id: amountIncreaseId },
     });

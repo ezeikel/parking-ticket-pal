@@ -1,6 +1,11 @@
-import { Config } from 'jest';
+import type { Config } from 'jest';
+import nextJest from 'next/jest';
 
-const config: Config = {
+const createJestConfig = nextJest({
+  dir: './',
+});
+
+const customJestConfig: Config = {
   coverageThreshold: {
     global: {
       statements: 34,
@@ -9,7 +14,16 @@ const config: Config = {
       lines: 29,
     },
   },
-  projects: ['./test/jest.lint.ts', './test/jest.client.ts'],
+  coverageProvider: 'v8',
+  testEnvironment: 'jsdom',
+  setupFilesAfterEnv: ['<rootDir>/test/jest.setup.ts'],
+  watchPlugins: [
+    'jest-watch-select-projects',
+    'jest-watch-typeahead/filename',
+    'jest-watch-typeahead/testname',
+  ],
+  moduleDirectories: ['node_modules', '<rootDir>/'],
 };
 
-export default config;
+// createJestConfig is exported this way to ensure that next/jest can load the Next.js config which is async
+export default createJestConfig(customJestConfig);

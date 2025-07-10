@@ -15,37 +15,7 @@ type FormEmailProps = {
   downloadUrl: string;
 };
 
-export const FormEmail = ({
-  formType,
-  userName,
-  downloadUrl,
-}: FormEmailProps) => (
-  <Html>
-    <Head />
-    <Preview>Your {formType} Form is Ready</Preview>
-    <Body style={main}>
-      <Container style={container}>
-        <Heading style={h1}>Your {formType} Form is Ready</Heading>
-        <Text style={text}>Hello {userName},</Text>
-        <Text style={text}>
-          Your {formType} form has been generated and is attached to this email.
-        </Text>
-        <Text style={text}>
-          You can also download it directly from{' '}
-          <Link href={downloadUrl}>this link</Link> or from your account
-          dashboard.
-        </Text>
-        <Text style={text}>
-          Regards,
-          <br />
-          Parking Ticket Pal Team
-        </Text>
-      </Container>
-    </Body>
-  </Html>
-);
-
-// Styles
+// styles
 const main = {
   backgroundColor: '#f6f9fc',
   fontFamily:
@@ -71,5 +41,31 @@ const text = {
   lineHeight: '24px',
   margin: '16px 0',
 };
+
+const FormEmail = ({ formType, userName, downloadUrl }: FormEmailProps) => (
+  <Html>
+    <Head />
+    <Preview>Your {formType} Form is Ready</Preview>
+    <Body style={main}>
+      <Container style={container}>
+        <Heading style={h1}>Your {formType} Form is Ready</Heading>
+        <Text style={text}>Hello {userName},</Text>
+        <Text style={text}>
+          Your {formType} form has been generated and is attached to this email.
+        </Text>
+        <Text style={text}>
+          You can also download it directly from{' '}
+          <Link href={downloadUrl}>this link</Link> or from your account
+          dashboard.
+        </Text>
+        <Text style={text}>
+          Regards,
+          <br />
+          Parking Ticket Pal Team
+        </Text>
+      </Container>
+    </Body>
+  </Html>
+);
 
 export default FormEmail;

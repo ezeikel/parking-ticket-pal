@@ -20,7 +20,7 @@ const Hero = () => (
         <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight">
           <span className="relative inline-block">
             Don&apos;t
-            <span className="absolute -bottom-1 left-0 w-full h-[5px] bg-red-500 transform -rotate-1 animate-draw-line"></span>
+            <span className="absolute -bottom-1 left-0 w-full h-[5px] bg-red-500 transform -rotate-1 animate-draw-line" />
           </span>{' '}
           pay that{' '}
           <span className="bg-parking-ticket-yellow text-black px-2 py-1 rounded-md mx-1 leading-loose">

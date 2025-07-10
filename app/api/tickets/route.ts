@@ -2,7 +2,7 @@
 
 import { getTickets } from '@/app/actions/ticket';
 
-export async function GET() {
+export const GET = async () => {
   const tickets = await getTickets();
 
   return Response.json(
@@ -17,4 +17,4 @@ export async function GET() {
       status: 200,
     },
   );
-}
+};

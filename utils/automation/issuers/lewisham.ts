@@ -1,6 +1,6 @@
 import { ChallengeReasonId } from '@/types';
 import { getEvidenceImages } from '@/app/actions';
-import { generateChallengeDetails } from '@/app/actions/ticket';
+import generateChallengeText from '@/utils/ai/generateChallengeText';
 import { CommonPcnArgs, takeScreenShot, uploadEvidence } from '../shared';
 
 export const access = async ({ page, pcnNumber, ticket }: CommonPcnArgs) => {
@@ -60,7 +60,9 @@ export const verify = async (args: CommonPcnArgs) => {
   await page.click('#blueimp-image-gallery a.close');
 
   // pause for 3 minutes
-  await new Promise((resolve) => setTimeout(resolve, 3 * 60 * 1000));
+  await new Promise((resolve) => {
+    setTimeout(resolve, 3 * 60 * 1000);
+  });
 
   return true;
 };
@@ -167,8 +169,8 @@ export const challenge = async (
     pcnNumber: args.pcnNumber,
   });
 
-  // get ai generated challenge details
-  const challengeDetails = await generateChallengeDetails({
+  // get ai generated challenge text
+  const challengeText = await generateChallengeText({
     pcnNumber: args.pcnNumber,
     formFieldPlaceholderText: notesDetailsPlaceholder,
     // reason and detailed reason as string
@@ -177,8 +179,8 @@ export const challenge = async (
     userEvidenceImageUrls: [],
   });
 
-  // fill out textarea with challenge details
-  await page.fill('#notesdetails', challengeDetails ?? '');
+  // fill out textarea with challenge text
+  await page.fill('#notesdetails', challengeText ?? '');
 
   // click the Next button to submit the challenge
   await page.click('#submit-btn:has-text("Next")');
@@ -230,7 +232,9 @@ export const challenge = async (
   });
 
   // pause for 3 minutes
-  await new Promise((resolve) => setTimeout(resolve, 3 * 60 * 1000));
+  await new Promise((resolve) => {
+    setTimeout(resolve, 3 * 60 * 1000);
+  });
 
   return true;
 };

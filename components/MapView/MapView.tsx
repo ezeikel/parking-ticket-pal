@@ -41,6 +41,7 @@ const MapView = ({ tickets }: MapViewProps) => {
         const iconContainer = document.createElement('div');
 
         // use react to render the FontAwesome icon
+        // eslint-disable-next-line @typescript-eslint/no-require-imports, global-require
         const { createRoot } = require('react-dom/client');
         const root = createRoot(iconContainer);
 

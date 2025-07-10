@@ -11,7 +11,7 @@ import { FormType } from '@prisma/client';
 import { Address, PdfFormFields } from '@/types';
 import { put } from '@vercel/blob';
 import { STORAGE_PATHS } from '@/constants';
-import { resend } from '@/lib/resend';
+import resend from '@/lib/resend';
 import { db } from '@/lib/prisma';
 
 // generic function to fill a form and follow subsequent steps e.g. upload to blob, save to db, send email

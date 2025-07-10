@@ -21,8 +21,13 @@ const PercentageIndicator = ({
   const [progress, setProgress] = useState(0);
 
   // Determine color based on percentage
-  const colorVariant =
-    percentage >= 70 ? 'high' : percentage >= 40 ? 'medium' : 'low';
+  const getColorVariant = (value: number) => {
+    if (value >= 70) return 'high';
+    if (value >= 40) return 'medium';
+    return 'low';
+  };
+
+  const colorVariant = getColorVariant(percentage);
 
   // Fixed viewBox and circle properties - the SVG will scale to fill container
   const viewBoxSize = 100;

@@ -70,8 +70,8 @@ const LetterPage = async ({ params }: LetterPageProps) => {
         <div className="text-center">
           <h1 className="text-2xl font-bold mb-4">Letter Not Found</h1>
           <p className="text-muted-foreground mb-6">
-            The letter you're looking for doesn't exist or you don't have
-            permission to view it.
+            The letter you&apos;re looking for doesn&apos;t exist or you
+            don&apos;t have permission to view it.
           </p>
           <Link href="/tickets">
             <Button>Back to Tickets</Button>
@@ -212,7 +212,7 @@ const LetterPage = async ({ params }: LetterPageProps) => {
                   >
                     <img
                       src={media.url}
-                      alt={`Letter image ${index + 1}`}
+                      alt={`Letter ${index + 1}`}
                       className="w-full h-auto object-cover"
                     />
                     <div className="p-2 bg-muted/20 text-center text-sm">

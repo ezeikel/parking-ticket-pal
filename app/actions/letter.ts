@@ -20,14 +20,14 @@ import { db } from '@/lib/prisma';
 import getVehicleInfo from '@/utils/getVehicleInfo';
 import { letterFormSchema } from '@/types';
 import { getUserId } from '@/app/actions/user';
-import { openai } from '@/lib/openai';
+import openai from '@/lib/openai';
 import {
   BACKGROUND_INFORMATION_PROMPT,
   CHATGPT_MODEL,
   CONTRAVENTION_CODES,
   STORAGE_PATHS,
 } from '@/constants';
-import { resend } from '@/lib/resend';
+import resend from '@/lib/resend';
 import generatePDF from '@/utils/generatePDF';
 import streamToBuffer from '@/utils/streamToBuffer';
 import formatPenniesToPounds from '@/utils/formatPenniesToPounds';

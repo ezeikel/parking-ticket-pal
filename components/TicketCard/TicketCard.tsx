@@ -156,7 +156,7 @@ const TicketCard = ({ ticket }: TicketCardProps) => {
               amount={amountInfo.amount}
               showMessage={false}
               status={amountInfo.status as 'discount' | 'standard' | 'overdue'}
-              compact={true}
+              compact
             />
           </div>
           <div className="flex items-center gap-2 col-span-2">

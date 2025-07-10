@@ -34,6 +34,7 @@ const SignatureInput = ({
   warningText = 'Your signature will be used on forms. Draw your signature above.',
 }: SignatureInputProps) => {
   const [isEditing, setIsEditing] = useState<boolean>(!signatureUrl);
+  // eslint-disable-next-line @typescript-eslint/naming-convention, @typescript-eslint/no-unused-vars
   const [_, setCurrentSignature] = useState<string | null>(signatureUrl);
   const canvasRef = useRef<SignatureCanvasHandle>(null);
 

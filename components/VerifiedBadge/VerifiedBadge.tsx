@@ -1,5 +1,7 @@
-import { faExclamationCircle } from '@fortawesome/pro-regular-svg-icons';
-import { faCheckCircle } from '@fortawesome/pro-regular-svg-icons';
+import {
+  faExclamationCircle,
+  faCheckCircle,
+} from '@fortawesome/pro-regular-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { VerificationStatus } from '@prisma/client';
 

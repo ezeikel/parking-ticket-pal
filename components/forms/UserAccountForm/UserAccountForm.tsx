@@ -82,7 +82,9 @@ const UserAccountForm = ({ user }: UserAccountFormProps) => {
   });
 
   // Use `useFormState` to bind the form to the server action
+  // eslint-disable-next-line @typescript-eslint/naming-convention
   const [_, formAction] = useFormState(
+    // eslint-disable-next-line @typescript-eslint/no-shadow
     async (_: any, formData: FormData) => updateUserProfile(user.id!, formData),
     null,
   );
@@ -275,8 +277,8 @@ const UserAccountForm = ({ user }: UserAccountFormProps) => {
         <div className="space-y-6 pt-6 border-t">
           <h3 className="text-lg font-medium">Your Signature</h3>
           <SignatureInput
-            onSignatureChange={(signatureDataUrl) =>
-              setSignatureDataUrl(signatureDataUrl)
+            onSignatureChange={(newSignatureDataUrl) =>
+              setSignatureDataUrl(newSignatureDataUrl)
             }
             signatureUrl={user?.signatureUrl || null}
           />

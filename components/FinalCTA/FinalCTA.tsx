@@ -29,7 +29,8 @@ const FinalCTA = () => (
             Challenge Your Fine Free
           </Button>
           <p className="text-sm text-muted-foreground mt-3">
-            It's free to start. See your options before you decide on more help.
+            It&apos;s free to start. See your options before you decide on more
+            help.
           </p>
         </div>
       </div>

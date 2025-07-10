@@ -24,7 +24,7 @@ const pointsToSvg = (pointGroups: Point[][]): string => {
       let path = `<path d="M ${points[0].x} ${points[0].y}`;
 
       // add line segments to each point
-      for (let i = 1; i < points.length; i++) {
+      for (let i = 1; i < points.length; i += 1) {
         path += ` L ${points[i].x} ${points[i].y}`;
       }
 

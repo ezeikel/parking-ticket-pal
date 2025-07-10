@@ -22,7 +22,7 @@ import {
 type TicketStatusTimelineProps = {
   currentStatus: TicketStatus;
   issuerType: IssuerType;
-  // eslint-disable-next-line no-unused-vars
+   
   onStatusChange: (newStatus: TicketStatus) => void;
 };
 
@@ -93,8 +93,11 @@ const TicketStatusTimeline = ({
             const isLast = index === timeline.length - 1;
 
             return (
+              // eslint-disable-next-line jsx-a11y/click-events-have-key-events
               <div
                 key={stage.id}
+                role="button"
+                tabIndex={0}
                 className="relative flex flex-col items-center group cursor-pointer"
                 onClick={() => handleStageClick(stage)}
                 style={{ width: '200px', minWidth: '200px' }}
@@ -214,8 +217,9 @@ const TicketStatusTimeline = ({
           <AlertDialogHeader>
             <AlertDialogTitle>Confirm Status Change</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to change the ticket status to "
-              {stageToConfirm?.title}"? This may have irreversible consequences.
+              Are you sure you want to change the ticket status to &quot;
+              {stageToConfirm?.title}
+              &quot;? This may have irreversible consequences.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

@@ -1,6 +1,6 @@
 import { list, del } from '@vercel/blob';
 
-export const cleanupTempUploads = async () => {
+const cleanupTempUploads = async () => {
   const CUTOFF_TIME = 48 * 60 * 60 * 1000; // 48 hours in milliseconds
 
   try {
@@ -88,3 +88,5 @@ if (require.main === module) {
       process.exit(1);
     });
 }
+
+export default cleanupTempUploads;

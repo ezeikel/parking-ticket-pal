@@ -66,7 +66,7 @@ const entityLogos: EntityLogo[] = [
   },
 ];
 
-export default function TrustIndicators() {
+const TrustIndicators = () => {
   const plugin = useRef(
     Autoplay({ delay: 5000, stopOnInteraction: true, stopOnMouseEnter: true }),
   );
@@ -139,4 +139,6 @@ export default function TrustIndicators() {
       </div>
     </section>
   );
-}
+};
+
+export default TrustIndicators;

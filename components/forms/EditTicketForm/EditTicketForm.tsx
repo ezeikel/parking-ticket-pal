@@ -46,7 +46,7 @@ type EditTicketFormProps = {
   ticket: TicketWithPrediction;
 };
 
-export default function EditTicketForm({ ticket }: EditTicketFormProps) {
+const EditTicketForm = ({ ticket }: EditTicketFormProps) => {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
 
@@ -163,7 +163,7 @@ export default function EditTicketForm({ ticket }: EditTicketFormProps) {
                   <PopoverTrigger asChild>
                     <FormControl>
                       <Button
-                        variant={'outline'}
+                        variant="outline"
                         className={cn(
                           'w-full pl-3 text-left font-normal',
                           !field.value && 'text-muted-foreground',
@@ -268,4 +268,6 @@ export default function EditTicketForm({ ticket }: EditTicketFormProps) {
       </form>
     </Form>
   );
-}
+};
+
+export default EditTicketForm;

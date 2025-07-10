@@ -19,18 +19,16 @@ const MediaPreview = ({ files, className }: MediaPreviewProps) => {
       })}
     >
       {files?.length
-        ? files.map((file) => {
-            return (
-              <Image
-                width={200}
-                height={200}
-                className="object-cover w-full h-full"
-                key={file.preview}
-                src={file.preview}
-                alt="upload preview"
-              />
-            );
-          })
+        ? files.map((file) => (
+            <Image
+              width={200}
+              height={200}
+              className="object-cover w-full h-full"
+              key={file.preview}
+              src={file.preview}
+              alt="upload preview"
+            />
+          ))
         : null}
     </div>
   );

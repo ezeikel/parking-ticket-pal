@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import { useState } from 'react';
 import type { ReactNode } from 'react';
 import { TicketStatus } from '@prisma/client';
 import {

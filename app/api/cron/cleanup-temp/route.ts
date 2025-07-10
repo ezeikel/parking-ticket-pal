@@ -1,7 +1,8 @@
+/* eslint-disable import/prefer-default-export */
 import { NextRequest } from 'next/server';
-import { cleanupTempUploads } from '@/scripts/cleanup-temp-uploads';
+import cleanupTempUploads from '@/scripts/cleanup-temp-uploads';
 
-export async function GET(request: NextRequest) {
+export const GET = async (request: NextRequest) => {
   // verify cron secret if needed
   const authHeader = request.headers.get('authorization');
   const cronSecret = process.env.CRON_SECRET;
@@ -17,4 +18,4 @@ export async function GET(request: NextRequest) {
     console.error('Cleanup cron job failed:', error);
     return new Response('Cleanup failed', { status: 500 });
   }
-}
+};

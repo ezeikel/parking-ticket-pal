@@ -1,4 +1,3 @@
-import React from 'react';
 import { MediaSource, TicketTier } from '@prisma/client';
 import TicketUpsellCTA from '@/components/TicketUpsellCTA/TicketUpsellCTA';
 import TicketDetailsCard from '@/components/TicketDetailsCard/TicketDetailsCard';

@@ -55,6 +55,7 @@ const LocationMap = ({ longitude, latitude }: LocationMapProps) => {
     map.current.addControl(new mapboxgl.NavigationControl(), 'top-right');
 
     // Cleanup on unmount
+    // eslint-disable-next-line consistent-return
     return () => map.current?.remove();
   }, [longitude, latitude]);
 

@@ -1,4 +1,3 @@
-import React from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { TicketType, TicketStatus, IssuerType } from '@prisma/client';
 import { IconProp } from '@fortawesome/fontawesome-svg-core';
@@ -1058,6 +1057,7 @@ export const CONTRAVENTION_CODES = {
 } as const;
 
 export const getContraventionDetails = (code: string) => {
+  // TODO: add support for suffixes e.g 622 (62 with a suffix of 2)
   const codeData =
     CONTRAVENTION_CODES[code as keyof typeof CONTRAVENTION_CODES];
 

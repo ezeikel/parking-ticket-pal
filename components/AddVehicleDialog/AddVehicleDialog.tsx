@@ -78,7 +78,7 @@ const AddVehicleDialog = () => {
             <DialogHeader>
               <DialogTitle>Add a new vehicle</DialogTitle>
               <DialogDescription>
-                Enter your vehicle's registration to find its details.
+                Enter your vehicle&apos;s registration to find its details.
               </DialogDescription>
             </DialogHeader>
             <div className="grid gap-4 py-4">
@@ -166,12 +166,13 @@ const AddVehicleDialog = () => {
                 </div>
               </div>
               <div className="text-center text-sm">
-                <span
+                <button
+                  type="button"
                   className="text-primary hover:underline cursor-pointer"
                   onClick={() => setStep('manualEntry')}
                 >
                   Wrong details? Enter them manually.
-                </span>
+                </button>
               </div>
             </div>
             <DialogFooter className="pt-4 border-t">
@@ -294,6 +295,9 @@ const AddVehicleDialog = () => {
             </DialogFooter>
           </>
         );
+
+      default:
+        return null;
     }
   };
 

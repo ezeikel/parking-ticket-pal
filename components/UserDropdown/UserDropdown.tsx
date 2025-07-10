@@ -70,13 +70,17 @@ const UserDropdown = ({ user }: UserDropdownProps) => (
     </DropdownMenuTrigger>
     <DropdownMenuContent align="end" className="w-48">
       {DROPDOWN_ITEMS.map((item, idx) => {
+        const key = item.separator
+          ? `separator-${idx}`
+          : item.label || `item-${idx}`;
+
         if (item.separator) {
-          return <DropdownMenuSeparator key={idx} />;
+          return <DropdownMenuSeparator key={key} />;
         }
 
         if (item.href) {
           return (
-            <DropdownMenuItem key={idx} asChild>
+            <DropdownMenuItem key={key} asChild>
               {item.external ? (
                 <a
                   href={item.href}
@@ -99,7 +103,7 @@ const UserDropdown = ({ user }: UserDropdownProps) => (
         if (item.action) {
           return (
             <DropdownMenuItem
-              key={idx}
+              key={key}
               onClick={item.action}
               className="flex items-center gap-2 cursor-pointer"
             >

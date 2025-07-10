@@ -1,5 +1,5 @@
 import NextAuth from 'next-auth';
-// eslint-disable-next-line import/no-extraneous-dependencies
+ 
 import type {
   AuthConfig,
   Account,
@@ -71,5 +71,5 @@ export const {
   auth,
   signIn,
   signOut,
-  // @ts-ignore - Type 'typeof import("next-auth")' has no call signatures
+  // @ts-expect-error - Type 'typeof import("next-auth")' has no call signatures
 } = NextAuth(config);

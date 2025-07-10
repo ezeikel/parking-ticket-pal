@@ -3,7 +3,7 @@
 import { headers } from 'next/headers';
 import { ProductType } from '@prisma/client';
 import { db } from '@/lib/prisma';
-import { stripe } from '@/lib/stripe';
+import stripe from '@/lib/stripe';
 import { getUserId } from './user';
 
 export const createCheckoutSession = async (

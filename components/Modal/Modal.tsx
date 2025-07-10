@@ -30,6 +30,7 @@ const Modal = ({ children }: { children: React.ReactNode }) => {
       >
         <div className="relative p-6">
           <button
+            type="button"
             onClick={onDismiss}
             className="absolute top-3 right-3 p-1 rounded-full text-muted-foreground hover:bg-muted"
           >

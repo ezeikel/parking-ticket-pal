@@ -190,6 +190,7 @@ export const useFakeNotifications = (isSilenced: boolean) => {
     // Start after a short delay
     const initialDelay = setTimeout(showNextNotification, 3000);
 
+    // eslint-disable-next-line consistent-return
     return () => {
       clearTimeout(initialDelay);
       clearTimeout(timeoutId);
@@ -208,6 +209,7 @@ const FakeNotifications = () => {
 
   return (
     <button
+      type="button"
       onClick={toggleSilence}
       className="fixed bottom-4 right-4 z-[10000] w-12 h-12 bg-white rounded-full shadow-lg border border-gray-200 flex items-center justify-center hover:shadow-xl transition-all duration-200 hover:scale-105 cursor-pointer"
       title={
@@ -218,7 +220,7 @@ const FakeNotifications = () => {
     >
       <FontAwesomeIcon
         icon={isSilenced ? faBellSlash : faBellOn}
-        className={`text-lg text-gray-400`}
+        className="text-lg text-gray-400"
       />
     </button>
   );

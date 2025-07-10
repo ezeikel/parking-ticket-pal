@@ -2,7 +2,7 @@
 
 import { put } from '@vercel/blob';
 import { zodResponseFormat } from 'openai/helpers/zod';
-import { openai } from '@/lib/openai';
+import openai from '@/lib/openai';
 import vision from '@google-cloud/vision';
 import { getUserId } from '@/app/actions/user';
 import {

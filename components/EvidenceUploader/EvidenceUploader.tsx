@@ -41,7 +41,7 @@ const UploadedFileItem = ({
   isPending,
 }: {
   item: Pick<Media, 'id' | 'url' | 'description' | 'evidenceType'>;
-  // eslint-disable-next-line no-unused-vars
+   
   onDelete: (item: Pick<Media, 'id' | 'url'>) => void;
   isPending: boolean;
 }) => {
@@ -213,12 +213,13 @@ const EvidenceUploader = ({
             <UploadCloud className="w-12 h-12 text-muted-foreground" />
             <p className="mt-4 text-lg font-semibold text-center">
               Drag & drop a file here or{' '}
-              <span
+              <button
+                type="button"
                 className="text-primary cursor-pointer hover:underline"
                 onClick={() => fileInputRef.current?.click()}
               >
                 browse
-              </span>
+              </button>
             </p>
             <p className="mt-1 text-sm text-muted-foreground">
               PDF, PNG, JPG, etc. (Max 10MB)

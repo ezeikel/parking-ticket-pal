@@ -1,4 +1,3 @@
-import React from 'react';
 import VehicleCard from '@/components/VehicleCard/VehicleCard';
 import AddVehicleDialog from '@/components/AddVehicleDialog/AddVehicleDialog';
 import IssueNotification from '@/components/IssueNotification/IssueNotification';

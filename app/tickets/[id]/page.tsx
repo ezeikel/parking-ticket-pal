@@ -7,7 +7,6 @@ import TicketDetail from '@/components/TicketDetail/TicketDetail';
 
 type TicketPageProps = {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ edit: string }>;
 };
 
 const TicketPage = async ({ params }: TicketPageProps) => {

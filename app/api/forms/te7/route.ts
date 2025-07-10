@@ -107,8 +107,8 @@ export const POST = async (req: NextRequest) => {
 };
 
 // Handle OPTIONS requests for CORS preflight
-export const OPTIONS = async () => {
-  return new Response(null, {
+export const OPTIONS = () =>
+  new Response(null, {
     status: 204,
     headers: {
       'Access-Control-Allow-Origin': '*',
@@ -116,4 +116,3 @@ export const OPTIONS = async () => {
       'Access-Control-Allow-Headers': 'Content-Type, Authorization',
     },
   });
-};
