@@ -71,8 +71,7 @@ const TicketDetailsCard = ({ ticket }: TicketDetailsCardProps) => {
     location?.coordinates?.latitude && location?.coordinates?.longitude;
 
   const handleStatusChange = (newStatus: TicketStatus) => {
-    console.log('New status selected:', newStatus);
-    // This would call a server action to update the database
+    // TODO: update the status in the db
     setCurrentStatus(newStatus);
   };
 

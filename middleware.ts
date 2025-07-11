@@ -74,8 +74,6 @@ export const middleware = async (req: NextRequest) => {
   if (pathname === '/') {
     // redirect authenticated users away from landing page
     if (session) {
-      console.log('redirecting to dashboard');
-      console.log('session', session);
       return NextResponse.redirect(new URL('/dashboard', req.url));
     }
 
@@ -83,8 +81,6 @@ export const middleware = async (req: NextRequest) => {
   }
 
   if (isPathAuthenticated(pathname)) {
-    console.log('isPathAuthenticated', pathname);
-    console.log('session', session);
     // users must sign in to access pages that require authentication
     if (!session) {
       return NextResponse.redirect(new URL('/', req.url));

@@ -11,7 +11,6 @@ import Footer from '@/components/Footer/Footer';
 import Providers from './providers';
 import { inter, robotoSlab, lato } from './fonts';
 import '@/global.css';
-import 'mapbox-gl/dist/mapbox-gl.css';
 
 config.autoAddCss = false;
 
