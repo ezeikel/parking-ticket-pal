@@ -14,9 +14,16 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Plus, Loader2, Search, ArrowLeft, Info } from 'lucide-react';
 import { getVehicleDetails, createVehicle } from '@/app/actions/vehicle';
 import { toast } from 'sonner';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import {
+  faArrowLeft,
+  faMagnifyingGlass,
+  faPlus,
+  faSpinnerThird,
+} from '@fortawesome/pro-solid-svg-icons';
+import { faInfoCircle } from '@fortawesome/pro-regular-svg-icons';
 
 type Step = 'enterReg' | 'reviewDetails' | 'manualEntry';
 
@@ -102,9 +109,13 @@ const AddVehicleDialog = () => {
                   disabled={isFinding || registration.length < 2}
                 >
                   {isFinding ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
+                    <FontAwesomeIcon
+                      icon={faSpinnerThird}
+                      size="lg"
+                      className="animate-spin"
+                    />
                   ) : (
-                    <Search className="h-4 w-4" />
+                    <FontAwesomeIcon icon={faMagnifyingGlass} size="lg" />
                   )}
                   <span className="sr-only">Find Vehicle</span>
                 </Button>
@@ -181,7 +192,7 @@ const AddVehicleDialog = () => {
                 variant="ghost"
                 onClick={() => setStep('enterReg')}
               >
-                <ArrowLeft className="mr-2 h-4 w-4" />
+                <FontAwesomeIcon icon={faArrowLeft} size="lg" />
                 Back
               </Button>
               <Button
@@ -190,7 +201,11 @@ const AddVehicleDialog = () => {
                 disabled={isCreating}
               >
                 {isCreating && (
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  <FontAwesomeIcon
+                    icon={faSpinnerThird}
+                    size="lg"
+                    className="mr-2 animate-spin"
+                  />
                 )}
                 Add Vehicle
               </Button>
@@ -210,7 +225,11 @@ const AddVehicleDialog = () => {
             <div className="space-y-4 py-4">
               {findState.error && (
                 <Alert variant="default">
-                  <Info className="h-4 w-4" />
+                  <FontAwesomeIcon
+                    icon={faInfoCircle}
+                    size="lg"
+                    className="mr-2"
+                  />
                   <AlertDescription>{findState.error}</AlertDescription>
                 </Alert>
               )}
@@ -279,7 +298,11 @@ const AddVehicleDialog = () => {
                 variant="ghost"
                 onClick={() => setStep('enterReg')}
               >
-                <ArrowLeft className="mr-2 h-4 w-4" />
+                <FontAwesomeIcon
+                  icon={faArrowLeft}
+                  size="lg"
+                  className="mr-2"
+                />
                 Back
               </Button>
               <Button
@@ -288,7 +311,11 @@ const AddVehicleDialog = () => {
                 disabled={isCreating}
               >
                 {isCreating && (
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  <FontAwesomeIcon
+                    icon={faSpinnerThird}
+                    size="lg"
+                    className="mr-2 animate-spin"
+                  />
                 )}
                 Save Vehicle
               </Button>
@@ -305,7 +332,7 @@ const AddVehicleDialog = () => {
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button>
-          <Plus className="mr-2 h-4 w-4" />
+          <FontAwesomeIcon icon={faPlus} size="lg" />
           Add Vehicle
         </Button>
       </DialogTrigger>

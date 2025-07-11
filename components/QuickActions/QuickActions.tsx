@@ -3,8 +3,8 @@ import { Button } from '@/components/ui/button';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
   faUpload,
-  faCar,
-  faTicket,
+  faCarSide,
+  faTicketPerforated,
   faCalendar,
 } from '@fortawesome/pro-regular-svg-icons';
 
@@ -20,14 +20,14 @@ const QuickActions = () => {
     {
       title: 'Manage Vehicles',
       description: 'View and edit your vehicles',
-      icon: faCar,
+      icon: faCarSide,
       href: '/vehicles',
       variant: 'outline' as const,
     },
     {
       title: 'View Tickets',
       description: 'See all your tickets',
-      icon: faTicket,
+      icon: faTicketPerforated,
       href: '/tickets',
       variant: 'outline' as const,
     },
@@ -48,7 +48,11 @@ const QuickActions = () => {
             variant={action.variant}
             className="w-full h-auto py-6 flex flex-col items-center gap-2"
           >
-            <FontAwesomeIcon icon={action.icon} className="h-6 w-6" />
+            <FontAwesomeIcon
+              icon={action.icon}
+              size="sm"
+              className="scale-150"
+            />
             <div className="flex flex-col items-center">
               <span className="font-semibold">{action.title}</span>
               <span className="text-sm text-muted-foreground">

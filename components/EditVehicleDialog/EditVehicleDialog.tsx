@@ -1,6 +1,8 @@
 'use client';
 
 import { useEffect, useActionState } from 'react';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faSpinnerThird } from '@fortawesome/pro-solid-svg-icons';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -13,7 +15,6 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Loader2 } from 'lucide-react';
 import { updateVehicle } from '@/app/actions/vehicle';
 import { toast } from 'sonner';
 
@@ -116,7 +117,13 @@ const EditVehicleDialog = ({
               Cancel
             </Button>
             <Button type="submit" disabled={isUpdating}>
-              {isUpdating && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              {isUpdating && (
+                <FontAwesomeIcon
+                  icon={faSpinnerThird}
+                  size="lg"
+                  className="mr-2 animate-spin"
+                />
+              )}
               Save Changes
             </Button>
           </DialogFooter>

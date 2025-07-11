@@ -1,7 +1,12 @@
 import { Prisma } from '@prisma/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Car, AlertTriangle } from 'lucide-react';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import {
+  faCarSide,
+  faTriangleExclamation,
+} from '@fortawesome/pro-regular-svg-icons';
+
 import { cn } from '@/lib/utils';
 import VehicleCardControls from '@/components/VehicleCardControls/VehicleCardControls';
 
@@ -45,7 +50,11 @@ const VehicleCard = ({ vehicle }: VehicleCardProps) => (
     <CardContent className="space-y-4">
       <div className="flex items-start gap-4">
         <div className="flex h-16 w-16 items-center justify-center rounded-lg bg-muted flex-shrink-0">
-          <Car className="h-8 w-8 text-muted-foreground" />
+          <FontAwesomeIcon
+            icon={faCarSide}
+            size="lg"
+            className="text-muted-foreground"
+          />
         </div>
         <div className="space-y-1 text-sm">
           <p className="font-medium">
@@ -63,7 +72,7 @@ const VehicleCard = ({ vehicle }: VehicleCardProps) => (
           <div className="flex items-center gap-2">
             {vehicle.hasUrgentTickets ? (
               <Badge variant="destructive" className="gap-1.5 pl-1.5">
-                <AlertTriangle className="h-3.5 w-3.5" />
+                <FontAwesomeIcon icon={faTriangleExclamation} size="lg" />
                 {vehicle.activeTickets} Urgent Ticket(s)
               </Badge>
             ) : (

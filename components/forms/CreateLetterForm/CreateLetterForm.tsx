@@ -33,10 +33,13 @@ import {
 } from '@/components/ui/popover';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
-import { CalendarIcon } from 'lucide-react';
 import { toast } from 'sonner';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faCamera, faSpinner } from '@fortawesome/pro-regular-svg-icons';
+import {
+  faCamera,
+  faSpinnerThird,
+  faCalendarDays,
+} from '@fortawesome/pro-regular-svg-icons';
 import { extractOCRTextWithVision } from '@/app/actions/ocr';
 
 const CreateLetterForm = () => {
@@ -141,7 +144,7 @@ const CreateLetterForm = () => {
             <div className="flex flex-col items-center justify-center pt-5 pb-6">
               {isLoading ? (
                 <FontAwesomeIcon
-                  icon={faSpinner}
+                  icon={faSpinnerThird}
                   className="w-8 h-8 mb-4 text-gray-500 animate-spin"
                 />
               ) : (
@@ -169,7 +172,7 @@ const CreateLetterForm = () => {
 
         {isLoading ? (
           <div className="flex justify-center">
-            <FontAwesomeIcon icon={faSpinner} spin size="3x" />
+            <FontAwesomeIcon icon={faSpinnerThird} spin size="3x" />
           </div>
         ) : (
           <>
@@ -293,7 +296,11 @@ const CreateLetterForm = () => {
                           ) : (
                             <span>Pick a date</span>
                           )}
-                          <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                          <FontAwesomeIcon
+                            icon={faCalendarDays}
+                            size="lg"
+                            className="ml-auto opacity-50"
+                          />
                         </Button>
                       </FormControl>
                     </PopoverTrigger>

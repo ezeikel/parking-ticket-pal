@@ -3,8 +3,8 @@ import { User } from '@prisma/client';
 import { faSquareParking } from '@fortawesome/pro-solid-svg-icons';
 import {
   faUpload,
-  faTicket,
-  faCar,
+  faTicketPerforated,
+  faCarSide,
   faCreditCard,
   faHeadset,
   faRightToBracket,
@@ -64,13 +64,13 @@ const ITEMS: NavItem[] = [
   },
   {
     label: 'Tickets',
-    icon: <FontAwesomeIcon icon={faTicket} size="lg" />,
+    icon: <FontAwesomeIcon icon={faTicketPerforated} size="lg" />,
     href: '/tickets',
     visibility: 'authenticated',
   },
   {
     label: 'Vehicles',
-    icon: <FontAwesomeIcon icon={faCar} size="lg" />,
+    icon: <FontAwesomeIcon icon={faCarSide} size="lg" />,
     href: '/vehicles',
     visibility: 'authenticated',
   },
@@ -105,8 +105,8 @@ const getMobileNav = (user: Partial<User> | null): MobileNavItem[] => {
   return [
     { label: 'Home', iconName: faHome, href: '/' },
     { label: 'Add Document', iconName: faUpload, href: '/new' },
-    { label: 'Tickets', iconName: faTicket, href: '/tickets' },
-    { label: 'Vehicles', iconName: faCar, href: '/vehicles' },
+    { label: 'Tickets', iconName: faTicketPerforated, href: '/tickets' },
+    { label: 'Vehicles', iconName: faCarSide, href: '/vehicles' },
     { label: 'Account', iconName: faUser, href: '/account' },
     { label: 'Billing', iconName: faCreditCard, href: '/account/billing' },
     {

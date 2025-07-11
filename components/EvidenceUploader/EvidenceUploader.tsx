@@ -1,6 +1,5 @@
 'use client';
 
-import type React from 'react';
 import { useState, useRef, useTransition, useEffect } from 'react';
 import {
   Card,
@@ -22,11 +21,18 @@ import {
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
-import { UploadCloud, File, Loader2, Trash2, X } from 'lucide-react';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import {
+  faFile,
+  faSpinnerThird,
+  faTrash,
+  faX,
+} from '@fortawesome/pro-solid-svg-icons';
 import { uploadEvidence, deleteEvidence } from '@/app/actions/evidence';
 import { evidenceTypeOptions } from '@/constants/evidence';
 import { cn } from '@/lib/utils';
 import { Media, EvidenceType } from '@prisma/client';
+import { faCloudArrowUp } from '@fortawesome/pro-regular-svg-icons';
 
 type StagedFile = {
   file: File;
@@ -41,7 +47,7 @@ const UploadedFileItem = ({
   isPending,
 }: {
   item: Pick<Media, 'id' | 'url' | 'description' | 'evidenceType'>;
-   
+
   onDelete: (item: Pick<Media, 'id' | 'url'>) => void;
   isPending: boolean;
 }) => {
@@ -66,7 +72,11 @@ const UploadedFileItem = ({
             />
           ) : (
             <div className="flex h-16 w-16 items-center justify-center rounded-md bg-muted">
-              <File className="h-8 w-8 text-muted-foreground" />
+              <FontAwesomeIcon
+                icon={faFile}
+                size="lg"
+                className="text-muted-foreground"
+              />
             </div>
           )}
         </a>
@@ -92,7 +102,7 @@ const UploadedFileItem = ({
         disabled={isPending}
         className="flex-shrink-0 text-red-500 hover:text-red-600 self-end sm:self-center"
       >
-        <Trash2 className="mr-2 h-4 w-4" />
+        <FontAwesomeIcon icon={faTrash} size="lg" className="mr-2" />
         Delete
       </Button>
     </li>
@@ -210,7 +220,11 @@ const EvidenceUploader = ({
             onDragOver={(e) => e.preventDefault()}
             onDrop={handleDrop}
           >
-            <UploadCloud className="w-12 h-12 text-muted-foreground" />
+            <FontAwesomeIcon
+              icon={faCloudArrowUp}
+              size="2xl"
+              className="text-muted-foreground"
+            />
             <p className="mt-4 text-lg font-semibold text-center">
               Drag & drop a file here or{' '}
               <button
@@ -241,7 +255,7 @@ const EvidenceUploader = ({
                 size="icon"
                 onClick={() => setStagedFile(null)}
               >
-                <X className="h-4 w-4" />
+                <FontAwesomeIcon icon={faX} size="lg" />
               </Button>
             </div>
             <div className="flex flex-col md:flex-row gap-6">
@@ -254,7 +268,11 @@ const EvidenceUploader = ({
                   />
                 ) : (
                   <div className="w-full h-32 flex items-center justify-center bg-background rounded-md border">
-                    <File className="w-12 h-12 text-muted-foreground" />
+                    <FontAwesomeIcon
+                      icon={faFile}
+                      size="lg"
+                      className="text-muted-foreground"
+                    />
                   </div>
                 )}
                 <p className="text-xs text-muted-foreground mt-2 truncate">
@@ -301,7 +319,13 @@ const EvidenceUploader = ({
             </div>
             <div className="flex justify-end">
               <Button onClick={handleUpload} disabled={isPending}>
-                {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                {isPending && (
+                  <FontAwesomeIcon
+                    icon={faSpinnerThird}
+                    size="lg"
+                    className="mr-2 animate-spin"
+                  />
+                )}
                 Upload File
               </Button>
             </div>

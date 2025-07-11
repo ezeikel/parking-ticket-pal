@@ -1,8 +1,8 @@
 import { Suspense } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import StatsCards from './components/stats-cards';
-import QuickActions from './components/quick-actions';
-import RecentTickets from './components/recent-tickets';
+import QuickActions from '@/components/QuickActions/QuickActions';
+import RecentTickets from '@/components/RecentTickets/RecentTickets';
+import StatsCards from '../../components/StatsCards/StatCards';
 
 const DashboardPage = async () => (
   <div className="container mx-auto py-6 space-y-6">

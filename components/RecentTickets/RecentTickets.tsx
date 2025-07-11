@@ -27,7 +27,7 @@ const RecentTickets = async () => {
         <Link href="/tickets">
           <Button variant="ghost" size="sm">
             View All
-            <FontAwesomeIcon icon={faArrowRight} className="ml-2 h-4 w-4" />
+            <FontAwesomeIcon icon={faArrowRight} size="sm" className="ml-2" />
           </Button>
         </Link>
       </CardHeader>

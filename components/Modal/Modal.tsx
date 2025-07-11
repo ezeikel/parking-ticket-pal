@@ -1,11 +1,10 @@
 'use client';
 
-import type React from 'react';
-
 import { type ElementRef, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { createPortal } from 'react-dom';
-import { X } from 'lucide-react';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faX } from '@fortawesome/pro-solid-svg-icons';
 
 const Modal = ({ children }: { children: React.ReactNode }) => {
   const router = useRouter();
@@ -34,7 +33,7 @@ const Modal = ({ children }: { children: React.ReactNode }) => {
             onClick={onDismiss}
             className="absolute top-3 right-3 p-1 rounded-full text-muted-foreground hover:bg-muted"
           >
-            <X className="h-5 w-5" />
+            <FontAwesomeIcon icon={faX} size="lg" />
             <span className="sr-only">Close</span>
           </button>
           {children}

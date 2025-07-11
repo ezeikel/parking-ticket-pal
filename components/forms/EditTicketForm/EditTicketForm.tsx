@@ -37,7 +37,7 @@ import {
   refreshTickets,
   updateTicket,
 } from '@/app/actions/ticket';
-import { faCalendar, faSpinner } from '@fortawesome/pro-regular-svg-icons';
+import { faCalendar, faSpinnerThird } from '@fortawesome/pro-regular-svg-icons';
 import { toast } from 'sonner';
 import AddressInput from '@/components/forms/inputs/AddressInput/AddressInput';
 import { useRouter } from 'next/navigation';
@@ -254,7 +254,7 @@ const EditTicketForm = ({ ticket }: EditTicketFormProps) => {
             {isLoading ? (
               <>
                 <FontAwesomeIcon
-                  icon={faSpinner}
+                  icon={faSpinnerThird}
                   spin
                   className="mr-2 h-4 w-4"
                 />

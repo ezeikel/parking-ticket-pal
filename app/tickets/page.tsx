@@ -1,5 +1,5 @@
 import { Suspense } from 'react';
-import TicketsContainer from '@/app/dashboard/TicketsContainer';
+import TicketsContainer from '@/components/TicketsContainer/TicketsContainer';
 import { getTickets } from '@/app/actions/ticket';
 
 const TicketsPage = async () => {

@@ -8,7 +8,13 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { MoreVertical, Ticket, Pencil, Trash2 } from 'lucide-react';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import {
+  faEllipsisV,
+  faTicketPerforated,
+  faPen,
+  faTrash,
+} from '@fortawesome/pro-regular-svg-icons';
 import EditVehicleDialog from '@/components/EditVehicleDialog/EditVehicleDialog';
 import DeleteVehicleDialog from '@/components/DeleteVehicleDialog/DeleteVehicleDialog';
 
@@ -35,24 +41,28 @@ const VehicleCardControls = ({ vehicle }: VehicleCardControlsProps) => {
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button variant="ghost" size="icon" className="h-8 w-8">
-            <MoreVertical className="h-4 w-4" />
+            <FontAwesomeIcon icon={faEllipsisV} size="lg" />
             <span className="sr-only">Vehicle options</span>
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
           <DropdownMenuItem>
-            <Ticket className="mr-2 h-4 w-4" />
+            <FontAwesomeIcon
+              icon={faTicketPerforated}
+              size="lg"
+              className="mr-2"
+            />
             View Tickets
           </DropdownMenuItem>
           <DropdownMenuItem onSelect={() => setIsEditDialogOpen(true)}>
-            <Pencil className="mr-2 h-4 w-4" />
+            <FontAwesomeIcon icon={faPen} size="lg" className="mr-2" />
             Edit Vehicle
           </DropdownMenuItem>
           <DropdownMenuItem
             onSelect={() => setIsDeleteDialogOpen(true)}
             className="text-red-500 focus:text-red-500"
           >
-            <Trash2 className="mr-2 h-4 w-4" />
+            <FontAwesomeIcon icon={faTrash} size="lg" className="mr-2" />
             Delete Vehicle
           </DropdownMenuItem>
         </DropdownMenuContent>

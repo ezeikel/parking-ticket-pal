@@ -1,7 +1,8 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { Bot } from 'lucide-react';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faRobot } from '@fortawesome/pro-solid-svg-icons';
 import { signIn } from 'next-auth/react';
 
 const FinalCTA = () => (
@@ -11,7 +12,11 @@ const FinalCTA = () => (
     <div className="container mx-auto px-4 md:px-6">
       <div className="bg-white dark:bg-slate-900 text-center py-12 md:py-16 px-6 md:px-10 rounded-xl shadow-2xl max-w-4xl mx-auto">
         <div className="max-w-3xl mx-auto space-y-6">
-          <Bot className="h-16 w-16 text-primary mx-auto mb-6" />{' '}
+          <FontAwesomeIcon
+            icon={faRobot}
+            size="lg"
+            className="text-primary mx-auto mb-6"
+          />{' '}
           {/* Icon color now primary for light background */}
           <h2 className="text-4xl sm:text-5xl md:text-6xl font-bold font-slab leading-tight text-slate-800 dark:text-slate-100">
             Ready to Take Control?

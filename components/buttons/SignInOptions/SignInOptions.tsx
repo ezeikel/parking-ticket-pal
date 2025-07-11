@@ -3,7 +3,7 @@
 // import { useState } from 'react';
 import { signIn } from 'next-auth/react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-// import { faEnvelope, faSpinner } from '@fortawesome/pro-regular-svg-icons';
+// import { faEnvelope, faSpinnerThird } from '@fortawesome/pro-regular-svg-icons';
 import {
   faGoogle,
   // faApple
@@ -81,7 +81,7 @@ const SignInOptions = () => {
             {isLoading ? (
               <>
                 <FontAwesomeIcon
-                  icon={faSpinner}
+                  icon={faSpinnerThird}
                   className="mr-2 h-4 w-4 animate-spin"
                 />
                 Sending link...

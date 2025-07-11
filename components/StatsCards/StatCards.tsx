@@ -1,10 +1,10 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
-  faTicket,
+  faTicketPerforated,
   faClock,
   faMoneyBill,
-  faCar,
+  faCarSide,
 } from '@fortawesome/pro-regular-svg-icons';
 import { getTickets } from '@/app/actions/ticket';
 
@@ -32,7 +32,7 @@ const StatsCards = async () => {
     {
       title: 'Total Tickets',
       value: totalTickets,
-      icon: faTicket,
+      icon: faTicketPerforated,
       description: 'All parking tickets',
     },
     {
@@ -50,7 +50,7 @@ const StatsCards = async () => {
     {
       title: 'Vehicles',
       value: uniqueVehicles,
-      icon: faCar,
+      icon: faCarSide,
       description: 'Unique vehicles',
     },
   ];
@@ -63,7 +63,8 @@ const StatsCards = async () => {
             <CardTitle className="text-sm font-medium">{stat.title}</CardTitle>
             <FontAwesomeIcon
               icon={stat.icon}
-              className="h-4 w-4 text-muted-foreground"
+              size="sm"
+              className="text-muted-foreground scale-150"
             />
           </CardHeader>
           <CardContent>

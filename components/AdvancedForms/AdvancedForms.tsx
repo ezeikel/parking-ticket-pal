@@ -25,7 +25,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
   faFilePdf,
   faSignature,
-  faSpinner,
+  faSpinnerThird,
   faInfoCircle,
 } from '@fortawesome/pro-regular-svg-icons';
 import type { FormType } from '@prisma/client';
@@ -341,7 +341,7 @@ const AdvancedForms = ({ ticketTier, hasSignature }: AdvancedFormsProps) => {
             <div className="flex w-full justify-end">
               <Button type="submit" disabled={!selectedForm || isGenerating}>
                 <FontAwesomeIcon
-                  icon={isGenerating ? faSpinner : faFilePdf}
+                  icon={isGenerating ? faSpinnerThird : faFilePdf}
                   className={`mr-2 h-4 w-4 ${isGenerating ? 'animate-spin' : ''}`}
                 />
                 Generate Form

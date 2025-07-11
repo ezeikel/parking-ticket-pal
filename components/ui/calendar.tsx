@@ -1,7 +1,11 @@
 'use client';
 
 import * as React from 'react';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import {
+  faChevronLeft,
+  faChevronRight,
+} from '@fortawesome/pro-solid-svg-icons';
 import { DayPicker } from 'react-day-picker';
 import cn from '@/utils/cn';
 import { buttonVariants } from '@/components/ui/button';
@@ -60,10 +64,20 @@ function Calendar({
       }}
       components={{
         IconLeft: ({ className, ...props }) => (
-          <ChevronLeft className={cn('size-4', className)} {...props} />
+          <FontAwesomeIcon
+            icon={faChevronLeft}
+            size="sm"
+            className={cn('size-4', className)}
+            {...props}
+          />
         ),
         IconRight: ({ className, ...props }) => (
-          <ChevronRight className={cn('size-4', className)} {...props} />
+          <FontAwesomeIcon
+            icon={faChevronRight}
+            size="sm"
+            className={cn('size-4', className)}
+            {...props}
+          />
         ),
       }}
       {...props}

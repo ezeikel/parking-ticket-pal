@@ -9,7 +9,14 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { MoreVertical, Eye, ShieldCheck, Trash2 } from 'lucide-react';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import {
+  faEllipsisVertical,
+  faEye,
+  faShieldCheck,
+  faTrash,
+} from '@fortawesome/pro-regular-svg-icons';
+
 import DeleteTicketDialog from '@/components/DeleteTicketDialog/DeleteTicketDialog';
 
 type TicketData = {
@@ -29,26 +36,26 @@ const TicketCardControls = ({ ticket }: TicketCardControlsProps) => {
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button variant="ghost" size="icon" className="h-8 w-8 flex-shrink-0">
-            <MoreVertical className="h-4 w-4" />
+            <FontAwesomeIcon icon={faEllipsisVertical} size="lg" />
             <span className="sr-only">Ticket options</span>
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
           <DropdownMenuItem asChild>
             <Link href={`/tickets/${ticket.id}`}>
-              <Eye className="mr-2 h-4 w-4" />
+              <FontAwesomeIcon icon={faEye} size="lg" className="mr-2" />
               View Details
             </Link>
           </DropdownMenuItem>
           <DropdownMenuItem>
-            <ShieldCheck className="mr-2 h-4 w-4" />
+            <FontAwesomeIcon icon={faShieldCheck} size="lg" className="mr-2" />
             Challenge Ticket
           </DropdownMenuItem>
           <DropdownMenuItem
             onSelect={() => setIsDeleteDialogOpen(true)}
             className="text-red-500 focus:text-red-500"
           >
-            <Trash2 className="mr-2 h-4 w-4" />
+            <FontAwesomeIcon icon={faTrash} size="lg" className="mr-2" />
             Delete Ticket
           </DropdownMenuItem>
         </DropdownMenuContent>

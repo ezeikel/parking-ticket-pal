@@ -1,4 +1,3 @@
-import type React from 'react';
 // This layout defines the slot for the modal.
 const TicketsLayout = ({
   children,

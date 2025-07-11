@@ -37,7 +37,7 @@ import { createTicket } from '@/app/actions/ticket';
 import {
   faCalendar,
   faCamera,
-  faSpinner,
+  faSpinnerThird,
 } from '@fortawesome/pro-regular-svg-icons';
 import AddressInput from '@/components/forms/inputs/AddressInput/AddressInput';
 import { toast } from 'sonner';
@@ -143,7 +143,7 @@ const CreateTicketForm = () => {
             <div className="flex flex-col items-center justify-center pt-5 pb-6">
               {isLoading ? (
                 <FontAwesomeIcon
-                  icon={faSpinner}
+                  icon={faSpinnerThird}
                   className="w-8 h-8 mb-4 text-gray-500 animate-spin"
                 />
               ) : (
@@ -171,7 +171,7 @@ const CreateTicketForm = () => {
 
         {isLoading ? (
           <div className="flex justify-center">
-            <FontAwesomeIcon icon={faSpinner} spin size="3x" />
+            <FontAwesomeIcon icon={faSpinnerThird} spin size="3x" />
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

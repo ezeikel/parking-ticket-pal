@@ -13,7 +13,7 @@ import { Badge } from '@/components/ui/badge';
 import { Address, TicketStatus } from '@/types';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import {
-  faCar,
+  faCarSide,
   faCalendar,
   faClock,
   faMoneyBill,
@@ -122,7 +122,7 @@ const TicketCard = ({ ticket }: TicketCardProps) => {
         <div className="grid grid-cols-2 gap-y-2 text-sm">
           <div className="flex items-center gap-2">
             <FontAwesomeIcon
-              icon={faCar}
+              icon={faCarSide}
               className="h-4 w-4 text-muted-foreground"
             />
             <span>{ticket.vehicle.registrationNumber}</span>

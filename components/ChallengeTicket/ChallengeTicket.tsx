@@ -6,7 +6,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
   faFileLines,
   faPaperPlane,
-  faSpinner,
+  faSpinnerThird,
   faExclamationTriangle,
   faEllipsis,
   faCheckCircle,
@@ -76,7 +76,7 @@ const ChallengeHistoryListItem = ({
       badge: 'destructive' as const,
     },
     pending: {
-      icon: faSpinner,
+      icon: faSpinnerThird,
       color: 'text-blue-500',
       badge: 'secondary' as const,
       spin: true,
@@ -135,7 +135,7 @@ const ChallengeTicket = ({ ticket, issuerType }: ChallengeTicketProps) => {
   const handleAction = async (
     action: 'letter' | 'auto-challenge',
     apiCall: () => Promise<any>,
-    // eslint-disable-next-line no-unused-vars
+     
     setLoading: (loading: boolean) => void,
   ) => {
     if (!hasChallengeReason) {
@@ -304,7 +304,7 @@ const ChallengeTicket = ({ ticket, issuerType }: ChallengeTicketProps) => {
                 variant="outline"
               >
                 <FontAwesomeIcon
-                  icon={isAutoChallenging ? faSpinner : faPaperPlane}
+                  icon={isAutoChallenging ? faSpinnerThird : faPaperPlane}
                   className={`mr-2 h-4 w-4 ${isAutoChallenging ? 'animate-spin' : ''}`}
                 />
                 Auto-Submit
@@ -316,7 +316,7 @@ const ChallengeTicket = ({ ticket, issuerType }: ChallengeTicketProps) => {
                 }
               >
                 <FontAwesomeIcon
-                  icon={isGeneratingLetter ? faSpinner : faFileLines}
+                  icon={isGeneratingLetter ? faSpinnerThird : faFileLines}
                   className={`mr-2 h-4 w-4 ${isGeneratingLetter ? 'animate-spin' : ''}`}
                 />
                 Generate Letter

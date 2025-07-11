@@ -9,7 +9,12 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { MoreHorizontal, Pencil, Trash2 } from 'lucide-react';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import {
+  faEllipsisH,
+  faPencil,
+  faTrash,
+} from '@fortawesome/pro-regular-svg-icons';
 import DeleteTicketDialog from '@/components/DeleteTicketDialog/DeleteTicketDialog';
 
 type TicketDetailControlsProps = {
@@ -27,14 +32,14 @@ const TicketDetailControls = ({ ticket }: TicketDetailControlsProps) => {
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button variant="ghost" size="icon">
-            <MoreHorizontal className="h-5 w-5" />
+            <FontAwesomeIcon icon={faEllipsisH} size="lg" />
             <span className="sr-only">More options</span>
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
           <DropdownMenuItem asChild>
             <Link href={`/tickets/${ticket.id}/edit`}>
-              <Pencil className="mr-2 h-4 w-4" />
+              <FontAwesomeIcon icon={faPencil} size="lg" className="mr-2" />
               Edit Ticket Details
             </Link>
           </DropdownMenuItem>
@@ -42,7 +47,7 @@ const TicketDetailControls = ({ ticket }: TicketDetailControlsProps) => {
             onSelect={() => setIsDeleteDialogOpen(true)}
             className="text-red-500 focus:text-red-500"
           >
-            <Trash2 className="mr-2 h-4 w-4" />
+            <FontAwesomeIcon icon={faTrash} size="lg" className="mr-2" />
             Delete Ticket
           </DropdownMenuItem>
         </DropdownMenuContent>

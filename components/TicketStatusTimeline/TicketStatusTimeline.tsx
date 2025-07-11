@@ -7,7 +7,8 @@ import type { TicketStatus } from '@/types';
 import { IssuerType } from '@prisma/client';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Check, Info } from 'lucide-react';
+import { faCheck, faInfoCircle } from '@fortawesome/pro-regular-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -22,7 +23,7 @@ import {
 type TicketStatusTimelineProps = {
   currentStatus: TicketStatus;
   issuerType: IssuerType;
-   
+
   onStatusChange: (newStatus: TicketStatus) => void;
 };
 
@@ -144,7 +145,11 @@ const TicketStatusTimeline = ({
                     )}
                     {/* Show checkmark for completed (and not selected) stages */}
                     {isCompleted && !isSelected && (
-                      <Check className="w-4 h-4 text-white" />
+                      <FontAwesomeIcon
+                        icon={faCheck}
+                        size="lg"
+                        className="text-white"
+                      />
                     )}
                   </div>
                 </div>
@@ -192,7 +197,7 @@ const TicketStatusTimeline = ({
           </div>
           <div className="mt-4 pt-4 border-t">
             <h4 className="text-sm font-medium mb-2 flex items-center gap-2">
-              <Info className="w-4 h-4" />
+              <FontAwesomeIcon icon={faInfoCircle} size="lg" />
               What you can do:
             </h4>
             <div className="flex flex-wrap gap-2">
