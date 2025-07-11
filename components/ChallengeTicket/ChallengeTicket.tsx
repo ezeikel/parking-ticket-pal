@@ -135,7 +135,7 @@ const ChallengeTicket = ({ ticket, issuerType }: ChallengeTicketProps) => {
   const handleAction = async (
     action: 'letter' | 'auto-challenge',
     apiCall: () => Promise<any>,
-     
+
     setLoading: (loading: boolean) => void,
   ) => {
     if (!hasChallengeReason) {

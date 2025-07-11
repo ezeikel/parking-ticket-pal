@@ -1,5 +1,5 @@
 import NextAuth from 'next-auth';
- 
+
 import type {
   AuthConfig,
   Account,
