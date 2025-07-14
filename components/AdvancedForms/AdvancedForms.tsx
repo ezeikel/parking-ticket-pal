@@ -28,7 +28,7 @@ import {
   faSpinnerThird,
   faInfoCircle,
 } from '@fortawesome/pro-regular-svg-icons';
-import type { FormType } from '@prisma/client';
+import { FormType, TicketTier } from '@prisma/client';
 import { toast } from 'sonner';
 import {
   generatePE2Form,
@@ -39,7 +39,7 @@ import {
 } from '@/app/actions/form';
 
 type AdvancedFormsProps = {
-  ticketTier: 'FREE' | 'BASIC' | 'PRO';
+  ticketTier: TicketTier;
   hasSignature: boolean;
 };
 
@@ -180,7 +180,7 @@ const AdvancedForms = ({ ticketTier, hasSignature }: AdvancedFormsProps) => {
   const [isGenerating, setIsGenerating] = useState(false);
   const [formData, setFormData] = useState({});
 
-  const isProTier = ticketTier === 'PRO';
+  const isPremiumTier = ticketTier === TicketTier.PREMIUM;
   const currentFormInfo = formOptions.find((f) => f.value === selectedForm);
 
   const handleGenerate = async () => {
@@ -330,7 +330,7 @@ const AdvancedForms = ({ ticketTier, hasSignature }: AdvancedFormsProps) => {
         )}
       </CardContent>
       <CardFooter className="border-t bg-muted/50 px-6 py-4">
-        {isProTier ? (
+        {isPremiumTier ? (
           <form
             onSubmit={(e) => {
               e.preventDefault();
@@ -351,7 +351,7 @@ const AdvancedForms = ({ ticketTier, hasSignature }: AdvancedFormsProps) => {
         ) : (
           <div className="w-full text-center">
             <p className="mb-2 font-semibold">
-              Upgrade to PRO to generate advanced forms.
+              Upgrade to PREMIUM to generate advanced forms.
             </p>
             <Button>Upgrade Now</Button>
           </div>

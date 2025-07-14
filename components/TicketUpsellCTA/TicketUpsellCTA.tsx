@@ -10,6 +10,7 @@ import { formatCurrency } from '@/utils/getCurrentAmountDue';
 import ChallengeStats from '@/components/ChallengeStats/ChallengeStats';
 import { TicketWithPrediction } from '@/types';
 import { TicketTier } from '@prisma/client';
+import { createTicketCheckoutSession } from '@/app/actions/stripe';
 
 type TicketUpsellCTAProps = {
   ticket: TicketWithPrediction;
@@ -18,11 +19,13 @@ type TicketUpsellCTAProps = {
 
 const TicketUpsellCTA = ({ ticket, successRate }: TicketUpsellCTAProps) => {
   const handleCheckout = async (tier: Omit<TicketTier, 'FREE'>) => {
-    const res = await fetch(
-      `/api/stripe/checkout?tier=${tier}&ticketId=${ticket.id}`,
-    );
-    const { url } = await res.json();
-    window.location.href = url;
+    const result = await createTicketCheckoutSession(tier, ticket.id);
+
+    if (result?.url) {
+      window.location.href = result.url;
+    } else {
+      console.error('Failed to create checkout session');
+    }
   };
 
   const handleScrollToChallenge = () => {

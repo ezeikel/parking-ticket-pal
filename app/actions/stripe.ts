@@ -1,7 +1,8 @@
 'use server';
 
 import { headers } from 'next/headers';
-import { ProductType } from '@prisma/client';
+import { ProductType, TicketTier } from '@prisma/client';
+import { getTierPriceId, getSubscriptionPriceId } from '@/constants';
 import { db } from '@/lib/prisma';
 import stripe from '@/lib/stripe';
 import { getUserId } from './user';
@@ -183,4 +184,145 @@ export const getSubscriptionDetails = async () => {
       productType: null,
     };
   }
+};
+
+export const createTicketCheckoutSession = async (
+  tier: Omit<TicketTier, 'FREE'>,
+  ticketId: string,
+): Promise<{ url: string } | null> => {
+  const userId = await getUserId('create a ticket checkout session');
+
+  if (!userId) {
+    return null;
+  }
+
+  // verify the ticket exists and belongs to the user
+  const ticket = await db.ticket.findFirst({
+    where: {
+      id: ticketId,
+      vehicle: {
+        userId,
+      },
+    },
+  });
+
+  if (!ticket) {
+    console.error('Ticket not found or does not belong to user');
+    return null;
+  }
+
+  const headersList = await headers();
+  const origin = headersList.get('origin');
+
+  const user = await db.user.findUnique({
+    where: { id: userId },
+    select: { name: true, address: true, email: true, stripeCustomerId: true },
+  });
+
+  if (!user) {
+    console.error('User not found.');
+    return null;
+  }
+
+  const priceId = getTierPriceId(tier);
+
+  if (!priceId) {
+    console.error(`No price ID configured for tier: ${tier}`);
+    return null;
+  }
+
+  const stripeSession = await stripe.checkout.sessions.create({
+    payment_method_types: ['card'],
+    line_items: [
+      {
+        price: priceId,
+        quantity: 1,
+      },
+    ],
+    mode: 'payment',
+    customer_creation: 'always',
+    success_url: `${origin}/tickets/${ticketId}?success=true`,
+    cancel_url: `${origin}/tickets/${ticketId}?cancelled=true`,
+    client_reference_id: userId,
+
+    // include ticket metadata
+    metadata: {
+      ticketId,
+      tier: tier as string,
+      userId,
+    },
+
+    // use existing customer if available, otherwise create new one
+    customer: user.stripeCustomerId ?? undefined,
+    customer_email: user.stripeCustomerId ? undefined : user.email,
+  });
+
+  return {
+    url: stripeSession.url!,
+  };
+};
+
+export const createSubscriptionCheckoutSession = async (
+  subscriptionType: 'monthly' | 'annual',
+): Promise<{ url: string } | null> => {
+  const userId = await getUserId('create a subscription checkout session');
+
+  if (!userId) {
+    return null;
+  }
+
+  const headersList = await headers();
+  const origin = headersList.get('origin');
+
+  // Get user information
+  const user = await db.user.findUnique({
+    where: { id: userId },
+    select: { name: true, address: true, email: true },
+  });
+
+  if (!user) {
+    console.error('User not found.');
+    return null;
+  }
+
+  // Get existing subscription for customer ID
+  const subscription = await db.subscription.findFirst({
+    where: { userId },
+  });
+
+  const priceId = getSubscriptionPriceId(subscriptionType);
+  if (!priceId) {
+    console.error(
+      `No price ID configured for subscription type: ${subscriptionType}`,
+    );
+    return null;
+  }
+
+  const stripeSession = await stripe.checkout.sessions.create({
+    payment_method_types: ['card'],
+    line_items: [
+      {
+        price: priceId,
+        quantity: 1,
+      },
+    ],
+    mode: 'subscription',
+    success_url: `${origin}/account/billing/success`,
+    cancel_url: `${origin}/account/billing`,
+    client_reference_id: userId,
+
+    // Include subscription metadata
+    metadata: {
+      subscriptionType,
+      userId,
+    },
+
+    // Use existing customer if available
+    customer: subscription?.stripeCustomerId ?? undefined,
+    customer_email: subscription ? undefined : user.email,
+  });
+
+  return {
+    url: stripeSession.url!,
+  };
 };

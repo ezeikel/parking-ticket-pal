@@ -10,16 +10,17 @@ datasource db {
 }
 
 model User {
-  id           String        @id @default(cuid())
-  name         String
-  email        String        @unique
-  phoneNumber  String?
-  address      Json?
-  createdAt    DateTime      @default(now())
-  updatedAt    DateTime      @updatedAt
-  signatureUrl String?
-  subscription Subscription?
-  vehicles     Vehicle[]
+  id               String        @id @default(cuid())
+  name             String
+  email            String        @unique
+  phoneNumber      String?
+  address          Json?
+  stripeCustomerId String? // set after Stripe customer creation
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+  signatureUrl     String?
+  subscription     Subscription?
+  vehicles         Vehicle[]
 
   @@map("users")
 }
@@ -129,13 +130,13 @@ model Letter {
 }
 
 model Subscription {
-  id               String           @id @default(cuid())
-  type             SubscriptionType @default(BASIC)
-  stripeCustomerId String?          @unique
-  userId           String           @unique
-  createdAt        DateTime         @default(now())
-  updatedAt        DateTime         @updatedAt
-  user             User             @relation(fields: [userId], references: [id])
+  id                   String           @id @default(cuid())
+  userId               String           @unique
+  user                 User             @relation(fields: [userId], references: [id])
+  stripeSubscriptionId String?          @unique // set after Stripe subscription creation
+  type                 SubscriptionType @default(STANDARD)
+  createdAt            DateTime         @default(now())
+  updatedAt            DateTime         @updatedAt
 
   @@map("subscriptions")
 }
@@ -322,6 +323,8 @@ enum IssuerType {
 enum SubscriptionType {
   BASIC
   PRO
+  STANDARD
+  PREMIUM
 }
 
 enum ReminderType {
@@ -405,6 +408,8 @@ enum TicketTier {
   FREE
   BASIC
   PRO
+  STANDARD
+  PREMIUM
 }
 
 enum EvidenceType {

@@ -35,6 +35,7 @@ const LocationMap = ({ longitude, latitude }: LocationMapProps) => {
       style: 'mapbox://styles/mapbox/streets-v12',
       center: [longitude, latitude],
       zoom: 14,
+      interactive: false,
     });
 
     // create a custom marker element
