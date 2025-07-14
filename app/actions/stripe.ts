@@ -59,15 +59,6 @@ export const createCheckoutSession = async (
     return null;
   }
 
-  // TODO: findUnique instead of findFirst
-  const subscription = await db.subscription.findFirst({
-    where: {
-      user: {
-        id: userId,
-      },
-    },
-  });
-
   const stripeSession = await stripe.checkout.sessions.create({
     payment_method_types: ['card'],
     line_items: [
@@ -287,11 +278,6 @@ export const createSubscriptionCheckoutSession = async (
     console.error('User not found.');
     return null;
   }
-
-  // Get existing subscription for customer ID
-  const subscription = await db.subscription.findFirst({
-    where: { userId },
-  });
 
   const priceId = getSubscriptionPriceId(subscriptionType);
   if (!priceId) {
