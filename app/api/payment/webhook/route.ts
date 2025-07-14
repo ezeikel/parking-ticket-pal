@@ -187,7 +187,7 @@ export const POST = async (req: Request) => {
               });
             }
 
-            console.log(`Updated subscription for user ${email} to PRO`);
+            console.log(`Updated subscription for user ${email} to PREMIUM`);
 
             // revalidate user-related routes
             revalidatePath('/dashboard');

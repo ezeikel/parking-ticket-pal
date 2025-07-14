@@ -30,7 +30,7 @@ const PRICING_TIERS = [
     href: '',
   },
   {
-    name: 'Basic',
+    name: 'Standard',
     tagline: 'Get reminders before you pay too much',
     price: '£2.99',
     description: 'SMS + email reminders so you don’t miss deadlines.',
@@ -40,13 +40,13 @@ const PRICING_TIERS = [
     href: '/sign-up?utm_source=pricing_basic',
   },
   {
-    name: 'Pro',
+    name: 'Premium',
     tagline: 'Challenge your ticket the smart way',
     price: '£9.99',
     description:
       'Everything included: appeal letter, success score, auto-submit.',
     features: [
-      'All Basic features',
+      'All Standard features',
       'AI appeal letter',
       'Success prediction',
       'Automatic appeal submission',
@@ -138,8 +138,9 @@ const PricingPage = () => (
           tickets without paying anything.
         </li>
         <li>
-          <strong>What’s the difference between Basic and Pro?</strong> Basic
-          sends reminders. Pro writes your letter and even submits it.
+          <strong>What’s the difference between Standard and Premium?</strong>
+          Standard sends reminders. Premium writes your letter and even submits
+          it.
         </li>
         <li>
           <strong>How do I get started?</strong> Just sign up and add your first

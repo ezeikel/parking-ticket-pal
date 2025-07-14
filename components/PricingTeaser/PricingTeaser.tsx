@@ -21,7 +21,7 @@ const PRICING_TIERS = [
     disabled: true,
   },
   {
-    name: 'Ticket Basic',
+    name: 'Ticket Standard',
     price: '£2.99',
     highlight: 'SMS + Email Alerts',
     features: [
@@ -35,11 +35,11 @@ const PRICING_TIERS = [
     disabled: false,
   },
   {
-    name: 'Ticket Pro',
+    name: 'Ticket Premium',
     price: '£9.99',
     highlight: 'Full AI Support & Submission',
     features: [
-      'Everything in Ticket Basic',
+      'Everything in Ticket Standard',
       'AI-generated appeal letters',
       'Appeal success prediction',
       'Optional auto-submission for common fines',

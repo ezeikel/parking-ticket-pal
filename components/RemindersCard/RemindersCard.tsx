@@ -29,7 +29,7 @@ const formatReminderType = (type: string) =>
 
 const RemindersCard = ({ tier, reminders }: RemindersCardProps) => {
   const hasRemindersAccess =
-    tier === TicketTier.BASIC || tier === TicketTier.PRO;
+    tier === TicketTier.STANDARD || tier === TicketTier.PREMIUM;
 
   return (
     <Card className="shadow-md">

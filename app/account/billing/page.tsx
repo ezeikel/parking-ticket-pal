@@ -13,7 +13,8 @@ import { ProductType, SubscriptionType } from '@prisma/client';
 
 const BillingPage = async () => {
   const subscriptionDetails = await getSubscriptionDetails();
-  const isProSubscriber = subscriptionDetails?.type === SubscriptionType.PRO;
+  const isProSubscriber =
+    subscriptionDetails?.type === SubscriptionType.PREMIUM;
   const productType = subscriptionDetails?.productType;
 
   return (
@@ -45,12 +46,12 @@ const BillingPage = async () => {
             <div className="flex flex-col md:flex-row gap-6">
               <SubscriptionPlan
                 name="Free"
-                description="Basic features for occasional users"
+                description="Standard features for occasional users"
                 price="£0"
                 period="forever"
                 features={[
                   'Store up to 5 tickets',
-                  'Basic appeal templates',
+                  'Standard appeal templates',
                   'Email notifications',
                 ]}
                 isActive={!isProSubscriber}
@@ -58,7 +59,7 @@ const BillingPage = async () => {
               />
 
               <SubscriptionPlan
-                name="Pro Monthly"
+                name="Premium Monthly"
                 description="Advanced features for regular users"
                 price="£4.99"
                 period="month"

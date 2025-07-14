@@ -35,7 +35,7 @@ const TicketUpsellCTA = ({ ticket, successRate }: TicketUpsellCTAProps) => {
   };
 
   // TODO: update once enums are updated
-  const messages: Record<Exclude<TicketTier, 'BASIC' | 'PRO'>, string> = {
+  const messages: Record<TicketTier, string> = {
     [TicketTier.FREE]:
       'Track your ticket for free — upgrade to get reminders or challenge it and save.',
     [TicketTier.STANDARD]:

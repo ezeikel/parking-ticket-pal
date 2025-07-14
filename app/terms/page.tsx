@@ -46,7 +46,7 @@ const TermsOfService = () => (
       <h2 className="text-2xl font-semibold mb-4">3. Subscription Plans</h2>
       <p className="mb-4">We offer the following subscription plans:</p>
 
-      <h3 className="text-xl font-medium mb-2">3.1 Basic Plan</h3>
+      <h3 className="text-xl font-medium mb-2">3.1 Standard Plan</h3>
       <ul className="list-disc pl-6 mb-4">
         <li>Monthly: £4.99/month</li>
         <li>Annual: £49.99/year (save 15%)</li>
@@ -54,21 +54,21 @@ const TermsOfService = () => (
           Features:
           <ul className="list-disc pl-6 mt-2">
             <li>Track up to 2 vehicles</li>
-            <li>Basic ticket management</li>
+            <li>Standard ticket management</li>
             <li>Email notifications</li>
-            <li>Basic appeal assistance</li>
+            <li>Standard appeal assistance</li>
           </ul>
         </li>
       </ul>
 
-      <h3 className="text-xl font-medium mb-2">3.2 Pro Plan</h3>
+      <h3 className="text-xl font-medium mb-2">3.2 Premium Plan</h3>
       <ul className="list-disc pl-6 mb-4">
         <li>Monthly: £9.99/month</li>
         <li>Annual: £99.99/year (save 15%)</li>
         <li>
           Features:
           <ul className="list-disc pl-6 mt-2">
-            <li>All Basic Plan features</li>
+            <li>All Standard Plan features</li>
             <li>Track up to 5 vehicles</li>
             <li>Advanced ticket management</li>
             <li>Priority appeal assistance</li>

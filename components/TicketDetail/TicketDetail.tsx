@@ -34,8 +34,8 @@ const TicketDetail = ({ ticket }: TicketDetailProps) => {
   const userEvidence = ticket.media.filter(
     (m) => m.source === MediaSource.EVIDENCE,
   );
-  const hasSignature = true; // !!ticket.vehicle.user.signatureUrl;
-  const isProTier = ticket.tier === TicketTier.PRO;
+  const hasSignature = true; // TODO: !!ticket.vehicle.user.signatureUrl;
+  const isPremiumTier = ticket.tier === TicketTier.PREMIUM;
 
   return (
     <>
@@ -48,7 +48,7 @@ const TicketDetail = ({ ticket }: TicketDetailProps) => {
 
       <RemindersCard tier={ticket.tier} reminders={ticket.reminders} />
 
-      {isProTier ? (
+      {isPremiumTier ? (
         <>
           <ChallengeTicket ticket={ticket} issuerType={ticket.issuerType} />
           <AdvancedForms ticketTier={ticket.tier} hasSignature={hasSignature} />

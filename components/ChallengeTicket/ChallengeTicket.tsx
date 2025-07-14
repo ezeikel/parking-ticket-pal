@@ -130,7 +130,7 @@ const ChallengeTicket = ({ ticket, issuerType }: ChallengeTicketProps) => {
 
   const challengeReasons = getChallengeReasons(issuerType);
   const hasChallengeReason = selectedReason || customReason;
-  const isProTier = ticket.tier === TicketTier.PRO;
+  const isProTier = ticket.tier === TicketTier.PREMIUM;
 
   const handleAction = async (
     action: 'letter' | 'auto-challenge',
@@ -326,7 +326,7 @@ const ChallengeTicket = ({ ticket, issuerType }: ChallengeTicketProps) => {
         ) : (
           <div className="w-full text-center">
             <p className="mb-2 font-semibold">
-              Upgrade to PRO to challenge this ticket.
+              Upgrade to PREMIUM to challenge this ticket.
             </p>
             <Button>Upgrade Now</Button>
           </div>

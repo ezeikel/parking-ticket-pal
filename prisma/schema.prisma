@@ -321,8 +321,6 @@ enum IssuerType {
 }
 
 enum SubscriptionType {
-  BASIC
-  PRO
   STANDARD
   PREMIUM
 }
@@ -406,8 +404,6 @@ enum ChallengeStatus {
 
 enum TicketTier {
   FREE
-  BASIC
-  PRO
   STANDARD
   PREMIUM
 }
