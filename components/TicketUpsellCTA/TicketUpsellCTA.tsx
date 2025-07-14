@@ -34,11 +34,14 @@ const TicketUpsellCTA = ({ ticket, successRate }: TicketUpsellCTAProps) => {
       ?.scrollIntoView({ behavior: 'smooth' });
   };
 
-  const messages = {
-    FREE: 'Track your ticket for free — upgrade to get reminders or challenge it and save.',
-    BASIC:
+  // TODO: update once enums are updated
+  const messages: Record<Exclude<TicketTier, 'BASIC' | 'PRO'>, string> = {
+    [TicketTier.FREE]:
+      'Track your ticket for free — upgrade to get reminders or challenge it and save.',
+    [TicketTier.STANDARD]:
       "You've unlocked reminders — upgrade to challenge this ticket the smart way.",
-    PRO: 'You have full access. Challenge this ticket and save money.',
+    [TicketTier.PREMIUM]:
+      'You have full access. Challenge this ticket and save money.',
   };
 
   return (
@@ -53,7 +56,7 @@ const TicketUpsellCTA = ({ ticket, successRate }: TicketUpsellCTAProps) => {
             />
           </div>
           <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
-            {messages[ticket.tier]}
+            {messages[ticket.tier as keyof typeof messages]}
           </p>
         </div>
 
@@ -69,26 +72,29 @@ const TicketUpsellCTA = ({ ticket, successRate }: TicketUpsellCTAProps) => {
             <>
               <Button
                 size="sm"
-                onClick={() => handleCheckout(TicketTier.BASIC)}
+                onClick={() => handleCheckout(TicketTier.STANDARD)}
               >
                 Get Reminders (£2.99)
               </Button>
               <Button
                 variant="secondary"
                 size="sm"
-                onClick={() => handleCheckout(TicketTier.PRO)}
+                onClick={() => handleCheckout(TicketTier.PREMIUM)}
                 className="border border-gray-300 dark:border-gray-700"
               >
                 Challenge Ticket (£9.99)
               </Button>
             </>
           )}
-          {ticket.tier === TicketTier.BASIC && (
-            <Button size="sm" onClick={() => handleCheckout(TicketTier.PRO)}>
+          {ticket.tier === TicketTier.STANDARD && (
+            <Button
+              size="sm"
+              onClick={() => handleCheckout(TicketTier.PREMIUM)}
+            >
               Upgrade to Challenge (£7.00)
             </Button>
           )}
-          {ticket.tier === TicketTier.PRO && (
+          {ticket.tier === TicketTier.PREMIUM && (
             <Button size="sm" onClick={handleScrollToChallenge}>
               Challenge Now
               <FontAwesomeIcon icon={faArrowRight} className="ml-2 h-3 w-3" />
