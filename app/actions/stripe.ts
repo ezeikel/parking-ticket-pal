@@ -50,6 +50,7 @@ export const createCheckoutSession = async (
       name: true,
       address: true,
       email: true,
+      stripeCustomerId: true,
     },
   });
 
@@ -81,8 +82,8 @@ export const createCheckoutSession = async (
     client_reference_id: userId,
 
     // send stripe customer id if user already exists in stripe
-    customer: subscription?.stripeCustomerId ?? undefined,
-    customer_email: subscription ? undefined : user.email,
+    customer: user.stripeCustomerId ?? undefined,
+    customer_email: user.stripeCustomerId ? undefined : user.email,
   });
 
   return {
@@ -100,21 +101,18 @@ export const createCustomerPortalSession = async () => {
     return null;
   }
 
-  const subscription = await db.subscription.findFirst({
-    where: {
-      user: {
-        id: userId,
-      },
-    },
+  const user = await db.user.findUnique({
+    where: { id: userId },
+    select: { stripeCustomerId: true },
   });
 
-  if (!subscription?.stripeCustomerId) {
-    console.error('No subscription found for this user.');
+  if (!user?.stripeCustomerId) {
+    console.error('No stripe customer id for this user.');
     return null;
   }
 
   const portalSession = await stripe.billingPortal.sessions.create({
-    customer: subscription.stripeCustomerId,
+    customer: user.stripeCustomerId,
     return_url: `${origin}/account/billing`,
   });
 
@@ -131,6 +129,11 @@ export const getSubscriptionDetails = async () => {
     return null;
   }
 
+  const user = await db.user.findUnique({
+    where: { id: userId },
+    select: { stripeCustomerId: true },
+  });
+
   const subscription = await db.subscription.findFirst({
     where: {
       user: {
@@ -139,7 +142,7 @@ export const getSubscriptionDetails = async () => {
     },
   });
 
-  if (!subscription?.stripeCustomerId) {
+  if (!user?.stripeCustomerId) {
     console.error('no stripe customer id');
     return null;
   }
@@ -147,14 +150,14 @@ export const getSubscriptionDetails = async () => {
   try {
     // Get subscription details from Stripe
     const stripeSubscription = await stripe.subscriptions.list({
-      customer: subscription.stripeCustomerId,
+      customer: user.stripeCustomerId,
       status: 'active',
       expand: ['data.items.data.price.product'],
     });
 
     if (stripeSubscription.data.length === 0) {
       return {
-        type: subscription.type,
+        type: subscription?.type,
         productType: null,
       };
     }
@@ -174,13 +177,13 @@ export const getSubscriptionDetails = async () => {
     }
 
     return {
-      type: subscription.type,
+      type: subscription?.type,
       productType,
     };
   } catch (error) {
     console.error('Error fetching subscription details from Stripe:', error);
     return {
-      type: subscription.type,
+      type: subscription?.type,
       productType: null,
     };
   }
@@ -277,7 +280,7 @@ export const createSubscriptionCheckoutSession = async (
   // Get user information
   const user = await db.user.findUnique({
     where: { id: userId },
-    select: { name: true, address: true, email: true },
+    select: { name: true, address: true, email: true, stripeCustomerId: true },
   });
 
   if (!user) {
@@ -318,8 +321,8 @@ export const createSubscriptionCheckoutSession = async (
     },
 
     // Use existing customer if available
-    customer: subscription?.stripeCustomerId ?? undefined,
-    customer_email: subscription ? undefined : user.email,
+    customer: user.stripeCustomerId ?? undefined,
+    customer_email: user.stripeCustomerId ? undefined : user.email,
   });
 
   return {
