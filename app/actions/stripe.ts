@@ -1,11 +1,31 @@
 'use server';
 
 import { headers } from 'next/headers';
-import { ProductType, TicketTier } from '@prisma/client';
+import Stripe from 'stripe';
+import { ProductType, TicketTier, UserRole } from '@prisma/client';
 import { getTierPriceId, getSubscriptionPriceId } from '@/constants';
 import { db } from '@/lib/prisma';
 import stripe from '@/lib/stripe';
 import { getUserId } from './user';
+
+const getUserRole = async () => {
+  const userId = await getUserId('get user role');
+
+  if (!userId) {
+    return null;
+  }
+
+  const user = await db.user.findUnique({
+    where: { id: userId },
+    select: { role: true },
+  });
+
+  if (!user) {
+    return null;
+  }
+
+  return user.role;
+};
 
 export const createCheckoutSession = async (
   productType: ProductType,
@@ -225,7 +245,7 @@ export const createTicketCheckoutSession = async (
     return null;
   }
 
-  const stripeSession = await stripe.checkout.sessions.create({
+  const sessionOptions: Stripe.Checkout.SessionCreateParams = {
     payment_method_types: ['card'],
     line_items: [
       {
@@ -249,7 +269,19 @@ export const createTicketCheckoutSession = async (
     // use existing customer if available, otherwise create new one
     customer: user.stripeCustomerId ?? undefined,
     customer_email: user.stripeCustomerId ? undefined : user.email,
-  });
+  };
+
+  const userRole = await getUserRole();
+
+  if (userRole === UserRole.ADMIN && process.env.STRIPE_ADMIN_COUPON_ID) {
+    sessionOptions.discounts = [
+      {
+        coupon: process.env.STRIPE_ADMIN_COUPON_ID,
+      },
+    ];
+  }
+
+  const stripeSession = await stripe.checkout.sessions.create(sessionOptions);
 
   return {
     url: stripeSession.url!,
