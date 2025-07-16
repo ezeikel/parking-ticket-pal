@@ -47,6 +47,7 @@ const CreateTicketForm = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [tempImageUrl, setTempImageUrl] = useState<string | undefined>();
   const [tempImagePath, setTempImagePath] = useState<string | undefined>();
+  const [extractedText, setExtractedText] = useState<string>('');
   const router = useRouter();
 
   const [contraventionSearch, setContraventionSearch] = useState('');
@@ -77,6 +78,7 @@ const CreateTicketForm = () => {
         ...values,
         tempImageUrl,
         tempImagePath,
+        extractedText,
       });
       toast.success('Ticket created successfully');
       router.push('/');
@@ -113,6 +115,9 @@ const CreateTicketForm = () => {
         toast.error('Failed to parse ticket image');
         return;
       }
+
+      // store the extracted text for later use
+      setExtractedText(result.data.extractedText || '');
 
       // prefill form with parsed data
       form.setValue('pcnNumber', result.data.pcnNumber);
