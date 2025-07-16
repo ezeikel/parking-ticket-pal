@@ -219,13 +219,13 @@ const ChallengeTicket = ({ ticket, issuerType }: ChallengeTicketProps) => {
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" size="icon">
-                <FontAwesomeIcon icon={faEllipsis} className="h-4 w-4" />
+                <FontAwesomeIcon icon={faEllipsis} size="lg" />
                 <span className="sr-only">More options</span>
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <DropdownMenuItem onClick={handleClearForm}>
-                <FontAwesomeIcon icon={faTrash} className="mr-2 h-4 w-4" />
+                <FontAwesomeIcon icon={faTrash} size="lg" className="mr-2" />
                 Clear Form
               </DropdownMenuItem>
             </DropdownMenuContent>

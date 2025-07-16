@@ -59,270 +59,10 @@ interface TE9FormData {
   signatureUrl: string | null;
 }
 
-// Improved function to add SVG signature to PDF form field using drawSvgPath
-async function addSvgSignatureToField(
-  page: PDFPage,
-  form: any,
-  fieldName: string,
-  svgUrl: string,
-): Promise<boolean> {
-  console.log(`🖊️ Adding SVG signature to field: ${fieldName}`);
-
-  try {
-    // Step 1: Get accurate field dimensions and position
-    const field = form.getTextField(fieldName);
-    console.log('🔍 Field:', field);
-
-    if (!field) {
-      console.warn(`⚠️ Field "${fieldName}" not found`);
-      return false;
-    }
-
-    // Get exact field rectangle from the widget annotation
-    const fieldRect = await getExactFieldRectangle(field);
-
-    console.log('🔍 Field rectangle:', fieldRect);
-
-    if (!fieldRect) {
-      console.warn('⚠️ Could not determine field rectangle');
-      return false;
-    }
-
-    console.log(`📏 Field dimensions: ${JSON.stringify(fieldRect)}`);
-
-    // Step 2: Download the SVG file
-    const svgBuffer = await downloadFile(svgUrl);
-
-    if (!svgBuffer) {
-      console.warn('⚠️ Failed to download SVG');
-      return false;
-    }
-
-    // Step 3: Extract SVG paths and viewBox
-    const { paths, viewBox } = extractSvgPathsAndViewBox(
-      svgBuffer.toString('utf8'),
-    );
-
-    if (paths.length === 0) {
-      console.warn('⚠️ No SVG paths found in the signature');
-      return false;
-    }
-
-    console.log(`🔍 Extracted ${paths.length} SVG paths from signature`);
-    console.log(`🔍 SVG viewBox: ${JSON.stringify(viewBox)}`);
-    // Log the first path data to help with debugging
-    if (paths.length > 0) {
-      console.log(
-        `🔍 First path data sample: ${paths[0].substring(0, 100)}...`,
-      );
-    }
-
-    // Step 4: Calculate transform to fit SVG into the field
-    const transform = calculateSvgTransform(viewBox, fieldRect);
-
-    console.log('🔍 Transform:', transform);
-
-    // Step 5: Draw the SVG paths directly on the page
-    // First clear any previous content by drawing a white rectangle
-    page.drawRectangle({
-      x: fieldRect.x,
-      y: fieldRect.y,
-      width: fieldRect.width,
-      height: fieldRect.height,
-      color: rgb(1, 1, 1), // White
-      opacity: 1,
-      borderWidth: 0,
-    });
-
-    console.log(
-      `🖊️ Drawing ${paths.length} SVG paths with transform:`,
-      transform,
-    );
-
-    // Process paths from SVG signature image
-    for (const pathData of paths) {
-      // Apply the transformation to the path
-      try {
-        // Need to adjust for the viewBox origin when drawing
-        page.drawSvgPath(pathData, {
-          // Position at calculated offsets and adjust for viewBox origin
-          x: fieldRect.x + transform.offsetX - viewBox.x * transform.scale,
-          y: fieldRect.y + transform.offsetY - viewBox.y * transform.scale,
-          scale: transform.scale,
-          // Don't fill the path (transparent fill)
-          color: undefined,
-          opacity: 0,
-          // Use stroke instead (outline)
-          borderColor: rgb(0, 0, 0),
-          // Use a stroke width that scales proportionally with the signature
-          borderWidth: 2.0, // Thicker stroke for better visibility
-          borderOpacity: 1,
-        });
-        console.log(
-          `✅ Successfully drew path: ${pathData.substring(0, 30)}...`,
-        );
-      } catch (err) {
-        console.warn(`⚠️ Error drawing SVG path: ${err}`);
-        console.warn(`⚠️ Problem path data: ${pathData.substring(0, 50)}...`);
-        // Try with a simpler version of the path
-        try {
-          // Create a simplified version by keeping just the movement commands
-          const simplifiedPath = pathData.replace(
-            /[a-zA-Z][^a-zA-Z]*/g,
-            (match) =>
-              // Keep only M, L, C, Q commands and their parameters
-              match.charAt(0).match(/[MLCQ]/i) ? match : '',
-          );
-          if (simplifiedPath) {
-            console.log(
-              `🔄 Trying with simplified path: ${simplifiedPath.substring(0, 30)}...`,
-            );
-            page.drawSvgPath(simplifiedPath, {
-              // Use the same positioning as the main path
-              x: fieldRect.x + transform.offsetX - viewBox.x * transform.scale,
-              y: fieldRect.y + transform.offsetY - viewBox.y * transform.scale,
-              scale: transform.scale,
-              // Use stroke rendering for simplified path too
-              color: undefined,
-              opacity: 0,
-              borderColor: rgb(0, 0, 0),
-              borderWidth: 2.0, // Thicker stroke for better visibility
-              borderOpacity: 1,
-            });
-          }
-        } catch (simplifyErr) {
-          console.warn(`⚠️ Even simplified path failed: ${simplifyErr}`);
-        }
-      }
-    }
-
-    // Step 6: Remove the original form field to avoid overlapping elements
-    // TODO: this errors for some reason
-    // form.removeField(field);
-
-    console.log('✅ Successfully placed SVG signature on page');
-    return true;
-  } catch (error) {
-    console.error('❌ Error adding signature:', error);
-    return false;
-  }
-}
-
-// Extract SVG paths and viewBox
-function extractSvgPathsAndViewBox(svgString: string): {
-  paths: string[];
-  viewBox: { x: number; y: number; width: number; height: number };
-} {
-  console.log('🔍 Extracting SVG paths from SVG string');
-
-  // Default viewBox - set to something reasonable for signatures
-  let viewBox = { x: 0, y: 0, width: 300, height: 150 };
-
-  // Extract viewBox
-  const viewBoxMatch = svgString.match(/viewBox=["']([^"']*)["']/);
-  if (viewBoxMatch && viewBoxMatch[1]) {
-    const values = viewBoxMatch[1].split(/[\s,]+/).map(Number);
-    if (values.length >= 4) {
-      viewBox = {
-        x: values[0],
-        y: values[1],
-        width: values[2],
-        height: values[3],
-      };
-      console.log(`🔍 Found viewBox in SVG: ${JSON.stringify(viewBox)}`);
-    }
-  } else {
-    console.log('⚠️ No viewBox found in SVG, using default');
-  }
-
-  // Use width/height attributes as fallback for viewBox
-  if (viewBox.width === 0 || viewBox.height === 0) {
-    const widthMatch = svgString.match(/width=["']([^"']*)["']/);
-    const heightMatch = svgString.match(/height=["']([^"']*)["']/);
-
-    if (widthMatch && widthMatch[1]) {
-      const width = parseFloat(widthMatch[1]);
-      if (width > 0) viewBox.width = width;
-    }
-
-    if (heightMatch && heightMatch[1]) {
-      const height = parseFloat(heightMatch[1]);
-      if (height > 0) viewBox.height = height;
-    }
-  }
-
-  // Clean SVG path data to prevent parsing issues
-  function cleanSvgPath(pathData: string): string {
-    // Remove any newlines or extra spaces that could cause parsing issues
-    return pathData.replace(/\s+/g, ' ').trim();
-  }
-
-  // Extract all path data directly
-  const paths: string[] = [];
-
-  // First try to extract path elements with d attribute
-  const pathRegex = /<path[^>]*d=["']([^"']*)["'][^>]*>/g;
-  let pathMatch;
-  while ((pathMatch = pathRegex.exec(svgString)) !== null) {
-    if (pathMatch[1] && pathMatch[1].trim()) {
-      const cleanPath = cleanSvgPath(pathMatch[1]);
-      console.log(`🔍 Found path: ${cleanPath.substring(0, 50)}...`);
-      paths.push(cleanPath);
-    }
-  }
-
-  // If no paths found with the normal approach, try a fixed test path that works well
-  if (paths.length === 0) {
-    console.log('⚠️ No paths found in SVG, using simplified path');
-    // Simple signature-like path that will at least show something
-    paths.push('M 20,80 C 40,10 60,10 80,80 S 120,150 160,80');
-  }
-
-  return { paths, viewBox };
-}
-
-// Calculate transformation to fit SVG into the field
-function calculateSvgTransform(
-  viewBox: { x: number; y: number; width: number; height: number },
-  fieldRect: { x: number; y: number; width: number; height: number },
-): { scale: number; offsetX: number; offsetY: number } {
-  console.log(
-    `📏 Calculating transform for viewBox: ${JSON.stringify(viewBox)} and fieldRect: ${JSON.stringify(fieldRect)}`,
-  );
-
-  // STEP 1: Determine the available space in the field
-  // Allow signature to use more space (95% width, 80% height)
-  const availableWidth = fieldRect.width * 0.95;
-  const availableHeight = fieldRect.height * 0.8;
-
-  // STEP 2: Calculate scaling factors
-  const scaleX = availableWidth / viewBox.width;
-  const scaleY = availableHeight / viewBox.height;
-
-  // Use the smaller scaling factor to preserve aspect ratio, then boost by 25%
-  const baseScale = Math.min(scaleX, scaleY);
-  const scale = baseScale * 1.25; // Increase size by 25%
-
-  console.log(
-    `📏 Space available: ${availableWidth}x${availableHeight}, Base scale: ${baseScale}, Boosted scale: ${scale}`,
-  );
-
-  // STEP 3: Position horizontally - keep current good left alignment
-  const offsetX = -10; // Current good horizontal position
-
-  // STEP 4: Position vertically - move the signature significantly higher
-  const bottomMargin = fieldRect.height * 0.93; // 93% from bottom (increased from 85%)
-  const offsetY = bottomMargin;
-
-  console.log(`📏 Positioning: offsetX=${offsetX}, offsetY=${offsetY}`);
-
-  return { scale, offsetX, offsetY };
-}
-
 // Helper function to get precise field rectangle coordinates
-async function getExactFieldRectangle(
+const getExactFieldRectangle = async (
   field: PDFField,
-): Promise<{ x: number; y: number; width: number; height: number } | null> {
+): Promise<{ x: number; y: number; width: number; height: number } | null> => {
   try {
     // Access the underlying dictionary
     if (!field.acroField || !field.acroField.dict) {
@@ -400,15 +140,15 @@ async function getExactFieldRectangle(
     console.error('❌ Error getting field rectangle:', error);
     return null;
   }
-}
+};
 
 // Helper function to download a file
-async function downloadFile(url: string): Promise<Buffer | null> {
+const downloadFile = async (url: string): Promise<Buffer | null> => {
   try {
     if (url.startsWith('http://') || url.startsWith('https://')) {
       const protocol = url.startsWith('https') ? https : http;
 
-      return new Promise((resolve, reject) => {
+      return await new Promise((resolve, reject) => {
         protocol
           .get(url, (response) => {
             if (response.statusCode !== 200) {
@@ -430,9 +170,271 @@ async function downloadFile(url: string): Promise<Buffer | null> {
     console.error('❌ Error downloading file:', error);
     return null;
   }
-}
+};
 
-async function fillTE9Form(userData: Partial<TE9FormData> = {}) {
+// Extract SVG paths and viewBox
+const extractSvgPathsAndViewBox = (
+  svgString: string,
+): {
+  paths: string[];
+  viewBox: { x: number; y: number; width: number; height: number };
+} => {
+  console.log('🔍 Extracting SVG paths from SVG string');
+
+  // Default viewBox - set to something reasonable for signatures
+  let viewBox = { x: 0, y: 0, width: 300, height: 150 };
+
+  // Extract viewBox
+  const viewBoxMatch = svgString.match(/viewBox=["']([^"']*)["']/);
+  if (viewBoxMatch && viewBoxMatch[1]) {
+    const values = viewBoxMatch[1].split(/[\s,]+/).map(Number);
+    if (values.length >= 4) {
+      viewBox = {
+        x: values[0],
+        y: values[1],
+        width: values[2],
+        height: values[3],
+      };
+      console.log(`🔍 Found viewBox in SVG: ${JSON.stringify(viewBox)}`);
+    }
+  } else {
+    console.log('⚠️ No viewBox found in SVG, using default');
+  }
+
+  // Use width/height attributes as fallback for viewBox
+  if (viewBox.width === 0 || viewBox.height === 0) {
+    const widthMatch = svgString.match(/width=["']([^"']*)["']/);
+    const heightMatch = svgString.match(/height=["']([^"']*)["']/);
+
+    if (widthMatch && widthMatch[1]) {
+      const width = parseFloat(widthMatch[1]);
+      if (width > 0) viewBox.width = width;
+    }
+
+    if (heightMatch && heightMatch[1]) {
+      const height = parseFloat(heightMatch[1]);
+      if (height > 0) viewBox.height = height;
+    }
+  }
+
+  // Clean SVG path data to prevent parsing issues
+  const cleanSvgPath = (pathData: string): string =>
+    // Remove any newlines or extra spaces that could cause parsing issues
+    pathData.replace(/\s+/g, ' ').trim();
+
+  // Extract all path data directly
+  const paths: string[] = [];
+
+  // First try to extract path elements with d attribute
+  const pathRegex = /<path[^>]*d=["']([^"']*)["'][^>]*>/g;
+  let pathMatch = pathRegex.exec(svgString);
+  while (pathMatch !== null) {
+    if (pathMatch[1] && pathMatch[1].trim()) {
+      const cleanPath = cleanSvgPath(pathMatch[1]);
+      console.log(`🔍 Found path: ${cleanPath.substring(0, 50)}...`);
+      paths.push(cleanPath);
+    }
+    pathMatch = pathRegex.exec(svgString);
+  }
+
+  // If no paths found with the normal approach, try a fixed test path that works well
+  if (paths.length === 0) {
+    console.log('⚠️ No paths found in SVG, using simplified path');
+    // Simple signature-like path that will at least show something
+    paths.push('M 20,80 C 40,10 60,10 80,80 S 120,150 160,80');
+  }
+
+  return { paths, viewBox };
+};
+
+// Calculate transformation to fit SVG into the field
+const calculateSvgTransform = (
+  viewBox: { x: number; y: number; width: number; height: number },
+  fieldRect: { x: number; y: number; width: number; height: number },
+): { scale: number; offsetX: number; offsetY: number } => {
+  console.log(
+    `📏 Calculating transform for viewBox: ${JSON.stringify(viewBox)} and fieldRect: ${JSON.stringify(fieldRect)}`,
+  );
+
+  // STEP 1: Determine the available space in the field
+  // Allow signature to use more space (95% width, 80% height)
+  const availableWidth = fieldRect.width * 0.95;
+  const availableHeight = fieldRect.height * 0.8;
+
+  // STEP 2: Calculate scaling factors
+  const scaleX = availableWidth / viewBox.width;
+  const scaleY = availableHeight / viewBox.height;
+
+  // Use the smaller scaling factor to preserve aspect ratio, then boost by 25%
+  const baseScale = Math.min(scaleX, scaleY);
+  const scale = baseScale * 1.25; // Increase size by 25%
+
+  console.log(
+    `📏 Space available: ${availableWidth}x${availableHeight}, Base scale: ${baseScale}, Boosted scale: ${scale}`,
+  );
+
+  // STEP 3: Position horizontally - keep current good left alignment
+  const offsetX = -10; // Current good horizontal position
+
+  // STEP 4: Position vertically - move the signature significantly higher
+  const bottomMargin = fieldRect.height * 0.93; // 93% from bottom (increased from 85%)
+  const offsetY = bottomMargin;
+
+  console.log(`📏 Positioning: offsetX=${offsetX}, offsetY=${offsetY}`);
+
+  return { scale, offsetX, offsetY };
+};
+
+// Improved function to add SVG signature to PDF form field using drawSvgPath
+const addSvgSignatureToField = async (
+  page: PDFPage,
+  form: any,
+  fieldName: string,
+  svgUrl: string,
+): Promise<boolean> => {
+  console.log(`🖊️ Adding SVG signature to field: ${fieldName}`);
+
+  try {
+    // Step 1: Get accurate field dimensions and position
+    const field = form.getTextField(fieldName);
+    console.log('🔍 Field:', field);
+
+    if (!field) {
+      console.warn(`⚠️ Field "${fieldName}" not found`);
+      return false;
+    }
+
+    // Get exact field rectangle from the widget annotation
+    const fieldRect = await getExactFieldRectangle(field);
+
+    console.log('🔍 Field rectangle:', fieldRect);
+
+    if (!fieldRect) {
+      console.warn('⚠️ Could not determine field rectangle');
+      return false;
+    }
+
+    console.log(`📏 Field dimensions: ${JSON.stringify(fieldRect)}`);
+
+    // Step 2: Download the SVG file
+    const svgBuffer = await downloadFile(svgUrl);
+
+    if (!svgBuffer) {
+      console.warn('⚠️ Failed to download SVG');
+      return false;
+    }
+
+    // Step 3: Extract SVG paths and viewBox
+    const { paths, viewBox } = extractSvgPathsAndViewBox(
+      svgBuffer.toString('utf8'),
+    );
+
+    if (paths.length === 0) {
+      console.warn('⚠️ No SVG paths found in the signature');
+      return false;
+    }
+
+    console.log(`🔍 Extracted ${paths.length} SVG paths from signature`);
+    console.log(`🔍 SVG viewBox: ${JSON.stringify(viewBox)}`);
+    // Log the first path data to help with debugging
+    if (paths.length > 0) {
+      console.log(
+        `🔍 First path data sample: ${paths[0].substring(0, 100)}...`,
+      );
+    }
+
+    // Step 4: Calculate transform to fit SVG into the field
+    const transform = calculateSvgTransform(viewBox, fieldRect);
+
+    console.log('🔍 Transform:', transform);
+
+    // Step 5: Draw the SVG paths directly on the page
+    // First clear any previous content by drawing a white rectangle
+    page.drawRectangle({
+      x: fieldRect.x,
+      y: fieldRect.y,
+      width: fieldRect.width,
+      height: fieldRect.height,
+      color: rgb(1, 1, 1), // White
+      opacity: 1,
+      borderWidth: 0,
+    });
+
+    console.log(
+      `🖊️ Drawing ${paths.length} SVG paths with transform:`,
+      transform,
+    );
+
+    // Process paths from SVG signature image
+    paths.forEach((pathData) => {
+      // Apply the transformation to the path
+      try {
+        // Need to adjust for the viewBox origin when drawing
+        page.drawSvgPath(pathData, {
+          // Position at calculated offsets and adjust for viewBox origin
+          x: fieldRect.x + transform.offsetX - viewBox.x * transform.scale,
+          y: fieldRect.y + transform.offsetY - viewBox.y * transform.scale,
+          scale: transform.scale,
+          // Don't fill the path (transparent fill)
+          color: undefined,
+          opacity: 0,
+          // Use stroke instead (outline)
+          borderColor: rgb(0, 0, 0),
+          // Use a stroke width that scales proportionally with the signature
+          borderWidth: 2.0, // Thicker stroke for better visibility
+          borderOpacity: 1,
+        });
+        console.log(
+          `✅ Successfully drew path: ${pathData.substring(0, 30)}...`,
+        );
+      } catch (err) {
+        console.warn(`⚠️ Error drawing SVG path: ${err}`);
+        console.warn(`⚠️ Problem path data: ${pathData.substring(0, 50)}...`);
+        // Try with a simpler version of the path
+        try {
+          // Create a simplified version by keeping just the movement commands
+          const simplifiedPath = pathData.replace(
+            /[a-zA-Z][^a-zA-Z]*/g,
+            (match) =>
+              // Keep only M, L, C, Q commands and their parameters
+              match.charAt(0).match(/[MLCQ]/i) ? match : '',
+          );
+          if (simplifiedPath) {
+            console.log(
+              `🔄 Trying with simplified path: ${simplifiedPath.substring(0, 30)}...`,
+            );
+            page.drawSvgPath(simplifiedPath, {
+              // Use the same positioning as the main path
+              x: fieldRect.x + transform.offsetX - viewBox.x * transform.scale,
+              y: fieldRect.y + transform.offsetY - viewBox.y * transform.scale,
+              scale: transform.scale,
+              // Use stroke rendering for simplified path too
+              color: undefined,
+              opacity: 0,
+              borderColor: rgb(0, 0, 0),
+              borderWidth: 2.0, // Thicker stroke for better visibility
+              borderOpacity: 1,
+            });
+          }
+        } catch (simplifyErr) {
+          console.warn(`⚠️ Even simplified path failed: ${simplifyErr}`);
+        }
+      }
+    });
+
+    // Step 6: Remove the original form field to avoid overlapping elements
+    // TODO: this errors for some reason
+    // form.removeField(field);
+
+    console.log('✅ Successfully placed SVG signature on page');
+    return true;
+  } catch (error) {
+    console.error('❌ Error adding signature:', error);
+    return false;
+  }
+};
+
+const fillTE9Form = async (userData: Partial<TE9FormData> = {}) => {
   console.log('🚀 Starting TE9 form fill process...');
 
   try {
@@ -698,7 +700,10 @@ async function fillTE9Form(userData: Partial<TE9FormData> = {}) {
     }
 
     // Personal details
-    const filledName = fillTextField('Full name (witness)', formData.userName);
+    const filledName = fillTextField(
+      'Full name (respondent)',
+      formData.userName,
+    );
     if (!filledName) {
       drawText(formData.userName, 550, 445);
     }
@@ -707,23 +712,16 @@ async function fillTE9Form(userData: Partial<TE9FormData> = {}) {
     if (!filledAddress && formData.userAddress) {
       const addressLines = formData.userAddress.split('\n');
       let yPos = 410;
-      for (const line of addressLines) {
+      addressLines.forEach((line) => {
         drawText(line, 400, yPos);
         yPos -= 20; // Move down for next line
-      }
+      });
     }
 
-    // Handle postcode which has two fields in the PDF
+    // Handle postcode which has one field in the PDF
     let postcodeHandled = false;
     if (formData.userPostcode) {
-      const postcodeParts = formData.userPostcode.split(' ');
-      if (postcodeParts.length === 2) {
-        const filledPostcode1 = fillTextField('Postcode 1', postcodeParts[0]);
-        const filledPostcode2 = fillTextField('Postcode 2', postcodeParts[1]);
-        postcodeHandled = filledPostcode1 && filledPostcode2;
-      } else {
-        postcodeHandled = fillTextField('Postcode 1', formData.userPostcode);
-      }
+      postcodeHandled = fillTextField('Postcode', formData.userPostcode);
 
       if (!postcodeHandled) {
         drawText(formData.userPostcode, 520, 340);
@@ -763,7 +761,7 @@ async function fillTE9Form(userData: Partial<TE9FormData> = {}) {
 
     let noResponseChecked = false;
     if (formData.hadNoResponse) {
-      noResponseChecked = checkBox('no response to the appeal - yes', true);
+      noResponseChecked = checkBox('appealed but no response - yes', true);
       if (!noResponseChecked) {
         drawCheckmark(true, 502, 280, 'Had no response');
       }
@@ -953,6 +951,6 @@ async function fillTE9Form(userData: Partial<TE9FormData> = {}) {
     console.error('❌ ERROR in fillTE9Form:', error);
     throw error;
   }
-}
+};
 
 export default fillTE9Form;

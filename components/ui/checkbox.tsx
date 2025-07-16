@@ -24,7 +24,7 @@ function Checkbox({
         data-slot="checkbox-indicator"
         className="flex items-center justify-center text-current transition-none"
       >
-        <FontAwesomeIcon icon={faCheck} size="lg" />
+        <FontAwesomeIcon icon={faCheck} size="sm" />
       </CheckboxPrimitive.Indicator>
     </CheckboxPrimitive.Root>
   );

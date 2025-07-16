@@ -24,7 +24,7 @@ const TicketPage = async ({ params }: TicketPageProps) => {
       <div className="flex items-center justify-between">
         <Link href="/tickets">
           <Button variant="ghost" className="flex items-center gap-2">
-            <FontAwesomeIcon icon={faArrowLeft} className="h-4 w-4" />
+            <FontAwesomeIcon icon={faArrowLeft} size="lg" />
             <span>Back to Tickets</span>
           </Button>
         </Link>

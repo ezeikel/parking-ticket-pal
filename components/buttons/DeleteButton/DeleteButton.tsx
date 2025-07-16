@@ -23,7 +23,7 @@ const DeleteButton = ({
       className={`flex items-center gap-2 text-destructive hover:text-destructive hover:bg-destructive/10 ${className}`}
       disabled={pending}
     >
-      <FontAwesomeIcon icon={faTrash} className="h-4 w-4" />
+      <FontAwesomeIcon icon={faTrash} size="lg" />
       <span>{pending ? loadingLabel : label}</span>
     </Button>
   );

@@ -16,7 +16,7 @@ const ViewToggle = ({ activeView, onChange }: ViewToggleProps) => (
       className={`rounded-r-none ${activeView === 'list' ? '' : 'hover:bg-muted'}`}
       onClick={() => onChange('list')}
     >
-      <FontAwesomeIcon icon={faList} className="mr-2 h-4 w-4" />
+      <FontAwesomeIcon icon={faList} size="lg" className="mr-2" />
       List
     </Button>
     <Button
@@ -24,7 +24,7 @@ const ViewToggle = ({ activeView, onChange }: ViewToggleProps) => (
       className={`rounded-l-none ${activeView === 'map' ? '' : 'hover:bg-muted'}`}
       onClick={() => onChange('map')}
     >
-      <FontAwesomeIcon icon={faMap} className="mr-2 h-4 w-4" />
+      <FontAwesomeIcon icon={faMap} size="lg" className="mr-2" />
       Map
     </Button>
   </div>

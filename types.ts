@@ -154,6 +154,12 @@ export type TicketWithPrediction = Prisma.TicketGetPayload<{
       select: {
         id: true;
         registrationNumber: true;
+        user: {
+          select: {
+            id: true;
+            signatureUrl: true;
+          };
+        };
       };
     };
     media: {

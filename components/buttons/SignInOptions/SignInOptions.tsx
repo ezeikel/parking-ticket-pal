@@ -48,7 +48,7 @@ const SignInOptions = () => {
           onClick={() => signIn('google', { callbackUrl: '/' })}
           className="w-full"
         >
-          <FontAwesomeIcon icon={faGoogle} className="mr-2 h-4 w-4" />
+          <FontAwesomeIcon icon={faGoogle} size="lg" className="mr-2" />
           Continue with Google
         </Button>
         {/* <Button
@@ -56,7 +56,7 @@ const SignInOptions = () => {
           onClick={() => signIn('apple', { callbackUrl: '/' })}
           className="w-full"
         >
-          <FontAwesomeIcon icon={faApple} className="mr-2 h-4 w-4" />
+          <FontAwesomeIcon icon={faApple} size="lg" className="mr-2" />
           Continue with Apple
         </Button>
         <div className="relative">
@@ -88,7 +88,7 @@ const SignInOptions = () => {
               </>
             ) : (
               <>
-                <FontAwesomeIcon icon={faEnvelope} className="mr-2 h-4 w-4" />
+                <FontAwesomeIcon icon={faEnvelope} size="lg" className="mr-2" />
                 Sign in with Email
               </>
             )}

@@ -88,17 +88,17 @@ const LetterPage = async ({ params }: LetterPageProps) => {
       <div className="flex items-center justify-between">
         <Link href={`/tickets/${letter.ticket.id}`}>
           <Button variant="ghost" className="flex items-center gap-2">
-            <FontAwesomeIcon icon={faArrowLeft} className="h-4 w-4" />
+            <FontAwesomeIcon icon={faArrowLeft} size="lg" />
             <span>Back to Ticket</span>
           </Button>
         </Link>
         <div className="flex items-center gap-2">
           <Button variant="outline">
-            <FontAwesomeIcon icon={faDownload} className="h-4 w-4 mr-2" />
+            <FontAwesomeIcon icon={faDownload} size="lg" className="mr-2" />
             Download
           </Button>
           <Button variant="outline">
-            <FontAwesomeIcon icon={faEnvelope} className="h-4 w-4 mr-2" />
+            <FontAwesomeIcon icon={faEnvelope} size="lg" className="mr-2" />
             Email
           </Button>
         </div>

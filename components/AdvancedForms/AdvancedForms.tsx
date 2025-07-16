@@ -37,9 +37,10 @@ import {
   generateTE9Form,
   getFormFillDataFromTicket,
 } from '@/app/actions/form';
+import { TicketWithPrediction } from '@/types';
 
 type AdvancedFormsProps = {
-  ticketTier: TicketTier;
+  ticket: TicketWithPrediction;
   hasSignature: boolean;
 };
 
@@ -49,22 +50,22 @@ const formOptions: {
   requiresSignature: boolean;
 }[] = [
   {
-    value: 'PE2',
+    value: FormType.PE2,
     label: 'PE2: Application to file a statement out of time',
     requiresSignature: false,
   },
   {
-    value: 'PE3',
+    value: FormType.PE3,
     label: 'PE3: Statutory Declaration - Unpaid penalty charge',
     requiresSignature: false,
   },
   {
-    value: 'TE7',
+    value: FormType.TE7,
     label: 'TE7: Application to file a statement out of time',
     requiresSignature: true,
   },
   {
-    value: 'TE9',
+    value: FormType.TE9,
     label: 'TE9: Witness Statement - Unpaid penalty charge',
     requiresSignature: true,
   },
@@ -73,16 +74,18 @@ const formOptions: {
 // This component will render the specific fields for the TE9 form
 const TE9Fields = ({ onDataChange }: { onDataChange: (data: any) => void }) => {
   const [grounds, setGrounds] = useState({
-    noPcn: false,
-    noRejection: false,
-    noAppealResponse: false,
-    paid: false,
+    didNotReceiveNotice: false,
+    madeRepresentations: false,
+    hadNoResponse: false,
+    appealNotDetermined: false,
+    appealInFavour: false,
+    paidInFull: false,
   });
 
   const handleGroundChange = (key: keyof typeof grounds, checked: boolean) => {
     const newGrounds = { ...grounds, [key]: checked };
     setGrounds(newGrounds);
-    onDataChange({ grounds: newGrounds });
+    onDataChange(newGrounds);
   };
 
   return (
@@ -92,51 +95,162 @@ const TE9Fields = ({ onDataChange }: { onDataChange: (data: any) => void }) => {
       </Label>
       <div className="flex items-center space-x-2">
         <Checkbox
-          id="te9-no-pcn"
-          checked={grounds.noPcn}
+          id="te9-did-not-receive-notice"
+          checked={grounds.didNotReceiveNotice}
           onCheckedChange={(checked) =>
-            handleGroundChange('noPcn', checked as boolean)
+            handleGroundChange('didNotReceiveNotice', checked as boolean)
           }
         />
-        <Label htmlFor="te9-no-pcn">
+        <Label htmlFor="te9-did-not-receive-notice">
           I did not receive the penalty charge notice.
         </Label>
       </div>
       <div className="flex items-center space-x-2">
         <Checkbox
-          id="te9-no-rejection"
-          checked={grounds.noRejection}
+          id="te9-made-representations"
+          checked={grounds.madeRepresentations}
           onCheckedChange={(checked) =>
-            handleGroundChange('noRejection', checked as boolean)
+            handleGroundChange('madeRepresentations', checked as boolean)
           }
         />
-        <Label htmlFor="te9-no-rejection">
+        <Label htmlFor="te9-made-representations">
           I made representations... but did not receive a rejection notice.
         </Label>
       </div>
       <div className="flex items-center space-x-2">
         <Checkbox
-          id="te9-no-appeal-response"
-          checked={grounds.noAppealResponse}
+          id="te9-had-no-response"
+          checked={grounds.hadNoResponse}
           onCheckedChange={(checked) =>
-            handleGroundChange('noAppealResponse', checked as boolean)
+            handleGroundChange('hadNoResponse', checked as boolean)
           }
         />
-        <Label htmlFor="te9-no-appeal-response">
+        <Label htmlFor="te9-had-no-response">
           I appealed to an adjudicator... but had no response.
         </Label>
       </div>
       <div className="flex items-center space-x-2">
         <Checkbox
-          id="te9-paid"
-          checked={grounds.paid}
+          id="te9-appeal-not-determined"
+          checked={grounds.appealNotDetermined}
           onCheckedChange={(checked) =>
-            handleGroundChange('paid', checked as boolean)
+            handleGroundChange('appealNotDetermined', checked as boolean)
           }
         />
-        <Label htmlFor="te9-paid">
+        <Label htmlFor="te9-appeal-not-determined">
+          My appeal had not been determined.
+        </Label>
+      </div>
+      <div className="flex items-center space-x-2">
+        <Checkbox
+          id="te9-appeal-in-favour"
+          checked={grounds.appealInFavour}
+          onCheckedChange={(checked) =>
+            handleGroundChange('appealInFavour', checked as boolean)
+          }
+        />
+        <Label htmlFor="te9-appeal-in-favour">
+          My appeal was determined in my favour.
+        </Label>
+      </div>
+      <div className="flex items-center space-x-2">
+        <Checkbox
+          id="te9-paid-in-full"
+          checked={grounds.paidInFull}
+          onCheckedChange={(checked) =>
+            handleGroundChange('paidInFull', checked as boolean)
+          }
+        />
+        <Label htmlFor="te9-paid-in-full">
           The penalty charge has been paid in full.
         </Label>
+      </div>
+    </div>
+  );
+};
+
+// This component will render the specific fields for the PE3 form
+const PE3Fields = ({ onDataChange }: { onDataChange: (data: any) => void }) => {
+  const [grounds, setGrounds] = useState({
+    didNotReceiveNotice: false,
+    madeRepresentations: false,
+    appealedToAdjudicator: false,
+  });
+  const [reason, setReason] = useState('');
+
+  const handleGroundChange = (key: keyof typeof grounds, checked: boolean) => {
+    const newGrounds = { ...grounds, [key]: checked };
+    setGrounds(newGrounds);
+    onDataChange({ ...newGrounds, reasonText: reason });
+  };
+
+  const handleReasonChange = (value: string) => {
+    setReason(value);
+    onDataChange({ ...grounds, reasonText: value });
+  };
+
+  return (
+    <div className="space-y-4">
+      <Label className="font-medium">
+        Grounds for statement (Tick all that apply)
+      </Label>
+      <div className="flex items-center space-x-2">
+        <Checkbox
+          id="pe3-did-not-receive-notice"
+          checked={grounds.didNotReceiveNotice}
+          onCheckedChange={(checked) =>
+            handleGroundChange('didNotReceiveNotice', checked as boolean)
+          }
+        />
+        <Label htmlFor="pe3-did-not-receive-notice">
+          I did not receive the notice.
+        </Label>
+      </div>
+      <div className="flex items-center space-x-2">
+        <Checkbox
+          id="pe3-made-representations"
+          checked={grounds.madeRepresentations}
+          onCheckedChange={(checked) =>
+            handleGroundChange('madeRepresentations', checked as boolean)
+          }
+        />
+        <Label htmlFor="pe3-made-representations">
+          I made representations.
+        </Label>
+      </div>
+      <div className="flex items-center space-x-2">
+        <Checkbox
+          id="pe3-appealed-to-adjudicator"
+          checked={grounds.appealedToAdjudicator}
+          onCheckedChange={(checked) =>
+            handleGroundChange('appealedToAdjudicator', checked as boolean)
+          }
+        />
+        <Label htmlFor="pe3-appealed-to-adjudicator">
+          I appealed to the Parking/Traffic Adjudicator.
+        </Label>
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="pe3-reason" className="font-medium">
+          Supporting explanation
+        </Label>
+        <Alert>
+          <FontAwesomeIcon icon={faInfoCircle} size="lg" />
+          <AlertTitle>Important</AlertTitle>
+          <AlertDescription>
+            Provide a detailed explanation of your circumstances that supports
+            the grounds you have selected above. This is your chance to convince
+            the court that your declaration is genuine and justified.
+          </AlertDescription>
+        </Alert>
+        <Textarea
+          id="pe3-reason"
+          placeholder="Explain your circumstances in detail..."
+          rows={5}
+          value={reason}
+          onChange={(e) => handleReasonChange(e.target.value)}
+        />
       </div>
     </div>
   );
@@ -148,7 +262,7 @@ const TE7Fields = ({ onDataChange }: { onDataChange: (data: any) => void }) => {
 
   const handleReasonChange = (value: string) => {
     setReason(value);
-    onDataChange({ reason: value });
+    onDataChange({ reasonText: value });
   };
 
   return (
@@ -157,7 +271,7 @@ const TE7Fields = ({ onDataChange }: { onDataChange: (data: any) => void }) => {
         Reason(s) for filing out of time
       </Label>
       <Alert>
-        <FontAwesomeIcon icon={faInfoCircle} className="h-4 w-4" />
+        <FontAwesomeIcon icon={faInfoCircle} size="lg" />
         <AlertTitle>Important</AlertTitle>
         <AlertDescription>
           Do NOT give your reasons for appealing the original penalty charge
@@ -175,12 +289,12 @@ const TE7Fields = ({ onDataChange }: { onDataChange: (data: any) => void }) => {
   );
 };
 
-const AdvancedForms = ({ ticketTier, hasSignature }: AdvancedFormsProps) => {
+const AdvancedForms = ({ ticket, hasSignature }: AdvancedFormsProps) => {
   const [selectedForm, setSelectedForm] = useState<FormType | ''>('');
   const [isGenerating, setIsGenerating] = useState(false);
   const [formData, setFormData] = useState({});
 
-  const isPremiumTier = ticketTier === TicketTier.PREMIUM;
+  const isPremiumTier = ticket.tier === TicketTier.PREMIUM;
   const currentFormInfo = formOptions.find((f) => f.value === selectedForm);
 
   const handleGenerate = async () => {
@@ -188,6 +302,7 @@ const AdvancedForms = ({ ticketTier, hasSignature }: AdvancedFormsProps) => {
       toast.error('Please select a form to generate.');
       return;
     }
+
     if (currentFormInfo.requiresSignature && !hasSignature) {
       toast.error(
         'A signature is required for this form. Please upload one in your profile.',
@@ -199,37 +314,32 @@ const AdvancedForms = ({ ticketTier, hasSignature }: AdvancedFormsProps) => {
     toast.info(`Generating ${currentFormInfo.label}...`);
 
     try {
-      // For now, we'll need a ticket ID to generate the form
-      // This would need to be passed as a prop or selected by the user
-      const ticketId = 'example-ticket-id'; // TODO: Get actual ticket ID
-
-      // Get the base form data from the ticket
-      const baseFormData = await getFormFillDataFromTicket(ticketId);
+      const baseFormData = await getFormFillDataFromTicket(ticket.pcnNumber);
 
       if (!baseFormData) {
         toast.error('Could not find ticket data. Please try again.');
         return;
       }
 
-      // Merge the collected form data with the base data
+      // merge the collected form data with the base data
       const finalFormData = {
         ...baseFormData,
         ...formData,
       };
 
-      // Call the appropriate generation function
+      // call the appropriate generation function
       let result;
       switch (selectedForm) {
-        case 'PE2':
+        case FormType.PE2:
           result = await generatePE2Form(finalFormData);
           break;
-        case 'PE3':
+        case FormType.PE3:
           result = await generatePE3Form(finalFormData);
           break;
-        case 'TE7':
+        case FormType.TE7:
           result = await generateTE7Form(finalFormData);
           break;
-        case 'TE9':
+        case FormType.TE9:
           result = await generateTE9Form(finalFormData);
           break;
         default:
@@ -259,17 +369,17 @@ const AdvancedForms = ({ ticketTier, hasSignature }: AdvancedFormsProps) => {
 
     let FormComponent = null;
     switch (selectedForm) {
-      case 'TE9':
+      case FormType.TE9:
         FormComponent = <TE9Fields onDataChange={setFormData} />;
         break;
-      case 'TE7':
+      case FormType.PE3:
+        FormComponent = <PE3Fields onDataChange={setFormData} />;
+        break;
+      case FormType.TE7:
         FormComponent = <TE7Fields onDataChange={setFormData} />;
         break;
-      case 'PE2': // Assuming PE2 has similar fields to TE7 for this example
+      case FormType.PE2: // assuming PE2 has similar fields to TE7 for this example
         FormComponent = <TE7Fields onDataChange={setFormData} />;
-        break;
-      case 'PE3': // Assuming PE3 has similar fields to TE9 for this example
-        FormComponent = <TE9Fields onDataChange={setFormData} />;
         break;
       default:
         return null;
@@ -320,7 +430,7 @@ const AdvancedForms = ({ ticketTier, hasSignature }: AdvancedFormsProps) => {
           <div
             className={`mt-4 flex items-center gap-2 text-sm ${hasSignature ? 'text-green-600' : 'text-amber-600'}`}
           >
-            <FontAwesomeIcon icon={faSignature} />
+            <FontAwesomeIcon icon={faSignature} size="lg" />
             <span>
               {hasSignature
                 ? 'Your signature on file will be applied to this form.'
@@ -342,7 +452,8 @@ const AdvancedForms = ({ ticketTier, hasSignature }: AdvancedFormsProps) => {
               <Button type="submit" disabled={!selectedForm || isGenerating}>
                 <FontAwesomeIcon
                   icon={isGenerating ? faSpinnerThird : faFilePdf}
-                  className={`mr-2 h-4 w-4 ${isGenerating ? 'animate-spin' : ''}`}
+                  size="lg"
+                  className={`mr-2 ${isGenerating ? 'animate-spin' : ''}`}
                 />
                 Generate Form
               </Button>

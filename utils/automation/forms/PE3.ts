@@ -3,6 +3,42 @@ import fs from 'fs';
 import path from 'path';
 
 /**
+ * Generates explanation text for PE3 form based on checked checkboxes
+ * @param {Object} formData - Form data with checkbox states
+ * @returns {string} - Generated explanation text
+ */
+const generatePE3Explanation = (formData: Record<string, any>): string => {
+  const explanations: string[] = [];
+
+  if (formData.didNotReceiveNotice) {
+    explanations.push(
+      'I did not receive the Notice to Owner or any subsequent correspondence until the Order for Recovery arrived at my current address. I was unaware of the penalty charge until this late stage in the enforcement process.',
+    );
+  }
+
+  if (formData.madeRepresentations) {
+    explanations.push(
+      'I made formal representations to the authority within the required timeframe but did not receive a response or rejection notice. My representations were submitted in good faith and I believe they had merit.',
+    );
+  }
+
+  if (formData.appealedToAdjudicator) {
+    explanations.push(
+      'I appealed to the Parking/Traffic Adjudicator but my appeal was not determined or I did not receive a response. I believe my appeal had merit and should have been considered properly.',
+    );
+  }
+
+  // If no specific checkboxes are checked, provide a generic explanation
+  if (explanations.length === 0) {
+    explanations.push(
+      'I am making this statutory declaration to request that the enforcement process be reset due to exceptional circumstances that prevented me from responding to the penalty charge notice in a timely manner.',
+    );
+  }
+
+  return explanations.join('\n\n');
+};
+
+/**
  * Fills the PE3 form using only available form fields from the PDF
  * Uses appropriate font size to match other forms
  * @param {Object} userData - User data to fill in the form
@@ -60,6 +96,12 @@ const fillPE3Form = async (userData: Record<string, any> = {}) => {
 
     // merge default data with provided user data
     const formData = { ...defaultFormData, ...userData };
+
+    // Generate explanation text based on checked checkboxes only if no reason text is provided
+    if (!formData.reasonText) {
+      formData.reasonText = generatePE3Explanation(formData);
+    }
+
     console.log('📝 Form data to fill:', JSON.stringify(formData, null, 2));
 
     console.log('🏁 Starting to fill form fields...');

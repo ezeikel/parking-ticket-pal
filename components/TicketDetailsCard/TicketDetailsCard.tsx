@@ -138,7 +138,7 @@ const TicketDetailsCard = ({ ticket }: TicketDetailsCardProps) => {
       case TicketStatus.PAID:
         return (
           <Button variant="outline">
-            <FontAwesomeIcon icon={faRotateLeft} className="mr-2 h-4 w-4" />
+            <FontAwesomeIcon icon={faRotateLeft} size="lg" className="mr-2" />
             Unmark as Paid
           </Button>
         );
@@ -147,7 +147,7 @@ const TicketDetailsCard = ({ ticket }: TicketDetailsCardProps) => {
       case TicketStatus.CANCELLED:
         return (
           <Button variant="outline">
-            <FontAwesomeIcon icon={faRotateLeft} className="mr-2 h-4 w-4" />
+            <FontAwesomeIcon icon={faRotateLeft} size="lg" className="mr-2" />
             Reopen Case
           </Button>
         );

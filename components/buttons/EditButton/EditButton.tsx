@@ -28,7 +28,7 @@ const EditButton = ({
       disabled={pending}
       onClick={onClick}
     >
-      <FontAwesomeIcon icon={faEdit} className="h-4 w-4" />
+      <FontAwesomeIcon icon={faEdit} size="lg" />
       <span>{pending ? loadingLabel : label}</span>
     </Button>
   );

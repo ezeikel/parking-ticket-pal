@@ -14,7 +14,7 @@ const ProFeatureLock = ({ children }: ProFeatureLockProps) => (
     <div className="blur-[2px] pointer-events-none">{children}</div>
     <div className="absolute inset-0 flex flex-col items-center justify-center rounded-lg bg-background/60">
       <div className="flex flex-col items-center gap-4 rounded-xl border bg-background p-8 shadow-xl">
-        <FontAwesomeIcon icon={faLock} className="h-8 w-8 text-primary" />
+        <FontAwesomeIcon icon={faLock} size="lg" className="text-primary" />
         <div className="text-center">
           <h3 className="text-xl font-bold">Unlock with PREMIUM</h3>
           <p className="text-muted-foreground">This is a PREMIUM feature.</p>

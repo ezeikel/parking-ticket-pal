@@ -18,7 +18,7 @@ const EditTicketButton = ({ id }: EditTicketButtonProps) => {
       className="flex items-center gap-2"
       onClick={() => router.push(`/tickets/${id}?edit=true`)}
     >
-      <FontAwesomeIcon icon={faEdit} className="h-4 w-4" />
+      <FontAwesomeIcon icon={faEdit} size="lg" />
       <span>Edit Ticket</span>
     </Button>
   );

@@ -90,7 +90,8 @@ const LettersSection = ({ letters }: LettersSectionProps) => {
           <div className="text-center py-8 text-muted-foreground">
             <FontAwesomeIcon
               icon={faFileAlt}
-              className="h-12 w-12 mb-4 opacity-50"
+              className="mb-4 opacity-50"
+              size="lg"
             />
             <p>No letters have been associated with this ticket yet.</p>
             <p className="text-sm">
@@ -132,7 +133,8 @@ const LettersSection = ({ letters }: LettersSectionProps) => {
                   <div className="w-16 h-20 bg-muted rounded border flex items-center justify-center">
                     <FontAwesomeIcon
                       icon={faFileAlt}
-                      className="h-6 w-6 text-muted-foreground"
+                      className="text-muted-foreground"
+                      size="lg"
                     />
                   </div>
                 )}
@@ -153,10 +155,7 @@ const LettersSection = ({ letters }: LettersSectionProps) => {
 
                     <div className="flex items-center gap-4 text-sm text-muted-foreground mb-2">
                       <div className="flex items-center gap-1">
-                        <FontAwesomeIcon
-                          icon={faCalendar}
-                          className="h-3 w-3"
-                        />
+                        <FontAwesomeIcon icon={faCalendar} size="lg" />
                         <span>
                           {letter.sentAt
                             ? format(new Date(letter.sentAt), 'MMM dd, yyyy')
@@ -164,7 +163,7 @@ const LettersSection = ({ letters }: LettersSectionProps) => {
                         </span>
                       </div>
                       <div className="flex items-center gap-1">
-                        <FontAwesomeIcon icon={faFileAlt} className="h-3 w-3" />
+                        <FontAwesomeIcon icon={faFileAlt} size="lg" />
                         <span>
                           {letter.media.length} image
                           {letter.media.length !== 1 ? 's' : ''}
@@ -188,7 +187,11 @@ const LettersSection = ({ letters }: LettersSectionProps) => {
                         router.push(`/letters/${letter.id}`);
                       }}
                     >
-                      <FontAwesomeIcon icon={faEye} className="h-4 w-4 mr-1" />
+                      <FontAwesomeIcon
+                        icon={faEye}
+                        size="lg"
+                        className=" mr-1"
+                      />
                       View
                     </Button>
 
@@ -201,10 +204,7 @@ const LettersSection = ({ letters }: LettersSectionProps) => {
                           console.log('Download letter:', letter.id);
                         }}
                       >
-                        <FontAwesomeIcon
-                          icon={faDownload}
-                          className="h-4 w-4"
-                        />
+                        <FontAwesomeIcon icon={faDownload} size="lg" />
                       </Button>
                     )}
                   </div>

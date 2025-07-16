@@ -88,7 +88,7 @@ const SignatureInput = ({
               size="sm"
               className="flex items-center"
             >
-              <FontAwesomeIcon icon={faPencil} className="mr-2 h-3 w-3" />
+              <FontAwesomeIcon icon={faPencil} size="lg" className="mr-2" />
               Create New Signature
             </Button>
           </div>
@@ -111,7 +111,7 @@ const SignatureInput = ({
               size="sm"
               className="flex items-center"
             >
-              <FontAwesomeIcon icon={faXmark} className="mr-2 h-3 w-3" />
+              <FontAwesomeIcon icon={faXmark} size="lg" className="mr-2" />
               Cancel
             </Button>
             <Button
@@ -121,7 +121,7 @@ const SignatureInput = ({
               size="sm"
               className="flex items-center"
             >
-              <FontAwesomeIcon icon={faTrash} className="mr-2 h-3 w-3" />
+              <FontAwesomeIcon icon={faTrash} size="lg" className="mr-2" />
               Clear
             </Button>
           </div>

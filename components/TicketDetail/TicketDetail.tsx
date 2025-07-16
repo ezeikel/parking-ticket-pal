@@ -34,7 +34,8 @@ const TicketDetail = ({ ticket }: TicketDetailProps) => {
   const userEvidence = ticket.media.filter(
     (m) => m.source === MediaSource.EVIDENCE,
   );
-  const hasSignature = true; // TODO: !!ticket.vehicle.user.signatureUrl;
+
+  const hasSignature = !!ticket.vehicle.user.signatureUrl;
   const isPremiumTier = ticket.tier === TicketTier.PREMIUM;
 
   return (
@@ -51,7 +52,7 @@ const TicketDetail = ({ ticket }: TicketDetailProps) => {
       {isPremiumTier ? (
         <>
           <ChallengeTicket ticket={ticket} issuerType={ticket.issuerType} />
-          <AdvancedForms ticketTier={ticket.tier} hasSignature={hasSignature} />
+          <AdvancedForms ticket={ticket} hasSignature={hasSignature} />
         </>
       ) : (
         <>
@@ -59,10 +60,7 @@ const TicketDetail = ({ ticket }: TicketDetailProps) => {
             <ChallengeTicket ticket={ticket} issuerType={ticket.issuerType} />
           </ProFeatureLock>
           <ProFeatureLock>
-            <AdvancedForms
-              ticketTier={ticket.tier}
-              hasSignature={hasSignature}
-            />
+            <AdvancedForms ticket={ticket} hasSignature={hasSignature} />
           </ProFeatureLock>
         </>
       )}

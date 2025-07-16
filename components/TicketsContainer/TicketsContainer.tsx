@@ -44,7 +44,7 @@ const TicketsContainer = ({ tickets }: TicketsContainerProps) => {
           <ViewToggle activeView={activeView} onChange={setActiveView} />
           <Link href="/new">
             <Button className="flex items-center gap-2">
-              <FontAwesomeIcon icon={faPlus} className="h-4 w-4" />
+              <FontAwesomeIcon icon={faPlus} size="lg" />
               <span>Add Ticket</span>
             </Button>
           </Link>

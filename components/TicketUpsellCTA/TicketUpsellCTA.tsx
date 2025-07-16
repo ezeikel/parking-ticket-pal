@@ -97,7 +97,7 @@ const TicketUpsellCTA = ({ ticket, successRate }: TicketUpsellCTAProps) => {
           {ticket.tier === TicketTier.PREMIUM && (
             <Button size="sm" onClick={handleScrollToChallenge}>
               Challenge Now
-              <FontAwesomeIcon icon={faArrowRight} className="ml-2 h-3 w-3" />
+              <FontAwesomeIcon icon={faArrowRight} size="lg" className="ml-2" />
             </Button>
           )}
         </div>

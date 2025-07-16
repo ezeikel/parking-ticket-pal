@@ -22,7 +22,7 @@ const EventIcon = ({ type }: { type: 'letter' | 'form' }) => {
   const icon = type === 'letter' ? faFileLines : faFilePdf;
   return (
     <div className="absolute -left-4 mt-1.5 flex h-8 w-8 items-center justify-center rounded-full bg-primary text-primary-foreground">
-      <FontAwesomeIcon icon={icon} className="h-4 w-4" />
+      <FontAwesomeIcon icon={icon} size="1x" />
     </div>
   );
 };
