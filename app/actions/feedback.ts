@@ -9,7 +9,7 @@ const feedbackSchema = z.object({
 });
 
 // eslint-disable-next-line import/prefer-default-export
-export const sendFeedback = async (prevState: any, formData: FormData) => {
+export const sendFeedback = async (_prevState: any, formData: FormData) => {
   const validatedFields = feedbackSchema.safeParse({
     category: formData.get('category'),
     text: formData.get('text'),
