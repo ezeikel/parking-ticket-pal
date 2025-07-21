@@ -1,7 +1,7 @@
 import ReactPDF from '@react-pdf/renderer';
 import ChallengeLetterDocument from '@/components/pdfs/ChallengeLetterDocument/ChallengeLetterDocument';
 
-const generatePDF = async (content: string) => {
+const generatePDF = async (content: any) => {
   const doc = <ChallengeLetterDocument content={content} />;
 
   try {

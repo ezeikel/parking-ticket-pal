@@ -1,4 +1,4 @@
-/* eslint-disable import/prefer-default-export */
+ 
 
 import { challengeTicket } from '@/app/actions/ticket';
 
@@ -6,9 +6,9 @@ import { challengeTicket } from '@/app/actions/ticket';
 export const maxDuration = 30;
 
 export const POST = async (req: Request) => {
-  const { pcnNumber } = await req.json();
+  const { pcnNumber, challengeReason, additionalDetails } = await req.json();
 
-  await challengeTicket(pcnNumber);
+  await challengeTicket(pcnNumber, challengeReason, additionalDetails);
 
   return Response.json(
     { success: true },

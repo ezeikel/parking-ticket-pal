@@ -8,12 +8,12 @@ import {
 import { Button } from '@/components/ui/button';
 import { formatCurrency } from '@/utils/getCurrentAmountDue';
 import ChallengeStats from '@/components/ChallengeStats/ChallengeStats';
-import { TicketWithPrediction } from '@/types';
+import { TicketWithRelations } from '@/types';
 import { TicketTier } from '@prisma/client';
 import { createTicketCheckoutSession } from '@/app/actions/stripe';
 
 type TicketUpsellCTAProps = {
-  ticket: TicketWithPrediction;
+  ticket: TicketWithRelations;
   successRate: number;
 };
 

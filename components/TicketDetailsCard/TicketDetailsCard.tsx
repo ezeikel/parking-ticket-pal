@@ -33,7 +33,7 @@ import { calculateAmountDue, formatDateWithDueStatus } from '@/utils/dates';
 import DueDate from '@/components/DueDate/DueDate';
 import AmountDue from '@/components/AmountDue/AmountDue';
 import { getContraventionDetails } from '@/constants';
-import { TicketWithPrediction, Address } from '@/types';
+import { TicketWithRelations, Address } from '@/types';
 
 type InfoItemProps = {
   icon: ReactNode;
@@ -58,7 +58,7 @@ const InfoItem = ({ icon, label, value, description }: InfoItemProps) => (
 );
 
 type TicketDetailsCardProps = {
-  ticket: TicketWithPrediction;
+  ticket: TicketWithRelations;
 };
 
 const TicketDetailsCard = ({ ticket }: TicketDetailsCardProps) => {

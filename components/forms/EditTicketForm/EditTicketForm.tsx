@@ -31,7 +31,7 @@ import {
 import cn from '@/utils/cn';
 import { format } from 'date-fns';
 import { CONTRAVENTION_CODES_OPTIONS } from '@/constants';
-import { Address, ticketFormSchema, TicketWithPrediction } from '@/types';
+import { Address, ticketFormSchema, TicketWithRelations } from '@/types';
 import {
   refreshTicket,
   refreshTickets,
@@ -43,7 +43,7 @@ import AddressInput from '@/components/forms/inputs/AddressInput/AddressInput';
 import { useRouter } from 'next/navigation';
 
 type EditTicketFormProps = {
-  ticket: TicketWithPrediction;
+  ticket: TicketWithRelations;
 };
 
 const EditTicketForm = ({ ticket }: EditTicketFormProps) => {

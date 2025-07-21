@@ -1,9 +1,13 @@
-import { Form, IssuerType, Letter, LetterType, Prisma } from '@prisma/client';
-import { z } from 'zod';
 import {
-  COUNCIL_CHALLENGE_REASONS,
-  PRIVATE_CHALLENGE_REASONS,
-} from './constants';
+  Challenge,
+  Form,
+  IssuerType,
+  Letter,
+  LetterType,
+  Prisma,
+  User,
+} from '@prisma/client';
+import { z } from 'zod';
 
 export type FileWithPreview = File & {
   preview: string;
@@ -47,10 +51,6 @@ export type Issuer = {
   automationSupported: boolean;
   url?: string;
 };
-
-export type ChallengeReasonId =
-  | keyof typeof COUNCIL_CHALLENGE_REASONS
-  | keyof typeof PRIVATE_CHALLENGE_REASONS;
 
 export type Address = {
   line1: string;
@@ -113,6 +113,30 @@ export const letterFormSchema = z.object({
   extractedText: z.string().optional(),
 });
 
+export const ChallengeLetterSchema = z.object({
+  senderName: z.string(),
+  senderAddress: z.string(),
+  senderCity: z.string(),
+  senderPostcode: z.string(),
+  senderEmail: z.string().nullable(),
+  senderPhone: z.string().nullable(),
+  date: z.string(),
+  recipientName: z.string(),
+  recipientAddress: z.string(),
+  recipientCity: z.string(),
+  recipientPostcode: z.string(),
+  subject: z.string(),
+  salutation: z.string().default('Dear Sir or Madam'),
+  body: z.string(),
+  closing: z.string().default('Yours faithfully'),
+  signatureName: z.string(),
+});
+
+export const ChallengeEmailSchema = z.object({
+  subject: z.string(),
+  htmlContent: z.string(),
+});
+
 export type PdfFormFields = {
   penaltyChargeNo: string;
   vehicleRegistrationNo: string;
@@ -134,7 +158,7 @@ export type PdfFormFields = {
 
 export type CreateLetterValues = z.infer<typeof letterFormSchema>;
 
-export type TicketWithPrediction = Prisma.TicketGetPayload<{
+export type TicketWithRelations = Prisma.TicketGetPayload<{
   select: {
     id: true;
     pcnNumber: true;
@@ -188,6 +212,16 @@ export type TicketWithPrediction = Prisma.TicketGetPayload<{
         formType: true;
       };
     };
+    challenges: {
+      select: {
+        id: true;
+        type: true;
+        reason: true;
+        status: true;
+        createdAt: true;
+        submittedAt: true;
+      };
+    };
     reminders: true;
   };
 }>;
@@ -202,4 +236,31 @@ export type HistoryEvent =
       type: 'form';
       date: Date;
       data: Pick<Form, 'id' | 'formType'>;
+    }
+  | {
+      type: 'challenge';
+      date: Date;
+      data: Pick<Challenge, 'id' | 'type' | 'reason' | 'status'>;
     };
+
+export type CurrentUser = Pick<
+  User,
+  'id' | 'name' | 'email' | 'address' | 'phoneNumber' | 'signatureUrl'
+>;
+
+export type TicketForChallengeLetter = {
+  pcnNumber: string;
+  vehicle?: {
+    registrationNumber: string;
+  };
+  issuer: string;
+  contraventionCode: string;
+  initialAmount: number;
+  location: Address;
+  contraventionAt: Date;
+  issuedAt: Date;
+};
+
+export type UserForChallengeLetter = CurrentUser & {
+  signatureUrl?: string | null;
+};

@@ -1,17 +1,118 @@
-import { ChallengeReasonId } from '@/types';
-import { getEvidenceImages } from '@/app/actions';
-import generateChallengeText from '@/utils/ai/generateChallengeText';
+import * as Sentry from '@sentry/nextjs';
+import generateChallengeContent from '@/utils/ai/generateChallengeContent';
+// import { getEvidenceImages } from '@/app/actions';
 import { CommonPcnArgs, takeScreenShot, uploadEvidence } from '../shared';
 
+// TODO: Lewisham have updated their website - have started to update challenge but verify needs to be updated
+// TODO: evidence images are in a div with the id "imageListViewGridMain" - need to get the src of each image and upload to blob storage
+// TODO: div with text "Outstanding Charge"
+// TODO: div with text "Payment Status"
+
 export const access = async ({ page, pcnNumber, ticket }: CommonPcnArgs) => {
-  await page.goto('https://pcnevidence.lewisham.gov.uk/pcnonline/index.php');
-  await page.fill('#pcn-ref', pcnNumber);
-  await page.fill(
-    '#vehicle-registration-mark',
-    ticket.vehicle.registrationNumber,
-  );
-  await page.click('#ticket-submit');
-  await page.waitForURL('**/step2.php');
+  const maxRetries = 3;
+
+  /* eslint-disable no-await-in-loop */
+  for (let attempt = 1; attempt <= maxRetries; attempt += 1) {
+    try {
+      await page.goto(
+        'https://pcnevidence.lewisham.gov.uk/pcnonline/index.php',
+      );
+      await page.fill('#txt_penalityChargeNotice', pcnNumber);
+      await page.fill(
+        '#txt_vehicleRegistrationNumber',
+        ticket.vehicle.registrationNumber,
+      );
+
+      // Check if the search button is disabled due to non-human activity detection
+      const searchButton = await page.$('#btn_Search');
+      const isDisabled = await searchButton?.getAttribute('disabled');
+
+      if (isDisabled) {
+        // Check for the captcha verification message
+        const captchaMessage = await page.$('.captchaVerificationStatus');
+        if (captchaMessage) {
+          const messageText = await captchaMessage.textContent();
+          if (messageText?.includes('Non-human activity has been detected')) {
+            console.info(
+              `Attempt ${attempt}: Non-human activity detected, refreshing page...`,
+            );
+
+            // Log warning to Sentry for retry attempts
+            Sentry.captureMessage(
+              `Lewisham non-human activity detected on attempt ${attempt}/${maxRetries}`,
+              'warning',
+            );
+
+            // Wait a bit before refreshing to avoid being too aggressive
+            await page.waitForTimeout(2000);
+
+            if (attempt < maxRetries) {
+              // eslint-disable-next-line no-continue
+              continue; // Try again
+            } else {
+              // Log error to Sentry when max retries exceeded
+              Sentry.captureException(
+                new Error(
+                  `Max retries (${maxRetries}) exceeded due to non-human activity detection on Lewisham website`,
+                ),
+                {
+                  tags: {
+                    issuer: 'lewisham',
+                    action: 'access',
+                    pcnNumber,
+                    vehicleRegistration: ticket.vehicle.registrationNumber,
+                  },
+                  extra: {
+                    maxRetries,
+                    finalAttempt: attempt,
+                  },
+                },
+              );
+
+              throw new Error(
+                'Max retries reached due to non-human activity detection',
+              );
+            }
+          }
+        }
+      }
+
+      await page.click('#btn_Search');
+      await page.waitForURL('**/ticketdetails');
+
+      // If we get here, the access was successful
+      return;
+    } catch (error) {
+      if (attempt === maxRetries) {
+        // Log error to Sentry when max retries exceeded for general errors
+        Sentry.captureException(error, {
+          tags: {
+            issuer: 'lewisham',
+            action: 'access',
+            pcnNumber,
+            vehicleRegistration: ticket.vehicle.registrationNumber,
+          },
+          extra: {
+            maxRetries,
+            finalAttempt: attempt,
+            errorType:
+              error instanceof Error ? error.constructor.name : 'Unknown',
+          },
+        });
+        throw error;
+      }
+
+      // Log warning to Sentry for general retry attempts
+      Sentry.captureMessage(
+        `Lewisham access attempt ${attempt}/${maxRetries} failed, retrying...`,
+        'warning',
+      );
+
+      console.log(`Attempt ${attempt} failed, retrying...`);
+      await page.waitForTimeout(3000); // Wait before retry
+    }
+  }
+  /* eslint-enable no-await-in-loop */
 };
 
 export const verify = async (args: CommonPcnArgs) => {
@@ -67,162 +168,85 @@ export const verify = async (args: CommonPcnArgs) => {
   return true;
 };
 
-// TODO: fill out the detailed reasons
-export const LEWISHAM_CHALLENGE_REASONS = {
-  CONTRAVENTION_DID_NOT_OCCUR: {
-    description: 'The contravention did not occur',
-    detailedReasons: [
-      'At the time I am supposed to have been in contravention, I was loading and unloading',
-      'The restriction that I am supposed to have ignored was not signed',
-      'At the time I am supposed to have been in contravention, the restriction did not apply',
-      'At the time I am supposed to have been in contravention, I was elsewhere',
-      'I was instructed by a police officer to do this',
-    ],
-  },
-  NOT_VEHICLE_OWNER: {
-    description:
-      'I was not the owner of the vehicle at the time the contravention occurred',
-    detailedReasons: [],
-  },
-  VEHICLE_STOLEN: {
-    description:
-      'The vehicle had been taken without the keepers consent (i.e. it was stolen)',
-    detailedReasons: [],
-  },
-  HIRE_FIRM: {
-    description: 'We are a hire firm and will provide details of the hirer',
-    detailedReasons: [],
-  },
-  EXCEEDED_AMOUNT: {
-    description: 'The PCN exceeded the amount applicable',
-    detailedReasons: [],
-  },
-  ALREADY_PAID: {
-    description: 'The PCN has been paid',
-    detailedReasons: [],
-  },
-  INVALID_TMO: {
-    description: 'The Traffic Management Order is invalid',
-    detailedReasons: [],
-  },
-  CEO_SERVICE: {
-    description: 'The CEO was not prevented from serving the PCN',
-    detailedReasons: [],
-  },
-  PROCEDURAL_IMPROPRIETY: {
-    description:
-      'There has been a procedural impropriety on the part of the enforcement authority',
-    detailedReasons: [],
-  },
-  OTHER: {
-    description: 'I wish to challenge this PCN for other reasons',
-    detailedReasons: [],
-  },
-} as const;
+// Lewisham has simplified their challenge process - no need for specific reason mapping
 
-export const challenge = async (
-  args: CommonPcnArgs & { reason: ChallengeReasonId },
-) => {
+export const challenge = async (args: CommonPcnArgs) => {
   await access(args);
 
-  const { page, reason } = args;
+  const { page, challengeReason, additionalDetails } = args;
 
-  // click role of button with text "Challenge"
-  await page.click('a[role="button"]:has-text("Challenge")');
+  await page.click('#btn_Challenge');
 
-  // wait for challenge.php
-  await page.waitForURL('**/challenge.php');
+  // wait for contact page
+  await page.waitForURL('**/contact');
 
-  // Get the reason text
-  const reasonObj =
-    LEWISHAM_CHALLENGE_REASONS[
-      reason as keyof typeof LEWISHAM_CHALLENGE_REASONS
-    ];
+  // fill out the contact form with ticket information
+  const { user } = args.ticket.vehicle;
 
-  if (!reasonObj) {
-    throw new Error(`Invalid challenge reason: ${reason}`);
-  }
+  // fill title (assuming Mr/Mrs/Ms based on name or defaulting to Mr)
+  await page.click('#Title');
+  await page.click('li:has-text("Mr")'); // Default to Mr, could be made dynamic
 
-  // Click the list item containing the exact reason text
-  await page.click(`li:has-text("${reasonObj.description}")`);
+  // fill first name
+  await page.fill('#txt_First_Name', user.name.split(' ')[0] || '');
 
-  // Click the Next button
-  await page.click('#submit-btn');
-
-  if (reason === 'CONTRAVENTION_DID_NOT_OCCUR') {
-    // wait for did_not_occur.php
-    await page.waitForURL('**/did_not_occur.php');
-
-    // click on first detailed reason
-    // TODO: get from user input
-    await page.click(`li:has-text("${reasonObj.detailedReasons[0]}")`);
-  }
-
-  // get placeholder text for notesdetails textarea
-  const notesDetailsPlaceholder = await page.$eval(
-    '#notesdetails',
-    (el) => (el as HTMLTextAreaElement).placeholder,
+  // fill surname
+  await page.fill(
+    '#txt_Surname',
+    user.name.split(' ').slice(1).join(' ') || '',
   );
 
-  // get any evidence images
-  const evidenceImagesUrls = await getEvidenceImages({
-    pcnNumber: args.pcnNumber,
-  });
+  // fill email address
+  await page.fill('#txt_Email_Address', user.email);
 
-  // get ai generated challenge text
-  const challengeText = await generateChallengeText({
+  // fill confirm email address
+  await page.fill('#txt_ConfirmEmail', user.email);
+
+  // fill address line 1
+  await page.fill('#txt_Line_1', user.address.line1);
+
+  // fill address line 2 if available
+  if (user.address.line2) {
+    await page.fill('#txt_Line_2', user.address.line2);
+  }
+
+  // fill town
+  await page.fill('#txt_Town', user.address.city || '');
+
+  // fill postcode
+  await page.fill('#txt_Post_Code', user.address.postcode);
+
+  // util function to generate challenge text
+  const challengeText = await generateChallengeContent({
     pcnNumber: args.pcnNumber,
-    formFieldPlaceholderText: notesDetailsPlaceholder,
-    // reason and detailed reason as string
-    reason: `${reasonObj.description} - ${reasonObj.detailedReasons[0]}`,
-    issuerEvidenceImageUrls: evidenceImagesUrls ?? [],
+    challengeReason,
+    additionalDetails,
+    contentType: 'form-field',
+    formFieldPlaceholderText: '',
+    // TODO: add user evidence image urls
     userEvidenceImageUrls: [],
   });
 
   // fill out textarea with challenge text
-  await page.fill('#notesdetails', challengeText ?? '');
+  await page.fill('#mtxt_Notes', challengeText ?? '');
 
-  // click the Next button to submit the challenge
-  await page.click('#submit-btn:has-text("Next")');
+  await takeScreenShot({
+    page: args.page,
+    userId: args.ticket.vehicle.user.id,
+    ticketId: args.ticket.id,
+    name: 'challenge-pre-submit',
+    fullPage: true,
+  });
 
-  // wait for /challenge_final.php
-  await page.waitForURL('**/challenge_final.php');
+  // DEBUG: for debugging just log text, pause for 1 minute and return
+  // pause for 3 minutes
+  await new Promise((resolve) => {
+    setTimeout(resolve, 3 * 60 * 1000);
+  });
+  return { success: true, challengeText };
 
-  // fill in name
-  await page.fill('input[name="appelantname"]', args.ticket.vehicle.user.name);
-
-  await page.fill('#email-input', args.ticket.vehicle.user.email);
-
-  const { postcode } = args.ticket.vehicle.user.address;
-
-  await page.fill('#offender-postcode', postcode);
-
-  // click postcode lookup button postcodelookup
-  await page.click('#postcodelookup');
-
-  // wait for address modal to appear
-  await page.waitForSelector('#addressModal[style="display: block;"]');
-
-  const addressItems = await page.$$('#addressselection .list-group-item');
-
-  const matchingAddress = await Promise.all(
-    addressItems.map(async (item) => {
-      const text = (await item.textContent()) || '';
-      return {
-        item,
-        matches: text.includes(args.ticket.vehicle.user.address.line1),
-      };
-    }),
-  );
-
-  // click first matching address or fall back to first address in list
-  const addressToClick =
-    matchingAddress.find((a) => a.matches)?.item || addressItems[0];
-  await addressToClick.click();
-
-  await page.click('#addselected');
-
-  await page.check('#checkinput');
+  // click the Submit button to submit the challenge
+  await page.click('#Submit');
 
   await takeScreenShot({
     page: args.page,
@@ -236,5 +260,5 @@ export const challenge = async (
     setTimeout(resolve, 3 * 60 * 1000);
   });
 
-  return true;
+  return { success: true, challengeText };
 };

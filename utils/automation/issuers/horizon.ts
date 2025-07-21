@@ -1,4 +1,4 @@
-import { ChallengeReasonId } from '@/types';
+import generateChallengeContent from '@/utils/ai/generateChallengeContent';
 import { CommonPcnArgs, takeScreenShot } from '../shared';
 
 export const access = async ({ page, pcnNumber, ticket }: CommonPcnArgs) => {
@@ -27,16 +27,33 @@ export const verify = async (args: CommonPcnArgs) => {
   return true;
 };
 
-export const challenge = async (
-  args: CommonPcnArgs & { reason: ChallengeReasonId },
-) => {
+export const challenge = async (args: CommonPcnArgs) => {
   await access(args);
+
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const { page, challengeReason, additionalDetails } = args;
+
   // TODO: Add challenge-specific steps
+
+  // util function to generate challenge text
+  const challengeText = await generateChallengeContent({
+    pcnNumber: args.pcnNumber,
+    challengeReason,
+    additionalDetails,
+    contentType: 'form-field',
+    formFieldPlaceholderText: '',
+    // TODO: add user evidence image urls
+    userEvidenceImageUrls: [],
+  });
+
   await takeScreenShot({
     page: args.page,
     userId: args.ticket.vehicle.user.id,
     ticketId: args.ticket.id,
     name: 'challenge-submitted',
   });
-  return true;
+  return {
+    success: true,
+    challengeText,
+  };
 };

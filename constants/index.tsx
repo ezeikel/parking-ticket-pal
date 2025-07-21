@@ -1123,6 +1123,10 @@ export const STORAGE_PATHS = {
   // Letter files (stored under the associated ticket)
   LETTER_IMAGE: 'users/%s/tickets/%s/letters/%s/images/letter-front.%s',
 
+  // Challenge letter PDFs (stored under the associated ticket)
+  CHALLENGE_LETTER_PDF:
+    'users/%s/tickets/%s/challenges/%s/challenge-letter.pdf',
+
   // Automation files (stored under the associated ticket)
   AUTOMATION_SCREENSHOT: 'users/%s/tickets/%s/automation/screenshots/%s-%s.png',
   AUTOMATION_EVIDENCE:

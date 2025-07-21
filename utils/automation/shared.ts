@@ -22,6 +22,8 @@ export type CommonPcnArgs = {
       };
     };
   };
+  challengeReason: string;
+  additionalDetails?: string;
 };
 
 export const setupBrowser = async () => {
@@ -29,6 +31,10 @@ export const setupBrowser = async () => {
     headless: false,
   });
   const page = await browser.newPage();
+
+  // large viewport to simulate fullscreen
+  await page.setViewportSize({ width: 1920, height: 1080 });
+
   return { browser, page };
 };
 
@@ -37,6 +43,7 @@ type TakeScreenShotArgs = {
   userId: string;
   ticketId: string;
   name?: string;
+  fullPage?: boolean;
 };
 
 export const takeScreenShot = async ({
@@ -44,8 +51,9 @@ export const takeScreenShot = async ({
   userId,
   ticketId,
   name,
+  fullPage = true,
 }: TakeScreenShotArgs) => {
-  const buffer = await page.screenshot();
+  const buffer = await page.screenshot({ fullPage });
   const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
   const screenshotName = name || `${timestamp}-screenshot`;
 

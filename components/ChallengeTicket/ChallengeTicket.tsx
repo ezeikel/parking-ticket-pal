@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { IssuerType, TicketTier } from '@prisma/client';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
@@ -40,12 +40,12 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { getChallengeReasons } from '@/constants';
 import { generateChallengeLetter } from '@/app/actions/letter';
-import { challengeTicket } from '@/app/actions/ticket';
+import { challengeTicket, getTicketChallenges } from '@/app/actions/ticket';
 import { toast } from 'sonner';
-import { TicketWithPrediction } from '@/types';
+import { TicketWithRelations } from '@/types';
 
 type ChallengeTicketProps = {
-  ticket: TicketWithPrediction;
+  ticket: TicketWithRelations;
   issuerType: IssuerType;
 };
 
@@ -55,6 +55,10 @@ type ChallengeHistoryItem = {
   timestamp: Date;
   status: 'success' | 'error' | 'pending';
   message?: string;
+  challengeReason: string;
+  additionalDetails?: string;
+  letterId?: string;
+  challengeId?: string;
 };
 
 const ChallengeHistoryListItem = ({
@@ -127,19 +131,60 @@ const ChallengeTicket = ({ ticket, issuerType }: ChallengeTicketProps) => {
   const [challengeHistory, setChallengeHistory] = useState<
     ChallengeHistoryItem[]
   >([]);
+  const [isLoadingHistory, setIsLoadingHistory] = useState(true);
+
+  // Load challenge history from database
+  useEffect(() => {
+    const loadChallengeHistory = async () => {
+      try {
+        // Load challenges from database using server action
+        const challenges = await getTicketChallenges(ticket.id);
+        if (challenges) {
+          const historyItems: ChallengeHistoryItem[] = challenges.map(
+            (challenge) => ({
+              id: challenge.id,
+              type: challenge.type === 'LETTER' ? 'letter' : 'auto-challenge',
+              timestamp: new Date(challenge.createdAt),
+              status: (() => {
+                switch (challenge.status) {
+                  case 'SUCCESS':
+                    return 'success';
+                  case 'ERROR':
+                    return 'error';
+                  default:
+                    return 'pending';
+                }
+              })(),
+              message: undefined, // Will be populated once Prisma client is regenerated
+              challengeReason: challenge.reason,
+              additionalDetails: challenge.customReason || undefined,
+              challengeId: challenge.id,
+              letterId: undefined, // Will be populated once Prisma client is regenerated
+            }),
+          );
+          setChallengeHistory(historyItems);
+        }
+      } catch (error) {
+        console.error('Failed to load challenge history:', error);
+      } finally {
+        setIsLoadingHistory(false);
+      }
+    };
+
+    loadChallengeHistory();
+  }, [ticket.id]);
 
   const challengeReasons = getChallengeReasons(issuerType);
-  const hasChallengeReason = selectedReason || customReason;
+  const hasChallengeReason = selectedReason;
   const isProTier = ticket.tier === TicketTier.PREMIUM;
 
   const handleAction = async (
     action: 'letter' | 'auto-challenge',
     apiCall: () => Promise<any>,
-
     setLoading: (loading: boolean) => void,
   ) => {
     if (!hasChallengeReason) {
-      toast.error('Please select or enter a challenge reason first.');
+      toast.error('Please select a challenge reason first.');
       return;
     }
     setLoading(true);
@@ -148,26 +193,35 @@ const ChallengeTicket = ({ ticket, issuerType }: ChallengeTicketProps) => {
       type: action,
       timestamp: new Date(),
       status: 'pending',
+      challengeReason: selectedReason!,
+      additionalDetails: customReason || undefined,
     };
     setChallengeHistory((prev) => [pendingItem, ...prev]);
 
     try {
       const result = await apiCall();
-      if (result) {
+      if (result && result.success) {
         setChallengeHistory((prev) =>
           prev.map((item) =>
             item.id === pendingItem.id
               ? {
                   ...item,
                   status: 'success',
-                  message: `Challenge ${action} succeeded.`,
+                  message:
+                    result.message ||
+                    `Challenge ${action === 'letter' ? 'letter generated' : 'auto-submitted'} successfully.`,
+                  letterId: result.letterId,
+                  challengeId: result.challengeId,
                 }
               : item,
           ),
         );
-        toast.success(`Challenge ${action} submitted successfully.`);
+        toast.success(
+          result.message ||
+            `Challenge ${action === 'letter' ? 'letter generated' : 'auto-submitted'} successfully.`,
+        );
       } else {
-        throw new Error('API call failed');
+        throw new Error(result?.message || 'API call failed');
       }
     } catch (error) {
       const message =
@@ -179,26 +233,91 @@ const ChallengeTicket = ({ ticket, issuerType }: ChallengeTicketProps) => {
             : item,
         ),
       );
-      toast.error(`Failed to submit challenge ${action}.`);
+      toast.error(
+        `Failed to ${action === 'letter' ? 'generate challenge letter' : 'auto-submit challenge'}.`,
+      );
     } finally {
       setLoading(false);
     }
   };
 
-  const handleGenerateLetter = () =>
+  const handleGenerateLetter = () => {
+    // ensure we get the label, not the key
+    const challengeReasonEntry =
+      challengeReasons[selectedReason as keyof typeof challengeReasons];
+
+    if (!challengeReasonEntry) {
+      console.error(
+        'Selected reason not found in challenge reasons:',
+        selectedReason,
+      );
+      toast.error('Invalid challenge reason selected.');
+      return;
+    }
+
+    const challengeReasonLabel = challengeReasonEntry.label;
+
     handleAction(
       'letter',
-      () => generateChallengeLetter(ticket.id),
+      () =>
+        generateChallengeLetter(
+          ticket.id,
+          challengeReasonLabel,
+          customReason || undefined,
+        ),
       setIsGeneratingLetter,
     );
-  const handleAutoChallenge = () =>
+  };
+
+  const handleAutoChallenge = () => {
+    // ensure we get the label, not the key
+    const challengeReasonEntry =
+      challengeReasons[selectedReason as keyof typeof challengeReasons];
+
+    if (!challengeReasonEntry) {
+      console.error(
+        'Selected reason not found in challenge reasons:',
+        selectedReason,
+      );
+      toast.error('Invalid challenge reason selected.');
+      return;
+    }
+
+    const challengeReasonLabel = challengeReasonEntry.label;
+
     handleAction(
       'auto-challenge',
-      () => challengeTicket(ticket.pcnNumber),
+      () =>
+        challengeTicket(ticket.pcnNumber, challengeReasonLabel, customReason),
       setIsAutoChallenging,
     );
-  const handleRetry = (item: ChallengeHistoryItem) =>
-    item.type === 'letter' ? handleGenerateLetter() : handleAutoChallenge();
+  };
+
+  const handleRetry = (item: ChallengeHistoryItem) => {
+    if (item.type === 'letter') {
+      return handleAction(
+        'letter',
+        () =>
+          generateChallengeLetter(
+            ticket.id,
+            item.challengeReason,
+            item.additionalDetails,
+          ),
+        setIsGeneratingLetter,
+      );
+    }
+    return handleAction(
+      'auto-challenge',
+      () =>
+        challengeTicket(
+          ticket.pcnNumber,
+          item.challengeReason,
+          item.additionalDetails,
+        ),
+      setIsAutoChallenging,
+    );
+  };
+
   const handleClearForm = () => {
     setSelectedReason('');
     setCustomReason('');
@@ -266,20 +385,43 @@ const ChallengeTicket = ({ ticket, issuerType }: ChallengeTicketProps) => {
           </div>
         </div>
 
-        {challengeHistory.length > 0 && (
-          <div className="space-y-4 border-t pt-6">
-            <h3 className="text-lg font-semibold">Challenge History</h3>
-            <ul className="space-y-3">
-              {challengeHistory.map((item) => (
-                <ChallengeHistoryListItem
-                  key={item.id}
-                  item={item}
-                  onRetry={handleRetry}
-                />
-              ))}
-            </ul>
-          </div>
-        )}
+        {(() => {
+          if (isLoadingHistory) {
+            return (
+              <div className="space-y-4 border-t pt-6">
+                <h3 className="text-lg font-semibold">Challenge History</h3>
+                <div className="flex items-center justify-center py-8">
+                  <FontAwesomeIcon
+                    icon={faSpinnerThird}
+                    className="animate-spin text-muted-foreground"
+                  />
+                  <span className="ml-2 text-muted-foreground">
+                    Loading challenge history...
+                  </span>
+                </div>
+              </div>
+            );
+          }
+
+          if (challengeHistory.length > 0) {
+            return (
+              <div className="space-y-4 border-t pt-6">
+                <h3 className="text-lg font-semibold">Challenge History</h3>
+                <ul className="space-y-3">
+                  {challengeHistory.map((item) => (
+                    <ChallengeHistoryListItem
+                      key={item.id}
+                      item={item}
+                      onRetry={handleRetry}
+                    />
+                  ))}
+                </ul>
+              </div>
+            );
+          }
+
+          return null;
+        })()}
       </CardContent>
       <CardFooter className="flex items-center justify-between border-t bg-muted/50 px-6 py-4">
         {isProTier ? (

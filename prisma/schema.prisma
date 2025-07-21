@@ -10,11 +10,25 @@ datasource db {
 }
 
 model User {
-  id               String        @id @default(cuid())
-  name             String
-  email            String        @unique
-  phoneNumber      String?
-  address          Json?
+  id          String     @id @default(cuid())
+  title       UserTitle?
+  name        String
+  email       String     @unique
+  phoneNumber String?
+  address     Json?
+  // example address:
+  //  const address = {
+  //  line1: "123 Main St",
+  //  line2: "Apt 4B",
+  //  city: "London",
+  //  county: "Greater London",
+  //  postcode: "SW1A 1AA",
+  //  country: "United Kingdom",
+  //  coordinates: {
+  //  latitude: 51.5074,
+  //  longitude: -0.1278
+  //  }
+
   role             UserRole      @default(USER)
   stripeCustomerId String? // set after Stripe customer creation
   createdAt        DateTime      @default(now())
@@ -52,8 +66,6 @@ model Ticket {
   pcnNumber         String @unique
   contraventionCode String
   location          Json
-  extractedText     String
-
   // example address:
   //  const address = {
   //  line1: "123 Main St",
@@ -67,6 +79,7 @@ model Ticket {
   //  longitude: -0.1278
   //  }
 
+  extractedText   String
   issuedAt        DateTime
   contraventionAt DateTime
   observedAt      DateTime?
@@ -239,7 +252,7 @@ model Challenge {
   reason       String
   customReason String?
   status       ChallengeStatus @default(PENDING)
-  metadata     Json? // Store additional data like download URLs, error messages, etc.
+  metadata     Json? // store additional data like download URLs, error messages, etc.
 
   // enhanced fields for better tracking
   submittedAt        DateTime? // when the challenge was actually submitted (for auto-challenges)
@@ -271,6 +284,7 @@ enum LetterType {
   BAILIFF_NOTICE
   APPEAL_RESPONSE
   GENERIC
+  CHALLENGE_LETTER
 }
 
 enum MediaType {
@@ -421,4 +435,14 @@ enum EvidenceType {
 enum UserRole {
   USER
   ADMIN
+}
+
+enum UserTitle {
+  MR
+  MRS
+  MS
+  DR
+  PROF
+  SIR
+  LADY
 }

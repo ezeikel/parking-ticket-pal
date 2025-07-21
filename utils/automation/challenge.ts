@@ -1,6 +1,5 @@
 import { findIssuer, isAutomationSupported } from '@/constants/index';
 import { db } from '@/lib/prisma';
-import { ChallengeReasonId } from '@/types';
 import { lewisham, horizon } from './issuers';
 import { CommonPcnArgs, setupBrowser } from './shared';
 
@@ -11,10 +10,20 @@ const CHALLENGE_FUNCTIONS = {
 
 type IssuerId = keyof typeof CHALLENGE_FUNCTIONS;
 
-export default async (pcnNumber: string, reason: ChallengeReasonId) => {
+type ChallengeResult = {
+  success: boolean;
+  challengeText?: string;
+};
+
+const challenge = async (
+  pcnNumber: string,
+  challengeReason: string,
+  additionalDetails?: string,
+): Promise<ChallengeResult> => {
   const ticket = await db.ticket.findFirst({
     where: { pcnNumber },
     select: {
+      id: true,
       pcnNumber: true,
       issuer: true,
       contraventionCode: true,
@@ -40,36 +49,42 @@ export default async (pcnNumber: string, reason: ChallengeReasonId) => {
 
   if (!ticket) {
     console.error('Ticket not found.');
-    return false;
+    return { success: false };
   }
 
   const issuer = findIssuer(ticket.issuer);
 
   if (!issuer || !isAutomationSupported(issuer.id)) {
     console.error('Automation not supported for this issuer.');
-    return false;
+    return { success: false };
   }
 
   const challengeFunction = CHALLENGE_FUNCTIONS[issuer.id as IssuerId];
 
   if (!challengeFunction) {
     console.error('Challenge function not implemented for this issuer.');
-    return false;
+    return { success: false };
   }
 
   const { browser, page } = await setupBrowser();
 
   try {
-    return await challengeFunction({
+    const result = await challengeFunction({
       page,
       pcnNumber,
+      // TODO: fix this type cast
       ticket: ticket as unknown as CommonPcnArgs['ticket'],
-      reason,
+      challengeReason,
+      additionalDetails,
     });
+
+    return result;
   } catch (error) {
     console.error('Error challenging ticket:', error);
-    return false;
+    return { success: false };
   } finally {
     await browser.close();
   }
 };
+
+export default challenge;

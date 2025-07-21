@@ -14,23 +14,34 @@ import {
   TicketType,
   IssuerType,
   Letter,
+  ChallengeType,
+  ChallengeStatus,
 } from '@prisma/client';
 import { Readable } from 'stream';
 import { db } from '@/lib/prisma';
 import getVehicleInfo from '@/utils/getVehicleInfo';
-import { letterFormSchema } from '@/types';
+import {
+  letterFormSchema,
+  ChallengeEmailSchema,
+  TicketForChallengeLetter,
+  UserForChallengeLetter,
+  Address,
+} from '@/types';
 import { getUserId } from '@/app/actions/user';
 import openai from '@/lib/openai';
+import { zodResponseFormat } from 'openai/helpers/zod';
 import {
-  BACKGROUND_INFORMATION_PROMPT,
   CHATGPT_MODEL,
   CONTRAVENTION_CODES,
   STORAGE_PATHS,
+  CHALLENGE_LETTER_PROMPT,
+  CHALLENGE_EMAIL_PROMPT,
 } from '@/constants';
+import { generateChallengeEmailPrompt } from '@/utils/prompt-generators';
 import resend from '@/lib/resend';
 import generatePDF from '@/utils/generatePDF';
 import streamToBuffer from '@/utils/streamToBuffer';
-import formatPenniesToPounds from '@/utils/formatPenniesToPounds';
+import generateChallengeContent from '@/utils/ai/generateChallengeContent';
 
 export const createLetter = async (
   values: z.infer<typeof letterFormSchema> & {
@@ -120,7 +131,7 @@ export const createLetter = async (
     update: {},
   });
 
-  let letter: any;
+  let letter: Letter;
 
   // Schedule file move and media record creation after response
   after(async () => {
@@ -343,7 +354,11 @@ export const deleteLetter = async (letterId: string) => {
   }
 };
 
-export const generateChallengeLetter = async (ticketId: string) => {
+export const generateChallengeLetter = async (
+  ticketId: string,
+  challengeReason: string,
+  additionalDetails?: string,
+) => {
   const userId = await getUserId('generate a challenge letter');
 
   if (!userId) {
@@ -356,9 +371,12 @@ export const generateChallengeLetter = async (ticketId: string) => {
       id: userId,
     },
     select: {
+      id: true,
       name: true,
       address: true,
       email: true,
+      phoneNumber: true,
+      signatureUrl: true,
     },
   });
 
@@ -372,6 +390,7 @@ export const generateChallengeLetter = async (ticketId: string) => {
       id: ticketId,
     },
     select: {
+      id: true,
       pcnNumber: true,
       type: true,
       initialAmount: true,
@@ -381,6 +400,7 @@ export const generateChallengeLetter = async (ticketId: string) => {
       contraventionAt: true,
       issuedAt: true,
       status: true,
+      location: true,
       vehicle: {
         select: {
           registrationNumber: true,
@@ -400,69 +420,165 @@ export const generateChallengeLetter = async (ticketId: string) => {
     return null;
   }
 
-  // use OpenAI to generate a challenge letter and email based on the detailed ticket information
-  const [createLetterResponse, createEmailResponse] = await Promise.all([
-    openai.chat.completions.create({
-      model: CHATGPT_MODEL,
-      messages: [
-        {
-          role: 'user',
-          content: `${BACKGROUND_INFORMATION_PROMPT} Please generate a professional letter on behalf of ${user.name} living at address ${user.address} for the ticket ${ticket.pcnNumber} issued by ${ticket.issuer} for the contravention ${ticket.contraventionCode} ${
-            CONTRAVENTION_CODES[
-              ticket.contraventionCode as keyof typeof CONTRAVENTION_CODES
-            ]?.description
-              ? `(${CONTRAVENTION_CODES[ticket.contraventionCode as keyof typeof CONTRAVENTION_CODES].description})`
-              : ''
-          } for vehicle ${ticket.vehicle?.registrationNumber}. The outstanding amount due is £${formatPenniesToPounds(ticket.initialAmount)}. Think of a legal basis based on the contravention code that could work as a challenge and use this information to generate a challenge letter. Please note that the letter should be written in a professional manner and should be addressed to the issuer of the ticket. The letter should be written in a way that it can be sent as is - no placeholders or brackets should be included in the response, use the actual values of the name of the person you are writing the letter for and the ticket details`,
-        },
-      ],
-    }),
-    openai.chat.completions.create({
-      model: CHATGPT_MODEL,
-      messages: [
-        {
-          role: 'user',
-          content: `${BACKGROUND_INFORMATION_PROMPT} Please generate a professional email addressed to ${user.name} in reference to a letter that was generated to challenge ticket number ${ticket.pcnNumber} on their behalf which has been attached to this email as .pdf file. Explain to user to forward the letter on to the ${ticket.issuer} and that they can also edit the .pdf file if they wish to change or add any additional information. Sign off the email with "Kind regards, Parking Ticket Pal Support Team". Please give me the your response as the email content only in html format so that I can send it to the user.`,
-        },
-      ],
-    }),
-  ]);
-
-  const generatedLetterFromOpenAI = createLetterResponse.choices[0].message
-    .content as string;
-
-  const generatedEmailFromOpenAI = createEmailResponse.choices[0].message
-    .content as string;
-
-  // DEBUG:
-  // eslint-disable-next-line no-console
-  console.log('generateChallengeLetter response:', generatedLetterFromOpenAI);
-
-  // DEBUG:
-  // eslint-disable-next-line no-console
-  console.log('generateEmail response:', generatedEmailFromOpenAI);
-
-  // take the response and generate a PDF letter
-  const pdfStream = await generatePDF(generatedLetterFromOpenAI);
-
-  // convert PDF stream to buffer
-  const pdfBuffer = await streamToBuffer(pdfStream as Readable);
-
-  // take the pdf and email it to the user
-  await resend.emails.send({
-    from: 'Parking Ticket Pal <letters@parkingticketpal.com>',
-    to: user.email,
-    subject: `Re: Ticket Challenge Letter for Your Reference - Ticket No:${ticket.pcnNumber}`,
-    html: generatedEmailFromOpenAI,
-    attachments: [
-      {
-        filename: `challenge-letter-${ticket.pcnNumber}.pdf`,
-        content: pdfBuffer,
-      },
-    ],
+  // create challenge record
+  const challenge = await db.challenge.create({
+    data: {
+      ticketId,
+      type: ChallengeType.LETTER,
+      reason: challengeReason,
+      customReason: additionalDetails,
+      status: 'SUCCESS',
+      submittedAt: new Date(),
+    },
   });
 
-  return {
-    message: 'Challenge letter generated and sent to users email.',
-  };
+  try {
+    // transform ticket data to match TicketForChallengeLetter type
+    const ticketForChallenge: TicketForChallengeLetter = {
+      ...ticket,
+      location: ticket.location as Address,
+    };
+
+    // transform user data to match UserForChallengeLetter type
+    const userForChallenge: UserForChallengeLetter = {
+      ...user,
+      address: user.address as Address,
+    };
+
+    // generate challenge letter using shared utility
+    const letterData = await generateChallengeContent({
+      pcnNumber: ticket.pcnNumber,
+      challengeReason,
+      additionalDetails,
+      contentType: 'letter',
+      ticket: ticketForChallenge,
+      user: userForChallenge,
+      contraventionCodes: CONTRAVENTION_CODES,
+    });
+
+    if (!letterData) {
+      throw new Error('Failed to generate challenge letter content.');
+    }
+
+    // generate email using structured output
+    const emailResponse = await openai.chat.completions.create({
+      model: CHATGPT_MODEL,
+      messages: [
+        {
+          role: 'system',
+          content: CHALLENGE_EMAIL_PROMPT,
+        },
+        {
+          role: 'user',
+          content: generateChallengeEmailPrompt(
+            user.name,
+            ticket.pcnNumber,
+            ticket.issuer,
+          ),
+        },
+      ],
+      response_format: zodResponseFormat(ChallengeEmailSchema, 'email'),
+    });
+
+    // parse the email response
+    const emailData = ChallengeEmailSchema.parse(
+      JSON.parse(emailResponse.choices[0].message.content as string),
+    );
+
+    // process signature data if available
+    let signaturePaths: string[] = [];
+    let signatureViewBox = { x: 0, y: 0, width: 300, height: 150 };
+
+    if (user.signatureUrl) {
+      try {
+        const { downloadSvgFile, extractSvgPathsAndViewBox } = await import(
+          '@/utils/extractSignaturePaths'
+        );
+        const svgContent = await downloadSvgFile(user.signatureUrl);
+
+        if (svgContent) {
+          const extracted = extractSvgPathsAndViewBox(svgContent);
+          signaturePaths = extracted.paths;
+          signatureViewBox = extracted.viewBox;
+        }
+      } catch (error) {
+        console.error('Error processing signature:', error);
+      }
+    }
+
+    // add signature data to letter data if available
+    const letterDataWithSignature = {
+      ...letterData,
+      signatureUrl: user.signatureUrl,
+      signaturePaths,
+      signatureViewBox,
+    };
+
+    // generate PDF from the structured letter data
+    const pdfStream = await generatePDF(letterDataWithSignature);
+
+    // convert PDF stream to buffer
+    const pdfBuffer = await streamToBuffer(pdfStream as Readable);
+
+    // save PDF to blob storage
+    const pdfPath = STORAGE_PATHS.CHALLENGE_LETTER_PDF.replace('%s', userId)
+      .replace('%s', ticket.id)
+      .replace('%s', challenge.id);
+
+    const pdfBlob = await put(pdfPath, pdfBuffer, {
+      access: 'public',
+      contentType: 'application/pdf',
+    });
+
+    // TODO: make this step optional in UI
+    // send email with challenge letter as a PDF attachment
+    await resend.emails.send({
+      from: 'Parking Ticket Pal <letters@parkingticketpal.com>',
+      to: user.email,
+      subject: emailData.subject,
+      html: emailData.htmlContent,
+      attachments: [
+        {
+          filename: `challenge-letter-${ticket.pcnNumber}.pdf`,
+          content: pdfBuffer,
+        },
+      ],
+    });
+
+    // update challenge record with success
+    await db.challenge.update({
+      where: { id: challenge.id },
+      data: {
+        status: ChallengeStatus.SUCCESS,
+        metadata: {
+          emailSent: true,
+          pdfGenerated: true,
+          pdfUrl: pdfBlob.url,
+        },
+      },
+    });
+
+    return {
+      success: true,
+      message: 'Challenge letter generated and sent to users email.',
+      challengeId: challenge.id,
+    };
+  } catch (error) {
+    // update challenge record with error
+    await db.challenge.update({
+      where: { id: challenge.id },
+      data: {
+        status: 'ERROR',
+        metadata: {
+          error: error instanceof Error ? error.message : 'Unknown error',
+        },
+      },
+    });
+
+    console.error('Error generating challenge letter:', error);
+    return {
+      success: false,
+      message: 'Failed to generate challenge letter.',
+    };
+  }
 };

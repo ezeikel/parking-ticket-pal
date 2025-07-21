@@ -10,6 +10,7 @@ import {
   IMAGE_ANALYSIS_PROMPT,
   STORAGE_PATHS,
 } from '@/constants';
+import { generateOcrAnalysisPrompt } from '@/utils/prompt-generators';
 import { DocumentSchema, Address } from '@/types';
 
 const serviceAccountJson = JSON.parse(
@@ -398,7 +399,7 @@ export const extractOCRTextWithVision = async (
       },
       {
         role: 'user',
-        content: `Please extract the required details from the following OCR text extracted from a parking ticket image:\n\n${googleOcrText}`,
+        content: generateOcrAnalysisPrompt(googleOcrText),
       },
     ],
     response_format: zodResponseFormat(DocumentSchema, 'document'),

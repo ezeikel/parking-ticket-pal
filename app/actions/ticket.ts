@@ -14,12 +14,13 @@ import {
   VerificationStatus,
   Prisma,
   Ticket,
+  ChallengeStatus,
 } from '@prisma/client';
 import getVehicleInfo from '@/utils/getVehicleInfo';
 import { ticketFormSchema } from '@/types';
 import { db } from '@/lib/prisma';
 import { verify, challenge } from '@/utils/automation';
-import { COUNCIL_CHALLENGE_REASONS, STORAGE_PATHS } from '@/constants';
+import { STORAGE_PATHS } from '@/constants';
 import { getUserId } from './user';
 import { refresh } from '../actions';
 
@@ -401,6 +402,16 @@ export const getTicket = async (id: string) => {
           formType: true,
         },
       },
+      challenges: {
+        select: {
+          id: true,
+          type: true,
+          reason: true,
+          status: true,
+          createdAt: true,
+          submittedAt: true,
+        },
+      },
       reminders: true,
     },
   });
@@ -420,18 +431,142 @@ export const verifyTicket = async (pcnNumber: string) => {
   }
 };
 
-export const challengeTicket = async (pcnNumber: string) => {
+export const challengeTicket = async (
+  pcnNumber: string,
+  challengeReason: string,
+  additionalDetails?: string,
+) => {
   try {
-    const result = await challenge(
-      pcnNumber,
-      COUNCIL_CHALLENGE_REASONS.CONTRAVENTION_DID_NOT_OCCUR.id,
-    );
+    // Get the ticket first
+    const ticket = await db.ticket.findUnique({
+      where: { pcnNumber },
+    });
 
-    return result;
+    if (!ticket) {
+      throw new Error('Ticket not found');
+    }
+
+    // Create challenge record first
+    const challengeRecord = await db.challenge.create({
+      data: {
+        ticketId: ticket.id,
+        type: 'AUTO_CHALLENGE',
+        reason: challengeReason,
+        customReason: additionalDetails || null,
+        status: 'PENDING',
+        submittedAt: new Date(),
+      },
+    });
+
+    try {
+      // Attempt the actual challenge
+      const result = await challenge(
+        pcnNumber,
+        challengeReason,
+        additionalDetails,
+      );
+
+      if (result && typeof result === 'object' && result.success) {
+        // update challenge record with success and store the generated text
+        const metadata: any = {
+          challengeSubmitted: true,
+          submittedAt: new Date().toISOString(),
+        };
+
+        if (result.challengeText) {
+          metadata.challengeText = result.challengeText;
+        }
+
+        await db.challenge.update({
+          where: { id: challengeRecord.id },
+          data: {
+            status: ChallengeStatus.SUCCESS,
+            metadata,
+          },
+        });
+
+        return {
+          success: true,
+          message: 'Challenge submitted successfully.',
+          challengeId: challengeRecord.id,
+        };
+      }
+
+      throw new Error('Challenge submission failed');
+    } catch (error) {
+      // Update challenge record with error
+      await db.challenge.update({
+        where: { id: challengeRecord.id },
+        data: {
+          status: 'ERROR',
+          metadata: {
+            error: error instanceof Error ? error.message : 'Unknown error',
+          },
+        },
+      });
+
+      throw error;
+    }
   } catch (error) {
     console.error('Error challenging ticket:', error);
-    return false;
+    return {
+      success: false,
+      message:
+        error instanceof Error ? error.message : 'Failed to submit challenge',
+    };
   }
+};
+
+export const getTicketChallenges = async (ticketId: string) => {
+  const userId = await getUserId('get ticket challenges');
+
+  if (!userId) {
+    return null;
+  }
+
+  // Verify the ticket belongs to the user
+  const ticket = await db.ticket.findUnique({
+    where: { id: ticketId },
+    select: {
+      id: true,
+      vehicle: {
+        select: {
+          userId: true,
+        },
+      },
+    },
+  });
+
+  if (!ticket || ticket.vehicle.userId !== userId) {
+    return null;
+  }
+
+  // Get challenges for the ticket
+  const challenges = await db.challenge.findMany({
+    where: { ticketId },
+    orderBy: { createdAt: 'desc' },
+    select: {
+      id: true,
+      type: true,
+      reason: true,
+      customReason: true,
+      status: true,
+      metadata: true,
+      submittedAt: true,
+      createdAt: true,
+      updatedAt: true,
+      // letter: {
+      //   select: {
+      //     id: true,
+      //     type: true,
+      //     summary: true,
+      //     sentAt: true,
+      //   },
+      // },
+    },
+  });
+
+  return challenges;
 };
 
 export const refreshTicket = async (id: string) => refresh(`/tickets/${id}`);

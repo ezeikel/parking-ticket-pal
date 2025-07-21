@@ -1,11 +1,11 @@
 'use server';
 
 import { headers } from 'next/headers';
-import { User } from '@prisma/client';
 import { auth, signOut } from '@/auth';
 import { db } from '@/lib/prisma';
 import { del, put, list } from '@vercel/blob';
 import { STORAGE_PATHS } from '@/constants';
+import { CurrentUser } from '@/types';
 
 type Point = {
   x: number;
@@ -96,7 +96,7 @@ export const getUserId = async (action?: string) => {
   return userId;
 };
 
-export const getCurrentUser = async (): Promise<Partial<User> | null> => {
+export const getCurrentUser = async (): Promise<CurrentUser | null> => {
   const userId = await getUserId('get the current user');
 
   if (!userId) {

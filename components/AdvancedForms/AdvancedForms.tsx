@@ -37,10 +37,10 @@ import {
   generateTE9Form,
   getFormFillDataFromTicket,
 } from '@/app/actions/form';
-import { TicketWithPrediction } from '@/types';
+import { TicketWithRelations } from '@/types';
 
 type AdvancedFormsProps = {
-  ticket: TicketWithPrediction;
+  ticket: TicketWithRelations;
   hasSignature: boolean;
 };
 

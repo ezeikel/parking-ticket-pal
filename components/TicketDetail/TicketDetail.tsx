@@ -8,10 +8,10 @@ import AdvancedForms from '@/components/AdvancedForms/AdvancedForms';
 import RemindersCard from '@/components/RemindersCard/RemindersCard';
 import ProFeatureLock from '@/components/ProFeatureLock/ProFeatureLock';
 import EvidenceUploader from '@/components/EvidenceUploader/EvidenceUploader';
-import { TicketWithPrediction } from '@/types';
+import { TicketWithRelations } from '@/types';
 
 type TicketDetailProps = {
-  ticket: TicketWithPrediction;
+  ticket: TicketWithRelations;
 };
 
 const TicketDetail = ({ ticket }: TicketDetailProps) => {
@@ -25,9 +25,16 @@ const TicketDetail = ({ ticket }: TicketDetailProps) => {
     date: f.createdAt,
     data: f,
   }));
-  const historyEvents = [...letterEvents, ...formEvents].sort(
-    (a, b) => b.date.getTime() - a.date.getTime(),
-  );
+  const challengeEvents = ticket.challenges.map((c) => ({
+    type: 'challenge' as const,
+    date: c.submittedAt || c.createdAt,
+    data: c,
+  }));
+  const historyEvents = [
+    ...letterEvents,
+    ...formEvents,
+    ...challengeEvents,
+  ].sort((a, b) => b.date.getTime() - a.date.getTime());
   const ticketImages = ticket.media.filter(
     (m) => m.source === MediaSource.TICKET,
   );

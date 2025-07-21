@@ -18,8 +18,16 @@ type TicketHistoryProps = {
   events: HistoryEvent[];
 };
 
-const EventIcon = ({ type }: { type: 'letter' | 'form' }) => {
-  const icon = type === 'letter' ? faFileLines : faFilePdf;
+const EventIcon = ({ type }: { type: 'letter' | 'form' | 'challenge' }) => {
+  let icon = faFileLines; // default
+
+  if (type === 'letter') {
+    icon = faFileLines;
+  } else if (type === 'form') {
+    icon = faFilePdf;
+  } else if (type === 'challenge') {
+    icon = faFileLines;
+  }
   return (
     <div className="absolute -left-4 mt-1.5 flex h-8 w-8 items-center justify-center rounded-full bg-primary text-primary-foreground">
       <FontAwesomeIcon icon={icon} size="1x" />
@@ -59,41 +67,79 @@ const TicketHistory = ({ events }: TicketHistoryProps) => {
               <EventIcon type={event.type} />
               <div className="flex items-center justify-between">
                 <h3 className="text-lg font-semibold">
-                  {event.type === 'letter'
-                    ? event.data.type.replace(/_/g, ' ')
-                    : `${event.data.formType} Form Generated`}
+                  {(() => {
+                    if (event.type === 'letter') {
+                      return event.data.type.replace(/_/g, ' ');
+                    }
+                    if (event.type === 'form') {
+                      return `${event.data.formType} Form Generated`;
+                    }
+                    return `${event.data.type} Challenge Submitted`;
+                  })()}
                 </h3>
                 <time className="text-sm font-normal leading-none text-muted-foreground">
-                  {event.date.toLocaleDateString()}
+                  {event.date.toLocaleDateString()} at{' '}
+                  {event.date.toLocaleTimeString([], {
+                    hour: '2-digit',
+                    minute: '2-digit',
+                  })}
                 </time>
               </div>
               <div className="mt-2 rounded-lg border bg-background p-4">
-                {event.type === 'letter' ? (
-                  <>
-                    <p className="text-sm text-muted-foreground">
-                      {event.data.summary}
-                    </p>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="mt-3 bg-transparent"
-                    >
-                      View Letter Image
-                    </Button>
-                  </>
-                ) : (
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-2">
-                      <Checkbox id={`emailed-${event.data.id}`} />
-                      <Label htmlFor={`emailed-${event.data.id}`}>
-                        Mark as Emailed to TEC
-                      </Label>
+                {(() => {
+                  if (event.type === 'letter') {
+                    return (
+                      <div className="flex items-center justify-between">
+                        <p className="text-sm text-muted-foreground">
+                          {event.data.summary}
+                        </p>
+                        <Button variant="outline" size="sm">
+                          {event.data.type === 'CHALLENGE_LETTER'
+                            ? 'Download Letter'
+                            : 'View Letter Image'}
+                        </Button>
+                      </div>
+                    );
+                  }
+                  if (event.type === 'form') {
+                    return (
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center space-x-2">
+                          <Checkbox id={`emailed-${event.data.id}`} />
+                          <Label htmlFor={`emailed-${event.data.id}`}>
+                            Mark as Emailed to TEC
+                          </Label>
+                        </div>
+                        <Button variant="secondary" size="sm">
+                          Download Form
+                        </Button>
+                      </div>
+                    );
+                  }
+                  return (
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm text-muted-foreground">
+                          Reason: {event.data.reason}
+                        </p>
+                        <p className="text-sm text-muted-foreground mt-1">
+                          Status:{' '}
+                          {event.data.status.replace(/_/g, ' ').toLowerCase()}
+                        </p>
+                      </div>
+                      {event.data.type === 'AUTO_CHALLENGE' && (
+                        <Button variant="outline" size="sm">
+                          View Screenshot
+                        </Button>
+                      )}
+                      {event.data.type === 'LETTER' && (
+                        <Button variant="outline" size="sm">
+                          Download Letter
+                        </Button>
+                      )}
                     </div>
-                    <Button variant="secondary" size="sm">
-                      Download Form
-                    </Button>
-                  </div>
-                )}
+                  );
+                })()}
               </div>
             </li>
           ))}
