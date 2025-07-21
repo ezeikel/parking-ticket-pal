@@ -12,6 +12,7 @@ import {
   faUser,
   faSignOut,
   faTag,
+  faCommentDots,
 } from '@fortawesome/pro-regular-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import type { IconDefinition } from '@fortawesome/fontawesome-svg-core';
@@ -41,6 +42,8 @@ export type MobileNavItem = {
   href?: string;
   liClass?: string;
   action?: 'signout';
+  component?: React.ReactNode;
+  isFeedback?: boolean;
 };
 
 const ITEMS: NavItem[] = [
@@ -98,6 +101,7 @@ const getMobileNav = (user: Partial<User> | null): MobileNavItem[] => {
         iconName: faHeadset,
         href: 'mailto:support@parkticketpal.com',
       },
+      { label: 'Give Feedback', iconName: faCommentDots, isFeedback: true },
       { label: 'Sign in', iconName: faRightToBracket, href: '/signin' },
     ];
   }
@@ -114,6 +118,7 @@ const getMobileNav = (user: Partial<User> | null): MobileNavItem[] => {
       iconName: faHeadset,
       href: 'mailto:support@parkticketpal.com',
     },
+    { label: 'Give Feedback', iconName: faCommentDots, isFeedback: true },
     { label: 'Sign out', iconName: faSignOut, action: 'signout' },
   ];
 };

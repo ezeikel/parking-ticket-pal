@@ -5,24 +5,58 @@ import Link from 'next/link';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faBars, faXmark } from '@fortawesome/pro-regular-svg-icons';
 import { signOut } from 'next-auth/react';
+import { User } from '@prisma/client';
+import type { IconDefinition } from '@fortawesome/fontawesome-svg-core';
 import cn from '@/utils/cn';
+import FeedbackDialog from '@/components/FeedbackDialog/FeedbackDialog';
 
 type MobileNavItem = {
   label: string;
-  iconName?: any;
+  iconName?: IconDefinition;
   href?: string;
   liClass?: string;
   action?: 'signout';
+  component?: React.ReactNode;
+  isFeedback?: boolean;
 };
 
 type MobileMenuProps = {
   items: MobileNavItem[];
+  user?: Partial<User>;
 };
 
-const MobileMenu = ({ items }: MobileMenuProps) => {
+const MobileMenu = ({ items, user }: MobileMenuProps) => {
   const [isOpen, setIsOpen] = useState(false);
 
   const renderMenuItem = (item: MobileNavItem) => {
+    if (item.isFeedback) {
+      return (
+        <FeedbackDialog
+          userEmail={user?.email ?? undefined}
+          trigger={
+            <button
+              className="flex items-center gap-2 p-2 w-full text-left hover:bg-muted/50 rounded-lg transition-colors"
+              type="button"
+            >
+              {item.iconName && (
+                <FontAwesomeIcon icon={item.iconName} size="lg" />
+              )}
+              {item.label}
+            </button>
+          }
+        />
+      );
+    }
+
+    if (item.component) {
+      return (
+        <div className="flex items-center gap-2 p-2">
+          {item.iconName && <FontAwesomeIcon icon={item.iconName} size="lg" />}
+          {item.component}
+        </div>
+      );
+    }
+
     if (item.action === 'signout') {
       return (
         <button

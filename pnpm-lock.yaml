@@ -14,6 +14,9 @@ importers:
       '@aws-sdk/client-s3':
         specifier: ^3.832.0
         version: 3.844.0
+      '@feedback-fish/react':
+        specifier: ^1.2.2
+        version: 1.2.2(react@19.1.0)
       '@fortawesome/fontawesome-svg-core':
         specifier: ^6.5.2
         version: 6.7.2
@@ -963,6 +966,12 @@ packages:
   '@fastify/busboy@2.1.1':
     resolution: {integrity: sha512-vBZP4NlzfOlerQTnba4aqZoMhE/a9HY7HRqoOPaETQcSQuWEIyZMHGfVu6w9wGtGK5fED5qRs2DteVCjOH60sA==}
     engines: {node: '>=14'}
+
+  '@feedback-fish/react@1.2.2':
+    resolution: {integrity: sha512-T6VxMM8nNsD3b5ulVsrcvcrNDAc4d73RLYK8Iw+6PFPIdMU2I/mOiuAHvfGauBVIWYHflja4VOdjm3z4CtlvYQ==}
+    engines: {node: '>=10.16.0'}
+    peerDependencies:
+      react: ^16.8.0 || ^17.0.0 || ^18.0.0
 
   '@floating-ui/core@1.7.2':
     resolution: {integrity: sha512-wNB5ooIKHQc+Kui96jE/n69rHFWAVoxn5CAzL1Xdd8FG03cgY3MLO+GF9U3W737fYDSgPWA6MReKhBQBop6Pcw==}
@@ -8201,6 +8210,10 @@ snapshots:
       levn: 0.4.1
 
   '@fastify/busboy@2.1.1': {}
+
+  '@feedback-fish/react@1.2.2(react@19.1.0)':
+    dependencies:
+      react: 19.1.0
 
   '@floating-ui/core@1.7.2':
     dependencies:
