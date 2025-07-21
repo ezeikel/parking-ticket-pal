@@ -1,7 +1,12 @@
 import * as Sentry from '@sentry/nextjs';
 import generateChallengeContent from '@/utils/ai/generateChallengeContent';
 // import { getEvidenceImages } from '@/app/actions';
-import { CommonPcnArgs, takeScreenShot, uploadEvidence } from '../shared';
+import {
+  ChallengeArgs,
+  CommonPcnArgs,
+  takeScreenShot,
+  uploadEvidence,
+} from '../shared';
 
 // TODO: Lewisham have updated their website - have started to update challenge but verify needs to be updated
 // TODO: evidence images are in a div with the id "imageListViewGridMain" - need to get the src of each image and upload to blob storage
@@ -170,7 +175,7 @@ export const verify = async (args: CommonPcnArgs) => {
 
 // Lewisham has simplified their challenge process - no need for specific reason mapping
 
-export const challenge = async (args: CommonPcnArgs) => {
+export const challenge = async (args: ChallengeArgs) => {
   await access(args);
 
   const { page, challengeReason, additionalDetails } = args;
@@ -238,13 +243,6 @@ export const challenge = async (args: CommonPcnArgs) => {
     fullPage: true,
   });
 
-  // DEBUG: for debugging just log text, pause for 1 minute and return
-  // pause for 3 minutes
-  await new Promise((resolve) => {
-    setTimeout(resolve, 3 * 60 * 1000);
-  });
-  return { success: true, challengeText };
-
   // click the Submit button to submit the challenge
   await page.click('#Submit');
 
@@ -253,11 +251,6 @@ export const challenge = async (args: CommonPcnArgs) => {
     userId: args.ticket.vehicle.user.id,
     ticketId: args.ticket.id,
     name: 'challenge-submitted',
-  });
-
-  // pause for 3 minutes
-  await new Promise((resolve) => {
-    setTimeout(resolve, 3 * 60 * 1000);
   });
 
   return { success: true, challengeText };

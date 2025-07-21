@@ -10,7 +10,7 @@ const VERIFY_FUNCTIONS = {
 
 type IssuerId = keyof typeof VERIFY_FUNCTIONS;
 
-export default async (pcnNumber: string) => {
+const verify = async (pcnNumber: string) => {
   const ticket = await db.ticket.findFirst({
     where: { pcnNumber },
     include: {
@@ -67,3 +67,5 @@ export default async (pcnNumber: string) => {
     await browser.close();
   }
 };
+
+export default verify;

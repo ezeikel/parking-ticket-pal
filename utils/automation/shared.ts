@@ -22,6 +22,9 @@ export type CommonPcnArgs = {
       };
     };
   };
+};
+
+export type ChallengeArgs = CommonPcnArgs & {
   challengeReason: string;
   additionalDetails?: string;
 };

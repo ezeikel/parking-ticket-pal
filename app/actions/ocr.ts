@@ -10,7 +10,7 @@ import {
   IMAGE_ANALYSIS_PROMPT,
   STORAGE_PATHS,
 } from '@/constants';
-import { generateOcrAnalysisPrompt } from '@/utils/prompt-generators';
+import { generateOcrAnalysisPrompt } from '@/utils/promptGenerators';
 import { DocumentSchema, Address } from '@/types';
 
 const serviceAccountJson = JSON.parse(

@@ -14,17 +14,17 @@ type GenerateChallengeContentParams = {
   challengeReason: string;
   additionalDetails?: string;
   contentType: ChallengeContentType;
-  // For form field generation
+  // for form field generation
   formFieldPlaceholderText?: string;
   userEvidenceImageUrls?: string[];
   issuerEvidenceImageUrls?: string[];
-  // For letter generation
+  // for letter generation
   ticket?: any;
   user?: any;
   contraventionCodes?: Record<string, { description: string }>;
 };
 
-// Helper function to generate challenge letter prompt (moved from prompt-generators.ts)
+// helper function to generate challenge letter prompt (moved from promptGenerators.ts)
 const generateChallengeLetterPrompt = (
   ticket: any,
   user: any,

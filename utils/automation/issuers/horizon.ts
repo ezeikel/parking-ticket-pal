@@ -1,5 +1,5 @@
 import generateChallengeContent from '@/utils/ai/generateChallengeContent';
-import { CommonPcnArgs, takeScreenShot } from '../shared';
+import { ChallengeArgs, CommonPcnArgs, takeScreenShot } from '../shared';
 
 export const access = async ({ page, pcnNumber, ticket }: CommonPcnArgs) => {
   await page.goto('https://horizonparkingportal.co.uk/#manage');
@@ -27,11 +27,10 @@ export const verify = async (args: CommonPcnArgs) => {
   return true;
 };
 
-export const challenge = async (args: CommonPcnArgs) => {
+export const challenge = async (args: ChallengeArgs) => {
   await access(args);
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const { page, challengeReason, additionalDetails } = args;
+  const { challengeReason, additionalDetails } = args;
 
   // TODO: Add challenge-specific steps
 

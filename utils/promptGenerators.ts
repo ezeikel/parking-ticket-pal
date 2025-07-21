@@ -1,9 +1,3 @@
-import {
-  Address,
-  TicketForChallengeLetter,
-  UserForChallengeLetter,
-} from '@/types';
-
 export const generateChallengeEmailPrompt = (
   userName: string,
   pcnNumber: string,

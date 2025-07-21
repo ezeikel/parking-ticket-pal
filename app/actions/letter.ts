@@ -34,10 +34,9 @@ import {
   CHATGPT_MODEL,
   CONTRAVENTION_CODES,
   STORAGE_PATHS,
-  CHALLENGE_LETTER_PROMPT,
   CHALLENGE_EMAIL_PROMPT,
 } from '@/constants';
-import { generateChallengeEmailPrompt } from '@/utils/prompt-generators';
+import { generateChallengeEmailPrompt } from '@/utils/promptGenerators';
 import resend from '@/lib/resend';
 import generatePDF from '@/utils/generatePDF';
 import streamToBuffer from '@/utils/streamToBuffer';
