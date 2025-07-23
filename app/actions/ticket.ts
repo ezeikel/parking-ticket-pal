@@ -21,8 +21,10 @@ import { ticketFormSchema } from '@/types';
 import { db } from '@/lib/prisma';
 import { verify, challenge } from '@/utils/automation';
 import { STORAGE_PATHS } from '@/constants';
-import { getUserId } from './user';
-import { refresh } from '../actions';
+import { track } from '@/utils/analytics-server';
+import { TRACKING_EVENTS } from '@/constants/events';
+import { getUserId } from '@/utils/user';
+import { refresh } from '@/app/actions';
 
 export const createTicket = async (
   values: z.infer<typeof ticketFormSchema> & {
@@ -140,6 +142,14 @@ export const createTicket = async (
           },
         },
       },
+    });
+
+    await track(TRACKING_EVENTS.TICKET_CREATED, {
+      ticketId: ticket.id,
+      pcnNumber: ticket.pcnNumber,
+      issuer: ticket.issuer,
+      issuerType: ticket.issuerType,
+      prefilled: !!ticket.extractedText,
     });
 
     return ticket;

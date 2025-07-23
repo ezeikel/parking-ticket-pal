@@ -13,8 +13,8 @@ import path from 'path';
 import https from 'https';
 import http from 'http';
 
-// Define the user data interface
-interface TE9FormData {
+// Define the user data type
+type TE9FormData = {
   penaltyChargeNo: string;
   vehicleRegistrationNo: string;
   applicant: string;
@@ -57,7 +57,7 @@ interface TE9FormData {
 
   // Signature URL
   signatureUrl: string | null;
-}
+};
 
 // Helper function to get precise field rectangle coordinates
 const getExactFieldRectangle = async (

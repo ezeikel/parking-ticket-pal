@@ -1,13 +1,20 @@
 import {
   Challenge,
+  ChallengeType,
+  EvidenceType,
   Form,
+  FormType,
   IssuerType,
   Letter,
   LetterType,
   Prisma,
+  ProductType,
+  TicketStatus,
+  TicketTier,
   User,
 } from '@prisma/client';
 import { z } from 'zod';
+import { TRACKING_EVENTS } from './constants/events';
 
 export type FileWithPreview = File & {
   preview: string;
@@ -263,4 +270,181 @@ export type TicketForChallengeLetter = {
 
 export type UserForChallengeLetter = CurrentUser & {
   signatureUrl?: string | null;
+};
+
+export type TrackingEvent =
+  (typeof TRACKING_EVENTS)[keyof typeof TRACKING_EVENTS];
+
+// Event property types for type safety
+export type BaseEventProperties = {
+  userId?: string;
+  sessionId?: string;
+  timestamp?: number;
+  url?: string;
+  userAgent?: string;
+};
+
+export enum SignInMethod {
+  GOOGLE = 'google',
+}
+
+// For strongly-typed analytics events
+export type EventProperties = {
+  // Authentication & User Management
+  [TRACKING_EVENTS.USER_SIGNED_UP]: { method: SignInMethod };
+  [TRACKING_EVENTS.USER_SIGNED_IN]: { method: SignInMethod };
+  [TRACKING_EVENTS.USER_SIGNED_OUT]: Record<string, never>;
+  [TRACKING_EVENTS.USER_PROFILE_UPDATED]: {
+    name: boolean;
+    phoneNumber: boolean;
+    address: boolean;
+    signature: boolean;
+  };
+  [TRACKING_EVENTS.USER_SIGNATURE_ADDED]: Record<string, never>;
+
+  // Ticket Management
+  [TRACKING_EVENTS.TICKET_CREATED]: {
+    ticketId: string;
+    pcnNumber: string;
+    issuer: string;
+    issuerType: IssuerType;
+    prefilled: boolean;
+  };
+  [TRACKING_EVENTS.TICKET_UPDATED]: { ticketId: string; fields: string[] };
+  [TRACKING_EVENTS.TICKET_DELETED]: { ticketId: string };
+  [TRACKING_EVENTS.TICKET_STATUS_CHANGED]: {
+    ticketId: string;
+    fromStatus: TicketStatus;
+    toStatus: TicketStatus;
+  };
+  [TRACKING_EVENTS.TICKET_IMAGE_UPLOADED]: {
+    ticketId: string;
+    imageCount: number;
+  };
+  [TRACKING_EVENTS.TICKET_OCR_PROCESSED]: {
+    ticketId: string;
+    success: boolean;
+    durationMs: number;
+  };
+
+  // Challenge & Appeal Process
+  [TRACKING_EVENTS.CHALLENGE_CREATED]: {
+    ticketId: string;
+    challengeType: ChallengeType;
+    reason: string;
+  };
+  [TRACKING_EVENTS.CHALLENGE_SUBMITTED]: {
+    ticketId: string;
+    challengeId: string;
+  };
+  [TRACKING_EVENTS.CHALLENGE_LETTER_GENERATED]: {
+    ticketId: string;
+    challengeType: 'LETTER' | 'AUTO_CHALLENGE';
+  };
+  [TRACKING_EVENTS.CHALLENGE_STATUS_UPDATED]: {
+    ticketId: string;
+    challengeId: string;
+    status: string;
+  };
+  [TRACKING_EVENTS.AUTO_CHALLENGE_STARTED]: { ticketId: string };
+  [TRACKING_EVENTS.AUTO_CHALLENGE_COMPLETED]: {
+    ticketId: string;
+    success: boolean;
+  };
+
+  // Vehicle Management
+  [TRACKING_EVENTS.VEHICLE_ADDED]: {
+    vehicleId: string;
+    registrationNumber: string;
+    make: string;
+    model: string;
+    year: number;
+    verified: boolean;
+  };
+  [TRACKING_EVENTS.VEHICLE_UPDATED]: {
+    vehicleId: string;
+    registrationNumber: string;
+    make: string;
+    model: string;
+    year: number;
+    hasNotes: boolean;
+  };
+  [TRACKING_EVENTS.VEHICLE_DELETED]: {
+    vehicleId: string;
+    registrationNumber: string;
+    make: string;
+    model: string;
+    ticketCount: number;
+  };
+  [TRACKING_EVENTS.VEHICLE_VERIFIED]: {
+    vehicleId?: string;
+    registrationNumber: string;
+    automated: boolean;
+    lookupSuccess: boolean;
+  };
+
+  // Forms & Documents
+  [TRACKING_EVENTS.FORM_GENERATED]: { ticketId: string; formType: FormType };
+  [TRACKING_EVENTS.FORM_DOWNLOADED]: {
+    ticketId: string;
+    formId: string;
+    formType: FormType;
+  };
+  [TRACKING_EVENTS.LETTER_CREATED]: {
+    ticketId: string;
+    letterType: LetterType;
+  };
+  [TRACKING_EVENTS.LETTER_UPLOADED]: {
+    ticketId: string;
+    letterType: LetterType;
+  };
+  [TRACKING_EVENTS.EVIDENCE_UPLOADED]: {
+    ticketId: string;
+    evidenceType: EvidenceType;
+    count: number;
+  };
+
+  // Payment & Subscription
+  [TRACKING_EVENTS.CHECKOUT_SESSION_CREATED]: {
+    productType: ProductType;
+    ticketId?: string;
+    tier?: TicketTier;
+  };
+  [TRACKING_EVENTS.CUSTOMER_PORTAL_CREATED]: {
+    userId: string;
+    stripeCustomerId: string;
+  };
+  [TRACKING_EVENTS.PAYMENT_COMPLETED]: {
+    tier: 'BASIC' | 'PRO';
+    amount: number;
+  };
+  [TRACKING_EVENTS.SUBSCRIPTION_STARTED]: { planId: string };
+  [TRACKING_EVENTS.SUBSCRIPTION_CANCELLED]: { planId: string };
+  [TRACKING_EVENTS.TICKET_TIER_UPGRADED]: {
+    ticketId: string;
+    fromTier: 'FREE';
+    toTier: 'BASIC' | 'PRO';
+  };
+  [TRACKING_EVENTS.BILLING_PAGE_VISITED]: Record<string, never>;
+
+  // Navigation & Engagement
+  [TRACKING_EVENTS.CTA_CLICKED]: { ctaName: string; location: string };
+  [TRACKING_EVENTS.QUICK_ACTION_CLICKED]: {
+    action: string;
+    destination: string;
+  };
+  [TRACKING_EVENTS.FEATURE_LOCKED_VIEWED]: { featureName: string };
+
+  // Reminders & Notifications
+  [TRACKING_EVENTS.REMINDER_SENT]: { ticketId: string; reminderType: string };
+  [TRACKING_EVENTS.REMINDER_CLICKED]: { ticketId: string; reminderId: string };
+  [TRACKING_EVENTS.NOTIFICATION_SENT]: { notificationType: string };
+
+  // Support & Feedback
+  [TRACKING_EVENTS.FEEDBACK_SUBMITTED]: {
+    category: 'issue' | 'idea' | 'other';
+    hasImage: boolean;
+  };
+  [TRACKING_EVENTS.SUPPORT_CONTACTED]: { method: 'email' | 'form' };
+  [TRACKING_EVENTS.HELP_ARTICLE_VIEWED]: { articleId: string };
 };

@@ -3,8 +3,10 @@
 import { revalidatePath } from 'next/cache';
 import { Prisma, VerificationStatus, VerificationType } from '@prisma/client';
 import getVehicleInfo from '@/utils/getVehicleInfo';
+import { track } from '@/utils/analytics-server';
 import { db } from '@/lib/prisma';
-import { getUserId } from '@/app/actions/user';
+import { TRACKING_EVENTS } from '@/constants/events';
+import { getUserId } from '@/utils/user';
 import type { VehicleInfo } from '@/utils/getVehicleInfo';
 
 export const createVehicle = async (
@@ -84,6 +86,24 @@ export const createVehicle = async (
       });
     }
 
+    await track(TRACKING_EVENTS.VEHICLE_ADDED, {
+      vehicleId: vehicle.id,
+      registrationNumber: vehicle.registrationNumber,
+      make: vehicle.make,
+      model: vehicle.model,
+      year: vehicle.year,
+      verified: vehicleVerified,
+    });
+
+    if (vehicleVerified) {
+      await track(TRACKING_EVENTS.VEHICLE_VERIFIED, {
+        vehicleId: vehicle.id,
+        registrationNumber: vehicle.registrationNumber,
+        automated: true,
+        lookupSuccess: true,
+      });
+    }
+
     revalidatePath('/vehicles');
     return { success: true, data: vehicle };
   } catch (error) {
@@ -132,6 +152,15 @@ export const updateVehicle = async (
       },
     });
 
+    await track(TRACKING_EVENTS.VEHICLE_UPDATED, {
+      vehicleId: vehicle.id,
+      registrationNumber: vehicle.registrationNumber,
+      make: vehicle.make,
+      model: vehicle.model,
+      year: vehicle.year,
+      hasNotes: !!vehicle.notes,
+    });
+
     revalidatePath('/vehicles');
     return { success: true, data: vehicle };
   } catch (error) {
@@ -157,11 +186,30 @@ export const deleteVehicle = async (
   }
 
   try {
+    const vehicleToDelete = await db.vehicle.findUnique({
+      where: { id, userId },
+      include: {
+        tickets: { select: { id: true } },
+      },
+    });
+
+    if (!vehicleToDelete) {
+      return { success: false, error: 'Vehicle not found' };
+    }
+
     const vehicle = await db.vehicle.delete({
       where: {
         id,
         userId,
       },
+    });
+
+    await track(TRACKING_EVENTS.VEHICLE_DELETED, {
+      vehicleId: vehicle.id,
+      registrationNumber: vehicle.registrationNumber,
+      make: vehicle.make,
+      model: vehicle.model,
+      ticketCount: vehicleToDelete.tickets.length,
     });
 
     revalidatePath('/vehicles');
@@ -257,6 +305,13 @@ export const getVehicleDetails = async (
   }
 
   const vehicleInfo = await getVehicleInfo(registrationNumber);
+
+  await track(TRACKING_EVENTS.VEHICLE_VERIFIED, {
+    registrationNumber: registrationNumber.toUpperCase(),
+    automated: false,
+    lookupSuccess:
+      vehicleInfo.verification.status === VerificationStatus.VERIFIED,
+  });
 
   if (vehicleInfo.verification.status === 'FAILED') {
     return {

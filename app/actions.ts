@@ -6,7 +6,7 @@ import { chromium } from 'playwright-extra';
 import stealth from 'puppeteer-extra-plugin-stealth';
 import RecaptchaPlugin from 'puppeteer-extra-plugin-recaptcha';
 import { db } from '@/lib/prisma';
-import { getUserId } from './actions/user';
+import { getUserId } from '@/utils/user';
 
 chromium.use(
   RecaptchaPlugin({

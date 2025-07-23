@@ -38,6 +38,8 @@ import {
   getFormFillDataFromTicket,
 } from '@/app/actions/form';
 import { TicketWithRelations } from '@/types';
+import { useAnalytics } from '@/utils/analytics-client';
+import { TRACKING_EVENTS } from '@/constants/events';
 
 type AdvancedFormsProps = {
   ticket: TicketWithRelations;
@@ -293,6 +295,7 @@ const AdvancedForms = ({ ticket, hasSignature }: AdvancedFormsProps) => {
   const [selectedForm, setSelectedForm] = useState<FormType | ''>('');
   const [isGenerating, setIsGenerating] = useState(false);
   const [formData, setFormData] = useState({});
+  const { track } = useAnalytics();
 
   const isPremiumTier = ticket.tier === TicketTier.PREMIUM;
   const currentFormInfo = formOptions.find((f) => f.value === selectedForm);
@@ -309,6 +312,11 @@ const AdvancedForms = ({ ticket, hasSignature }: AdvancedFormsProps) => {
       );
       return;
     }
+
+    await track(TRACKING_EVENTS.FORM_GENERATED, {
+      ticketId: ticket.id,
+      formType: selectedForm as FormType,
+    });
 
     setIsGenerating(true);
     toast.info(`Generating ${currentFormInfo.label}...`);

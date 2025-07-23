@@ -105,6 +105,8 @@
     "pizzip": "^3.1.8",
     "playwright": "^1.50.1",
     "playwright-extra": "^4.3.6",
+    "posthog-js": "^1.257.1",
+    "posthog-node": "^5.5.1",
     "puppeteer-extra-plugin-recaptcha": "^3.6.8",
     "puppeteer-extra-plugin-stealth": "^2.11.2",
     "react": "^19.0.0",

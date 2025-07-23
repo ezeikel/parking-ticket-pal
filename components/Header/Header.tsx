@@ -16,7 +16,7 @@ import {
 } from '@fortawesome/pro-regular-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import type { IconDefinition } from '@fortawesome/fontawesome-svg-core';
-import { getCurrentUser } from '@/app/actions/user';
+import { getCurrentUser } from '@/utils/user';
 import cn from '@/utils/cn';
 import MobileMenu from '@/components/MobileMenu/MobileMenu';
 import UserDropdown from '@/components/UserDropdown/UserDropdown';

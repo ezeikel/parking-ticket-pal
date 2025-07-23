@@ -11,8 +11,8 @@ import path from 'path';
 import https from 'https';
 import http from 'http';
 
-// Define the user data interface
-interface TE7FormData {
+// Define the user data type
+type TE7FormData = {
   penaltyChargeNo: string;
   vehicleRegistrationNo: string;
   title: string; // Options: Mr, Mrs, Miss, Ms, Other
@@ -43,15 +43,239 @@ interface TE7FormData {
   userTitleOther?: string;
   userAddress?: string;
   userPostcode?: string;
-}
+};
+
+// Calculate transformation to fit SVG into the field
+const calculateSvgTransform = (
+  viewBox: { x: number; y: number; width: number; height: number },
+  fieldRect: { x: number; y: number; width: number; height: number },
+): { scale: number; offsetX: number; offsetY: number } => {
+  console.log(
+    `📏 Calculating transform for viewBox: ${JSON.stringify(viewBox)} and fieldRect: ${JSON.stringify(fieldRect)}`,
+  );
+
+  // STEP 1: Determine the available space in the field
+  // Allow signature to use more space (95% width, 80% height)
+  const availableWidth = fieldRect.width * 0.95;
+  const availableHeight = fieldRect.height * 0.8;
+
+  // STEP 2: Calculate scaling factors
+  const scaleX = availableWidth / viewBox.width;
+  const scaleY = availableHeight / viewBox.height;
+
+  // Use the smaller scaling factor to preserve aspect ratio, then boost by 25%
+  const baseScale = Math.min(scaleX, scaleY);
+  const scale = baseScale * 1.25; // Increase size by 25%
+
+  console.log(
+    `📏 Space available: ${availableWidth}x${availableHeight}, Base scale: ${baseScale}, Boosted scale: ${scale}`,
+  );
+
+  // STEP 3: Position horizontally - keep current good left alignment
+  const offsetX = -10; // Current good horizontal position
+
+  // STEP 4: Position vertically - move the signature significantly higher
+  const bottomMargin = fieldRect.height * 0.93; // 93% from bottom (increased from 85%)
+  const offsetY = bottomMargin;
+
+  console.log(`📏 Positioning: offsetX=${offsetX}, offsetY=${offsetY}`);
+
+  return { scale, offsetX, offsetY };
+};
+
+// Helper function to get precise field rectangle coordinates
+const getExactFieldRectangle = async (
+  field: PDFField,
+): Promise<{ x: number; y: number; width: number; height: number } | null> => {
+  try {
+    // Access the underlying dictionary
+    if (!field.acroField || !field.acroField.dict) {
+      return null;
+    }
+
+    // Try to get rectangle from the field itself
+    const fieldDict = field.acroField.dict;
+
+    // Get Rect directly from field dictionary
+    let rect = fieldDict.get(PDFName.of('Rect'));
+
+    // If not found directly, try to get from the widget annotations
+    if (!rect || rect.toString() === 'null') {
+      const kids = fieldDict.get(PDFName.of('Kids'));
+
+      // Use safe type checking with any to avoid TypeScript errors
+      const kidsAny = kids as any;
+
+      if (
+        kids &&
+        kidsAny &&
+        typeof kidsAny.size === 'function' &&
+        kidsAny.size() > 0
+      ) {
+        // Get first widget annotation
+        const widget = kidsAny.get(0);
+        if (widget && widget.dict && typeof widget.dict.get === 'function') {
+          rect = widget.dict.get(PDFName.of('Rect'));
+        }
+      }
+    }
+
+    if (!rect || rect.toString() === 'null') {
+      console.warn('⚠️ Could not find Rect in field or its widgets');
+      return null;
+    }
+
+    // Extract rectangle values
+    let rectValues: number[] = [];
+
+    // Use any type to bypass TypeScript restrictions
+    const rectAny = rect as any;
+
+    // Try different methods to extract the numbers
+    if (rect && rectAny && typeof rectAny.asArray === 'function') {
+      const array = rectAny.asArray();
+      rectValues = array.map((item: any) =>
+        typeof item.asNumber === 'function' ? item.asNumber() : 0,
+      );
+    } else {
+      // Fallback to string parsing if we can't use asArray
+      const rectStr = rect.toString();
+      const matches = rectStr.match(/\d+(\.\d+)?/g);
+      if (matches && matches.length >= 4) {
+        rectValues = matches.slice(0, 4).map((n) => parseFloat(n));
+      }
+    }
+
+    if (rectValues.length < 4) {
+      console.warn('⚠️ Invalid field rectangle values');
+      return null;
+    }
+
+    // PDF coordinates: [lowerLeftX, lowerLeftY, upperRightX, upperRightY]
+    const [llx, lly, urx, ury] = rectValues;
+
+    return {
+      x: llx,
+      y: lly, // Note: PDF coordinates start from bottom-left
+      width: urx - llx,
+      height: ury - lly,
+    };
+  } catch (error) {
+    console.error('❌ Error getting field rectangle:', error);
+    return null;
+  }
+};
+
+// Helper function to download a file
+const downloadFile = (url: string): Promise<Buffer | null> => {
+  try {
+    if (url.startsWith('http://') || url.startsWith('https://')) {
+      const protocol = url.startsWith('https') ? https : http;
+
+      return new Promise((resolve, reject) => {
+        protocol
+          .get(url, (response) => {
+            if (response.statusCode !== 200) {
+              reject(new Error(`Download failed: ${response.statusCode}`));
+              return;
+            }
+
+            const chunks: Buffer[] = [];
+            response.on('data', (chunk) => chunks.push(chunk));
+            response.on('end', () => resolve(Buffer.concat(chunks)));
+            response.on('error', reject);
+          })
+          .on('error', reject);
+      });
+    }
+    // Local file path
+    return Promise.resolve(fs.readFileSync(url));
+  } catch (error) {
+    console.error('❌ Error downloading file:', error);
+    return Promise.resolve(null);
+  }
+};
+
+// Extract SVG paths and viewBox
+const extractSvgPathsAndViewBox = (
+  svgString: string,
+): {
+  paths: string[];
+  viewBox: { x: number; y: number; width: number; height: number };
+} => {
+  console.log('🔍 Extracting SVG paths from SVG string');
+
+  // Default viewBox - set to something reasonable for signatures
+  let viewBox = { x: 0, y: 0, width: 300, height: 150 };
+
+  // Extract viewBox
+  const viewBoxMatch = svgString.match(/viewBox=["']([^"']*)["']/);
+  if (viewBoxMatch && viewBoxMatch[1]) {
+    const values = viewBoxMatch[1].split(/[\s,]+/).map(Number);
+    if (values.length >= 4) {
+      viewBox = {
+        x: values[0],
+        y: values[1],
+        width: values[2],
+        height: values[3],
+      };
+      console.log(`🔍 Found viewBox in SVG: ${JSON.stringify(viewBox)}`);
+    }
+  } else {
+    console.log('⚠️ No viewBox found in SVG, using default');
+  }
+
+  // Use width/height attributes as fallback for viewBox
+  if (viewBox.width === 0 || viewBox.height === 0) {
+    const widthMatch = svgString.match(/width=["']([^"']*)["']/);
+    const heightMatch = svgString.match(/height=["']([^"']*)["']/);
+
+    if (widthMatch && widthMatch[1]) {
+      const width = parseFloat(widthMatch[1]);
+      if (width > 0) viewBox.width = width;
+    }
+
+    if (heightMatch && heightMatch[1]) {
+      const height = parseFloat(heightMatch[1]);
+      if (height > 0) viewBox.height = height;
+    }
+  }
+
+  // Clean SVG path data to prevent parsing issues
+  const cleanSvgPath = (pathData: string): string =>
+    // Remove any newlines or extra spaces that could cause parsing issues
+    pathData.replace(/\s+/g, ' ').trim();
+
+  // Extract all path data directly
+  const paths: string[] = [];
+
+  // First try to extract path elements with d attribute
+  const pathRegex = /<path[^>]*d=["']([^"']*)["'][^>]*>/g;
+  Array.from(svgString.matchAll(pathRegex)).forEach((pathMatch) => {
+    if (pathMatch[1] && pathMatch[1].trim()) {
+      const cleanPath = cleanSvgPath(pathMatch[1]);
+      console.log(`🔍 Found path: ${cleanPath.substring(0, 50)}...`);
+      paths.push(cleanPath);
+    }
+  });
+
+  // If no paths found with the normal approach, try a fixed test path that works well
+  if (paths.length === 0) {
+    console.log('⚠️ No paths found in SVG, using simplified path');
+    // Simple signature-like path that will at least show something
+    paths.push('M 20,80 C 40,10 60,10 80,80 S 120,150 160,80');
+  }
+
+  return { paths, viewBox };
+};
 
 // Improved function to add SVG signature to PDF form field using drawSvgPath
-async function addSvgSignatureToField(
+const addSvgSignatureToField = async (
   page: PDFPage,
   form: any,
   fieldName: string,
   svgUrl: string,
-): Promise<boolean> {
+): Promise<boolean> => {
   console.log(`🖊️ Adding SVG signature to field: ${fieldName}`);
 
   try {
@@ -135,7 +359,7 @@ async function addSvgSignatureToField(
     );
 
     // Process paths from SVG signature image
-    for (const pathData of paths) {
+    paths.forEach((pathData) => {
       // Apply the transformation to the path
       try {
         // Need to adjust for the viewBox origin when drawing
@@ -164,10 +388,7 @@ async function addSvgSignatureToField(
           // Create a simplified version by keeping just the movement commands
           const simplifiedPath = pathData.replace(
             /[a-zA-Z][^a-zA-Z]*/g,
-            (match) => {
-              // Keep only M, L, C, Q commands and their parameters
-              return match.charAt(0).match(/[MLCQ]/i) ? match : '';
-            },
+            (match) => (match.charAt(0).match(/[MLCQ]/i) ? match : ''),
           );
           if (simplifiedPath) {
             console.log(
@@ -190,7 +411,7 @@ async function addSvgSignatureToField(
           console.warn(`⚠️ Even simplified path failed: ${simplifyErr}`);
         }
       }
-    }
+    });
 
     // Step 6: Remove the original form field to avoid overlapping elements
     form.removeField(field);
@@ -201,237 +422,13 @@ async function addSvgSignatureToField(
     console.error('❌ Error adding signature:', error);
     return false;
   }
-}
+};
 
-// Extract SVG paths and viewBox
-function extractSvgPathsAndViewBox(svgString: string): {
-  paths: string[];
-  viewBox: { x: number; y: number; width: number; height: number };
-} {
-  console.log('🔍 Extracting SVG paths from SVG string');
-
-  // Default viewBox - set to something reasonable for signatures
-  let viewBox = { x: 0, y: 0, width: 300, height: 150 };
-
-  // Extract viewBox
-  const viewBoxMatch = svgString.match(/viewBox=["']([^"']*)["']/);
-  if (viewBoxMatch && viewBoxMatch[1]) {
-    const values = viewBoxMatch[1].split(/[\s,]+/).map(Number);
-    if (values.length >= 4) {
-      viewBox = {
-        x: values[0],
-        y: values[1],
-        width: values[2],
-        height: values[3],
-      };
-      console.log(`🔍 Found viewBox in SVG: ${JSON.stringify(viewBox)}`);
-    }
-  } else {
-    console.log('⚠️ No viewBox found in SVG, using default');
-  }
-
-  // Use width/height attributes as fallback for viewBox
-  if (viewBox.width === 0 || viewBox.height === 0) {
-    const widthMatch = svgString.match(/width=["']([^"']*)["']/);
-    const heightMatch = svgString.match(/height=["']([^"']*)["']/);
-
-    if (widthMatch && widthMatch[1]) {
-      const width = parseFloat(widthMatch[1]);
-      if (width > 0) viewBox.width = width;
-    }
-
-    if (heightMatch && heightMatch[1]) {
-      const height = parseFloat(heightMatch[1]);
-      if (height > 0) viewBox.height = height;
-    }
-  }
-
-  // Clean SVG path data to prevent parsing issues
-  function cleanSvgPath(pathData: string): string {
-    // Remove any newlines or extra spaces that could cause parsing issues
-    return pathData.replace(/\s+/g, ' ').trim();
-  }
-
-  // Extract all path data directly
-  const paths: string[] = [];
-
-  // First try to extract path elements with d attribute
-  const pathRegex = /<path[^>]*d=["']([^"']*)["'][^>]*>/g;
-  let pathMatch;
-  while ((pathMatch = pathRegex.exec(svgString)) !== null) {
-    if (pathMatch[1] && pathMatch[1].trim()) {
-      const cleanPath = cleanSvgPath(pathMatch[1]);
-      console.log(`🔍 Found path: ${cleanPath.substring(0, 50)}...`);
-      paths.push(cleanPath);
-    }
-  }
-
-  // If no paths found with the normal approach, try a fixed test path that works well
-  if (paths.length === 0) {
-    console.log('⚠️ No paths found in SVG, using simplified path');
-    // Simple signature-like path that will at least show something
-    paths.push('M 20,80 C 40,10 60,10 80,80 S 120,150 160,80');
-  }
-
-  return { paths, viewBox };
-}
-
-// Calculate transformation to fit SVG into the field
-function calculateSvgTransform(
-  viewBox: { x: number; y: number; width: number; height: number },
-  fieldRect: { x: number; y: number; width: number; height: number },
-): { scale: number; offsetX: number; offsetY: number } {
-  console.log(
-    `📏 Calculating transform for viewBox: ${JSON.stringify(viewBox)} and fieldRect: ${JSON.stringify(fieldRect)}`,
-  );
-
-  // STEP 1: Determine the available space in the field
-  // Allow signature to use more space (95% width, 80% height)
-  const availableWidth = fieldRect.width * 0.95;
-  const availableHeight = fieldRect.height * 0.8;
-
-  // STEP 2: Calculate scaling factors
-  const scaleX = availableWidth / viewBox.width;
-  const scaleY = availableHeight / viewBox.height;
-
-  // Use the smaller scaling factor to preserve aspect ratio, then boost by 25%
-  const baseScale = Math.min(scaleX, scaleY);
-  const scale = baseScale * 1.25; // Increase size by 25%
-
-  console.log(
-    `📏 Space available: ${availableWidth}x${availableHeight}, Base scale: ${baseScale}, Boosted scale: ${scale}`,
-  );
-
-  // STEP 3: Position horizontally - keep current good left alignment
-  const offsetX = -10; // Current good horizontal position
-
-  // STEP 4: Position vertically - move the signature significantly higher
-  const bottomMargin = fieldRect.height * 0.93; // 93% from bottom (increased from 85%)
-  const offsetY = bottomMargin;
-
-  console.log(`📏 Positioning: offsetX=${offsetX}, offsetY=${offsetY}`);
-
-  return { scale, offsetX, offsetY };
-}
-
-// Helper function to get precise field rectangle coordinates
-async function getExactFieldRectangle(
-  field: PDFField,
-): Promise<{ x: number; y: number; width: number; height: number } | null> {
-  try {
-    // Access the underlying dictionary
-    if (!field.acroField || !field.acroField.dict) {
-      return null;
-    }
-
-    // Try to get rectangle from the field itself
-    const fieldDict = field.acroField.dict;
-
-    // Get Rect directly from field dictionary
-    let rect = fieldDict.get(PDFName.of('Rect'));
-
-    // If not found directly, try to get from the widget annotations
-    if (!rect || rect.toString() === 'null') {
-      const kids = fieldDict.get(PDFName.of('Kids'));
-
-      // Use safe type checking with any to avoid TypeScript errors
-      const kidsAny = kids as any;
-
-      if (
-        kids &&
-        kidsAny &&
-        typeof kidsAny.size === 'function' &&
-        kidsAny.size() > 0
-      ) {
-        // Get first widget annotation
-        const widget = kidsAny.get(0);
-        if (widget && widget.dict && typeof widget.dict.get === 'function') {
-          rect = widget.dict.get(PDFName.of('Rect'));
-        }
-      }
-    }
-
-    if (!rect || rect.toString() === 'null') {
-      console.warn('⚠️ Could not find Rect in field or its widgets');
-      return null;
-    }
-
-    // Extract rectangle values
-    let rectValues: number[] = [];
-
-    // Use any type to bypass TypeScript restrictions
-    const rectAny = rect as any;
-
-    // Try different methods to extract the numbers
-    if (rect && rectAny && typeof rectAny.asArray === 'function') {
-      const array = rectAny.asArray();
-      rectValues = array.map((item: any) =>
-        typeof item.asNumber === 'function' ? item.asNumber() : 0,
-      );
-    } else {
-      // Fallback to string parsing if we can't use asArray
-      const rectStr = rect.toString();
-      const matches = rectStr.match(/\d+(\.\d+)?/g);
-      if (matches && matches.length >= 4) {
-        rectValues = matches.slice(0, 4).map((n) => parseFloat(n));
-      }
-    }
-
-    if (rectValues.length < 4) {
-      console.warn('⚠️ Invalid field rectangle values');
-      return null;
-    }
-
-    // PDF coordinates: [lowerLeftX, lowerLeftY, upperRightX, upperRightY]
-    const [llx, lly, urx, ury] = rectValues;
-
-    return {
-      x: llx,
-      y: lly, // Note: PDF coordinates start from bottom-left
-      width: urx - llx,
-      height: ury - lly,
-    };
-  } catch (error) {
-    console.error('❌ Error getting field rectangle:', error);
-    return null;
-  }
-}
-
-// Helper function to download a file
-async function downloadFile(url: string): Promise<Buffer | null> {
-  try {
-    if (url.startsWith('http://') || url.startsWith('https://')) {
-      const protocol = url.startsWith('https') ? https : http;
-
-      return new Promise((resolve, reject) => {
-        protocol
-          .get(url, (response) => {
-            if (response.statusCode !== 200) {
-              reject(new Error(`Download failed: ${response.statusCode}`));
-              return;
-            }
-
-            const chunks: Buffer[] = [];
-            response.on('data', (chunk) => chunks.push(chunk));
-            response.on('end', () => resolve(Buffer.concat(chunks)));
-            response.on('error', reject);
-          })
-          .on('error', reject);
-      });
-    }
-    // Local file path
-    return fs.readFileSync(url);
-  } catch (error) {
-    console.error('❌ Error downloading file:', error);
-    return null;
-  }
-}
-
-async function fillTE7Form(userData: Partial<TE7FormData> = {}) {
+const fillTE7Form = async (userData: Partial<TE7FormData> = {}) => {
   console.log('🚀 Starting TE7 form fill process...');
 
   try {
-    // Load the PDF
+    // load the PDF
     const pdfPath = './public/documents/forms/TE7.pdf';
     console.log(`📄 Loading PDF from: ${pdfPath}`);
     const pdfBytes = fs.readFileSync(pdfPath);
@@ -440,7 +437,7 @@ async function fillTE7Form(userData: Partial<TE7FormData> = {}) {
     const pdfDoc = await PDFDocument.load(pdfBytes);
     console.log('✅ PDF document successfully parsed');
 
-    // Check for form fields
+    // check for form fields
     const form = pdfDoc.getForm();
     const fields = form.getFields();
     console.log(`🔍 Found ${fields.length} form fields:`);
@@ -448,20 +445,23 @@ async function fillTE7Form(userData: Partial<TE7FormData> = {}) {
       console.log(`- ${field.getName()} (${field.constructor.name})`);
     });
 
-    // Embed a standard font
+    // embed a standard font
     console.log('🔤 Embedding fonts...');
     const helveticaFont = await pdfDoc.embedFont(StandardFonts.Helvetica);
     console.log('✅ Fonts embedded successfully');
 
-    // Get the first page (form is on page 1)
+    // get the first page (form is on page 1)
     const page = pdfDoc.getPages()[0];
     console.log(`📑 PDF has ${pdfDoc.getPageCount()} pages`);
 
-    // Get page dimensions
+    // get page dimensions
     const { width, height } = page.getSize();
     console.log(`📏 Page dimensions: ${width} x ${height}`);
 
-    // Helper function to safely draw text
+    // define text color (black)
+    const textColor = rgb(0, 0, 0);
+
+    // helper function to safely draw text
     const drawText = (
       text: string,
       x: number,
@@ -490,7 +490,7 @@ async function fillTE7Form(userData: Partial<TE7FormData> = {}) {
       }
     };
 
-    // Helper function to safely fill a text field (if form fields exist)
+    // helper function to safely fill a text field (if form fields exist)
     const fillTextField = (fieldName: string, value?: string) => {
       if (!value) {
         console.log(`⏩ Skipping empty field "${fieldName}"`);
@@ -500,7 +500,7 @@ async function fillTE7Form(userData: Partial<TE7FormData> = {}) {
       try {
         const field = form.getTextField(fieldName);
 
-        field.setFontSize(11); // Set a slightly smaller font size for better appearance
+        field.setFontSize(11); // set a slightly smaller font size for better appearance
         field.setText(value.toUpperCase()); // form must be in BLOCK CAPITALS
 
         console.log(`✅ Filled text field "${fieldName}" with "${value}"`);
@@ -514,7 +514,7 @@ async function fillTE7Form(userData: Partial<TE7FormData> = {}) {
       }
     };
 
-    // Helper function to safely check a checkbox (if form fields exist)
+    // helper function to safely check a checkbox (if form fields exist)
     const checkBox = (fieldName: string, shouldCheck?: boolean) => {
       if (!shouldCheck) {
         console.log(`⏩ Skipping checkbox "${fieldName}"`);
@@ -556,48 +556,44 @@ async function fillTE7Form(userData: Partial<TE7FormData> = {}) {
 
     console.log('🏁 Starting to fill form fields...');
 
-    // Default form data
+    // default form data
     const defaultFormData: TE7FormData = {
       penaltyChargeNo: '',
       vehicleRegistrationNo: '',
-      title: '', // Options: Mr, Mrs, Miss, Ms, Other
+      title: '', // options: Mr, Mrs, Miss, Ms, Other
       titleOther: '',
       fullNameAndAddress: '',
       address: '',
       postcode: '',
-      companyName: '', // If applicable
+      companyName: '', // if applicable
       reasonText: '',
-      statementType: 'I believe', // Either "I believe" or "The respondent believes"
+      statementType: 'I believe', // either "I believe" or "The respondent believes"
       signedName: '',
       dated: '',
       printFullName: '',
       filingOption: 'outside the given time', // or "for more time"
       signatureOption: 'Respondent', // or "Person signing on behalf of the respondent"
 
-      // If signing on behalf (set one to true)
+      // if signing on behalf (set one to true)
       officerOfCompany: false,
       partnerOfFirm: false,
       litigationFriend: false,
 
-      // Signature image data
+      // signature image data
       signatureUrl: null,
     };
 
-    // Merge default data with provided user data
+    // merge default data with provided user data
     const formData = { ...defaultFormData, ...userData };
     console.log('📝 Form data to fill:', JSON.stringify(formData, null, 2));
 
-    // Define text color (black)
-    const textColor = rgb(0, 0, 0);
-    console.log('🖋️ Drawing text in black color');
+    // try programmatic form field filling first, then fall back to coordinate-based approach
 
-    // Try programmatic form field filling first, then fall back to coordinate-based approach
-
-    // Top section - penalty charge info (these fields were found in the log)
+    // top section - penalty charge info (these fields were found in the log)
     fillTextField('Penalty Charge No', formData.penaltyChargeNo);
     fillTextField('Vehicle Registration No', formData.vehicleRegistrationNo);
 
-    // Title checkboxes (these fields were found in the log)
+    // title checkboxes (these fields were found in the log)
     if (formData.userTitle === 'Mr') checkBox('Title - Mr', true);
     else if (formData.userTitle === 'Mrs') checkBox('Title - Mrs', true);
     else if (formData.userTitle === 'Miss') checkBox('Title - Miss', true);
@@ -607,26 +603,24 @@ async function fillTE7Form(userData: Partial<TE7FormData> = {}) {
       fillTextField('Other title', formData.userTitleOther);
     }
 
-    // Personal details (use the field names from the log)
-    let filledName = fillTextField('Full name Respondent', formData.userName);
+    // personal details (use the field names from the log)
+    const filledName = fillTextField('Full name Respondent', formData.userName);
     if (!filledName) {
       drawText(formData.userName || '', 566, 517);
     }
 
-    let filledAddress = fillTextField(
+    const filledAddress = fillTextField(
       "Respondent's address",
       formData.userAddress,
     );
     if (!filledAddress && formData.userAddress) {
       const addressLines = formData.userAddress.split('\n');
-      let yPos = 585;
-      for (const line of addressLines) {
-        drawText(line, 400, yPos);
-        yPos -= 20; // Move down for next line
-      }
+      addressLines.forEach((line, index) => {
+        drawText(line, 400, 585 - index * 20);
+      });
     }
 
-    let filledPostcode = fillTextField(
+    const filledPostcode = fillTextField(
       "Respondent's postcode",
       formData.userPostcode,
     );
@@ -634,7 +628,7 @@ async function fillTE7Form(userData: Partial<TE7FormData> = {}) {
       drawText(formData.userPostcode || '', 482, 637);
     }
 
-    let filledCompany = fillTextField(
+    const filledCompany = fillTextField(
       'Company name if vehicle owned and registered by a company',
       formData.companyName,
     );
@@ -642,41 +636,39 @@ async function fillTE7Form(userData: Partial<TE7FormData> = {}) {
       drawText(formData.companyName, 738, 585);
     }
 
-    // Set the dropdown for filing option
+    // set the dropdown for filing option
     setDropdown(
       'outside the given time/for more time (choose an option)',
       formData.filingOption,
     );
 
-    // Reason text
-    let filledReason = fillTextField(
+    // reason text
+    const filledReason = fillTextField(
       'Reasons for applying for permission',
       formData.reasonText,
     );
     if (!filledReason && formData.reasonText) {
-      // Handle multiple lines for reasons
+      // handle multiple lines for reasons
       const reasonLines = formData.reasonText.split('\n');
-      let yPos = 795;
-      for (const line of reasonLines) {
-        drawText(line, 460, yPos);
-        yPos -= 20; // Move down for next line
-      }
+      reasonLines.forEach((line, index) => {
+        drawText(line, 460, 795 - index * 20);
+      });
     }
 
-    // Statement of truth section
-    // Set the dropdown for statement type
+    // statement of truth section
+    // set the dropdown for statement type
     setDropdown(
       'I believe/The respondent believes (choose an option)',
       formData.statementType,
     );
 
-    // Handle signature with our improved method that uses drawSvgPath
+    // handle signature with our improved method that uses drawSvgPath
     let signatureAdded = false;
 
     if (formData.signatureUrl) {
       console.log('🖊️ Adding signature from URL using SVG path method');
 
-      // Use the SVG path signature handling function
+      // use the SVG path signature handling function
       const signatureFieldName = 'signed - signature box';
       signatureAdded = await addSvgSignatureToField(
         page,
@@ -694,9 +686,9 @@ async function fillTE7Form(userData: Partial<TE7FormData> = {}) {
       }
     }
 
-    // Fall back to text signature if no image or embedding failed
+    // fall back to text signature if no image or embedding failed
     if (!signatureAdded) {
-      let filledSignature = fillTextField(
+      const filledSignature = fillTextField(
         'signed - signature box',
         formData.signedName,
       );
@@ -706,14 +698,14 @@ async function fillTE7Form(userData: Partial<TE7FormData> = {}) {
       }
     }
 
-    // Set the dropdown for who is signing
+    // set the dropdown for who is signing
     setDropdown(
       'Respondent/Person signing on behalf of the respondent (choose an option)',
       formData.signatureOption,
     );
 
-    // Date
-    let filledDate = fillTextField(
+    // date
+    const filledDate = fillTextField(
       'Date of signature',
       formData.dated || new Date().toLocaleDateString('en-GB'),
     );
@@ -721,10 +713,10 @@ async function fillTE7Form(userData: Partial<TE7FormData> = {}) {
       drawText(formData.dated, 647, 1032);
     }
 
-    // Print full name (this field was found in the log)
+    // print full name (this field was found in the log)
     fillTextField('Print full name', formData.userName);
 
-    // Signing on behalf checkboxes (these fields were found in the log)
+    // signing on behalf checkboxes (these fields were found in the log)
     if (formData.officerOfCompany) {
       checkBox('An office of the company - yes', true);
     }
@@ -739,11 +731,11 @@ async function fillTE7Form(userData: Partial<TE7FormData> = {}) {
 
     console.log('✨ All form fields filled successfully');
 
-    // Save the filled form in a specific directory
+    // save the filled form in a specific directory
     const outputDir = './public/documents/output';
     console.log(`📁 Preparing to save to directory: ${outputDir}`);
 
-    // Create output directory if it doesn't exist
+    // create output directory if it doesn't exist
     if (!fs.existsSync(outputDir)) {
       console.log(
         `📂 Output directory doesn't exist, creating it: ${outputDir}`,
@@ -758,13 +750,13 @@ async function fillTE7Form(userData: Partial<TE7FormData> = {}) {
       }
     }
 
-    // Generate a unique filename with timestamp
+    // generate a unique filename with timestamp
     const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
     const outputFilename = `filled_TE7_${timestamp}.pdf`;
     const outputPath = path.join(outputDir, outputFilename);
     console.log(`💾 Saving filled form to: ${outputPath}`);
 
-    // Save the PDF
+    // save the PDF
     console.log('⚙️ Generating PDF bytes...');
     const filledPdfBytes = await pdfDoc.save();
     console.log(`✅ Generated ${filledPdfBytes.length} bytes of PDF data`);
@@ -778,6 +770,6 @@ async function fillTE7Form(userData: Partial<TE7FormData> = {}) {
     console.error('❌ ERROR in fillTE7Form:', error);
     throw error;
   }
-}
+};
 
 export default fillTE7Form;

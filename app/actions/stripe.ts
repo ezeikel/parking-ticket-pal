@@ -3,10 +3,12 @@
 import { headers } from 'next/headers';
 import Stripe from 'stripe';
 import { ProductType, TicketTier, UserRole } from '@prisma/client';
+import { track } from '@/utils/analytics-server';
 import { getTierPriceId, getSubscriptionPriceId } from '@/constants';
+import { TRACKING_EVENTS } from '@/constants/events';
 import { db } from '@/lib/prisma';
 import stripe from '@/lib/stripe';
-import { getUserId } from './user';
+import { getUserId } from '@/utils/user';
 
 const getUserRole = async () => {
   const userId = await getUserId('get user role');
@@ -97,6 +99,10 @@ export const createCheckoutSession = async (
     customer_email: user.stripeCustomerId ? undefined : user.email,
   });
 
+  await track(TRACKING_EVENTS.CHECKOUT_SESSION_CREATED, {
+    productType,
+  });
+
   return {
     id: stripeSession.id,
   };
@@ -121,6 +127,11 @@ export const createCustomerPortalSession = async () => {
     console.error('No stripe customer id for this user.');
     return null;
   }
+
+  await track(TRACKING_EVENTS.CUSTOMER_PORTAL_CREATED, {
+    userId,
+    stripeCustomerId: user.stripeCustomerId,
+  });
 
   const portalSession = await stripe.billingPortal.sessions.create({
     customer: user.stripeCustomerId,
@@ -245,6 +256,12 @@ export const createTicketCheckoutSession = async (
     return null;
   }
 
+  await track(TRACKING_EVENTS.CHECKOUT_SESSION_CREATED, {
+    productType: ProductType.PAY_PER_TICKET,
+    ticketId,
+    tier: tier as TicketTier,
+  });
+
   const sessionOptions: Stripe.Checkout.SessionCreateParams = {
     payment_method_types: ['card'],
     line_items: [
@@ -262,7 +279,7 @@ export const createTicketCheckoutSession = async (
     // include ticket metadata
     metadata: {
       ticketId,
-      tier: tier as string,
+      tier: tier as TicketTier,
       userId,
     },
 

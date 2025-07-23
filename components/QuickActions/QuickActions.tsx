@@ -1,3 +1,5 @@
+'use client';
+
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -7,8 +9,19 @@ import {
   faTicketPerforated,
   faCalendar,
 } from '@fortawesome/pro-regular-svg-icons';
+import { useAnalytics } from '@/utils/analytics-client';
+import { TRACKING_EVENTS } from '@/constants/events';
 
 const QuickActions = () => {
+  const { track } = useAnalytics();
+
+  const handleQuickActionClick = async (actionTitle: string, href: string) => {
+    await track(TRACKING_EVENTS.QUICK_ACTION_CLICKED, {
+      action: actionTitle,
+      destination: href,
+    });
+  };
+
   const actions = [
     {
       title: 'Upload Ticket',
@@ -47,6 +60,7 @@ const QuickActions = () => {
           <Button
             variant={action.variant}
             className="w-full h-auto py-6 flex flex-col items-center gap-2"
+            onClick={() => handleQuickActionClick(action.title, action.href)}
           >
             <FontAwesomeIcon
               icon={action.icon}

@@ -41,6 +41,8 @@ import {
   faCalendarDays,
 } from '@fortawesome/pro-regular-svg-icons';
 import { extractOCRTextWithVision } from '@/app/actions/ocr';
+import { useAnalytics } from '@/utils/analytics-client';
+import { TRACKING_EVENTS } from '@/constants/events';
 
 const CreateLetterForm = () => {
   const router = useRouter();
@@ -48,6 +50,7 @@ const CreateLetterForm = () => {
   const [tempImageUrl, setTempImageUrl] = useState<string | undefined>();
   const [tempImagePath, setTempImagePath] = useState<string | undefined>();
   const [extractedText, setExtractedText] = useState<string>('');
+  const { track } = useAnalytics();
 
   const form = useForm<CreateLetterValues>({
     resolver: zodResolver(letterFormSchema),
@@ -119,6 +122,11 @@ const CreateLetterForm = () => {
         toast.error('Failed to create letter. Please try again.');
         return;
       }
+
+      await track(TRACKING_EVENTS.LETTER_CREATED, {
+        letterType: letter.type,
+        ticketId: letter.ticketId,
+      });
 
       toast.success('Letter created successfully');
       form.reset();

@@ -1,62 +1,12 @@
 'use server';
 
-import { headers } from 'next/headers';
-import { auth, signOut } from '@/auth';
+import { signOut } from '@/auth';
 import { db } from '@/lib/prisma';
 import { del, put, list } from '@vercel/blob';
+import { track } from '@/utils/analytics-server';
 import { STORAGE_PATHS } from '@/constants';
-import { CurrentUser } from '@/types';
-
-type Point = {
-  x: number;
-  y: number;
-  time: number;
-};
-
-// convert point group data to SVG path
-const pointsToSvg = (pointGroups: Point[][]): string => {
-  try {
-    let svg = `<svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" viewBox="0 0 500 200">`;
-
-    pointGroups.forEach((points) => {
-      if (points.length === 0) return;
-
-      let path = `<path d="M ${points[0].x} ${points[0].y}`;
-
-      // add line segments to each point
-      for (let i = 1; i < points.length; i += 1) {
-        path += ` L ${points[i].x} ${points[i].y}`;
-      }
-
-      // close the path
-      path += `" stroke="black" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" />`;
-      svg += path;
-    });
-
-    // close SVG
-    svg += `</svg>`;
-
-    return svg;
-  } catch (error) {
-    console.error('Error in pointsToSvg:', error);
-    throw error;
-  }
-};
-
-const convertSignaturePointsToSvg = async (
-  jsonString: string,
-): Promise<string> => {
-  try {
-    const pointGroups = JSON.parse(jsonString);
-
-    const svg = pointsToSvg(pointGroups);
-
-    return svg;
-  } catch (error) {
-    console.error('Error in convertSignaturePointsToSvg:', error);
-    throw new Error('Invalid signature point data format');
-  }
-};
+import { TRACKING_EVENTS } from '@/constants/events';
+import { convertSignaturePointsToSvg } from '@/utils/signature';
 
 const deleteExistingSignature = async (userId: string): Promise<void> => {
   try {
@@ -72,52 +22,6 @@ const deleteExistingSignature = async (userId: string): Promise<void> => {
   } catch (error) {
     console.error('Error deleting existing signature files:', error);
   }
-};
-
-export const getUserId = async (action?: string) => {
-  const session = await auth();
-  const headersList = await headers();
-
-  const userId = session?.user.dbId || headersList.get('x-user-id');
-
-  // TODO: create action constants
-  if (action === 'get the current user') {
-    return userId;
-  }
-
-  if (!userId) {
-    console.error(
-      `You need to be logged in to ${action || 'perform this action'}. `,
-    );
-
-    return null;
-  }
-
-  return userId;
-};
-
-export const getCurrentUser = async (): Promise<CurrentUser | null> => {
-  const userId = await getUserId('get the current user');
-
-  if (!userId) {
-    return null;
-  }
-
-  const user = await db.user.findUnique({
-    where: {
-      id: userId,
-    },
-    select: {
-      id: true,
-      name: true,
-      email: true,
-      address: true,
-      phoneNumber: true,
-      signatureUrl: true,
-    },
-  });
-
-  return user;
 };
 
 export const updateUserProfile = async (userId: string, formData: FormData) => {
@@ -176,6 +80,13 @@ export const updateUserProfile = async (userId: string, formData: FormData) => {
         },
         signatureUrl: signatureUrl || undefined,
       },
+    });
+
+    await track(TRACKING_EVENTS.USER_PROFILE_UPDATED, {
+      name: !!name,
+      phoneNumber: !!phoneNumber,
+      address: !!(addressLine1 || addressLine2 || city || county || postcode),
+      signature: !!signatureUrl,
     });
 
     return { success: true, user: updatedUser };

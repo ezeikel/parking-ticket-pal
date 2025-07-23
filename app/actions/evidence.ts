@@ -4,7 +4,7 @@ import { put, del } from '@vercel/blob';
 import { revalidatePath } from 'next/cache';
 import { EvidenceType, MediaSource, MediaType } from '@prisma/client';
 import { db } from '@/lib/prisma';
-import { getUserId } from '@/app/actions/user';
+import { getUserId } from '@/utils/user';
 import { STORAGE_PATHS } from '@/constants';
 
 export const uploadEvidence = async (ticketId: string, formData: FormData) => {

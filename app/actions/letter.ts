@@ -27,7 +27,7 @@ import {
   UserForChallengeLetter,
   Address,
 } from '@/types';
-import { getUserId } from '@/app/actions/user';
+import { getUserId } from '@/utils/user';
 import openai from '@/lib/openai';
 import { zodResponseFormat } from 'openai/helpers/zod';
 import {

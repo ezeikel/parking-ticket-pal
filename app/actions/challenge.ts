@@ -3,8 +3,10 @@
 import { revalidatePath } from 'next/cache';
 import { ChallengeStatus, ChallengeType } from '@prisma/client';
 import { z } from 'zod';
+import { track } from '@/utils/analytics-server';
 import { db } from '@/lib/prisma';
-import { getUserId } from '@/app/actions/user';
+import { TRACKING_EVENTS } from '@/constants/events';
+import { getUserId } from '@/utils/user';
 
 const challengeSchema = z.object({
   ticketId: z.string(),
@@ -25,7 +27,7 @@ export const createChallenge = async (
   try {
     const validatedData = challengeSchema.parse(data);
 
-    // Verify the ticket belongs to the user
+    // verify the ticket belongs to the user
     const ticket = await db.ticket.findFirst({
       where: {
         id: validatedData.ticketId,
@@ -49,6 +51,12 @@ export const createChallenge = async (
       },
     });
 
+    await track(TRACKING_EVENTS.CHALLENGE_CREATED, {
+      ticketId: challenge.ticketId,
+      challengeType: challenge.type,
+      reason: challenge.reason,
+    });
+
     revalidatePath(`/tickets/${validatedData.ticketId}`);
 
     return { success: true, data: challenge };
@@ -63,7 +71,7 @@ export const createChallenge = async (
 
 export const updateChallengeStatus = async (
   challengeId: string,
-  status: 'PENDING' | 'SUCCESS' | 'ERROR',
+  status: ChallengeStatus,
   metadata?: Record<string, any>,
 ) => {
   const userId = await getUserId('update challenge status');

@@ -42,6 +42,8 @@ import {
 import AddressInput from '@/components/forms/inputs/AddressInput/AddressInput';
 import { toast } from 'sonner';
 import { extractOCRTextWithVision } from '@/app/actions/ocr';
+import { useAnalytics } from '@/utils/analytics-client';
+import { TRACKING_EVENTS } from '@/constants/events';
 
 const CreateTicketForm = () => {
   const [isLoading, setIsLoading] = useState(false);
@@ -49,6 +51,7 @@ const CreateTicketForm = () => {
   const [tempImagePath, setTempImagePath] = useState<string | undefined>();
   const [extractedText, setExtractedText] = useState<string>('');
   const router = useRouter();
+  const { track } = useAnalytics();
 
   const [contraventionSearch, setContraventionSearch] = useState('');
 
@@ -74,14 +77,27 @@ const CreateTicketForm = () => {
     setIsLoading(true);
 
     try {
-      await createTicket({
+      const ticket = await createTicket({
         ...values,
         tempImageUrl,
         tempImagePath,
         extractedText,
       });
-      toast.success('Ticket created successfully');
-      router.push('/');
+
+      if (ticket) {
+        await track(TRACKING_EVENTS.TICKET_CREATED, {
+          ticketId: ticket.id,
+          pcnNumber: ticket.pcnNumber,
+          issuer: ticket.issuer,
+          issuerType: ticket.issuerType,
+          prefilled: !!ticket.extractedText,
+        });
+
+        toast.success('Ticket created successfully');
+        router.push('/');
+      } else {
+        throw new Error('Failed to create ticket');
+      }
     } catch (error) {
       console.error('Error creating ticket:', error);
       toast.error('Failed to create ticket. Please try again.');

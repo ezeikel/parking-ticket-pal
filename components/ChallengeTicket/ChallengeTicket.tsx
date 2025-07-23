@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { IssuerType, TicketTier } from '@prisma/client';
+import { ChallengeType, IssuerType, TicketTier } from '@prisma/client';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
   faFileLines,
@@ -43,6 +43,8 @@ import { generateChallengeLetter } from '@/app/actions/letter';
 import { challengeTicket, getTicketChallenges } from '@/app/actions/ticket';
 import { toast } from 'sonner';
 import { TicketWithRelations } from '@/types';
+import { useAnalytics } from '@/utils/analytics-client';
+import { TRACKING_EVENTS } from '@/constants/events';
 
 type ChallengeTicketProps = {
   ticket: TicketWithRelations;
@@ -132,6 +134,7 @@ const ChallengeTicket = ({ ticket, issuerType }: ChallengeTicketProps) => {
     ChallengeHistoryItem[]
   >([]);
   const [isLoadingHistory, setIsLoadingHistory] = useState(true);
+  const { track } = useAnalytics();
 
   // Load challenge history from database
   useEffect(() => {
@@ -241,7 +244,7 @@ const ChallengeTicket = ({ ticket, issuerType }: ChallengeTicketProps) => {
     }
   };
 
-  const handleGenerateLetter = () => {
+  const handleGenerateLetter = async () => {
     // ensure we get the label, not the key
     const challengeReasonEntry =
       challengeReasons[selectedReason as keyof typeof challengeReasons];
@@ -256,6 +259,11 @@ const ChallengeTicket = ({ ticket, issuerType }: ChallengeTicketProps) => {
     }
 
     const challengeReasonLabel = challengeReasonEntry.label;
+
+    await track(TRACKING_EVENTS.CHALLENGE_LETTER_GENERATED, {
+      ticketId: ticket.id,
+      challengeType: ChallengeType.LETTER,
+    });
 
     handleAction(
       'letter',
@@ -269,7 +277,7 @@ const ChallengeTicket = ({ ticket, issuerType }: ChallengeTicketProps) => {
     );
   };
 
-  const handleAutoChallenge = () => {
+  const handleAutoChallenge = async () => {
     // ensure we get the label, not the key
     const challengeReasonEntry =
       challengeReasons[selectedReason as keyof typeof challengeReasons];
@@ -284,6 +292,11 @@ const ChallengeTicket = ({ ticket, issuerType }: ChallengeTicketProps) => {
     }
 
     const challengeReasonLabel = challengeReasonEntry.label;
+
+    await track(TRACKING_EVENTS.CHALLENGE_SUBMITTED, {
+      ticketId: ticket.id,
+      challengeId: '', // TODO: figure out how to get the challenge id
+    });
 
     handleAction(
       'auto-challenge',

@@ -4,7 +4,7 @@ import { put } from '@vercel/blob';
 import { zodResponseFormat } from 'openai/helpers/zod';
 import openai from '@/lib/openai';
 import vision from '@google-cloud/vision';
-import { getUserId } from '@/app/actions/user';
+import { getUserId } from '@/utils/user';
 import {
   CHATGPT_MODEL,
   IMAGE_ANALYSIS_PROMPT,
