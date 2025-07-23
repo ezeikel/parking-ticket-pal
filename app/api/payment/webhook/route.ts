@@ -14,40 +14,33 @@ const stripe = new Stripe(process.env.STRIPE_SECRET!, {
   apiVersion: STRIPE_API_VERSION,
 });
 
+const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET!;
+
 export const POST = async (req: Request) => {
-  const body = await req.json();
-  // Only verify the event if you have an endpoint secret defined.
-  // Otherwise use the basic event deserialized with JSON.parse
-  // if (endpointSecret) {
-  //   // Get the signature sent by Stripe
-  //   const signature = req.headers["stripe-signature"];
-  //   try {
-  //     event = stripe.webhooks.constructEvent(
-  //       req.body,
-  //       signature,
-  //       endpointSecret,
-  //     );
-  //   } catch (err) {
-  //     console.log(`⚠️  Webhook signature verification failed.`, err.message);
-  //     return res.sendStatus(400);
-  //   }
-  // }
+  // get the raw body for signature verification
+  const body = await req.text();
+  const signature = req.headers.get('stripe-signature');
+
+  if (!signature) {
+    console.error('Missing Stripe signature header');
+    return Response.json({ error: 'Missing signature' }, { status: 400 });
+  }
 
   let stripeEvent: Stripe.Event;
 
   try {
-    stripeEvent = body as Stripe.Event;
-  } catch (error) {
-    console.error(`Error parsing event body: ${error}`);
-
-    return Response.json(
-      {
-        error: 'Bad request',
-      },
-      {
-        status: 400,
-      },
+    // verify the webhook signature
+    stripeEvent = stripe.webhooks.constructEvent(
+      body,
+      signature,
+      webhookSecret,
     );
+  } catch (err) {
+    console.error(
+      `Webhook signature verification failed:`,
+      (err as Error).message,
+    );
+    return Response.json({ error: 'Invalid signature' }, { status: 400 });
   }
 
   // handle the event
@@ -107,9 +100,6 @@ export const POST = async (req: Request) => {
               });
             }
 
-            // TODO: debugging - remove this
-            console.log(`Updated ticket ${ticketId} to tier ${tier}`);
-
             // revalidate the specific ticket page and related routes
             revalidatePath(`/tickets/${ticketId}`);
             revalidatePath('/tickets'); // in case ticket list shows tier info
@@ -136,10 +126,6 @@ export const POST = async (req: Request) => {
                 },
               });
             }
-
-            console.log(
-              `Updated ticket ${ticketId} to tier ${tier} (based on metadata)`,
-            );
           }
         }
       }
@@ -186,8 +172,6 @@ export const POST = async (req: Request) => {
                 },
               });
             }
-
-            console.log(`Updated subscription for user ${email} to PREMIUM`);
 
             // revalidate user-related routes
             revalidatePath('/dashboard');
@@ -273,16 +257,12 @@ export const POST = async (req: Request) => {
     const deletedCustomerSubscription = stripeEvent.data
       .object as Stripe.Subscription;
 
-    // TODO:we need to delete subscription instead
-    // reset user subscription to standard
-    await db.subscription.updateMany({
+    // delete the subscription record when subscription is cancelled
+    await db.subscription.deleteMany({
       where: {
         user: {
           stripeCustomerId: deletedCustomerSubscription.customer as string,
         },
-      },
-      data: {
-        type: SubscriptionType.STANDARD,
       },
     });
 
