@@ -14,6 +14,24 @@ const nextConfig = {
       bodySizeLimit: '5mb',
     },
   },
+  async rewrites() {
+    return [
+      {
+        source: '/relay-hyx5/static/:path*',
+        destination: 'https://eu-assets.i.posthog.com/static/:path*',
+      },
+      {
+        source: '/relay-hyx5/:path*',
+        destination: 'https://eu.i.posthog.com/:path*',
+      },
+      {
+        source: '/relay-hyx5/flags',
+        destination: 'https://eu.i.posthog.com/flags',
+      },
+    ];
+  },
+  // this is required to support PostHog trailing slash API requests
+  skipTrailingSlashRedirect: true,
 };
 
 // sentry configuration options

@@ -5,8 +5,13 @@ const createPostHogClient = (): PostHog | null => {
   const posthogHost = process.env.NEXT_PUBLIC_POSTHOG_HOST;
 
   if (posthogKey && posthogHost) {
+    // for server-side PostHog, construct full URL from the relative path
+    const serverHost = process.env.VERCEL_URL
+      ? `https://${process.env.VERCEL_URL}${posthogHost}`
+      : `http://localhost:3000${posthogHost}`;
+
     return new PostHog(posthogKey, {
-      host: posthogHost,
+      host: serverHost,
       flushAt: 1,
       flushInterval: 0,
     });
