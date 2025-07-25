@@ -448,3 +448,26 @@ export type EventProperties = {
   [TRACKING_EVENTS.SUPPORT_CONTACTED]: { method: 'email' | 'form' };
   [TRACKING_EVENTS.HELP_ARTICLE_VIEWED]: { articleId: string };
 };
+
+export type PostAuthor = {
+  name: string;
+  title: string;
+  avatar: string;
+};
+
+export type PostMeta = {
+  title: string;
+  date: string;
+  author: PostAuthor;
+  summary: string;
+  image?: string;
+  tags: string[];
+  featured?: boolean;
+  slug: string;
+};
+
+export type Post = {
+  meta: PostMeta;
+  content: string;
+  readingTime: string;
+};

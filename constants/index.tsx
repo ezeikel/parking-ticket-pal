@@ -1181,3 +1181,8 @@ export const SOCIAL_LINKS = [
   //   icon: faWhatsapp,
   // }
 ];
+
+export const PLACEHOLDER_AVATAR_IMAGE =
+  '/images/blog/pexels-cottonbro-5378700.jpg';
+export const PLACEHOLDER_BLOG_IMAGE =
+  '/images/blog/close-up-of-female-motorist-looking-at-parking-ticket.webp';

@@ -13,6 +13,7 @@ import {
   faSignOut,
   faTag,
   faCommentDots,
+  faNewspaper,
 } from '@fortawesome/pro-regular-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import type { IconDefinition } from '@fortawesome/fontawesome-svg-core';
@@ -84,6 +85,12 @@ const ITEMS: NavItem[] = [
     visibility: 'authenticated',
   },
   {
+    label: 'Blog',
+    icon: <FontAwesomeIcon icon={faNewspaper} size="lg" />,
+    href: '/blog',
+    visibility: 'always',
+  },
+  {
     label: 'UserDropdown',
     liClass: 'p-0 flex',
     component: (user: Partial<User>) => <UserDropdown user={user} />,
@@ -96,6 +103,7 @@ const getMobileNav = (user: Partial<User> | null): MobileNavItem[] => {
     return [
       { label: 'Home', iconName: faHome, href: '/' },
       { label: 'Pricing', iconName: faTag, href: '/pricing' },
+      { label: 'Blog', iconName: faNewspaper, href: '/blog' },
       {
         label: 'Support',
         iconName: faHeadset,
@@ -113,6 +121,7 @@ const getMobileNav = (user: Partial<User> | null): MobileNavItem[] => {
     { label: 'Vehicles', iconName: faCarSide, href: '/vehicles' },
     { label: 'Account', iconName: faUser, href: '/account' },
     { label: 'Billing', iconName: faCreditCard, href: '/account/billing' },
+    { label: 'Blog', iconName: faNewspaper, href: '/blog' },
     {
       label: 'Support',
       iconName: faHeadset,

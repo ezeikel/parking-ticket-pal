@@ -14,6 +14,7 @@ const nextConfig = {
       bodySizeLimit: '5mb',
     },
   },
+  transpilePackages: ['next-mdx-remote'],
   async rewrites() {
     return [
       {
@@ -32,6 +33,14 @@ const nextConfig = {
   },
   // this is required to support PostHog trailing slash API requests
   skipTrailingSlashRedirect: true,
+  images: {
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'media.istockphoto.com',
+      },
+    ],
+  },
 };
 
 // sentry configuration options
