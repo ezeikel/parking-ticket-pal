@@ -15,6 +15,9 @@ const twilioClient = twilio(
 
 // eslint-disable-next-line import/prefer-default-export
 export const sendReminder = async (reminderId: string) => {
+  // DEBUG:
+  console.log('sendReminder', reminderId);
+
   const reminder = await db.reminder.findUnique({
     where: { id: reminderId },
     include: {
@@ -29,6 +32,9 @@ export const sendReminder = async (reminderId: string) => {
       },
     },
   });
+
+  // DEBUG:
+  console.log('reminder', reminder);
 
   if (!reminder) {
     return { error: 'Reminder not found' };

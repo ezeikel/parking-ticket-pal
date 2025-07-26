@@ -19,6 +19,9 @@ const handleRequest = async () => {
     select: { id: true },
   });
 
+  // DEBUG:
+  console.log('dueReminders', dueReminders);
+
   const results = await Promise.all(
     dueReminders.map(async (reminder) => {
       const result = await sendReminder(reminder.id);
