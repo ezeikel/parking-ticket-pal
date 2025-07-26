@@ -10,10 +10,14 @@ const handleRequest = async () => {
   const start = startOfDay(now);
   const end = endOfDay(now);
 
+  // DEBUG:
+  console.log('start', start);
+  console.log('end', end);
+
   // TODO: only send reminders for tickets that are STANDARD or PREMIUM
   const dueReminders = await db.reminder.findMany({
     where: {
-      sendAt: { gte: start, lte: end },
+      // sendAt: { gte: start, lte: end },
       sentAt: null,
     },
     select: { id: true },
