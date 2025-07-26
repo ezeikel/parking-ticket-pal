@@ -5,11 +5,12 @@ import { startOfDay, endOfDay } from 'date-fns';
 
 export const dynamic = 'force-dynamic';
 
-export const POST = async () => {
+const handleRequest = async () => {
   const now = new Date();
   const start = startOfDay(now);
   const end = endOfDay(now);
 
+  // TODO: only send reminders for tickets that are STANDARD or PREMIUM
   const dueReminders = await db.reminder.findMany({
     where: {
       sendAt: { gte: start, lte: end },
@@ -27,3 +28,6 @@ export const POST = async () => {
 
   return NextResponse.json({ sent: results.length, details: results });
 };
+
+export const GET = handleRequest;
+export const POST = handleRequest;
