@@ -12,6 +12,8 @@ import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import CreateTicketForm from '@/components/forms/CreateTicketForm/CreateTicketForm';
 import CreateLetterForm from '@/components/forms/CreateLetterForm/CreateLetterForm';
 
+export const maxDuration = 60;
+
 const UploadPage = () => {
   const [activeTab, setActiveTab] = useState<'ticket' | 'letter'>('ticket');
 
