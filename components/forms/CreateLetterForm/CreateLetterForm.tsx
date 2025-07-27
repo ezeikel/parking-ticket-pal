@@ -43,6 +43,7 @@ import {
 import { extractOCRTextWithVision } from '@/app/actions/ocr';
 import { useAnalytics } from '@/utils/analytics-client';
 import { TRACKING_EVENTS } from '@/constants/events';
+import createUTCDate from '@/utils/createUTCDate';
 
 const CreateLetterForm = () => {
   const router = useRouter();
@@ -316,7 +317,13 @@ const CreateLetterForm = () => {
                       <Calendar
                         mode="single"
                         selected={field.value}
-                        onSelect={field.onChange}
+                        onSelect={(date) => {
+                          if (date) {
+                            // create timezone-safe date immediately when user selects
+                            const safeDate = createUTCDate(date);
+                            field.onChange(safeDate);
+                          }
+                        }}
                         disabled={(date) =>
                           date > new Date() || date < new Date('1900-01-01')
                         }

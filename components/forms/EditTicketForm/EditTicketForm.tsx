@@ -41,7 +41,7 @@ import { faCalendar, faSpinnerThird } from '@fortawesome/pro-regular-svg-icons';
 import { toast } from 'sonner';
 import AddressInput from '@/components/forms/inputs/AddressInput/AddressInput';
 import { useRouter } from 'next/navigation';
-import { createLocalDateFromUTC } from '@/utils/createUTCDate';
+import createUTCDate, { createLocalDateFromUTC } from '@/utils/createUTCDate';
 
 type EditTicketFormProps = {
   ticket: TicketWithRelations;
@@ -190,7 +190,13 @@ const EditTicketForm = ({ ticket }: EditTicketFormProps) => {
                     <Calendar
                       mode="single"
                       selected={field.value}
-                      onSelect={field.onChange}
+                      onSelect={(date) => {
+                        if (date) {
+                          // create timezone-safe date immediately when user selects
+                          const safeDate = createUTCDate(date);
+                          field.onChange(safeDate);
+                        }
+                      }}
                       disabled={(date) =>
                         date > new Date() || date < new Date('1900-01-01')
                       }
