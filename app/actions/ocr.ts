@@ -5,6 +5,7 @@ import { zodResponseFormat } from 'openai/helpers/zod';
 import openai from '@/lib/openai';
 import vision from '@google-cloud/vision';
 import { getUserId } from '@/utils/user';
+import createUTCDate from '@/utils/createUTCDate';
 import {
   CHATGPT_MODEL,
   IMAGE_ANALYSIS_PROMPT,
@@ -279,13 +280,13 @@ export const extractOCRTextWithOpenAI = async (
     data: {
       pcnNumber,
       vehicleReg: vehicleRegistration,
-      issuedAt: new Date(issuedAt),
+      issuedAt: createUTCDate(new Date(issuedAt)),
       contraventionCode,
       initialAmount: Math.round(Number(initialAmount) * 100),
       issuer,
       location: fullAddress,
       summary,
-      sentAt: sentAt ? new Date(sentAt) : null,
+      sentAt: sentAt ? createUTCDate(new Date(sentAt)) : null,
       extractedText,
     },
     image: base64Image,
@@ -539,13 +540,13 @@ export const extractOCRTextWithVision = async (
     data: {
       pcnNumber,
       vehicleReg: vehicleRegistration,
-      issuedAt: new Date(issuedAt),
+      issuedAt: createUTCDate(new Date(issuedAt)),
       contraventionCode,
       initialAmount: Math.round(Number(initialAmount) * 100),
       issuer,
       location: fullAddress,
       summary,
-      sentAt: sentAt ? new Date(sentAt) : null,
+      sentAt: sentAt ? createUTCDate(new Date(sentAt)) : null,
       extractedText,
     },
     image: base64Image,

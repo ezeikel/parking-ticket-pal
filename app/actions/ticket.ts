@@ -26,6 +26,7 @@ import { track } from '@/utils/analytics-server';
 import { TRACKING_EVENTS } from '@/constants/events';
 import { getUserId } from '@/utils/user';
 import { refresh } from '@/app/actions';
+import createUTCDate from '@/utils/createUTCDate';
 
 export const createTicket = async (
   values: z.infer<typeof ticketFormSchema> & {
@@ -117,8 +118,8 @@ export const createTicket = async (
         pcnNumber: values.pcnNumber,
         contraventionCode: values.contraventionCode,
         location: values.location,
-        issuedAt: values.issuedAt,
-        contraventionAt: values.issuedAt,
+        issuedAt: createUTCDate(values.issuedAt),
+        contraventionAt: createUTCDate(values.issuedAt),
         status: TicketStatus.ISSUED_DISCOUNT_PERIOD,
         type: TicketType.PENALTY_CHARGE_NOTICE, // TODO: hardcoded for now
         initialAmount: values.initialAmount,
@@ -200,7 +201,8 @@ export const updateTicket = async (
 
   const issuedAtChanged =
     currentTicket &&
-    currentTicket.issuedAt.getTime() !== values.issuedAt.getTime();
+    currentTicket.issuedAt.getTime() !==
+      createUTCDate(values.issuedAt).getTime();
 
   // DEBUG:
   console.log('issuedAtChanged', issuedAtChanged);
@@ -217,7 +219,7 @@ export const updateTicket = async (
         // Generate new reminders with updated issuedAt
         await generateReminders({
           id,
-          issuedAt: values.issuedAt,
+          issuedAt: createUTCDate(values.issuedAt),
           userId,
         });
       } catch (error) {
@@ -238,8 +240,8 @@ export const updateTicket = async (
         pcnNumber: values.pcnNumber,
         contraventionCode: values.contraventionCode,
         location: values.location,
-        issuedAt: values.issuedAt,
-        contraventionAt: values.issuedAt,
+        issuedAt: createUTCDate(values.issuedAt),
+        contraventionAt: createUTCDate(values.issuedAt),
         initialAmount: values.initialAmount,
         issuer: values.issuer,
         vehicle: {
