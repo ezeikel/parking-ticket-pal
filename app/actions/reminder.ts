@@ -5,7 +5,8 @@ import { render } from '@react-email/render';
 import ReminderEmail from '@/components/emails/ReminderEmail';
 import { db } from '@/lib/prisma';
 import twilio from 'twilio';
-import { ReminderType, NotificationType } from '@prisma/client';
+import { ReminderType, NotificationType, Prisma } from '@prisma/client';
+import { addDays, isAfter } from 'date-fns';
 
 const resend = new Resend(process.env.RESEND_API_KEY!);
 const twilioClient = twilio(
@@ -13,7 +14,61 @@ const twilioClient = twilio(
   process.env.TWILIO_AUTH_TOKEN!,
 );
 
-// eslint-disable-next-line import/prefer-default-export
+export const generateReminders = async (ticket: {
+  id: string;
+  issuedAt: Date;
+  userId?: string; // for checking user preferences/subscription
+}) => {
+  const baseDate = new Date(ticket.issuedAt);
+  const now = new Date();
+
+  // check if reminder dates are in the future
+  const is14DaysInFuture = isAfter(addDays(baseDate, 14), now);
+  const is28DaysInFuture = isAfter(addDays(baseDate, 28), now);
+
+  const reminders: Prisma.ReminderCreateManyInput[] = [];
+  const notificationTypes = Object.values(NotificationType);
+
+  // create separate EMAIL and SMS reminders for each type
+  if (is14DaysInFuture) {
+    notificationTypes.forEach((notificationType) => {
+      reminders.push({
+        ticketId: ticket.id,
+        sendAt: addDays(baseDate, 14),
+        type: ReminderType.DISCOUNT_PERIOD,
+        notificationType,
+      });
+    });
+  }
+
+  if (is28DaysInFuture) {
+    notificationTypes.forEach((notificationType) => {
+      reminders.push({
+        ticketId: ticket.id,
+        sendAt: addDays(baseDate, 28),
+        type: ReminderType.FULL_CHARGE,
+        notificationType,
+      });
+    });
+  }
+
+  if (reminders.length > 0) {
+    try {
+      await db.reminder.createMany({
+        data: reminders,
+      });
+      console.log(
+        `Created ${reminders.length} reminders for ticket ${ticket.id}`,
+      );
+    } catch (error) {
+      console.error(
+        `Failed to create reminders for ticket ${ticket.id}:`,
+        error,
+      );
+    }
+  }
+};
+
 export const sendReminder = async (reminderId: string) => {
   // DEBUG:
   console.log('sendReminder', reminderId);
@@ -44,14 +99,10 @@ export const sendReminder = async (reminderId: string) => {
 
   const reminderLabel =
     reminder.type === ReminderType.DISCOUNT_PERIOD ? '14-day' : '28-day';
-  const text = `Reminder: Your parking ticket ${reminder.ticket.pcnNumber} for vehicle registration ${reminder.ticket.vehicle.registrationNumber} issued on ${reminder.ticket.issuedAt.toLocaleDateString()} by ${reminder.ticket.issuer} is approaching the ${reminderLabel} deadline. Please check the app.`;
 
   try {
     // email
-    if (
-      reminder.notificationType === NotificationType.EMAIL ||
-      reminder.notificationType === NotificationType.ALL
-    ) {
+    if (reminder.notificationType === NotificationType.EMAIL) {
       const html = await render(
         ReminderEmail({
           name: user.name ?? '',
@@ -73,15 +124,26 @@ export const sendReminder = async (reminderId: string) => {
 
     // text message
     if (
-      (reminder.notificationType === NotificationType.SMS ||
-        reminder.notificationType === NotificationType.ALL) &&
+      reminder.notificationType === NotificationType.SMS &&
       user.phoneNumber
     ) {
+      const text = `Reminder: Your parking ticket ${reminder.ticket.pcnNumber} for vehicle registration ${reminder.ticket.vehicle.registrationNumber} issued on ${reminder.ticket.issuedAt.toLocaleDateString()} by ${reminder.ticket.issuer} is approaching the ${reminderLabel} deadline. Please check the app.`;
+
       await twilioClient.messages.create({
         from: process.env.TWILIO_PHONE_NUMBER!,
         to: user.phoneNumber,
         body: text,
       });
+    }
+
+    // skip SMS reminders if user has no phone number (don't treat as error)
+    if (
+      reminder.notificationType === NotificationType.SMS &&
+      !user.phoneNumber
+    ) {
+      console.log(
+        `Skipping SMS reminder ${reminderId} - user has no phone number`,
+      );
     }
 
     // mark as sent

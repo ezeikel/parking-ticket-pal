@@ -20,6 +20,7 @@ import getVehicleInfo from '@/utils/getVehicleInfo';
 import { ticketFormSchema } from '@/types';
 import { db } from '@/lib/prisma';
 import { verify, challenge } from '@/utils/automation';
+import { generateReminders } from '@/app/actions/reminder';
 import { STORAGE_PATHS } from '@/constants';
 import { track } from '@/utils/analytics-server';
 import { TRACKING_EVENTS } from '@/constants/events';
@@ -45,7 +46,7 @@ export const createTicket = async (
 
   let ticket: Ticket;
 
-  // schedule file move and media record creation after response
+  // schedule file move, media record creation, and reminder generation after response
   after(async () => {
     if (ticket && values.tempImagePath && values.tempImageUrl) {
       try {
@@ -89,6 +90,22 @@ export const createTicket = async (
         console.error(`Failed to move image for ticket ${ticket.id}:`, error);
         // TODO: optionally create a cleanup job to handle failed moves
         // or retry the operation
+      }
+    }
+
+    // generate reminders for the new ticket
+    if (ticket) {
+      try {
+        await generateReminders({
+          id: ticket.id,
+          issuedAt: ticket.issuedAt,
+          userId,
+        });
+      } catch (error) {
+        console.error(
+          `Failed to generate reminders for ticket ${ticket.id}:`,
+          error,
+        );
       }
     }
   });
@@ -174,6 +191,43 @@ export const updateTicket = async (
   if (values.vehicleReg) {
     vehicleInfo = await getVehicleInfo(values.vehicleReg);
   }
+
+  // get the current ticket to check if issuedAt is being updated
+  const currentTicket = await db.ticket.findUnique({
+    where: { id },
+    select: { issuedAt: true },
+  });
+
+  const issuedAtChanged =
+    currentTicket &&
+    currentTicket.issuedAt.getTime() !== values.issuedAt.getTime();
+
+  // DEBUG:
+  console.log('issuedAtChanged', issuedAtChanged);
+
+  // schedule reminder regeneration after response if issuedAt changed
+  after(async () => {
+    if (issuedAtChanged) {
+      try {
+        // Delete existing reminders
+        await db.reminder.deleteMany({
+          where: { ticketId: id },
+        });
+
+        // Generate new reminders with updated issuedAt
+        await generateReminders({
+          id,
+          issuedAt: values.issuedAt,
+          userId,
+        });
+      } catch (error) {
+        console.error(
+          `Failed to regenerate reminders for updated ticket ${id}:`,
+          error,
+        );
+      }
+    }
+  });
 
   try {
     const ticket = await db.ticket.update({

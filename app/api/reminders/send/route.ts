@@ -11,6 +11,7 @@ const handleRequest = async () => {
   const end = endOfDay(now);
 
   // DEBUG:
+  console.log('now', now);
   console.log('start', start);
   console.log('end', end);
 

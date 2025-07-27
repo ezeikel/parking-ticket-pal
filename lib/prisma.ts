@@ -1,15 +1,8 @@
 import type { User } from '@prisma/client';
-import {
-  $Enums,
-  PredictionType,
-  Prisma,
-  PrismaClient,
-  ReminderType,
-} from '@prisma/client';
+import { $Enums, PredictionType, Prisma, PrismaClient } from '@prisma/client';
 import { PrismaNeon } from '@prisma/adapter-neon';
 import { neonConfig } from '@neondatabase/serverless';
 import ws from 'ws';
-import { addDays, isAfter } from 'date-fns';
 import getVehicleInfo from '@/utils/getVehicleInfo';
 
 // configure WebSocket for Neon
@@ -26,40 +19,6 @@ if (!connectionString) {
 const adapter = new PrismaNeon({ connectionString });
 
 const globalForPrisma = global as unknown as { prisma: PrismaClient };
-
-const generateReminders = (ticket: {
-  id?: string;
-  issuedAt?: Date;
-}): Prisma.ReminderCreateManyInput[] => {
-  if (!ticket.id || !ticket.issuedAt) return [];
-
-  const baseDate = new Date(ticket.issuedAt);
-
-  // check if 14 days and 28 days are in the future or not before creating the reminders
-  const now = new Date();
-  const is14DaysInFuture = isAfter(addDays(baseDate, 14), now);
-  const is28DaysInFuture = isAfter(addDays(baseDate, 28), now);
-
-  const reminders: Prisma.ReminderCreateManyInput[] = [];
-
-  if (is14DaysInFuture) {
-    reminders.push({
-      ticketId: ticket.id,
-      sendAt: addDays(baseDate, 14),
-      type: ReminderType.DISCOUNT_PERIOD,
-    });
-  }
-
-  if (is28DaysInFuture) {
-    reminders.push({
-      ticketId: ticket.id,
-      sendAt: addDays(baseDate, 28),
-      type: ReminderType.FULL_CHARGE,
-    });
-  }
-
-  return reminders;
-};
 
 const prismaClientSingleton = () => {
   const client = new PrismaClient({
@@ -83,28 +42,6 @@ const prismaClientSingleton = () => {
           // Execute the original create operation
           const ticket = await query(args);
 
-          // Generate and create related reminders
-          try {
-            if (
-              ticket &&
-              typeof ticket.id === 'string' &&
-              ticket.issuedAt instanceof Date
-            ) {
-              const reminders = generateReminders({
-                id: ticket.id,
-                issuedAt: ticket.issuedAt,
-              });
-
-              if (reminders.length > 0) {
-                await client.reminder.createMany({
-                  data: reminders,
-                });
-              }
-            }
-          } catch (error) {
-            console.error('Failed to create reminders:', error);
-          }
-
           // TODO: Implement ML-based prediction using historical appeals data
           await client.prediction.create({
             data: {
@@ -121,47 +58,19 @@ const prismaClientSingleton = () => {
         },
 
         async update({ args, query }) {
-          // Check if issuedAt is being updated
-          if (args.data.issuedAt !== undefined) {
-            // Store the ticket ID for later use
+          // Check if relevant fields were updated
+          const relevantFieldsUpdated =
+            args.data.contraventionCode ||
+            args.data.issuer ||
+            args.data.issuerType;
+
+          // Proceed with the original update
+          const result = await query(args);
+
+          if (relevantFieldsUpdated) {
             const ticketId = args.where?.id;
 
-            // Proceed with the original update
-            const result = await query(args);
-
-            // Update related Reminders
             if (ticketId) {
-              // First, delete existing reminders
-              await client.reminder.deleteMany({
-                where: { ticketId },
-              });
-
-              // Then create new reminders based on the updated ticket
-              const updatedTicket = await client.ticket.findUnique({
-                where: { id: ticketId },
-              });
-
-              if (updatedTicket) {
-                const reminders = generateReminders({
-                  id: updatedTicket.id,
-                  issuedAt: updatedTicket.issuedAt,
-                });
-
-                if (reminders.length > 0) {
-                  await client.reminder.createMany({
-                    data: reminders,
-                  });
-                }
-              }
-            }
-
-            // Check if relevant fields were updated
-            const relevantFieldsUpdated =
-              args.data.contraventionCode ||
-              args.data.issuer ||
-              args.data.issuerType;
-
-            if (relevantFieldsUpdated) {
               // TODO: Implement ML-based prediction using historical appeals data
               // For now, just update the lastUpdated timestamp
               await client.prediction.update({
@@ -172,12 +81,9 @@ const prismaClientSingleton = () => {
                 },
               });
             }
-
-            return result;
           }
 
-          // If issuedAt is not being updated, proceed normally
-          return query(args);
+          return result;
         },
 
         async delete({ args, query }) {
