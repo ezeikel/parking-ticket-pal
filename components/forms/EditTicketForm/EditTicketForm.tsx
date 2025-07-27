@@ -41,6 +41,7 @@ import { faCalendar, faSpinnerThird } from '@fortawesome/pro-regular-svg-icons';
 import { toast } from 'sonner';
 import AddressInput from '@/components/forms/inputs/AddressInput/AddressInput';
 import { useRouter } from 'next/navigation';
+import { createLocalDateFromUTC } from '@/utils/createUTCDate';
 
 type EditTicketFormProps = {
   ticket: TicketWithRelations;
@@ -55,7 +56,11 @@ const EditTicketForm = ({ ticket }: EditTicketFormProps) => {
     defaultValues: {
       vehicleReg: ticket.vehicle.registrationNumber,
       pcnNumber: ticket.pcnNumber,
-      issuedAt: new Date(ticket.issuedAt),
+      issuedAt: createLocalDateFromUTC(
+        typeof ticket.issuedAt === 'string'
+          ? ticket.issuedAt
+          : ticket.issuedAt.toISOString(),
+      ),
       contraventionCode: ticket.contraventionCode,
       initialAmount: ticket.initialAmount,
       issuer: ticket.issuer,

@@ -10,6 +10,22 @@ import {
 } from 'date-fns';
 
 /**
+ * Format a date string preserving the calendar date regardless of timezone
+ * This ensures July 13th always displays as "13 July yyyy" regardless of BST/GMT
+ */
+export const formatDateStringUTC = (dateString: string): string => {
+  const date = parseISO(dateString);
+  // Extract the UTC date components to preserve calendar date
+  const year = date.getUTCFullYear();
+  const month = date.getUTCMonth();
+  const day = date.getUTCDate();
+
+  // Create a local date with the same calendar components
+  const localDate = new Date(year, month, day);
+  return format(localDate, 'dd MMMM yyyy');
+};
+
+/**
  * Calculate the standard payment due date (28 days after issue date)
  */
 export const calculateDueDate = (issueDate: Date): Date =>
@@ -38,13 +54,13 @@ export const getDueDateStatus = (dueDate: Date) => {
       daysMessage: 'Today',
       color: 'amber',
     };
-  } else if (isBefore(dueDate, today)) {
+  } if (isBefore(dueDate, today)) {
     return {
       status: 'past',
       daysMessage,
       color: 'red',
     };
-  } else if (
+  } if (
     isBefore(today, dueDate) &&
     isAfter(today, addDays(dueDate, -nearFutureDaysThreshold))
   ) {
@@ -53,13 +69,13 @@ export const getDueDateStatus = (dueDate: Date) => {
       daysMessage,
       color: 'amber',
     };
-  } else {
+  } 
     return {
       status: 'future',
       daysMessage,
       color: 'green',
     };
-  }
+  
 };
 
 /**
@@ -69,7 +85,7 @@ export const getDueDateStatus = (dueDate: Date) => {
  */
 export const formatDateWithDueStatus = (dateString: string) => {
   const date = parseISO(dateString);
-  const formattedDate = formatDateString(date);
+  const formattedDate = formatDateStringUTC(dateString); // use timezone-safe formatting
   const dueDate = calculateDueDate(date);
   const dueDateFormatted = formatDateString(dueDate);
   const status = getDueDateStatus(dueDate);
@@ -114,7 +130,7 @@ export const calculateAmountDue = (
           : 'Last day for discount price',
       status: 'discount',
     };
-  } else if (daysSinceIssue <= standardPeriodDays) {
+  } if (daysSinceIssue <= standardPeriodDays) {
     // Standard full charge period
     return {
       amount: initialAmount * 2,
@@ -123,7 +139,7 @@ export const calculateAmountDue = (
       message: 'Standard charge (discount expired)',
       status: 'standard',
     };
-  } else {
+  } 
     // Beyond standard period - could escalate further
     return {
       amount: initialAmount * 2,
@@ -132,5 +148,5 @@ export const calculateAmountDue = (
       message: 'May be subject to further penalties',
       status: 'overdue',
     };
-  }
+  
 };
