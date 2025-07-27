@@ -6,7 +6,7 @@ import ReminderEmail from '@/components/emails/ReminderEmail';
 import { db } from '@/lib/prisma';
 import twilio from 'twilio';
 import { ReminderType, NotificationType, Prisma } from '@prisma/client';
-import { addDays, isAfter } from 'date-fns';
+import { addDays, isAfter, isSameDay } from 'date-fns';
 
 const resend = new Resend(process.env.RESEND_API_KEY!);
 const twilioClient = twilio(
@@ -22,9 +22,21 @@ export const generateReminders = async (ticket: {
   const baseDate = new Date(ticket.issuedAt);
   const now = new Date();
 
-  // check if reminder dates are in the future
-  const is14DaysInFuture = isAfter(addDays(baseDate, 14), now);
-  const is28DaysInFuture = isAfter(addDays(baseDate, 28), now);
+  // DEBUG:
+  console.log('baseDate', baseDate.toISOString());
+  console.log('now', now.toISOString());
+
+  // check if reminder dates are in the future or today
+  const is14DaysInFuture =
+    isAfter(addDays(baseDate, 14), now) ||
+    isSameDay(addDays(baseDate, 14), now);
+  const is28DaysInFuture =
+    isAfter(addDays(baseDate, 28), now) ||
+    isSameDay(addDays(baseDate, 28), now);
+
+  // DEBUG:
+  console.log('is14DaysInFuture', is14DaysInFuture);
+  console.log('is28DaysInFuture', is28DaysInFuture);
 
   const reminders: Prisma.ReminderCreateManyInput[] = [];
   const notificationTypes = Object.values(NotificationType);

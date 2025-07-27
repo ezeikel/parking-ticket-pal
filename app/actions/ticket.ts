@@ -209,12 +209,12 @@ export const updateTicket = async (
   after(async () => {
     if (issuedAtChanged) {
       try {
-        // Delete existing reminders
+        // delete existing reminders
         await db.reminder.deleteMany({
           where: { ticketId: id },
         });
 
-        // Generate new reminders with updated issuedAt
+        // generate new reminders with updated issuedAt
         await generateReminders({
           id,
           issuedAt: values.issuedAt,
