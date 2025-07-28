@@ -101,9 +101,13 @@ export const createCheckoutSession = async (
   //   cancel_url: `${origin}/account/billing`,
   //   client_reference_id: userId,
 
-  //   // send stripe customer id if user already exists in stripe
-  //   customer: user.stripeCustomerId ?? undefined,
-  //   customer_email: user.stripeCustomerId ? undefined : user.email,
+  //   // conditionally set customer parameters - use existing customer OR create new one
+  //   ...(user.stripeCustomerId
+  //     ? { customer: user.stripeCustomerId }
+  //     : {
+  //         customer_creation: 'always',
+  //         customer_email: user.email,
+  //       }),
   // });
 
   // await track(TRACKING_EVENTS.CHECKOUT_SESSION_CREATED, {
@@ -286,7 +290,6 @@ export const createTicketCheckoutSession = async (
       },
     ],
     mode: 'payment',
-    customer_creation: 'always',
     success_url: `${origin}/tickets/${ticketId}?success=true`,
     cancel_url: `${origin}/tickets/${ticketId}?cancelled=true`,
     client_reference_id: userId,
@@ -298,9 +301,13 @@ export const createTicketCheckoutSession = async (
       userId,
     },
 
-    // use existing customer if available, otherwise create new one
-    customer: user.stripeCustomerId ?? undefined,
-    customer_email: user.stripeCustomerId ? undefined : user.email,
+    // conditionally set customer parameters - use existing customer OR create new one
+    ...(user.stripeCustomerId
+      ? { customer: user.stripeCustomerId }
+      : {
+          customer_creation: 'always',
+          customer_email: user.email,
+        }),
   };
 
   const userRole = await getUserRole();
@@ -370,9 +377,13 @@ export const createSubscriptionCheckoutSession = async (
       userId,
     },
 
-    // Use existing customer if available
-    customer: user.stripeCustomerId ?? undefined,
-    customer_email: user.stripeCustomerId ? undefined : user.email,
+    // conditionally set customer parameters - use existing customer OR create new one
+    ...(user.stripeCustomerId
+      ? { customer: user.stripeCustomerId }
+      : {
+          customer_creation: 'always',
+          customer_email: user.email,
+        }),
   });
 
   return {
