@@ -20,7 +20,7 @@ export const middleware = async (req: NextRequest) => {
     pathname.startsWith('/_next/static') ||
     pathname.startsWith('/_next/image') ||
     pathname === '/favicon.ico' ||
-    pathname === '/monitoring' ||
+    pathname === '/monitoring' || // Sentry proxy route
     pathname.startsWith('/relay-hyx5') // PostHog proxy route
   ) {
     return NextResponse.next();

@@ -134,7 +134,7 @@ export const sendReminder = async (reminderId: string) => {
       });
     }
 
-    // text message
+    // sms
     if (
       reminder.notificationType === NotificationType.SMS &&
       user.phoneNumber
@@ -146,13 +146,8 @@ export const sendReminder = async (reminderId: string) => {
         to: user.phoneNumber,
         body: text,
       });
-    }
-
-    // skip SMS reminders if user has no phone number (don't treat as error)
-    if (
-      reminder.notificationType === NotificationType.SMS &&
-      !user.phoneNumber
-    ) {
+    } else {
+      // TODO: skip SMS reminders if user has no phone number (don't treat as error)
       console.log(
         `Skipping SMS reminder ${reminderId} - user has no phone number`,
       );
