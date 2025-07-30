@@ -353,7 +353,6 @@ enum ReminderType {
 enum NotificationType {
   EMAIL
   SMS
-  ALL
 }
 
 enum TransactionType {
