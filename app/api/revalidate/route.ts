@@ -1,7 +1,8 @@
+/* eslint-disable import/prefer-default-export */
 import { revalidateTag } from 'next/cache';
 import { type NextRequest, NextResponse } from 'next/server';
 
-const revalidateRoute = async (request: NextRequest) => {
+export const GET = async (request: NextRequest) => {
   const authHeader = request.headers.get('authorization');
   if (
     process.env.CRON_SECRET &&
@@ -15,5 +16,3 @@ const revalidateRoute = async (request: NextRequest) => {
 
   return NextResponse.json({ revalidated: true, now: Date.now() });
 };
-
-export default revalidateRoute;

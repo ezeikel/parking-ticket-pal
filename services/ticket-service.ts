@@ -36,7 +36,7 @@ const updateTicketPrediction = async (ticketId: string) => {
 /**
  * Creates an initial prediction for a new ticket
  */
-const createTicketPrediction = async (ticketId: string, ticket: Ticket) => {
+const createTicketPrediction = async (ticketId: string) => {
   try {
     // TODO: Implement ML-based prediction using historical appeals data
     await db.prediction.create({
@@ -60,7 +60,7 @@ const createTicketPrediction = async (ticketId: string, ticket: Ticket) => {
  * Handles post-creation tasks for a new ticket (creates prediction)
  */
 export const afterTicketCreation = async (ticket: Ticket) => {
-  await createTicketPrediction(ticket.id, ticket);
+  await createTicketPrediction(ticket.id);
   return ticket;
 };
 
