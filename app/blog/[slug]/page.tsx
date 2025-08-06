@@ -10,6 +10,8 @@ import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { PLACEHOLDER_AVATAR_IMAGE, PLACEHOLDER_BLOG_IMAGE } from '@/constants';
 
+export const revalidate = 3600; // revalidate every hour
+
 export const generateStaticParams = async () => {
   const posts = getAllPosts();
   return posts.map((post) => ({
