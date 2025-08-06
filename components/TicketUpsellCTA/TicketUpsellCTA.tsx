@@ -34,7 +34,6 @@ const TicketUpsellCTA = ({ ticket, successRate }: TicketUpsellCTAProps) => {
       ?.scrollIntoView({ behavior: 'smooth' });
   };
 
-  // TODO: update once enums are updated
   const messages: Record<TicketTier, string> = {
     [TicketTier.FREE]:
       'Track your ticket for free — upgrade to get reminders or challenge it and save.',
@@ -44,10 +43,50 @@ const TicketUpsellCTA = ({ ticket, successRate }: TicketUpsellCTAProps) => {
       'You have full access. Challenge this ticket and save money.',
   };
 
+  const renderUserControls = () => {
+    switch (ticket.tier) {
+      case TicketTier.FREE:
+        return (
+          <div className="flex items-center gap-2">
+            <Button
+              className="cursor-pointer"
+              size="sm"
+              onClick={() => handleCheckout(TicketTier.STANDARD)}
+            >
+              Get Reminders (£2.99)
+            </Button>
+            <Button
+              className="cursor-pointer"
+              variant="secondary"
+              size="sm"
+              onClick={() => handleCheckout(TicketTier.PREMIUM)}
+            >
+              Challenge Ticket (£9.99)
+            </Button>
+          </div>
+        );
+      case TicketTier.STANDARD:
+        return (
+          <Button size="sm" onClick={() => handleCheckout(TicketTier.PREMIUM)}>
+            Upgrade to Challenge (£7.00)
+          </Button>
+        );
+      case TicketTier.PREMIUM:
+        return (
+          <Button size="sm" onClick={handleScrollToChallenge}>
+            Challenge Now
+            <FontAwesomeIcon icon={faArrowRight} className="ml-2" size="sm" />
+          </Button>
+        );
+      default:
+        return null;
+    }
+  };
+
   return (
     <div className="bg-gradient-to-r from-blue-50 via-white to-blue-50 dark:from-gray-800/20 dark:via-gray-900/50 dark:to-gray-800/20 border border-blue-200/50 dark:border-gray-700 rounded-xl p-4 shadow-sm">
-      <div className="flex flex-col sm:flex-row items-center justify-between gap-6 w-full">
-        <div className="flex items-center gap-4 text-left flex-1">
+      <div className="flex flex-col lg:flex-row items-center justify-between gap-6">
+        <div className="flex items-center gap-4 text-left">
           <div className="flex-shrink-0">
             <FontAwesomeIcon
               icon={faScaleUnbalanced}
@@ -56,50 +95,18 @@ const TicketUpsellCTA = ({ ticket, successRate }: TicketUpsellCTAProps) => {
             />
           </div>
           <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
-            {messages[ticket.tier as keyof typeof messages]}
+            {messages[ticket.tier]}
           </p>
         </div>
 
-        <div className="flex-shrink-0">
+        <div className="flex flex-col sm:flex-row items-center gap-6">
           <ChallengeStats
+            tier={ticket.tier}
             successRate={successRate}
             potentialSavings={formatCurrency(ticket.initialAmount / 2)}
-            tier={ticket.tier}
+            onUnlock={() => handleCheckout(TicketTier.PREMIUM)}
           />
-        </div>
-        <div className="flex gap-2 flex-shrink-0">
-          {ticket.tier === TicketTier.FREE && (
-            <>
-              <Button
-                size="sm"
-                onClick={() => handleCheckout(TicketTier.STANDARD)}
-              >
-                Get Reminders (£2.99)
-              </Button>
-              <Button
-                variant="secondary"
-                size="sm"
-                onClick={() => handleCheckout(TicketTier.PREMIUM)}
-                className="border border-gray-300 dark:border-gray-700"
-              >
-                Challenge Ticket (£9.99)
-              </Button>
-            </>
-          )}
-          {ticket.tier === TicketTier.STANDARD && (
-            <Button
-              size="sm"
-              onClick={() => handleCheckout(TicketTier.PREMIUM)}
-            >
-              Upgrade to Challenge (£7.00)
-            </Button>
-          )}
-          {ticket.tier === TicketTier.PREMIUM && (
-            <Button size="sm" onClick={handleScrollToChallenge}>
-              Challenge Now
-              <FontAwesomeIcon icon={faArrowRight} size="lg" className="ml-2" />
-            </Button>
-          )}
+          {renderUserControls()}
         </div>
       </div>
     </div>
