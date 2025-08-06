@@ -26,6 +26,10 @@ import { track } from '@/utils/analytics-server';
 import { TRACKING_EVENTS } from '@/constants/events';
 import { getUserId } from '@/utils/user';
 import { refresh } from '@/app/actions';
+import {
+  afterTicketCreation,
+  afterTicketUpdate,
+} from '@/services/ticket-service';
 
 export const createTicket = async (
   values: z.infer<typeof ticketFormSchema> & {
@@ -169,6 +173,9 @@ export const createTicket = async (
       prefilled: !!ticket.extractedText,
     });
 
+    // handle post-creation tasks e.g create prediction
+    await afterTicketCreation(ticket);
+
     return ticket;
   } catch (error) {
     console.error('Stack trace:', (error as Error).stack);
@@ -273,6 +280,13 @@ export const updateTicket = async (
         },
       },
     });
+
+    // update prediction if relevant fields changed
+    const relevantFieldsUpdated = !!(values.contraventionCode || values.issuer);
+
+    if (relevantFieldsUpdated) {
+      await afterTicketUpdate(id);
+    }
 
     return ticket;
   } catch (error) {

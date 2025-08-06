@@ -8,6 +8,7 @@ import { db } from '@/lib/prisma';
 import { TRACKING_EVENTS } from '@/constants/events';
 import { getUserId } from '@/utils/user';
 import type { VehicleInfo } from '@/utils/getVehicleInfo';
+import { afterVehicleUpdate } from '@/services/vehicle-service';
 
 export const createVehicle = async (
   _prevState: { success: boolean; error?: string; data?: any } | null,
@@ -137,13 +138,26 @@ export const updateVehicle = async (
   }
 
   try {
+    // Get current vehicle data before update to compare registration number
+    const currentVehicle = await db.vehicle.findUnique({
+      where: { id, userId },
+      select: { registrationNumber: true },
+    });
+
+    if (!currentVehicle) {
+      return { success: false, error: 'Vehicle not found' };
+    }
+
+    const oldRegistrationNumber = currentVehicle.registrationNumber;
+    const newRegistrationNumber = registrationNumber.toUpperCase();
+
     const vehicle = await db.vehicle.update({
       where: {
         id,
         userId,
       },
       data: {
-        registrationNumber: registrationNumber.toUpperCase(),
+        registrationNumber: newRegistrationNumber,
         make,
         model,
         year: parseInt(year, 10),
@@ -151,6 +165,13 @@ export const updateVehicle = async (
         notes: notes || '',
       },
     });
+
+    // handle post-update tasks e.g re-verification if registration changed
+    await afterVehicleUpdate(
+      vehicle.id,
+      oldRegistrationNumber,
+      newRegistrationNumber,
+    );
 
     await track(TRACKING_EVENTS.VEHICLE_UPDATED, {
       vehicleId: vehicle.id,
