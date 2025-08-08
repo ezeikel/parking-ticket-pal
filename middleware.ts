@@ -39,7 +39,10 @@ export const middleware = async (req: NextRequest) => {
     }
 
     // skip JWT processing for blog generation route (uses CRON_SECRET)
-    if (pathname === '/api/blog/generate') {
+    if (
+      pathname === '/api/blog/generate' ||
+      pathname === '/api/cron/generate-blog'
+    ) {
       return NextResponse.next();
     }
 
