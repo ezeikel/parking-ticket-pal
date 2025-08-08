@@ -1,3 +1,4 @@
+import React from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { TicketType, TicketStatus, IssuerType } from '@prisma/client';
 import { IconProp } from '@fortawesome/fontawesome-svg-core';
@@ -14,6 +15,7 @@ export * from './prompts';
 export * from './loadingMessages';
 export * from './timelines';
 export * from './stripe';
+export * from './blog';
 
 export const PRIVATE_COMPANY_IDS = ['horizon', 'parkingEye'] as const;
 
@@ -1100,13 +1102,23 @@ export const CONTRAVENTION_CODES_OPTIONS: ReadonlyArray<{
   return options;
 });
 
-export const CHATGPT_MODEL = 'gpt-4o';
+export const OPENAI_MODEL_GPT_4O = 'gpt-4o';
+export const OPENAI_MODEL_GPT_IMAGE = 'gpt-image-1';
+
+export const OPENAI_MODEL_GPT_IMAGE_OPTIONS = {
+  model: OPENAI_MODEL_GPT_IMAGE,
+  size: '1024x1024',
+  quality: 'high',
+} as const;
 
 export const STRIPE_API_VERSION = '2025-06-30.basil';
 
 export const USER_SIGNATURE_PATH = 'users/%s/profile/signature.svg';
 
 export const STORAGE_PATHS = {
+  // Blog posts (public content)
+  BLOG_POST: 'blog/%s.mdx', // blog/{slug}.mdx
+
   // Temporary uploads (auto-cleanup after 48 hours)
   TEMP_UPLOAD: 'temp/%s/%s.%s', // temp/{userId}/{timestamp}.{extension}
 
@@ -1181,8 +1193,3 @@ export const SOCIAL_LINKS = [
   //   icon: faWhatsapp,
   // }
 ];
-
-export const PLACEHOLDER_AVATAR_IMAGE =
-  '/images/blog/pexels-cottonbro-5378700.jpg';
-export const PLACEHOLDER_BLOG_IMAGE =
-  '/images/blog/close-up-of-female-motorist-looking-at-parking-ticket.webp';

@@ -148,6 +148,21 @@ Flexible pricing tiers with Stripe integration:
 - **Usage Tracking**: Challenge credits and limits
 - **Automatic Billing**: Seamless subscription management
 
+### 📝 Automated Blog Generation
+
+AI-powered content generation system for SEO optimization:
+
+- **Dynamic Topic Generation**: OpenAI generates content for any UK
+  parking/traffic topic
+- **AI Image Generation**: OpenAI image generation creates photo-realistic,
+  relevant images
+- **Vercel Blob Storage**: Persistent content storage across deployments
+- **Scheduled Publishing**: Automated cron jobs (Tuesday, Thursday, Saturday)
+- **Manual Generation**: On-demand blog post creation via API
+- **SEO Optimized**: Engaging titles, structured content, proper meta tags
+- **Open Graph Images**: Dynamic social sharing images using Next.js
+  ImageResponse
+
 ## Development
 
 ### Project Structure
@@ -420,9 +435,154 @@ pnpm prisma:seed      # Seed database
 pnpm test             # Run tests
 pnpm test:watch       # Run tests in watch mode
 
+# Blog Generation
+pnpm test-blog-gen    # Test automated blog generation
+pnpm test-manual-blog # Test manual blog generation API
+
 # Utilities
 pnpm lint             # ESLint
 pnpm type-check       # TypeScript checking
+```
+
+## Blog Automation System
+
+The platform includes a sophisticated automated blog generation system for SEO
+optimization and content marketing.
+
+### Features
+
+- **Dynamic Topic Generation**: AI generates high-quality content for any UK
+  parking/traffic topic
+- **AI Image Generation**: OpenAI image generation creates engaging,
+  photo-realistic images relevant to each post
+- **Persistent Storage**: Vercel Blob storage ensures content survives
+  deployments
+- **Automated Scheduling**: Cron jobs run 3 times per week (Tuesday, Thursday,
+  Saturday at 9 AM UTC)
+- **Manual Generation**: On-demand API endpoint for custom topic generation
+- **SEO Optimization**: Structured content with proper meta tags and Open Graph
+  images
+- **Diverse Authors**: 20 diverse author profiles with varied expertise and
+  backgrounds
+
+### Architecture
+
+```
+app/actions/blog.ts           # Blog generation server actions
+app/api/cron/generate-blog/   # Automated cron job endpoint
+app/api/blog/generate/        # Manual generation endpoint
+app/blog/[slug]/              # Blog post pages with dynamic OG images
+├── opengraph-image.tsx       # Dynamic Open Graph images
+├── twitter-image.tsx         # Dynamic Twitter Card images
+└── page.tsx                  # Blog post rendering
+
+constants/blog.ts             # Blog topics, tags, and author profiles
+constants/prompts.ts          # OpenAI prompts for content generation
+vercel.json                   # Cron job configuration
+```
+
+### Environment Variables
+
+Add to your `.env.local` for blog generation:
+
+```bash
+# Required for blog generation
+OPENAI_API_KEY="your-openai-api-key"
+
+# Required for cron job security
+CRON_SECRET="your-secure-random-string"
+
+# Vercel Blob Storage (for persistent content)
+BLOB_READ_WRITE_TOKEN="your-vercel-blob-token"
+```
+
+### Usage
+
+#### Automated Generation
+
+The system automatically generates blog posts 3 times per week via Vercel cron
+jobs:
+
+```json
+{
+  "crons": [
+    {
+      "path": "/api/cron/generate-blog",
+      "schedule": "0 9 * * 2,4,6"
+    }
+  ]
+}
+```
+
+#### Manual Generation
+
+Generate posts on-demand via API:
+
+```bash
+# Generate a post for a specific topic
+curl -X POST https://your-domain.com/api/blog/generate \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_CRON_SECRET" \
+  -d '{
+    "topic": "box junctions",
+    "date": "2024-01-15"
+  }'
+
+# Generate with current date
+curl -X POST https://your-domain.com/api/blog/generate \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_CRON_SECRET" \
+  -d '{
+    "topic": "Westminster parking enforcement"
+  }'
+```
+
+#### Local Testing
+
+Test the system locally:
+
+```bash
+# Test automated generation
+pnpm test-blog-gen
+
+# Test manual generation API
+pnpm test-manual-blog
+```
+
+### Content Quality
+
+Generated blog posts include:
+
+- **Engaging Titles**: AI-optimized titles with viral potential
+- **UK-Specific Content**: Proper terminology, laws, and council references
+- **Structured Format**: Clear headings, bullet points, and actionable advice
+- **SEO Optimization**: Relevant tags from predefined vocabulary
+- **Reading Time**: Calculated dynamically, typically 6-8 minutes
+- **Custom Images**: AI-generated, photo-realistic images for each post
+- **Diverse Authors**: Random selection from 20 diverse professional profiles
+
+### Topic Coverage
+
+The system can generate content for any UK parking/traffic topic, including:
+
+- **Contravention Codes**: PCN codes, violations, and penalties
+- **Council Guides**: Authority-specific parking enforcement
+- **Forms & Appeals**: PE3, TE9, TE7 form guides and processes
+- **Legal Advice**: Bailiffs, Traffic Enforcement Centre, appeals
+- **TfL & London**: Bus lanes, ULEZ, congestion charge
+- **Seasonal Content**: Christmas parking, holiday restrictions
+
+### Monitoring
+
+Track system performance:
+
+```bash
+# Check generation stats
+curl https://your-domain.com/api/cron/generate-blog
+
+# View cron job logs in Vercel dashboard
+# Monitor blob storage usage
+# Track blog page analytics
 ```
 
 ## Support

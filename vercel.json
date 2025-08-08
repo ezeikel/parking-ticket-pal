@@ -9,8 +9,12 @@
       "schedule": "0 9 * * *"
     },
     {
+      "path": "/api/cron/generate-blog",
+      "schedule": "0 9 * * 2,4,6"
+    },
+    {
       "path": "/api/revalidate?tag=blog",
-      "schedule": "0 0 * * *"
+      "schedule": "0 12 * * *"
     }
   ]
 }

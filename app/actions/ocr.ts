@@ -7,7 +7,7 @@ import vision from '@google-cloud/vision';
 import { getUserId } from '@/utils/user';
 import createUTCDate from '@/utils/createUTCDate';
 import {
-  CHATGPT_MODEL,
+  OPENAI_MODEL_GPT_4O,
   IMAGE_ANALYSIS_PROMPT,
   STORAGE_PATHS,
 } from '@/constants';
@@ -115,7 +115,7 @@ export const extractOCRTextWithOpenAI = async (
 
   // send the image URL and OCR text to OpenAI for analysis
   const response = await openai.chat.completions.create({
-    model: CHATGPT_MODEL,
+    model: OPENAI_MODEL_GPT_4O,
     messages: [
       {
         role: 'system',
@@ -392,7 +392,7 @@ export const extractOCRTextWithVision = async (
 
   // send the Google Vision OCR text to OpenAI for structured analysis
   const response = await openai.chat.completions.create({
-    model: CHATGPT_MODEL,
+    model: OPENAI_MODEL_GPT_4O,
     messages: [
       {
         role: 'system',

@@ -2,7 +2,7 @@ import openai from '@/lib/openai';
 import {
   CHALLENGE_WRITER_PROMPT,
   CHALLENGE_LETTER_PROMPT,
-  CHATGPT_MODEL,
+  OPENAI_MODEL_GPT_4O,
 } from '@/constants';
 import { zodResponseFormat } from 'openai/helpers/zod';
 import { ChallengeLetterSchema } from '@/types';
@@ -133,7 +133,7 @@ const generateChallengeContent = async ({
 
     try {
       const completion = await openai.chat.completions.create({
-        model: CHATGPT_MODEL,
+        model: OPENAI_MODEL_GPT_4O,
         messages,
         temperature: 0.7,
         max_tokens: 1000,
@@ -151,7 +151,7 @@ const generateChallengeContent = async ({
     }
 
     const letterResponse = await openai.chat.completions.create({
-      model: CHATGPT_MODEL,
+      model: OPENAI_MODEL_GPT_4O,
       messages: [
         {
           role: 'system',

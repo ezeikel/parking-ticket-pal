@@ -31,7 +31,7 @@ import { getUserId } from '@/utils/user';
 import openai from '@/lib/openai';
 import { zodResponseFormat } from 'openai/helpers/zod';
 import {
-  CHATGPT_MODEL,
+  OPENAI_MODEL_GPT_4O,
   CONTRAVENTION_CODES,
   STORAGE_PATHS,
   CHALLENGE_EMAIL_PROMPT,
@@ -461,7 +461,7 @@ export const generateChallengeLetter = async (
 
     // generate email using structured output
     const emailResponse = await openai.chat.completions.create({
-      model: CHATGPT_MODEL,
+      model: OPENAI_MODEL_GPT_4O,
       messages: [
         {
           role: 'system',

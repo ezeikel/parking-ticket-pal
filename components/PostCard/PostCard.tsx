@@ -4,7 +4,7 @@ import type { Post } from '@/types';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { cn } from '@/lib/utils';
-import { PLACEHOLDER_AVATAR_IMAGE } from '@/constants';
+import { PLACEHOLDER_AVATAR_IMAGE, PLACEHOLDER_BLOG_IMAGE } from '@/constants';
 
 type PostCardProps = {
   post: Post;
@@ -24,10 +24,7 @@ const PostCard = ({ post, className }: PostCardProps) => {
     >
       <div className="relative aspect-[16/9] w-full overflow-hidden">
         <Image
-          src={
-            meta.image ||
-            'https://media.istockphoto.com/id/1049728354/photo/close-up-of-female-motorist-looking-at-parking-ticket.jpg?s=2048x2048&w=is&k=20&c=kSGNaHfcAvibAtPtIEoFqhYXo7r75gUiYmECEgUXCzI='
-          }
+          src={meta.image || PLACEHOLDER_BLOG_IMAGE}
           alt={meta.title}
           fill
           className="object-cover transition-transform duration-300 group-hover:scale-105"

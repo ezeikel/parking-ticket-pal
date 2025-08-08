@@ -15,6 +15,7 @@ import {
 } from '@prisma/client';
 import { z } from 'zod';
 import { TRACKING_EVENTS } from './constants/events';
+import { BLOG_TAGS } from './constants/blog';
 
 export type FileWithPreview = File & {
   preview: string;
@@ -471,3 +472,41 @@ export type Post = {
   content: string;
   readingTime: string;
 };
+
+/**
+ * Zod schema for blog post metadata generation
+ */
+export const BlogPostMetaSchema = z.object({
+  title: z
+    .string()
+    .describe(
+      'Engaging, SEO-optimized title with viral potential for UK audience',
+    ),
+  summary: z
+    .string()
+    .describe(
+      'Brief, compelling summary that describes what readers will learn',
+    ),
+  tags: z
+    .array(z.enum(BLOG_TAGS as [string, ...string[]]))
+    .max(5)
+    .describe(
+      '3-5 most relevant tags from the predefined list that best match this topic',
+    ),
+  category: z
+    .enum([
+      'contravention-codes',
+      'council-guides',
+      'enforcement',
+      'appeals',
+      'forms',
+      'tfl',
+      'bailiffs',
+      'case-studies',
+      'legal-advice',
+      'general',
+    ])
+    .describe('Most appropriate category for this topic'),
+});
+
+export type BlogPostMeta = z.infer<typeof BlogPostMetaSchema>;

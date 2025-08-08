@@ -1,10 +1,10 @@
-import { getAllPosts } from '@/lib/blog';
+import { getAllPosts } from '@/app/actions/blog';
 import BlogPostGrid from '@/components/BlogPostGrid/BlogPostGrid';
 
 export const revalidate = 3600; // revalidate every hour
 
-const BlogIndexPage = () => {
-  const posts = getAllPosts();
+const BlogIndexPage = async () => {
+  const posts = await getAllPosts();
   const allTags = Array.from(new Set(posts.flatMap((post) => post.meta.tags)));
 
   return (

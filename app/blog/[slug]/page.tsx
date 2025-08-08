@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { MDXRemote } from 'next-mdx-remote/rsc';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faArrowLeft } from '@fortawesome/pro-regular-svg-icons';
-import { getAllPosts, getPostBySlug } from '@/lib/blog';
+import { getAllPosts, getPostBySlug } from '@/app/actions/blog';
 import MDXComponents from '@/components/MDXComponents/MDXComponents';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
@@ -13,7 +13,7 @@ import { PLACEHOLDER_AVATAR_IMAGE, PLACEHOLDER_BLOG_IMAGE } from '@/constants';
 export const revalidate = 3600; // revalidate every hour
 
 export const generateStaticParams = async () => {
-  const posts = getAllPosts();
+  const posts = await getAllPosts();
   return posts.map((post) => ({
     slug: post.meta.slug,
   }));
@@ -25,13 +25,22 @@ export const generateMetadata = async ({
   params: Promise<{ slug: string }>;
 }) => {
   const { slug } = await params;
-  const post = getPostBySlug(slug);
+  const post = await getPostBySlug(slug);
   if (!post) {
     return {};
   }
   return {
     title: `${post.meta.title} | Parking Ticket Pal`,
     description: post.meta.summary,
+    openGraph: {
+      type: 'article',
+      publishedTime: post.meta.date,
+      authors: [post.meta.author.name],
+      tags: post.meta.tags,
+    },
+    twitter: {
+      card: 'summary_large_image',
+    },
   };
 };
 
@@ -41,7 +50,7 @@ const BlogPostPage = async ({
   params: Promise<{ slug: string }>;
 }) => {
   const { slug } = await params;
-  const post = getPostBySlug(slug);
+  const post = await getPostBySlug(slug);
 
   if (!post) {
     notFound();
