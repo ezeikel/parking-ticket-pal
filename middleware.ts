@@ -38,6 +38,11 @@ export const middleware = async (req: NextRequest) => {
       return NextResponse.next();
     }
 
+    // skip JWT processing for blog generation route (uses CRON_SECRET)
+    if (pathname === '/api/blog/generate') {
+      return NextResponse.next();
+    }
+
     // check request for token in authorization header
     const token = req.headers.get('authorization')?.split(' ')[1];
 
