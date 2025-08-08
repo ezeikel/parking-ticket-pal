@@ -1,6 +1,9 @@
 import { type NextRequest, NextResponse } from 'next/server';
 import { revalidateTag } from 'next/cache';
-import { generateBlogPostForTopic } from '@/app/actions/blog';
+import {
+  generateBlogPostForTopic,
+  generateRandomBlogPost,
+} from '@/app/actions/blog';
 
 // set max duration to 3 minutes
 export const maxDuration = 180;
@@ -24,13 +27,29 @@ const handleRequest = async (request: NextRequest) => {
       );
     }
 
-    const body = await request.json();
-    const { topic, date } = body;
+    // extract parameters based on request method
+    let topic: string | undefined;
+    let date: string | undefined;
 
-    // validate topic
-    if (!topic || typeof topic !== 'string' || topic.trim().length === 0) {
+    if (request.method === 'GET') {
+      // for GET requests, extract from URL search params
+      const { searchParams } = new URL(request.url);
+      topic = searchParams.get('topic') || undefined;
+      date = searchParams.get('date') || undefined;
+    } else {
+      // for POST requests, extract from request body
+      const body = await request.json();
+      topic = body.topic;
+      date = body.date;
+    }
+
+    // validate topic if provided
+    if (
+      topic !== undefined &&
+      (typeof topic !== 'string' || topic.trim().length === 0)
+    ) {
       return NextResponse.json(
-        { error: 'topic is required and must be a non-empty string' },
+        { error: 'topic must be a non-empty string if provided' },
         { status: 400 },
       );
     }
@@ -49,11 +68,17 @@ const handleRequest = async (request: NextRequest) => {
       publishDate = new Date(); // default to today
     }
 
-    console.log(`Generating blog post for topic: ${topic}`);
+    if (topic) {
+      console.log(`Generating blog post for topic: ${topic}`);
+    } else {
+      console.log('Generating blog post for random topic');
+    }
     console.log(`Publish date: ${publishDate.toISOString().split('T')[0]}`);
 
-    // generate the blog post
-    const result = await generateBlogPostForTopic(topic, publishDate);
+    // generate the blog post - use specific topic or random
+    const result = topic
+      ? await generateBlogPostForTopic(topic, publishDate)
+      : await generateRandomBlogPost(publishDate);
 
     if (!result.success) {
       console.error('Failed to generate blog post:', result.error);
