@@ -5,6 +5,7 @@ import path from 'path';
 import matter from 'gray-matter';
 import readingTime from 'reading-time';
 import { put, list } from '@vercel/blob';
+import * as Sentry from '@sentry/nextjs';
 import {
   BLOG_CONTENT_PROMPT,
   BLOG_TOPICS,
@@ -366,6 +367,48 @@ export const generateBlogPostForTopic = async (
     await saveBlogPost(slug, frontmatter, content);
 
     console.log(`Successfully generated blog post: ${slug}`);
+
+    // automatically post to social media after successful blog generation
+    try {
+      Sentry.captureMessage(
+        `generateBlogPostForTopic: Triggering social media posting for: ${slug}`,
+      );
+
+      // get the generated post to pass to social media action
+      const generatedPost = await getPostBySlug(slug);
+      if (generatedPost) {
+        // call the social media posting server action directly
+        const { postToSocialMedia } = await import('@/app/actions/social');
+        const socialResult = await postToSocialMedia({
+          post: generatedPost,
+          platforms: ['instagram', 'facebook'],
+        });
+
+        if (socialResult.success) {
+          Sentry.captureMessage(
+            `generateBlogPostForTopic: Social media posting completed: ${JSON.stringify(socialResult.results)}`,
+          );
+          console.log(
+            `Social media posting completed for ${slug}:`,
+            socialResult.results,
+          );
+        } else {
+          Sentry.captureMessage(
+            `generateBlogPostForTopic: Social media posting failed: ${socialResult.error}`,
+          );
+          console.error(
+            `Social media posting failed for ${slug}:`,
+            socialResult.error,
+          );
+        }
+      }
+    } catch (error) {
+      // don't fail blog generation if social media posting fails
+      Sentry.captureMessage(
+        `generateBlogPostForTopic: Social media posting error (non-fatal): ${error instanceof Error ? error.message : 'Unknown error'}`,
+      );
+      console.error('Social media posting error (non-fatal):', error);
+    }
 
     return {
       slug,

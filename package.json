@@ -30,7 +30,10 @@
     "generate:pe2": "tsx utils/automation/forms/PE2.ts",
     "generate:pe3": "tsx utils/automation/forms/PE3.ts",
     "generate:blog": "tsx scripts/generate-blog.ts",
-    "generate:blog-manual": "tsx scripts/generate-blog-manual.ts"
+    "generate:blog-manual": "tsx scripts/generate-blog-manual.ts",
+    "test:social": "tsx scripts/test-social-posting.ts",
+    "check:tokens": "tsx scripts/check-meta-tokens.ts",
+    "setup:tokens": "tsx scripts/setup-meta-tokens.ts"
   },
   "lint-staged": {
     "*.{ts,tsx}": [
@@ -91,6 +94,7 @@
     "date-fns": "^4.1.0",
     "decimal.js": "10.5.0",
     "docxtemplater": "^3.60.1",
+    "dotenv": "^17.2.1",
     "embla-carousel-autoplay": "^8.6.0",
     "embla-carousel-react": "^8.6.0",
     "formik": "^2.4.6",

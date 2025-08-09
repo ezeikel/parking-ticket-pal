@@ -46,6 +46,11 @@ export const middleware = async (req: NextRequest) => {
       return NextResponse.next();
     }
 
+    // skip JWT processing for social media posting route (uses CRON_SECRET)
+    if (pathname === '/api/social/post') {
+      return NextResponse.next();
+    }
+
     // check request for token in authorization header
     const token = req.headers.get('authorization')?.split(' ')[1];
 

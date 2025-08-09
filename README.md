@@ -108,6 +108,14 @@ BLOB_READ_WRITE_TOKEN="your-vercel-blob-token"
 
 # Sentry (optional)
 SENTRY_AUTH_TOKEN="your-sentry-token"
+
+# Meta API (for social media posting)
+FACEBOOK_PAGE_ID="your-facebook-page-id"
+FACEBOOK_ACCESS_TOKEN="your-page-access-token"
+INSTAGRAM_ACCOUNT_ID="your-instagram-business-account-id"
+
+# Cron job security
+CRON_SECRET="your-secure-random-string"
 ```
 
 ## Key Features
@@ -162,6 +170,18 @@ AI-powered content generation system for SEO optimization:
 - **SEO Optimized**: Engaging titles, structured content, proper meta tags
 - **Open Graph Images**: Dynamic social sharing images using Next.js
   ImageResponse
+
+### 📱 Automated Social Media Posting
+
+Automatic social media integration for blog content:
+
+- **Multi-Platform**: Instagram and Facebook posting via Meta API
+- **Dynamic Images**: Auto-generated social media images from blog OG images
+- **AI Captions**: Platform-specific captions (short for Instagram, detailed for
+  Facebook)
+- **Automated Scheduling**: Posts automatically after blog generation
+- **Never-Expiring Tokens**: Page Access Tokens require no renewal
+- **Error Monitoring**: Sentry integration for posting failures
 
 ## Development
 
@@ -436,8 +456,13 @@ pnpm test             # Run tests
 pnpm test:watch       # Run tests in watch mode
 
 # Blog Generation
-pnpm test-blog-gen    # Test automated blog generation
-pnpm test-manual-blog # Test manual blog generation API
+pnpm generate:blog        # Generate blog post manually
+pnpm generate:blog-manual # Test manual blog generation API
+
+# Social Media
+pnpm test:social      # Test social media posting
+pnpm setup:tokens     # One-time Meta API token setup
+pnpm check:tokens     # Check Meta API token health
 
 # Utilities
 pnpm lint             # ESLint
@@ -584,6 +609,122 @@ curl https://your-domain.com/api/cron/generate-blog
 # Monitor blob storage usage
 # Track blog page analytics
 ```
+
+## Meta API Social Media Integration
+
+The platform automatically posts blog content to Instagram and Facebook using
+Meta's Graph API.
+
+### 🎯 **Key Features**
+
+✅ **Page Access Tokens NEVER expire** - perfect for automation  
+❌ **No renewal automation needed** when using Page Access Tokens  
+🔄 **Same token works for both** Facebook and Instagram  
+📊 **Automatic monitoring** with weekly health checks
+
+### 🚀 **Quick Setup**
+
+1. **One-time setup** (generates never-expiring tokens):
+
+   ```bash
+   pnpm setup:tokens
+   ```
+
+2. **Check token health** (weekly monitoring):
+
+   ```bash
+   pnpm check:tokens
+   ```
+
+3. **Test posting**:
+   ```bash
+   pnpm test:social
+   ```
+
+### 📋 **Environment Variables**
+
+Only 3 variables needed for production:
+
+```bash
+# The only token you need (works for both Facebook and Instagram)
+FACEBOOK_ACCESS_TOKEN=your_page_access_token  # Never expires!
+
+# IDs to specify which accounts to post to
+FACEBOOK_PAGE_ID=your_facebook_page_id
+INSTAGRAM_ACCOUNT_ID=your_instagram_business_account_id
+```
+
+### 🔧 **Meta App Setup**
+
+1. **Create Meta App** at
+   [developers.facebook.com](https://developers.facebook.com)
+2. **Add Products**: Instagram Basic Display + Facebook Login
+3. **Get Page Access Token** using the setup script
+4. **Connect Instagram Business Account** to your Facebook Page
+
+### 🔑 **Token Types & Expiration**
+
+| Token Type             | Expires   | Use Case                 | Renewal Needed |
+| ---------------------- | --------- | ------------------------ | -------------- |
+| **Page Access Token**  | ♾️ Never  | ✅ Production automation | ❌ No          |
+| Long-lived User Token  | 60 days   | 🔧 Setup only            | ✅ Yes         |
+| Short-lived User Token | 1-2 hours | 🔧 Setup only            | ✅ Yes         |
+
+### 🔄 **How It Works**
+
+1. **Blog Generation** creates a new post
+2. **Social Media Action** automatically triggers
+3. **Images Generated** from blog OG images (Instagram: 1080x1080, Facebook:
+   1200x630)
+4. **AI Captions** created for each platform:
+   - Instagram: Short with hashtags + "Link in bio"
+   - Facebook: Detailed with full blog URL
+5. **Posts Published** to both platforms
+6. **Temporary Images** automatically cleaned up
+
+### 📊 **Monitoring & Alerts**
+
+The system automatically monitors token health:
+
+- **Weekly cron job** checks token validity (Mondays at 8 AM)
+- **Sentry alerts** for token issues
+- **Console warnings** for manual runs
+- **API endpoint** for programmatic checks
+
+```bash
+# Check token status
+curl -H "Authorization: Bearer YOUR_ADMIN_SECRET" \
+  https://your-domain.com/api/admin/tokens
+```
+
+### 🚨 **Troubleshooting**
+
+**Token Invalid Error**:
+
+```bash
+pnpm check:tokens  # See what's wrong
+pnpm setup:tokens  # Regenerate if needed
+```
+
+**Instagram Posting Fails**:
+
+- Verify Instagram is connected to Facebook Page
+- Check Instagram account is Business (not Personal)
+- Confirm `INSTAGRAM_ACCOUNT_ID` is correct
+
+**Facebook Posting Fails**:
+
+- Verify you're admin of the Facebook Page
+- Check `FACEBOOK_PAGE_ID` is correct
+- Ensure page is published (not in draft)
+
+### 🎉 **Benefits**
+
+1. **Set once, forget forever** - Page tokens never expire
+2. **No renewal automation** - Unlike other APIs
+3. **Unified token** - Same token for Facebook + Instagram
+4. **Automatic monitoring** - Get alerted if issues arise
+5. **Easy troubleshooting** - Clear scripts and documentation
 
 ## Support
 
