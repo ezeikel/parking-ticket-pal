@@ -10,7 +10,7 @@ export const maxDuration = 180;
 
 const handleRequest = async (request: NextRequest) => {
   try {
-    // verify authentication (you might want to add proper auth here)
+    // verify authentication
     const authHeader = request.headers.get('authorization');
     if (
       process.env.CRON_SECRET &&
