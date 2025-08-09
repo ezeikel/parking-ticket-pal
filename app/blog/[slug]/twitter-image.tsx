@@ -49,7 +49,11 @@ export default async function Image({
       (
         <div
           style={{
-            background: 'linear-gradient(135deg, #1DA1F2 0%, #0d8bd9 100%)',
+            background: post.meta.image
+              ? `url(${post.meta.image})`
+              : 'linear-gradient(135deg, #1DA1F2 0%, #0d8bd9 100%)',
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
             width: '100%',
             height: '100%',
             display: 'flex',
@@ -61,7 +65,7 @@ export default async function Image({
             position: 'relative',
           }}
         >
-          {/* Background overlay */}
+          {/* Background overlay - darker when using image for better text readability */}
           <div
             style={{
               position: 'absolute',
@@ -69,7 +73,9 @@ export default async function Image({
               left: 0,
               right: 0,
               bottom: 0,
-              background: 'rgba(0, 0, 0, 0.3)',
+              background: post.meta.image
+                ? 'rgba(0, 0, 0, 0.6)'
+                : 'rgba(0, 0, 0, 0.3)',
               display: 'flex',
             }}
           />

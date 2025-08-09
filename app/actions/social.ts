@@ -181,6 +181,8 @@ Create an engaging Facebook post that:
 - Is longer than Instagram (200-300 words is fine)
 - Uses UK terminology and context
 - Focuses on helping people understand their rights
+- Uses PLAIN TEXT ONLY - NO markdown formatting (no **bold**, no *italic*, no # headers)
+- Use CAPS, line breaks, and emojis for emphasis instead of markdown
 
 The post should provide real value while encouraging clicks to read more.`;
 
