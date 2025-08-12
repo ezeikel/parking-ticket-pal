@@ -5,7 +5,7 @@
 import * as Sentry from '@sentry/nextjs';
 import { put, del } from '@vercel/blob';
 import sharp from 'sharp';
-import { type Post } from '@/types';
+import { PostPlatform, type Post } from '@/types';
 import openai from '@/lib/openai';
 import { OPENAI_MODEL_GPT_4O } from '@/constants';
 
@@ -45,6 +45,46 @@ const generateInstagramImage = async (post: Post): Promise<Buffer> => {
     return instagramBuffer;
   } catch (error) {
     console.error('Error generating Instagram image:', error);
+    throw error;
+  }
+};
+
+/**
+ * Generate LinkedIn image by using the existing OG image
+ */
+const generateLinkedInImage = async (post: Post): Promise<Buffer> => {
+  try {
+    // use the existing OG image endpoint to generate the image
+    const baseUrl =
+      process.env.NEXT_PUBLIC_BASE_URL ||
+      process.env.VERCEL_URL ||
+      'http://localhost:3000';
+    const ogImageUrl = `${baseUrl}/blog/${post.meta.slug}/opengraph-image`;
+
+    // fetch the OG image
+    const response = await fetch(ogImageUrl);
+    if (!response.ok) {
+      throw new Error(`Failed to fetch OG image: ${response.statusText}`);
+    }
+
+    const imageBuffer = Buffer.from(await response.arrayBuffer());
+
+    // LinkedIn prefers 1200x627 (similar to Facebook but slightly different aspect)
+    const linkedinBuffer = await sharp(imageBuffer)
+      .resize(1200, 627, {
+        fit: 'cover',
+        position: 'center',
+      })
+      .flatten({ background: '#ffffff' })
+      .jpeg({
+        quality: 95,
+        progressive: true,
+      })
+      .toBuffer();
+
+    return linkedinBuffer;
+  } catch (error) {
+    console.error('Error generating LinkedIn image:', error);
     throw error;
   }
 };
@@ -90,7 +130,7 @@ const generateFacebookImage = async (post: Post): Promise<Buffer> => {
  */
 const uploadToTempStorage = async (
   imageBuffer: Buffer,
-  platform: 'instagram' | 'facebook',
+  platform: PostPlatform,
 ): Promise<string> => {
   const tempFileName = `temp/social/${platform}/${Date.now()}-${Math.random().toString(36).substring(2)}.jpg`;
 
@@ -159,6 +199,58 @@ Tags: ${post.meta.tags.join(', ')}`,
     return response.choices[0].message.content || '';
   } catch (error) {
     console.error('Error generating Instagram caption:', error);
+    throw error;
+  }
+};
+
+/**
+ * Generate LinkedIn caption
+ */
+const generateLinkedInCaption = async (
+  post: Post,
+  blogUrl: string,
+): Promise<string> => {
+  const prompt = `You are a social media expert creating LinkedIn posts for a UK parking and traffic law website called "Parking Ticket Pal".
+
+Create a professional LinkedIn post that:
+- Starts with a professional hook relevant to business owners/HR professionals
+- Focuses on how this affects businesses and employees
+- Provides 2-3 key professional insights
+- Uses professional tone with light business emojis
+- Includes relevant business hashtags
+- Ends with a clear call-to-action to read the full article
+- Is professional but engaging (150-200 words)
+- Uses UK business terminology
+- Focuses on compliance, employee rights, and business implications
+
+The post should position you as a thought leader in UK parking/traffic law.`;
+
+  try {
+    const response = await openai.chat.completions.create({
+      model: OPENAI_MODEL_GPT_4O,
+      messages: [
+        {
+          role: 'system',
+          content: prompt,
+        },
+        {
+          role: 'user',
+          content: `Generate a LinkedIn post for this blog article:
+Title: ${post.meta.title}
+Summary: ${post.meta.summary}
+Tags: ${post.meta.tags.join(', ')}
+Blog URL: ${blogUrl}
+
+Include the blog URL at the end of the post.`,
+        },
+      ],
+      temperature: 0.7,
+      max_tokens: 400,
+    });
+
+    return response.choices[0].message.content || '';
+  } catch (error) {
+    console.error('Error generating LinkedIn caption:', error);
     throw error;
   }
 };
@@ -269,6 +361,92 @@ const publishInstagramMedia = async (creationId: string) => {
   return data.id;
 };
 
+// LinkedIn API functions
+const postToLinkedInPage = async (message: string, imageUrl: string) => {
+  // first, register the image with LinkedIn
+  const registerImageResponse = await fetch(
+    `https://api.linkedin.com/v2/assets?action=registerUpload`,
+    {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${process.env.LINKEDIN_ACCESS_TOKEN}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        registerUploadRequest: {
+          recipes: ['urn:li:digitalmediaRecipe:feedshare-image'],
+          owner: `urn:li:organization:${process.env.LINKEDIN_ORGANIZATION_ID}`,
+        },
+      }),
+    },
+  );
+
+  const registerData = await registerImageResponse.json();
+  if (
+    !registerData.value?.uploadMechanism?.[
+      'com.linkedin.digitalmedia.uploading.MediaUploadHttpRequest'
+    ]
+  ) {
+    throw new Error(
+      `Failed to register LinkedIn image: ${JSON.stringify(registerData)}`,
+    );
+  }
+
+  const { uploadUrl } =
+    registerData.value.uploadMechanism[
+      'com.linkedin.digitalmedia.uploading.MediaUploadHttpRequest'
+    ];
+  const { asset } = registerData.value;
+
+  // download and upload the image to LinkedIn
+  const imageResponse = await fetch(imageUrl);
+  const imageBuffer = await imageResponse.arrayBuffer();
+
+  await fetch(uploadUrl, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${process.env.LINKEDIN_ACCESS_TOKEN}`,
+    },
+    body: imageBuffer,
+  });
+
+  // create the post
+  const postResponse = await fetch(`https://api.linkedin.com/v2/ugcPosts`, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${process.env.LINKEDIN_ACCESS_TOKEN}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      author: `urn:li:organization:${process.env.LINKEDIN_ORGANIZATION_ID}`,
+      lifecycleState: 'PUBLISHED',
+      specificContent: {
+        'com.linkedin.ugc.ShareContent': {
+          shareCommentary: {
+            text: message,
+          },
+          shareMediaCategory: 'IMAGE',
+          media: [
+            {
+              status: 'READY',
+              media: asset,
+            },
+          ],
+        },
+      },
+      visibility: {
+        'com.linkedin.ugc.MemberNetworkVisibility': 'PUBLIC',
+      },
+    }),
+  });
+
+  const postData = await postResponse.json();
+  if (!postData.id) {
+    throw new Error(`Failed to post to LinkedIn: ${JSON.stringify(postData)}`);
+  }
+  return postData.id;
+};
+
 // Facebook API functions
 const postToFacebookPage = async (message: string, imageUrl: string) => {
   const response = await fetch(
@@ -298,7 +476,7 @@ const postToFacebookPage = async (message: string, imageUrl: string) => {
  */
 export const postToSocialMedia = async (params: {
   post: Post;
-  platforms?: ('instagram' | 'facebook')[];
+  platforms?: PostPlatform[];
 }): Promise<{
   success: boolean;
   results: Record<
@@ -319,9 +497,10 @@ export const postToSocialMedia = async (params: {
 }> => {
   let instagramImageUrl: string | null = null;
   let facebookImageUrl: string | null = null;
+  let linkedinImageUrl: string | null = null;
 
   try {
-    const { post, platforms = ['instagram', 'facebook'] } = params;
+    const { post, platforms = ['instagram', 'facebook', 'linkedin'] } = params;
 
     Sentry.captureMessage(
       `postToSocialMedia: Starting social media posting for slug: ${post.meta.slug}`,
@@ -441,6 +620,53 @@ export const postToSocialMedia = async (params: {
       }
     }
 
+    // Post to LinkedIn
+    if (platforms.includes('linkedin')) {
+      try {
+        if (
+          !process.env.LINKEDIN_ORGANIZATION_ID ||
+          !process.env.LINKEDIN_ACCESS_TOKEN
+        ) {
+          throw new Error('LinkedIn credentials not configured');
+        }
+
+        Sentry.captureMessage('postToSocialMedia: Generating LinkedIn image');
+        const linkedinImage = await generateLinkedInImage(post);
+
+        Sentry.captureMessage('postToSocialMedia: Uploading LinkedIn image');
+        linkedinImageUrl = await uploadToTempStorage(linkedinImage, 'linkedin');
+
+        Sentry.captureMessage('postToSocialMedia: Generating LinkedIn caption');
+        const linkedinCaption = await generateLinkedInCaption(post, blogUrl);
+
+        Sentry.captureMessage('postToSocialMedia: Posting to LinkedIn');
+
+        const postId = await postToLinkedInPage(
+          linkedinCaption,
+          linkedinImageUrl,
+        );
+
+        results.linkedin = {
+          success: true,
+          postId,
+          caption: linkedinCaption,
+        };
+
+        Sentry.captureMessage(
+          `postToSocialMedia: Successfully posted to LinkedIn: ${postId}`,
+        );
+      } catch (error) {
+        console.error('LinkedIn posting failed:', error);
+        Sentry.captureMessage(
+          `postToSocialMedia: LinkedIn posting failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        );
+        results.linkedin = {
+          success: false,
+          error: error instanceof Error ? error.message : 'Unknown error',
+        };
+      }
+    }
+
     const hasSuccess = Object.values(results).some((result) => result.success);
 
     return {
@@ -480,6 +706,13 @@ export const postToSocialMedia = async (params: {
         await cleanupTempImage(facebookImageUrl);
       } catch (error) {
         console.error('Error cleaning up Facebook image:', error);
+      }
+    }
+    if (linkedinImageUrl) {
+      try {
+        await cleanupTempImage(linkedinImageUrl);
+      } catch (error) {
+        console.error('Error cleaning up LinkedIn image:', error);
       }
     }
   }

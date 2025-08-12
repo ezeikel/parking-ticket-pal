@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { checkAllTokens } from '@/lib/meta-tokens';
+import { checkAllTokens } from '@/lib/social-tokens';
 
 export const maxDuration = 60;
 

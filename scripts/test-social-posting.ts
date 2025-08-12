@@ -22,7 +22,8 @@ const testSocialPosting = async () => {
     console.log('🚀 Calling postToSocialMedia...');
     const result = await postToSocialMedia({
       post: testPost,
-      platforms: ['instagram', 'facebook'], // Test both platforms
+      // TODO: add linkedin once access is granted
+      platforms: ['instagram', 'facebook'],
     });
 
     console.log('\n📊 Results:');

@@ -230,20 +230,61 @@ export const getInstagramAccountId = async (
 };
 
 /**
+ * Check LinkedIn token validity
+ */
+export const validateLinkedInToken = async (
+  accessToken: string,
+): Promise<{
+  isValid: boolean;
+  expiresAt?: Date;
+  error?: string;
+}> => {
+  try {
+    const response = await fetch(`https://api.linkedin.com/v2/me`, {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    });
+
+    if (!response.ok) {
+      return { isValid: false, error: 'LinkedIn token validation failed' };
+    }
+
+    // LinkedIn tokens expire in 60 days from creation
+    // we'll estimate expiry (you can update this with actual creation date)
+    const estimatedExpiry = new Date();
+    estimatedExpiry.setDate(estimatedExpiry.getDate() + 55); // 55 days to give warning buffer
+
+    return {
+      isValid: true,
+      expiresAt: estimatedExpiry,
+    };
+  } catch (error) {
+    return {
+      isValid: false,
+      error: error instanceof Error ? error.message : 'Unknown error',
+    };
+  }
+};
+
+/**
  * Check all social media tokens and log their status
  */
 export const checkAllTokens = async (): Promise<{
   facebook: { isValid: boolean; expiresAt?: Date; error?: string };
   instagram: { isValid: boolean; expiresAt?: Date; error?: string };
+  linkedin: { isValid: boolean; expiresAt?: Date; error?: string };
 }> => {
   const facebookToken = process.env.FACEBOOK_ACCESS_TOKEN;
 
   const results: {
     facebook: { isValid: boolean; expiresAt?: Date; error?: string };
     instagram: { isValid: boolean; expiresAt?: Date; error?: string };
+    linkedin: { isValid: boolean; expiresAt?: Date; error?: string };
   } = {
     facebook: { isValid: false, error: 'Token not configured' },
     instagram: { isValid: false, error: 'Token not configured' },
+    linkedin: { isValid: false, error: 'Token not configured' },
   };
 
   if (facebookToken) {
@@ -253,7 +294,14 @@ export const checkAllTokens = async (): Promise<{
     results.instagram = fbValidation;
   }
 
-  // Log warnings for tokens expiring soon
+  // check LinkedIn token separately
+  const linkedinToken = process.env.LINKEDIN_ACCESS_TOKEN;
+  if (linkedinToken) {
+    const linkedinValidation = await validateLinkedInToken(linkedinToken);
+    results.linkedin = linkedinValidation;
+  }
+
+  // log warnings for tokens expiring soon
   const now = new Date();
   const thirtyDaysFromNow = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
 
@@ -263,6 +311,17 @@ export const checkAllTokens = async (): Promise<{
   ) {
     Sentry.captureMessage(
       `Facebook/Instagram token expires soon: ${results.facebook.expiresAt}`,
+    );
+  }
+
+  // LinkedIn tokens need earlier warning (they expire every 60 days)
+  const tenDaysFromNow = new Date(now.getTime() + 10 * 24 * 60 * 60 * 1000);
+  if (
+    results.linkedin.expiresAt &&
+    results.linkedin.expiresAt < tenDaysFromNow
+  ) {
+    Sentry.captureMessage(
+      `LinkedIn token expires within 10 days: ${results.linkedin.expiresAt} - Manual renewal required!`,
     );
   }
 

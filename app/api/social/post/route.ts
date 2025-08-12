@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import * as Sentry from '@sentry/nextjs';
 import { postToSocialMedia } from '@/app/actions/social';
 import { getPostBySlug, getAllPosts } from '@/app/actions/blog';
+import { PostPlatform } from '@/types';
 
 export const maxDuration = 180;
 
@@ -18,9 +19,7 @@ const handleRequest = async (request: NextRequest) => {
 
     // Get parameters
     let slug: string;
-    let platforms: ('instagram' | 'facebook')[];
-
-    console.log('social/post: Request received');
+    let platforms: PostPlatform[];
 
     if (request.method === 'GET') {
       const { searchParams } = new URL(request.url);
@@ -28,7 +27,7 @@ const handleRequest = async (request: NextRequest) => {
       platforms = (searchParams.get('platforms')?.split(',') || [
         'instagram',
         'facebook',
-      ]) as ('instagram' | 'facebook')[];
+      ]) as PostPlatform[];
     } else {
       const body = await request.json();
       slug = body.slug || '';

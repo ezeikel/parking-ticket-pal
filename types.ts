@@ -510,3 +510,5 @@ export const BlogPostMetaSchema = z.object({
 });
 
 export type BlogPostMeta = z.infer<typeof BlogPostMetaSchema>;
+
+export type PostPlatform = 'instagram' | 'facebook' | 'linkedin';

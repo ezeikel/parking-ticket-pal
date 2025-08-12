@@ -1,10 +1,10 @@
 #!/usr/bin/env tsx
 
-import { checkAllTokens } from '@/lib/meta-tokens';
+import { checkAllTokens } from '@/lib/social-tokens';
 
 const checkTokens = async () => {
   try {
-    console.log('🔍 Checking Meta API tokens...\n');
+    console.log('🔍 Checking social media API tokens...\n');
 
     const results = await checkAllTokens();
 
@@ -36,6 +36,23 @@ const checkTokens = async () => {
       console.log(`  Error: ${results.instagram.error}`);
     }
 
+    console.log('\n💼 LinkedIn Token:');
+    console.log(`  Valid: ${results.linkedin.isValid ? '✅' : '❌'}`);
+    if (results.linkedin.expiresAt) {
+      console.log(`  Expires: ${results.linkedin.expiresAt.toISOString()}`);
+      const daysUntilExpiry = Math.ceil(
+        (results.linkedin.expiresAt.getTime() - Date.now()) /
+          (1000 * 60 * 60 * 24),
+      );
+      console.log(`  Days until expiry: ${daysUntilExpiry}`);
+      if (daysUntilExpiry <= 10) {
+        console.log('  ⚠️  RENEWAL NEEDED SOON!');
+      }
+    }
+    if (results.linkedin.error) {
+      console.log(`  Error: ${results.linkedin.error}`);
+    }
+
     console.log('\n📋 Environment Variables Status:');
     console.log(
       `  FACEBOOK_PAGE_ID: ${process.env.FACEBOOK_PAGE_ID ? '✅ Set' : '❌ Missing'}`,
@@ -46,9 +63,16 @@ const checkTokens = async () => {
     console.log(
       `  INSTAGRAM_ACCOUNT_ID: ${process.env.INSTAGRAM_ACCOUNT_ID ? '✅ Set' : '❌ Missing'}`,
     );
+    console.log(
+      `  LINKEDIN_ACCESS_TOKEN: ${process.env.LINKEDIN_ACCESS_TOKEN ? '✅ Set' : '❌ Missing'}`,
+    );
+    console.log(
+      `  LINKEDIN_ORGANIZATION_ID: ${process.env.LINKEDIN_ORGANIZATION_ID ? '✅ Set' : '❌ Missing'}`,
+    );
     console.log('  📝 Note: Instagram uses the same FACEBOOK_ACCESS_TOKEN');
+    console.log('  ⚠️  Note: LinkedIn tokens expire every 2 months');
 
-    // Check if tokens are expiring soon
+    // check if tokens are expiring soon
     const now = new Date();
     const thirtyDaysFromNow = new Date(
       now.getTime() + 30 * 24 * 60 * 60 * 1000,
@@ -81,7 +105,7 @@ const checkTokens = async () => {
   }
 };
 
-// Run the check
+// run the check
 checkTokens()
   .then(() => {
     console.log('\n✅ Token check completed');

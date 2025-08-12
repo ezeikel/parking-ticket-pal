@@ -6,19 +6,13 @@ import {
   getInstagramAccountId,
   validateToken,
   checkTokenPermissions,
-} from '@/lib/meta-tokens';
-
-import dotenv from 'dotenv';
-
-dotenv.config({
-  path: '.env.local',
-});
+} from '@/lib/social-tokens';
 
 /**
  * Interactive script to help set up Meta API tokens correctly
  */
-async function setupMetaTokens() {
-  console.log('🚀 Meta API Token Setup Guide\n');
+const setupMetaTokens = async () => {
+  console.log('🚀 Social Media API Token Setup Guide\n');
 
   // Check if we already have tokens
   const existingToken = process.env.FACEBOOK_ACCESS_TOKEN;
@@ -34,15 +28,14 @@ async function setupMetaTokens() {
         console.log('♾️  Token never expires (Page Access Token)');
         console.log("🎉 You're all set! No renewal needed.\n");
         return;
-      } 
-        console.log('⚠️  Token is missing required permissions:');
-        permissionCheck.missingPermissions.forEach((permission) => {
-          console.log(`   ❌ ${permission}`);
-        });
-        console.log(
-          '\n🔄 Need to regenerate token with Marketing API permissions...\n',
-        );
-      
+      }
+      console.log('⚠️  Token is missing required permissions:');
+      permissionCheck.missingPermissions.forEach((permission) => {
+        console.log(`   ❌ ${permission}`);
+      });
+      console.log(
+        '\n🔄 Need to regenerate token with Marketing API permissions...\n',
+      );
     } else {
       console.log('❌ Token is invalid:', permissionCheck.error);
     }
@@ -180,7 +173,7 @@ async function setupMetaTokens() {
   console.log('• META_APP_ID (only needed for setup)');
   console.log('• META_APP_SECRET (only needed for setup)');
   console.log('• TEMP_USER_TOKEN (only needed for setup)');
-}
+};
 
 // Run the setup
 setupMetaTokens()

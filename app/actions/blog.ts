@@ -381,6 +381,7 @@ export const generateBlogPostForTopic = async (
         const { postToSocialMedia } = await import('@/app/actions/social');
         const socialResult = await postToSocialMedia({
           post: generatedPost,
+          // TODO: add linkedin once access is granted
           platforms: ['instagram', 'facebook'],
         });
 

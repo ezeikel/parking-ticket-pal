@@ -32,8 +32,8 @@
     "generate:blog": "tsx scripts/generate-blog.ts",
     "generate:blog-manual": "tsx scripts/generate-blog-manual.ts",
     "test:social": "tsx scripts/test-social-posting.ts",
-    "check:tokens": "tsx scripts/check-meta-tokens.ts",
-    "setup:tokens": "tsx scripts/setup-meta-tokens.ts"
+    "check:tokens": "tsx scripts/check-social-tokens.ts",
+    "setup:tokens": "tsx scripts/setup-social-tokens.ts"
   },
   "lint-staged": {
     "*.{ts,tsx}": [
