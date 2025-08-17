@@ -1,6 +1,34 @@
 import { ImageResponse } from 'next/og';
 import { getPostBySlug } from '@/app/actions/blog';
 
+// load fonts from Google Fonts
+const getInterRegularFont = fetch(
+  'https://fonts.googleapis.com/css2?family=Inter:wght@400&display=swap',
+).then(async (res) => {
+  const css = await res.text();
+  const fontUrl = css.match(/url\(([^)]+)\)/)?.[1]?.replace(/["']/g, '');
+  if (!fontUrl) throw new Error('Could not extract font URL');
+  return fetch(fontUrl).then((fontRes) => fontRes.arrayBuffer());
+});
+
+const getInterSemiBoldFont = fetch(
+  'https://fonts.googleapis.com/css2?family=Inter:wght@600&display=swap',
+).then(async (res) => {
+  const css = await res.text();
+  const fontUrl = css.match(/url\(([^)]+)\)/)?.[1]?.replace(/["']/g, '');
+  if (!fontUrl) throw new Error('Could not extract font URL');
+  return fetch(fontUrl).then((fontRes) => fontRes.arrayBuffer());
+});
+
+const getLatoBoldFont = fetch(
+  'https://fonts.googleapis.com/css2?family=Lato:wght@700&display=swap',
+).then(async (res) => {
+  const css = await res.text();
+  const fontUrl = css.match(/url\(([^)]+)\)/)?.[1]?.replace(/["']/g, '');
+  if (!fontUrl) throw new Error('Could not extract font URL');
+  return fetch(fontUrl).then((fontRes) => fontRes.arrayBuffer());
+});
+
 export const alt = 'Parking Ticket Pal Blog Post';
 export const size = {
   width: 1200,
@@ -16,16 +44,13 @@ export default async function Image({
 }) {
   const { slug } = await params;
 
-  // Load fonts
-  const interRegularFontData = await fetch(
-    new URL('./fonts/Inter/Inter-Regular.ttf', import.meta.url),
-  ).then((res) => res.arrayBuffer());
-  const interSemiBoldFontData = await fetch(
-    new URL('./fonts/Inter/Inter-SemiBold.ttf', import.meta.url),
-  ).then((res) => res.arrayBuffer());
-  const latoBoldFontData = await fetch(
-    new URL('./fonts/Lato/Lato-Bold.ttf', import.meta.url),
-  ).then((res) => res.arrayBuffer());
+  // load fonts
+  const [interRegularFontData, interSemiBoldFontData, latoBoldFontData] =
+    await Promise.all([
+      getInterRegularFont,
+      getInterSemiBoldFont,
+      getLatoBoldFont,
+    ]);
 
   try {
     const post = await getPostBySlug(slug);
