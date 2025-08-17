@@ -1,7 +1,5 @@
 import { ImageResponse } from 'next/og';
 import { getPostBySlug } from '@/app/actions/blog';
-import { readFile } from 'node:fs/promises';
-import { join } from 'node:path';
 
 export const alt = 'Parking Ticket Pal Blog Post';
 export const size = {
@@ -18,16 +16,16 @@ export default async function Image({
 }) {
   const { slug } = await params;
 
-  // Load fonts
-  const interRegularFontData = await readFile(
-    join(process.cwd(), 'public/fonts/Inter/Inter-Regular.ttf'),
-  );
-  const interSemiBoldFontData = await readFile(
-    join(process.cwd(), 'public/fonts/Inter/Inter-SemiBold.ttf'),
-  );
-  const latoBoldFontData = await readFile(
-    join(process.cwd(), 'public/fonts/Lato/Lato-Bold.ttf'),
-  );
+  // load fonts
+  const interRegularFontData = await fetch(
+    new URL('./fonts/Inter-Regular.ttf', import.meta.url),
+  ).then((res) => res.arrayBuffer());
+  const interSemiBoldFontData = await fetch(
+    new URL('./fonts/Inter-SemiBold.ttf', import.meta.url),
+  ).then((res) => res.arrayBuffer());
+  const latoBoldFontData = await fetch(
+    new URL('./fonts/Lato-Bold.ttf', import.meta.url),
+  ).then((res) => res.arrayBuffer());
 
   try {
     const post = await getPostBySlug(slug);
