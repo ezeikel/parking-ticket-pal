@@ -16,15 +16,15 @@ export default async function Image({
 }) {
   const { slug } = await params;
 
-  // load fonts
+  // Load fonts
   const interRegularFontData = await fetch(
-    new URL('./fonts/Inter-Regular.ttf', import.meta.url),
+    new URL('./fonts/Inter/Inter-Regular.ttf', import.meta.url),
   ).then((res) => res.arrayBuffer());
   const interSemiBoldFontData = await fetch(
-    new URL('./fonts/Inter-SemiBold.ttf', import.meta.url),
+    new URL('./fonts/Inter/Inter-SemiBold.ttf', import.meta.url),
   ).then((res) => res.arrayBuffer());
   const latoBoldFontData = await fetch(
-    new URL('./fonts/Lato-Bold.ttf', import.meta.url),
+    new URL('./fonts/Lato/Lato-Bold.ttf', import.meta.url),
   ).then((res) => res.arrayBuffer());
 
   try {
