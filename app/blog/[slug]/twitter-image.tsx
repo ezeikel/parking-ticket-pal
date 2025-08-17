@@ -1,18 +1,7 @@
 import { ImageResponse } from 'next/og';
 import { getPostBySlug } from '@/app/actions/blog';
-
-// load fonts for ImageResponse
-const getInterFont = fetch(
-  new URL(
-    'https://fonts.gstatic.com/s/inter/v18/UcCO3FwrK3iLTeHuS_fvQtMwCp50KnMw2boKoduKmMEVuLyfAZ9hiJ-Ek-_EeAmM.woff2',
-  ),
-).then((res) => res.arrayBuffer());
-
-const getLatoFont = fetch(
-  new URL(
-    'https://fonts.gstatic.com/s/lato/v24/S6u9w4BMUTPHh6UVSwaPGQ3q5d0N7w.woff2',
-  ),
-).then((res) => res.arrayBuffer());
+import { readFile } from 'node:fs/promises';
+import { join } from 'node:path';
 
 export const alt = 'Parking Ticket Pal Blog Post';
 export const size = {
@@ -29,11 +18,16 @@ export default async function Image({
 }) {
   const { slug } = await params;
 
-  // load fonts
-  const [interFontData, latoFontData] = await Promise.all([
-    getInterFont,
-    getLatoFont,
-  ]);
+  // Load fonts
+  const interRegularFontData = await readFile(
+    join(process.cwd(), 'public/fonts/Inter/Inter-Regular.ttf'),
+  );
+  const interSemiBoldFontData = await readFile(
+    join(process.cwd(), 'public/fonts/Inter/Inter-SemiBold.ttf'),
+  );
+  const latoBoldFontData = await readFile(
+    join(process.cwd(), 'public/fonts/Lato/Lato-Bold.ttf'),
+  );
 
   try {
     const post = await getPostBySlug(slug);
@@ -63,7 +57,7 @@ export default async function Image({
           fonts: [
             {
               name: 'Inter',
-              data: interFontData,
+              data: interRegularFontData,
               style: 'normal',
               weight: 400,
             },
@@ -218,19 +212,19 @@ export default async function Image({
         fonts: [
           {
             name: 'Inter',
-            data: interFontData,
+            data: interRegularFontData,
             style: 'normal',
             weight: 400,
           },
           {
             name: 'Inter',
-            data: interFontData,
+            data: interSemiBoldFontData,
             style: 'normal',
             weight: 600,
           },
           {
             name: 'Lato',
-            data: latoFontData,
+            data: latoBoldFontData,
             style: 'normal',
             weight: 700,
           },
@@ -264,7 +258,7 @@ export default async function Image({
         fonts: [
           {
             name: 'Inter',
-            data: interFontData,
+            data: interRegularFontData,
             style: 'normal',
             weight: 400,
           },
