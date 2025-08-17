@@ -1,6 +1,19 @@
 import { ImageResponse } from 'next/og';
 import { getPostBySlug } from '@/app/actions/blog';
 
+// load fonts for ImageResponse
+const getInterFont = fetch(
+  new URL(
+    'https://fonts.gstatic.com/s/inter/v18/UcCO3FwrK3iLTeHuS_fvQtMwCp50KnMw2boKoduKmMEVuLyfAZ9hiJ-Ek-_EeAmM.woff2',
+  ),
+).then((res) => res.arrayBuffer());
+
+const getLatoFont = fetch(
+  new URL(
+    'https://fonts.gstatic.com/s/lato/v24/S6u9w4BMUTPHh6UVSwaPGQ3q5d0N7w.woff2',
+  ),
+).then((res) => res.arrayBuffer());
+
 export const alt = 'Parking Ticket Pal Blog Post';
 export const size = {
   width: 1200,
@@ -16,11 +29,17 @@ export default async function Image({
 }) {
   const { slug } = await params;
 
+  // load fonts
+  const [interFontData, latoFontData] = await Promise.all([
+    getInterFont,
+    getLatoFont,
+  ]);
+
   try {
     const post = await getPostBySlug(slug);
 
     if (!post) {
-      // Fallback for missing posts
+      // fallback for missing posts
       return new ImageResponse(
         (
           <div
@@ -33,7 +52,7 @@ export default async function Image({
               alignItems: 'center',
               justifyContent: 'center',
               color: 'white',
-              fontFamily: 'system-ui, sans-serif',
+              fontFamily: 'Inter, system-ui, sans-serif',
             }}
           >
             Parking Ticket Pal
@@ -41,6 +60,14 @@ export default async function Image({
         ),
         {
           ...size,
+          fonts: [
+            {
+              name: 'Inter',
+              data: interFontData,
+              style: 'normal',
+              weight: 400,
+            },
+          ],
         },
       );
     }
@@ -61,7 +88,7 @@ export default async function Image({
             alignItems: 'center',
             justifyContent: 'center',
             padding: '60px',
-            fontFamily: 'system-ui, sans-serif',
+            fontFamily: 'Inter, system-ui, sans-serif',
             position: 'relative',
           }}
         >
@@ -113,6 +140,7 @@ export default async function Image({
                 lineHeight: 1.2,
                 marginBottom: '24px',
                 textAlign: 'center',
+                fontFamily: 'Lato, sans-serif',
               }}
             >
               {post.meta.title}
@@ -187,12 +215,32 @@ export default async function Image({
       ),
       {
         ...size,
+        fonts: [
+          {
+            name: 'Inter',
+            data: interFontData,
+            style: 'normal',
+            weight: 400,
+          },
+          {
+            name: 'Inter',
+            data: interFontData,
+            style: 'normal',
+            weight: 600,
+          },
+          {
+            name: 'Lato',
+            data: latoFontData,
+            style: 'normal',
+            weight: 700,
+          },
+        ],
       },
     );
   } catch (error) {
     console.error('Error generating Twitter image:', error);
 
-    // Fallback error image
+    // fallback error image
     return new ImageResponse(
       (
         <div
@@ -205,7 +253,7 @@ export default async function Image({
             alignItems: 'center',
             justifyContent: 'center',
             color: 'white',
-            fontFamily: 'system-ui, sans-serif',
+            fontFamily: 'Inter, system-ui, sans-serif',
           }}
         >
           Parking Ticket Pal
@@ -213,6 +261,14 @@ export default async function Image({
       ),
       {
         ...size,
+        fonts: [
+          {
+            name: 'Inter',
+            data: interFontData,
+            style: 'normal',
+            weight: 400,
+          },
+        ],
       },
     );
   }
