@@ -1,11 +1,11 @@
 import { useState, useEffect } from 'react';
 import { View, Image, Pressable, Text, ActivityIndicator } from 'react-native';
 import DocumentScanner, { ResponseType } from 'react-native-document-scanner-plugin';
-import TextRecognition from '@react-native-ml-kit/text-recognition';
+// import TextRecognition from '@react-native-ml-kit/text-recognition';
 import * as ImagePicker from 'expo-image-picker';
 import { router } from 'expo-router';
 import tw from 'twrnc';
-import * as FileSystem from 'expo-file-system';
+// import * as FileSystem from 'expo-file-system'; // TODO: Will be needed for API-based OCR
 import { uploadImage } from '@/api';
 import { queryClient } from "@/providers";
 
@@ -26,22 +26,32 @@ const Scanner = () => {
     };
   }, []);
 
-  const extractTextFromImage = async (base64Image: string) => {
+  const extractTextFromImage = async (_base64Image: string) => {
     try {
       setProcessing(true);
 
-      // save base64 to temporary file
-      const tempFilePath = `${FileSystem.cacheDirectory}temp_scan.jpg`;
-      await FileSystem.writeAsStringAsync(tempFilePath, base64Image, {
-        encoding: FileSystem.EncodingType.Base64,
-      });
+      // TODO: Replace with API-based OCR
+      // Temporarily return dummy OCR text
+      await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate processing time
+      
+      const dummyOcrText = `PARKING VIOLATION NOTICE
+Vehicle License: ABC123
+Date: ${new Date().toLocaleDateString()}
+Time: ${new Date().toLocaleTimeString()}
+Location: Main St & 1st Ave
+Violation: Expired Meter
+Fine Amount: $25.00`;
+      
+      return dummyOcrText;
 
-      const result = await TextRecognition.recognize(tempFilePath);
-
-      // clean up temp file
-      await FileSystem.deleteAsync(tempFilePath);
-
-      return result.text;
+      // Previous ML Kit implementation (commented out):
+      // const tempFilePath = `${FileSystem.cacheDirectory}temp_scan.jpg`;
+      // await FileSystem.writeAsStringAsync(tempFilePath, base64Image, {
+      //   encoding: FileSystem.EncodingType.Base64,
+      // });
+      // const result = await TextRecognition.recognize(tempFilePath);
+      // await FileSystem.deleteAsync(tempFilePath);
+      // return result.text;
     } catch (error) {
       console.error('Error recognizing text:', error);
       return '';

@@ -1,6 +1,7 @@
 {
   "cli": {
-    "promptToConfigurePushNotifications": false
+    "promptToConfigurePushNotifications": false,
+    "appVersionSource": "remote"
   },
   "build": {
     "base": {
@@ -26,6 +27,7 @@
     },
     "preview": {
       "extends": "base",
+      "environment": "preview",
       "distribution": "internal",
       "android": {
         "buildType": "apk"
@@ -36,7 +38,7 @@
       "env": {
         "EXPO_PUBLIC_ENVIRONMENT": "preview"
       },
-      "autoIncrement": false
+      "autoIncrement": true
     },
     "production": {
       "extends": "base",
@@ -49,7 +51,6 @@
     },
     "beta": {
       "extends": "production",
-      "distribution": "internal",
       "env": {
         "EXPO_PUBLIC_ENVIRONMENT": "beta"
       },

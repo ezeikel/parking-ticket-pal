@@ -32,8 +32,8 @@ export const AuthContextProvider = ({ children }: AuthContextProviderProps) => {
 
   const conifgureGoogleSignIn = () => {
     GoogleSignin.configure({
-      webClientId: '1069305445287-1m5mhd9lkm8c1trksbhlqd2cia0itjpj.apps.googleusercontent.com',
-      iosClientId: '1069305445287-b0q6oltds0955okb9hg2b3pqvm735di4.apps.googleusercontent.com',
+      webClientId: process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID,
+      iosClientId: process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID,
     });
   }
 

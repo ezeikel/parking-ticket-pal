@@ -2,8 +2,12 @@ import { useEffect, useState } from 'react';
 import { Pressable, Text, View } from 'react-native';
 import tw from "twrnc";
 import { FlashList } from "@shopify/flash-list";
-import { faCircleExclamation, faClock } from "@fortawesome/pro-regular-svg-icons";
-import { differenceInMinutes, differenceInHours, differenceInDays, differenceInMilliseconds, parseISO } from 'date-fns';
+import { faCircleExclamation, faClock } from
+  "@fortawesome/pro-regular-svg-icons";
+import {
+  differenceInMinutes, differenceInHours, differenceInDays,
+  differenceInMilliseconds, parseISO, addDays
+} from 'date-fns';
 import useTickets from '@/hooks/api/useTickets';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { Ticket, TicketStatus } from '@/types';
@@ -40,13 +44,13 @@ const CountdownTimer = ({ deadline }: CountdownTimerProps) => {
 
   const { days, hours, minutes } = timeLeft;
 
-
   if (days <= 0 && hours <= 0 && minutes <= 0) return null;
 
   return (
     <View style={tw`flex-row items-center`}>
       <FontAwesomeIcon icon={faClock} size={16} color="#000" />
-      <Text style={tw`ml-2 text-sm text-black`}>{`${days}d ${hours}h ${minutes}m left`}</Text>
+      <Text style={tw`ml-2 text-sm text-black`}>{`${days}d ${hours}h ${minutes}m
+  left`}</Text>
     </View>
   );
 };
@@ -55,8 +59,17 @@ const TicketItem = ({ ticket, style }: {
   ticket: Ticket;
   style: Record<string, unknown>
 }) => {
+  // Calculate estimated payment deadline based on issued date (typically 28 days for full payment)
+  const estimatedFullPaymentDeadline = addDays(new Date(ticket.issuedAt), 28);
+  const estimatedDiscountDeadline = addDays(new Date(ticket.issuedAt), 14);
+
+  const isDiscountPeriod = ticket.status === TicketStatus.ISSUED_DISCOUNT_PERIOD;
+  const paymentDeadline = isDiscountPeriod ? estimatedDiscountDeadline :
+    estimatedFullPaymentDeadline;
+
   return (
-    <View style={tw.style(`rounded-lg border border-[#e4e4e7] bg-white text-[#09090b] shadow-sm`, {
+    <View style={tw.style(`rounded-lg border border-[#e4e4e7] bg-white 
+  text-[#09090b] shadow-sm`, {
       ...style
     })}
     >
@@ -65,25 +78,25 @@ const TicketItem = ({ ticket, style }: {
           whiteSpace: 'nowrap',
         })}>{`${ticket.pcnNumber} - ${ticket.issuer}`}</Text>
         <Text style={tw`text-sm text-[#71717a]`}>
-          {`Issued on ${new Date(ticket.dateIssued).toLocaleDateString()} at ${new Date(ticket.dateIssued).toLocaleTimeString()}`}
+          {`Issued on ${new Date(ticket.issuedAt).toLocaleDateString()} at ${new
+            Date(ticket.issuedAt).toLocaleTimeString()}`}
         </Text>
       </View>
       <View style={tw`p-6 pt-0`}>
-        <Text style={tw`mb-2`}>Contravention: {`${ticket.contravention.code} - ${ticket.contravention.description}`}</Text>
+        <Text style={tw`mb-2`}>Contravention: {ticket.contraventionCode}</Text>
         <View style={tw`flex-row flex-wrap items-center justify-between`}>
-          <View style={tw`bg-[#18181b] px-2 py-1 rounded-full`}>
-            <Text style={tw`text-white font-bold`}>{ticket.status.charAt(0).toUpperCase() + ticket.status.slice(1)}</Text>
-          </View>
-          <CountdownTimer deadline={new Date(ticket.status === TicketStatus.REDUCED_PAYMENT_DUE ? ticket.discountedPaymentDeadline : ticket.fullPaymentDeadline).toISOString()} />
+          <CountdownTimer deadline={paymentDeadline.toISOString()} />
         </View>
       </View>
       <View style={tw`flex-row items-center p-6 pt-0 justify-end gap-x-2`}>
-        <Pressable style={tw`py-2 px-4 rounded border border-[#e4e4e7] hover:text-accent-foreground`}>
+        <Pressable style={tw`py-2 px-4 rounded border border-[#e4e4e7] 
+  hover:text-accent-foreground`}>
           <Text style={tw`text-sm font-bold`}>
             Challenge
           </Text>
         </Pressable>
-        <Pressable style={tw`py-2 px-4 rounded bg-[#18181b] text-white hover:bg-primary/90`}>
+        <Pressable style={tw`py-2 px-4 rounded bg-[#18181b] text-white 
+  hover:bg-primary/90`}>
           <Text style={tw`text-sm text-white font-bold`}>
             Pay Now
           </Text>
@@ -112,9 +125,12 @@ const TicketsList = () => {
     )
   }
 
-  const hasUpcomingDeadlines = tickets.some(ticket =>
-    differenceInMilliseconds(parseISO(ticket.fullPaymentDeadline), new Date()) < DISCOUNT_THRESHOLD_MS
-  );
+  // check for upcoming deadlines using estimated payment deadlines
+  const hasUpcomingDeadlines = tickets.some(ticket => {
+    const estimatedFullPaymentDeadline = addDays(new Date(ticket.issuedAt), 28);
+    return differenceInMilliseconds(estimatedFullPaymentDeadline, new Date()) <
+      DISCOUNT_THRESHOLD_MS;
+  });
 
   return (
     <View style={tw`flex-1 gap-y-6 p-4`}>
@@ -122,10 +138,12 @@ const TicketsList = () => {
         {hasUpcomingDeadlines && (
           <View style={tw`rounded-lg bg-yellow-100 p-4 gap-y-2`} role="alert">
             <View style={tw`flex-row items-center`}>
-              <FontAwesomeIcon style={tw`mr-2 text-yellow-800`} icon={faCircleExclamation} size={16} color={tw.color('text-yellow-800')} />
+              <FontAwesomeIcon style={tw`mr-2 text-yellow-800`}
+                icon={faCircleExclamation} size={16} color={tw.color('text-yellow-800')} />
               <Text style={tw`text-yellow-800 font-semibold`}>Attention:</Text>
             </View>
-            <Text style={tw`text-yellow-800`}>You have tickets with upcoming discount deadlines. Act now to save!</Text>
+            <Text style={tw`text-yellow-800`}>You have tickets with upcoming
+              discount deadlines. Act now to save!</Text>
           </View>
         )
         }

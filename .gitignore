@@ -41,5 +41,7 @@ app-example
 ios/
 android/
 
-
 .env.local
+
+*.apk
+*.ipa

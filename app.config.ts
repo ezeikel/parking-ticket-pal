@@ -1,12 +1,14 @@
+import pkg from "./package.json";
+
 export default {
   expo: {
     name: "Parking Ticket Pal",
     slug: "parking-ticket-pal",
     owner: "chewybytes",
-    version: "0.1.0",
+    version: pkg.version,
     orientation: "portrait",
     icon: "./assets/images/icon.png",
-    scheme: "parking-ticket-pal",
+    scheme: "parkingticketpal",
     userInterfaceStyle: "light",
     splash: {
       image: "./assets/images/splash.png",
@@ -32,6 +34,20 @@ export default {
         foregroundImage: "./assets/images/adaptive-icon.png",
         backgroundColor: "#ffffff",
       },
+      intentFilters: [
+        {
+          action: "VIEW",
+          autoVerify: true,
+          data: [
+            {
+              scheme: "https",
+              host: "parkingticketpal.com",
+              pathPrefix: "/",
+            },
+          ],
+          category: ["BROWSABLE", "DEFAULT"]
+        }
+      ],
     },
     web: {
       bundler: "metro",
@@ -40,6 +56,7 @@ export default {
     },
     plugins: [
       "expo-router",
+      "expo-dev-client",
       [
         "expo-splash-screen",
         {
@@ -56,15 +73,6 @@ export default {
         }
       ],
       "expo-secure-store",
-      [
-        "expo-font",
-        {
-          fonts: [
-            // "assets/fonts/UKNumberPlate.ttf",
-
-          ],
-        },
-      ],
       [
         "@sentry/react-native/expo",
         {

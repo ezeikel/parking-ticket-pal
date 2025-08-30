@@ -28,6 +28,8 @@ export enum TicketStatus {
   DEBT_COLLECTION = 'DEBT_COLLECTION',
   TRIBUNAL = 'TRIBUNAL',
   POPLA = 'POPLA',
+
+  ISSUED_DISCOUNT_PERIOD = 'ISSUED_DISCOUNT_PERIOD',
 }
 
 export enum IssuerType {
@@ -115,6 +117,7 @@ export type Ticket = {
   reminder: Reminder[];
   createdAt: string;
   updatedAt: string;
+  issuedAt: string;
 }
 
 export type Media = {
