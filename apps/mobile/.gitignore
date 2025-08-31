@@ -45,3 +45,5 @@ android/
 
 *.apk
 *.ipa
+
+.cursor/
