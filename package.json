@@ -1,0 +1,26 @@
+{
+  "name": "parking-ticket-pal",
+  "private": true,
+  "scripts": {
+    "build": "turbo run build",
+    "dev": "turbo run dev",
+    "lint": "turbo run lint",
+    "format": "prettier --write \"**/*.{ts,tsx,md}\"",
+    "check-types": "turbo run check-types"
+  },
+  "devDependencies": {
+    "prettier": "^3.6.2",
+    "turbo": "^2.5.6",
+    "typescript": "5.8.3"
+  },
+  "packageManager": "pnpm@10.6.1",
+  "engines": {
+    "node": ">=18"
+  },
+  "resolutions": {
+    "react": "19.0.0",
+    "react-dom": "19.0.0",
+    "react-native-renderer": "19.0.0",
+    "@types/react": "^19.0.0"
+  }
+}

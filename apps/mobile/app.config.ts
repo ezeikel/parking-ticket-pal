@@ -95,7 +95,9 @@ export default {
             deploymentTarget: "15.5.0",
           },
         },
-      ]
+      ],
+    "expo-font",
+    "expo-web-browser"
     ],
     experiments: {
       typedRoutes: true,
