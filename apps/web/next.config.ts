@@ -56,10 +56,13 @@ const sentryOptions = {
   authToken: process.env.SENTRY_AUTH_TOKEN,
   widenClientFileUpload: true,
   transpileClientSDK: true,
-  tunnelRoute: '/monitoring',
+  tunnelRoute: true,
   hideSourceMaps: true,
   disableLogger: true,
   automaticVercelMonitors: true,
+  reactComponentAnnotation: {
+    enabled: true,
+  }
 };
 
 const configWithSentry = withSentryConfig(nextConfig, sentryOptions);

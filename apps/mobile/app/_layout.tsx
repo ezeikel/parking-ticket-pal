@@ -17,6 +17,7 @@ Sentry.init({
   tracesSampleRate: 1.0,
   integrations: [navigationIntegration, Sentry.mobileReplayIntegration()],
   enableNativeFramesTracking: Constants.executionEnvironment === ExecutionEnvironment.StoreClient,
+  sendDefaultPii: true,
 });
 
 const RootLayout = () => {
@@ -35,4 +36,4 @@ const RootLayout = () => {
   );
 }
 
-export default RootLayout;
+export default Sentry.wrap(RootLayout);

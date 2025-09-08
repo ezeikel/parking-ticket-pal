@@ -1,5 +1,5 @@
 {
-  "name": "parking-ticket-pal",
+  "name": "@parking-ticket-pal/mobile",
   "main": "expo-router/entry",
   "version": "0.1.0",
   "scripts": {
@@ -32,7 +32,6 @@
     "test": "jest --watchAll",
     "lint": "expo lint",
     "check-types": "tsc --noEmit",
-    "typecheck": "tsc --noEmit",
     "env:pull": "eas env:pull --environment development"
   },
   "jest": {
@@ -97,5 +96,6 @@
     "react-test-renderer": "18.3.1",
     "tailwindcss": "^3.4.15",
     "typescript": "~5.7.2"
-  }
+  },
+  "private": true
 }

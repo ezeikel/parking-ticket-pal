@@ -4,11 +4,11 @@ import * as Sentry from '@sentry/nextjs';
 import NextError from 'next/error';
 import { useEffect } from 'react';
 
-type GlobalErrorProps = {
+const GlobalError = ({
+  error,
+}: {
   error: Error & { digest?: string };
-};
-
-const GlobalError = ({ error }: GlobalErrorProps) => {
+}) => {
   useEffect(() => {
     Sentry.captureException(error);
   }, [error]);
@@ -16,7 +16,7 @@ const GlobalError = ({ error }: GlobalErrorProps) => {
   return (
     <html lang="en">
       <body>
-        <NextError statusCode={undefined as any} />
+        <NextError statusCode={0} />
       </body>
     </html>
   );

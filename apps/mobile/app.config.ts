@@ -1,7 +1,8 @@
+import { ExpoConfig, ConfigContext } from 'expo/config';
 import pkg from "./package.json";
 
-export default {
-  expo: {
+export default ({ config }: ConfigContext): ExpoConfig => ({
+  ...config,
     name: "Parking Ticket Pal",
     slug: "parking-ticket-pal",
     owner: "chewybytes",
@@ -96,7 +97,6 @@ export default {
           },
         },
       ],
-    "expo-font",
     "expo-web-browser"
     ],
     experiments: {
@@ -113,5 +113,4 @@ export default {
         projectId: "460d1230-65d0-4a24-a805-44f84fb7c862",
       },
     },
-  }
-}
+});
