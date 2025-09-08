@@ -52,3 +52,6 @@ ios/Pods/
 android/build/
 android/app/build/
 android/.gradle/
+
+# Cursor IDE
+.cursor/
