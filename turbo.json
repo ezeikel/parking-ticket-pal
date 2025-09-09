@@ -6,7 +6,7 @@
       "dependsOn": ["^build", "^db:generate"],
       "inputs": ["$TURBO_DEFAULT$", ".env*"],
       "outputs": [".next/**", "!.next/cache/**", "dist/**", "android/app/build/**", "ios/build/**"],
-      "env": ["DATABASE_URL", "DATABASE_URL_UNPOOLED", "FONTAWESOME_NPM_AUTH_TOKEN", "OPENAI_API_KEY"]
+      "env": ["DATABASE_URL", "DATABASE_URL_UNPOOLED", "FONTAWESOME_NPM_AUTH_TOKEN", "OPENAI_API_KEY", "SENTRY_AUTH_TOKEN", "RESEND_API_KEY"]
     },
     "lint": {
       "dependsOn": ["^lint"]
