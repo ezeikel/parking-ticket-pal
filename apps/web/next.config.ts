@@ -13,6 +13,7 @@ const nextConfig = {
     serverActions: {
       bodySizeLimit: '5mb',
     },
+    externalDir: true,
   },
   transpilePackages: ['next-mdx-remote'],
   async rewrites() {
@@ -50,19 +51,20 @@ const nextConfig = {
 
 // sentry configuration options
 const sentryOptions = {
-  silent: true,
+  silent: !process.env.CI,
   org: 'chewybytes',
   project: 'parking-ticket-pal-web',
   authToken: process.env.SENTRY_AUTH_TOKEN,
   widenClientFileUpload: true,
   transpileClientSDK: true,
-  tunnelRoute: true,
+  tunnelRoute: '/monitoring',
+  debug: true,
   hideSourceMaps: true,
   disableLogger: true,
   automaticVercelMonitors: true,
   reactComponentAnnotation: {
     enabled: true,
-  }
+  },
 };
 
 const configWithSentry = withSentryConfig(nextConfig, sentryOptions);

@@ -6,12 +6,11 @@ const SENTRY_DSN = process.env.SENTRY_DSN || process.env.NEXT_PUBLIC_SENTRY_DSN;
 Sentry.init({
   dsn: SENTRY_DSN,
   sendDefaultPii: true,
-  integrations: [
-    Sentry.replayIntegration({
-      maskAllText: true,
-      blockAllMedia: true,
-    }),
-  ],
+  integrations: [Sentry.replayIntegration()],
+  tracesSampleRate: 1,
+  enableLogs: true,
+  replaysSessionSampleRate: 0.1,
+  replaysOnErrorSampleRate: 1.0,
 });
 
 posthog.init(process.env.NEXT_PUBLIC_POSTHOG_KEY!, {

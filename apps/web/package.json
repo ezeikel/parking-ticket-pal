@@ -6,8 +6,8 @@
     "seed": "ts-node --compiler-options {\"module\":\"CommonJS\"} prisma/seed.ts"
   },
   "scripts": {
-    "dev": "pnpm db:generate && next dev",
-    "build": "pnpm dlx prisma generate && next build",
+    "dev": "pnpm db:generate && next dev --turbopack",
+    "build": "pnpm dlx prisma generate && next build --turbopack",
     "start": "next start",
     "email": "email dev --port 3005",
     "lint": "next lint",
