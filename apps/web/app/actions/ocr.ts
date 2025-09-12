@@ -14,16 +14,20 @@ import {
 import { generateOcrAnalysisPrompt } from '@/utils/promptGenerators';
 import { DocumentSchema, Address } from '@/types';
 
-const serviceAccountJson = JSON.parse(
-  Buffer.from(
-    process.env.GOOGLE_APPLICATION_CREDENTIALS_BASE64!,
-    'base64',
-  ).toString('utf8'),
-);
+const getVisionClient = () => {
+  const credentialsBase64 = process.env.GOOGLE_APPLICATION_CREDENTIALS_BASE64;
+  if (!credentialsBase64) {
+    throw new Error('Google Vision credentials not found');
+  }
 
-const visionClient = new vision.ImageAnnotatorClient({
-  credentials: serviceAccountJson,
-});
+  const serviceAccountJson = JSON.parse(
+    Buffer.from(credentialsBase64, 'base64').toString('utf8'),
+  );
+
+  return new vision.ImageAnnotatorClient({
+    credentials: serviceAccountJson,
+  });
+};
 
 export const extractOCRTextWithOpenAI = async (
   input:
@@ -399,6 +403,7 @@ export const extractOCRTextWithVision = async (
   // Use Google Vision for OCR text extraction
   let googleOcrText: string;
   try {
+    const visionClient = getVisionClient();
     const [result] = await visionClient.textDetection(blobStorageUrl);
     googleOcrText = result.fullTextAnnotation?.text || '';
 
