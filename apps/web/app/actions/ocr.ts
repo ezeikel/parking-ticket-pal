@@ -69,9 +69,10 @@ export const extractOCRTextWithOpenAI = async (
     // generate temporary path with timestamp
     const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
     const extension = image.name.split('.').pop() || 'jpg';
-    tempImagePath = STORAGE_PATHS.TEMP_UPLOAD.replace('%s', effectiveUserId)
-      .replace('%s', timestamp)
-      .replace('%s', extension);
+    tempImagePath = STORAGE_PATHS.TEMP_UPLOAD
+      .replace(/%s/, effectiveUserId)
+      .replace(/%s/, timestamp)
+      .replace(/%s/, extension);
 
     // store the image in temporary Vercel Blob storage
     const ticketFrontBlob = await put(tempImagePath, image, {
@@ -91,11 +92,20 @@ export const extractOCRTextWithOpenAI = async (
     // if base64Image starts with "data:", strip the prefix
     base64Image = base64Image.replace(/^data:image\/[a-z]+;base64,/, '');
 
+    // validate base64Image is not empty after processing
+    if (!base64Image || base64Image.trim() === '') {
+      return {
+        success: false,
+        message: 'Invalid base64 image data provided.',
+      };
+    }
+
     // generate temporary path for base64 upload
     const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-    tempImagePath = STORAGE_PATHS.TEMP_UPLOAD.replace('%s', effectiveUserId)
-      .replace('%s', timestamp)
-      .replace('%s', ext);
+    tempImagePath = STORAGE_PATHS.TEMP_UPLOAD
+      .replace(/%s/, effectiveUserId)
+      .replace(/%s/, timestamp)
+      .replace(/%s/, ext);
 
     // upload the base64 string as a Blob to temporary location
     const buffer = Buffer.from(base64Image, 'base64');
@@ -332,9 +342,10 @@ export const extractOCRTextWithVision = async (
     // generate temporary path with timestamp
     const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
     const extension = image.name.split('.').pop() || 'jpg';
-    tempImagePath = STORAGE_PATHS.TEMP_UPLOAD.replace('%s', effectiveUserId)
-      .replace('%s', timestamp)
-      .replace('%s', extension);
+    tempImagePath = STORAGE_PATHS.TEMP_UPLOAD
+      .replace(/%s/, effectiveUserId)
+      .replace(/%s/, timestamp)
+      .replace(/%s/, extension);
 
     // store the image in temporary Vercel Blob storage
     const ticketFrontBlob = await put(tempImagePath, image, {
@@ -354,11 +365,20 @@ export const extractOCRTextWithVision = async (
     // if base64Image starts with "data:", strip the prefix
     base64Image = base64Image.replace(/^data:image\/[a-z]+;base64,/, '');
 
+    // validate base64Image is not empty after processing
+    if (!base64Image || base64Image.trim() === '') {
+      return {
+        success: false,
+        message: 'Invalid base64 image data provided.',
+      };
+    }
+
     // generate temporary path for base64 upload
     const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-    tempImagePath = STORAGE_PATHS.TEMP_UPLOAD.replace('%s', effectiveUserId)
-      .replace('%s', timestamp)
-      .replace('%s', ext);
+    tempImagePath = STORAGE_PATHS.TEMP_UPLOAD
+      .replace(/%s/, effectiveUserId)
+      .replace(/%s/, timestamp)
+      .replace(/%s/, ext);
 
     // upload the base64 string as a Blob to temporary location
     const buffer = Buffer.from(base64Image, 'base64');
