@@ -14,5 +14,5 @@
     ".expo/types/**/*.ts",
     "expo-env.d.ts",
     "nativewind-env.d.ts"
-, "tailwind.config.js"  ]
+, "tailwind.config.ts"  ]
 }
