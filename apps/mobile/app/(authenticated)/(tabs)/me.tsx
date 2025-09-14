@@ -1,6 +1,5 @@
 import { useEffect } from 'react';
 import { SafeAreaView, Text, View, ScrollView, Button, TextInput } from 'react-native';
-import tw from "twrnc";
 import { useForm, Controller } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -56,17 +55,17 @@ const MeScreen = () => {
 
   if (isLoading) {
     return (
-      <SafeAreaView style={tw`flex-1 items-center justify-center`}>
+      <SafeAreaView className="flex-1 items-center justify-center">
         <Text>Loading...</Text>
       </SafeAreaView>
     );
   }
 
   return (
-    <SafeAreaView style={tw`flex-1`}>
-      <ScrollView style={tw`flex-1 px-4`}>
-        <View style={tw`flex-row justify-between items-center mb-6`}>
-          <Text style={tw`font-bold text-3xl`}>Profile Settings</Text>
+    <SafeAreaView className="flex-1">
+      <ScrollView className="flex-1 px-4">
+        <View className="flex-row justify-between items-center mb-6">
+          <Text className="font-lato font-bold text-3xl">Profile Settings</Text>
           <Button
             title="Sign Out"
             onPress={signOut}
@@ -74,25 +73,25 @@ const MeScreen = () => {
           />
         </View>
 
-        <View style={tw`mb-6`}>
-          <Text style={tw`text-gray-600 mb-1`}>Email</Text>
-          <Text style={tw`text-gray-800`}>{user?.email}</Text>
+        <View className="mb-6">
+          <Text className="font-inter text-gray-600 mb-1">Email</Text>
+          <Text className="font-inter text-gray-800">{user?.email}</Text>
         </View>
 
         <Controller
           control={control}
           name="name"
           render={({ field: { onChange, value } }) => (
-            <View style={tw`mb-4`}>
-              <Text style={tw`text-gray-600 mb-1`}>Name</Text>
+            <View className="mb-4">
+              <Text className="font-inter text-gray-600 mb-1">Name</Text>
               <TextInput
-                style={tw`border rounded p-2 ${errors.name ? 'border-red-500' : 'border-gray-300'}`}
+                className={`border rounded p-2 ${errors.name ? 'border-red-500' : 'border-gray-300'}`}
                 onChangeText={onChange}
                 value={value}
                 autoCapitalize="words"
               />
               {errors.name && (
-                <Text style={tw`text-red-500 text-sm mt-1`}>{errors.name.message}</Text>
+                <Text className="font-inter text-red-500 text-sm mt-1">{errors.name.message}</Text>
               )}
             </View>
           )}
@@ -102,17 +101,17 @@ const MeScreen = () => {
           control={control}
           name="phoneNumber"
           render={({ field: { onChange, value } }) => (
-            <View style={tw`mb-4`}>
-              <Text style={tw`text-gray-600 mb-1`}>Phone Number</Text>
+            <View className="mb-4">
+              <Text className="font-inter text-gray-600 mb-1">Phone Number</Text>
               <TextInput
-                style={tw`border rounded p-2 ${errors.phoneNumber ? 'border-red-500' : 'border-gray-300'}`}
+                className={`border rounded p-2 ${errors.phoneNumber ? 'border-red-500' : 'border-gray-300'}`}
                 onChangeText={onChange}
                 value={value}
                 keyboardType="phone-pad"
                 placeholder="+44XXXXXXXXXX"
               />
               {errors.phoneNumber && (
-                <Text style={tw`text-red-500 text-sm mt-1`}>{errors.phoneNumber.message}</Text>
+                <Text className="font-inter text-red-500 text-sm mt-1">{errors.phoneNumber.message}</Text>
               )}
             </View>
           )}
@@ -122,10 +121,10 @@ const MeScreen = () => {
           control={control}
           name="address"
           render={({ field: { onChange, value } }) => (
-            <View style={tw`mb-6`}>
-              <Text style={tw`text-gray-600 mb-1`}>Address</Text>
+            <View className="mb-6">
+              <Text className="font-inter text-gray-600 mb-1">Address</Text>
               <TextInput
-                style={tw`border rounded p-2 min-h-[100px] ${errors.address ? 'border-red-500' : 'border-gray-300'}`}
+                className={`border rounded p-2 min-h-[100px] ${errors.address ? 'border-red-500' : 'border-gray-300'}`}
                 onChangeText={onChange}
                 value={value}
                 multiline
@@ -134,13 +133,13 @@ const MeScreen = () => {
                 textAlignVertical="top"
               />
               {errors.address && (
-                <Text style={tw`text-red-500 text-sm mt-1`}>{errors.address.message}</Text>
+                <Text className="font-inter text-red-500 text-sm mt-1">{errors.address.message}</Text>
               )}
             </View>
           )}
         />
 
-        <View style={tw`mb-6`}>
+        <View className="mb-6">
           <Button
             title="Save Changes"
             onPress={handleSubmit(onSubmit)}

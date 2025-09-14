@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
 import { Pressable, Text, View } from 'react-native';
-import tw from "twrnc";
 import { FlashList } from "@shopify/flash-list";
 import { faCircleExclamation, faClock } from
   "@fortawesome/pro-regular-svg-icons";
@@ -47,10 +46,9 @@ const CountdownTimer = ({ deadline }: CountdownTimerProps) => {
   if (days <= 0 && hours <= 0 && minutes <= 0) return null;
 
   return (
-    <View style={tw`flex-row items-center`}>
+    <View className="flex-row items-center">
       <FontAwesomeIcon icon={faClock} size={16} color="#000" />
-      <Text style={tw`ml-2 text-sm text-black`}>{`${days}d ${hours}h ${minutes}m
-  left`}</Text>
+      <Text className="ml-2 text-sm text-black">{`${days}d ${hours}h ${minutes}m left`}</Text>
     </View>
   );
 };
@@ -68,36 +66,34 @@ const TicketItem = ({ ticket, style }: {
     estimatedFullPaymentDeadline;
 
   return (
-    <View style={tw.style(`rounded-lg border border-[#e4e4e7] bg-white 
-  text-[#09090b] shadow-sm`, {
-      ...style
-    })}
+    <View 
+      className="rounded-lg border border-[#e4e4e7] bg-white text-[#09090b] shadow-sm"
+      style={style}
     >
-      <View style={tw`flex-col gap-y-1.5 p-6`}>
-        <Text style={tw.style(`font-semibold tracking-tight text-lg`, {
-          whiteSpace: 'nowrap',
-        })}>{`${ticket.pcnNumber} - ${ticket.issuer}`}</Text>
-        <Text style={tw`text-sm text-[#71717a]`}>
+      <View className="flex-col gap-y-1.5 p-6">
+        <Text 
+          className="font-inter font-semibold tracking-tight text-lg"
+          style={{ whiteSpace: 'nowrap' }}
+        >{`${ticket.pcnNumber} - ${ticket.issuer}`}</Text>
+        <Text className="font-inter text-sm text-[#71717a]">
           {`Issued on ${new Date(ticket.issuedAt).toLocaleDateString()} at ${new
             Date(ticket.issuedAt).toLocaleTimeString()}`}
         </Text>
       </View>
-      <View style={tw`p-6 pt-0`}>
-        <Text style={tw`mb-2`}>Contravention: {ticket.contraventionCode}</Text>
-        <View style={tw`flex-row flex-wrap items-center justify-between`}>
+      <View className="p-6 pt-0">
+        <Text className="font-inter mb-2">Contravention: {ticket.contraventionCode}</Text>
+        <View className="flex-row flex-wrap items-center justify-between">
           <CountdownTimer deadline={paymentDeadline.toISOString()} />
         </View>
       </View>
-      <View style={tw`flex-row items-center p-6 pt-0 justify-end gap-x-2`}>
-        <Pressable style={tw`py-2 px-4 rounded border border-[#e4e4e7] 
-  hover:text-accent-foreground`}>
-          <Text style={tw`text-sm font-bold`}>
+      <View className="flex-row items-center p-6 pt-0 justify-end gap-x-2">
+        <Pressable className="py-2 px-4 rounded border border-[#e4e4e7]">
+          <Text className="font-inter text-sm font-bold">
             Challenge
           </Text>
         </Pressable>
-        <Pressable style={tw`py-2 px-4 rounded bg-[#18181b] text-white 
-  hover:bg-primary/90`}>
-          <Text style={tw`text-sm text-white font-bold`}>
+        <Pressable className="py-2 px-4 rounded bg-[#18181b]">
+          <Text className="font-inter text-sm text-white font-bold">
             Pay Now
           </Text>
         </Pressable>
@@ -111,7 +107,7 @@ const TicketsList = () => {
 
   if (isLoading) {
     return (
-      <View style={tw`flex-1 items-center justify-center`}>
+      <View className="flex-1 items-center justify-center">
         <Text>Loading...</Text>
       </View>
     )
@@ -119,7 +115,7 @@ const TicketsList = () => {
 
   if (!tickets || !tickets.length) {
     return (
-      <View style={tw`flex-1 items-center justify-center`}>
+      <View className="flex-1 items-center justify-center">
         <Text>No tickets found.</Text>
       </View>
     )
@@ -133,17 +129,17 @@ const TicketsList = () => {
   });
 
   return (
-    <View style={tw`flex-1 gap-y-6 p-4`}>
+    <View className="flex-1 gap-y-6 p-4">
       <View>
         {hasUpcomingDeadlines && (
-          <View style={tw`rounded-lg bg-yellow-100 p-4 gap-y-2`} role="alert">
-            <View style={tw`flex-row items-center`}>
-              <FontAwesomeIcon style={tw`mr-2 text-yellow-800`}
-                icon={faCircleExclamation} size={16} color={tw.color('text-yellow-800')} />
-              <Text style={tw`text-yellow-800 font-semibold`}>Attention:</Text>
+          <View className="rounded-lg bg-yellow-100 p-4 gap-y-2" role="alert">
+            <View className="flex-row items-center">
+              <View className="mr-2">
+                <FontAwesomeIcon icon={faCircleExclamation} size={16} color="#a16207" />
+              </View>
+              <Text className="font-inter text-yellow-800 font-semibold">Attention:</Text>
             </View>
-            <Text style={tw`text-yellow-800`}>You have tickets with upcoming
-              discount deadlines. Act now to save!</Text>
+            <Text className="font-inter text-yellow-800">You have tickets with upcoming discount deadlines. Act now to save!</Text>
           </View>
         )
         }
@@ -157,9 +153,9 @@ const TicketsList = () => {
             Math.floor(tickets.length - 1);
 
           return (
-            <TicketItem ticket={item} style={tw.style({
+            <TicketItem ticket={item} style={{
               marginBottom: isLastRow ? 0 : gridGap,
-            })} />
+            }} />
           )
         }}
         estimatedItemSize={100}

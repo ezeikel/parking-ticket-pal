@@ -4,7 +4,7 @@ import DocumentScanner, { ResponseType } from 'react-native-document-scanner-plu
 // import TextRecognition from '@react-native-ml-kit/text-recognition';
 import * as ImagePicker from 'expo-image-picker';
 import { router } from 'expo-router';
-import tw from 'twrnc';
+
 // import * as FileSystem from 'expo-file-system'; // TODO: Will be needed for API-based OCR
 import { uploadImage } from '@/api';
 import { queryClient } from "@/providers";
@@ -123,12 +123,12 @@ Fine Amount: $25.00`;
 
   if (!scannedImage) {
     return (
-      <View style={tw`flex-1 justify-center items-center`}>
+      <View className="flex-1 justify-center items-center">
         <Pressable
           onPress={scanDocument}
-          style={tw`bg-blue-500 px-6 py-3 rounded-lg`}
+          className="bg-blue-500 px-6 py-3 rounded-lg"
         >
-          <Text style={tw`text-white font-medium text-lg`}>
+          <Text className="text-white font-medium text-lg">
             Scan Ticket
           </Text>
         </Pressable>
@@ -140,41 +140,41 @@ Fine Amount: $25.00`;
   }
 
   return (
-    <View style={tw`flex-1 items-center justify-between py-4`}>
-      <View style={tw`flex-1 justify-center`}>
+    <View className="flex-1 items-center justify-between py-4">
+      <View className="flex-1 justify-center">
         <Image
           source={{ uri: `data:image/jpeg;base64,${scannedImage}` }}
-          style={tw`w-72 h-96 rounded-lg`}
+          className="w-72 h-96 rounded-lg"
           resizeMode="contain"
         />
         {processing && (
-          <View style={tw`absolute inset-0 bg-black/50 items-center justify-center rounded-lg`}>
+          <View className="absolute inset-0 bg-black/50 items-center justify-center rounded-lg">
             <ActivityIndicator color="white" size="large" />
-            <Text style={tw`text-white mt-2`}>Processing text...</Text>
+            <Text className="text-white mt-2">Processing text...</Text>
           </View>
         )}
       </View>
 
-      <View style={tw`w-full px-4 flex-row justify-center gap-4`}>
+      <View className="w-full px-4 flex-row justify-center gap-4">
         <Pressable
           onPress={handleRetry}
-          style={tw`flex-1 py-3 border border-gray-300 rounded-lg`}
+          className="flex-1 py-3 border border-gray-300 rounded-lg"
           disabled={submitting}
         >
-          <Text style={tw`text-center font-medium`}>
+          <Text className="text-center font-medium">
             Retry Scan
           </Text>
         </Pressable>
 
         <Pressable
           onPress={handleSubmit}
-          style={tw`flex-1 bg-blue-500 py-3 rounded-lg`}
+          className="flex-1 bg-blue-500 py-3 rounded-lg"
           disabled={submitting}
         >
           {submitting ? (
             <ActivityIndicator color="white" />
           ) : (
-            <Text style={tw`text-white text-center font-medium`}>
+            <Text className="text-white text-center font-medium">
               Submit
             </Text>
           )}

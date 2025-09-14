@@ -1,5 +1,5 @@
 import { Text } from "react-native";
-import tw from 'twrnc';
+import { cn } from "@/utils/cn";
 
 type TypographyProps = {
   children: React.ReactNode;
@@ -9,13 +9,13 @@ type TypographyProps = {
 };
 
 const variantClasses = {
-  'text-16': 'text-16',
-  'vrm': 'font-uk-number-plate font-semibold text-lg',
+  'text-16': 'text-16 font-inter',
+  'vrm': 'font-uknumberplate font-semibold text-lg',
 }
 
 export const Typography = ({ children, className, variant = 'text-16', onPress }: TypographyProps) => {
   return (
-    <Text onPress={onPress} style={tw.style(variantClasses[variant], className)}>
+    <Text onPress={onPress} className={cn(variantClasses[variant], className)}>
       {children}
     </Text>
   );

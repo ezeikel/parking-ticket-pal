@@ -2,22 +2,29 @@ import { useEffect } from 'react';
 import { Slot, useNavigationContainerRef } from 'expo-router';
 import Constants, { ExecutionEnvironment } from "expo-constants";
 import * as Sentry from '@sentry/react-native';
+import { ErrorBoundary } from '@sentry/react-native';
+import { View, Text, Button } from 'react-native';
 import Providers from "@/providers";
+import "../global.css";
 
 const navigationIntegration = Sentry.reactNavigationIntegration({
   enableTimeToInitialDisplay: Constants.executionEnvironment === ExecutionEnvironment.StoreClient,
 });
 
+
+const SENTRY_DSN = process.env.SENTRY_DSN || process.env.EXPO_PUBLIC_SENTRY_DSN;
+
 Sentry.init({
-  dsn: 'https://e7a94f57d66133d60cf00d10a65df1d1@o358156.ingest.us.sentry.io/4508390020415488',
-  _experiments: {
-    replaysSessionSampleRate: 1.0,
-    replaysOnErrorSampleRate: 1.0,
-  },
+  dsn: SENTRY_DSN,
+  sendDefaultPii: true,
   tracesSampleRate: 1.0,
+  // TODO: enable once upgraded to v7
+  // enableLogs: true,
+  profilesSampleRate: 1.0,
+  replaysSessionSampleRate: 1.0,
+  replaysOnErrorSampleRate: 1.0,
   integrations: [navigationIntegration, Sentry.mobileReplayIntegration()],
   enableNativeFramesTracking: Constants.executionEnvironment === ExecutionEnvironment.StoreClient,
-  sendDefaultPii: true,
 });
 
 const RootLayout = () => {
@@ -30,9 +37,23 @@ const RootLayout = () => {
   }, [ref]);
 
   return (
-    <Providers>
-      <Slot />
-    </Providers>
+    <ErrorBoundary
+      fallback={({ error, resetError }) => (
+        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', padding: 20 }}>
+          <Text style={{ fontSize: 18, fontWeight: 'bold', marginBottom: 10 }}>
+            Something went wrong
+          </Text>
+          <Text style={{ textAlign: 'center', marginBottom: 20, color: '#666' }}>
+            {(error as Error)?.message || 'An unexpected error occurred'}
+          </Text>
+          <Button title="Try Again" onPress={resetError} />
+        </View>
+      )}
+    >
+      <Providers>
+        <Slot />
+      </Providers>
+    </ErrorBoundary>
   );
 }
 

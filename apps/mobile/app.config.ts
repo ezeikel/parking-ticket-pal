@@ -97,8 +97,20 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
           },
         },
       ],
-    "expo-web-browser"
+    "expo-web-browser",
+    [
+      'expo-font', {
+        fonts: [
+          "./assets/fonts/Inter-Regular.ttf",
+          "./assets/fonts/Inter-Italic.ttf",
+          "./assets/fonts/RobotoSlab-Regular.ttf",
+          "./assets/fonts/Lato-Regular.ttf",
+          "./assets/fonts/Lato-Bold.ttf",
+          "./assets/fonts/UKNumberPlate.ttf"
+        ],
+      },
     ],
+  ],
     experiments: {
       typedRoutes: true,
     },

@@ -52,19 +52,15 @@ export const AuthContextProvider = ({ children }: AuthContextProviderProps) => {
 
           if (user) {
             setIsAuthenticated(true);
-            router.replace('/');
           } else {
             setIsAuthenticated(false);
-            router.replace('/sign-in');
           }
         } else {
           setIsAuthenticated(false);
-          router.replace('/sign-in');
         }
       } catch (error) {
         console.error('Error checking token validity', error);
         setIsAuthenticated(false);
-        router.replace('/sign-in');
       } finally {
         setIsLoading(false);
       }

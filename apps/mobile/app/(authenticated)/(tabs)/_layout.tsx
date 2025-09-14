@@ -4,7 +4,6 @@ import { router, Tabs } from 'expo-router';
 import { FontAwesomeIcon } from "@fortawesome/react-native-fontawesome";
 import { faCarMirrors as faCarMirrorsRegular, faHouse as faHouseRegular, faCreditCard as faCreditCardRegular, faUser as faUserRegular, faHouse } from "@fortawesome/pro-regular-svg-icons";
 import { faCarMirrors as faCarMirrorsSolid, faHouse as faHouseSolid, faCamera as faCameraSolid, faCreditCard as faCreditCardSolid, faUser as faUserSolid } from "@fortawesome/pro-solid-svg-icons";
-import tw from "twrnc";
 import { perfect } from "@/styles";
 import { Colors } from '@/constants/Colors';
 import { useColorScheme } from '@/hooks/useColorScheme';
@@ -51,12 +50,13 @@ export default function TabLayout() {
         name="capture"
         options={{
           tabBarButton: () => (
-            <View style={tw.style(`items-center justify-center`)}>
+            <View className="items-center justify-center">
               <Pressable
-                style={tw.style(`rounded-full p-4 -top-2`, {
+                className="rounded-full p-4 -top-2"
+                style={{
                   backgroundColor: Colors[colorScheme ?? 'light'].tint,
                   ...perfect.boxShadow,
-                })}
+                }}
                 onPress={() => router.push('/capture-modal')}
               >
                 <FontAwesomeIcon
@@ -77,7 +77,6 @@ export default function TabLayout() {
             <FontAwesomeIcon
               icon={focused ? faCreditCardSolid : faCreditCardRegular}
               size={24}
-              style={tw`text-6xl text-red-100`}
               color={color}
             />
           ),

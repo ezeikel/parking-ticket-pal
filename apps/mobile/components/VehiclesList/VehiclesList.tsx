@@ -1,6 +1,5 @@
 import { View, Text } from 'react-native';
 import { FlashList } from "@shopify/flash-list";
-import tw from "twrnc";
 import useVehicles from '@/hooks/api/useVehicles';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { faCarSide } from "@fortawesome/pro-regular-svg-icons";
@@ -14,21 +13,21 @@ const VehicleItem = ({ vehicle, style }: {
   style: Record<string, unknown>
 }) => {
   return (
-    <View style={tw.style(`rounded-lg border border-[#e4e4e7] bg-white text-[#09090b] shadow-sm`, {
-      ...style
-    })}>
-      <View style={tw`flex-row items-center p-4 gap-x-4`}>
-        <View style={tw`w-12 h-12 bg-gray-100 rounded-full items-center justify-center`}>
+    <View 
+      className="rounded-lg border border-[#e4e4e7] bg-white text-[#09090b] shadow-sm"
+      style={style}
+    >
+      <View className="flex-row items-center p-4 gap-x-4">
+        <View className="w-12 h-12 bg-gray-100 rounded-full items-center justify-center">
           {/* Placeholder for vehicle brand logo */}
           <FontAwesomeIcon icon={faCarSide} size={24} color="#71717a" />
         </View>
-        <View style={tw`flex-1`}>
-          <View style={tw`flex-row items-center gap-x-2`}>
-            <Text style={tw`font-semibold text-lg`}>{vehicle.vrm}</Text>
+        <View className="flex-1">
+          <View className="flex-row items-center gap-x-2">
             <Typography variant="vrm">{vehicle.vrm}</Typography>
-            <Text style={tw`text-lg`}>{vehicle.make}</Text>
+            <Text className="font-inter text-lg">{vehicle.make}</Text>
           </View>
-          <Text style={tw`text-[#71717a]`}>
+          <Text className="font-inter text-[#71717a]">
             {`${vehicle.model} ${vehicle.year}`}
           </Text>
         </View>
@@ -42,7 +41,7 @@ const VehiclesList = () => {
 
   if (isLoading) {
     return (
-      <View style={tw`flex-1 items-center justify-center`}>
+      <View className="flex-1 items-center justify-center">
         <Text>Loading...</Text>
       </View>
     );
@@ -50,14 +49,14 @@ const VehiclesList = () => {
 
   if (!vehicles || !vehicles.length) {
     return (
-      <View style={tw`flex-1 items-center justify-center`}>
+      <View className="flex-1 items-center justify-center">
         <Text>No vehicles found.</Text>
       </View>
     );
   }
 
   return (
-    <View style={tw`flex-1 gap-y-6 p-4`}>
+    <View className="flex-1 gap-y-6 p-4">
       <FlashList
         data={vehicles}
         renderItem={({ item, index }) => {
@@ -68,9 +67,9 @@ const VehiclesList = () => {
           return (
             <VehicleItem
               vehicle={item}
-              style={tw.style({
+              style={{
                 marginBottom: isLastRow ? 0 : gridGap,
-              })}
+              }}
             />
           );
         }}

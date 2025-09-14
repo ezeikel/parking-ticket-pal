@@ -43,8 +43,12 @@ export const signIn = async () => {
   await GoogleSignin.hasPlayServices();
   const userInfo = await GoogleSignin.signIn();
 
+  if (!userInfo.data || !userInfo.data.idToken) {
+    throw new Error('Failed to get Google Sign-In token');
+  }
+
   const response = await axios.post(`${apiUrlFromEnv}/auth/mobile`, {
-    idToken: userInfo.idToken
+    idToken: userInfo.data.idToken
   });
 
   return response.data;
