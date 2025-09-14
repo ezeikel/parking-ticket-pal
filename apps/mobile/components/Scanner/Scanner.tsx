@@ -3,14 +3,17 @@ import { View, Image, Pressable, Text, ActivityIndicator } from 'react-native';
 import DocumentScanner, { ResponseType } from 'react-native-document-scanner-plugin';
 // import TextRecognition from '@react-native-ml-kit/text-recognition';
 import * as ImagePicker from 'expo-image-picker';
-import { router } from 'expo-router';
 
 // import * as FileSystem from 'expo-file-system'; // TODO: Will be needed for API-based OCR
 import { uploadImage } from '@/api';
 import { queryClient } from "@/providers";
 
 
-const Scanner = () => {
+type ScannerProps = {
+  onClose?: () => void;
+}
+
+const Scanner = ({ onClose }: ScannerProps) => {
   const [scannedImage, setScannedImage] = useState<string>();
   const [submitting, setSubmitting] = useState(false);
   const [processing, setProcessing] = useState(false);
@@ -33,7 +36,7 @@ const Scanner = () => {
       // TODO: Replace with API-based OCR
       // Temporarily return dummy OCR text
       await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate processing time
-      
+
       const dummyOcrText = `PARKING VIOLATION NOTICE
 Vehicle License: ABC123
 Date: ${new Date().toLocaleDateString()}
@@ -41,7 +44,7 @@ Time: ${new Date().toLocaleTimeString()}
 Location: Main St & 1st Ave
 Violation: Expired Meter
 Fine Amount: $25.00`;
-      
+
       return dummyOcrText;
 
       // Previous ML Kit implementation (commented out):
@@ -95,6 +98,8 @@ Fine Amount: $25.00`;
     } catch (error) {
       console.error('Scanning failed:', error);
       // TODO: error toast
+      // If scanning fails or is cancelled, close the modal
+      onClose?.();
     }
   };
 
@@ -107,7 +112,7 @@ Fine Amount: $25.00`;
 
       await uploadImage(scannedImage, extractedText);
       await queryClient.refetchQueries();
-      router.push('/');
+      onClose?.(); // Close modal after successful submission
     } catch (error) {
       console.error('Error submitting the ticket:', error);
       // TODO: error toast
@@ -122,21 +127,8 @@ Fine Amount: $25.00`;
   };
 
   if (!scannedImage) {
-    return (
-      <View className="flex-1 justify-center items-center">
-        <Pressable
-          onPress={scanDocument}
-          className="bg-blue-500 px-6 py-3 rounded-lg"
-        >
-          <Text className="text-white font-medium text-lg">
-            Scan Ticket
-          </Text>
-        </Pressable>
-      </View>
-    );
-
-    // TODO: eventually remove above Pressable and just return null
-    // return null;
+    // Don't show any UI while camera is opening - Instagram-like experience
+    return null;
   }
 
   return (

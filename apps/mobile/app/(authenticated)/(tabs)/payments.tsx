@@ -1,4 +1,5 @@
-import { SafeAreaView, Text, View, Dimensions } from 'react-native';
+import { Text, View, Dimensions } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 const padding = 16;
 const screenWidth = Dimensions.get('screen').width - padding * 2;

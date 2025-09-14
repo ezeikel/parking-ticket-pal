@@ -1,4 +1,5 @@
-import { SafeAreaView, View, Dimensions } from 'react-native';
+import { View, Dimensions } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { GoogleSigninButton, } from '@react-native-google-signin/google-signin';
 import { useAuthContext } from '@/contexts/auth';
@@ -11,7 +12,7 @@ const AuthScreen = () => {
 
   return (
     <SafeAreaView className="flex-1 items-center">
-      <View 
+      <View
         className="flex-1"
         style={{
           marginTop: padding,

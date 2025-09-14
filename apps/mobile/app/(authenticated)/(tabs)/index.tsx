@@ -1,4 +1,5 @@
-import { SafeAreaView, Text, View, Dimensions } from 'react-native';
+import { Text, View, Dimensions } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import TicketsList from '@/components/TicketList/TicketsList';
 
 const padding = 16;

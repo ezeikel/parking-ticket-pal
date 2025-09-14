@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
-import { SafeAreaView, Text, View, ScrollView, Button, TextInput } from 'react-native';
+import { Text, View, ScrollView, Button, TextInput } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useForm, Controller } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
