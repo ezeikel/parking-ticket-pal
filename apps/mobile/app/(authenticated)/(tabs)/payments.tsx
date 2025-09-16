@@ -1,4 +1,5 @@
-import { Text, View, Dimensions } from 'react-native';
+import { Typography } from '@/components/Typography/Typography';
+import { View, Dimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 const padding = 16;
@@ -14,7 +15,14 @@ const PaymentsScreen = () => {
           width: screenWidth,
         }}
       >
-        <Text className="font-uknumberplate font-bold text-3xl mb-4">PAYMENTS SCREEN</Text>
+        <Typography
+          font="uknumberplate"
+          weight="bold"
+          size="3xl"
+          className="mb-4"
+        >
+          PAYMENTS SCREEN
+        </Typography>
       </View>
     </SafeAreaView>
   );

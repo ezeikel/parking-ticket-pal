@@ -1,21 +1,47 @@
-import { Text } from "react-native";
-import { cn } from "@/utils/cn";
+import type { ReactNode } from "react";
+import type { StyleProp, TextProps, TextStyle } from "react-native";
+import { Text, Platform } from "react-native";
+import { getTextClassName } from "./textStyles";
 
-type TypographyProps = {
-  children: React.ReactNode;
-  className?: string;
-  variant?: "text-16" | "vrm";
-  onPress?: () => void;
+export type TypographyProps = TextProps & {
+  children: ReactNode;
+  numberOfLines?: number;
+  weight?: "normal" | "bold";
+  italic?: boolean;
+  style?: StyleProp<TextStyle>;
+  font?: "inter" | "lato" | "uknumberplate" | "robotoslab";
+  size?: "xs" | "sm" | "base" | "lg" | "xl" | "2xl" | "3xl" | "4xl" | "5xl";
+  color?: string;
 };
 
-const variantClasses = {
-  'text-16': 'text-16 font-inter',
-  'vrm': 'font-uknumberplate font-semibold text-lg',
-}
+export const Typography = ({
+  children,
+  className,
+  weight = "normal",
+  italic = false,
+  font = "inter",
+  size = "base",
+  color,
+  numberOfLines = 0,
+  ...props
+}: TypographyProps) => {
+  const allowFontScaling = props.allowFontScaling ?? !["5xl"].includes(size);
+  const maxFontSizeMultiplier = props.maxFontSizeMultiplier;
 
-export const Typography = ({ children, className, variant = 'text-16', onPress }: TypographyProps) => {
+  // Handle iOS italic styling
+  const italicStyle = Platform.OS === 'ios' && italic && (font === 'inter' || font === 'lato') 
+    ? { fontStyle: 'italic' as const } 
+    : undefined;
+
   return (
-    <Text onPress={onPress} className={cn(variantClasses[variant], className)}>
+    <Text
+      className={getTextClassName({ weight, italic, font, size, color, className })}
+      numberOfLines={numberOfLines}
+      allowFontScaling={allowFontScaling}
+      maxFontSizeMultiplier={maxFontSizeMultiplier}
+      style={[italicStyle, props.style]}
+      {...props}
+    >
       {children}
     </Text>
   );

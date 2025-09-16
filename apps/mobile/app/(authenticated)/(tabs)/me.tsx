@@ -6,6 +6,7 @@ import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useAuthContext } from '@/contexts/auth';
 import useUser from '@/hooks/api/useUser';
+import { Typography } from '@/components/Typography/Typography';
 
 const formSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters'),
@@ -66,7 +67,14 @@ const MeScreen = () => {
     <SafeAreaView className="flex-1">
       <ScrollView className="flex-1 px-4">
         <View className="flex-row justify-between items-center mb-6">
-          <Text className="font-lato font-bold text-3xl">Profile Settings</Text>
+          <Typography
+            font="lato"
+            weight='bold'
+            size="3xl"
+            className="mb-4"
+          >
+            Profile Settings
+          </Typography>
           <Button
             title="Sign Out"
             onPress={signOut}

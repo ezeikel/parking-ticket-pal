@@ -1,6 +1,7 @@
-import { Text, View, Dimensions } from 'react-native';
+import { View, Dimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import VehiclesList from '@/components/VehiclesList/VehiclesList';
+import { Typography } from '@/components/Typography/Typography';
 
 const padding = 16;
 const screenWidth = Dimensions.get('screen').width - padding * 2;
@@ -15,7 +16,13 @@ const VehiclesScreen = () => {
           width: screenWidth,
         }}
       >
-        <Text className="font-lato font-bold text-3xl mb-4">Vehicles Screen</Text>
+        <Typography
+          font="lato"
+          size="3xl"
+          className="mb-4"
+        >
+          Vehicles Screen
+        </Typography>
         <VehiclesList />
       </View>
     </SafeAreaView >

@@ -6,11 +6,12 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        inter: ["Inter-Regular"],
-        "inter-italic": ["Inter-Italic"],
-        "inter-bold": ["Inter-Bold"],
+        inter: ["Inter18pt-Regular"],
+        "inter-bold": ["Inter18pt-Bold"],
+        "inter-italic": ["Inter18pt-Italic"],
         lato: ["Lato-Regular"],
         "lato-bold": ["Lato-Bold"],
+        "lato-italic": ["Lato-Italic"],
         robotoslab: ["RobotoSlab-Regular"],
         uknumberplate: ["UKNumberPlate"],
       },

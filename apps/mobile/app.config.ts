@@ -101,15 +101,75 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     [
       'expo-font', {
         fonts: [
-          "./assets/fonts/Inter-Regular.ttf",
-          "./assets/fonts/Inter-Italic.ttf",
-          "./assets/fonts/RobotoSlab-Regular.ttf",
-          "./assets/fonts/Lato-Regular.ttf",
+          "./assets/fonts/Inter18pt-Regular.ttf",
+          "./assets/fonts/Inter18pt-Bold.ttf",
+          "./assets/fonts/Inter18pt-Italic.ttf",
+          "./assets/fonts/Lato-Regular.ttf", 
           "./assets/fonts/Lato-Bold.ttf",
+          "./assets/fonts/Lato-Italic.ttf",
+          "./assets/fonts/RobotoSlab-Regular.ttf",
           "./assets/fonts/UKNumberPlate.ttf"
         ],
+        // android: {
+        //   fonts: [
+        //     {
+        //       "fontFamily": "Inter",
+        //       fontDefinitions: [
+        //         {
+        //           path: "./assets/fonts/Inter18pt-Regular.ttf",
+        //           weight: "400",
+        //         },
+        //         {
+        //           path: "./assets/fonts/Inter18pt-Bold.ttf",
+        //           weight: "700",
+        //         },
+        //         {
+        //           path: "./assets/fonts/Inter18pt-Italic.ttf",
+        //           weight: "400",
+        //           style: "italic",
+        //         },
+        //       ]
+        //     },
+        //     {
+        //       "fontFamily": "Lato",
+        //       fontDefinitions: [
+        //         {
+        //           path: "./assets/fonts/Lato-Regular.ttf",
+        //           weight: "400",
+        //         },
+        //         {
+        //           path: "./assets/fonts/Lato-Bold.ttf",
+        //           weight: "700",
+        //         },
+        //         {
+        //           path: "./assets/fonts/Lato-Italic.ttf",
+        //           weight: "400",
+        //           style: "italic",
+        //         },
+        //       ]
+        //     },
+        //     {
+        //       "fontFamily": "RobotoSlab",
+        //       fontDefinitions: [
+        //         {
+        //           path: "./assets/fonts/RobotoSlab-Regular.ttf",
+        //           weight: "400",
+        //         },
+        //       ]
+        //     },
+        //     {
+        //       "fontFamily": "UKNumberPlate",
+        //       fontDefinitions: [
+        //         {
+        //           path: "./assets/fonts/UKNumberPlate.ttf",
+        //           weight: "400",
+        //         }
+        //       ]
+        //     }
+        //   ]
+        // },
       },
-    ],
+    ]
   ],
     experiments: {
       typedRoutes: true,

@@ -1,6 +1,7 @@
-import { Text, View, Dimensions } from 'react-native';
+import { View, Dimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import TicketsList from '@/components/TicketList/TicketsList';
+import { Typography } from '@/components/Typography/Typography';
 
 const padding = 16;
 const screenWidth = Dimensions.get('screen').width - padding * 2;
@@ -15,7 +16,14 @@ const TicketsScreen = () => {
           width: screenWidth,
         }}
       >
-        <Text className="font-inter font-bold text-3xl mb-4">Tickets Screen</Text>
+        <Typography
+          font="lato"
+          italic
+          size="3xl"
+          className="mb-4"
+        >
+          Tickets Screen abcefg
+        </Typography>
         <TicketsList />
       </View>
     </SafeAreaView>
