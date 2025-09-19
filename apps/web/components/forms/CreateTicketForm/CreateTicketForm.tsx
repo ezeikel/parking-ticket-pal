@@ -31,8 +31,8 @@ import {
 } from '@/components/ui/select';
 import cn from '@/utils/cn';
 import { format } from 'date-fns';
-import { CONTRAVENTION_CODES_OPTIONS } from '@/constants';
-import { ticketFormSchema } from '@/types';
+import { CONTRAVENTION_CODES_OPTIONS } from '@parking-ticket-pal/constants';
+import { ticketFormSchema } from '@parking-ticket-pal/types';
 import { createTicket } from '@/app/actions/ticket';
 import {
   faCalendar,

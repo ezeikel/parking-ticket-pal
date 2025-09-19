@@ -17,7 +17,7 @@ import {
   ChallengeStatus,
 } from '@prisma/client';
 import getVehicleInfo from '@/utils/getVehicleInfo';
-import { ticketFormSchema } from '@/types';
+import { ticketFormSchema } from '@parking-ticket-pal/types';
 import { db } from '@/lib/prisma';
 import { verify, challenge } from '@/utils/automation';
 import { generateReminders } from '@/app/actions/reminder';

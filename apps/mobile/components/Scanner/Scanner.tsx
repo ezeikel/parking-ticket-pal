@@ -1,12 +1,11 @@
 import { useState, useEffect } from 'react';
-import { View, Image, Pressable, Text, ActivityIndicator } from 'react-native';
+import { View, Image, Pressable, Text, ActivityIndicator, Alert } from 'react-native';
 import DocumentScanner, { ResponseType } from 'react-native-document-scanner-plugin';
-// import TextRecognition from '@react-native-ml-kit/text-recognition';
 import * as ImagePicker from 'expo-image-picker';
 
-// import * as FileSystem from 'expo-file-system'; // TODO: Will be needed for API-based OCR
-import { uploadImage } from '@/api';
-import { queryClient } from "@/providers";
+import useOCR from '@/hooks/api/useOCR';
+import useCreateTicket from '@/hooks/api/useUploadTicket';
+import TicketForm from '@/components/TicketForm/TicketForm';
 
 
 type ScannerProps = {
@@ -15,8 +14,11 @@ type ScannerProps = {
 
 const Scanner = ({ onClose }: ScannerProps) => {
   const [scannedImage, setScannedImage] = useState<string>();
-  const [submitting, setSubmitting] = useState(false);
-  const [processing, setProcessing] = useState(false);
+  const [ocrData, setOcrData] = useState<any>(null);
+  const [showForm, setShowForm] = useState(false);
+
+  const ocrMutation = useOCR();
+  const createTicketMutation = useCreateTicket();
 
   // open camera when component is mounted
   useEffect(() => {
@@ -29,59 +31,53 @@ const Scanner = ({ onClose }: ScannerProps) => {
     };
   }, []);
 
-  const extractTextFromImage = async (_base64Image: string) => {
-    try {
-      setProcessing(true);
-
-      // TODO: Replace with API-based OCR
-      // Temporarily return dummy OCR text
-      await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate processing time
-
-      const dummyOcrText = `PARKING VIOLATION NOTICE
-Vehicle License: ABC123
-Date: ${new Date().toLocaleDateString()}
-Time: ${new Date().toLocaleTimeString()}
-Location: Main St & 1st Ave
-Violation: Expired Meter
-Fine Amount: $25.00`;
-
-      return dummyOcrText;
-
-      // Previous ML Kit implementation (commented out):
-      // const tempFilePath = `${FileSystem.cacheDirectory}temp_scan.jpg`;
-      // await FileSystem.writeAsStringAsync(tempFilePath, base64Image, {
-      //   encoding: FileSystem.EncodingType.Base64,
-      // });
-      // const result = await TextRecognition.recognize(tempFilePath);
-      // await FileSystem.deleteAsync(tempFilePath);
-      // return result.text;
-    } catch (error) {
-      console.error('Error recognizing text:', error);
-      return '';
-    } finally {
-      setProcessing(false);
-    }
-  };
 
   const pickImage = async () => {
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ['images'],
-      allowsEditing: true,
-      quality: 0.8,
-      base64: true,
-      exif: false,
-    });
+    try {
+      console.log('Requesting media library permissions...');
 
-    if (!result.canceled) {
-      const imageUri = result.assets?.[0]?.base64;
-      if (imageUri) {
-        setScannedImage(imageUri);
+      // Request permissions first
+      const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
+
+      if (permissionResult.granted === false) {
+        console.log('Permission to access camera roll is required!');
+        onClose?.();
+        return;
       }
+
+      console.log('Launching image library...');
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ['images'],
+        allowsEditing: true,
+        quality: 0.8,
+        base64: true,
+        exif: false,
+      });
+
+      console.log('Image picker result:', result);
+
+      if (!result.canceled) {
+        const imageUri = result.assets?.[0]?.base64;
+        if (imageUri) {
+          console.log('Image selected, setting scanned image');
+          setScannedImage(imageUri);
+        }
+      } else {
+        console.log('User cancelled image picker');
+        // User cancelled image picker, close the modal
+        onClose?.();
+      }
+    } catch (error) {
+      console.error('Error picking image:', error);
+      onClose?.();
     }
   };
 
   const scanDocument = async () => {
+    console.log('scanDocument called, __DEV__:', __DEV__);
+
     if (__DEV__) {
+      console.log('Running in dev mode, calling pickImage');
       await pickImage();
       return;
     }
@@ -98,36 +94,101 @@ Fine Amount: $25.00`;
     } catch (error) {
       console.error('Scanning failed:', error);
       // TODO: error toast
-      // If scanning fails or is cancelled, close the modal
+      // if scanning fails or is cancelled, close the modal
       onClose?.();
     }
   };
 
-  const handleSubmit = async () => {
+  const handleProcess = async () => {
     if (!scannedImage) return;
 
-    setSubmitting(true);
     try {
-      const extractedText = await extractTextFromImage(scannedImage);
+      // process image with OCR using web app's endpoint
+      const ocrResult = await ocrMutation.mutateAsync(scannedImage);
 
-      await uploadImage(scannedImage, extractedText);
-      await queryClient.refetchQueries();
-      onClose?.(); // Close modal after successful submission
+      if (ocrResult.success && ocrResult.data) {
+        console.log('ocrResult', ocrResult);
+        setOcrData(ocrResult);
+        setShowForm(true);
+      } else {
+        console.error('OCR processing failed:', ocrResult.message);
+        Alert.alert('Error', 'Failed to process the image. Please try again.');
+      }
     } catch (error) {
-      console.error('Error submitting the ticket:', error);
-      // TODO: error toast
-    } finally {
-      setSubmitting(false);
+      console.error('Error processing the ticket:', error);
+      Alert.alert('Error', 'Failed to process the image. Please try again.');
     }
+  };
+
+  const handleFormSubmit = async (formData: any) => {
+    try {
+      const ticketData = {
+        ...formData,
+        tempImageUrl: ocrData?.imageUrl,
+        tempImagePath: ocrData?.tempImagePath,
+        extractedText: ocrData?.data?.extractedText,
+      };
+
+      const result = await createTicketMutation.mutateAsync(ticketData);
+      
+      if (result.success) {
+        Alert.alert('Success', 'Ticket created successfully!', [
+          { text: 'OK', onPress: () => onClose?.() }
+        ]);
+      } else {
+        Alert.alert('Error', result.error || 'Failed to create ticket.');
+      }
+    } catch (error) {
+      console.error('Error creating ticket:', error);
+      Alert.alert('Error', 'Failed to create ticket. Please try again.');
+    }
+  };
+
+  const handleFormCancel = () => {
+    setShowForm(false);
+    setOcrData(null);
   };
 
   const handleRetry = () => {
     setScannedImage(undefined);
+    setOcrData(null);
+    setShowForm(false);
     scanDocument();
   };
 
+  // Show the form after OCR processing
+  if (showForm && ocrData) {
+    const initialFormData = {
+      vehicleReg: ocrData.data?.vehicleReg || '',
+      pcnNumber: ocrData.data?.pcnNumber || '',
+      issuedAt: ocrData.data?.issuedAt ? new Date(ocrData.data.issuedAt) : new Date(),
+      contraventionCode: ocrData.data?.contraventionCode || '',
+      initialAmount: ocrData.data?.initialAmount || 0,
+      issuer: ocrData.data?.issuer || '',
+      location: ocrData.data?.location || {
+        line1: '',
+        city: '',
+        postcode: '',
+        country: 'United Kingdom',
+        coordinates: {
+          latitude: 0,
+          longitude: 0,
+        },
+      },
+    };
+
+    return (
+      <TicketForm
+        initialData={initialFormData}
+        onSubmit={handleFormSubmit}
+        onCancel={handleFormCancel}
+        isLoading={createTicketMutation.isPending}
+      />
+    );
+  }
+
   if (!scannedImage) {
-    // Don't show any UI while camera is opening - Instagram-like experience
+    // don't show any UI while camera is opening - Instagram-like experience
     return null;
   }
 
@@ -139,10 +200,12 @@ Fine Amount: $25.00`;
           className="w-72 h-96 rounded-lg"
           resizeMode="contain"
         />
-        {processing && (
+        {ocrMutation.isPending && (
           <View className="absolute inset-0 bg-black/50 items-center justify-center rounded-lg">
             <ActivityIndicator color="white" size="large" />
-            <Text className="text-white mt-2">Processing text...</Text>
+            <Text className="text-white mt-2">
+              Processing with AI...
+            </Text>
           </View>
         )}
       </View>
@@ -151,7 +214,7 @@ Fine Amount: $25.00`;
         <Pressable
           onPress={handleRetry}
           className="flex-1 py-3 border border-gray-300 rounded-lg"
-          disabled={submitting}
+          disabled={ocrMutation.isPending}
         >
           <Text className="text-center font-medium">
             Retry Scan
@@ -159,15 +222,15 @@ Fine Amount: $25.00`;
         </Pressable>
 
         <Pressable
-          onPress={handleSubmit}
+          onPress={handleProcess}
           className="flex-1 bg-blue-500 py-3 rounded-lg"
-          disabled={submitting}
+          disabled={ocrMutation.isPending}
         >
-          {submitting ? (
+          {ocrMutation.isPending ? (
             <ActivityIndicator color="white" />
           ) : (
             <Text className="text-white text-center font-medium">
-              Submit
+              Process Image
             </Text>
           )}
         </Pressable>
