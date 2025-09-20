@@ -25,8 +25,8 @@ import {
   ChallengeEmailSchema,
   TicketForChallengeLetter,
   UserForChallengeLetter,
-  Address,
 } from '@/types';
+import { Address } from '@parking-ticket-pal/types';
 import { getUserId } from '@/utils/user';
 import openai from '@/lib/openai';
 import { zodResponseFormat } from 'openai/helpers/zod';

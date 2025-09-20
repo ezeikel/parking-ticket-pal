@@ -31,7 +31,8 @@ import {
 import cn from '@/utils/cn';
 import { format } from 'date-fns';
 import { CONTRAVENTION_CODES_OPTIONS } from '@/constants';
-import { Address, ticketFormSchema, TicketWithRelations } from '@/types';
+import { TicketWithRelations } from '@/types';
+import { Address, ticketFormSchema } from '@parking-ticket-pal/types';
 import {
   refreshTicket,
   refreshTickets,

@@ -10,7 +10,7 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Address, TicketStatus } from '@/types';
+import { Address } from '@parking-ticket-pal/types';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import {
   faCarSide,
@@ -19,7 +19,7 @@ import {
   faMoneyBill,
   faMapMarkerAlt,
 } from '@fortawesome/pro-regular-svg-icons';
-import { Prisma } from '@prisma/client';
+import { Prisma, TicketStatus } from '@prisma/client';
 import { formatDateWithDueStatus, calculateAmountDue } from '@/utils/dates';
 import AmountDue from '@/components/AmountDue/AmountDue';
 import DueDate from '@/components/DueDate/DueDate';

@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { AddressSchema, type Address } from './address';
+import { AddressSchema } from './address';
 
 export const ticketFormSchema = z.object({
   vehicleReg: z

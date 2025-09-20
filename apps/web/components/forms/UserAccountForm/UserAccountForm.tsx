@@ -19,7 +19,7 @@ import {
 import AddressInput from '@/components/forms/inputs/AddressInput/AddressInput';
 import SignatureInput from '@/components/SignatureInput/SignatureInput';
 import { User } from '@prisma/client';
-import { Address } from '@/types';
+import { Address } from '@parking-ticket-pal/types';
 
 // Define an interface for the user address structure
 type UserAddress = {

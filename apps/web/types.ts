@@ -16,9 +16,7 @@ import {
 import { z } from 'zod';
 import { TRACKING_EVENTS } from './constants/events';
 import { BLOG_TAGS } from './constants/blog';
-
-// Re-export shared types
-export * from '@parking-ticket-pal/types';
+import { Address } from '@parking-ticket-pal/types';
 
 export type FileWithPreview = File & {
   preview: string;

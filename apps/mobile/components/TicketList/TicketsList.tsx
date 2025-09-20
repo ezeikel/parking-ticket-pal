@@ -66,12 +66,12 @@ const TicketItem = ({ ticket, style }: {
     estimatedFullPaymentDeadline;
 
   return (
-    <View 
+    <View
       className="rounded-lg border border-[#e4e4e7] bg-white text-[#09090b] shadow-sm"
       style={style}
     >
       <View className="flex-col gap-y-1.5 p-6">
-        <Text 
+        <Text
           className="font-inter font-semibold tracking-tight text-lg"
           style={{ whiteSpace: 'nowrap' }}
         >{`${ticket.pcnNumber} - ${ticket.issuer}`}</Text>

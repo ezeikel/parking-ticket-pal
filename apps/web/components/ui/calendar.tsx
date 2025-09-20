@@ -63,7 +63,7 @@ function Calendar({
         ...classNames,
       }}
       components={{
-        IconLeft: ({ className, ...props }) => (
+        IconLeft: ({ className, style, ...props }) => (
           <FontAwesomeIcon
             icon={faChevronLeft}
             size="sm"
@@ -71,7 +71,7 @@ function Calendar({
             {...props}
           />
         ),
-        IconRight: ({ className, ...props }) => (
+        IconRight: ({ className, style, ...props }) => (
           <FontAwesomeIcon
             icon={faChevronRight}
             size="sm"

@@ -33,7 +33,8 @@ import { calculateAmountDue, formatDateWithDueStatus } from '@/utils/dates';
 import DueDate from '@/components/DueDate/DueDate';
 import AmountDue from '@/components/AmountDue/AmountDue';
 import { getContraventionDetails } from '@/constants';
-import { TicketWithRelations, Address } from '@/types';
+import { TicketWithRelations } from '@/types';
+import { Address } from '@parking-ticket-pal/types';
 
 type InfoItemProps = {
   icon: ReactNode;

@@ -3,8 +3,7 @@
 import { useState, useMemo } from 'react';
 import { cn } from '@/lib/utils';
 import { getTimelineByIssuer, type TimelineStage } from '@/constants/timelines';
-import type { TicketStatus } from '@/types';
-import { IssuerType } from '@prisma/client';
+import { TicketStatus, IssuerType } from '@prisma/client';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { faCheck, faInfoCircle } from '@fortawesome/pro-regular-svg-icons';

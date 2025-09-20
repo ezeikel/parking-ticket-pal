@@ -12,7 +12,7 @@ import {
   STORAGE_PATHS,
 } from '@/constants';
 import { generateOcrAnalysisPrompt } from '@/utils/promptGenerators';
-import { DocumentSchema, Address } from '@/types';
+import { Address, DocumentSchema } from '@parking-ticket-pal/types';
 
 const getVisionClient = () => {
   const credentialsBase64 = process.env.GOOGLE_APPLICATION_CREDENTIALS_BASE64;
@@ -73,8 +73,7 @@ export const extractOCRTextWithOpenAI = async (
     // generate temporary path with timestamp
     const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
     const extension = image.name.split('.').pop() || 'jpg';
-    tempImagePath = STORAGE_PATHS.TEMP_UPLOAD
-      .replace(/%s/, effectiveUserId)
+    tempImagePath = STORAGE_PATHS.TEMP_UPLOAD.replace(/%s/, effectiveUserId)
       .replace(/%s/, timestamp)
       .replace(/%s/, extension);
 
@@ -106,8 +105,7 @@ export const extractOCRTextWithOpenAI = async (
 
     // generate temporary path for base64 upload
     const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-    tempImagePath = STORAGE_PATHS.TEMP_UPLOAD
-      .replace(/%s/, effectiveUserId)
+    tempImagePath = STORAGE_PATHS.TEMP_UPLOAD.replace(/%s/, effectiveUserId)
       .replace(/%s/, timestamp)
       .replace(/%s/, ext);
 
@@ -346,8 +344,7 @@ export const extractOCRTextWithVision = async (
     // generate temporary path with timestamp
     const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
     const extension = image.name.split('.').pop() || 'jpg';
-    tempImagePath = STORAGE_PATHS.TEMP_UPLOAD
-      .replace(/%s/, effectiveUserId)
+    tempImagePath = STORAGE_PATHS.TEMP_UPLOAD.replace(/%s/, effectiveUserId)
       .replace(/%s/, timestamp)
       .replace(/%s/, extension);
 
@@ -379,8 +376,7 @@ export const extractOCRTextWithVision = async (
 
     // generate temporary path for base64 upload
     const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-    tempImagePath = STORAGE_PATHS.TEMP_UPLOAD
-      .replace(/%s/, effectiveUserId)
+    tempImagePath = STORAGE_PATHS.TEMP_UPLOAD.replace(/%s/, effectiveUserId)
       .replace(/%s/, timestamp)
       .replace(/%s/, ext);
 

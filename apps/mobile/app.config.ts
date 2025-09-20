@@ -11,11 +11,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     icon: "./assets/images/icon.png",
     scheme: "parkingticketpal",
     userInterfaceStyle: "light",
-    splash: {
-      image: "./assets/images/splash.png",
-      resizeMode: "contain",
-      backgroundColor: "#ffffff",
-    },
+    newArchEnabled: true,
     ios: {
       bundleIdentifier: "com.chewybytes.parkingticketpal",
       supportsTablet: true,
@@ -49,6 +45,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
           category: ["BROWSABLE", "DEFAULT"]
         }
       ],
+      edgeToEdgeEnabled: true,
     },
     web: {
       bundler: "metro",
@@ -57,6 +54,15 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     },
     plugins: [
       "expo-router",
+    [
+      'expo-splash-screen',
+      {
+        image: './assets/images/splash-icon.png',
+        imageWidth: 200,
+        resizeMode: 'contain',
+        backgroundColor: '#0A2540',
+      },
+    ],
       "expo-dev-client",
       [
         "expo-splash-screen",
@@ -110,64 +116,6 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
           "./assets/fonts/RobotoSlab-Regular.ttf",
           "./assets/fonts/UKNumberPlate.ttf"
         ],
-        // android: {
-        //   fonts: [
-        //     {
-        //       "fontFamily": "Inter",
-        //       fontDefinitions: [
-        //         {
-        //           path: "./assets/fonts/Inter18pt-Regular.ttf",
-        //           weight: "400",
-        //         },
-        //         {
-        //           path: "./assets/fonts/Inter18pt-Bold.ttf",
-        //           weight: "700",
-        //         },
-        //         {
-        //           path: "./assets/fonts/Inter18pt-Italic.ttf",
-        //           weight: "400",
-        //           style: "italic",
-        //         },
-        //       ]
-        //     },
-        //     {
-        //       "fontFamily": "Lato",
-        //       fontDefinitions: [
-        //         {
-        //           path: "./assets/fonts/Lato-Regular.ttf",
-        //           weight: "400",
-        //         },
-        //         {
-        //           path: "./assets/fonts/Lato-Bold.ttf",
-        //           weight: "700",
-        //         },
-        //         {
-        //           path: "./assets/fonts/Lato-Italic.ttf",
-        //           weight: "400",
-        //           style: "italic",
-        //         },
-        //       ]
-        //     },
-        //     {
-        //       "fontFamily": "RobotoSlab",
-        //       fontDefinitions: [
-        //         {
-        //           path: "./assets/fonts/RobotoSlab-Regular.ttf",
-        //           weight: "400",
-        //         },
-        //       ]
-        //     },
-        //     {
-        //       "fontFamily": "UKNumberPlate",
-        //       fontDefinitions: [
-        //         {
-        //           path: "./assets/fonts/UKNumberPlate.ttf",
-        //           weight: "400",
-        //         }
-        //       ]
-        //     }
-        //   ]
-        // },
       },
     ]
   ],

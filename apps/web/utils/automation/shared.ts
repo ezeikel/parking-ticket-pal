@@ -2,7 +2,7 @@ import { Page } from 'playwright';
 import { chromium } from 'playwright-extra';
 import { Ticket } from '@prisma/client';
 import { put, list } from '@vercel/blob';
-import { Address } from '@/types';
+import { Address } from '@parking-ticket-pal/types';
 import { STORAGE_PATHS } from '@/constants';
 
 export type CommonPcnArgs = {

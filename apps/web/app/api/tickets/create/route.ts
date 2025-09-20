@@ -1,21 +1,21 @@
 import { NextRequest } from 'next/server';
 import { createTicket } from '@/app/actions/ticket';
-import { ticketFormSchema } from '@/types';
+import { ticketFormSchema } from '@parking-ticket-pal/types';
 import { getUserId } from '@/utils/user';
 
 export async function POST(request: NextRequest) {
   try {
     const userId = await getUserId('create a ticket');
-    
+
     if (!userId) {
       return Response.json(
         { success: false, error: 'Unauthorized' },
-        { status: 401 }
+        { status: 401 },
       );
     }
 
     const body = await request.json();
-    
+
     // Validate the request body matches the ticket form schema
     const validatedData = ticketFormSchema.parse({
       ...body,
@@ -35,7 +35,7 @@ export async function POST(request: NextRequest) {
     if (!ticket) {
       return Response.json(
         { success: false, error: 'Failed to create ticket' },
-        { status: 500 }
+        { status: 500 },
       );
     }
 
@@ -49,21 +49,25 @@ export async function POST(request: NextRequest) {
           'Access-Control-Allow-Headers': 'Content-Type, Authorization',
           'Content-Type': 'application/json',
         },
-      }
+      },
     );
   } catch (error) {
     console.error('API Error creating ticket:', error);
-    
+
     if (error instanceof Error && error.name === 'ZodError') {
       return Response.json(
-        { success: false, error: 'Invalid request data', details: error.message },
-        { status: 400 }
+        {
+          success: false,
+          error: 'Invalid request data',
+          details: error.message,
+        },
+        { status: 400 },
       );
     }
 
     return Response.json(
       { success: false, error: 'Internal server error' },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
