@@ -133,7 +133,7 @@
     "stripe": "^18.2.1",
     "tailwind-merge": "^3.0.1",
     "tailwindcss-animate": "^1.0.7",
-    "twilio": "^5.10.0",
+    "twilio": "^5.9.0",
     "ws": "^8.18.2",
     "zod": "^3.24.2"
   },
