@@ -8,10 +8,9 @@ import {
   PDFPage,
   PDFField,
 } from 'pdf-lib';
-import fs from 'fs';
-import path from 'path';
 import https from 'https';
 import http from 'http';
+import { headers } from 'next/headers';
 
 // Define the user data type
 type TE9FormData = {
@@ -434,15 +433,22 @@ const addSvgSignatureToField = async (
   }
 };
 
-const fillTE9Form = async (userData: Partial<TE9FormData> = {}) => {
+const fillTE9Form = async (userData: Partial<TE9FormData> = {}): Promise<Uint8Array> => {
   console.log('🚀 Starting TE9 form fill process...');
 
   try {
-    // Load the PDF
-    const pdfPath = './public/documents/forms/TE9.pdf';
-    console.log(`📄 Loading PDF from: ${pdfPath}`);
-    const pdfBytes = fs.readFileSync(pdfPath);
-    console.log(`✅ PDF loaded, size: ${pdfBytes.length} bytes`);
+    // Fetch PDF from public URL using Next.js headers
+    const headersList = await headers();
+    const host = headersList.get('host');
+    const protocol = process.env.NODE_ENV === 'development' ? 'http' : 'https';
+    const pdfUrl = `${protocol}://${host}/documents/forms/TE9.pdf`;
+    console.log(`📄 Loading PDF from: ${pdfUrl}`);
+    const pdfResponse = await fetch(pdfUrl);
+    if (!pdfResponse.ok) {
+      throw new Error(`Failed to fetch PDF: ${pdfResponse.status}`);
+    }
+    const pdfBytes = await pdfResponse.arrayBuffer();
+    console.log(`✅ PDF loaded, size: ${pdfBytes.byteLength} bytes`);
 
     const pdfDoc = await PDFDocument.load(pdfBytes);
     console.log('✅ PDF document successfully parsed');
@@ -912,41 +918,11 @@ const fillTE9Form = async (userData: Partial<TE9FormData> = {}) => {
 
     console.log('✨ All form fields drawn successfully');
 
-    // Save the filled form in a specific directory
-    const outputDir = './public/documents/output';
-    console.log(`📁 Preparing to save to directory: ${outputDir}`);
-
-    // Create output directory if it doesn't exist
-    if (!fs.existsSync(outputDir)) {
-      console.log(
-        `📂 Output directory doesn't exist, creating it: ${outputDir}`,
-      );
-      try {
-        fs.mkdirSync(outputDir, { recursive: true });
-        console.log(`✅ Created output directory: ${outputDir}`);
-      } catch (e: unknown) {
-        const error = e as Error;
-        console.error(`❌ Error creating output directory: ${error.message}`);
-        throw e;
-      }
-    }
-
-    // Generate a unique filename with timestamp
-    const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-    const outputFilename = `filled_TE9_${timestamp}.pdf`;
-    const outputPath = path.join(outputDir, outputFilename);
-    console.log(`💾 Saving filled form to: ${outputPath}`);
-
-    // Save the PDF
-    console.log('⚙️ Generating PDF bytes...');
+    // Return PDF bytes instead of writing to filesystem
     const filledPdfBytes = await pdfDoc.save();
-    console.log(`✅ Generated ${filledPdfBytes.length} bytes of PDF data`);
+    console.log('🎉 Form successfully filled!');
 
-    console.log(`📝 Writing file to: ${outputPath}`);
-    fs.writeFileSync(outputPath, filledPdfBytes);
-    console.log('🎉 Form successfully filled and saved!');
-
-    return outputPath;
+    return filledPdfBytes;
   } catch (error) {
     console.error('❌ ERROR in fillTE9Form:', error);
     throw error;

@@ -1,6 +1,5 @@
 import { PDFDocument } from 'pdf-lib';
-import fs from 'fs';
-import path from 'path';
+import { headers } from 'next/headers';
 
 /**
  * Fills the PE2 form using only available form fields from the PDF
@@ -8,24 +7,22 @@ import path from 'path';
  * @param {Object} userData - User data to fill in the form
  * @returns {Promise<string>} - Path to the filled form
  */
-const fillPE2Form = async (userData: Record<string, any> = {}) => {
+const fillPE2Form = async (userData: Record<string, any> = {}): Promise<Uint8Array> => {
   console.log('🚀 Starting PE2 form fill process...');
 
   try {
-    // load the PDF
-    const pdfPath = './public/documents/forms/PE2.pdf';
-    console.log(`📄 Loading PDF from: ${pdfPath}`);
-
-    if (!fs.existsSync(pdfPath)) {
-      console.error(`❌ PE2.pdf not found at ${pdfPath}`);
-      console.log(
-        '⚠️ The PE2.pdf file must be present in the public/documents/forms directory',
-      );
-      return null;
+    // Fetch PDF from public URL using Next.js headers
+    const headersList = await headers();
+    const host = headersList.get('host');
+    const protocol = process.env.NODE_ENV === 'development' ? 'http' : 'https';
+    const pdfUrl = `${protocol}://${host}/documents/forms/PE2.pdf`;
+    console.log(`📄 Loading PDF from: ${pdfUrl}`);
+    const pdfResponse = await fetch(pdfUrl);
+    if (!pdfResponse.ok) {
+      throw new Error(`Failed to fetch PDF: ${pdfResponse.status}`);
     }
-
-    const pdfBytes = fs.readFileSync(pdfPath);
-    console.log(`✅ PDF loaded, size: ${pdfBytes.length} bytes`);
+    const pdfBytes = await pdfResponse.arrayBuffer();
+    console.log(`✅ PDF loaded, size: ${pdfBytes.byteLength} bytes`);
 
     const pdfDoc = await PDFDocument.load(pdfBytes);
     console.log('✅ PDF document successfully parsed');
@@ -135,49 +132,11 @@ const fillPE2Form = async (userData: Record<string, any> = {}) => {
 
     console.log('✨ Form filling completed');
 
-    // save the filled form
-    const outputDir = './public/documents/output';
-    console.log(`📁 Preparing to save to directory: ${outputDir}`);
-
-    // create output directory if it doesn't exist
-    if (!fs.existsSync(outputDir)) {
-      console.log(
-        `📂 Output directory doesn't exist, creating it: ${outputDir}`,
-      );
-      try {
-        fs.mkdirSync(outputDir, { recursive: true });
-        console.log(`✅ Created output directory: ${outputDir}`);
-      } catch (e) {
-        console.error(`❌ Error creating output directory:`, e);
-        throw e;
-      }
-    }
-
-    // generate a unique filename with timestamp and user information
-    const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-    const pcnNumber = formData.penaltyChargeNo || 'noPCN';
-
-    // format the user's full name for the filename (lowercase and hyphenated)
-    const userFullName = userData.userName || 'unknown';
-    const formattedUserFullName = userFullName
-      .toLowerCase()
-      .replace(/\s+/g, '-');
-
-    const outputFilename = `PE2-${pcnNumber}-${formattedUserFullName}-${timestamp}.pdf`;
-    const outputPath = path.join(outputDir, outputFilename);
-
-    console.log(`💾 Saving filled form to: ${outputPath}`);
-
-    // save the PDF
-    console.log('⚙️ Generating PDF bytes...');
+    // Return PDF bytes instead of writing to filesystem
     const filledPdfBytes = await pdfDoc.save();
-    console.log(`✅ Generated ${filledPdfBytes.length} bytes of PDF data`);
+    console.log('🎉 Form successfully filled!');
 
-    console.log(`📝 Writing file to: ${outputPath}`);
-    fs.writeFileSync(outputPath, filledPdfBytes);
-    console.log('🎉 Form successfully filled and saved!');
-
-    return outputPath;
+    return filledPdfBytes;
   } catch (error) {
     console.error('❌ ERROR in fillPE2Form:', error);
     throw error;

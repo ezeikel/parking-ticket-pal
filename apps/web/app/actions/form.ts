@@ -1,7 +1,5 @@
 'use server';
 
-import path from 'path';
-import fs from 'fs';
 import fillPE2Form from '@/utils/automation/forms/PE2';
 import fillPE3Form from '@/utils/automation/forms/PE3';
 import fillTE7Form from '@/utils/automation/forms/TE7';
@@ -19,30 +17,20 @@ import { db } from '@/lib/prisma';
 const handleFormGeneration = async (
   formType: FormType,
   formFields: PdfFormFields,
-  fillFormFn: (data: Record<string, any>) => Promise<string | Uint8Array | null>,
+  fillFormFn: (data: Record<string, any>) => Promise<Uint8Array | null>,
 ) => {
   // TODO: make try/catches more granular
   try {
     // fill pdf form
-    const filledFormResult = await fillFormFn(formFields);
+    const filledFormBytes = await fillFormFn(formFields);
 
-    if (!filledFormResult) {
+    if (!filledFormBytes) {
       return { success: false, error: `Failed to generate ${formType} form` };
     }
 
-    // handle both file path (old functions) and Uint8Array (new functions)
-    let fileBuffer: Buffer;
-    let fileName: string;
-
-    if (typeof filledFormResult === 'string') {
-      // Old behavior: file path returned
-      fileName = path.basename(filledFormResult);
-      fileBuffer = fs.readFileSync(filledFormResult);
-    } else {
-      // New behavior: Uint8Array returned
-      fileName = `${formType}_form.pdf`;
-      fileBuffer = Buffer.from(filledFormResult);
-    }
+    // convert Uint8Array to Buffer for blob upload
+    const fileBuffer = Buffer.from(filledFormBytes);
+    const fileName = `${formType}_form.pdf`;
 
     // upload to vercel blob with organised path structure
     const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
@@ -100,11 +88,6 @@ const handleFormGeneration = async (
           },
         ],
       });
-    }
-
-    // clean up local file (only if we have a file path)
-    if (typeof filledFormResult === 'string') {
-      fs.unlinkSync(filledFormResult);
     }
 
     return {
