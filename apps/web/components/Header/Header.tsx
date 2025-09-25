@@ -1,6 +1,5 @@
 import Link from 'next/link';
 import { User } from '@prisma/client';
-import { faSquareParking } from '@fortawesome/pro-solid-svg-icons';
 import {
   faUpload,
   faTicketPerforated,
@@ -21,6 +20,7 @@ import { getCurrentUser } from '@/utils/user';
 import cn from '@/utils/cn';
 import MobileMenu from '@/components/MobileMenu/MobileMenu';
 import UserDropdown from '@/components/UserDropdown/UserDropdown';
+import Image from 'next/image';
 
 type HeaderProps = {
   className?: string;
@@ -232,8 +232,8 @@ const Header = async ({ className }: HeaderProps) => {
         className,
       )}
     >
-      <Link href="/" className="flex items-center gap-x-2">
-        <FontAwesomeIcon icon={faSquareParking} size="2x" color="#266696" />
+      <Link href="/" className="flex items-center gap-x-4">
+        <Image src="/logos/ptp.svg" alt="Parking Ticket Pal logo" height={40} width={35} />
         <span className="font-display font-bold text-2xl">
           Parking Ticket Pal
         </span>

@@ -1,6 +1,6 @@
 import Link from 'next/link';
+import Image from 'next/image';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faSquareParking } from '@fortawesome/pro-solid-svg-icons';
 import cn from '@/utils/cn';
 import { SOCIAL_LINKS } from '@/constants';
 
@@ -15,8 +15,8 @@ const Footer = ({ className }: FooterProps) => (
     <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between gap-12 md:gap-0">
       <div className="flex-1 min-w-[220px] flex flex-col gap-8">
         <div className="mb-4">
-          <Link href="/" className="flex items-center gap-2">
-            <FontAwesomeIcon icon={faSquareParking} size="2x" color="#FFFFFF" />
+          <Link href="/" className="flex items-center gap-x-4">
+            <Image src="/logos/ptp.svg" alt="Parking Ticket Pal logo" height={40} width={35} />
             <span className="font-display font-bold text-2xl">
               Parking Ticket Pal
             </span>
