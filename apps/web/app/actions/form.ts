@@ -19,20 +19,30 @@ import { db } from '@/lib/prisma';
 const handleFormGeneration = async (
   formType: FormType,
   formFields: PdfFormFields,
-  fillFormFn: (data: Record<string, any>) => Promise<string | null>,
+  fillFormFn: (data: Record<string, any>) => Promise<string | Uint8Array | null>,
 ) => {
   // TODO: make try/catches more granular
   try {
     // fill pdf form
-    const filledFormPath = await fillFormFn(formFields);
+    const filledFormResult = await fillFormFn(formFields);
 
-    if (!filledFormPath) {
+    if (!filledFormResult) {
       return { success: false, error: `Failed to generate ${formType} form` };
     }
 
-    // get file name and buffer
-    const fileName = path.basename(filledFormPath);
-    const fileBuffer = fs.readFileSync(filledFormPath);
+    // handle both file path (old functions) and Uint8Array (new functions)
+    let fileBuffer: Buffer;
+    let fileName: string;
+
+    if (typeof filledFormResult === 'string') {
+      // Old behavior: file path returned
+      fileName = path.basename(filledFormResult);
+      fileBuffer = fs.readFileSync(filledFormResult);
+    } else {
+      // New behavior: Uint8Array returned
+      fileName = `${formType}_form.pdf`;
+      fileBuffer = Buffer.from(filledFormResult);
+    }
 
     // upload to vercel blob with organised path structure
     const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
@@ -92,8 +102,10 @@ const handleFormGeneration = async (
       });
     }
 
-    // clean up local file
-    fs.unlinkSync(filledFormPath);
+    // clean up local file (only if we have a file path)
+    if (typeof filledFormResult === 'string') {
+      fs.unlinkSync(filledFormResult);
+    }
 
     return {
       success: true,
