@@ -23,6 +23,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
             ],
           },
         ],
+        "ITSAppUsesNonExemptEncryption": false
       }
     },
     android: {
@@ -60,7 +61,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
         image: './assets/images/splash-icon.png',
         imageWidth: 200,
         resizeMode: 'contain',
-        backgroundColor: '#0A2540',
+        backgroundColor: '#1ABC9C',
       },
     ],
       "expo-dev-client",

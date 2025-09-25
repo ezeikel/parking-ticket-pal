@@ -19,6 +19,7 @@
     "build": "expo export",
     "eas:build:local": "eas build --profile development --local",
     "eas:build:local:android": "eas build --platform android --profile preview --local",
+    "eas:build:local:ios": "eas build --platform ios --profile preview --local",
     "eas:build:development": "eas build --profile development",
     "eas:build:development:android": "eas build --platform android --profile development",
     "eas:build:preview": "eas build --profile preview",

@@ -35,7 +35,13 @@ const CaptureModal = ({ isVisible, setIsVisible }: CaptureModalProps) => {
               </Pressable>
             </View>
 
-            <Scanner key={isVisible ? 'open' : 'closed'} onClose={() => setIsVisible(false)} />
+            <Scanner
+              key={isVisible ? 'open' : 'closed'}
+              onClose={() => {
+                console.log('Scanner onClose called, hiding modal');
+                setIsVisible(false);
+              }}
+            />
           </View>
         </View>
       </SafeAreaView>

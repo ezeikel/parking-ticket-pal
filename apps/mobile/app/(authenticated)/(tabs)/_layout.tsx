@@ -26,7 +26,9 @@ export default function TabLayout() {
           headerShown: false,
           tabBarButton: HapticTab,
           tabBarLabelStyle: {
-            fontFamily: "RobotoSlab-Regular",
+            marginTop: 2,
+            fontFamily: "Inter18pt-Regular",
+            fontSize: 12,
           },
         }}
       >
