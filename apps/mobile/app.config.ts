@@ -66,15 +66,6 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     ],
       "expo-dev-client",
       [
-        "expo-splash-screen",
-        {
-          image: "./assets/images/splash-icon.png",
-          imageWidth: 200,
-          resizeMode: "contain",
-          backgroundColor: "#ffffff",
-        },
-      ],
-      [
         "react-native-document-scanner-plugin",
         {
           "cameraPermission": "We need camera access, so you can scan documents"

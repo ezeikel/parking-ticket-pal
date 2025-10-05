@@ -1,15 +1,24 @@
 import { useEffect, useState } from 'react';
-import { Pressable, Text, View } from 'react-native';
+import { Pressable, Text, View, Alert } from 'react-native';
 import { FlashList } from "@shopify/flash-list";
-import { faCircleExclamation, faClock } from
-  "@fortawesome/pro-regular-svg-icons";
+import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
+import {
+  faCircleExclamation,
+  faClock,
+  faCarSide,
+  faCalendar,
+  faMoneyBill,
+  faMapMarkerAlt,
+  faTrash
+} from "@fortawesome/pro-regular-svg-icons";
 import {
   differenceInMinutes, differenceInHours, differenceInDays,
-  differenceInMilliseconds, parseISO, addDays
+  differenceInMilliseconds, parseISO, addDays, format
 } from 'date-fns';
 import useTickets from '@/hooks/api/useTickets';
-import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
-import { Ticket, TicketStatus } from '@/types';
+import { Ticket, TicketStatus, Address } from '@/types';
+import { useColorScheme } from '@/hooks/useColorScheme';
+import { Colors } from '@/constants/Colors';
 
 const DISCOUNT_THRESHOLD_MS = 172800000; // 48 hours in milliseconds
 
@@ -47,122 +56,262 @@ const CountdownTimer = ({ deadline }: CountdownTimerProps) => {
 
   return (
     <View className="flex-row items-center">
-      <FontAwesomeIcon icon={faClock} size={16} color="#000" />
-      <Text className="ml-2 text-sm text-black">{`${days}d ${hours}h ${minutes}m left`}</Text>
+      <FontAwesomeIcon icon={faClock} size={14} color="#dc2626" style={{ marginRight: 6 }} />
+      <Text className="text-sm font-medium text-red-600">
+        {days > 0 ? `${days}d ${hours}h left` : `${hours}h ${minutes}m left`}
+      </Text>
     </View>
   );
 };
 
-const TicketItem = ({ ticket, style }: {
+const TicketItem = ({ ticket, style, onDelete }: {
   ticket: Ticket;
-  style: Record<string, unknown>
+  style: Record<string, unknown>;
+  onDelete: (ticketId: string) => void;
 }) => {
-  // Calculate estimated payment deadline based on issued date (typically 28 days for full payment)
+  const colorScheme = useColorScheme();
+
+  // Calculate estimated payment deadline based on issued date
   const estimatedFullPaymentDeadline = addDays(new Date(ticket.issuedAt), 28);
   const estimatedDiscountDeadline = addDays(new Date(ticket.issuedAt), 14);
-
   const isDiscountPeriod = ticket.status === TicketStatus.ISSUED_DISCOUNT_PERIOD;
-  const paymentDeadline = isDiscountPeriod ? estimatedDiscountDeadline :
-    estimatedFullPaymentDeadline;
+  const paymentDeadline = isDiscountPeriod ? estimatedDiscountDeadline : estimatedFullPaymentDeadline;
+
+  // Status badge colors
+  const getStatusColor = (status: TicketStatus) => {
+    switch (status) {
+      case TicketStatus.PAID:
+      case TicketStatus.REPRESENTATION_ACCEPTED:
+      case TicketStatus.APPEAL_UPHELD:
+        return { bg: '#dcfce7', text: '#16a34a' }; // green
+      case TicketStatus.ISSUED_DISCOUNT_PERIOD:
+      case TicketStatus.ISSUED_FULL_CHARGE:
+      case TicketStatus.NOTICE_TO_OWNER:
+        return { bg: '#fef3c7', text: '#d97706' }; // yellow
+      case TicketStatus.CHARGE_CERTIFICATE:
+      case TicketStatus.ORDER_FOR_RECOVERY:
+      case TicketStatus.ENFORCEMENT_BAILIFF_STAGE:
+        return { bg: '#fee2e2', text: '#dc2626' }; // red
+      default:
+        return { bg: '#f3f4f6', text: '#6b7280' }; // gray
+    }
+  };
+
+  const statusColors = getStatusColor(ticket.status);
+  const formattedDate = format(new Date(ticket.issuedAt), 'MMM d, yyyy');
+  const dueDateFormatted = format(paymentDeadline, 'MMM d');
+
+  // Calculate amount due (simplified - assuming discount period logic)
+  const baseAmount = ticket.initialAmount || 60;
+  const discountAmount = Math.round(baseAmount * 0.5);
+  const currentAmount = isDiscountPeriod ? discountAmount : baseAmount;
+
+  // Check if ticket is urgent (less than 48 hours to deadline)
+  const timeUntilDeadline = differenceInMilliseconds(paymentDeadline, new Date());
+  const isUrgent = timeUntilDeadline < DISCOUNT_THRESHOLD_MS && timeUntilDeadline > 0;
+
+  const handleDelete = () => {
+    Alert.alert(
+      'Delete Ticket',
+      `Are you sure you want to delete ticket ${ticket.pcnNumber}?`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: () => onDelete(ticket.id)
+        }
+      ]
+    );
+  };
 
   return (
     <View
-      className="rounded-lg border border-[#e4e4e7] bg-white text-[#09090b] shadow-sm"
+      className={`rounded-lg bg-white shadow-sm ${
+        isUrgent ? 'border-2 border-red-300' : 'border border-gray-200'
+      }`}
       style={style}
     >
-      <View className="flex-col gap-y-1.5 p-6">
-        <Text
-          className="font-inter font-semibold tracking-tight text-lg"
-          style={{ whiteSpace: 'nowrap' }}
-        >{`${ticket.pcnNumber} - ${ticket.issuer}`}</Text>
-        <Text className="font-inter text-sm text-[#71717a]">
-          {`Issued on ${new Date(ticket.issuedAt).toLocaleDateString()} at ${new
-            Date(ticket.issuedAt).toLocaleTimeString()}`}
-        </Text>
+      {/* Header */}
+      <View className="flex-row items-start justify-between p-4 pb-2">
+        <View className="flex-1">
+          <Text className="font-inter font-bold text-lg text-gray-900 mb-1">
+            {ticket.pcnNumber}
+          </Text>
+          <Text className="font-inter text-sm text-gray-600">
+            {ticket.issuer}
+          </Text>
+        </View>
+        <Pressable onPress={handleDelete} className="p-2">
+          <FontAwesomeIcon
+            icon={faTrash}
+            size={18}
+            color="#dc2626"
+          />
+        </Pressable>
       </View>
-      <View className="p-6 pt-0">
-        <Text className="font-inter mb-2">Contravention: {ticket.contraventionCode}</Text>
-        <View className="flex-row flex-wrap items-center justify-between">
-          <CountdownTimer deadline={paymentDeadline.toISOString()} />
+
+      {/* Status Badge */}
+      <View className="px-4 pb-3">
+        <View
+          className="rounded-full px-3 py-1 self-start"
+          style={{ backgroundColor: statusColors.bg }}
+        >
+          <Text
+            className="font-inter text-xs font-medium"
+            style={{ color: statusColors.text }}
+          >
+            {ticket.status.replace(/_/g, ' ')}
+          </Text>
         </View>
       </View>
-      <View className="flex-row items-center p-6 pt-0 justify-end gap-x-2">
-        <Pressable className="py-2 px-4 rounded border border-[#e4e4e7]">
-          <Text className="font-inter text-sm font-bold">
-            Challenge
-          </Text>
-        </Pressable>
-        <Pressable className="py-2 px-4 rounded bg-[#18181b]">
-          <Text className="font-inter text-sm text-white font-bold">
-            Pay Now
-          </Text>
-        </Pressable>
+
+      {/* Details Grid */}
+      <View className="px-4 pb-4">
+        <View className="flex-row flex-wrap gap-y-3">
+          {/* Vehicle */}
+          <View className="flex-row items-center w-1/2">
+            <FontAwesomeIcon
+              icon={faCarSide}
+              size={14}
+              color="#6b7280"
+              style={{ marginRight: 8 }}
+            />
+            <Text className="font-inter text-sm text-gray-700">
+              {ticket.vehicle?.registrationNumber || 'N/A'}
+            </Text>
+          </View>
+
+          {/* Date Issued */}
+          <View className="flex-row items-center w-1/2">
+            <FontAwesomeIcon
+              icon={faCalendar}
+              size={14}
+              color="#6b7280"
+              style={{ marginRight: 8 }}
+            />
+            <Text className="font-inter text-sm text-gray-700">
+              {formattedDate}
+            </Text>
+          </View>
+
+          {/* Amount Due */}
+          <View className="flex-row items-center w-1/2">
+            <FontAwesomeIcon
+              icon={faMoneyBill}
+              size={14}
+              color="#6b7280"
+              style={{ marginRight: 8 }}
+            />
+            <Text className="font-inter text-sm font-semibold text-gray-900">
+              £{currentAmount}
+            </Text>
+          </View>
+
+          {/* Due Date */}
+          <View className="flex-row items-center w-1/2">
+            <FontAwesomeIcon
+              icon={faClock}
+              size={14}
+              color="#6b7280"
+              style={{ marginRight: 8 }}
+            />
+            <Text className="font-inter text-sm text-gray-700">
+              Due {dueDateFormatted}
+            </Text>
+          </View>
+
+          {/* Location */}
+          {ticket.location && (
+            <View className="flex-row items-center w-full mt-1">
+              <FontAwesomeIcon
+                icon={faMapMarkerAlt}
+                size={14}
+                color="#6b7280"
+                style={{ marginRight: 8 }}
+              />
+              <Text className="font-inter text-sm text-gray-700 flex-1" numberOfLines={1}>
+                {(ticket.location as Address)?.line1 || 'Location not specified'}
+              </Text>
+            </View>
+          )}
+        </View>
+      </View>
+
+      {/* Countdown Timer */}
+      <View className="px-4 pb-4">
+        <CountdownTimer deadline={paymentDeadline.toISOString()} />
       </View>
     </View>
-  )
-}
+  );
+};
 
 const TicketsList = () => {
   const { data: { tickets } = {}, isLoading } = useTickets();
 
+  const handleDeleteTicket = (ticketId: string) => {
+    // TODO: Implement delete API call
+    console.log('Delete ticket:', ticketId);
+    Alert.alert('Success', 'Ticket deleted successfully');
+  };
+
   if (isLoading) {
     return (
       <View className="flex-1 items-center justify-center">
-        <Text>Loading...</Text>
+        <Text className="font-inter text-gray-500">Loading...</Text>
       </View>
-    )
+    );
   }
 
   if (!tickets || !tickets.length) {
     return (
-      <View className="flex-1 items-center justify-center">
-        <Text>No tickets found.</Text>
+      <View className="flex-1 items-center justify-center px-8">
+        <Text className="font-inter text-lg text-gray-600 text-center mb-2">
+          No tickets yet
+        </Text>
+        <Text className="font-inter text-sm text-gray-500 text-center">
+          Use the camera button to capture your first parking ticket
+        </Text>
       </View>
-    )
+    );
   }
 
-  // check for upcoming deadlines using estimated payment deadlines
+  // Check for upcoming deadlines
   const hasUpcomingDeadlines = tickets.some(ticket => {
     const estimatedFullPaymentDeadline = addDays(new Date(ticket.issuedAt), 28);
-    return differenceInMilliseconds(estimatedFullPaymentDeadline, new Date()) <
-      DISCOUNT_THRESHOLD_MS;
+    return differenceInMilliseconds(estimatedFullPaymentDeadline, new Date()) < DISCOUNT_THRESHOLD_MS;
+  });
+
+  // Sort tickets by urgency (most urgent first)
+  const sortedTickets = tickets.sort((a, b) => {
+    const aDeadline = addDays(new Date(a.issuedAt), a.status === TicketStatus.ISSUED_DISCOUNT_PERIOD ? 14 : 28);
+    const bDeadline = addDays(new Date(b.issuedAt), b.status === TicketStatus.ISSUED_DISCOUNT_PERIOD ? 14 : 28);
+    return aDeadline.getTime() - bDeadline.getTime();
   });
 
   return (
-    <View className="flex-1 gap-y-6 p-4">
-      <View>
-        {hasUpcomingDeadlines && (
-          <View className="rounded-lg bg-yellow-100 p-4 gap-y-2" role="alert">
-            <View className="flex-row items-center">
-              <View className="mr-2">
-                <FontAwesomeIcon icon={faCircleExclamation} size={16} color="#a16207" />
-              </View>
-              <Text className="font-inter text-yellow-800 font-semibold">Attention:</Text>
-            </View>
-            <Text className="font-inter text-yellow-800">You have tickets with upcoming discount deadlines. Act now to save!</Text>
-          </View>
-        )
-        }
-      </View >
+    <View className="flex-1">
       <FlashList
-        data={tickets}
+        data={sortedTickets}
         renderItem={({ item, index }) => {
-
-          const isLastRow =
-            Math.floor(index) ===
-            Math.floor(tickets.length - 1);
-
+          const isLastRow = index === sortedTickets.length - 1;
           return (
-            <TicketItem ticket={item} style={{
-              marginBottom: isLastRow ? 0 : gridGap,
-            }} />
-          )
+            <TicketItem
+              ticket={item}
+              onDelete={handleDeleteTicket}
+              style={{
+                marginHorizontal: 16,
+                marginBottom: isLastRow ? 16 : gridGap,
+              }}
+            />
+          );
         }}
-        estimatedItemSize={100}
+        estimatedItemSize={200}
         keyExtractor={(item) => item.id.toString()}
+        showsVerticalScrollIndicator={false}
       />
-    </View >
-  )
-}
+    </View>
+  );
+};
 
 export default TicketsList;

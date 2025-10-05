@@ -10,9 +10,10 @@ import TicketForm from '@/components/TicketForm/TicketForm';
 
 type ScannerProps = {
   onClose?: () => void;
+  onImageScanned?: () => void;
 }
 
-const Scanner = ({ onClose }: ScannerProps) => {
+const Scanner = ({ onClose, onImageScanned }: ScannerProps) => {
   const [scannedImage, setScannedImage] = useState<string>();
   const [ocrData, setOcrData] = useState<any>(null);
   const [showForm, setShowForm] = useState(false);
@@ -61,6 +62,7 @@ const Scanner = ({ onClose }: ScannerProps) => {
         if (imageUri) {
           console.log('Image selected, setting scanned image');
           setScannedImage(imageUri);
+          onImageScanned?.();
         }
       } else {
         console.log('User cancelled image picker');
@@ -83,13 +85,20 @@ const Scanner = ({ onClose }: ScannerProps) => {
     }
 
     try {
-      const { scannedImages } = await DocumentScanner.scanDocument({
+      const { scannedImages, status } = await DocumentScanner.scanDocument({
         responseType: ResponseType.Base64,
         maxNumDocuments: 1
       });
 
+      if (status === 'cancel') {
+        console.log('Document scanning was cancelled by user');
+        onClose?.();
+        return;
+      }
+
       if (scannedImages?.[0]) {
         setScannedImage(scannedImages[0]);
+        onImageScanned?.();
       }
     } catch (error) {
       console.error('Scanning failed:', error);

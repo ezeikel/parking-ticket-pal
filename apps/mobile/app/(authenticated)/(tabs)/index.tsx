@@ -16,14 +16,6 @@ const TicketsScreen = () => {
           width: screenWidth,
         }}
       >
-        <Typography
-          font="lato"
-          italic
-          size="3xl"
-          className="mb-4"
-        >
-          Tickets Screen abcefg
-        </Typography>
         <TicketsList />
       </View>
     </SafeAreaView>

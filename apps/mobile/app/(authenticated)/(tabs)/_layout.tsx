@@ -2,8 +2,8 @@ import React, { useState } from 'react';
 import { Pressable, View } from 'react-native';
 import { Tabs } from 'expo-router';
 import { FontAwesomeIcon } from "@fortawesome/react-native-fontawesome";
-import { faCarMirrors as faCarMirrorsRegular, faHouse as faHouseRegular, faCreditCard as faCreditCardRegular, faUser as faUserRegular, faXmark } from "@fortawesome/pro-regular-svg-icons";
-import { faCarMirrors as faCarMirrorsSolid, faHouse as faHouseSolid, faCamera as faCameraSolid, faCreditCard as faCreditCardSolid, faUser as faUserSolid } from "@fortawesome/pro-solid-svg-icons";
+import { faHouse as faHouseRegular, faCog as faCogRegular } from "@fortawesome/pro-regular-svg-icons";
+import { faHouse as faHouseSolid, faCamera as faCameraSolid, faCog as faCogSolid } from "@fortawesome/pro-solid-svg-icons";
 import { perfect } from "@/styles";
 import { Colors } from '@/constants/Colors';
 import { useColorScheme } from '@/hooks/useColorScheme';
@@ -46,19 +46,6 @@ export default function TabLayout() {
           }}
         />
         <Tabs.Screen
-          name="vehicles"
-          options={{
-            title: 'Vehicles',
-            tabBarIcon: ({ color, focused }) => (
-              <FontAwesomeIcon
-                icon={focused ? faCarMirrorsSolid : faCarMirrorsRegular}
-                size={24}
-                color={color}
-              />
-            ),
-          }}
-        />
-        <Tabs.Screen
           name="capture"
           options={{
             tabBarButton: () => (
@@ -87,25 +74,12 @@ export default function TabLayout() {
           }}
         />
         <Tabs.Screen
-          name="payments"
+          name="settings"
           options={{
-            title: "Payments",
+            title: "Settings",
             tabBarIcon: ({ color, focused }) => (
               <FontAwesomeIcon
-                icon={focused ? faCreditCardSolid : faCreditCardRegular}
-                size={24}
-                color={color}
-              />
-            ),
-          }}
-        />
-        <Tabs.Screen
-          name="me"
-          options={{
-            title: "Me",
-            tabBarIcon: ({ color, focused }) => (
-              <FontAwesomeIcon
-                icon={focused ? faUserSolid : faUserRegular}
+                icon={focused ? faCogSolid : faCogRegular}
                 size={24}
                 color={color}
               />
