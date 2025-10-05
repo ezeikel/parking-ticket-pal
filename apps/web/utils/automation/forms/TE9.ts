@@ -10,6 +10,7 @@ import {
 } from 'pdf-lib';
 import https from 'https';
 import http from 'http';
+import fs from 'fs';
 import { headers } from 'next/headers';
 
 // Define the user data type
