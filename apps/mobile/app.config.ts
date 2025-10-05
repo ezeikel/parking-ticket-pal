@@ -13,7 +13,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     userInterfaceStyle: "light",
     newArchEnabled: true,
     ios: {
-      bundleIdentifier: "com.chewybytes.parkingticketpal",
+      bundleIdentifier: "com.chewybytes.parkingticketpal.app",
       supportsTablet: true,
       infoPlist: {
         CFBundleURLTypes: [
@@ -27,7 +27,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
       }
     },
     android: {
-      package: "com.chewybytes.parkingticketpal",
+      package: "com.chewybytes.parkingticketpal.app",
       adaptiveIcon: {
         foregroundImage: "./assets/images/adaptive-icon.png",
         backgroundColor: "#ffffff",
