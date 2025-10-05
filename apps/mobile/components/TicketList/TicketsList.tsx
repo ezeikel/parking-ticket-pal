@@ -19,6 +19,7 @@ import useTickets from '@/hooks/api/useTickets';
 import { Ticket, TicketStatus, Address } from '@/types';
 import { useColorScheme } from '@/hooks/useColorScheme';
 import { Colors } from '@/constants/Colors';
+import Loader from '@/components/Loader/Loader';
 
 const DISCOUNT_THRESHOLD_MS = 172800000; // 48 hours in milliseconds
 
@@ -258,7 +259,7 @@ const TicketsList = () => {
   if (isLoading) {
     return (
       <View className="flex-1 items-center justify-center">
-        <Text className="font-inter text-gray-500">Loading...</Text>
+        <Loader />
       </View>
     );
   }

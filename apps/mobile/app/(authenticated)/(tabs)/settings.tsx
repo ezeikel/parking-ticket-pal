@@ -2,13 +2,14 @@ import { useEffect, useState } from 'react';
 import { Text, View, ScrollView, Pressable, Alert, Dimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { FontAwesomeIcon } from "@fortawesome/react-native-fontawesome";
-import { faSignOut, faUser, faEnvelope, faInfoCircle } from "@fortawesome/pro-regular-svg-icons";
+import { faSignOut, faUser, faEnvelope, faInfoCircle, faHeart } from "@fortawesome/pro-regular-svg-icons";
 import { useAuthContext } from '@/contexts/auth';
 import useUser from '@/hooks/api/useUser';
 import { Typography } from '@/components/Typography/Typography';
 import { useColorScheme } from '@/hooks/useColorScheme';
 import { Colors } from '@/constants/Colors';
 import Constants from 'expo-constants';
+import Loader from '@/components/Loader/Loader';
 
 const padding = 16;
 const screenWidth = Dimensions.get('screen').width - padding * 2;
@@ -76,7 +77,7 @@ const SettingsScreen = () => {
   if (isLoading) {
     return (
       <SafeAreaView className="flex-1 items-center justify-center">
-        <Text className="font-inter text-gray-500">Loading...</Text>
+        <Loader />
       </SafeAreaView>
     );
   }
@@ -134,6 +135,21 @@ const SettingsScreen = () => {
               onPress={handleSignOut}
               destructive={true}
             />
+          </View>
+
+          <View className="items-center pb-6">
+            <View className="flex-row items-center">
+              <Text className="font-inter text-xs text-gray-400">
+                Made with{' '}
+              </Text>
+              <FontAwesomeIcon icon={faHeart} size={12} color="#ef4444" />
+              <Text className="font-inter text-xs text-gray-400">
+                {' '}in{' '}
+              </Text>
+              <Text className="font-inter text-xs text-gray-600 font-medium">
+                South London
+              </Text>
+            </View>
           </View>
         </ScrollView>
       </View>

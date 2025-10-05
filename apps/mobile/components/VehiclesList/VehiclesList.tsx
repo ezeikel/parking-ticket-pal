@@ -5,6 +5,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { faCarSide } from "@fortawesome/pro-regular-svg-icons";
 import { Vehicle } from '@/types';
 import { Typography } from '../Typography/Typography';
+import Loader from '../Loader/Loader';
 
 const gridGap = 16;
 
@@ -13,7 +14,7 @@ const VehicleItem = ({ vehicle, style }: {
   style: Record<string, unknown>
 }) => {
   return (
-    <View 
+    <View
       className="rounded-lg border border-[#e4e4e7] bg-white text-[#09090b] shadow-sm"
       style={style}
     >
@@ -42,7 +43,7 @@ const VehiclesList = () => {
   if (isLoading) {
     return (
       <View className="flex-1 items-center justify-center">
-        <Text>Loading...</Text>
+        <Loader />
       </View>
     );
   }

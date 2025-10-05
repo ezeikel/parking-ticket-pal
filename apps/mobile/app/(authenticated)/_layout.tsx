@@ -1,13 +1,16 @@
-import { Text } from 'react-native';
+import { View } from 'react-native';
 import { Redirect, Stack } from 'expo-router';
 import { useAuthContext } from '@/contexts/auth';
+import Loader from '@/components/Loader/Loader';
 
 const AppLayout = () => {
   const { isAuthenticated, isLoading } = useAuthContext();
 
   if (isLoading) {
     return (
-      <Text>Loading...</Text>
+      <View className="flex-1 items-center justify-center">
+        <Loader />
+      </View>
     )
   }
 
