@@ -4,8 +4,10 @@ import { useEffect, useState } from 'react';
 import Image from 'next/image';
 import { toast } from 'sonner';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faBellSlash } from '@fortawesome/pro-regular-svg-icons';
-import { faBellOn, faComment } from '@fortawesome/pro-solid-svg-icons';
+import { faBellRing, faBellSlash } from '@fortawesome/pro-regular-svg-icons';
+import { faComment } from '@fortawesome/pro-solid-svg-icons';
+import { useAnalytics } from '@/utils/analytics-client';
+import { TRACKING_EVENTS } from '@/constants/events';
 
 type EmailNotification = {
   type: 'email';
@@ -156,15 +158,26 @@ const renderNotification = (note: NotificationData) => {
   return <div>Unknown notification type</div>;
 };
 
-export const useFakeNotifications = (isSilenced: boolean) => {
+export const useFakeNotifications = (isSilenced: boolean, onActiveToastChange: (hasActiveToasts: boolean) => void) => {
   useEffect(() => {
-    if (isSilenced) return; // Don't show notifications if silenced
+    if (isSilenced) {
+      onActiveToastChange(false);
+      return; // Don't show notifications if silenced
+    }
 
     let index = 0;
     let timeoutId: NodeJS.Timeout;
+    let activeToastCount = 0;
+
+    const updateActiveToastStatus = () => {
+      onActiveToastChange(activeToastCount > 0);
+    };
 
     const showNextNotification = () => {
       const note = notifications[index];
+
+      activeToastCount += 1;
+      updateActiveToastStatus();
 
       // Use the main toaster but with custom styling for fake notifications
       toast.custom(() => renderNotification(note), {
@@ -180,6 +193,12 @@ export const useFakeNotifications = (isSilenced: boolean) => {
         className: 'ios-toast',
       });
 
+      // Decrement count after toast duration
+      setTimeout(() => {
+        activeToastCount -= 1;
+        updateActiveToastStatus();  
+      }, 5000);
+
       index = (index + 1) % notifications.length;
 
       // Random interval between 4-8 seconds for more realistic timing
@@ -194,35 +213,65 @@ export const useFakeNotifications = (isSilenced: boolean) => {
     return () => {
       clearTimeout(initialDelay);
       clearTimeout(timeoutId);
+      activeToastCount = 0;
+      onActiveToastChange(false);
     };
-  }, [isSilenced]);
+  }, [isSilenced, onActiveToastChange]);
 };
 
 const FakeNotifications = () => {
   const [isSilenced, setIsSilenced] = useState(false);
+  const [hasActiveToasts, setHasActiveToasts] = useState(false);
+  const { track } = useAnalytics();
 
-  useFakeNotifications(isSilenced);
-
-  const toggleSilence = () => {
-    setIsSilenced(!isSilenced);
-  };
+  useFakeNotifications(isSilenced, setHasActiveToasts);
 
   return (
-    <button
-      type="button"
-      onClick={toggleSilence}
-      className="fixed bottom-4 right-4 z-[10000] w-12 h-12 bg-white rounded-full shadow-lg border border-gray-200 flex items-center justify-center hover:shadow-xl transition-all duration-200 hover:scale-105 cursor-pointer"
-      title={
-        isSilenced
-          ? 'Enable dummy notifications'
-          : 'Silence dummy notifications'
-      }
-    >
-      <FontAwesomeIcon
-        icon={isSilenced ? faBellSlash : faBellOn}
-        className="text-lg text-gray-400"
-      />
-    </button>
+    <>
+      {/* Enable button - shows when notifications are silenced */}
+      {isSilenced && (
+        <button
+          type="button"
+          onClick={() => {
+            setIsSilenced(false);
+            track(TRACKING_EVENTS.FAKE_NOTIFICATIONS_ENABLED, {});
+          }}
+          className="fixed bottom-4 right-4 z-[10000] bg-white/80 backdrop-blur-sm rounded-full shadow-lg border border-gray-200/50 flex items-center justify-center gap-2 px-4 py-3 hover:bg-white/90 hover:shadow-xl transition-all duration-200 hover:scale-105 cursor-pointer"
+          title="Enable dummy notifications"
+        >
+          <FontAwesomeIcon
+            icon={faBellRing}
+            className="text-sm text-gray-400"
+          />
+          <span className="text-sm font-medium text-gray-600">
+            Enable Test Notifications
+          </span>
+        </button>
+      )}
+
+      {/* Silence button - only shows when notifications are active AND there are visible toasts */}
+      {!isSilenced && hasActiveToasts && (
+        <button
+          type="button"
+          onClick={() => {
+            setIsSilenced(true);
+            setHasActiveToasts(false); // Immediately hide the button
+            toast.dismiss(); // Dismiss all active toasts immediately
+            track(TRACKING_EVENTS.FAKE_NOTIFICATIONS_DISABLED, {});
+          }}
+          className="fixed z-[10000] bg-white/80 backdrop-blur-sm rounded-full shadow-lg border border-gray-200/50 flex items-center justify-center gap-2 px-4 py-3 hover:bg-white/90 hover:shadow-xl transition-all duration-200 hover:scale-105 cursor-pointer bottom-4 left-4 md:top-24 md:right-96 md:bottom-auto md:left-auto"
+          title="Silence dummy notifications"
+        >
+          <FontAwesomeIcon
+            icon={faBellSlash}
+            className="text-sm text-gray-400"
+          />
+          <span className="text-sm font-medium text-gray-600">
+            Disable Test Notifications
+          </span>
+        </button>
+      )}
+    </>
   );
 };
 

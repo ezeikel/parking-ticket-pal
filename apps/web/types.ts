@@ -372,6 +372,10 @@ export type EventProperties = {
   };
   [TRACKING_EVENTS.SUPPORT_CONTACTED]: { method: 'email' | 'form' };
   [TRACKING_EVENTS.HELP_ARTICLE_VIEWED]: { articleId: string };
+
+  // Demo & Testing Features
+  [TRACKING_EVENTS.FAKE_NOTIFICATIONS_ENABLED]: Record<string, never>;
+  [TRACKING_EVENTS.FAKE_NOTIFICATIONS_DISABLED]: Record<string, never>;
 };
 
 export type PostAuthor = {

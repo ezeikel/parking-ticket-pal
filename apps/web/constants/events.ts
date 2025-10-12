@@ -59,4 +59,8 @@ export const TRACKING_EVENTS = {
   FEEDBACK_SUBMITTED: 'feedback_submitted',
   SUPPORT_CONTACTED: 'support_contacted',
   HELP_ARTICLE_VIEWED: 'help_article_viewed',
+
+  // Demo & Testing Features
+  FAKE_NOTIFICATIONS_ENABLED: 'fake_notifications_enabled',
+  FAKE_NOTIFICATIONS_DISABLED: 'fake_notifications_disabled',
 } as const;
