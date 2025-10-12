@@ -7,6 +7,7 @@ import { Picker } from '@react-native-picker/picker';
 import AddressInput from '@/components/AddressInput/AddressInput';
 import { CONTRAVENTION_CODES_OPTIONS } from '@parking-ticket-pal/constants';
 import { ticketFormSchema, type TicketFormData } from '@parking-ticket-pal/types';
+import { useAnalytics, getValidationErrorsProperties } from '@/lib/analytics';
 
 
 type TicketFormProps = {
@@ -19,6 +20,7 @@ type TicketFormProps = {
 const TicketForm = ({ initialData, onSubmit, onCancel, isLoading = false }: TicketFormProps) => {
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [contraventionSearch, setContraventionSearch] = useState('');
+  const { trackEvent } = useAnalytics();
 
   // Filter contravention codes based on search
   const filteredContraventionCodes = CONTRAVENTION_CODES_OPTIONS.filter(code =>
@@ -49,6 +51,15 @@ const TicketForm = ({ initialData, onSubmit, onCancel, isLoading = false }: Tick
 
   const onFormSubmit = async (data: TicketFormData) => {
     try {
+      // Track validation errors if any
+      if (Object.keys(errors).length > 0) {
+        const validationProperties = getValidationErrorsProperties(errors);
+        trackEvent("error_occurred", {
+          screen: "ticket_form",
+          ...validationProperties
+        });
+      }
+
       await onSubmit(data);
     } catch (error) {
       Alert.alert('Error', 'Failed to submit ticket. Please try again.');
@@ -114,7 +125,10 @@ const TicketForm = ({ initialData, onSubmit, onCancel, isLoading = false }: Tick
               <>
                 <Pressable
                   className="border border-gray-300 rounded-lg px-3 py-3"
-                  onPress={() => setShowDatePicker(true)}
+                  onPress={() => {
+                    trackEvent("date_picker_opened", { screen: "ticket_form" });
+                    setShowDatePicker(true);
+                  }}
                 >
                   <Text className="text-base">
                     {value ? value.toLocaleDateString() : 'Select date'}
@@ -152,7 +166,15 @@ const TicketForm = ({ initialData, onSubmit, onCancel, isLoading = false }: Tick
               className="border border-gray-300 rounded-lg px-3 py-2 text-base"
               placeholder="Search contraventions..."
               value={contraventionSearch}
-              onChangeText={setContraventionSearch}
+              onChangeText={(text) => {
+                setContraventionSearch(text);
+                if (text.length > 2) {
+                  trackEvent("contravention_code_searched", {
+                    screen: "ticket_form",
+                    search_query: text
+                  });
+                }
+              }}
             />
           </View>
 
@@ -163,7 +185,15 @@ const TicketForm = ({ initialData, onSubmit, onCancel, isLoading = false }: Tick
               <View className="border border-gray-300 rounded-lg">
                 <Picker
                   selectedValue={value}
-                  onValueChange={onChange}
+                  onValueChange={(selectedValue) => {
+                    onChange(selectedValue);
+                    if (selectedValue) {
+                      trackEvent("contravention_code_selected", {
+                        screen: "ticket_form",
+                        selected_value: selectedValue
+                      });
+                    }
+                  }}
                   style={{ height: 50 }}
                 >
                   <Picker.Item label="Select a contravention code" value="" />

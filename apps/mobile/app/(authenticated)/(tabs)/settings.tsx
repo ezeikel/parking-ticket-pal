@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
 import { Text, View, ScrollView, Pressable, Alert, Dimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useFocusEffect } from '@react-navigation/native';
+import { useCallback } from 'react';
 import { FontAwesomeIcon } from "@fortawesome/react-native-fontawesome";
 import { faSignOut, faUser, faEnvelope, faInfoCircle, faHeart } from "@fortawesome/pro-regular-svg-icons";
 import { useAuthContext } from '@/contexts/auth';
@@ -10,6 +12,7 @@ import { useColorScheme } from '@/hooks/useColorScheme';
 import { Colors } from '@/constants/Colors';
 import Constants from 'expo-constants';
 import Loader from '@/components/Loader/Loader';
+import { useAnalytics } from '@/lib/analytics';
 
 const padding = 16;
 const screenWidth = Dimensions.get('screen').width - padding * 2;
@@ -19,10 +22,19 @@ const SettingsScreen = () => {
   const user = data?.user;
   const { signOut } = useAuthContext();
   const colorScheme = useColorScheme();
+  const { trackScreenView, trackEvent } = useAnalytics();
 
   const appVersion = Constants.expoConfig?.version || '0.1.0';
 
+  useFocusEffect(
+    useCallback(() => {
+      trackScreenView('settings');
+      trackEvent("settings_viewed", { screen: "settings" });
+    }, [])
+  );
+
   const handleSignOut = () => {
+    trackEvent("auth_sign_out", { screen: "settings" });
     Alert.alert(
       'Sign Out',
       'Are you sure you want to sign out?',

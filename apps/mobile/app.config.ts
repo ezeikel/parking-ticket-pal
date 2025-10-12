@@ -23,7 +23,9 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
             ],
           },
         ],
-        "ITSAppUsesNonExemptEncryption": false
+        "ITSAppUsesNonExemptEncryption": false,
+        "NSCameraUsageDescription": "This app uses your camera to scan parking tickets and related documents.",
+        "NSPhotoLibraryUsageDescription": "This app allows you to upload existing photos of parking tickets and related documents from your library."
       }
     },
     android: {
@@ -109,7 +111,8 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
           "./assets/fonts/UKNumberPlate.ttf"
         ],
       },
-    ]
+    ],
+    "expo-localization"
   ],
     experiments: {
       typedRoutes: true,

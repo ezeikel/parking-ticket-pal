@@ -1,12 +1,15 @@
 import { View, Dimensions, Text, Pressable, TextInput, Alert, ActivityIndicator, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
+import { useFocusEffect } from '@react-navigation/native';
+import { useCallback } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { faApple, faFacebook, faGoogle } from '@fortawesome/free-brands-svg-icons';
 import { useAuthContext } from '@/contexts/auth';
 import { useColorScheme } from '@/hooks/useColorScheme';
 import { Colors } from '@/constants/Colors';
 import { useState } from 'react';
+import { useAnalytics } from '@/lib/analytics';
 
 const padding = 16;
 const screenWidth = Dimensions.get('screen').width - padding * 2;
@@ -16,6 +19,13 @@ const AuthScreen = () => {
   const colorScheme = useColorScheme();
   const [email, setEmail] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const { trackScreenView, trackEvent, trackError } = useAnalytics();
+
+  useFocusEffect(
+    useCallback(() => {
+      trackScreenView('sign_in');
+    }, [])
+  );
 
   const handleContinue = async () => {
     if (!email.trim()) {
@@ -23,12 +33,22 @@ const AuthScreen = () => {
       return;
     }
 
+    trackEvent("auth_magic_link_requested", {
+      screen: "sign_in",
+      auth_method: "magic_link"
+    });
+
     setIsLoading(true);
     try {
       // TODO: Implement magic link API call
       await new Promise(resolve => setTimeout(resolve, 2000)); // Simulate API call
       Alert.alert('Success', `Magic link sent to ${email}`);
     } catch (error) {
+      trackError(error as Error, {
+        screen: "sign_in",
+        action: "magic_link",
+        errorType: "network"
+      });
       Alert.alert('Error', 'Failed to send magic link. Please try again.');
     } finally {
       setIsLoading(false);
@@ -37,18 +57,42 @@ const AuthScreen = () => {
 
   const handleGoogleSignIn = async () => {
     try {
+      trackEvent("auth_sign_in_started", {
+        screen: "sign_in",
+        auth_method: "google"
+      });
+
       await signIn();
+
+      trackEvent("auth_sign_in_success", {
+        screen: "sign_in",
+        auth_method: "google"
+      });
+
       router.replace('/');
     } catch (error) {
+      trackEvent("auth_sign_in_failed", {
+        screen: "sign_in",
+        auth_method: "google",
+        error_message: error instanceof Error ? error.message : "Unknown error"
+      });
       Alert.alert('Error', 'Failed to sign in with Google. Please try again.');
     }
   };
 
   const handleAppleSignIn = async () => {
+    trackEvent("auth_sign_in_started", {
+      screen: "sign_in",
+      auth_method: "apple"
+    });
     Alert.alert('Coming Soon', 'Apple Sign-In will be available soon.');
   };
 
   const handleFacebookSignIn = async () => {
+    trackEvent("auth_sign_in_started", {
+      screen: "sign_in",
+      auth_method: "facebook"
+    });
     Alert.alert('Coming Soon', 'Facebook Sign-In will be available soon.');
   };
 
