@@ -8,13 +8,19 @@ import { perfect } from "@/styles";
 import { Colors } from '@/constants/Colors';
 import { useColorScheme } from '@/hooks/useColorScheme';
 import HapticTab from "@/components/HapticTab/HapticTab";
-import CaptureModal from '@/components/modals/CaptureModal';
+import CameraSheet from '@/components/CameraSheet/CameraSheet';
+import { useCameraContext } from '@/contexts/CameraContext';
 
 export default function TabLayout() {
   const colorScheme = useColorScheme();
   const [cameraVisible, setCameraVisible] = useState(false);
+  const { arePermissionsReady, requestCameraPermission } = useCameraContext();
 
-  const handleCameraPress = () => {
+  const handleCameraPress = async () => {
+    // Pre-request camera permission if not ready for faster experience
+    if (!arePermissionsReady) {
+      requestCameraPermission();
+    }
     setCameraVisible(true);
   };
 
@@ -87,7 +93,7 @@ export default function TabLayout() {
           }}
         />
       </Tabs>
-      <CaptureModal isVisible={cameraVisible} setIsVisible={setCameraVisible} />
+      <CameraSheet isVisible={cameraVisible} onClose={() => setCameraVisible(false)} />
     </>
   );
 }

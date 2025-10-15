@@ -1,6 +1,7 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { PostHogProvider } from 'posthog-react-native';
 import { AuthContextProvider } from "./contexts/auth";
+import { CameraProvider } from "./contexts/CameraContext";
 
 
 export const queryClient = new QueryClient();
@@ -12,7 +13,9 @@ const Providers = ({ children }: { children: React.ReactNode }) => {
     }}>
       <QueryClientProvider client={queryClient}>
         <AuthContextProvider>
-          {children}
+          <CameraProvider>
+            {children}
+          </CameraProvider>
         </AuthContextProvider>
       </QueryClientProvider>
     </PostHogProvider>

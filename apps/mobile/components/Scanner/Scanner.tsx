@@ -47,18 +47,10 @@ const Scanner = ({ onClose, onImageScanned }: ScannerProps) => {
 
   const pickImage = async () => {
     try {
-      logger.debug('pickImage called - requesting permissions', { screen: "scanner" });
       trackEvent("ticket_image_picker_used", { screen: "scanner" });
-      trackEvent("image_picker_permission_requested", { screen: "scanner" });
 
       // Request permissions first
       const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
-
-      logger.debug('Permission result received', {
-        screen: "scanner",
-        granted: permissionResult.granted,
-        status: permissionResult.status
-      });
 
       trackEvent("image_picker_permission_result", {
         screen: "scanner",
@@ -83,17 +75,11 @@ const Scanner = ({ onClose, onImageScanned }: ScannerProps) => {
         return;
       }
 
-      logger.debug('Launching image library', { screen: "scanner" });
-      trackEvent("image_library_launching", { screen: "scanner" });
-
       // Add small delay for iOS
       await new Promise(resolve => setTimeout(resolve, 100));
 
       let result;
       try {
-        logger.debug('About to call launchImageLibraryAsync', { screen: "scanner" });
-        trackEvent("image_picker_about_to_launch", { screen: "scanner" });
-
         result = await ImagePicker.launchImageLibraryAsync({
           mediaTypes: ['images'],
           allowsEditing: true,
@@ -102,9 +88,6 @@ const Scanner = ({ onClose, onImageScanned }: ScannerProps) => {
           exif: false,
           allowsMultipleSelection: false,
         });
-
-        logger.debug('launchImageLibraryAsync completed successfully', { screen: "scanner" });
-        trackEvent("image_picker_launch_completed", { screen: "scanner" });
       } catch (launchError) {
         logger.error('ImagePicker launch failed', { screen: "scanner" }, launchError as Error);
         trackEvent("image_picker_launch_failed", {
@@ -114,19 +97,9 @@ const Scanner = ({ onClose, onImageScanned }: ScannerProps) => {
         throw launchError;
       }
 
-      trackEvent("image_picker_result", {
-        screen: "scanner",
-        cancelled: result.canceled,
-        assets_count: result.assets?.length || 0
-      });
-
       if (!result.canceled) {
         const imageUri = result.assets?.[0]?.base64;
         if (imageUri) {
-          logger.info('Image selected successfully', {
-            screen: "scanner",
-            image_size_bytes: imageUri.length
-          });
           setScannedImage(imageUri);
           trackEvent("ticket_scan_success", {
             screen: "scanner",
@@ -135,7 +108,6 @@ const Scanner = ({ onClose, onImageScanned }: ScannerProps) => {
           onImageScanned?.();
         }
       } else {
-        logger.debug('User cancelled image picker', { screen: "scanner" });
         trackEvent("ticket_scan_cancelled", {
           screen: "scanner",
           scan_method: "image_picker"
@@ -163,22 +135,7 @@ const Scanner = ({ onClose, onImageScanned }: ScannerProps) => {
   };
 
   const scanDocument = async () => {
-    logger.debug('scanDocument called', {
-      screen: "scanner",
-      is_dev_mode: __DEV__,
-      platform: Platform.OS
-    });
-
-    trackEvent("scan_document_method_called", {
-      screen: "scanner",
-      is_dev_mode: __DEV__,
-      platform: Platform.OS
-    });
-
     if (__DEV__) {
-      logger.info('Running in dev mode, using image picker instead of document scanner', {
-        screen: "scanner"
-      });
       trackEvent("dev_mode_image_picker_fallback", {
         screen: "scanner",
         scan_method: "image_picker"
@@ -187,11 +144,7 @@ const Scanner = ({ onClose, onImageScanned }: ScannerProps) => {
       return;
     }
 
-    logger.info('Production mode, using document scanner', { screen: "scanner" });
-
     try {
-      logger.debug('Requesting camera permissions for document scanner', { screen: "scanner" });
-
       // Request camera permissions first - this IS needed even with app config
       const cameraPermissions = await ImagePicker.requestCameraPermissionsAsync();
 
@@ -216,7 +169,6 @@ const Scanner = ({ onClose, onImageScanned }: ScannerProps) => {
           [
             { text: 'Cancel', onPress: () => onClose?.() },
             { text: 'Use Photo Library', onPress: async () => {
-              logger.info('Camera denied, falling back to photo library', { screen: "scanner" });
               trackEvent("camera_denied_fallback_to_library", { screen: "scanner" });
               await pickImage();
             }},
@@ -229,8 +181,6 @@ const Scanner = ({ onClose, onImageScanned }: ScannerProps) => {
         return;
       }
 
-      logger.info('Camera permission granted, opening document scanner', { screen: "scanner" });
-      logger.info('Opening document scanner', { screen: "scanner" });
       trackEvent("ticket_document_scanner_used", { screen: "scanner" });
 
       const { scannedImages, status } = await DocumentScanner.scanDocument({
@@ -238,14 +188,7 @@ const Scanner = ({ onClose, onImageScanned }: ScannerProps) => {
         maxNumDocuments: 1
       });
 
-      logger.debug('Document scanner result received', {
-        screen: "scanner",
-        status,
-        imageCount: scannedImages?.length || 0
-      });
-
       if (status === 'cancel') {
-        logger.debug('Document scanning was cancelled by user', { screen: "scanner" });
         trackEvent("ticket_scan_cancelled", {
           screen: "scanner",
           scan_method: "document_scanner"
@@ -255,10 +198,6 @@ const Scanner = ({ onClose, onImageScanned }: ScannerProps) => {
       }
 
       if (scannedImages?.[0]) {
-        logger.info('Document scanned successfully', {
-          screen: "scanner",
-          image_size_bytes: scannedImages[0].length
-        });
         setScannedImage(scannedImages[0]);
         trackEvent("ticket_scan_success", {
           screen: "scanner",
@@ -289,20 +228,16 @@ const Scanner = ({ onClose, onImageScanned }: ScannerProps) => {
         errorType: "scanning"
       });
 
-      logger.info('Document scanner failed, showing fallback options');
-
       Alert.alert(
         'Camera Scanner Error',
         'The camera scanner encountered an issue. Would you like to try selecting a photo instead?',
         [
           { text: 'Cancel', onPress: () => onClose?.() },
           { text: 'Try Photo Library', onPress: async () => {
-            logger.info('Document scanner failed, falling back to photo library', { screen: "scanner" });
             trackEvent("document_scanner_failed_fallback_to_library", { screen: "scanner" });
             await pickImage();
           }},
           { text: 'Retry Camera', onPress: () => {
-            logger.info('Retrying document scanner', { screen: "scanner" });
             trackEvent("document_scanner_retry", { screen: "scanner" });
             scanDocument();
           }}
@@ -316,10 +251,6 @@ const Scanner = ({ onClose, onImageScanned }: ScannerProps) => {
 
     try {
       const startTime = Date.now();
-      logger.info('Starting OCR processing', {
-        screen: "scanner",
-        image_size_bytes: scannedImage.length
-      });
       trackEvent("ocr_processing_started", { screen: "scanner" });
 
       // process image with OCR using web app's endpoint
