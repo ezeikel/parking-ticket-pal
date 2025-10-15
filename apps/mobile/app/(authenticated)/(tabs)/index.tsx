@@ -3,7 +3,6 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
 import { useCallback } from 'react';
 import TicketsList from '@/components/TicketList/TicketsList';
-import { Typography } from '@/components/Typography/Typography';
 import { useAnalytics } from '@/lib/analytics';
 
 const padding = 16;
@@ -20,7 +19,7 @@ const TicketsScreen = () => {
   );
 
   return (
-    <SafeAreaView className="flex-1 items-center">
+    <SafeAreaView className="flex-1 items-center" edges={['top', 'left', 'right']}>
       <View
         className="flex-1"
         style={{

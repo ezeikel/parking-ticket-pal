@@ -1,4 +1,3 @@
-import { useEffect, useState } from 'react';
 import { Text, View, ScrollView, Pressable, Alert, Dimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
@@ -7,10 +6,10 @@ import { FontAwesomeIcon } from "@fortawesome/react-native-fontawesome";
 import { faSignOut, faUser, faEnvelope, faInfoCircle, faHeart } from "@fortawesome/pro-regular-svg-icons";
 import { useAuthContext } from '@/contexts/auth';
 import useUser from '@/hooks/api/useUser';
-import { Typography } from '@/components/Typography/Typography';
 import { useColorScheme } from '@/hooks/useColorScheme';
 import { Colors } from '@/constants/Colors';
 import Constants from 'expo-constants';
+import * as Application from 'expo-application';
 import Loader from '@/components/Loader/Loader';
 import { useAnalytics } from '@/lib/analytics';
 
@@ -95,7 +94,7 @@ const SettingsScreen = () => {
   }
 
   return (
-    <SafeAreaView className="flex-1 bg-gray-50">
+    <SafeAreaView className="flex-1 bg-gray-50" edges={['top', 'left', 'right']}>
       <View
         className="flex-1"
         style={{
@@ -136,7 +135,7 @@ const SettingsScreen = () => {
             <SettingRow
               icon={faInfoCircle}
               title="Version"
-              value={appVersion}
+              value={`${Application.nativeApplicationVersion || appVersion}${Application.nativeBuildVersion ? ` (${Application.nativeBuildVersion})` : ''}`}
             />
           </View>
 
