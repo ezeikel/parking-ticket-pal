@@ -37,6 +37,7 @@ class Logger {
     this.sessionId = Logger.generateSessionId();
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   setPostHog(posthog: any) {
     this.posthog = posthog;
   }
@@ -82,16 +83,22 @@ class Logger {
 
     switch (entry.level) {
       case 'debug':
+        // eslint-disable-next-line no-console
         console.debug(prefix, entry.message, contextStr);
         break;
       case 'info':
+        // eslint-disable-next-line no-console
         console.info(prefix, entry.message, contextStr);
         break;
       case 'warn':
+        // eslint-disable-next-line no-console
         console.warn(prefix, entry.message, contextStr, entry.error);
         break;
       case 'error':
+        // eslint-disable-next-line no-console
         console.error(prefix, entry.message, contextStr, entry.error);
+        break;
+      default:
         break;
     }
   }
@@ -141,9 +148,12 @@ class Logger {
             Sentry.captureMessage(entry.message, 'error');
           }
           break;
+        default:
+          break;
       }
     } catch (error) {
       if (process.env.NODE_ENV === 'development') {
+        // eslint-disable-next-line no-console
         console.error('Failed to log to Sentry:', error);
       }
     }
@@ -151,21 +161,28 @@ class Logger {
 
   private logToPostHog(entry: LogEntry) {
     try {
-      // Use the same clean pattern as analytics.ts
-      if (typeof window !== 'undefined') {
-        const posthog = (window as any).posthog;
-        if (posthog && posthog.__loaded) {
-          posthog.capture('log_entry', {
-            log_level: entry.level,
-            log_message: entry.message,
-            log_page: entry.context?.page,
-            log_action: entry.context?.action,
-            log_session_id: entry.context?.sessionId,
-            log_error: entry.error?.message,
-            log_error_stack: entry.error?.stack,
-            ...entry.context,
-          });
-        }
+      // Use the stored posthog instance first, fallback to window.posthog
+      // eslint-disable-next-line prefer-destructuring
+      let posthog = this.posthog;
+
+      if (!posthog && typeof window !== 'undefined') {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        posthog = (window as any).posthog;
+      }
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any, no-underscore-dangle
+      if (posthog && (posthog as any).__loaded) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (posthog as any).capture('log_entry', {
+          log_level: entry.level,
+          log_message: entry.message,
+          log_page: entry.context?.page,
+          log_action: entry.context?.action,
+          log_session_id: entry.context?.sessionId,
+          log_error: entry.error?.message,
+          log_error_stack: entry.error?.stack,
+          ...entry.context,
+        });
       }
     } catch (error) {
       if (process.env.NODE_ENV === 'development') {
@@ -291,6 +308,7 @@ export function createServerLogger(context?: Partial<LogContext>) {
 }
 
 // Client-side helper with PostHog integration
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function createClientLogger(posthog?: any, context?: Partial<LogContext>) {
   if (posthog) {
     logger.setPostHog(posthog);
@@ -325,11 +343,15 @@ export function useLogger(context?: Partial<LogContext>) {
     throw new Error('useLogger can only be used in client components. Use createServerLogger for server-side logging.');
   }
 
+  // eslint-disable-next-line no-console
   console.warn('DEPRECATED: Import useLogger from "@/lib/use-logger" instead for proper PostHog integration');
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let posthog: any = null;
   try {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     if (typeof window !== 'undefined' && (window as any).posthog) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       posthog = (window as any).posthog;
     }
   } catch {
