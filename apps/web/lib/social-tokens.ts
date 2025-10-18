@@ -28,7 +28,7 @@ export const validateToken = async (
 }> => {
   try {
     const response = await fetch(
-      `https://graph.facebook.com/v18.0/me?access_token=${accessToken}`,
+      `https://graph.facebook.com/v24.0/me?access_token=${accessToken}`,
     );
 
     if (!response.ok) {
@@ -37,7 +37,7 @@ export const validateToken = async (
 
     // Get token debug info
     const debugResponse = await fetch(
-      `https://graph.facebook.com/v18.0/debug_token?input_token=${accessToken}&access_token=${accessToken}`,
+      `https://graph.facebook.com/v24.0/debug_token?input_token=${accessToken}&access_token=${accessToken}`,
     );
 
     if (debugResponse.ok) {
@@ -130,7 +130,7 @@ export const exchangeForLongLivedToken = async (
 }> => {
   try {
     const response = await fetch(
-      `https://graph.facebook.com/v18.0/oauth/access_token?` +
+      `https://graph.facebook.com/v24.0/oauth/access_token?` +
         `grant_type=fb_exchange_token&` +
         `client_id=${appId}&` +
         `client_secret=${appSecret}&` +
@@ -165,7 +165,7 @@ export const getPageTokens = async (
 ): Promise<{ success: boolean; tokens?: PageToken[]; error?: string }> => {
   try {
     const response = await fetch(
-      `https://graph.facebook.com/v18.0/me/accounts?access_token=${userAccessToken}`,
+      `https://graph.facebook.com/v24.0/me/accounts?access_token=${userAccessToken}`,
     );
 
     if (!response.ok) {
@@ -200,7 +200,7 @@ export const getInstagramAccountId = async (
 }> => {
   try {
     const response = await fetch(
-      `https://graph.facebook.com/v18.0/${pageId}?fields=instagram_business_account&access_token=${pageAccessToken}`,
+      `https://graph.facebook.com/v24.0/${pageId}?fields=instagram_business_account&access_token=${pageAccessToken}`,
     );
 
     if (!response.ok) {
@@ -275,7 +275,7 @@ export const checkAllTokens = async (): Promise<{
   instagram: { isValid: boolean; expiresAt?: Date; error?: string };
   linkedin: { isValid: boolean; expiresAt?: Date; error?: string };
 }> => {
-  const facebookToken = process.env.FACEBOOK_ACCESS_TOKEN;
+  const facebookToken = process.env.FACEBOOK_PAGE_ACCESS_TOKEN;
 
   const results: {
     facebook: { isValid: boolean; expiresAt?: Date; error?: string };

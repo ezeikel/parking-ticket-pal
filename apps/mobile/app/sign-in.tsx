@@ -15,7 +15,7 @@ const padding = 16;
 const screenWidth = Dimensions.get('screen').width - padding * 2;
 
 const AuthScreen = () => {
-  const { signIn } = useAuthContext();
+  const { signIn, signInWithFacebook, signInWithApple, sendMagicLink } = useAuthContext();
   const colorScheme = useColorScheme();
   const [email, setEmail] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -40,9 +40,8 @@ const AuthScreen = () => {
 
     setIsLoading(true);
     try {
-      // TODO: Implement magic link API call
-      await new Promise(resolve => setTimeout(resolve, 2000)); // Simulate API call
-      Alert.alert('Success', `Magic link sent to ${email}`);
+      await sendMagicLink(email);
+      Alert.alert('Success', `Magic link sent to ${email}. Check your email and click the link to sign in.`);
     } catch (error) {
       trackError(error as Error, {
         screen: "sign_in",
@@ -81,19 +80,53 @@ const AuthScreen = () => {
   };
 
   const handleAppleSignIn = async () => {
-    trackEvent("auth_sign_in_started", {
-      screen: "sign_in",
-      auth_method: "apple"
-    });
-    Alert.alert('Coming Soon', 'Apple Sign-In will be available soon.');
+    try {
+      trackEvent("auth_sign_in_started", {
+        screen: "sign_in",
+        auth_method: "apple"
+      });
+
+      await signInWithApple();
+
+      trackEvent("auth_sign_in_success", {
+        screen: "sign_in",
+        auth_method: "apple"
+      });
+
+      router.replace('/');
+    } catch (error) {
+      trackEvent("auth_sign_in_failed", {
+        screen: "sign_in",
+        auth_method: "apple",
+        error_message: error instanceof Error ? error.message : "Unknown error"
+      });
+      Alert.alert('Error', 'Failed to sign in with Apple. Please try again.');
+    }
   };
 
   const handleFacebookSignIn = async () => {
-    trackEvent("auth_sign_in_started", {
-      screen: "sign_in",
-      auth_method: "facebook"
-    });
-    Alert.alert('Coming Soon', 'Facebook Sign-In will be available soon.');
+    try {
+      trackEvent("auth_sign_in_started", {
+        screen: "sign_in",
+        auth_method: "facebook"
+      });
+
+      await signInWithFacebook();
+
+      trackEvent("auth_sign_in_success", {
+        screen: "sign_in",
+        auth_method: "facebook"
+      });
+
+      router.replace('/');
+    } catch (error) {
+      trackEvent("auth_sign_in_failed", {
+        screen: "sign_in",
+        auth_method: "facebook",
+        error_message: error instanceof Error ? error.message : "Unknown error"
+      });
+      Alert.alert('Error', 'Failed to sign in with Facebook. Please try again.');
+    }
   };
 
   const SocialButton = ({ icon, label, onPress, backgroundColor, textColor, borderColor }: {

@@ -496,7 +496,7 @@ export const generateChallengeLetter = async (
         {
           role: 'user',
           content: generateChallengeEmailPrompt(
-            user.name,
+            user.name ?? '', // we might not have a name if the user is signed in with Facebook/Apple/Resend
             ticket.pcnNumber,
             ticket.issuer,
           ),

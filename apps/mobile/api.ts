@@ -54,6 +54,39 @@ export const signIn = async () => {
   return response.data;
 }
 
+export const signInWithFacebook = async (accessToken: string) => {
+  const response = await axios.post(`${apiUrlFromEnv}/auth/mobile/facebook`, {
+    accessToken
+  });
+
+  return response.data;
+}
+
+export const signInWithApple = async (identityToken: string, authorizationCode: string) => {
+  const response = await axios.post(`${apiUrlFromEnv}/auth/mobile/apple`, {
+    identityToken,
+    authorizationCode
+  });
+
+  return response.data;
+}
+
+export const sendMagicLink = async (email: string) => {
+  const response = await axios.post(`${apiUrlFromEnv}/auth/mobile/magic-link`, {
+    email
+  });
+
+  return response.data;
+}
+
+export const verifyMagicLink = async (token: string) => {
+  const response = await axios.post(`${apiUrlFromEnv}/auth/mobile/magic-link/verify`, {
+    token
+  });
+
+  return response.data;
+}
+
 export const processImageWithOCR = async (scannedImage: string) => {
   const token = await SecureStore.getItemAsync('sessionToken');
 

@@ -1,15 +1,16 @@
 'use client';
 
-// import { useState } from 'react';
+import { useState } from 'react';
 import { signIn } from 'next-auth/react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-// import { faEnvelope, faSpinnerThird } from '@fortawesome/pro-regular-svg-icons';
+import { faEnvelope, faSpinnerThird } from '@fortawesome/pro-regular-svg-icons';
 import {
   faGoogle,
-  // faApple
+  faApple,
+  faFacebook,
 } from '@fortawesome/free-brands-svg-icons';
 import { Button } from '@/components/ui/button';
-// import { Input } from '@/components/ui/input';
+import { Input } from '@/components/ui/input';
 import {
   Card,
   CardContent,
@@ -18,23 +19,34 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
+import { useAnalytics } from '@/utils/analytics-client';
 
-// eslint-disable-next-line arrow-body-style
 const SignInOptions = () => {
-  // const [email, setEmail] = useState('');
-  // const [isLoading, setIsLoading] = useState(false);
+  const [email, setEmail] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const { track } = useAnalytics();
 
-  // const handleMagicLinkSignIn = async (e: React.FormEvent) => {
-  //   e.preventDefault();
-  //   setIsLoading(true);
-  //   try {
-  //     await signIn('resend', { email, callbackUrl: '/' });
-  //   } catch (error) {
-  //     console.error('Error signing in with magic link:', error);
-  //   } finally {
-  //     setIsLoading(false);
-  //   }
-  // };
+  const handleSignIn = (provider: 'google' | 'apple' | 'facebook') => {
+    track('auth_method_selected', {
+      method: provider,
+      location: 'sign_in_page',
+    });
+    signIn(provider, { callbackUrl: '/' });
+  };
+
+  const handleMagicLinkSignIn = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+    try {
+      track('auth_method_selected', {
+        method: 'magic_link',
+        location: 'sign_in_page',
+      });
+      await signIn('resend', { email, callbackUrl: '/' });
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   return (
     <Card className="w-[350px]">
@@ -45,19 +57,27 @@ const SignInOptions = () => {
       <CardContent className="grid gap-4">
         <Button
           variant="outline"
-          onClick={() => signIn('google', { callbackUrl: '/' })}
-          className="w-full"
+          onClick={() => handleSignIn('google')}
+          className="w-full hover:bg-gray-50 border-gray-300"
         >
           <FontAwesomeIcon icon={faGoogle} size="lg" className="mr-2" />
           Continue with Google
         </Button>
-        {/* <Button
+        <Button
           variant="outline"
-          onClick={() => signIn('apple', { callbackUrl: '/' })}
-          className="w-full"
+          onClick={() => handleSignIn('apple')}
+          className="w-full bg-black text-white hover:bg-gray-800 hover:text-white border-black"
         >
           <FontAwesomeIcon icon={faApple} size="lg" className="mr-2" />
           Continue with Apple
+        </Button>
+        <Button
+          variant="outline"
+          onClick={() => handleSignIn('facebook')}
+          className="w-full bg-blue-600 text-white hover:bg-blue-700 hover:text-white border-blue-600"
+        >
+          <FontAwesomeIcon icon={faFacebook} size="lg" className="mr-2" />
+          Continue with Facebook
         </Button>
         <div className="relative">
           <div className="absolute inset-0 flex items-center">
@@ -93,7 +113,7 @@ const SignInOptions = () => {
               </>
             )}
           </Button>
-        </form> */}
+        </form>
       </CardContent>
       <CardFooter className="flex flex-col items-center text-sm text-muted-foreground">
         <p>

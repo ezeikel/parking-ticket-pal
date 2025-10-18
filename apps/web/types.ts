@@ -211,11 +211,18 @@ export type BaseEventProperties = {
 
 export enum SignInMethod {
   GOOGLE = 'google',
+  APPLE = 'apple',
+  FACEBOOK = 'facebook',
+  MAGIC_LINK = 'magic_link',
 }
 
 // For strongly-typed analytics events
 export type EventProperties = {
   // Authentication & User Management
+  [TRACKING_EVENTS.AUTH_METHOD_SELECTED]: {
+    method: 'google' | 'apple' | 'facebook' | 'magic_link';
+    location: string;
+  };
   [TRACKING_EVENTS.USER_SIGNED_UP]: { method: SignInMethod };
   [TRACKING_EVENTS.USER_SIGNED_IN]: { method: SignInMethod };
   [TRACKING_EVENTS.USER_SIGNED_OUT]: Record<string, never>;

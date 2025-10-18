@@ -58,7 +58,7 @@ const sentryOptions = {
   widenClientFileUpload: true,
   transpileClientSDK: true,
   tunnelRoute: '/monitoring',
-  debug: true,
+  debug: process.env.NODE_ENV !== 'production',
   hideSourceMaps: true,
   disableLogger: true,
   automaticVercelMonitors: true,

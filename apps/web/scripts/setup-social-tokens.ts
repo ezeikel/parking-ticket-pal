@@ -15,9 +15,9 @@ const setupMetaTokens = async () => {
   console.log('🚀 Social Media API Token Setup Guide\n');
 
   // Check if we already have tokens
-  const existingToken = process.env.FACEBOOK_ACCESS_TOKEN;
+  const existingToken = process.env.FACEBOOK_PAGE_ACCESS_TOKEN;
   if (existingToken) {
-    console.log('✅ Found existing FACEBOOK_ACCESS_TOKEN');
+    console.log('✅ Found existing FACEBOOK_PAGE_ACCESS_TOKEN');
     const permissionCheck = await checkTokenPermissions(existingToken);
 
     if (permissionCheck.isValid) {
@@ -57,19 +57,19 @@ const setupMetaTokens = async () => {
   console.log('   • Copy the token\n');
 
   console.log('2️⃣  Set environment variables:');
-  console.log('   META_APP_ID=your_app_id');
-  console.log('   META_APP_SECRET=your_app_secret');
+  console.log('   FACEBOOK_BUSINESS_APP_ID=your_app_id');
+  console.log('   FACEBOOK_BUSINESS_APP_SECRET=your_app_secret');
   console.log('   TEMP_USER_TOKEN=your_short_lived_user_token\n');
 
   console.log('3️⃣  Run this script again to exchange for long-lived tokens\n');
 
   // Check if we have the required env vars for token exchange
-  const appId = process.env.META_APP_ID;
-  const appSecret = process.env.META_APP_SECRET;
+  const appId = process.env.FACEBOOK_BUSINESS_APP_ID;
+  const appSecret = process.env.FACEBOOK_BUSINESS_APP_SECRET;
   const tempUserToken = process.env.TEMP_USER_TOKEN;
 
   if (!appId || !appSecret) {
-    console.log('⚠️  Missing META_APP_ID or META_APP_SECRET');
+    console.log('⚠️  Missing FACEBOOK_BUSINESS_APP_ID or FACEBOOK_BUSINESS_APP_SECRET');
     console.log('   Add these to your .env file and run again');
     return;
   }
@@ -153,7 +153,7 @@ const setupMetaTokens = async () => {
   console.log('\n🎉 Setup Complete! Add these to your .env file:\n');
   console.log('# Meta API Configuration');
   console.log(`FACEBOOK_PAGE_ID=${selectedPage.id}`);
-  console.log(`FACEBOOK_ACCESS_TOKEN=${selectedPage.access_token}`);
+  console.log(`FACEBOOK_PAGE_ACCESS_TOKEN=${selectedPage.access_token}`);
 
   if (instagramResult.success) {
     console.log(`INSTAGRAM_ACCOUNT_ID=${instagramResult.instagramAccountId}`);
@@ -170,8 +170,8 @@ const setupMetaTokens = async () => {
   console.log('• Monitor with: pnpm check:tokens');
 
   console.log('\n🗑️  You can now remove these temporary variables:');
-  console.log('• META_APP_ID (only needed for setup)');
-  console.log('• META_APP_SECRET (only needed for setup)');
+  console.log('• FACEBOOK_BUSINESS_APP_ID (only needed for setup)');
+  console.log('• FACEBOOK_BUSINESS_APP_SECRET (only needed for setup)');
   console.log('• TEMP_USER_TOKEN (only needed for setup)');
 };
 

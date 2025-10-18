@@ -1,6 +1,7 @@
 // eslint-disable-next-line import/prefer-default-export
 export const TRACKING_EVENTS = {
   // Authentication & User Management
+  AUTH_METHOD_SELECTED: 'auth_method_selected',
   USER_SIGNED_UP: 'user_signed_up',
   USER_SIGNED_IN: 'user_signed_in',
   USER_SIGNED_OUT: 'user_signed_out',
