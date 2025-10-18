@@ -2,7 +2,6 @@
 
 'use server';
 
-import * as Sentry from '@sentry/nextjs';
 import { put, del } from '@vercel/blob';
 import sharp from 'sharp';
 import { PostPlatform, type Post } from '@/types';
@@ -530,9 +529,11 @@ export const postToSocialMedia = async (params: {
   try {
     const { post, platforms = ['instagram', 'facebook', 'linkedin'] } = params;
 
-    Sentry.captureMessage(
-      `postToSocialMedia: Starting social media posting for slug: ${post.meta.slug}`,
-    );
+    logger.info('Starting social media posting', {
+      slug: post.meta.slug,
+      title: post.meta.title,
+      platforms,
+    });
 
     const blogUrl = `${process.env.NEXT_PUBLIC_BASE_URL}/blog/${post.meta.slug}`;
     const results: Record<
@@ -556,29 +557,35 @@ export const postToSocialMedia = async (params: {
           throw new Error('Instagram credentials not configured');
         }
 
-        Sentry.captureMessage('postToSocialMedia: Generating Instagram image');
+        logger.info('Generating Instagram image', {
+          slug: post.meta.slug,
+        });
         const instagramImage = await generateInstagramImage(post);
 
-        Sentry.captureMessage('postToSocialMedia: Uploading Instagram image');
+        logger.info('Uploading Instagram image', {
+          slug: post.meta.slug,
+        });
         instagramImageUrl = await uploadToTempStorage(
           instagramImage,
           'instagram',
         );
 
-        Sentry.captureMessage(
-          'postToSocialMedia: Generating Instagram caption',
-        );
+        logger.info('Generating Instagram caption', {
+          slug: post.meta.slug,
+        });
         const instagramCaption = await generateInstagramCaption(post);
 
-        Sentry.captureMessage(
-          'postToSocialMedia: Creating Instagram media container',
-        );
+        logger.info('Creating Instagram media container', {
+          slug: post.meta.slug,
+        });
         const creationId = await createInstagramMediaContainer(
           instagramImageUrl,
           instagramCaption,
         );
 
-        Sentry.captureMessage('postToSocialMedia: Publishing Instagram media');
+        logger.info('Publishing Instagram media', {
+          slug: post.meta.slug,
+        });
         const mediaId = await publishInstagramMedia(creationId);
 
         results.instagram = {
@@ -587,20 +594,19 @@ export const postToSocialMedia = async (params: {
           caption: instagramCaption,
         };
 
-        Sentry.captureMessage(
-          `postToSocialMedia: Successfully posted to Instagram: ${mediaId}`,
-        );
+        logger.info('Successfully posted to Instagram', {
+          slug: post.meta.slug,
+          mediaId,
+        });
       } catch (error) {
+        const errorInstance = error instanceof Error ? error : new Error(String(error));
         logger.error('Instagram posting failed', {
           slug: post.meta.slug,
           title: post.meta.title
-        }, error instanceof Error ? error : new Error(String(error)));
-        Sentry.captureMessage(
-          `postToSocialMedia: Instagram posting failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
-        );
+        }, errorInstance);
         results.instagram = {
           success: false,
-          error: error instanceof Error ? error.message : 'Unknown error',
+          error: errorInstance.message,
         };
       }
     }
@@ -615,16 +621,24 @@ export const postToSocialMedia = async (params: {
           throw new Error('Facebook credentials not configured');
         }
 
-        Sentry.captureMessage('postToSocialMedia: Generating Facebook image');
+        logger.info('Generating Facebook image', {
+          slug: post.meta.slug,
+        });
         const facebookImage = await generateFacebookImage(post);
 
-        Sentry.captureMessage('postToSocialMedia: Uploading Facebook image');
+        logger.info('Uploading Facebook image', {
+          slug: post.meta.slug,
+        });
         facebookImageUrl = await uploadToTempStorage(facebookImage, 'facebook');
 
-        Sentry.captureMessage('postToSocialMedia: Generating Facebook caption');
+        logger.info('Generating Facebook caption', {
+          slug: post.meta.slug,
+        });
         const facebookCaption = await generateFacebookCaption(post, blogUrl);
 
-        Sentry.captureMessage('postToSocialMedia: Posting to Facebook');
+        logger.info('Posting to Facebook', {
+          slug: post.meta.slug,
+        });
         const postId = await postToFacebookPage(
           facebookCaption,
           facebookImageUrl,
@@ -636,20 +650,19 @@ export const postToSocialMedia = async (params: {
           caption: facebookCaption,
         };
 
-        Sentry.captureMessage(
-          `postToSocialMedia: Successfully posted to Facebook: ${postId}`,
-        );
+        logger.info('Successfully posted to Facebook', {
+          slug: post.meta.slug,
+          postId,
+        });
       } catch (error) {
+        const errorInstance = error instanceof Error ? error : new Error(String(error));
         logger.error('Facebook posting failed', {
           slug: post.meta.slug,
           title: post.meta.title
-        }, error instanceof Error ? error : new Error(String(error)));
-        Sentry.captureMessage(
-          `postToSocialMedia: Facebook posting failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
-        );
+        }, errorInstance);
         results.facebook = {
           success: false,
-          error: error instanceof Error ? error.message : 'Unknown error',
+          error: errorInstance.message,
         };
       }
     }
@@ -664,16 +677,24 @@ export const postToSocialMedia = async (params: {
           throw new Error('LinkedIn credentials not configured');
         }
 
-        Sentry.captureMessage('postToSocialMedia: Generating LinkedIn image');
+        logger.info('Generating LinkedIn image', {
+          slug: post.meta.slug,
+        });
         const linkedinImage = await generateLinkedInImage(post);
 
-        Sentry.captureMessage('postToSocialMedia: Uploading LinkedIn image');
+        logger.info('Uploading LinkedIn image', {
+          slug: post.meta.slug,
+        });
         linkedinImageUrl = await uploadToTempStorage(linkedinImage, 'linkedin');
 
-        Sentry.captureMessage('postToSocialMedia: Generating LinkedIn caption');
+        logger.info('Generating LinkedIn caption', {
+          slug: post.meta.slug,
+        });
         const linkedinCaption = await generateLinkedInCaption(post, blogUrl);
 
-        Sentry.captureMessage('postToSocialMedia: Posting to LinkedIn');
+        logger.info('Posting to LinkedIn', {
+          slug: post.meta.slug,
+        });
 
         const postId = await postToLinkedInPage(
           linkedinCaption,
@@ -686,20 +707,19 @@ export const postToSocialMedia = async (params: {
           caption: linkedinCaption,
         };
 
-        Sentry.captureMessage(
-          `postToSocialMedia: Successfully posted to LinkedIn: ${postId}`,
-        );
+        logger.info('Successfully posted to LinkedIn', {
+          slug: post.meta.slug,
+          postId,
+        });
       } catch (error) {
+        const errorInstance = error instanceof Error ? error : new Error(String(error));
         logger.error('LinkedIn posting failed', {
           slug: post.meta.slug,
           title: post.meta.title
-        }, error instanceof Error ? error : new Error(String(error)));
-        Sentry.captureMessage(
-          `postToSocialMedia: LinkedIn posting failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
-        );
+        }, errorInstance);
         results.linkedin = {
           success: false,
-          error: error instanceof Error ? error.message : 'Unknown error',
+          error: errorInstance.message,
         };
       }
     }
@@ -715,13 +735,11 @@ export const postToSocialMedia = async (params: {
       },
     };
   } catch (error) {
+    const errorInstance = error instanceof Error ? error : new Error(String(error));
     logger.error('Error in social media posting', {
       slug: params.post?.meta?.slug || 'unknown',
       platforms: params.platforms
-    }, error instanceof Error ? error : new Error(String(error)));
-    Sentry.captureMessage(
-      `postToSocialMedia: Error in social media posting: ${error instanceof Error ? error.message : 'Unknown error'}`,
-    );
+    }, errorInstance);
 
     return {
       success: false,
@@ -730,7 +748,7 @@ export const postToSocialMedia = async (params: {
         slug: '',
         title: '',
       },
-      error: error instanceof Error ? error.message : 'Unknown error',
+      error: errorInstance.message,
     };
   } finally {
     // Clean up temporary images
