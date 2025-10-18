@@ -19,19 +19,30 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
+import { useAnalytics } from '@/utils/analytics-client';
 
-// eslint-disable-next-line arrow-body-style
 const SignInOptions = () => {
   const [email, setEmail] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const { track } = useAnalytics();
+
+  const handleSignIn = (provider: 'google' | 'apple' | 'facebook') => {
+    track('auth_method_selected', {
+      method: provider,
+      location: 'sign_in_page',
+    });
+    signIn(provider, { callbackUrl: '/' });
+  };
 
   const handleMagicLinkSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     try {
+      track('auth_method_selected', {
+        method: 'magic_link',
+        location: 'sign_in_page',
+      });
       await signIn('resend', { email, callbackUrl: '/' });
-    } catch (error) {
-      console.error('Error signing in with magic link:', error);
     } finally {
       setIsLoading(false);
     }
@@ -46,7 +57,7 @@ const SignInOptions = () => {
       <CardContent className="grid gap-4">
         <Button
           variant="outline"
-          onClick={() => signIn('google', { callbackUrl: '/' })}
+          onClick={() => handleSignIn('google')}
           className="w-full hover:bg-gray-50 border-gray-300"
         >
           <FontAwesomeIcon icon={faGoogle} size="lg" className="mr-2" />
@@ -54,7 +65,7 @@ const SignInOptions = () => {
         </Button>
         <Button
           variant="outline"
-          onClick={() => signIn('apple', { callbackUrl: '/' })}
+          onClick={() => handleSignIn('apple')}
           className="w-full bg-black text-white hover:bg-gray-800 hover:text-white border-black"
         >
           <FontAwesomeIcon icon={faApple} size="lg" className="mr-2" />
@@ -62,7 +73,7 @@ const SignInOptions = () => {
         </Button>
         <Button
           variant="outline"
-          onClick={() => signIn('facebook', { callbackUrl: '/' })}
+          onClick={() => handleSignIn('facebook')}
           className="w-full bg-blue-600 text-white hover:bg-blue-700 hover:text-white border-blue-600"
         >
           <FontAwesomeIcon icon={faFacebook} size="lg" className="mr-2" />
