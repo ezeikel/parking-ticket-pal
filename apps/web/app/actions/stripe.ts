@@ -9,6 +9,9 @@ import { TRACKING_EVENTS } from '@/constants/events';
 import { db } from '@/lib/prisma';
 import stripe from '@/lib/stripe';
 import { getUserId } from '@/utils/user';
+import { createServerLogger } from '@/lib/logger';
+
+const logger = createServerLogger({ action: 'stripe' });
 
 const getUserRole = async () => {
   const userId = await getUserId('get user role');
@@ -135,7 +138,9 @@ export const createCustomerPortalSession = async () => {
   });
 
   if (!user?.stripeCustomerId) {
-    console.error('No stripe customer id for this user.');
+    logger.error('No stripe customer id for this user', {
+      userId
+    });
     return null;
   }
 
@@ -251,7 +256,10 @@ export const createTicketCheckoutSession = async (
   });
 
   if (!ticket) {
-    console.error('Ticket not found or does not belong to user');
+    logger.error('Ticket not found or does not belong to user', {
+      ticketId,
+      userId
+    });
     return null;
   }
 
@@ -264,14 +272,19 @@ export const createTicketCheckoutSession = async (
   });
 
   if (!user) {
-    console.error('User not found.');
+    logger.error('User not found', {
+      userId
+    });
     return null;
   }
 
   const priceId = getTierPriceId(tier);
 
   if (!priceId) {
-    console.error(`No price ID configured for tier: ${tier}`);
+    logger.error('No price ID configured for tier', {
+      tier,
+      userId
+    });
     return null;
   }
 
@@ -346,15 +359,18 @@ export const createSubscriptionCheckoutSession = async (
   });
 
   if (!user) {
-    console.error('User not found.');
+    logger.error('User not found', {
+      userId
+    });
     return null;
   }
 
   const priceId = getSubscriptionPriceId(subscriptionType);
   if (!priceId) {
-    console.error(
-      `No price ID configured for subscription type: ${subscriptionType}`,
-    );
+    logger.error('No price ID configured for subscription type', {
+      subscriptionType,
+      userId
+    });
     return null;
   }
 

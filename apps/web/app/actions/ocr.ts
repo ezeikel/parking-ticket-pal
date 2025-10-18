@@ -13,6 +13,9 @@ import {
 } from '@/constants';
 import { generateOcrAnalysisPrompt } from '@/utils/promptGenerators';
 import { Address, DocumentSchema } from '@parking-ticket-pal/types';
+import { createServerLogger } from '@/lib/logger';
+
+const logger = createServerLogger({ action: 'ocr' });
 
 const getVisionClient = () => {
   const credentialsBase64 = process.env.GOOGLE_APPLICATION_CREDENTIALS_BASE64;
@@ -164,7 +167,10 @@ export const extractOCRTextWithOpenAI = async (
   const parsed = DocumentSchema.safeParse(JSON.parse(imageInfo as string));
 
   if (!parsed.success) {
-    console.error('OpenAI returned invalid document data:', parsed.error);
+    logger.error('OpenAI returned invalid document data', {
+      userId: effectiveUserId,
+      parseError: parsed.error
+    });
     return { success: false, message: 'Invalid data returned from AI' };
   }
 
@@ -188,7 +194,10 @@ export const extractOCRTextWithOpenAI = async (
       const mapboxToken = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN;
 
       if (!mapboxToken) {
-        console.error('Mapbox access token not found');
+        logger.error('Mapbox access token not found', {
+          location,
+          userId: effectiveUserId
+        });
         fullAddress = {
           line1: location,
           city: '',
@@ -207,7 +216,13 @@ export const extractOCRTextWithOpenAI = async (
         );
 
         if (!mapboxResponse.ok) {
-          console.error('Mapbox API error:', await mapboxResponse.text());
+          const errorText = await mapboxResponse.text();
+          logger.error('Mapbox API error', {
+            location,
+            userId: effectiveUserId,
+            status: mapboxResponse.status,
+            errorText
+          });
           fullAddress = {
             line1: location,
             city: '',
@@ -260,7 +275,10 @@ export const extractOCRTextWithOpenAI = async (
         }
       }
     } catch (error) {
-      console.error('Error getting address from Mapbox:', error);
+      logger.error('Error getting address from Mapbox', {
+        location,
+        userId: effectiveUserId
+      }, error instanceof Error ? error : new Error(String(error)));
       fullAddress = {
         line1: location,
         city: '',
@@ -407,7 +425,10 @@ export const extractOCRTextWithVision = async (
       return { success: false, message: 'No text detected in image' };
     }
   } catch (error) {
-    console.error('Google Vision OCR failed:', error);
+    logger.error('Google Vision OCR failed', {
+      userId: effectiveUserId,
+      blobStorageUrl
+    }, error instanceof Error ? error : new Error(String(error)));
     return { success: false, message: 'OCR failed with Google Vision API' };
   }
 
@@ -433,7 +454,10 @@ export const extractOCRTextWithVision = async (
   const parsed = DocumentSchema.safeParse(JSON.parse(imageInfo as string));
 
   if (!parsed.success) {
-    console.error('OpenAI returned invalid document data:', parsed.error);
+    logger.error('OpenAI returned invalid document data', {
+      userId: effectiveUserId,
+      parseError: parsed.error
+    });
     return { success: false, message: 'Invalid data returned from AI' };
   }
 
@@ -457,7 +481,10 @@ export const extractOCRTextWithVision = async (
       const mapboxToken = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN;
 
       if (!mapboxToken) {
-        console.error('Mapbox access token not found');
+        logger.error('Mapbox access token not found', {
+          location,
+          userId: effectiveUserId
+        });
         fullAddress = {
           line1: location,
           city: '',
@@ -476,7 +503,13 @@ export const extractOCRTextWithVision = async (
         );
 
         if (!mapboxResponse.ok) {
-          console.error('Mapbox API error:', await mapboxResponse.text());
+          const errorText = await mapboxResponse.text();
+          logger.error('Mapbox API error', {
+            location,
+            userId: effectiveUserId,
+            status: mapboxResponse.status,
+            errorText
+          });
           fullAddress = {
             line1: location,
             city: '',
@@ -529,7 +562,10 @@ export const extractOCRTextWithVision = async (
         }
       }
     } catch (error) {
-      console.error('Error getting address from Mapbox:', error);
+      logger.error('Error getting address from Mapbox', {
+        location,
+        userId: effectiveUserId
+      }, error instanceof Error ? error : new Error(String(error)));
       fullAddress = {
         line1: location,
         city: '',

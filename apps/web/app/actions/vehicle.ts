@@ -9,6 +9,9 @@ import { TRACKING_EVENTS } from '@/constants/events';
 import { getUserId } from '@/utils/user';
 import type { VehicleInfo } from '@/utils/getVehicleInfo';
 import { afterVehicleUpdate } from '@/services/vehicle-service';
+import { createServerLogger } from '@/lib/logger';
+
+const logger = createServerLogger({ action: 'vehicle' });
 
 export const createVehicle = async (
   _prevState: { success: boolean; error?: string; data?: any } | null,
@@ -108,7 +111,12 @@ export const createVehicle = async (
     revalidatePath('/vehicles');
     return { success: true, data: vehicle };
   } catch (error) {
-    console.error('Error creating vehicle:', error);
+    logger.error('Error creating vehicle', {
+      registrationNumber,
+      make,
+      model,
+      userId
+    }, error instanceof Error ? error : new Error(String(error)));
     return { success: false, error: 'Failed to create vehicle' };
   }
 };
@@ -185,7 +193,11 @@ export const updateVehicle = async (
     revalidatePath('/vehicles');
     return { success: true, data: vehicle };
   } catch (error) {
-    console.error('Error updating vehicle:', error);
+    logger.error('Error updating vehicle', {
+      vehicleId: id,
+      registrationNumber,
+      userId
+    }, error instanceof Error ? error : new Error(String(error)));
     return { success: false, error: 'Failed to update vehicle' };
   }
 };
@@ -236,7 +248,10 @@ export const deleteVehicle = async (
     revalidatePath('/vehicles');
     return { success: true, data: vehicle };
   } catch (error) {
-    console.error('Error deleting vehicle:', error);
+    logger.error('Error deleting vehicle', {
+      vehicleId: id,
+      userId
+    }, error instanceof Error ? error : new Error(String(error)));
     return { success: false, error: 'Failed to delete vehicle' };
   }
 };

@@ -58,6 +58,10 @@ export default tseslint.config(
       // Your custom rules
       '@typescript-eslint/no-unused-vars': 'warn',
       '@typescript-eslint/no-explicit-any': 'warn',
+      'no-console': 'warn',
+      'class-methods-use-this': 'off',
+      'import/first': 'warn',
+      'default-case': 'warn',
 
       // Next.js doesn't require React in scope
       'react/react-in-jsx-scope': 'off',

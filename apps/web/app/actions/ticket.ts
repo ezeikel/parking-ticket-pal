@@ -25,11 +25,14 @@ import { STORAGE_PATHS } from '@/constants';
 import { track } from '@/utils/analytics-server';
 import { TRACKING_EVENTS } from '@/constants/events';
 import { getUserId } from '@/utils/user';
+import { createServerLogger } from '@/lib/logger';
 import { refresh } from '@/app/actions';
 import {
   afterTicketCreation,
   afterTicketUpdate,
 } from '@/services/ticket-service';
+
+const logger = createServerLogger({ action: 'ticket' });
 
 export const createTicket = async (
   values: z.infer<typeof ticketFormSchema> & {
@@ -91,7 +94,10 @@ export const createTicket = async (
         // delete temporary file
         await del(values.tempImageUrl!);
       } catch (error) {
-        console.error(`Failed to move image for ticket ${ticket.id}:`, error);
+        logger.error('Failed to move image for ticket', {
+          ticketId: ticket.id,
+          tempImagePath: values.tempImageUrl
+        }, error instanceof Error ? error : new Error(String(error)));
         // TODO: optionally create a cleanup job to handle failed moves
         // or retry the operation
       }
@@ -106,10 +112,9 @@ export const createTicket = async (
           userId,
         });
       } catch (error) {
-        console.error(
-          `Failed to generate reminders for ticket ${ticket.id}:`,
-          error,
-        );
+        logger.error('Error regenerating reminders after ticket update', {
+          ticketId: ticket.id
+        }, error instanceof Error ? error : new Error(String(error)));
       }
     }
   });
@@ -178,7 +183,11 @@ export const createTicket = async (
 
     return ticket;
   } catch (error) {
-    console.error('Stack trace:', (error as Error).stack);
+    logger.error('Error creating ticket', {
+      pcnNumber: values.pcnNumber,
+      vehicleReg: values.vehicleReg,
+      userId
+    }, error instanceof Error ? error : new Error(String(error)));
     return null;
   }
 };
@@ -210,7 +219,10 @@ export const updateTicket = async (
     currentTicket.issuedAt.getTime() !== values.issuedAt.getTime();
 
   // DEBUG:
-  console.log('issuedAtChanged', issuedAtChanged);
+  logger.debug('Checking if issuedAt changed', {
+    issuedAtChanged,
+    ticketId: id
+  });
 
   // schedule reminder regeneration after response if issuedAt changed
   after(async () => {
@@ -228,10 +240,9 @@ export const updateTicket = async (
           userId,
         });
       } catch (error) {
-        console.error(
-          `Failed to regenerate reminders for updated ticket ${id}:`,
-          error,
-        );
+        logger.error('Error regenerating reminders after ticket update', {
+          ticketId: id
+        }, error instanceof Error ? error : new Error(String(error)));
       }
     }
   });
@@ -290,7 +301,11 @@ export const updateTicket = async (
 
     return ticket;
   } catch (error) {
-    console.error('Stack trace:', (error as Error).stack);
+    logger.error('Error creating ticket', {
+      pcnNumber: values.pcnNumber,
+      vehicleReg: values.vehicleReg,
+      userId
+    }, error instanceof Error ? error : new Error(String(error)));
     return null;
   }
 };
@@ -381,7 +396,10 @@ export const deleteTicket = async (
     revalidatePath('/dashboard');
     return { success: true, data: deletedTicket };
   } catch (error) {
-    console.error('Error deleting ticket:', error);
+    logger.error('Error deleting ticket', {
+      ticketId: id,
+      userId
+    }, error instanceof Error ? error : new Error(String(error)));
     return { success: false, error: 'Failed to delete ticket' };
   }
 };
@@ -504,7 +522,9 @@ export const verifyTicket = async (pcnNumber: string) => {
     const result = await verify(pcnNumber);
     return result;
   } catch (error) {
-    console.error('Error checking ticket:', error);
+    logger.error('Error checking ticket', {
+      pcnNumber
+    }, error instanceof Error ? error : new Error(String(error)));
     return false;
   }
 };
@@ -514,9 +534,10 @@ export const challengeTicket = async (
   challengeReason: string,
   additionalDetails?: string,
 ) => {
+  let ticket: any = null;
   try {
     // Get the ticket first
-    const ticket = await db.ticket.findUnique({
+    ticket = await db.ticket.findUnique({
       where: { pcnNumber },
     });
 
@@ -586,7 +607,11 @@ export const challengeTicket = async (
       throw error;
     }
   } catch (error) {
-    console.error('Error challenging ticket:', error);
+    logger.error('Error challenging ticket', {
+      ticketId: ticket?.id,
+      pcnNumber,
+      challengeReason
+    }, error instanceof Error ? error : new Error(String(error)));
     return {
       success: false,
       message:

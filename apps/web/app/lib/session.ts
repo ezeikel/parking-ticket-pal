@@ -1,7 +1,10 @@
 // eslint-disable-next-line import/no-extraneous-dependencies
 import 'server-only';
 import { SignJWT, jwtVerify } from 'jose';
+import { createServerLogger } from '@/lib/logger';
 // import { SessionPayload } from '@/app/lib/definitions';
+
+const logger = createServerLogger({ action: 'session' });
 
 const secretKey = process.env.NEXT_AUTH_SECRET;
 const encodedKey = new TextEncoder().encode(secretKey);
@@ -23,8 +26,7 @@ export async function decrypt(session: string | undefined = '') {
     });
     return payload;
   } catch (error) {
-    // eslint-disable-next-line no-console
-    console.error('Failed to verify session', error);
+    logger.error('Failed to verify session', {}, error instanceof Error ? error : new Error(String(error)));
     return null;
   }
 }

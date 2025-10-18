@@ -7,6 +7,9 @@ import { track } from '@/utils/analytics-server';
 import { db } from '@/lib/prisma';
 import { TRACKING_EVENTS } from '@/constants/events';
 import { getUserId } from '@/utils/user';
+import { createServerLogger } from '@/lib/logger';
+
+const logger = createServerLogger({ action: 'challenge' });
 
 const challengeSchema = z.object({
   ticketId: z.string(),
@@ -61,7 +64,11 @@ export const createChallenge = async (
 
     return { success: true, data: challenge };
   } catch (error) {
-    console.error('Error creating challenge:', error);
+    logger.error('Error creating challenge', {
+      ticketId: data.ticketId,
+      type: data.type,
+      userId
+    }, error instanceof Error ? error : new Error(String(error)));
     return {
       success: false,
       error: error instanceof Error ? error.message : 'Unknown error',
@@ -104,7 +111,11 @@ export const updateChallengeStatus = async (
 
     return { success: true, data: challenge };
   } catch (error) {
-    console.error('Error updating challenge status:', error);
+    logger.error('Error updating challenge status', {
+      challengeId,
+      status,
+      userId
+    }, error instanceof Error ? error : new Error(String(error)));
     return {
       success: false,
       error: error instanceof Error ? error.message : 'Unknown error',
@@ -136,7 +147,10 @@ export const getChallengesForTicket = async (ticketId: string) => {
 
     return { success: true, data: challenges };
   } catch (error) {
-    console.error('Error getting challenges:', error);
+    logger.error('Error getting challenges', {
+      ticketId,
+      userId
+    }, error instanceof Error ? error : new Error(String(error)));
     return {
       success: false,
       error: error instanceof Error ? error.message : 'Unknown error',

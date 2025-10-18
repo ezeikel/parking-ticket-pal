@@ -80,7 +80,7 @@ const EditTicketForm = ({ ticket }: EditTicketFormProps) => {
 
       toast.success('Ticket updated successfully');
       router.push(`/tickets/${ticket.id}`);
-    } catch (error) {
+    } catch {
       toast.error('Failed to update ticket. Please try again.');
     } finally {
       setIsLoading(false);

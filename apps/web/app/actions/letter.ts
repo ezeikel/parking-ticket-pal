@@ -41,6 +41,9 @@ import resend from '@/lib/resend';
 import generatePDF from '@/utils/generatePDF';
 import streamToBuffer from '@/utils/streamToBuffer';
 import generateChallengeContent from '@/utils/ai/generateChallengeContent';
+import { createServerLogger } from '@/lib/logger';
+
+const logger = createServerLogger({ action: 'letter' });
 
 export const createLetter = async (
   values: z.infer<typeof letterFormSchema> & {
@@ -175,11 +178,18 @@ export const createLetter = async (
         // Delete temporary file
         await del(validatedData.tempImageUrl!);
 
-        console.log(
-          `Successfully moved image for letter ${letter.id} from ${validatedData.tempImagePath} to ${permanentPath}`,
-        );
+        logger.info('Successfully moved letter image', {
+          letterId: letter.id,
+          tempImagePath: validatedData.tempImagePath,
+          permanentPath,
+          ticketId: ticket.id
+        });
       } catch (error) {
-        console.error(`Failed to move image for letter ${letter.id}:`, error);
+        logger.error('Failed to move letter image', {
+          letterId: letter.id,
+          tempImagePath: validatedData.tempImagePath,
+          ticketId: ticket.id
+        }, error instanceof Error ? error : new Error(String(error)));
         // Optionally, you could create a cleanup job to handle failed moves
         // or retry the operation
       }
@@ -200,7 +210,11 @@ export const createLetter = async (
 
     return letter;
   } catch (error) {
-    console.error('Stack trace:', (error as Error).stack);
+    logger.error('Error creating letter', {
+      pcnNumber: validatedData.pcnNumber,
+      vehicleReg: validatedData.vehicleReg,
+      userId
+    }, error instanceof Error ? error : new Error(String(error)));
     return null;
   }
 };
@@ -225,7 +239,9 @@ export const getLetter = async (letterId: string) => {
 
     return { success: true, data: letter };
   } catch (error) {
-    console.error('Error getting letter:', error);
+    logger.error('Error getting letter', {
+      letterId
+    }, error instanceof Error ? error : new Error(String(error)));
     return {
       success: false,
       error: error instanceof Error ? error.message : 'Unknown error',
@@ -258,7 +274,9 @@ export const getLettersByPcnNumber = async (pcnNumber: string) => {
 
     return { success: true, data: letters };
   } catch (error) {
-    console.error('Error getting letters:', error);
+    logger.error('Error getting letters by PCN', {
+      pcnNumber
+    }, error instanceof Error ? error : new Error(String(error)));
     return {
       success: false,
       error: error instanceof Error ? error.message : 'Unknown error',
@@ -312,7 +330,10 @@ export const updateLetter = async (
 
     return { success: true, data: letter };
   } catch (error) {
-    console.error('Error updating letter:', error);
+    logger.error('Error updating letter', {
+      letterId,
+      pcnNumber: data.pcnNumber
+    }, error instanceof Error ? error : new Error(String(error)));
     return {
       success: false,
       error: error instanceof Error ? error.message : 'Unknown error',
@@ -345,7 +366,9 @@ export const deleteLetter = async (letterId: string) => {
 
     return { success: true };
   } catch (error) {
-    console.error('Error deleting letter:', error);
+    logger.error('Error deleting letter', {
+      letterId
+    }, error instanceof Error ? error : new Error(String(error)));
     return {
       success: false,
       error: error instanceof Error ? error.message : 'Unknown error',
@@ -415,7 +438,10 @@ export const generateChallengeLetter = async (
   });
 
   if (!ticket) {
-    console.error('Ticket not found.');
+    logger.error('Ticket not found for challenge letter generation', {
+      ticketId,
+      userId
+    });
     return null;
   }
 
@@ -501,7 +527,11 @@ export const generateChallengeLetter = async (
           signatureViewBox = extracted.viewBox;
         }
       } catch (error) {
-        console.error('Error processing signature:', error);
+        logger.error('Error processing signature for challenge letter', {
+          ticketId,
+          userId,
+          signatureUrl: user.signatureUrl
+        }, error instanceof Error ? error : new Error(String(error)));
       }
     }
 
@@ -574,7 +604,12 @@ export const generateChallengeLetter = async (
       },
     });
 
-    console.error('Error generating challenge letter:', error);
+    logger.error('Error generating challenge letter', {
+      ticketId,
+      challengeId: challenge.id,
+      userId,
+      challengeReason
+    }, error instanceof Error ? error : new Error(String(error)));
     return {
       success: false,
       message: 'Failed to generate challenge letter.',

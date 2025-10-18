@@ -82,10 +82,8 @@ const UserAccountForm = ({ user }: UserAccountFormProps) => {
   });
 
   // Use `useFormState` to bind the form to the server action
-  // eslint-disable-next-line @typescript-eslint/naming-convention
-  const [_, formAction] = useFormState(
-    // eslint-disable-next-line @typescript-eslint/no-shadow
-    async (_: any, formData: FormData) => updateUserProfile(user.id!, formData),
+  const [, formAction] = useFormState(
+    async (_: unknown, formData: FormData) => updateUserProfile(user.id!, formData),
     null,
   );
 

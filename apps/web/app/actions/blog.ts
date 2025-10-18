@@ -24,6 +24,9 @@ import {
   type PostMeta,
 } from '@/types';
 import { notFound } from 'next/navigation';
+import { createServerLogger } from '@/lib/logger';
+
+const logger = createServerLogger({ action: 'blog' });
 
 const postsDirectory = path.join(process.cwd(), 'content/blog');
 
@@ -38,8 +41,8 @@ export const getPostBySlug = async (slug: string): Promise<Post> => {
     fileContents = fs.readFileSync(localPath, 'utf8');
   } else {
     // if not found locally, try blob storage
+    const blobPath = STORAGE_PATHS.BLOG_POST.replace('%s', realSlug);
     try {
-      const blobPath = STORAGE_PATHS.BLOG_POST.replace('%s', realSlug);
       const { blobs } = await list({ prefix: blobPath });
 
       if (blobs.length === 0) {
@@ -49,7 +52,10 @@ export const getPostBySlug = async (slug: string): Promise<Post> => {
       const response = await fetch(blobs[0].url);
       fileContents = await response.text();
     } catch (error) {
-      console.error('Error fetching blog post from blob storage:', error);
+      logger.error('Error fetching blog post from blob storage', {
+        slug: realSlug,
+        blobPath
+      }, error instanceof Error ? error : new Error(String(error)));
       notFound();
     }
   }
@@ -100,7 +106,7 @@ export const getAllPosts = async (): Promise<Post[]> => {
     );
     allSlugs.push(...blobPosts);
   } catch (error) {
-    console.error('Error fetching blog posts from blob storage:', error);
+    logger.error('Error fetching blog posts from blob storage', {}, error instanceof Error ? error : new Error(String(error)));
   }
 
   // remove duplicates (prefer local files over blob storage)
@@ -131,7 +137,7 @@ export const getCoveredTopics = async (): Promise<string[]> => {
     const posts = await getAllPosts();
     return posts.map((post) => post.meta.slug);
   } catch (error) {
-    console.error('Error getting covered topics:', error);
+    logger.error('Error getting covered topics', {}, error instanceof Error ? error : new Error(String(error)));
     return [];
   }
 };
@@ -223,7 +229,10 @@ const generateBlogImage = async (
 
     return blob.url;
   } catch (error) {
-    console.error('Error generating blog image:', error);
+    logger.error('Error generating blog image', {
+      title,
+      slug
+    }, error instanceof Error ? error : new Error(String(error)));
     // fallback to a default image if generation fails
     return PLACEHOLDER_BLOG_IMAGE;
   }
@@ -327,7 +336,7 @@ export const generateBlogPostForTopic = async (
   error?: string;
 }> => {
   try {
-    console.log(`Generating blog post for topic: ${topic}`);
+    logger.info('Generating blog post for topic', { topic });
 
     // generate metadata using OpenAI structured outputs
     const meta = await generateBlogMeta(topic);
@@ -348,7 +357,7 @@ export const generateBlogPostForTopic = async (
     const coveredTopics = await getCoveredTopics();
 
     // generate content
-    console.log(`Generating content for: ${meta.title}`);
+    logger.info('Generating content for blog post', { title: meta.title, slug });
     const content = await generateBlogContent(meta, coveredTopics);
 
     if (!content) {
@@ -356,7 +365,7 @@ export const generateBlogPostForTopic = async (
     }
 
     // generate custom image for the blog post
-    console.log(`Generating image for: ${meta.title}`);
+    logger.info('Generating image for blog post', { title: meta.title, slug });
     const imageUrl = await generateBlogImage(meta.title, meta.summary, slug);
 
     // create frontmatter with calculated reading time and generated image
@@ -365,7 +374,7 @@ export const generateBlogPostForTopic = async (
     // save the post
     await saveBlogPost(slug, frontmatter, content);
 
-    console.log(`Successfully generated blog post: ${slug}`);
+    logger.info('Successfully generated blog post', { slug, title: meta.title });
 
     return {
       slug,
@@ -373,7 +382,9 @@ export const generateBlogPostForTopic = async (
       success: true,
     };
   } catch (error) {
-    console.error('Error generating blog post:', error);
+    logger.error('Error generating blog post', {
+      topic
+    }, error instanceof Error ? error : new Error(String(error)));
     return {
       slug: '',
       title: '',

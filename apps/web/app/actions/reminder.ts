@@ -7,6 +7,7 @@ import { db } from '@/lib/prisma';
 import twilio from 'twilio';
 import { ReminderType, NotificationType, Prisma } from '@prisma/client';
 import { addDays, isAfter, isSameDay } from 'date-fns';
+import { createServerLogger } from '@/lib/logger';
 
 const resend = new Resend(process.env.RESEND_API_KEY!);
 const twilioClient = twilio(
@@ -19,12 +20,10 @@ export const generateReminders = async (ticket: {
   issuedAt: Date;
   userId?: string; // for checking user preferences/subscription
 }) => {
+  const logger = createServerLogger({ action: 'generateReminders', ticketId: ticket.id });
   const baseDate = new Date(ticket.issuedAt);
   const now = new Date();
 
-  // DEBUG:
-  console.log('baseDate', baseDate.toISOString());
-  console.log('now', now.toISOString());
 
   // check if reminder dates are in the future or today
   const is14DaysInFuture =
@@ -34,9 +33,6 @@ export const generateReminders = async (ticket: {
     isAfter(addDays(baseDate, 28), now) ||
     isSameDay(addDays(baseDate, 28), now);
 
-  // DEBUG:
-  console.log('is14DaysInFuture', is14DaysInFuture);
-  console.log('is28DaysInFuture', is28DaysInFuture);
 
   const reminders: Prisma.ReminderCreateManyInput[] = [];
   const notificationTypes = Object.values(NotificationType);
@@ -69,21 +65,20 @@ export const generateReminders = async (ticket: {
       await db.reminder.createMany({
         data: reminders,
       });
-      console.log(
-        `Created ${reminders.length} reminders for ticket ${ticket.id}`,
-      );
+      logger.info('Reminders created successfully', {
+        reminderCount: reminders.length,
+        ticketId: ticket.id
+      });
     } catch (error) {
-      console.error(
-        `Failed to create reminders for ticket ${ticket.id}:`,
-        error,
-      );
+      logger.error('Failed to create reminders', {
+        ticketId: ticket.id
+      }, error as Error);
     }
   }
 };
 
 export const sendReminder = async (reminderId: string) => {
-  // DEBUG:
-  console.log('sendReminder', reminderId);
+  const logger = createServerLogger({ action: 'sendReminder', reminderId });
 
   const reminder = await db.reminder.findUnique({
     where: { id: reminderId },
@@ -100,8 +95,10 @@ export const sendReminder = async (reminderId: string) => {
     },
   });
 
-  // DEBUG:
-  console.log('reminder', reminder);
+  logger.debug('Retrieved reminder', {
+    reminderId: reminder?.id,
+    ticketId: reminder?.ticketId
+  });
 
   if (!reminder) {
     return { error: 'Reminder not found' };
@@ -148,9 +145,10 @@ export const sendReminder = async (reminderId: string) => {
       });
     } else {
       // TODO: skip SMS reminders if user has no phone number (don't treat as error)
-      console.log(
-        `Skipping SMS reminder ${reminderId} - user has no phone number`,
-      );
+      logger.warn('Skipping SMS reminder - user has no phone number', {
+        reminderId,
+        userId: reminder.ticket.vehicle?.user.id
+      });
     }
 
     // mark as sent
@@ -161,8 +159,7 @@ export const sendReminder = async (reminderId: string) => {
 
     return { success: true };
   } catch (err: unknown) {
-    // eslint-disable-next-line no-console
-    console.error(err);
+    logger.error('Failed to send reminder', { reminderId }, err as Error);
 
     return {
       error: err instanceof Error ? err.message : 'An unknown error occurred',

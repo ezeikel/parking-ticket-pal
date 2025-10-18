@@ -7,6 +7,9 @@ import { track } from '@/utils/analytics-server';
 import { STORAGE_PATHS } from '@/constants';
 import { TRACKING_EVENTS } from '@/constants/events';
 import { convertSignaturePointsToSvg } from '@/utils/signature';
+import { createServerLogger } from '@/lib/logger';
+
+const logger = createServerLogger({ action: 'user' });
 
 const deleteExistingSignature = async (userId: string): Promise<void> => {
   try {
@@ -20,7 +23,9 @@ const deleteExistingSignature = async (userId: string): Promise<void> => {
 
     await Promise.all(signatureFiles.map((file) => del(file.url)));
   } catch (error) {
-    console.error('Error deleting existing signature files:', error);
+    logger.error('Error deleting existing signature files', {
+      userId
+    }, error instanceof Error ? error : new Error(String(error)));
   }
 };
 
@@ -62,7 +67,9 @@ export const updateUserProfile = async (userId: string, formData: FormData) => {
         // Get the URL from the newly created blob
         signatureUrl = signatureBlob.url;
       } catch (error) {
-        console.error('Error processing signature:', error);
+        logger.error('Error processing signature', {
+          userId
+        }, error instanceof Error ? error : new Error(String(error)));
       }
     }
 
@@ -91,7 +98,9 @@ export const updateUserProfile = async (userId: string, formData: FormData) => {
 
     return { success: true, user: updatedUser };
   } catch (error) {
-    console.error('Error updating profile:', error);
+    logger.error('Error updating profile', {
+      userId
+    }, error instanceof Error ? error : new Error(String(error)));
     return { success: false, error: 'Failed to update profile' };
   }
 };

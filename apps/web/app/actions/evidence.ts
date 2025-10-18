@@ -6,6 +6,9 @@ import { EvidenceType, MediaSource, MediaType } from '@prisma/client';
 import { db } from '@/lib/prisma';
 import { getUserId } from '@/utils/user';
 import { STORAGE_PATHS } from '@/constants';
+import { createServerLogger } from '@/lib/logger';
+
+const logger = createServerLogger({ action: 'evidence' });
 
 export const uploadEvidence = async (ticketId: string, formData: FormData) => {
   const userId = await getUserId('upload evidence');
@@ -65,7 +68,13 @@ export const uploadEvidence = async (ticketId: string, formData: FormData) => {
     revalidatePath(`/tickets/${ticketId}`);
     return { success: true, blob };
   } catch (error) {
-    console.error('Upload error:', error);
+    logger.error('Error uploading evidence', {
+      ticketId,
+      evidenceType,
+      fileName: file.name,
+      fileSize: file.size,
+      userId
+    }, error instanceof Error ? error : new Error(String(error)));
     const message =
       error instanceof Error ? error.message : 'Unknown error occurred.';
     return { success: false, error: message };
@@ -96,7 +105,12 @@ export const deleteEvidence = async (
     revalidatePath(`/tickets/${ticketId}`);
     return { success: true };
   } catch (error) {
-    console.error('Delete error:', error);
+    logger.error('Error deleting evidence', {
+      ticketId,
+      mediaId,
+      blobUrl,
+      userId
+    }, error instanceof Error ? error : new Error(String(error)));
     const message =
       error instanceof Error ? error.message : 'Unknown error occurred.';
     return { success: false, error: message };

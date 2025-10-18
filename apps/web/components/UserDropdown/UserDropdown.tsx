@@ -23,7 +23,7 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import FeedbackDialog from '@/components/FeedbackDialog/FeedbackDialog';
 
 type DropdownItem = {
-  icon?: any;
+  icon?: React.ComponentType<{ className?: string }> | any;
   label?: string;
   href?: string;
   action?: () => Promise<void>;

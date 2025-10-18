@@ -8,6 +8,9 @@ import sharp from 'sharp';
 import { PostPlatform, type Post } from '@/types';
 import openai from '@/lib/openai';
 import { OPENAI_MODEL_GPT_4O } from '@/constants';
+import { createServerLogger } from '@/lib/logger';
+
+const logger = createServerLogger({ action: 'social' });
 
 /**
  * Generate Instagram image by calling the OG image endpoint
@@ -44,7 +47,10 @@ const generateInstagramImage = async (post: Post): Promise<Buffer> => {
 
     return instagramBuffer;
   } catch (error) {
-    console.error('Error generating Instagram image:', error);
+    logger.error('Error generating Instagram image', {
+      slug: post.meta.slug,
+      title: post.meta.title
+    }, error instanceof Error ? error : new Error(String(error)));
     throw error;
   }
 };
@@ -84,7 +90,10 @@ const generateLinkedInImage = async (post: Post): Promise<Buffer> => {
 
     return linkedinBuffer;
   } catch (error) {
-    console.error('Error generating LinkedIn image:', error);
+    logger.error('Error generating LinkedIn image', {
+      slug: post.meta.slug,
+      title: post.meta.title
+    }, error instanceof Error ? error : new Error(String(error)));
     throw error;
   }
 };
@@ -120,7 +129,10 @@ const generateFacebookImage = async (post: Post): Promise<Buffer> => {
 
     return facebookBuffer;
   } catch (error) {
-    console.error('Error generating Facebook image:', error);
+    logger.error('Error generating Facebook image', {
+      slug: post.meta.slug,
+      title: post.meta.title
+    }, error instanceof Error ? error : new Error(String(error)));
     throw error;
   }
 };
@@ -142,7 +154,10 @@ const uploadToTempStorage = async (
 
     return url;
   } catch (error) {
-    console.error('Error saving temporary image:', error);
+    logger.error('Error saving temporary image', {
+      platform,
+      tempFileName
+    }, error instanceof Error ? error : new Error(String(error)));
     throw error;
   }
 };
@@ -155,7 +170,9 @@ const cleanupTempImage = async (imageUrl: string): Promise<void> => {
     const { pathname } = new URL(imageUrl);
     await del(pathname);
   } catch (error) {
-    console.error('Error cleaning up temporary image:', error);
+    logger.error('Error cleaning up temporary image', {
+      imageUrl
+    }, error instanceof Error ? error : new Error(String(error)));
   }
 };
 
@@ -198,7 +215,10 @@ Tags: ${post.meta.tags.join(', ')}`,
 
     return response.choices[0].message.content || '';
   } catch (error) {
-    console.error('Error generating Instagram caption:', error);
+    logger.error('Error generating Instagram caption', {
+      slug: post.meta.slug,
+      title: post.meta.title
+    }, error instanceof Error ? error : new Error(String(error)));
     throw error;
   }
 };
@@ -250,7 +270,11 @@ Include the blog URL at the end of the post.`,
 
     return response.choices[0].message.content || '';
   } catch (error) {
-    console.error('Error generating LinkedIn caption:', error);
+    logger.error('Error generating LinkedIn caption', {
+      slug: post.meta.slug,
+      title: post.meta.title,
+      blogUrl
+    }, error instanceof Error ? error : new Error(String(error)));
     throw error;
   }
 };
@@ -303,7 +327,11 @@ Include the blog URL at the end of the post.`,
 
     return response.choices[0].message.content || '';
   } catch (error) {
-    console.error('Error generating Facebook caption:', error);
+    logger.error('Error generating Facebook caption', {
+      slug: post.meta.slug,
+      title: post.meta.title,
+      blogUrl
+    }, error instanceof Error ? error : new Error(String(error)));
     throw error;
   }
 };
@@ -563,7 +591,10 @@ export const postToSocialMedia = async (params: {
           `postToSocialMedia: Successfully posted to Instagram: ${mediaId}`,
         );
       } catch (error) {
-        console.error('Instagram posting failed:', error);
+        logger.error('Instagram posting failed', {
+          slug: post.meta.slug,
+          title: post.meta.title
+        }, error instanceof Error ? error : new Error(String(error)));
         Sentry.captureMessage(
           `postToSocialMedia: Instagram posting failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
         );
@@ -609,7 +640,10 @@ export const postToSocialMedia = async (params: {
           `postToSocialMedia: Successfully posted to Facebook: ${postId}`,
         );
       } catch (error) {
-        console.error('Facebook posting failed:', error);
+        logger.error('Facebook posting failed', {
+          slug: post.meta.slug,
+          title: post.meta.title
+        }, error instanceof Error ? error : new Error(String(error)));
         Sentry.captureMessage(
           `postToSocialMedia: Facebook posting failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
         );
@@ -656,7 +690,10 @@ export const postToSocialMedia = async (params: {
           `postToSocialMedia: Successfully posted to LinkedIn: ${postId}`,
         );
       } catch (error) {
-        console.error('LinkedIn posting failed:', error);
+        logger.error('LinkedIn posting failed', {
+          slug: post.meta.slug,
+          title: post.meta.title
+        }, error instanceof Error ? error : new Error(String(error)));
         Sentry.captureMessage(
           `postToSocialMedia: LinkedIn posting failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
         );
@@ -678,7 +715,10 @@ export const postToSocialMedia = async (params: {
       },
     };
   } catch (error) {
-    console.error('Error in social media posting:', error);
+    logger.error('Error in social media posting', {
+      slug: params.post?.meta?.slug || 'unknown',
+      platforms: params.platforms
+    }, error instanceof Error ? error : new Error(String(error)));
     Sentry.captureMessage(
       `postToSocialMedia: Error in social media posting: ${error instanceof Error ? error.message : 'Unknown error'}`,
     );
@@ -698,21 +738,27 @@ export const postToSocialMedia = async (params: {
       try {
         await cleanupTempImage(instagramImageUrl);
       } catch (error) {
-        console.error('Error cleaning up Instagram image:', error);
+        logger.error('Error cleaning up Instagram image', {
+          instagramImageUrl
+        }, error instanceof Error ? error : new Error(String(error)));
       }
     }
     if (facebookImageUrl) {
       try {
         await cleanupTempImage(facebookImageUrl);
       } catch (error) {
-        console.error('Error cleaning up Facebook image:', error);
+        logger.error('Error cleaning up Facebook image', {
+          facebookImageUrl
+        }, error instanceof Error ? error : new Error(String(error)));
       }
     }
     if (linkedinImageUrl) {
       try {
         await cleanupTempImage(linkedinImageUrl);
       } catch (error) {
-        console.error('Error cleaning up LinkedIn image:', error);
+        logger.error('Error cleaning up LinkedIn image', {
+          linkedinImageUrl
+        }, error instanceof Error ? error : new Error(String(error)));
       }
     }
   }

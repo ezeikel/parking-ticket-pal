@@ -12,6 +12,9 @@ import { put } from '@vercel/blob';
 import { STORAGE_PATHS } from '@/constants';
 import resend from '@/lib/resend';
 import { db } from '@/lib/prisma';
+import { createServerLogger } from '@/lib/logger';
+
+const logger = createServerLogger({ action: 'form' });
 
 // generic function to fill a form and follow subsequent steps e.g. upload to blob, save to db, send email
 const handleFormGeneration = async (
@@ -53,7 +56,11 @@ const handleFormGeneration = async (
         contentType: 'application/pdf',
       });
     } catch (error) {
-      console.error('Error uploading form to blob:', error);
+      logger.error('Error uploading form to blob', {
+        formType,
+        ticketId: formFields.ticketId,
+        userId: formFields.userId
+      }, error instanceof Error ? error : new Error(String(error)));
       return {
         success: false,
         error: `Error uploading ${formType} form pdf to blob storage`,
@@ -97,7 +104,11 @@ const handleFormGeneration = async (
       formId: form.id,
     };
   } catch (error) {
-    console.error(`Error generating ${formType} form:`, error);
+    logger.error('Error generating form', {
+      formType,
+      ticketId: formFields.ticketId,
+      userId: formFields.userId
+    }, error instanceof Error ? error : new Error(String(error)));
     return { success: false, error: `Error generating ${formType} form` };
   }
 };
@@ -130,7 +141,9 @@ export const getFormFillDataFromTicket = async (
     });
 
     if (!ticket) {
-      console.error('Ticket not found');
+      logger.error('Ticket not found for form generation', {
+        pcnNumber
+      });
       return null;
     }
 
@@ -191,7 +204,9 @@ export const getFormFillDataFromTicket = async (
       signatureUrl: user.signatureUrl || null,
     };
   } catch (error) {
-    console.error('Error getting form data from ticket:', error);
+    logger.error('Error getting form data from ticket', {
+      pcnNumber
+    }, error instanceof Error ? error : new Error(String(error)));
     return null;
   }
 };

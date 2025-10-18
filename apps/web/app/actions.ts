@@ -7,6 +7,9 @@ import stealth from 'puppeteer-extra-plugin-stealth';
 import RecaptchaPlugin from 'puppeteer-extra-plugin-recaptcha';
 import { db } from '@/lib/prisma';
 import { getUserId } from '@/utils/user';
+import { createServerLogger } from '@/lib/logger';
+
+const logger = createServerLogger({ action: 'actions' });
 
 chromium.use(
   RecaptchaPlugin({
@@ -25,8 +28,7 @@ export const getSubscription = async () => {
   const userId = await getUserId('get the subscription');
 
   if (!userId) {
-    console.error('You need to be logged in to get the subscription.');
-
+    logger.error('User needs to be logged in to get subscription');
     return null;
   }
 
@@ -61,7 +63,9 @@ export const getEvidenceImages = async ({
   });
 
   if (!ticketWithMedia) {
-    console.error('Ticket not found.');
+    logger.error('Ticket not found for evidence images', {
+      pcnNumber
+    });
     return null;
   }
 

@@ -1,6 +1,9 @@
 'use server';
 
 import { z } from 'zod';
+import { createServerLogger } from '@/lib/logger';
+
+const logger = createServerLogger({ action: 'feedback' });
 
 const feedbackSchema = z.object({
   category: z.enum(['issue', 'idea', 'other']),
@@ -27,7 +30,10 @@ export const sendFeedback = async (_prevState: any, formData: FormData) => {
   const projectId = process.env.NEXT_PUBLIC_FEEDBACK_FISH_PROJECT_ID;
 
   if (!projectId) {
-    console.error('Feedback Fish project ID is not set.');
+    logger.error('Feedback Fish project ID is not set', {
+      category,
+      hasUserEmail: !!userEmail
+    });
     return { message: 'Server configuration error.' };
   }
 
@@ -48,14 +54,21 @@ export const sendFeedback = async (_prevState: any, formData: FormData) => {
 
     if (!response.ok) {
       const errorData = await response.json();
-      console.error('Failed to send feedback:', errorData);
+      logger.error('Failed to send feedback to Feedback Fish', {
+        category,
+        hasUserEmail: !!userEmail,
+        responseStatus: response.status,
+        errorData
+      });
       return { message: 'Failed to send feedback. Please try again.' };
     }
 
     return { success: true, message: 'Feedback sent successfully!' };
   } catch (error) {
-    // eslint-disable-next-line no-console
-    console.error('Error sending feedback:', error);
+    logger.error('Error sending feedback', {
+      category,
+      hasUserEmail: !!userEmail
+    }, error instanceof Error ? error : new Error(String(error)));
     return { message: 'An unexpected error occurred.' };
   }
 };
