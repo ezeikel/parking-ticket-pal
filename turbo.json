@@ -6,7 +6,7 @@
       "dependsOn": ["^build", "^db:generate"],
       "inputs": ["$TURBO_DEFAULT$", ".env*"],
       "outputs": [".next/**", "!.next/cache/**", "dist/**", "android/app/build/**", "ios/build/**"],
-      "env": ["DATABASE_URL", "DATABASE_URL_UNPOOLED", "FONTAWESOME_NPM_AUTH_TOKEN", "OPENAI_API_KEY", "SENTRY_AUTH_TOKEN", "RESEND_API_KEY", "GOOGLE_CLIENT_ID", "GOOGLE_CLIENT_SECRET", "STRIPE_SECRET", "DVLA_VEHICLE_ENQUIRY_API_URL", "MWAY_VRM_CHECK_API_URL", "DVLA_API_KEY", "TWO_CAPTCHA_API_KEY", "TWILIO_PHONE_NUMBER", "TWILIO_ACCOUNT_SID", "APPLE_CLIENT_ID", "APPLE_KEY_ID", "APPLE_PRIVATE_KEY", "APPLE_TEAM_ID"]
+      "env": ["**"]
     },
     "lint": {
       "dependsOn": ["^lint"]
