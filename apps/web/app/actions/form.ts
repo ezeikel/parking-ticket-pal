@@ -180,7 +180,7 @@ export const getFormFillDataFromTicket = async (
     return {
       userId: user.id,
       ticketId: ticket.id,
-      userName: user.name,
+      userName: user.name ?? '', // we might not have a name if the user is signed in with Facebook/Apple/Resend
       userEmail: user.email,
       userAddress: formattedAddress,
       userPostcode: (user.address as Address)?.postcode,

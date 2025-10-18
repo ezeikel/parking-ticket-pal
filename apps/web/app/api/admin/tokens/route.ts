@@ -62,9 +62,9 @@ export const GET = async (request: NextRequest) => {
       warnings,
       environment: {
         facebookPageId: !!process.env.FACEBOOK_PAGE_ID,
-        facebookAccessToken: !!process.env.FACEBOOK_ACCESS_TOKEN,
+        facebookPageAccessToken: !!process.env.FACEBOOK_PAGE_ACCESS_TOKEN,
         instagramAccountId: !!process.env.INSTAGRAM_ACCOUNT_ID,
-        note: 'Instagram uses the same FACEBOOK_ACCESS_TOKEN',
+        note: 'Instagram uses the same FACEBOOK_PAGE_ACCESS_TOKEN',
       },
       timestamp: new Date().toISOString(),
     });

@@ -342,7 +342,7 @@ const createInstagramMediaContainer = async (
   caption: string,
 ) => {
   const response = await fetch(
-    `https://graph.facebook.com/v22.0/${process.env.INSTAGRAM_ACCOUNT_ID}/media`,
+    `https://graph.facebook.com/v24.0/${process.env.INSTAGRAM_ACCOUNT_ID}/media`,
     {
       method: 'POST',
       headers: {
@@ -351,7 +351,7 @@ const createInstagramMediaContainer = async (
       body: JSON.stringify({
         image_url: imageUrl,
         caption,
-        access_token: process.env.FACEBOOK_ACCESS_TOKEN,
+        access_token: process.env.FACEBOOK_PAGE_ACCESS_TOKEN,
       }),
     },
   );
@@ -367,7 +367,7 @@ const createInstagramMediaContainer = async (
 
 const publishInstagramMedia = async (creationId: string) => {
   const response = await fetch(
-    `https://graph.facebook.com/v22.0/${process.env.INSTAGRAM_ACCOUNT_ID}/media_publish`,
+    `https://graph.facebook.com/v24.0/${process.env.INSTAGRAM_ACCOUNT_ID}/media_publish`,
     {
       method: 'POST',
       headers: {
@@ -375,7 +375,7 @@ const publishInstagramMedia = async (creationId: string) => {
       },
       body: JSON.stringify({
         creation_id: creationId,
-        access_token: process.env.FACEBOOK_ACCESS_TOKEN,
+        access_token: process.env.FACEBOOK_PAGE_ACCESS_TOKEN,
       }),
     },
   );
@@ -478,7 +478,7 @@ const postToLinkedInPage = async (message: string, imageUrl: string) => {
 // Facebook API functions
 const postToFacebookPage = async (message: string, imageUrl: string) => {
   const response = await fetch(
-    `https://graph.facebook.com/v22.0/${process.env.FACEBOOK_PAGE_ID}/photos`,
+    `https://graph.facebook.com/v24.0/${process.env.FACEBOOK_PAGE_ID}/photos`,
     {
       method: 'POST',
       headers: {
@@ -487,7 +487,7 @@ const postToFacebookPage = async (message: string, imageUrl: string) => {
       body: JSON.stringify({
         url: imageUrl,
         message,
-        access_token: process.env.FACEBOOK_ACCESS_TOKEN,
+        access_token: process.env.FACEBOOK_PAGE_ACCESS_TOKEN,
       }),
     },
   );
@@ -551,7 +551,7 @@ export const postToSocialMedia = async (params: {
       try {
         if (
           !process.env.INSTAGRAM_ACCOUNT_ID ||
-          !process.env.FACEBOOK_ACCESS_TOKEN
+          !process.env.FACEBOOK_PAGE_ACCESS_TOKEN
         ) {
           throw new Error('Instagram credentials not configured');
         }
@@ -610,7 +610,7 @@ export const postToSocialMedia = async (params: {
       try {
         if (
           !process.env.FACEBOOK_PAGE_ID ||
-          !process.env.FACEBOOK_ACCESS_TOKEN
+          !process.env.FACEBOOK_PAGE_ACCESS_TOKEN
         ) {
           throw new Error('Facebook credentials not configured');
         }

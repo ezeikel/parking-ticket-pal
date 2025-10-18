@@ -7,7 +7,11 @@ export const getUserId = async (action?: string) => {
   const session = await auth();
   const headersList = await headers();
 
-  const userId = session?.user.dbId || headersList.get('x-user-id');
+  console.log('session', session);
+
+  const userId = session?.user.id || headersList.get('x-user-id');
+
+  console.log('userId', userId);
 
   // TODO: create action constants
   if (action === 'get the current user') {

@@ -1,15 +1,16 @@
 'use client';
 
-// import { useState } from 'react';
+import { useState } from 'react';
 import { signIn } from 'next-auth/react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-// import { faEnvelope, faSpinnerThird } from '@fortawesome/pro-regular-svg-icons';
+import { faEnvelope, faSpinnerThird } from '@fortawesome/pro-regular-svg-icons';
 import {
   faGoogle,
-  // faApple
+  faApple,
+  faFacebook,
 } from '@fortawesome/free-brands-svg-icons';
 import { Button } from '@/components/ui/button';
-// import { Input } from '@/components/ui/input';
+import { Input } from '@/components/ui/input';
 import {
   Card,
   CardContent,
@@ -21,20 +22,20 @@ import {
 
 // eslint-disable-next-line arrow-body-style
 const SignInOptions = () => {
-  // const [email, setEmail] = useState('');
-  // const [isLoading, setIsLoading] = useState(false);
+  const [email, setEmail] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
 
-  // const handleMagicLinkSignIn = async (e: React.FormEvent) => {
-  //   e.preventDefault();
-  //   setIsLoading(true);
-  //   try {
-  //     await signIn('resend', { email, callbackUrl: '/' });
-  //   } catch (error) {
-  //     console.error('Error signing in with magic link:', error);
-  //   } finally {
-  //     setIsLoading(false);
-  //   }
-  // };
+  const handleMagicLinkSignIn = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+    try {
+      await signIn('resend', { email, callbackUrl: '/' });
+    } catch (error) {
+      console.error('Error signing in with magic link:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   return (
     <Card className="w-[350px]">
@@ -46,18 +47,26 @@ const SignInOptions = () => {
         <Button
           variant="outline"
           onClick={() => signIn('google', { callbackUrl: '/' })}
-          className="w-full"
+          className="w-full hover:bg-gray-50 border-gray-300"
         >
           <FontAwesomeIcon icon={faGoogle} size="lg" className="mr-2" />
           Continue with Google
         </Button>
-        {/* <Button
+        <Button
           variant="outline"
           onClick={() => signIn('apple', { callbackUrl: '/' })}
-          className="w-full"
+          className="w-full bg-black text-white hover:bg-gray-800 hover:text-white border-black"
         >
           <FontAwesomeIcon icon={faApple} size="lg" className="mr-2" />
           Continue with Apple
+        </Button>
+        <Button
+          variant="outline"
+          onClick={() => signIn('facebook', { callbackUrl: '/' })}
+          className="w-full bg-blue-600 text-white hover:bg-blue-700 hover:text-white border-blue-600"
+        >
+          <FontAwesomeIcon icon={faFacebook} size="lg" className="mr-2" />
+          Continue with Facebook
         </Button>
         <div className="relative">
           <div className="absolute inset-0 flex items-center">
@@ -93,7 +102,7 @@ const SignInOptions = () => {
               </>
             )}
           </Button>
-        </form> */}
+        </form>
       </CardContent>
       <CardFooter className="flex flex-col items-center text-sm text-muted-foreground">
         <p>

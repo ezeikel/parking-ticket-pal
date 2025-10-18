@@ -18,6 +18,14 @@ export async function encrypt(payload: { id: string; email: string }) {
     .sign(encodedKey);
 }
 
+export async function encryptMagicLink(payload: { email: string; expires?: number }) {
+  return new SignJWT(payload)
+    .setProtectedHeader({ alg: 'HS256' })
+    .setIssuedAt()
+    .setExpirationTime('15m')
+    .sign(encodedKey);
+}
+
 // eslint-disable-next-line consistent-return
 export async function decrypt(session: string | undefined = '') {
   try {

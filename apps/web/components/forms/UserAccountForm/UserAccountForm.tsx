@@ -64,7 +64,7 @@ const UserAccountForm = ({ user }: UserAccountFormProps) => {
   const form = useForm<z.infer<typeof profileFormSchema>>({
     resolver: zodResolver(profileFormSchema),
     defaultValues: {
-      name: user?.name,
+      name: user?.name || '',
       phoneNumber: user?.phoneNumber || '',
       addressLine1: user?.address
         ? (user.address as UserAddress).line1
