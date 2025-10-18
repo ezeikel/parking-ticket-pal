@@ -4,7 +4,7 @@ import { createCustomerPortalSession } from '@/app/actions/stripe';
 import { Button, buttonVariants } from '@/components/ui/button';
 import { type ButtonHTMLAttributes } from 'react';
 import { type VariantProps } from 'class-variance-authority';
-import { useLogger } from '@/lib/use-logger';
+import useLogger from '@/lib/use-logger';
 
 const ManageSubscriptionButton = (
   props: ButtonHTMLAttributes<HTMLButtonElement> &
