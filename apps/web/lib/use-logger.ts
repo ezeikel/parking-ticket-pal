@@ -23,16 +23,20 @@ import { createClientLogger, type LogContext } from './logger';
  * - Checks for window.posthog.__loaded automatically
  * - Graceful fallback if PostHog not available
  */
-export function useLogger(context?: Partial<LogContext>) {
+const useLogger = (context?: Partial<LogContext>) => {
   // Use the same clean pattern as analytics.ts
   let posthog = null;
 
   if (typeof window !== 'undefined') {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const windowPosthog = (window as any).posthog;
+    // eslint-disable-next-line no-underscore-dangle
     if (windowPosthog && windowPosthog.__loaded) {
       posthog = windowPosthog;
     }
   }
 
   return createClientLogger(posthog, context);
-}
+};
+
+export default useLogger;

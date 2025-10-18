@@ -349,7 +349,7 @@ export const generateBlogPostForTopic = async (
       if (blobs.length > 0) {
         throw new Error(`Post with slug "${slug}" already exists`);
       }
-    } catch (error) {
+    } catch {
       // if list fails, assume post doesn't exist and continue
     }
 

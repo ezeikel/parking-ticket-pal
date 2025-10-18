@@ -73,7 +73,7 @@ const DeleteAccountPage = () => (
                 >
                   support@parkingticketpal.com
                 </a>{' '}
-                with the subject line "Delete My Account"
+                with the subject line &quot;Delete My Account&quot;
               </li>
               <li>Include the email address or Facebook ID associated with your account</li>
               <li>We will confirm the deletion request via email</li>

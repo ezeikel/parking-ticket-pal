@@ -1,5 +1,3 @@
-/* eslint-disable import/prefer-default-export */
-
 import { db } from '@/lib/prisma';
 
 // longer duration to account for openai api calls
