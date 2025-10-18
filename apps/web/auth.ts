@@ -15,11 +15,14 @@ type AppleProfile = Profile & {
   };
 };
 
+console.log('APPLE_PRIVATE_KEY (first 50 chars):', process.env.APPLE_PRIVATE_KEY?.substring(0, 50));
+console.log('APPLE_PRIVATE_KEY length:', process.env.APPLE_PRIVATE_KEY?.length);
+
 const clientSecret = await generateAppleClientSecret({
   teamId: process.env.APPLE_TEAM_ID as string,
   keyId: process.env.APPLE_KEY_ID as string,
   clientId: process.env.APPLE_CLIENT_ID as string,
-  privateKey: (process.env.APPLE_PRIVATE_KEY || '').replace(/\\n/g, '\n'),
+  privateKey: (process.env.APPLE_PRIVATE_KEY as string).replace(/\\n/g, '\n'),
 });
 
 const config = {
