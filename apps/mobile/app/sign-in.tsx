@@ -5,6 +5,7 @@ import { useFocusEffect } from '@react-navigation/native';
 import { useCallback } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { faApple, faFacebook, faGoogle } from '@fortawesome/free-brands-svg-icons';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { useAuthContext } from '@/contexts/auth';
 import { useColorScheme } from '@/hooks/useColorScheme';
 import { Colors } from '@/constants/Colors';
@@ -162,14 +163,19 @@ const AuthScreen = () => {
 
   return (
     <SafeAreaView className="flex-1 bg-white">
-      <View
-        className="flex-1 justify-center"
-        style={{
-          width: screenWidth,
-          alignSelf: 'center',
-          paddingHorizontal: padding,
-        }}
+      <KeyboardAwareScrollView
+        contentContainerStyle={{ flexGrow: 1 }}
+        bounces={false}
+        showsVerticalScrollIndicator={false}
       >
+        <View
+          className="flex-1 justify-center"
+          style={{
+            width: screenWidth,
+            alignSelf: 'center',
+            paddingHorizontal: padding,
+          }}
+        >
         {/* Logo */}
         <View className="items-center mb-8">
           <Image
@@ -265,7 +271,8 @@ const AuthScreen = () => {
             Privacy Policy
           </Text>
         </Text>
-      </View>
+        </View>
+      </KeyboardAwareScrollView>
     </SafeAreaView>
   );
 };
