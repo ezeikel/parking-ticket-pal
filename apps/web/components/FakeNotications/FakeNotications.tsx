@@ -220,9 +220,23 @@ export const useFakeNotifications = (isSilenced: boolean, onActiveToastChange: (
 };
 
 const FakeNotifications = () => {
-  const [isSilenced, setIsSilenced] = useState(false);
+  const [isSilenced, setIsSilenced] = useState(() => {
+    // Initialize from localStorage, default to false (enabled)
+    if (typeof window !== 'undefined') {
+      const stored = localStorage.getItem('fakeNotificationsSilenced');
+      return stored === 'true';
+    }
+    return false;
+  });
   const [hasActiveToasts, setHasActiveToasts] = useState(false);
   const { track } = useAnalytics();
+
+  // Update localStorage whenever isSilenced changes
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('fakeNotificationsSilenced', String(isSilenced));
+    }
+  }, [isSilenced]);
 
   useFakeNotifications(isSilenced, setHasActiveToasts);
 
