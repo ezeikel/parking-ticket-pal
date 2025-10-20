@@ -1,4 +1,4 @@
-import { View, Dimensions, Text, Pressable, TextInput, Alert, ActivityIndicator, Image } from 'react-native';
+import { View, Dimensions, Text, TextInput, Alert, ActivityIndicator, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { useFocusEffect } from '@react-navigation/native';
@@ -12,6 +12,7 @@ import { Colors } from '@/constants/Colors';
 import { useState } from 'react';
 import { useAnalytics } from '@/lib/analytics';
 import * as WebBrowser from 'expo-web-browser';
+import SquishyPressable from '@/components/SquishyPressable/SquishyPressable';
 
 const padding = 16;
 const screenWidth = Dimensions.get('screen').width - padding * 2;
@@ -139,7 +140,7 @@ const AuthScreen = () => {
     textColor?: string;
     borderColor?: string;
   }) => (
-    <Pressable
+    <SquishyPressable
       onPress={onPress}
       className="flex-row items-center justify-center py-4 px-6 rounded-xl mb-3 border gap-x-4"
       style={{
@@ -158,7 +159,7 @@ const AuthScreen = () => {
       >
         {label}
       </Text>
-    </Pressable>
+    </SquishyPressable>
   );
 
   return (
@@ -236,7 +237,7 @@ const AuthScreen = () => {
         </View>
 
         {/* Continue Button */}
-        <Pressable
+        <SquishyPressable
           onPress={handleContinue}
           disabled={isLoading}
           className="py-4 rounded-xl flex-row items-center justify-center mb-8"
@@ -252,7 +253,7 @@ const AuthScreen = () => {
               Continue
             </Text>
           )}
-        </Pressable>
+        </SquishyPressable>
 
         {/* Footer */}
         <Text className="font-inter text-xs text-gray-500 text-center leading-5">

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Pressable, View } from 'react-native';
+import { View } from 'react-native';
 import { Tabs } from 'expo-router';
 import { FontAwesomeIcon } from "@fortawesome/react-native-fontawesome";
 import { faHouse as faHouseRegular, faCog as faCogRegular } from "@fortawesome/pro-regular-svg-icons";
@@ -7,7 +7,8 @@ import { faHouse as faHouseSolid, faCamera as faCameraSolid, faCog as faCogSolid
 import { perfect } from "@/styles";
 import { Colors } from '@/constants/Colors';
 import { useColorScheme } from '@/hooks/useColorScheme';
-import HapticTab from "@/components/HapticTab/HapticTab";
+import SquishyHapticTab from "@/components/SquishyHapticTab/SquishyHapticTab";
+import SquishyPressable from '@/components/SquishyPressable/SquishyPressable';
 import CameraSheet from '@/components/CameraSheet/CameraSheet';
 import { useCameraContext } from '@/contexts/CameraContext';
 
@@ -30,7 +31,7 @@ export default function TabLayout() {
         screenOptions={{
           tabBarActiveTintColor: Colors[colorScheme ?? 'light'].tint,
           headerShown: false,
-          tabBarButton: HapticTab,
+          tabBarButton: SquishyHapticTab,
           tabBarLabelStyle: {
             marginTop: 2,
             fontFamily: "Inter18pt-Regular",
@@ -56,20 +57,21 @@ export default function TabLayout() {
           options={{
             tabBarButton: () => (
               <View className="items-center justify-center">
-                <Pressable
+                <SquishyPressable
                   className="rounded-full p-4 -top-2"
                   style={{
                     backgroundColor: Colors[colorScheme ?? 'light'].tint,
                     ...perfect.boxShadow,
                   }}
                   onPress={handleCameraPress}
+                  scaleTo={0.90}
                 >
                   <FontAwesomeIcon
                     icon={faCameraSolid}
                     size={24}
                     color="white"
                   />
-                </Pressable>
+                </SquishyPressable>
               </View>
             ),
           }}
