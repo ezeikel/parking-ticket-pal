@@ -14,7 +14,7 @@ const EmailSchema = z.object({
   text: z.string().optional(),
 });
 
-type EmailData = z.infer<typeof EmailSchema>;
+export type EmailData = z.infer<typeof EmailSchema>;
 
 interface RateLimitStore {
   [key: string]: {
@@ -239,6 +239,3 @@ export const sendTicketReminder = async (to: string, ticketData: {
     `,
     text: `Parking Ticket Reminder\n\nYour parking ticket ${ticketData.pcnNumber} is due on ${ticketData.dueDate} for £${ticketData.amount}.\n\nView in dashboard: ${process.env.NEXT_PUBLIC_APP_URL}/dashboard`,
   });
-
-// Export types
-export type { EmailData };

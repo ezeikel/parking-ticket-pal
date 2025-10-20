@@ -10,6 +10,7 @@ import { useColorScheme } from '@/hooks/useColorScheme';
 import { Colors } from '@/constants/Colors';
 import { useState } from 'react';
 import { useAnalytics } from '@/lib/analytics';
+import * as WebBrowser from 'expo-web-browser';
 
 const padding = 16;
 const screenWidth = Dimensions.get('screen').width - padding * 2;
@@ -181,6 +182,40 @@ const AuthScreen = () => {
           </Text>
         </View>
 
+        {/* Social Auth Buttons */}
+        <View className="mb-8">
+          <SocialButton
+            icon={faGoogle}
+            label="Continue with Google"
+            onPress={handleGoogleSignIn}
+          />
+
+          <SocialButton
+            icon={faApple}
+            label="Continue with Apple"
+            onPress={handleAppleSignIn}
+            backgroundColor="#000000"
+            textColor="#ffffff"
+            borderColor="#000000"
+          />
+
+          <SocialButton
+            icon={faFacebook}
+            label="Continue with Facebook"
+            onPress={handleFacebookSignIn}
+            backgroundColor="#1877f2"
+            textColor="#ffffff"
+            borderColor="#1877f2"
+          />
+        </View>
+
+        {/* Divider */}
+        <View className="flex-row items-center mb-6">
+          <View className="flex-1 h-px bg-gray-300" />
+          <Text className="font-inter text-sm text-gray-500 mx-4">or</Text>
+          <View className="flex-1 h-px bg-gray-300" />
+        </View>
+
         {/* Email Input */}
         <View className="mb-6">
           <TextInput
@@ -213,45 +248,22 @@ const AuthScreen = () => {
           )}
         </Pressable>
 
-        {/* Divider */}
-        <View className="flex-row items-center mb-6">
-          <View className="flex-1 h-px bg-gray-300" />
-          <Text className="font-inter text-sm text-gray-500 mx-4">or</Text>
-          <View className="flex-1 h-px bg-gray-300" />
-        </View>
-
-        {/* Social Auth Buttons */}
-        <View className="mb-8">
-          <SocialButton
-            icon={faGoogle}
-            label="Continue with Google"
-            onPress={handleGoogleSignIn}
-          />
-
-          <SocialButton
-            icon={faApple}
-            label="Continue with Apple"
-            onPress={handleAppleSignIn}
-            backgroundColor="#000000"
-            textColor="#ffffff"
-            borderColor="#000000"
-          />
-
-          <SocialButton
-            icon={faFacebook}
-            label="Continue with Facebook"
-            onPress={handleFacebookSignIn}
-            backgroundColor="#1877f2"
-            textColor="#ffffff"
-            borderColor="#1877f2"
-          />
-        </View>
-
         {/* Footer */}
         <Text className="font-inter text-xs text-gray-500 text-center leading-5">
           By continuing, you agree to our{' '}
-          <Text className="underline">Terms of Service</Text> and{' '}
-          <Text className="underline">Privacy Policy</Text>
+          <Text
+            className="underline"
+            onPress={() => WebBrowser.openBrowserAsync('https://www.parkingticketpal.com/terms')}
+          >
+            Terms of Service
+          </Text>{' '}
+          and{' '}
+          <Text
+            className="underline"
+            onPress={() => WebBrowser.openBrowserAsync('https://www.parkingticketpal.com/privacy')}
+          >
+            Privacy Policy
+          </Text>
         </Text>
       </View>
     </SafeAreaView>

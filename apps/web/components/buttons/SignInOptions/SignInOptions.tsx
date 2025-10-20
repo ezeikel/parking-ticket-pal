@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { signIn } from 'next-auth/react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faEnvelope, faSpinnerThird } from '@fortawesome/pro-regular-svg-icons';
+import { faSpinnerThird } from '@fortawesome/pro-regular-svg-icons';
 import {
   faGoogle,
   faApple,
@@ -97,7 +97,11 @@ const SignInOptions = () => {
             onChange={(e) => setEmail(e.target.value)}
             required
           />
-          <Button type="submit" disabled={isLoading}>
+          <Button
+            type="submit"
+            disabled={isLoading}
+            className="bg-[#1ABC9C] hover:bg-[#16a085] text-white"
+          >
             {isLoading ? (
               <>
                 <FontAwesomeIcon
@@ -107,17 +111,22 @@ const SignInOptions = () => {
                 Sending link...
               </>
             ) : (
-              <>
-                <FontAwesomeIcon icon={faEnvelope} size="lg" className="mr-2" />
-                Sign in with Email
-              </>
+              'Continue'
             )}
           </Button>
         </form>
       </CardContent>
       <CardFooter className="flex flex-col items-center text-sm text-muted-foreground">
         <p>
-          By continuing, you agree to our Terms of Service and Privacy Policy.
+          By continuing, you agree to our{' '}
+          <a href="/terms" className="underline hover:text-foreground">
+            Terms of Service
+          </a>{' '}
+          and{' '}
+          <a href="/privacy" className="underline hover:text-foreground">
+            Privacy Policy
+          </a>
+          .
         </p>
       </CardFooter>
     </Card>

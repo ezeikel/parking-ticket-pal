@@ -1,8 +1,12 @@
 import { ExpoConfig, ConfigContext } from 'expo/config';
 import pkg from "./package.json";
 
-export default ({ config }: ConfigContext): ExpoConfig => ({
-  ...config,
+export default ({ config }: ConfigContext): ExpoConfig => {
+  const facebookAppId = process.env.EXPO_PUBLIC_FACEBOOK_APP_ID || '';
+  const googleIosClientId = process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID?.split('.')[0] || '';
+
+  return {
+    ...config,
     name: "Parking Ticket Pal",
     slug: "parking-ticket-pal",
     owner: "chewybytes",
@@ -19,14 +23,21 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
         CFBundleURLTypes: [
           {
             CFBundleURLSchemes: [
-              "com.googleusercontent.apps.1069305445287-b0q6oltds0955okb9hg2b3pqvm735di4",
+              googleIosClientId,
+              `fb${facebookAppId}`,
             ],
           },
         ],
+        "FacebookAppID": facebookAppId,
+        "FacebookDisplayName": "Parking Ticket Pal",
         "ITSAppUsesNonExemptEncryption": false,
         "NSCameraUsageDescription": "This app uses your camera to scan parking tickets and related documents.",
         "NSPhotoLibraryUsageDescription": "This app allows you to upload existing photos of parking tickets and related documents from your library."
-      }
+      },
+      associatedDomains: [
+        "applinks:parkingticketpal.com",
+        "applinks:www.parkingticketpal.com"
+      ]
     },
     android: {
       package: "com.chewybytes.parkingticketpal.app",
@@ -43,6 +54,20 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
               scheme: "https",
               host: "parkingticketpal.com",
               pathPrefix: "/",
+            },
+            {
+              scheme: "https",
+              host: "www.parkingticketpal.com",
+              pathPrefix: "/",
+            },
+          ],
+          category: ["BROWSABLE", "DEFAULT"]
+        },
+        {
+          action: "VIEW",
+          data: [
+            {
+              scheme: "parkingticketpal",
             },
           ],
           category: ["BROWSABLE", "DEFAULT"]
@@ -128,4 +153,5 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
         projectId: "460d1230-65d0-4a24-a805-44f84fb7c862",
       },
     },
-});
+  };
+};
