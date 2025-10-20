@@ -25,9 +25,9 @@ const HowItWorks = () => {
       id: 'success',
       stepNumber: '03',
       illustration: '/illustrations/3-success.png',
-      title: 'Review & Submit',
+      title: 'Track & Win',
       description:
-        'Review your personalised appeal and submit it directly. We track deadlines and keep you updated on your appeal status.',
+        'Monitor your appeal status and get notified when you successfully challenge your fine.',
     },
   ];
 
