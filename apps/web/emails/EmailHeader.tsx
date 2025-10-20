@@ -28,7 +28,7 @@ const title = {
 const EmailHeader = ({ title: titleText }: EmailHeaderProps) => (
   <Section style={header}>
     <Img
-      src="https://parkingticketpal.com/logos/ptp.svg"
+      src="https://parkingticketpal.com/logos/ptp.png"
       alt="Parking Ticket Pal"
       style={logo}
       width={48}
