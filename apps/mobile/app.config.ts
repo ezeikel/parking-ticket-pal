@@ -3,7 +3,10 @@ import pkg from "./package.json";
 
 export default ({ config }: ConfigContext): ExpoConfig => {
   const facebookAppId = process.env.EXPO_PUBLIC_FACEBOOK_APP_ID || '';
-  const googleIosClientId = process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID?.split('.')[0] || '';
+  // reverse the Google iOS Client ID (from xxx.apps.googleusercontent.com to com.googleusercontent.apps.xxx)
+  const googleIosClientId = process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID
+    ? process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID.split('.').reverse().join('.')
+    : '';
 
   return {
     ...config,
