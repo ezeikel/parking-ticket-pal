@@ -52,7 +52,7 @@ const config = {
     }),
     Resend({
       apiKey: process.env.RESEND_API_KEY as string,
-      from: 'no-reply@notifications.parkingticketpal.com',
+      from: process.env.DEFAULT_FROM_EMAIL,
     }),
   ],
   callbacks: {
