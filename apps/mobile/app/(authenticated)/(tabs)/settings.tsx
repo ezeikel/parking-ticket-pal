@@ -2,8 +2,9 @@ import { Text, View, ScrollView, Pressable, Alert, Dimensions } from 'react-nati
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
 import { useCallback } from 'react';
+import { router } from 'expo-router';
 import { FontAwesomeIcon } from "@fortawesome/react-native-fontawesome";
-import { faSignOut, faUser, faEnvelope, faInfoCircle, faHeart } from "@fortawesome/pro-regular-svg-icons";
+import { faSignOut, faUser, faEnvelope, faInfoCircle, faHeart, faBookOpen } from "@fortawesome/pro-regular-svg-icons";
 import { useAuthContext } from '@/contexts/auth';
 import useUser from '@/hooks/api/useUser';
 import { useColorScheme } from '@/hooks/useColorScheme';
@@ -12,6 +13,7 @@ import Constants from 'expo-constants';
 import * as Application from 'expo-application';
 import Loader from '@/components/Loader/Loader';
 import { useAnalytics } from '@/lib/analytics';
+import { resetOnboarding } from '@/utils/onboarding';
 
 const padding = 16;
 const screenWidth = Dimensions.get('screen').width - padding * 2;
@@ -49,6 +51,16 @@ const SettingsScreen = () => {
         },
       ]
     );
+  };
+
+  const handleViewOnboarding = async () => {
+    try {
+      await resetOnboarding();
+      trackEvent("onboarding_viewed_from_settings", { screen: "settings" });
+      router.push('/onboarding');
+    } catch (error) {
+      Alert.alert('Error', 'Failed to navigate to onboarding');
+    }
   };
 
   const SettingRow = ({ icon, title, value, onPress, destructive = false }: {
@@ -131,6 +143,12 @@ const SettingsScreen = () => {
                 App Information
               </Text>
             </View>
+
+            <SettingRow
+              icon={faBookOpen}
+              title="View Onboarding"
+              onPress={handleViewOnboarding}
+            />
 
             <SettingRow
               icon={faInfoCircle}
