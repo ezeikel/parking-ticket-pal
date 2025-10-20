@@ -19,6 +19,7 @@ export default ({ config }: ConfigContext): ExpoConfig => {
     ios: {
       bundleIdentifier: "com.chewybytes.parkingticketpal.app",
       supportsTablet: true,
+      usesAppleSignIn: true,
       infoPlist: {
         CFBundleURLTypes: [
           {
@@ -37,7 +38,10 @@ export default ({ config }: ConfigContext): ExpoConfig => {
       associatedDomains: [
         "applinks:parkingticketpal.com",
         "applinks:www.parkingticketpal.com"
-      ]
+      ],
+      entitlements: {
+        "com.apple.developer.applesignin": ["Default"],
+      }
     },
     android: {
       package: "com.chewybytes.parkingticketpal.app",
