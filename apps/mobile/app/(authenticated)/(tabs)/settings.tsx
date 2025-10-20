@@ -4,7 +4,8 @@ import { useFocusEffect } from '@react-navigation/native';
 import { useCallback } from 'react';
 import { router } from 'expo-router';
 import { FontAwesomeIcon } from "@fortawesome/react-native-fontawesome";
-import { faSignOut, faUser, faEnvelope, faInfoCircle, faHeart, faBookOpen } from "@fortawesome/pro-regular-svg-icons";
+import { faSignOut, faUser, faEnvelope, faInfoCircle, faHeart, faBookOpen, faTrashCan } from "@fortawesome/pro-regular-svg-icons";
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useAuthContext } from '@/contexts/auth';
 import useUser from '@/hooks/api/useUser';
 import { useColorScheme } from '@/hooks/useColorScheme';
@@ -26,6 +27,7 @@ const SettingsScreen = () => {
   const { trackScreenView, trackEvent } = useAnalytics();
 
   const appVersion = Constants.expoConfig?.version || '0.1.0';
+  const isDev = __DEV__;
 
   useFocusEffect(
     useCallback(() => {
@@ -61,6 +63,37 @@ const SettingsScreen = () => {
     } catch (error) {
       Alert.alert('Error', 'Failed to navigate to onboarding');
     }
+  };
+
+  const handleClearAppData = () => {
+    Alert.alert(
+      'Clear App Data',
+      'This will clear all locally stored data including onboarding status, preferences, and cached data. You will need to sign in again. Continue?',
+      [
+        {
+          text: 'Cancel',
+          style: 'cancel',
+        },
+        {
+          text: 'Clear Data',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              trackEvent("dev_clear_app_data", { screen: "settings" });
+              await AsyncStorage.clear();
+              Alert.alert('Success', 'App data cleared. Please restart the app.', [
+                {
+                  text: 'Sign Out Now',
+                  onPress: signOut,
+                }
+              ]);
+            } catch (error) {
+              Alert.alert('Error', 'Failed to clear app data');
+            }
+          },
+        },
+      ]
+    );
   };
 
   const SettingRow = ({ icon, title, value, onPress, destructive = false }: {
@@ -156,6 +189,22 @@ const SettingsScreen = () => {
               value={`${Application.nativeApplicationVersion || appVersion}${Application.nativeBuildVersion ? ` (${Application.nativeBuildVersion})` : ''}`}
             />
           </View>
+
+          {isDev && (
+            <View className="bg-white rounded-lg mb-6 overflow-hidden">
+              <View className="p-4 border-b border-gray-100">
+                <Text className="font-inter text-lg font-semibold text-gray-900 mb-2">
+                  Developer Tools
+                </Text>
+              </View>
+              <SettingRow
+                icon={faTrashCan}
+                title="Clear App Data"
+                onPress={handleClearAppData}
+                destructive={true}
+              />
+            </View>
+          )}
 
           <View className="bg-white rounded-lg mb-6 overflow-hidden">
             <SettingRow
