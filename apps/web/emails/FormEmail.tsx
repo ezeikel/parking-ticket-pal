@@ -8,9 +8,9 @@ import {
   Section,
   Text,
 } from '@react-email/components';
-import EmailHeader from './EmailHeader';
-import EmailFooter from './EmailFooter';
-import EmailButton from './EmailButton';
+import EmailHeader from '@/components/emails/EmailHeader';
+import EmailFooter from '@/components/emails/EmailFooter';
+import EmailButton from '@/components/emails/EmailButton';
 
 type FormEmailProps = {
   formType: string;
@@ -83,7 +83,11 @@ const signature = {
   margin: '32px 0 0 0',
 };
 
-const FormEmail = ({ formType, userName, downloadUrl }: FormEmailProps) => (
+const FormEmail = ({
+  formType = 'TE9 Appeal',
+  userName = 'John Smith',
+  downloadUrl = 'https://parkingticketpal.com/download/form-123'
+}: FormEmailProps) => (
   <Html>
     <Head />
     <Preview>Your {formType} Form is Ready</Preview>

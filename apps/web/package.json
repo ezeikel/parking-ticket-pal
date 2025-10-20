@@ -148,6 +148,7 @@
     "@eslint/eslintrc": "^3.2.0",
     "@eslint/js": "^9.36.0",
     "@next/eslint-plugin-next": "^15.1.6",
+    "@react-email/preview-server": "4.2.11",
     "@tailwindcss/postcss": "^4.0.0",
     "@types/mapbox__mapbox-gl-geocoder": "^5.0.0",
     "@types/node": "^24.0.1",

@@ -4,6 +4,9 @@ import { Resend } from 'resend';
 import nodemailer from 'nodemailer';
 import { z } from 'zod';
 import * as Sentry from '@sentry/nextjs';
+import { render } from '@react-email/render';
+import MagicLinkEmail from '@/components/emails/MagicLinkEmail';
+import TicketReminderEmail from '@/components/emails/TicketReminderEmail';
 
 const EmailSchema = z.object({
   to: z.union([z.string().email(), z.array(z.string().email())]),
@@ -197,21 +200,16 @@ export const sendMagicLinkEmail = async (to: string, magicLink: string): Promise
   success: boolean;
   messageId?: string;
   error?: string;
-}> => sendEmail({
+}> => {
+  const emailHtml = await render(MagicLinkEmail({ magicLink }));
+
+  return sendEmail({
     to,
     subject: 'Sign in to Parking Ticket Pal',
-    html: `
-      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-        <h2 style="color: #333;">Sign in to Parking Ticket Pal</h2>
-        <p>Click the button below to sign in to your account:</p>
-        <a href="${magicLink}" style="display: inline-block; background-color: #007bff; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px; margin: 20px 0;">Sign In</a>
-        <p style="color: #666; font-size: 14px;">This link will expire in 15 minutes. If you didn't request this email, you can safely ignore it.</p>
-        <p style="color: #666; font-size: 14px;">If the button doesn't work, copy and paste this link into your browser:</p>
-        <p style="word-break: break-all; color: #666; font-size: 12px;">${magicLink}</p>
-      </div>
-    `,
+    html: emailHtml,
     text: `Sign in to Parking Ticket Pal\n\nClick this link to sign in: ${magicLink}\n\nThis link will expire in 15 minutes.`,
   });
+};
 
 export const sendTicketReminder = async (to: string, ticketData: {
   pcnNumber: string;
@@ -221,21 +219,17 @@ export const sendTicketReminder = async (to: string, ticketData: {
   success: boolean;
   messageId?: string;
   error?: string;
-}> => sendEmail({
+}> => {
+  const emailHtml = await render(TicketReminderEmail({
+    pcnNumber: ticketData.pcnNumber,
+    dueDate: ticketData.dueDate,
+    amount: ticketData.amount,
+  }));
+
+  return sendEmail({
     to,
     subject: `Reminder: Parking Ticket ${ticketData.pcnNumber} Due Soon`,
-    html: `
-      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-        <h2 style="color: #d32f2f;">Parking Ticket Reminder</h2>
-        <p>Your parking ticket <strong>${ticketData.pcnNumber}</strong> is due soon.</p>
-        <div style="background-color: #f5f5f5; padding: 20px; margin: 20px 0; border-radius: 4px;">
-          <p><strong>PCN Number:</strong> ${ticketData.pcnNumber}</p>
-          <p><strong>Due Date:</strong> ${ticketData.dueDate}</p>
-          <p><strong>Amount:</strong> £${ticketData.amount}</p>
-        </div>
-        <p>Don't forget to take action before the deadline to avoid additional charges.</p>
-        <a href="${process.env.NEXT_PUBLIC_APP_URL}/dashboard" style="display: inline-block; background-color: #007bff; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px; margin: 20px 0;">View in Dashboard</a>
-      </div>
-    `,
+    html: emailHtml,
     text: `Parking Ticket Reminder\n\nYour parking ticket ${ticketData.pcnNumber} is due on ${ticketData.dueDate} for £${ticketData.amount}.\n\nView in dashboard: ${process.env.NEXT_PUBLIC_APP_URL}/dashboard`,
   });
+};

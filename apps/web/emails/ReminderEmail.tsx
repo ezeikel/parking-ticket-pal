@@ -7,9 +7,9 @@ import {
   Container,
   Section,
 } from '@react-email/components';
-import EmailHeader from './EmailHeader';
-import EmailFooter from './EmailFooter';
-import EmailButton from './EmailButton';
+import EmailHeader from '@/components/emails/EmailHeader';
+import EmailFooter from '@/components/emails/EmailFooter';
+import EmailButton from '@/components/emails/EmailButton';
 
 type ReminderEmailProps = {
   name: string;
@@ -106,12 +106,12 @@ const signature = {
 };
 
 const ReminderEmail = ({
-  name,
-  reminderType,
-  pcnNumber,
-  vehicleRegistration,
-  issueDate,
-  issuer,
+  name = 'Sarah Johnson',
+  reminderType = '14-day',
+  pcnNumber = 'PCN123456789',
+  vehicleRegistration = 'AB12 CDE',
+  issueDate = '15th October 2025',
+  issuer = 'Transport for London',
 }: ReminderEmailProps) => {
   const deadlineText = reminderType === '14-day'
     ? '14-Day Reduced Payment Deadline'
