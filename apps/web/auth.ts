@@ -7,6 +7,9 @@ import Resend from 'next-auth/providers/resend';
 import { PrismaAdapter } from '@auth/prisma-adapter';
 import { db } from '@/lib/prisma';
 import { generateAppleClientSecret } from '@/lib/apple';
+import { render } from '@react-email/render';
+import MagicLinkEmail from '@/components/emails/MagicLinkEmail';
+import resendClient from '@/lib/resend';
 
 type AppleProfile = Profile & {
   user?: {
@@ -53,6 +56,21 @@ const config = {
     Resend({
       apiKey: process.env.RESEND_API_KEY as string,
       from: process.env.DEFAULT_FROM_EMAIL,
+      async sendVerificationRequest({ identifier: email, url }) {
+        try {
+          const emailHtml = await render(MagicLinkEmail({ magicLink: url }));
+
+          await resendClient.emails.send({
+            from: process.env.DEFAULT_FROM_EMAIL as string,
+            to: email,
+            subject: 'Sign in to Parking Ticket Pal',
+            html: emailHtml,
+          });
+        } catch (error) {
+          console.error('Failed to send verification email:', error);
+          throw error;
+        }
+      },
     }),
   ],
   callbacks: {

@@ -42,27 +42,27 @@ const listItem = {
   margin: '8px 0',
 };
 
-export default function IndexEmail() {
-  return (
-    <Html>
-      <Head />
-      <Body style={main}>
-        <Container style={container}>
-          <Heading style={heading}>Parking Ticket Pal Email Templates</Heading>
-          <Text style={text}>
-            Select a template from the sidebar to preview:
-          </Text>
-          <ul>
-            <li style={listItem}><strong>FormEmail</strong> - Form ready for download notification</li>
-            <li style={listItem}><strong>MagicLinkEmail</strong> - Sign-in authentication email</li>
-            <li style={listItem}><strong>ReminderEmail</strong> - Ticket deadline reminder (14-day/28-day)</li>
-            <li style={listItem}><strong>TicketReminderEmail</strong> - Payment deadline warning</li>
-          </ul>
-          <Text style={text}>
-            All templates feature consistent branding with the Parking Ticket Pal color scheme.
-          </Text>
-        </Container>
-      </Body>
-    </Html>
-  );
-}
+const IndexEmail = () => (
+  <Html>
+    <Head />
+    <Body style={main}>
+      <Container style={container}>
+        <Heading style={heading}>Parking Ticket Pal Email Templates</Heading>
+        <Text style={text}>
+          Select a template from the sidebar to preview:
+        </Text>
+        <ul>
+          <li style={listItem}><strong>FormEmail</strong> - Form ready for download notification</li>
+          <li style={listItem}><strong>MagicLinkEmail</strong> - Sign-in authentication email</li>
+          <li style={listItem}><strong>ReminderEmail</strong> - Ticket deadline reminder (14-day/28-day)</li>
+          <li style={listItem}><strong>TicketReminderEmail</strong> - Payment deadline warning</li>
+        </ul>
+        <Text style={text}>
+          All templates feature consistent branding with the Parking Ticket Pal color scheme.
+        </Text>
+      </Container>
+    </Body>
+  </Html>
+);
+
+export default IndexEmail;
