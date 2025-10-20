@@ -69,7 +69,7 @@ const linkBox = {
 };
 
 const linkText = {
-  color: '#266696',
+  color: '#1ABC9C',
   fontSize: '13px',
   lineHeight: '20px',
   margin: '0',

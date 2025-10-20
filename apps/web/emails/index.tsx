@@ -37,7 +37,7 @@ const text = {
 };
 
 const listItem = {
-  color: '#266696',
+  color: '#1ABC9C',
   fontSize: '16px',
   margin: '8px 0',
 };

@@ -13,7 +13,7 @@ const EmailButton = ({
 }: EmailButtonProps) => {
   const styles = {
     primary: {
-      backgroundColor: '#266696',
+      backgroundColor: '#1ABC9C',
       color: '#ffffff',
       padding: '12px 24px',
       borderRadius: '6px',
@@ -27,7 +27,7 @@ const EmailButton = ({
     },
     secondary: {
       backgroundColor: 'transparent',
-      color: '#266696',
+      color: '#1ABC9C',
       padding: '12px 24px',
       borderRadius: '6px',
       textDecoration: 'none',
@@ -35,7 +35,7 @@ const EmailButton = ({
       fontSize: '16px',
       display: 'inline-block',
       textAlign: 'center' as const,
-      border: '2px solid #266696',
+      border: '2px solid #1ABC9C',
       margin: '16px 0',
     },
   };

@@ -62,7 +62,7 @@ const Hero = () => (
         <div className="flex flex-col gap-1">
           <Button
             onClick={() => signIn('google')}
-            className="w-3xs px-6 py-6 bg-parking-blue text-white font-semibold text-md cursor-pointer"
+            className="w-3xs px-6 py-6 bg-parking-teal text-white font-semibold text-md cursor-pointer"
           >
             <FontAwesomeIcon
               icon={faBolt}

@@ -45,7 +45,7 @@
   --animate-accordion-down: accordion-down 0.2s ease-out;
   --animate-accordion-up: accordion-up 0.2s ease-out;
 
-  --color-parking-blue: #266696;
+  --color-parking-teal: #1ABC9C;
   --color-parking-ticket-yellow: #fdfa64;
 
   @keyframes accordion-down {

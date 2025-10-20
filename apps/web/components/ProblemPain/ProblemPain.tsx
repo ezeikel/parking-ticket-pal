@@ -36,7 +36,7 @@ const ProblemPain = () => {
       <div className="mx-auto max-w-5xl">
         <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight text-center mb-12 md:mb-16 leading-tight">
           Parking Tickets Are{' '}
-          <span className="text-parking-blue underline">Designed</span> To
+          <span className="text-parking-teal underline">Designed</span> To
           Defeat You
         </h2>
 
@@ -69,7 +69,7 @@ const ProblemPain = () => {
           </div>
           <h3 className="font-bold tracking-tight text-2xl sm:text-3xl md:text-4xl font-semibold">
             That&apos;s Where{' '}
-            <span className="bg-parking-blue text-white font-display px-2 py-1 rounded-md whitespace-nowrap">
+            <span className="bg-parking-teal text-white font-display px-2 py-1 rounded-md whitespace-nowrap">
               Parking Ticket Pal
             </span>{' '}
             Steps In.

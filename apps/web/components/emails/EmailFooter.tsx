@@ -18,7 +18,7 @@ const footerText = {
 };
 
 const link = {
-  color: '#266696',
+  color: '#1ABC9C',
   textDecoration: 'underline',
 };
 

@@ -45,7 +45,7 @@ const Footer = ({ className }: FooterProps) => (
                   <FontAwesomeIcon
                     icon={icon}
                     size="2x"
-                    className="fill-gray-400 group-hover:text-[#266696] group-hover:transition-colors group-hover:duration-300 group-hover:fill-[#266696] group-hover:ease-in-out"
+                    className="fill-gray-400 group-hover:text-[#1ABC9C] group-hover:transition-colors group-hover:duration-300 group-hover:fill-[#1ABC9C] group-hover:ease-in-out"
                   />
                 </a>
               </li>
