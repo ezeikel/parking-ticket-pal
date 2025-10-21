@@ -1,7 +1,7 @@
 import { chromium, Page } from 'playwright';
 import { PrismaClient } from '@prisma/client';
 import { createObjectCsvWriter } from 'csv-writer';
-import { existsSync } from 'fs';
+import { existsSync, readFileSync, writeFileSync, mkdirSync } from 'fs';
 
 // Constants
 const URLS = {
@@ -26,7 +26,40 @@ const WAIT_TIMES = {
   CLICK_TIMEOUT: 60000, // New timeout for click actions
 } as const;
 
+// Configuration for optimization
+const CONFIG = {
+  DATA_DIR: 'data',
+  CSV_FILE: 'data/appeals.csv',
+  STATE_FILE: 'data/scraping-state.json',
+  MAX_RUNTIME_MS: 55 * 60 * 1000, // 55 minutes (safe margin before 1hr timeout)
+  CHECKPOINT_INTERVAL: 10, // Save state every 10 appeals
+  BATCH_SIZE: 50, // Write CSV in batches
+  REDUCED_WAIT_TIME: 5000, // Reduced wait time for faster scraping
+} as const;
+
 const prisma = new PrismaClient();
+
+// State management
+interface ScrapingState {
+  lastProcessedDate: string | null;
+  lastProcessedPage: number;
+  processedCaseReferences: Set<string>;
+  totalAppealsScraped: number;
+  startTime: number;
+  lastCheckpoint: number;
+}
+
+let scrapingState: ScrapingState = {
+  lastProcessedDate: null,
+  lastProcessedPage: 0,
+  processedCaseReferences: new Set(),
+  totalAppealsScraped: 0,
+  startTime: Date.now(),
+  lastCheckpoint: Date.now(),
+};
+
+// Pending records buffer for batch writing
+let pendingRecords: CaseDetails[] = [];
 
 type CaseDetails = {
   caseReference: string;
@@ -47,8 +80,94 @@ type CaseDetails = {
   reasons: string;
 };
 
+// State management functions
+function loadState(): void {
+  try {
+    if (existsSync(CONFIG.STATE_FILE)) {
+      const data = JSON.parse(readFileSync(CONFIG.STATE_FILE, 'utf-8'));
+      scrapingState = {
+        ...data,
+        processedCaseReferences: new Set(data.processedCaseReferences || []),
+        startTime: Date.now(), // Reset start time for this run
+        lastCheckpoint: Date.now(),
+      };
+      console.log(`📂 Loaded state: ${scrapingState.totalAppealsScraped} appeals scraped, last date: ${scrapingState.lastProcessedDate}`);
+    } else {
+      console.log('📂 No previous state found, starting fresh');
+    }
+  } catch (error) {
+    console.error('❌ Error loading state:', error);
+    console.log('Starting fresh...');
+  }
+}
+
+function saveState(): void {
+  try {
+    // Ensure data directory exists
+    if (!existsSync(CONFIG.DATA_DIR)) {
+      mkdirSync(CONFIG.DATA_DIR, { recursive: true });
+    }
+
+    const stateToSave = {
+      ...scrapingState,
+      processedCaseReferences: Array.from(scrapingState.processedCaseReferences),
+    };
+
+    writeFileSync(CONFIG.STATE_FILE, JSON.stringify(stateToSave, null, 2));
+    console.log(`💾 State saved: ${scrapingState.totalAppealsScraped} appeals, last date: ${scrapingState.lastProcessedDate}`);
+  } catch (error) {
+    console.error('❌ Error saving state:', error);
+  }
+}
+
+function shouldStopDueToTimeout(): boolean {
+  const elapsed = Date.now() - scrapingState.startTime;
+  const remaining = CONFIG.MAX_RUNTIME_MS - elapsed;
+
+  if (remaining < 5 * 60 * 1000) { // Less than 5 minutes remaining
+    console.log(`⏰ Approaching timeout (${Math.round(remaining / 1000 / 60)} minutes remaining). Stopping gracefully...`);
+    return true;
+  }
+
+  return false;
+}
+
+function logProgress(): void {
+  const elapsed = Date.now() - scrapingState.startTime;
+  const minutes = Math.round(elapsed / 1000 / 60);
+  const remaining = Math.round((CONFIG.MAX_RUNTIME_MS - elapsed) / 1000 / 60);
+
+  console.log(`
+📊 Progress Report:
+   - Total appeals scraped: ${scrapingState.totalAppealsScraped}
+   - Current date: ${scrapingState.lastProcessedDate}
+   - Runtime: ${minutes} minutes (${remaining} minutes remaining)
+   - Pending writes: ${pendingRecords.length} records
+  `);
+}
+
+async function flushPendingRecords(): Promise<void> {
+  if (pendingRecords.length === 0) return;
+
+  try {
+    await csvWriter.writeRecords(pendingRecords);
+    console.log(`💾 Flushed ${pendingRecords.length} records to CSV`);
+    pendingRecords = [];
+  } catch (error) {
+    console.error('❌ Error flushing records:', error);
+  }
+}
+
 // Main functions
 async function collectContraventionData(): Promise<void> {
+  // Load previous state if exists
+  loadState();
+
+  // Ensure data directory exists
+  if (!existsSync(CONFIG.DATA_DIR)) {
+    mkdirSync(CONFIG.DATA_DIR, { recursive: true });
+  }
+
   const browser = await chromium.launch({
     headless: false,
   });
@@ -56,6 +175,7 @@ async function collectContraventionData(): Promise<void> {
 
   try {
     console.log('🚀 Starting data collection...');
+    console.log(`📊 Resuming from: ${scrapingState.lastProcessedDate || 'beginning'}`);
 
     await navigateToInitialPage(page);
     const registersOfAppealsPage = await navigateToAppealsPage(page);
@@ -66,9 +186,17 @@ async function collectContraventionData(): Promise<void> {
     console.error('❌ Error collecting contravention data:', error);
     throw error;
   } finally {
+    // Flush any remaining records
+    await flushPendingRecords();
+
+    // Save final state
+    saveState();
+
     console.log('🔚 Closing browser and disconnecting...');
     await browser.close();
     await prisma.$disconnect();
+
+    logProgress();
   }
 }
 
@@ -99,77 +227,98 @@ async function initializeAppealsCollection(page: Page): Promise<void> {
 
 // Data collection functions
 async function processCurrentPageAppeals(page: Page): Promise<void> {
-  // Get all links on the current page
-  const links = await page.$$('table.table a');
-  console.log(`📑 Found ${links.length} appeals on current page`);
+  // Check timeout before processing
+  if (shouldStopDueToTimeout()) {
+    throw new Error('TIMEOUT_REACHED');
+  }
 
-  for (let i = 0; i < links.length; i++) {
-    console.log(`🔗 Visiting appeal details... (${i + 1}/${links.length})`);
+  // Get all case references on the page first
+  const caseRefs = await page.$$eval('table.table a', (links) =>
+    links.map((link) => link.textContent?.trim() || '')
+  );
+
+  console.log(`📑 Found ${caseRefs.length} appeals on current page`);
+
+  // Filter out already processed cases
+  const unprocessedRefs = caseRefs.filter(
+    (ref) => !scrapingState.processedCaseReferences.has(ref)
+  );
+
+  console.log(`🆕 ${unprocessedRefs.length} new appeals to process (${caseRefs.length - unprocessedRefs.length} already processed)`);
+
+  // Process appeals sequentially (more reliable than concurrent)
+  for (let i = 0; i < caseRefs.length; i += 1) {
+    const caseRef = caseRefs[i];
+
+    // Skip if already processed
+    if (scrapingState.processedCaseReferences.has(caseRef)) {
+      console.log(`⏭️ Skipping already processed: ${caseRef}`);
+      continue;
+    }
+
+    console.log(`🔗 Processing appeal ${i + 1}/${caseRefs.length}: ${caseRef}`);
 
     try {
-      // Re-fetch links every time to avoid destroyed execution context issues
+      // Re-fetch links to avoid stale references
       const currentLinks = await page.$$('table.table a');
       if (i >= currentLinks.length) {
-        console.log('⚠️ Current link no longer available, skipping');
+        console.log(`⚠️ Link ${i} no longer available, skipping`);
         continue;
       }
 
       const currentLink = currentLinks[i];
-      console.log(`Clicking on link ${i + 1}`);
 
-      // Add retry mechanism for clicking links
+      // Navigate to detail page with retry
       let retryCount = 0;
       const maxRetries = 3;
 
       while (retryCount < maxRetries) {
         try {
-          await Promise.all([
-            page.waitForNavigation({
-              waitUntil: 'domcontentloaded',
-              timeout: WAIT_TIMES.NAVIGATION_TIMEOUT,
-            }),
-            currentLink.click({ timeout: WAIT_TIMES.CLICK_TIMEOUT }),
-          ]);
-          break; // If successful, exit retry loop
+          await currentLink.click({ timeout: WAIT_TIMES.CLICK_TIMEOUT });
+          await page.waitForLoadState('domcontentloaded', { timeout: WAIT_TIMES.NAVIGATION_TIMEOUT });
+          break;
         } catch (clickError) {
-          retryCount++;
-          console.log(`Retry ${retryCount}/${maxRetries} for clicking link...`);
+          retryCount += 1;
+          console.log(`Retry ${retryCount}/${maxRetries} for ${caseRef}...`);
           if (retryCount === maxRetries) throw clickError;
-          await page.waitForTimeout(2000); // Wait 2 seconds before retrying
+          await page.waitForTimeout(2000);
         }
       }
 
-      // Wait additional time for page to stabilize
-      await page.waitForLoadState('networkidle', { timeout: 120000 }); // 2 minutes
+      // Wait for page to load (reduced wait time)
+      await page.waitForLoadState('networkidle', { timeout: CONFIG.REDUCED_WAIT_TIME });
 
       // Extract case details
       const caseDetails = await extractCaseDetails(page);
-      await appendToCsv(caseDetails);
 
-      // Go back and wait for navigation
-      await Promise.all([
-        page.waitForNavigation({
-          waitUntil: 'domcontentloaded',
-          timeout: 120000, // 2 minutes
-        }),
-        page.goBack(),
-      ]);
+      // Add to pending records
+      pendingRecords.push(caseDetails);
+      scrapingState.processedCaseReferences.add(caseRef);
+      scrapingState.totalAppealsScraped += 1;
 
-      // Wait for page to stabilize after going back
-      await page.waitForLoadState('networkidle', { timeout: 60000 }); // 1 minute
+      // Flush batch if needed
+      if (pendingRecords.length >= CONFIG.BATCH_SIZE) {
+        await flushPendingRecords();
+      }
 
-      console.log('✅ Processed appeal details');
+      // Checkpoint periodically
+      if (scrapingState.totalAppealsScraped % CONFIG.CHECKPOINT_INTERVAL === 0) {
+        saveState();
+      }
+
+      // Go back
+      await page.goBack();
+      await page.waitForLoadState('domcontentloaded', { timeout: WAIT_TIMES.NAVIGATION_TIMEOUT });
+
+      console.log(`✅ Processed ${caseRef} (Total: ${scrapingState.totalAppealsScraped})`);
     } catch (error) {
-      console.log('❌ Error processing appeal:', error);
+      console.log(`❌ Error processing ${caseRef}:`, error);
 
-      // Enhanced error recovery
+      // Error recovery
       try {
-        // Force navigation back to the main list if needed
         const currentUrl = page.url();
         if (currentUrl.includes('details') || currentUrl.includes('view')) {
           await page.goBack({ timeout: WAIT_TIMES.NAVIGATION_TIMEOUT });
-        } else {
-          await page.reload({ timeout: WAIT_TIMES.NAVIGATION_TIMEOUT });
         }
         await page.waitForLoadState('networkidle', {
           timeout: WAIT_TIMES.NAVIGATION_TIMEOUT,
@@ -178,16 +327,11 @@ async function processCurrentPageAppeals(page: Page): Promise<void> {
           timeout: WAIT_TIMES.NAVIGATION_TIMEOUT,
         });
       } catch (recoveryError) {
-        console.log(
-          '❌ Recovery failed, attempting to refresh:',
-          recoveryError,
-        );
+        console.log('❌ Recovery failed:', recoveryError);
         await page.reload({ timeout: WAIT_TIMES.NAVIGATION_TIMEOUT });
       }
 
-      // Wait a bit before continuing to next item
       await page.waitForTimeout(2000);
-      continue;
     }
   }
 }
@@ -195,11 +339,26 @@ async function processCurrentPageAppeals(page: Page): Promise<void> {
 async function getAppealsDataForDay(page: Page): Promise<boolean> {
   await waitForTableOrNoData(page);
   let hasMorePages = true;
+  let pageNumber = 0;
 
   while (hasMorePages) {
-    // await page.waitForTimeout(WAIT_TIMES.PAGE_TIMEOUT);
+    // Check timeout
+    if (shouldStopDueToTimeout()) {
+      console.log('⏰ Timeout reached, saving progress...');
+      throw new Error('TIMEOUT_REACHED');
+    }
+
+    pageNumber += 1;
+    scrapingState.lastProcessedPage = pageNumber;
+
+    console.log(`📄 Processing page ${pageNumber} for date: ${scrapingState.lastProcessedDate}`);
 
     await processCurrentPageAppeals(page);
+
+    // Log progress every few pages
+    if (pageNumber % 5 === 0) {
+      logProgress();
+    }
 
     // Check for next page
     const nextPageLink = await page.$(SELECTORS.NEXT_PAGE);
@@ -213,6 +372,9 @@ async function getAppealsDataForDay(page: Page): Promise<boolean> {
       console.log('📌 Reached last page for current date');
     }
   }
+
+  // Reset page number for next date
+  scrapingState.lastProcessedPage = 0;
 
   return await navigateToPreviousDay(page);
 }
@@ -275,19 +437,41 @@ async function getPastAppealsData(page: Page): Promise<void> {
   let canContinue = true;
 
   while (canContinue) {
-    await handleInvalidRowsMessage(page);
-    const isNoData = await checkForNoData(page);
+    try {
+      // Check timeout
+      if (shouldStopDueToTimeout()) {
+        console.log('⏰ Timeout reached, stopping gracefully...');
+        break;
+      }
 
-    if (isNoData) {
-      console.log('ℹ️ No data for current date, moving to previous day...');
-      canContinue = await navigateToPreviousDay(page);
-      continue;
+      await handleInvalidRowsMessage(page);
+      const isNoData = await checkForNoData(page);
+
+      if (isNoData) {
+        console.log('ℹ️ No data for current date, moving to previous day...');
+        canContinue = await navigateToPreviousDay(page);
+        continue;
+      }
+
+      const currentDate = await getCurrentDate(page);
+      console.log(`📅 Processing date: ${currentDate}`);
+
+      // Update state with current date
+      scrapingState.lastProcessedDate = currentDate || null;
+
+      canContinue = await getAppealsDataForDay(page);
+
+      // Save state after completing a day
+      saveState();
+      await flushPendingRecords();
+
+    } catch (error) {
+      if (error instanceof Error && error.message === 'TIMEOUT_REACHED') {
+        console.log('⏰ Gracefully stopping due to timeout');
+        break;
+      }
+      throw error;
     }
-
-    const currentDate = await getCurrentDate(page);
-    console.log(`📅 Processing date: ${currentDate}`);
-
-    canContinue = await getAppealsDataForDay(page);
   }
 }
 
@@ -340,8 +524,9 @@ async function extractCaseDetails(page: Page): Promise<CaseDetails> {
   };
 }
 
+// Initialize CSV writer
 const csvWriter = createObjectCsvWriter({
-  path: 'data/appeals.csv',
+  path: CONFIG.CSV_FILE,
   header: [
     { id: 'caseReference', title: 'Case Reference' },
     { id: 'declarant', title: 'Declarant' },
@@ -360,17 +545,8 @@ const csvWriter = createObjectCsvWriter({
     { id: 'direction', title: 'Direction' },
     { id: 'reasons', title: 'Reasons' },
   ],
-  append: existsSync('appeals.csv'),
+  append: existsSync(CONFIG.CSV_FILE),
 });
-
-async function appendToCsv(caseDetails: CaseDetails): Promise<void> {
-  try {
-    await csvWriter.writeRecords([caseDetails]);
-    console.log('✅ Saved case details to CSV');
-  } catch (error) {
-    console.error('❌ Error saving to CSV:', error);
-  }
-}
 
 // Entry point
 async function main(): Promise<void> {
