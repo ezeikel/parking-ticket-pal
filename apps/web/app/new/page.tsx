@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useSearchParams } from 'next/navigation';
 import {
   Card,
   CardContent,
@@ -11,10 +12,14 @@ import {
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import CreateTicketForm from '@/components/forms/CreateTicketForm/CreateTicketForm';
 import CreateLetterForm from '@/components/forms/CreateLetterForm/CreateLetterForm';
+import { Badge } from '@/components/ui/badge';
 
 export const maxDuration = 60;
 
 const UploadPage = () => {
+  const searchParams = useSearchParams();
+  const tier = searchParams.get('tier') as 'standard' | 'premium' | null;
+  const source = searchParams.get('source');
   const [activeTab, setActiveTab] = useState<'ticket' | 'letter'>('ticket');
 
   return (
@@ -22,13 +27,28 @@ const UploadPage = () => {
       <div className="max-w-3xl mx-auto">
         <Card>
           <CardHeader>
-            <CardTitle className="font-slab font-medium text-2xl">
-              Add {activeTab === 'ticket' ? 'Parking Ticket' : 'Letter'}
-            </CardTitle>
+            <div className="flex items-center justify-between">
+              <CardTitle className="font-slab font-medium text-2xl">
+                Add {activeTab === 'ticket' ? 'Parking Ticket' : 'Letter'}
+              </CardTitle>
+              {tier && activeTab === 'ticket' && (
+                <Badge variant="default" className="ml-2">
+                  {tier === 'standard' ? 'Standard' : 'Premium'} Selected
+                </Badge>
+              )}
+            </div>
             <CardDescription>
-              {activeTab === 'ticket'
-                ? 'Enter the details of your parking ticket or upload an image to pre-fill the form.'
-                : 'Enter the details of your letter or upload an image to pre-fill the form.'}
+              {(() => {
+                if (activeTab === 'letter') {
+                  return 'Enter the details of your letter or upload an image to pre-fill the form.';
+                }
+                if (tier) {
+                  const tierName = tier === 'standard' ? 'Standard' : 'Premium';
+                  const price = tier === 'standard' ? '2.99' : '9.99';
+                  return `Add your ticket details to continue with ${tierName} (£${price}).`;
+                }
+                return 'Enter the details of your parking ticket or upload an image to pre-fill the form.';
+              })()}
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -45,7 +65,7 @@ const UploadPage = () => {
               </TabsList>
 
               {activeTab === 'ticket' ? (
-                <CreateTicketForm />
+                <CreateTicketForm tier={tier} source={source} />
               ) : (
                 <CreateLetterForm />
               )}

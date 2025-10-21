@@ -367,6 +367,34 @@ export type EventProperties = {
   };
   [TRACKING_EVENTS.FEATURE_LOCKED_VIEWED]: { featureName: string };
 
+  // Pricing & Plans
+  [TRACKING_EVENTS.PRICING_PAGE_VIEWED]: Record<string, never>;
+  [TRACKING_EVENTS.PRICING_TAB_CHANGED]: {
+    fromTab: 'one-time' | 'subscriptions' | 'business';
+    toTab: 'one-time' | 'subscriptions' | 'business';
+  };
+  [TRACKING_EVENTS.PRICING_BILLING_TOGGLE_CHANGED]: {
+    billingPeriod: 'monthly' | 'yearly';
+    tab: 'subscriptions' | 'business';
+  };
+  [TRACKING_EVENTS.PRICING_PLAN_CLICKED]: {
+    planName: string;
+    planType: 'one-time' | 'subscription' | 'business';
+    billingPeriod?: 'monthly' | 'yearly';
+    price: string;
+    location: 'pricing_page' | 'homepage';
+  };
+  [TRACKING_EVENTS.PRICING_COMPARE_PLANS_CLICKED]: Record<string, never>;
+  [TRACKING_EVENTS.PRICING_TIER_SELECTED]: {
+    tier: 'standard' | 'premium';
+    source: string;
+  };
+  [TRACKING_EVENTS.PRICING_TICKET_CREATED_WITH_TIER]: {
+    ticketId: string;
+    tier: 'standard' | 'premium';
+    source: string;
+  };
+
   // Reminders & Notifications
   [TRACKING_EVENTS.REMINDER_SENT]: { ticketId: string; reminderType: string };
   [TRACKING_EVENTS.REMINDER_CLICKED]: { ticketId: string; reminderId: string };

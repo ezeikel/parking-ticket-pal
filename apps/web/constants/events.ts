@@ -51,6 +51,15 @@ export const TRACKING_EVENTS = {
   QUICK_ACTION_CLICKED: 'quick_action_clicked',
   FEATURE_LOCKED_VIEWED: 'feature_locked_viewed',
 
+  // Pricing & Plans
+  PRICING_PAGE_VIEWED: 'pricing_page_viewed',
+  PRICING_TAB_CHANGED: 'pricing_tab_changed',
+  PRICING_BILLING_TOGGLE_CHANGED: 'pricing_billing_toggle_changed',
+  PRICING_PLAN_CLICKED: 'pricing_plan_clicked',
+  PRICING_COMPARE_PLANS_CLICKED: 'pricing_compare_plans_clicked',
+  PRICING_TIER_SELECTED: 'pricing_tier_selected',
+  PRICING_TICKET_CREATED_WITH_TIER: 'pricing_ticket_created_with_tier',
+
   // Reminders & Notifications
   REMINDER_SENT: 'reminder_sent',
   REMINDER_CLICKED: 'reminder_clicked',

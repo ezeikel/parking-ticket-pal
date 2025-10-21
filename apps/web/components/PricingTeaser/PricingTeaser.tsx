@@ -4,6 +4,8 @@ import { faCheck } from '@fortawesome/pro-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
+import { useAnalytics } from '@/utils/analytics-client';
+import { TRACKING_EVENTS } from '@/constants/events';
 
 const PRICING_TIERS = [
   {
@@ -21,48 +23,61 @@ const PRICING_TIERS = [
     disabled: true,
   },
   {
-    name: 'Ticket Standard',
+    name: 'Standard',
     price: '£2.99',
-    highlight: 'SMS + Email Alerts',
+    highlight: 'Never miss a deadline',
     features: [
       'Everything in Free',
-      'Smart deadline reminders (SMS & Email)',
-      'Peace of mind, never miss a date',
+      'Email + SMS reminders',
+      'Timeline tracking',
+      'Storage for letters and tickets',
     ],
-    cta: 'Get Reminders',
-    href: '/sign-up?tier=reminders&utm_source=homepage_pricing',
+    cta: 'Add Ticket & Get Standard',
+    href: '/new?tier=standard&source=homepage',
     isPopular: false,
     disabled: false,
   },
   {
-    name: 'Ticket Premium',
+    name: 'Premium',
     price: '£9.99',
-    highlight: 'Full AI Support & Submission',
+    highlight: 'Full AI Support & Auto-Submit',
     features: [
-      'Everything in Ticket Standard',
+      'Everything in Standard',
       'AI-generated appeal letters',
-      'Appeal success prediction',
-      'Optional auto-submission for common fines',
+      'Success prediction score',
+      'Automatic challenge submission',
     ],
-    cta: 'Get Full AI Help',
-    href: '/sign-up?tier=pro&utm_source=homepage_pricing',
+    cta: 'Add Ticket & Get Premium',
+    href: '/new?tier=premium&source=homepage',
     isPopular: true,
     disabled: false,
   },
 ];
 
-const PricingTeaser = () => (
-  <section className="py-16 md:py-24 bg-white dark:bg-slate-900">
-    <div className="container mx-auto px-4 md:px-6 max-w-6xl">
-      <div className="text-center mb-12 md:mb-16">
-        <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight mb-4 text-slate-800 dark:text-slate-100">
-          📦 Simple Pricing, Powerful Help
-        </h2>
-        <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-          Start for free by adding your tickets. Upgrade anytime you need
-          reminders or our AI-powered appeal assistance.
-        </p>
-      </div>
+const PricingTeaser = () => {
+  const { track } = useAnalytics();
+
+  const handlePlanClick = (planName: string, price: string) => {
+    track(TRACKING_EVENTS.PRICING_PLAN_CLICKED, {
+      planName,
+      planType: 'one-time',
+      price,
+      location: 'homepage',
+    });
+  };
+
+  return (
+    <section className="py-16 md:py-24 bg-white dark:bg-slate-900">
+      <div className="container mx-auto px-4 md:px-6 max-w-6xl">
+        <div className="text-center mb-12 md:mb-16">
+          <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight mb-4 text-slate-800 dark:text-slate-100">
+            📦 Simple Pricing, Powerful Help
+          </h2>
+          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+            Pay per ticket as you go, or explore our subscription and fleet
+            plans for regular users.
+          </p>
+        </div>
 
       <div className="grid gap-8 md:grid-cols-3 items-stretch">
         {PRICING_TIERS.map((tier) => (
@@ -147,7 +162,12 @@ const PricingTeaser = () => (
                     !tier.isPopular && 'bg-primary hover:bg-primary/90',
                   )}
                 >
-                  <a href={tier.href}>{tier.cta}</a>
+                  <a
+                    href={tier.href}
+                    onClick={() => handlePlanClick(tier.name, tier.price)}
+                  >
+                    {tier.cta}
+                  </a>
                 </Button>
               )}
             </div>
@@ -156,10 +176,14 @@ const PricingTeaser = () => (
       </div>
 
       <p className="text-sm text-muted-foreground text-center mt-10 md:mt-12 italic">
-        Add your tickets for free. Upgrade only when you&apos;re ready.
+        Add your tickets for free. Upgrade only when you&apos;re ready.{' '}
+        <a href="/pricing" className="text-primary hover:underline font-medium">
+          View all pricing options →
+        </a>
       </p>
     </div>
   </section>
-);
+  );
+};
 
 export default PricingTeaser;

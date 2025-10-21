@@ -4,7 +4,7 @@ import { headers } from 'next/headers';
 import Stripe from 'stripe';
 import { ProductType, TicketTier, UserRole } from '@prisma/client';
 import { track } from '@/utils/analytics-server';
-import { getTierPriceId, getSubscriptionPriceId } from '@/constants';
+import { getTierPriceId, getConsumerSubscriptionPriceId } from '@/constants';
 import { TRACKING_EVENTS } from '@/constants/events';
 import { db } from '@/lib/prisma';
 import stripe from '@/lib/stripe';
@@ -341,7 +341,8 @@ export const createTicketCheckoutSession = async (
 };
 
 export const createSubscriptionCheckoutSession = async (
-  subscriptionType: 'monthly' | 'annual',
+  tier: 'standard' | 'premium',
+  period: 'monthly' | 'yearly',
 ): Promise<{ url: string } | null> => {
   const userId = await getUserId('create a subscription checkout session');
 
@@ -365,16 +366,39 @@ export const createSubscriptionCheckoutSession = async (
     return null;
   }
 
-  const priceId = getSubscriptionPriceId(subscriptionType);
+  const priceId = getConsumerSubscriptionPriceId(tier, period);
   if (!priceId) {
-    logger.error('No price ID configured for subscription type', {
-      subscriptionType,
+    logger.error('No price ID configured for subscription', {
+      tier,
+      period,
       userId
     });
     return null;
   }
 
-  const stripeSession = await stripe.checkout.sessions.create({
+  // For subscription mode, we need to ensure customer exists
+  let customerId = user.stripeCustomerId;
+
+  if (!customerId) {
+    // Create a new Stripe customer
+    const customer = await stripe.customers.create({
+      email: user.email,
+      name: user.name || undefined,
+      metadata: {
+        userId,
+      },
+    });
+
+    customerId = customer.id;
+
+    // Save the Stripe customer ID to the database
+    await db.user.update({
+      where: { id: userId },
+      data: { stripeCustomerId: customerId },
+    });
+  }
+
+  const sessionOptions: Stripe.Checkout.SessionCreateParams = {
     payment_method_types: ['card'],
     line_items: [
       {
@@ -386,21 +410,28 @@ export const createSubscriptionCheckoutSession = async (
     success_url: `${origin}/account/billing/success`,
     cancel_url: `${origin}/account/billing`,
     client_reference_id: userId,
+    customer: customerId,
 
     // Include subscription metadata
     metadata: {
-      subscriptionType,
+      tier,
+      period,
       userId,
     },
+  };
 
-    // conditionally set customer parameters - use existing customer OR create new one
-    ...(user.stripeCustomerId
-      ? { customer: user.stripeCustomerId }
-      : {
-          customer_creation: 'always',
-          customer_email: user.email,
-        }),
-  });
+  // Apply admin coupon for free subscriptions if user is ADMIN
+  const userRole = await getUserRole();
+
+  if (userRole === UserRole.ADMIN && process.env.STRIPE_ADMIN_COUPON_ID) {
+    sessionOptions.discounts = [
+      {
+        coupon: process.env.STRIPE_ADMIN_COUPON_ID,
+      },
+    ];
+  }
+
+  const stripeSession = await stripe.checkout.sessions.create(sessionOptions);
 
   return {
     url: stripeSession.url!,

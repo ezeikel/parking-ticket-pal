@@ -1,154 +1,256 @@
 'use client';
 
+import * as React from 'react';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import { PriceCard } from '@/components/pricing/PriceCard';
+import { BillingToggle } from '@/components/pricing/BillingToggle';
 import {
-  Card,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-  CardContent,
-  CardFooter,
-} from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faCheck } from '@fortawesome/pro-regular-svg-icons';
-import cn from '@/utils/cn';
+import { faCheck, faXmark } from '@fortawesome/pro-regular-svg-icons';
+import {
+  PRICING_COPY,
+  ONE_TIME_PRICING,
+  SUBSCRIPTION_PRICING,
+  BUSINESS_PRICING,
+  FAQ_ITEMS,
+  COMPARISON_FEATURES,
+} from '@/lib/pricing-data';
+import { useAnalytics } from '@/utils/analytics-client';
+import { TRACKING_EVENTS } from '@/constants/events';
 
-const PRICING_TIERS = [
-  {
-    name: 'Free',
-    tagline: 'Track your tickets, no charge',
-    price: '£0',
-    description:
-      'Great for anyone wanting to stay informed without actioning anything yet.',
-    features: [
-      'Add unlimited tickets',
-      'See key fine deadlines',
-      'Manage notes and uploads',
-    ],
-    disabled: true,
-    cta: 'Included with every account',
-    href: '',
-  },
-  {
-    name: 'Standard',
-    tagline: 'Get reminders before you pay too much',
-    price: '£2.99',
-    description: 'SMS + email reminders so you don’t miss deadlines.',
-    features: ['All Free features', 'SMS + email reminders'],
-    disabled: false,
-    cta: 'Sign up to get reminders',
-    href: '/sign-up?utm_source=pricing_basic',
-  },
-  {
-    name: 'Premium',
-    tagline: 'Challenge your ticket the smart way',
-    price: '£9.99',
-    description:
-      'Everything included: appeal letter, success score, auto-submit.',
-    features: [
-      'All Standard features',
-      'AI appeal letter',
-      'Success prediction',
-      'Automatic appeal submission',
-    ],
-    disabled: false,
-    cta: 'Sign up for full help',
-    href: '/sign-up?utm_source=pricing_pro',
-  },
-];
+function renderFeatureCell(value: boolean | string) {
+  if (typeof value === 'string') {
+    return <span className="text-sm text-muted-foreground">{value}</span>;
+  }
+  if (value) {
+    return (
+      <FontAwesomeIcon
+        icon={faCheck}
+        className="h-5 w-5 text-green-600 mx-auto"
+      />
+    );
+  }
+  return (
+    <FontAwesomeIcon
+      icon={faXmark}
+      className="h-5 w-5 text-muted-foreground/40 mx-auto"
+    />
+  );
+}
 
-const PricingPage = () => (
-  <div className="max-w-5xl mx-auto py-12 px-4">
-    <header className="text-center mb-16">
-      <h1 className="font-slab text-4xl font-extrabold mb-2 text-primary">
-        Simple, One-Time Pricing
-      </h1>
-      <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-        No subscriptions. No hidden fees. Just pay when you want help with a
-        parking ticket.
-      </p>
-    </header>
-    <section className="grid grid-cols-1 md:grid-cols-3 gap-8">
-      {PRICING_TIERS.map((plan) => (
-        <Card
-          key={plan.name}
-          className={cn(
-            'flex flex-col h-full border-2 transition-shadow',
-            plan.disabled ? 'border-muted' : 'border-border',
-          )}
-        >
-          <CardHeader>
-            <CardTitle className="flex flex-col gap-1">
-              <span className="text-center mb-4">
-                <span className="font-slab">{plan.name}</span>
-              </span>
-              <span className="text-base font-normal text-muted-foreground">
-                {plan.tagline}
-              </span>
-            </CardTitle>
-            <CardDescription className="mt-2 text-lg font-bold text-primary">
-              {plan.price}
-            </CardDescription>
-            <div className="text-xs text-muted-foreground mt-1">
-              {plan.description}
-            </div>
-          </CardHeader>
-          <CardContent className="flex-1 flex flex-col gap-2">
-            <ul className="mb-2 space-y-1">
-              {plan.features.map((feature) => (
-                <li key={feature} className="flex items-center gap-2">
-                  <FontAwesomeIcon
-                    icon={faCheck}
-                    className="h-4 w-4 text-green-500"
-                  />
-                  <span>{feature}</span>
-                </li>
+const PricingPage = () => {
+  const { track } = useAnalytics();
+  const [billingPeriod, setBillingPeriod] = React.useState<
+    'monthly' | 'yearly'
+  >('monthly');
+  const [currentTab, setCurrentTab] = React.useState<
+    'one-time' | 'subscriptions' | 'business'
+  >('one-time');
+
+  const subscriptionPlans = SUBSCRIPTION_PRICING[billingPeriod];
+  const businessPlans = BUSINESS_PRICING[billingPeriod];
+
+  // Track page view on mount
+  React.useEffect(() => {
+    track(TRACKING_EVENTS.PRICING_PAGE_VIEWED, {});
+  }, [track]);
+
+  const handleTabChange = (value: string) => {
+    const newTab = value as 'one-time' | 'subscriptions' | 'business';
+    track(TRACKING_EVENTS.PRICING_TAB_CHANGED, {
+      fromTab: currentTab,
+      toTab: newTab,
+    });
+    setCurrentTab(newTab);
+  };
+
+  const handleComparePlansClick = () => {
+    track(TRACKING_EVENTS.PRICING_COMPARE_PLANS_CLICKED, {});
+  };
+
+  return (
+    <div className="max-w-7xl mx-auto py-12 px-4">
+      {/* Header */}
+      <header className="text-center mb-12">
+        <h1 className="font-slab text-4xl md:text-5xl font-extrabold mb-4 text-primary">
+          {PRICING_COPY.header.title}
+        </h1>
+        <p className="text-lg text-muted-foreground max-w-3xl mx-auto">
+          {PRICING_COPY.header.subtitle}
+        </p>
+      </header>
+
+      {/* Tabs */}
+      <Tabs
+        defaultValue="one-time"
+        value={currentTab}
+        onValueChange={handleTabChange}
+        className="w-full"
+      >
+        <div className="flex justify-center mb-8">
+          <TabsList className="grid w-full max-w-2xl grid-cols-3">
+            <TabsTrigger value="one-time">
+              {PRICING_COPY.tabs.oneTime}
+            </TabsTrigger>
+            <TabsTrigger value="subscriptions">
+              {PRICING_COPY.tabs.subscriptions}
+            </TabsTrigger>
+            <TabsTrigger value="business">
+              {PRICING_COPY.tabs.business}
+            </TabsTrigger>
+          </TabsList>
+        </div>
+
+        {/* One-Time Pricing */}
+        <TabsContent value="one-time" className="mt-8">
+          <section className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-5xl mx-auto">
+            {ONE_TIME_PRICING.map((plan) => (
+              <PriceCard
+                key={plan.title}
+                {...plan}
+                planType="one-time"
+                dataAttrs={{
+                  'data-sku':
+                    plan.title.toLowerCase() === 'standard'
+                      ? 'standard_one_time'
+                      : 'premium_one_time',
+                }}
+              />
+            ))}
+          </section>
+        </TabsContent>
+
+        {/* Subscriptions */}
+        <TabsContent value="subscriptions" className="mt-8">
+          <div className="flex flex-col items-center">
+            <BillingToggle
+              value={billingPeriod}
+              onChange={setBillingPeriod}
+              tab="subscriptions"
+            />
+            <section className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-5xl mx-auto mt-6 w-full">
+              {subscriptionPlans.map((plan) => (
+                <PriceCard
+                  key={plan.title}
+                  {...plan}
+                  planType="subscription"
+                  billingPeriod={billingPeriod}
+                  dataAttrs={{
+                    'data-plan':
+                      plan.title.toLowerCase().includes('standard')
+                        ? `standard_${billingPeriod}`
+                        : `premium_${billingPeriod}`,
+                  }}
+                />
               ))}
-            </ul>
-          </CardContent>
-          <CardFooter className="flex flex-col gap-2">
-            {plan.disabled ? (
-              <Button
-                className="w-full text-lg py-2"
-                variant="outline"
-                disabled
-              >
-                {plan.cta}
-              </Button>
-            ) : (
-              <Button className="w-full text-lg py-2" asChild>
-                <a href={plan.href}>{plan.cta}</a>
-              </Button>
-            )}
-          </CardFooter>
-        </Card>
-      ))}
-    </section>
-    <section className="mt-16 max-w-3xl mx-auto">
-      <h2 className="font-slab text-2xl font-bold mb-4 text-center">
-        Frequently Asked Questions
-      </h2>
-      <ul className="space-y-4 text-sm text-muted-foreground">
-        <li>
-          <strong>Do I need a subscription?</strong> No — you pay only when you
-          want help with a specific ticket.
-        </li>
-        <li>
-          <strong>Can I use it for free?</strong> Yes — you can add and view
-          tickets without paying anything.
-        </li>
-        <li>
-          <strong>What’s the difference between Standard and Premium?</strong>
-          Standard sends reminders. Premium writes your letter and even submits
-          it.
-        </li>
-        <li>
-          <strong>How do I get started?</strong> Just sign up and add your first
-          ticket. You’ll only pay if you want help with it.
-        </li>
-      </ul>
-    </section>
-  </div>
-);
+            </section>
+          </div>
+        </TabsContent>
+
+        {/* Business & Fleet */}
+        <TabsContent value="business" className="mt-8">
+          <div className="flex flex-col items-center">
+            <BillingToggle
+              value={billingPeriod}
+              onChange={setBillingPeriod}
+              tab="business"
+            />
+            <section className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-6xl mx-auto mt-6 w-full">
+              {businessPlans.map((plan) => (
+                <PriceCard
+                  key={plan.title}
+                  {...plan}
+                  planType="business"
+                  billingPeriod={billingPeriod}
+                  dataAttrs={{
+                    'data-interest': plan.href.split('interest=')[1],
+                  }}
+                />
+              ))}
+            </section>
+          </div>
+        </TabsContent>
+      </Tabs>
+
+      {/* Compare Plans Link */}
+      <div className="text-center mt-16 mb-24">
+        <a
+          href="#compare-plans"
+          className="text-primary hover:underline font-medium text-lg"
+          onClick={handleComparePlansClick}
+        >
+          Compare all plans →
+        </a>
+      </div>
+
+      {/* Comparison Table */}
+      <section id="compare-plans" className="mt-8 max-w-5xl mx-auto scroll-mt-8">
+        <h2 className="font-slab text-3xl font-bold mb-8 text-center">
+          Compare Plans
+        </h2>
+        <div className="overflow-x-auto">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead className="w-[200px]">Feature</TableHead>
+                <TableHead className="text-center">Free</TableHead>
+                <TableHead className="text-center">
+                  Standard
+                  <div className="text-xs font-normal text-muted-foreground">
+                    £2.99/ticket
+                  </div>
+                </TableHead>
+                <TableHead className="text-center">
+                  Premium
+                  <div className="text-xs font-normal text-muted-foreground">
+                    £9.99/ticket
+                  </div>
+                </TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {COMPARISON_FEATURES.map((feature) => (
+                <TableRow key={feature.name}>
+                  <TableCell className="font-medium">{feature.name}</TableCell>
+                  <TableCell className="text-center">
+                    {renderFeatureCell(feature.free)}
+                  </TableCell>
+                  <TableCell className="text-center">
+                    {renderFeatureCell(feature.standard)}
+                  </TableCell>
+                  <TableCell className="text-center">
+                    {renderFeatureCell(feature.premium)}
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
+      </section>
+
+      {/* FAQ */}
+      <section className="mt-16 max-w-3xl mx-auto">
+        <h2 className="font-slab text-3xl font-bold mb-8 text-center">
+          Frequently Asked Questions
+        </h2>
+        <ul className="space-y-6">
+          {FAQ_ITEMS.map((item) => (
+            <li key={item.question}>
+              <h3 className="font-semibold text-lg mb-2">{item.question}</h3>
+              <p className="text-muted-foreground">{item.answer}</p>
+            </li>
+          ))}
+        </ul>
+      </section>
+    </div>
+  );
+};
 
 export default PricingPage;

@@ -1,6 +1,6 @@
 'use client';
 
-import { ChangeEvent, useState } from 'react';
+import { ChangeEvent, useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -45,16 +45,33 @@ import { extractOCRTextWithVision } from '@/app/actions/ocr';
 import { useAnalytics } from '@/utils/analytics-client';
 import { TRACKING_EVENTS } from '@/constants/events';
 import createUTCDate from '@/utils/createUTCDate';
+import useLogger from '@/lib/use-logger';
 
-const CreateTicketForm = () => {
+interface CreateTicketFormProps {
+  tier?: 'standard' | 'premium' | null;
+  source?: string | null;
+}
+
+const CreateTicketForm = ({ tier, source }: CreateTicketFormProps) => {
   const [isLoading, setIsLoading] = useState(false);
   const [tempImageUrl, setTempImageUrl] = useState<string | undefined>();
   const [tempImagePath, setTempImagePath] = useState<string | undefined>();
   const [extractedText, setExtractedText] = useState<string>('');
   const router = useRouter();
   const { track } = useAnalytics();
+  const logger = useLogger({ page: 'create-ticket' });
 
   const [contraventionSearch, setContraventionSearch] = useState('');
+
+  // Track when user lands on this page with a tier selected from pricing
+  useEffect(() => {
+    if (tier && source) {
+      track(TRACKING_EVENTS.PRICING_TIER_SELECTED, {
+        tier,
+        source,
+      });
+    }
+  }, [tier, source, track]);
 
   const filteredContraventionCodes = CONTRAVENTION_CODES_OPTIONS.filter(
     (code) =>
@@ -94,13 +111,39 @@ const CreateTicketForm = () => {
           prefilled: !!ticket.extractedText,
         });
 
+        // Track if ticket was created with a tier from pricing page
+        if (tier && source) {
+          await track(TRACKING_EVENTS.PRICING_TICKET_CREATED_WITH_TIER, {
+            ticketId: ticket.id,
+            tier,
+            source,
+          });
+        }
+
         toast.success('Ticket created successfully');
-        router.push('/');
+
+        // If tier is selected from pricing page, redirect to checkout
+        if (tier) {
+          const checkoutParams = new URLSearchParams({
+            ticketId: ticket.id,
+            tier,
+          });
+          if (source) {
+            checkoutParams.append('source', source);
+          }
+          router.push(`/checkout?${checkoutParams.toString()}`);
+        } else {
+          router.push('/');
+        }
       } else {
         throw new Error('Failed to create ticket');
       }
     } catch (error) {
-      console.error('Error creating ticket:', error);
+      logger.error('Error creating ticket', {
+        tier,
+        source,
+        hasImage: !!tempImageUrl,
+      }, error instanceof Error ? error : undefined);
       toast.error('Failed to create ticket. Please try again.');
     } finally {
       setIsLoading(false);
@@ -147,7 +190,7 @@ const CreateTicketForm = () => {
 
       toast.success('Form prefilled with ticket details');
     } catch (error) {
-      console.error('Error uploading image:', error);
+      logger.error('Error uploading image', {}, error instanceof Error ? error : undefined);
       toast.error('Failed to upload image. Please try again.');
     } finally {
       setIsLoading(false);
@@ -261,7 +304,7 @@ const CreateTicketForm = () => {
                           if (date) {
                             // create timezone-safe date immediately when user selects
                             const safeDate = createUTCDate(date);
-                            console.log('Calendar selection:', {
+                            logger.debug('Calendar selection', {
                               userSelected: date.toDateString(),
                               safeDate: safeDate.toISOString(),
                             });
