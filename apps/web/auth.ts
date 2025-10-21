@@ -6,6 +6,7 @@ import AppleProvider from 'next-auth/providers/apple';
 import Resend from 'next-auth/providers/resend';
 import { PrismaAdapter } from '@auth/prisma-adapter';
 import { db } from '@/lib/prisma';
+import { createServerLogger } from '@/lib/logger';
 import { generateAppleClientSecret } from '@/lib/apple';
 import { render } from '@react-email/render';
 import MagicLinkEmail from '@/components/emails/MagicLinkEmail';
@@ -24,6 +25,8 @@ const clientSecret = await generateAppleClientSecret({
   clientId: process.env.APPLE_CLIENT_ID as string,
   privateKey: (process.env.APPLE_PRIVATE_KEY as string).replace(/\\n/g, '\n'),
 });
+
+const logger = createServerLogger({ action: 'auth' });
 
 const config = {
   adapter: PrismaAdapter(db),
@@ -70,7 +73,11 @@ const config = {
             html: emailHtml,
           });
         } catch (error) {
-          console.error('Failed to send verification email:', error);
+          logger.error(
+            'Failed to send verification email',
+            { email },
+            error instanceof Error ? error : undefined,
+          );
           throw error;
         }
       },
@@ -87,8 +94,6 @@ const config = {
       profile?: Profile;
       email?: { verificationRequest?: boolean };
     }) {
-      console.log('signIn', { account, profile, email });
-
       // handle magic link request
       if (email?.verificationRequest) {
         return true;
@@ -103,8 +108,6 @@ const config = {
         const existingUser = profile?.email
           ? await db.user.findUnique({ where: { email: profile.email } })
           : null;
-
-        console.log('existingUser', existingUser);
 
         if (existingUser) {
           return true;

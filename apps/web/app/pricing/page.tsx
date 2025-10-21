@@ -2,8 +2,8 @@
 
 import * as React from 'react';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
-import { PriceCard } from '@/components/pricing/PriceCard';
-import { BillingToggle } from '@/components/pricing/BillingToggle';
+import PriceCard from '@/components/pricing/PriceCard';
+import BillingToggle from '@/components/pricing/BillingToggle';
 import {
   Table,
   TableBody,

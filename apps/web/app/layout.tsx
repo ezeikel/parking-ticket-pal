@@ -8,7 +8,7 @@ import cn from '@/utils/cn';
 import Header from '@/components/Header/Header';
 import FundAccountDialog from '@/components/dialogs/FundAccountDialog/FundAccountDialog';
 import Footer from '@/components/Footer/Footer';
-import { PendingActionHandler } from '@/components/PendingActionHandler';
+import PendingActionHandler from '@/components/PendingActionHandler';
 import Providers from './providers';
 import { inter, robotoSlab, lato } from './fonts';
 import '@/global.css';
