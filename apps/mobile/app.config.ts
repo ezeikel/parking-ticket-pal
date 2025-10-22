@@ -144,7 +144,16 @@ export default ({ config }: ConfigContext): ExpoConfig => {
         ],
       },
     ],
-    "expo-localization"
+    "expo-localization",
+    [
+      "react-native-fbsdk-next",
+      {
+        appID: `${process.env.EXPO_PUBLIC_FACEBOOK_APP_ID}`,
+        displayName: "Parking Ticket Pal",
+        clientToken: `${process.env.EXPO_PUBLIC_FACEBOOK_CLIENT_TOKEN}`,
+        scheme: "parkingticketpal",
+      }
+    ]
   ],
     experiments: {
       typedRoutes: true,
