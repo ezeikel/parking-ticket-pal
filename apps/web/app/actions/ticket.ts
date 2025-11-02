@@ -334,25 +334,21 @@ export const updateTicketNotes = async (
   }
 };
 
-export const deleteTicket = async (
-  _prevState: { success: boolean; error?: string; data?: any } | null,
-  formData: FormData,
-) => {
-  const userId = await getUserId('delete a ticket');
-
-  if (!userId) {
-    return { success: false, error: 'Unauthorized' };
-  }
-
-  const id = formData.get('ticketId') as string;
-
-  if (!id) {
+/**
+ * Internal function to delete a ticket by ID
+ * Shared between server actions and API routes
+ */
+export const deleteTicketById = async (
+  ticketId: string,
+  userId: string,
+): Promise<{ success: boolean; error?: string; data?: any }> => {
+  if (!ticketId) {
     return { success: false, error: 'Ticket ID is required' };
   }
 
   const ticket = await db.ticket.findUnique({
     where: {
-      id,
+      id: ticketId,
     },
     select: {
       vehicle: {
@@ -376,7 +372,7 @@ export const deleteTicket = async (
 
   const ticketMedia = await db.media.findMany({
     where: {
-      ticketId: id,
+      ticketId,
     },
   });
 
@@ -385,23 +381,46 @@ export const deleteTicket = async (
     const [deletedTicket] = await Promise.all([
       db.ticket.delete({
         where: {
-          id,
+          id: ticketId,
         },
       }),
-      ticketMedia.map(async (media) => {
+      ...ticketMedia.map(async (media) => {
         await del(media.url);
       }),
     ]);
 
-    revalidatePath('/dashboard');
     return { success: true, data: deletedTicket };
   } catch (error) {
     logger.error('Error deleting ticket', {
-      ticketId: id,
+      ticketId,
       userId
     }, error instanceof Error ? error : new Error(String(error)));
     return { success: false, error: 'Failed to delete ticket' };
   }
+};
+
+/**
+ * Server action to delete a ticket (for use in forms)
+ */
+export const deleteTicket = async (
+  _prevState: { success: boolean; error?: string; data?: any } | null,
+  formData: FormData,
+) => {
+  const userId = await getUserId('delete a ticket');
+
+  if (!userId) {
+    return { success: false, error: 'Unauthorized' };
+  }
+
+  const id = formData.get('ticketId') as string;
+
+  const result = await deleteTicketById(id, userId);
+
+  if (result.success) {
+    revalidatePath('/dashboard');
+  }
+
+  return result;
 };
 
 export const getTickets = async () => {

@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { TicketTier } from '@prisma/client';
 import { createTicketCheckoutSession } from '@/app/actions/stripe';
@@ -17,7 +17,7 @@ import { useAnalytics } from '@/utils/analytics-client';
 import { TRACKING_EVENTS } from '@/constants/events';
 import useLogger from '@/lib/use-logger';
 
-const CheckoutPage = () => {
+const CheckoutContent = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { track } = useAnalytics();
@@ -149,5 +149,36 @@ const CheckoutPage = () => {
     </div>
   );
 };
+
+const CheckoutPage = () => (
+  <Suspense
+    fallback={
+      <div className="container mx-auto py-12 px-4">
+        <div className="max-w-md mx-auto">
+          <Card>
+            <CardHeader>
+              <CardTitle className="font-slab text-center">
+                Loading...
+              </CardTitle>
+              <CardDescription className="text-center">
+                Please wait
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="flex flex-col items-center gap-4 py-8">
+                <FontAwesomeIcon
+                  icon={faSpinnerThird}
+                  className="h-12 w-12 text-primary animate-spin"
+                />
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    }
+  >
+    <CheckoutContent />
+  </Suspense>
+);
 
 export default CheckoutPage;

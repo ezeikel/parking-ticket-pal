@@ -14,8 +14,8 @@ import {
   User,
 } from '@prisma/client';
 import { z } from 'zod';
-import { TRACKING_EVENTS } from './constants/events';
-import { BLOG_TAGS } from './constants/blog';
+import { TRACKING_EVENTS } from '@/constants/events';
+import { BLOG_TAGS } from '@/constants/blog';
 import { Address } from '@parking-ticket-pal/types';
 
 export type FileWithPreview = File & {

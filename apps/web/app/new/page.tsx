@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { Suspense, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import {
   Card,
@@ -16,7 +16,7 @@ import { Badge } from '@/components/ui/badge';
 
 export const maxDuration = 60;
 
-const UploadPage = () => {
+const UploadContent = () => {
   const searchParams = useSearchParams();
   const tier = searchParams.get('tier') as 'standard' | 'premium' | null;
   const source = searchParams.get('source');
@@ -76,5 +76,31 @@ const UploadPage = () => {
     </div>
   );
 };
+
+const UploadPage = () => (
+  <Suspense
+    fallback={
+      <div className="container mx-auto py-6">
+        <div className="max-w-3xl mx-auto">
+          <Card>
+            <CardHeader>
+              <CardTitle className="font-slab font-medium text-2xl">
+                Loading...
+              </CardTitle>
+              <CardDescription>Please wait</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="flex justify-center py-8">
+                <div className="animate-pulse">Loading form...</div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    }
+  >
+    <UploadContent />
+  </Suspense>
+);
 
 export default UploadPage;

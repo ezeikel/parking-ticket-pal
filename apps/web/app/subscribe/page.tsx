@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { createSubscriptionCheckoutSession } from '@/app/actions/stripe';
 import {
@@ -14,7 +14,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faSpinnerThird } from '@fortawesome/pro-regular-svg-icons';
 import useLogger from '@/lib/use-logger';
 
-const SubscribePage = () => {
+const SubscribeContent = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
   const logger = useLogger({ page: 'subscribe' });
@@ -152,5 +152,36 @@ const SubscribePage = () => {
     </div>
   );
 };
+
+const SubscribePage = () => (
+  <Suspense
+    fallback={
+      <div className="container mx-auto py-12 px-4">
+        <div className="max-w-md mx-auto">
+          <Card>
+            <CardHeader>
+              <CardTitle className="font-slab text-center">
+                Loading...
+              </CardTitle>
+              <CardDescription className="text-center">
+                Please wait
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="flex flex-col items-center gap-4 py-8">
+                <FontAwesomeIcon
+                  icon={faSpinnerThird}
+                  className="h-12 w-12 text-primary animate-spin"
+                />
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    }
+  >
+    <SubscribeContent />
+  </Suspense>
+);
 
 export default SubscribePage;

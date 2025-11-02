@@ -2,11 +2,12 @@
 
 import Stripe from 'stripe';
 import { db } from '@/lib/prisma';
-import { SubscriptionType, TicketTier } from '@prisma/client';
+import { SubscriptionType, SubscriptionSource, TicketTier } from '@prisma/client';
 import {
   STRIPE_API_VERSION,
   isTierUpgradePrice,
   isSubscriptionPrice,
+  getSubscriptionTierFromPriceId,
 } from '@/constants';
 import { revalidatePath } from 'next/cache';
 
@@ -149,29 +150,60 @@ export const POST = async (req: Request) => {
           );
 
           if (isSubscriptionPayment) {
-            // update user subscription
-            await db.subscription.updateMany({
-              where: {
-                user: {
-                  email,
-                },
+            // Find the user first
+            const user = await db.user.findUnique({
+              where: { email },
+            });
+
+            if (!user) {
+              console.error(`User not found for email: ${email}`);
+              return Response.json({ received: true }, { status: 200 });
+            }
+
+            // Determine subscription type from the actual price ID
+            let type: SubscriptionType = SubscriptionType.PREMIUM; // Default for backward compatibility
+
+            // Check the line items for the price ID
+            const priceId = lineItems.data[0]?.price?.id;
+            if (priceId) {
+              const tierFromPrice = getSubscriptionTierFromPriceId(priceId);
+              if (tierFromPrice === 'STANDARD') {
+                type = SubscriptionType.STANDARD;
+              } else if (tierFromPrice === 'PREMIUM') {
+                type = SubscriptionType.PREMIUM;
+              }
+            }
+
+            // Fallback to metadata if price ID check didn't work
+            if (!priceId && subscriptionType === 'STANDARD') {
+              type = SubscriptionType.STANDARD;
+            }
+
+            // Create or update subscription
+            await db.subscription.upsert({
+              where: { userId: user.id },
+              create: {
+                userId: user.id,
+                type,
+                source: SubscriptionSource.STRIPE,
+                stripeSubscriptionId: completedCheckoutSession.subscription as string | null,
               },
-              data: {
-                type: SubscriptionType.PREMIUM,
+              update: {
+                type,
+                source: SubscriptionSource.STRIPE,
+                stripeSubscriptionId: completedCheckoutSession.subscription as string | null,
               },
             });
 
             // update user's stripe customer ID
-            if (customerId) {
-              await db.user.updateMany({
-                where: {
-                  email,
-                },
-                data: {
-                  stripeCustomerId: customerId,
-                },
+            if (customerId && !user.stripeCustomerId) {
+              await db.user.update({
+                where: { id: user.id },
+                data: { stripeCustomerId: customerId },
               });
             }
+
+            console.log(`[Stripe] Subscription created/updated: ${type} for user ${user.id}`);
 
             // revalidate user-related routes
             revalidatePath('/dashboard');
@@ -190,34 +222,59 @@ export const POST = async (req: Request) => {
     const createdCustomerSubscription = stripeEvent.data
       .object as Stripe.Subscription;
 
-    const { id, email } = (await stripe.customers.retrieve(
+    const customer = (await stripe.customers.retrieve(
       createdCustomerSubscription.customer as string,
     )) as Stripe.Customer; // casting because of union type - https://github.com/stripe/stripe-node/issues/1032
 
-    if (email) {
-      // update user subscription
-      await db.subscription.updateMany({
-        where: {
-          user: {
-            email,
-          },
+    if (customer.email) {
+      const user = await db.user.findUnique({
+        where: { email: customer.email },
+      });
+
+      if (!user) {
+        console.error(`User not found for email: ${customer.email}`);
+        return Response.json({ received: true }, { status: 200 });
+      }
+
+      // Determine subscription type from the price
+      let type: SubscriptionType = SubscriptionType.PREMIUM; // Default for backward compatibility
+
+      // Check the subscription items for the price ID
+      const priceId = createdCustomerSubscription.items.data[0]?.price?.id;
+      if (priceId) {
+        const tierFromPrice = getSubscriptionTierFromPriceId(priceId);
+        if (tierFromPrice === 'STANDARD') {
+          type = SubscriptionType.STANDARD;
+        } else if (tierFromPrice === 'PREMIUM') {
+          type = SubscriptionType.PREMIUM;
+        }
+      }
+
+      // Create or update user subscription
+      await db.subscription.upsert({
+        where: { userId: user.id },
+        create: {
+          userId: user.id,
+          type,
+          source: SubscriptionSource.STRIPE,
+          stripeSubscriptionId: createdCustomerSubscription.id,
         },
-        data: {
-          // TODO: is this still true?
-          // will always be PREMIUM since this is a subscription payment
-          type: SubscriptionType.PREMIUM,
+        update: {
+          type,
+          source: SubscriptionSource.STRIPE,
+          stripeSubscriptionId: createdCustomerSubscription.id,
         },
       });
 
       // update user's stripe customer ID
-      await db.user.updateMany({
-        where: {
-          email,
-        },
-        data: {
-          stripeCustomerId: createdCustomerSubscription.customer as string,
-        },
-      });
+      if (!user.stripeCustomerId) {
+        await db.user.update({
+          where: { id: user.id },
+          data: { stripeCustomerId: createdCustomerSubscription.customer as string },
+        });
+      }
+
+      console.log(`[Stripe] Subscription created: ${type} for user ${user.id}`);
 
       // revalidate subscription-related routes
       revalidatePath('/dashboard');
@@ -226,7 +283,7 @@ export const POST = async (req: Request) => {
       revalidatePath('/billing');
     } else {
       console.error(
-        `No customer email provided for ${id} to update Subscription to "SUBSCRIBED"`,
+        `No customer email provided for ${customer.id} to create Subscription`,
       );
     }
   } else if (stripeEvent.type === 'customer.subscription.updated') {
@@ -234,19 +291,50 @@ export const POST = async (req: Request) => {
     const updatedCustomerSubscription = stripeEvent.data
       .object as Stripe.Subscription;
 
-    // update user subscription
-    await db.subscription.updateMany({
+    const user = await db.user.findFirst({
       where: {
-        user: {
-          stripeCustomerId: updatedCustomerSubscription.customer as string,
-        },
-      },
-      data: {
-        // TODO: is this still true?
-        // will always be PREMIUM since this is a subscription payment
-        type: SubscriptionType.PREMIUM,
+        stripeCustomerId: updatedCustomerSubscription.customer as string,
       },
     });
+
+    if (!user) {
+      console.error(
+        `User not found with Stripe customer ID: ${updatedCustomerSubscription.customer}`,
+      );
+      return Response.json({ received: true }, { status: 200 });
+    }
+
+    // Determine subscription type from the price
+    let type: SubscriptionType = SubscriptionType.PREMIUM; // Default for backward compatibility
+
+    // Check the subscription items for the price ID
+    const priceId = updatedCustomerSubscription.items.data[0]?.price?.id;
+    if (priceId) {
+      const tierFromPrice = getSubscriptionTierFromPriceId(priceId);
+      if (tierFromPrice === 'STANDARD') {
+        type = SubscriptionType.STANDARD;
+      } else if (tierFromPrice === 'PREMIUM') {
+        type = SubscriptionType.PREMIUM;
+      }
+    }
+
+    // Update user subscription
+    await db.subscription.upsert({
+      where: { userId: user.id },
+      create: {
+        userId: user.id,
+        type,
+        source: SubscriptionSource.STRIPE,
+        stripeSubscriptionId: updatedCustomerSubscription.id,
+      },
+      update: {
+        type,
+        source: SubscriptionSource.STRIPE,
+        stripeSubscriptionId: updatedCustomerSubscription.id,
+      },
+    });
+
+    console.log(`[Stripe] Subscription updated: ${type} for user ${user.id}`);
 
     // revalidate subscription-related routes
     revalidatePath('/dashboard');

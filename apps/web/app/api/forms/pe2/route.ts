@@ -1,18 +1,29 @@
 import { generatePE2Form, getFormFillDataFromTicket } from '@/app/actions/form';
 import { NextRequest } from 'next/server';
-// import { auth } from '@/auth';
+import { getUserId } from '@/utils/user';
 
 export const POST = async (req: NextRequest) => {
   try {
-    // TODO: put behind auth
-    // get user from auth
-    // const session = await auth();
-    // if (!session?.user) {
-    //   return Response.json(
-    //     { success: false, error: 'Unauthorized' },
-    //     { status: 401 }
-    //   );
-    // }
+    // Development bypass: allow testing with X-Test-User-Id header
+    const isDevelopment = process.env.NODE_ENV === 'development';
+    const testUserId = req.headers.get('X-Test-User-Id');
+
+    let userId: string | null;
+
+    if (isDevelopment && testUserId) {
+      // In development, allow bypassing auth with test header
+      userId = testUserId;
+      console.log('[DEV] Using test user ID:', userId);
+    } else {
+      // Production: require proper authentication
+      userId = await getUserId('generate PE2 form');
+      if (!userId) {
+        return Response.json(
+          { success: false, error: 'Unauthorized' },
+          { status: 401 }
+        );
+      }
+    }
 
     // Get form data from request
     const requestData = await req.json();
@@ -24,8 +35,12 @@ export const POST = async (req: NextRequest) => {
       );
     }
 
-    // get the data to fill out the form via information from the ticket
-    const formFillData = await getFormFillDataFromTicket(requestData.pcnNumber);
+    // Get the data to fill out the form via information from the ticket
+    // Pass userId to verify ownership
+    const formFillData = await getFormFillDataFromTicket(
+      requestData.pcnNumber,
+      userId
+    );
 
     if (!formFillData) {
       return Response.json(

@@ -1,3 +1,4 @@
+import { Suspense } from 'react';
 import Link from 'next/link';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { Button } from '@/components/ui/button';
@@ -20,7 +21,9 @@ const TicketPage = async ({ params }: TicketPageProps) => {
 
   return (
     <div className="container mx-auto py-6 space-y-6">
-      <PaymentRedirectHandler ticketId={id} />
+      <Suspense fallback={null}>
+        <PaymentRedirectHandler ticketId={id} />
+      </Suspense>
       <div className="flex items-center justify-between">
         <Link href="/tickets">
           <Button variant="ghost" className="flex items-center gap-2">

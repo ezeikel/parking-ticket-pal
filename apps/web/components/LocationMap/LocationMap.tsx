@@ -4,7 +4,7 @@ import { useEffect, useRef } from 'react';
 import { createRoot } from 'react-dom/client';
 import mapboxgl from 'mapbox-gl';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faMapMarkerAlt } from '@fortawesome/pro-solid-svg-icons';
+import { faCarSide } from '@fortawesome/pro-solid-svg-icons';
 import 'mapbox-gl/dist/mapbox-gl.css';
 
 type LocationMapProps = {
@@ -49,7 +49,7 @@ const LocationMap = ({ longitude, latitude }: LocationMapProps) => {
     const root = createRoot(iconContainer);
     root.render(
       <FontAwesomeIcon
-        icon={faMapMarkerAlt}
+        icon={faCarSide}
         className="text-primary-foreground"
         size="lg"
       />,

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Pressable, Text, View, Alert } from 'react-native';
 import { FlashList } from "@shopify/flash-list";
+import { router } from 'expo-router';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import {
   faCircleExclamation,
@@ -15,11 +16,16 @@ import {
   differenceInMinutes, differenceInHours, differenceInDays,
   differenceInMilliseconds, parseISO, addDays, format
 } from 'date-fns';
+import { useQueryClient } from '@tanstack/react-query';
 import useTickets from '@/hooks/api/useTickets';
-import { Ticket, TicketStatus, Address } from '@/types';
+import { Ticket, TicketStatus } from '@/types';
+import { deleteTicket } from '@/api';
+
+type TicketTier = 'FREE' | 'STANDARD' | 'PREMIUM';
+import { Address } from '@parking-ticket-pal/types';
 import { useColorScheme } from '@/hooks/useColorScheme';
-import { Colors } from '@/constants/Colors';
 import Loader from '@/components/Loader/Loader';
+import SquishyPressable from '@/components/SquishyPressable/SquishyPressable';
 
 const DISCOUNT_THRESHOLD_MS = 172800000; // 48 hours in milliseconds
 
@@ -98,18 +104,37 @@ const TicketItem = ({ ticket, style, onDelete }: {
     }
   };
 
+  // Get ticket data with type assertion since mobile types are outdated
+  const ticketData = ticket as any;
+
   const statusColors = getStatusColor(ticket.status);
   const formattedDate = format(new Date(ticket.issuedAt), 'MMM d, yyyy');
   const dueDateFormatted = format(paymentDeadline, 'MMM d');
 
-  // Calculate amount due (simplified - assuming discount period logic)
-  const baseAmount = ticket.initialAmount || 60;
-  const discountAmount = Math.round(baseAmount * 0.5);
-  const currentAmount = isDiscountPeriod ? discountAmount : baseAmount;
+  // Calculate amount (initialAmount is stored in pennies, convert to pounds)
+  const amountInPennies = ticketData.initialAmount || 6000; // Default to £60 (6000 pennies)
+  const amount = amountInPennies / 100;
 
   // Check if ticket is urgent (less than 48 hours to deadline)
   const timeUntilDeadline = differenceInMilliseconds(paymentDeadline, new Date());
   const isUrgent = timeUntilDeadline < DISCOUNT_THRESHOLD_MS && timeUntilDeadline > 0;
+
+  // Get ticket tier
+  const tier: TicketTier = ticketData.tier || 'FREE';
+
+  // Tier badge colors
+  const getTierColor = (tier: TicketTier) => {
+    switch (tier) {
+      case 'STANDARD':
+        return { bg: '#dbeafe', text: '#2563eb' }; // blue
+      case 'PREMIUM':
+        return { bg: '#f3e8ff', text: '#9333ea' }; // purple
+      default:
+        return null; // Don't show badge for FREE
+    }
+  };
+
+  const tierColors = getTierColor(tier);
 
   const handleDelete = () => {
     Alert.alert(
@@ -127,12 +152,15 @@ const TicketItem = ({ ticket, style, onDelete }: {
   };
 
   return (
-    <View
-      className={`rounded-lg bg-white shadow-sm ${
-        isUrgent ? 'border-2 border-red-300' : 'border border-gray-200'
-      }`}
+    <SquishyPressable
+      onPress={() => router.push(`/ticket/${ticket.id}`)}
       style={style}
     >
+      <View
+        className={`rounded-lg bg-white shadow-sm ${
+          isUrgent ? 'border-2 border-red-300' : 'border border-gray-200'
+        }`}
+      >
       {/* Header */}
       <View className="flex-row items-start justify-between p-4 pb-2">
         <View className="flex-1">
@@ -152,10 +180,10 @@ const TicketItem = ({ ticket, style, onDelete }: {
         </Pressable>
       </View>
 
-      {/* Status Badge */}
-      <View className="px-4 pb-3">
+      {/* Status Badge & Tier Indicator */}
+      <View className="px-4 pb-3 flex-row items-center justify-between">
         <View
-          className="rounded-full px-3 py-1 self-start"
+          className="rounded-full px-3 py-1"
           style={{ backgroundColor: statusColors.bg }}
         >
           <Text
@@ -165,6 +193,21 @@ const TicketItem = ({ ticket, style, onDelete }: {
             {ticket.status.replace(/_/g, ' ')}
           </Text>
         </View>
+
+        {/* Tier Badge - only show for STANDARD/PREMIUM */}
+        {tierColors && (
+          <View
+            className="rounded-full px-2.5 py-0.5"
+            style={{ backgroundColor: tierColors.bg }}
+          >
+            <Text
+              className="font-inter text-xs font-semibold"
+              style={{ color: tierColors.text }}
+            >
+              {tier}
+            </Text>
+          </View>
+        )}
       </View>
 
       {/* Details Grid */}
@@ -205,7 +248,7 @@ const TicketItem = ({ ticket, style, onDelete }: {
               style={{ marginRight: 8 }}
             />
             <Text className="font-inter text-sm font-semibold text-gray-900">
-              £{currentAmount}
+              £{amount.toFixed(2)}
             </Text>
           </View>
 
@@ -243,17 +286,25 @@ const TicketItem = ({ ticket, style, onDelete }: {
       <View className="px-4 pb-4">
         <CountdownTimer deadline={paymentDeadline.toISOString()} />
       </View>
-    </View>
+      </View>
+    </SquishyPressable>
   );
 };
 
 const TicketsList = () => {
   const { data: { tickets } = {}, isLoading } = useTickets();
+  const queryClient = useQueryClient();
 
-  const handleDeleteTicket = (ticketId: string) => {
-    // TODO: Implement delete API call
-    console.log('Delete ticket:', ticketId);
-    Alert.alert('Success', 'Ticket deleted successfully');
+  const handleDeleteTicket = async (ticketId: string) => {
+    try {
+      await deleteTicket(ticketId);
+      // Invalidate and refetch tickets
+      queryClient.invalidateQueries({ queryKey: ['tickets'] });
+      Alert.alert('Success', 'Ticket deleted successfully');
+    } catch (error) {
+      console.error('Error deleting ticket:', error);
+      Alert.alert('Error', 'Failed to delete ticket. Please try again.');
+    }
   };
 
   if (isLoading) {

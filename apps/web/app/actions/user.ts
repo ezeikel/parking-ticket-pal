@@ -11,6 +11,17 @@ import { createServerLogger } from '@/lib/logger';
 
 const logger = createServerLogger({ action: 'user' });
 
+type UpdateUserData = {
+  name?: string;
+  phoneNumber?: string;
+  addressLine1?: string;
+  addressLine2?: string;
+  city?: string;
+  county?: string;
+  postcode?: string;
+  signatureDataUrl?: string;
+};
+
 const deleteExistingSignature = async (userId: string): Promise<void> => {
   try {
     const { blobs } = await list({
@@ -29,20 +40,29 @@ const deleteExistingSignature = async (userId: string): Promise<void> => {
   }
 };
 
-export const updateUserProfile = async (userId: string, formData: FormData) => {
-  try {
-    const name = formData.get('name') as string;
-    const phoneNumber = formData.get('phoneNumber') as string | null;
-    const addressLine1 = formData.get('addressLine1') as string | null;
-    const addressLine2 = formData.get('addressLine2') as string | null;
-    const city = formData.get('city') as string | null;
-    const county = formData.get('county') as string | null;
-    const postcode = formData.get('postcode') as string | null;
-    const signaturePoints = formData.get('signatureDataUrl') as string | null;
+/**
+ * Internal function to update user profile
+ * Shared between server actions and API routes
+ */
+const updateUserProfileInternal = async (
+  userId: string,
+  data: UpdateUserData
+) => {
+  if (!userId) {
+    return { success: false as const, error: 'User ID is required', user: null };
+  }
 
-    if (!userId) {
-      return { success: false, error: 'User ID is required' };
-    }
+  try {
+    const {
+      name,
+      phoneNumber,
+      addressLine1,
+      addressLine2,
+      city,
+      county,
+      postcode,
+      signatureDataUrl: signaturePoints,
+    } = data;
 
     let signatureUrl = null;
 
@@ -96,12 +116,86 @@ export const updateUserProfile = async (userId: string, formData: FormData) => {
       signature: !!signatureUrl,
     });
 
-    return { success: true, user: updatedUser };
+    return { success: true as const, user: updatedUser };
   } catch (error) {
     logger.error('Error updating profile', {
       userId
     }, error instanceof Error ? error : new Error(String(error)));
-    return { success: false, error: 'Failed to update profile' };
+    return { success: false as const, error: 'Failed to update profile', user: null };
+  }
+};
+
+/**
+ * Server action to update user profile (for use in forms)
+ */
+export const updateUserProfile = async (userId: string, formData: FormData) => {
+  const data: UpdateUserData = {
+    name: formData.get('name') as string,
+    phoneNumber: formData.get('phoneNumber') as string | null || undefined,
+    addressLine1: formData.get('addressLine1') as string | null || undefined,
+    addressLine2: formData.get('addressLine2') as string | null || undefined,
+    city: formData.get('city') as string | null || undefined,
+    county: formData.get('county') as string | null || undefined,
+    postcode: formData.get('postcode') as string | null || undefined,
+    signatureDataUrl: formData.get('signatureDataUrl') as string | null || undefined,
+  };
+
+  return updateUserProfileInternal(userId, data);
+};
+
+/**
+ * Update user profile by user ID (for API routes)
+ * Includes authentication check to ensure user can only update their own profile
+ */
+export const updateUserById = async (
+  requestedUserId: string,
+  authenticatedUserId: string,
+  data: UpdateUserData
+) => {
+  // Verify the authenticated user is updating their own profile
+  if (requestedUserId !== authenticatedUserId) {
+    logger.error('Unauthorized user profile update attempt', {
+      requestedUserId,
+      authenticatedUserId
+    });
+    return { success: false as const, error: 'Unauthorized - cannot update another user\'s profile', user: null };
+  }
+
+  return updateUserProfileInternal(requestedUserId, data);
+};
+
+/**
+ * Get user by ID (for API routes)
+ * Includes authentication check to ensure user can only access their own profile
+ */
+export const getUserById = async (
+  requestedUserId: string,
+  authenticatedUserId: string
+) => {
+  // Verify the authenticated user is accessing their own profile
+  if (requestedUserId !== authenticatedUserId) {
+    logger.error('Unauthorized user profile access attempt', {
+      requestedUserId,
+      authenticatedUserId
+    });
+    return { success: false, error: 'Unauthorized - cannot access another user\'s profile', user: null };
+  }
+
+  try {
+    const user = await db.user.findUnique({
+      where: { id: requestedUserId },
+    });
+
+    if (!user) {
+      return { success: false, error: 'User not found', user: null };
+    }
+
+    return { success: true, user };
+  } catch (error) {
+    logger.error('Error fetching user', {
+      userId: requestedUserId
+    }, error instanceof Error ? error : new Error(String(error)));
+    return { success: false, error: 'Failed to fetch user', user: null };
   }
 };
 

@@ -58,5 +58,28 @@
       "channel": "beta"
     }
   },
-  "submit": {}
+  "submit": {
+    "production": {
+      "android": {
+        "serviceAccountKeyPath": "./google-service-account.json",
+        "track": "production"
+      },
+      "ios": {
+        "appleId": "developer@chewybytes.com",
+        "ascAppId": "6753653055",
+        "appleTeamId": "HGX827L49J"
+      }
+    },
+    "beta": {
+      "android": {
+        "serviceAccountKeyPath": "./google-service-account.json",
+        "track": "internal"
+      },
+      "ios": {
+        "appleId": "developer@chewybytes.com",
+        "ascAppId": "6753653055",
+        "appleTeamId": "HGX827L49J"
+      }
+    }
+  }
 }

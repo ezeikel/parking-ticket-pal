@@ -376,16 +376,16 @@ export const deleteLetter = async (letterId: string) => {
   }
 };
 
-export const generateChallengeLetter = async (
+/**
+ * Internal function to generate challenge letter by ticket ID
+ * Used by both generateChallengeLetterByPcn and the server action
+ */
+const generateChallengeLetterByTicketId = async (
   ticketId: string,
   challengeReason: string,
-  additionalDetails?: string,
+  additionalDetails: string | undefined,
+  userId: string,
 ) => {
-  const userId = await getUserId('generate a challenge letter');
-
-  if (!userId) {
-    return null;
-  }
 
   // get user information
   const user = await db.user.findUnique({
@@ -426,6 +426,7 @@ export const generateChallengeLetter = async (
       vehicle: {
         select: {
           registrationNumber: true,
+          userId: true,
         },
       },
       media: {
@@ -441,6 +442,16 @@ export const generateChallengeLetter = async (
     logger.error('Ticket not found for challenge letter generation', {
       ticketId,
       userId
+    });
+    return null;
+  }
+
+  // Verify ticket belongs to the authenticated user
+  if (ticket.vehicle.userId !== userId) {
+    logger.error('Ticket does not belong to authenticated user', {
+      ticketId,
+      userId,
+      ticketOwnerId: ticket.vehicle.userId,
     });
     return null;
   }
@@ -615,4 +626,66 @@ export const generateChallengeLetter = async (
       message: 'Failed to generate challenge letter.',
     };
   }
+};
+
+/**
+ * Internal function to generate challenge letter by PCN number
+ * Shared between server actions and API routes
+ */
+export const generateChallengeLetterByPcn = async (
+  pcnNumber: string,
+  challengeReason: string,
+  userId: string,
+  additionalDetails?: string,
+) => {
+  // First, get the ticket by PCN number
+  const ticketLookup = await db.ticket.findUnique({
+    where: { pcnNumber },
+    select: {
+      id: true,
+      vehicle: {
+        select: {
+          userId: true,
+        },
+      },
+    },
+  });
+
+  if (!ticketLookup) {
+    logger.error('Ticket not found for challenge letter generation', {
+      pcnNumber,
+      userId
+    });
+    return null;
+  }
+
+  // Verify ownership
+  if (ticketLookup.vehicle.userId !== userId) {
+    logger.error('Ticket does not belong to authenticated user', {
+      pcnNumber,
+      userId,
+      ticketOwnerId: ticketLookup.vehicle.userId,
+    });
+    return null;
+  }
+
+  // Use the existing generateChallengeLetter with ticketId
+  return generateChallengeLetterByTicketId(ticketLookup.id, challengeReason, additionalDetails, userId);
+};
+
+/**
+ * Server action to generate a challenge letter (for use in forms)
+ */
+export const generateChallengeLetter = async (
+  ticketId: string,
+  challengeReason: string,
+  additionalDetails?: string,
+) => {
+  const userId = await getUserId('generate a challenge letter');
+
+  if (!userId) {
+    return null;
+  }
+
+  return generateChallengeLetterByTicketId(ticketId, challengeReason, additionalDetails, userId);
 };

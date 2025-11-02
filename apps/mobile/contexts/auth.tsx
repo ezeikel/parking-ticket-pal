@@ -3,8 +3,10 @@ import * as SecureStore from 'expo-secure-store';
 import { GoogleSignin, statusCodes } from '@react-native-google-signin/google-signin';
 import { LoginManager, AccessToken } from 'react-native-fbsdk-next';
 import appleAuth from '@invertase/react-native-apple-authentication';
+import Purchases from 'react-native-purchases';
 import { useRouter } from 'expo-router';
 import { getCurrentUser, signIn as signInApi, signInWithFacebook, signInWithApple, sendMagicLink } from '@/api';
+import { usePurchases } from './purchases';
 
 // define the shape of the context
 type AuthContextType = {
@@ -37,6 +39,7 @@ export const AuthContextProvider = ({ children }: AuthContextProviderProps) => {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const router = useRouter();
+  const { isConfigured: isPurchasesConfigured } = usePurchases();
 
   const conifgureGoogleSignIn = () => {
     GoogleSignin.configure({
@@ -60,6 +63,16 @@ export const AuthContextProvider = ({ children }: AuthContextProviderProps) => {
 
           if (user) {
             setIsAuthenticated(true);
+
+            // Identify user with RevenueCat only if SDK is configured
+            if (user.id && isPurchasesConfigured) {
+              try {
+                await Purchases.logIn(user.id);
+                console.log('[Auth] User identified with RevenueCat:', user.id);
+              } catch (error) {
+                console.error('[Auth] Error identifying user with RevenueCat:', error);
+              }
+            }
           } else {
             setIsAuthenticated(false);
           }
@@ -79,13 +92,24 @@ export const AuthContextProvider = ({ children }: AuthContextProviderProps) => {
     // Set up periodic checks every 10 minutes
     const intervalId = setInterval(checkAuth, 10 * 60 * 1000);
     return () => clearInterval(intervalId);
-  }, []);
+  }, [isPurchasesConfigured]);
 
   const signIn = async () => {
     try {
       const { sessionToken } = await signInApi();
       await SecureStore.setItemAsync('sessionToken', sessionToken);
       setIsAuthenticated(true);
+
+      // Get user info to identify with RevenueCat only if SDK is configured
+      const { user } = await getCurrentUser();
+      if (user?.id && isPurchasesConfigured) {
+        try {
+          await Purchases.logIn(user.id);
+          console.log('[Auth] User logged in to RevenueCat:', user.id);
+        } catch (error) {
+          console.error('[Auth] Error logging in to RevenueCat:', error);
+        }
+      }
     } catch (error) {
       if (error && typeof error === 'object' && 'code' in error && error.code === statusCodes.SIGN_IN_CANCELLED) {
         console.info('User cancelled sign-in');
@@ -113,6 +137,17 @@ export const AuthContextProvider = ({ children }: AuthContextProviderProps) => {
       const { sessionToken } = await signInWithFacebook(data.accessToken);
       await SecureStore.setItemAsync('sessionToken', sessionToken);
       setIsAuthenticated(true);
+
+      // Get user info to identify with RevenueCat only if SDK is configured
+      const { user } = await getCurrentUser();
+      if (user?.id && isPurchasesConfigured) {
+        try {
+          await Purchases.logIn(user.id);
+          console.log('[Auth] User logged in to RevenueCat:', user.id);
+        } catch (error) {
+          console.error('[Auth] Error logging in to RevenueCat:', error);
+        }
+      }
     } catch (error) {
       console.error('Facebook sign-in error', error);
       setIsAuthenticated(false);
@@ -135,6 +170,17 @@ export const AuthContextProvider = ({ children }: AuthContextProviderProps) => {
         );
         await SecureStore.setItemAsync('sessionToken', sessionToken);
         setIsAuthenticated(true);
+
+        // Get user info to identify with RevenueCat only if SDK is configured
+        const { user } = await getCurrentUser();
+        if (user?.id && isPurchasesConfigured) {
+          try {
+            await Purchases.logIn(user.id);
+            console.log('[Auth] User logged in to RevenueCat:', user.id);
+          } catch (error) {
+            console.error('[Auth] Error logging in to RevenueCat:', error);
+          }
+        }
       }
     } catch (error) {
       console.error('Apple sign-in error', error);
@@ -155,6 +201,17 @@ export const AuthContextProvider = ({ children }: AuthContextProviderProps) => {
     try {
       await GoogleSignin.signOut();
       await LoginManager.logOut();
+
+      // Only log out from RevenueCat if it's configured
+      if (isPurchasesConfigured) {
+        try {
+          await Purchases.logOut();
+          console.log('[Auth] User logged out from RevenueCat');
+        } catch (error) {
+          console.error('[Auth] Error logging out from RevenueCat:', error);
+        }
+      }
+
       await SecureStore.deleteItemAsync('sessionToken');
       setIsAuthenticated(false);
     } catch (error) {

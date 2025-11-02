@@ -5,7 +5,6 @@ generator client {
 datasource db {
   provider  = "postgresql"
   url       = env("DATABASE_URL")
-  directUrl = env("DATABASE_URL_UNPOOLED")
 }
 
 model User {
@@ -15,7 +14,7 @@ model User {
   emailVerified DateTime?
   image         String?
   title         UserTitle?
-  phoneNumber   String?
+  phoneNumber   String? // TODO: Rename to mobileNumber since we only accept UK mobile numbers for SMS reminders
   address       Json?
   // example address:
   //  const address = {
@@ -30,15 +29,16 @@ model User {
   //  longitude: -0.1278
   //  }
 
-  role             UserRole      @default(USER)
-  stripeCustomerId String? // set after Stripe customer creation
-  createdAt        DateTime      @default(now())
-  updatedAt        DateTime      @updatedAt
-  signatureUrl     String?
-  subscription     Subscription?
-  vehicles         Vehicle[]
-  accounts         Account[]
-  sessions         Session[]
+  role                  UserRole      @default(USER)
+  stripeCustomerId      String? // set after Stripe customer creation
+  revenueCatCustomerId  String? // set after RevenueCat identification
+  createdAt             DateTime      @default(now())
+  updatedAt             DateTime      @updatedAt
+  signatureUrl          String?
+  subscription          Subscription?
+  vehicles              Vehicle[]
+  accounts              Account[]
+  sessions              Session[]
 
   @@map("users")
 }
@@ -147,13 +147,15 @@ model Letter {
 }
 
 model Subscription {
-  id                   String           @id @default(cuid())
-  userId               String           @unique
-  user                 User             @relation(fields: [userId], references: [id])
-  stripeSubscriptionId String?          @unique // set after Stripe subscription creation
-  type                 SubscriptionType @default(STANDARD)
-  createdAt            DateTime         @default(now())
-  updatedAt            DateTime         @updatedAt
+  id                       String             @id @default(cuid())
+  userId                   String             @unique
+  user                     User               @relation(fields: [userId], references: [id])
+  stripeSubscriptionId     String?            @unique // set after Stripe subscription creation
+  revenueCatSubscriptionId String?            @unique // set after RevenueCat subscription creation
+  type                     SubscriptionType   @default(STANDARD)
+  source                   SubscriptionSource @default(STRIPE)
+  createdAt                DateTime           @default(now())
+  updatedAt                DateTime           @updatedAt
 
   @@map("subscriptions")
 }
@@ -382,6 +384,11 @@ enum IssuerType {
 enum SubscriptionType {
   STANDARD
   PREMIUM
+}
+
+enum SubscriptionSource {
+  STRIPE
+  REVENUECAT
 }
 
 enum ReminderType {

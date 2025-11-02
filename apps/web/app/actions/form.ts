@@ -127,6 +127,7 @@ export const generateTE9Form = async (formFields: PdfFormFields) =>
 
 export const getFormFillDataFromTicket = async (
   pcnNumber: string,
+  userId?: string,
 ): Promise<PdfFormFields | null> => {
   try {
     const ticket = await db.ticket.findUnique({
@@ -143,6 +144,17 @@ export const getFormFillDataFromTicket = async (
     if (!ticket) {
       logger.error('Ticket not found for form generation', {
         pcnNumber
+      });
+      return null;
+    }
+
+    // Verify ticket belongs to the authenticated user (if userId provided)
+    if (userId && ticket.vehicle.userId !== userId) {
+      logger.error('Ticket does not belong to authenticated user', {
+        ticketId: ticket.id,
+        pcnNumber,
+        userId,
+        ticketOwnerId: ticket.vehicle.userId,
       });
       return null;
     }
@@ -208,5 +220,40 @@ export const getFormFillDataFromTicket = async (
       pcnNumber
     }, error instanceof Error ? error : new Error(String(error)));
     return null;
+  }
+};
+
+/**
+ * Get all forms for the authenticated user
+ * Shared between web and API routes
+ */
+export const getForms = async (userId: string) => {
+  try {
+    const forms = await db.form.findMany({
+      where: {
+        ticket: {
+          vehicle: {
+            userId,
+          },
+        },
+      },
+      orderBy: {
+        createdAt: 'desc',
+      },
+      include: {
+        ticket: {
+          select: {
+            pcnNumber: true,
+          },
+        },
+      },
+    });
+
+    return { success: true, forms };
+  } catch (error) {
+    logger.error('Error getting forms', {
+      userId
+    }, error instanceof Error ? error : new Error(String(error)));
+    return { success: false, error: 'Failed to get forms', forms: [] };
   }
 };

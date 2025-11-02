@@ -1,55 +1,51 @@
-import { db } from '@/lib/prisma';
-import { auth } from '@/auth';
+import { getForms } from '@/app/actions/form';
+import { getUserId } from '@/utils/user';
 
 export const GET = async () => {
-  try {
-    // Get user from auth
-    const session = await auth();
-    if (!session?.user) {
-      return Response.json(
-        { success: false, error: 'Unauthorized' },
-        { status: 401 },
-      );
-    }
+  // Get authenticated user
+  const userId = await getUserId('get forms');
 
-    // Get all forms for the user
-    const forms = await db.form.findMany({
-      where: {
-        ticket: {
-          vehicle: {
-            userId: session.user.id,
-          },
-        },
-      },
-      orderBy: {
-        createdAt: 'desc',
-      },
-      include: {
-        ticket: {
-          select: {
-            pcnNumber: true,
-          },
-        },
-      },
-    });
-
+  if (!userId) {
     return Response.json(
-      { success: true, forms },
+      { success: false, error: 'Unauthorized' },
       {
         headers: {
           'Access-Control-Allow-Origin': '*',
           'Access-Control-Allow-Methods': 'GET, OPTIONS',
           'Access-Control-Allow-Headers': 'Content-Type, Authorization',
         },
+        status: 401,
       },
     );
-  } catch (error) {
-    console.error('Error getting forms:', error);
+  }
+
+  // Use shared getForms function
+  const result = await getForms(userId);
+
+  if (!result.success) {
     return Response.json(
-      { success: false, error: 'Internal server error' },
-      { status: 500 },
+      { success: false, error: result.error },
+      {
+        headers: {
+          'Access-Control-Allow-Origin': '*',
+          'Access-Control-Allow-Methods': 'GET, OPTIONS',
+          'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+        },
+        status: 500,
+      },
     );
   }
+
+  return Response.json(
+    { success: true, forms: result.forms },
+    {
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Methods': 'GET, OPTIONS',
+        'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+      },
+    },
+  );
 };
 
 // Handle OPTIONS requests for CORS preflight

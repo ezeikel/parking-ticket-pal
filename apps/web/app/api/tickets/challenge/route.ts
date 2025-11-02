@@ -1,5 +1,3 @@
- 
-
 import { challengeTicket } from '@/app/actions/ticket';
 
 // longer duration to account for openai api calls

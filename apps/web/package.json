@@ -26,7 +26,6 @@
     "db:migrate:reset": "dotenv -e .env.local -- pnpm dlx prisma migrate reset",
     "db:push": "dotenv -e .env.local -- pnpm dlx prisma db push",
     "prepare": "husky",
-    "scrape:past-appeals": "tsx utils/scraping/getPastAppealsData.ts",
     "scrape:contravention-codes": "tsx utils/scraping/getContraventionCodes.ts",
     "generate:te9": "tsx utils/automation/forms/TE9.ts",
     "generate:te7": "tsx utils/automation/forms/TE7.ts",

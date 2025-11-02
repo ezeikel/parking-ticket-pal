@@ -1,12 +1,13 @@
-import { Text, View, ScrollView, Pressable, Alert, Dimensions } from 'react-native';
+import { Text, View, ScrollView, Pressable, Alert, Dimensions, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
-import { useCallback } from 'react';
+import { useCallback, useState } from 'react';
 import { router } from 'expo-router';
 import { FontAwesomeIcon } from "@fortawesome/react-native-fontawesome";
-import { faSignOut, faUser, faEnvelope, faInfoCircle, faHeart, faBookOpen, faTrashCan } from "@fortawesome/pro-regular-svg-icons";
+import { faSignOut, faUser, faEnvelope, faInfoCircle, faHeart, faBookOpen, faTrashCan, faCrown, faRotateRight } from "@fortawesome/pro-regular-svg-icons";
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useAuthContext } from '@/contexts/auth';
+import { usePurchases } from '@/contexts/purchases';
 import useUser from '@/hooks/api/useUser';
 import { useColorScheme } from '@/hooks/useColorScheme';
 import { Colors } from '@/constants/Colors';
@@ -15,16 +16,27 @@ import * as Application from 'expo-application';
 import Loader from '@/components/Loader/Loader';
 import { useAnalytics } from '@/lib/analytics';
 import { resetOnboarding } from '@/utils/onboarding';
+import { UpgradeButton } from '@/components/UpgradeButton';
+import { EditablePhoneNumber } from '@/components/EditablePhoneNumber';
+import { updateUser } from '@/api';
 
 const padding = 16;
 const screenWidth = Dimensions.get('screen').width - padding * 2;
 
 const SettingsScreen = () => {
-  const { data, isLoading } = useUser();
+  const { data, isLoading, refetch } = useUser();
   const user = data?.user;
   const { signOut } = useAuthContext();
+  const {
+    hasActiveSubscription,
+    hasPremiumAccess,
+    hasStandardAccess,
+    restorePurchases,
+    refreshCustomerInfo
+  } = usePurchases();
   const colorScheme = useColorScheme();
   const { trackScreenView, trackEvent } = useAnalytics();
+  const [isRestoring, setIsRestoring] = useState(false);
 
   const appVersion = Constants.expoConfig?.version || '0.1.0';
   const isDev = __DEV__;
@@ -94,6 +106,66 @@ const SettingsScreen = () => {
         },
       ]
     );
+  };
+
+  const handleUpdatePhoneNumber = async (phoneNumber: string) => {
+    if (!user?.id) return;
+
+    trackEvent("phone_number_updated", { screen: "settings" });
+    await updateUser(user.id, { phoneNumber });
+    await refetch();
+  };
+
+  const handleRestorePurchases = async () => {
+    setIsRestoring(true);
+    trackEvent("restore_purchases_tapped", { screen: "settings" });
+
+    try {
+      const customerInfo = await restorePurchases();
+      await refreshCustomerInfo();
+
+      const hasEntitlements = Object.keys(customerInfo.entitlements.active).length > 0;
+
+      if (hasEntitlements) {
+        Alert.alert(
+          'Success',
+          'Your purchases have been restored successfully!',
+          [{ text: 'OK' }]
+        );
+      } else {
+        Alert.alert(
+          'No Purchases Found',
+          'We could not find any previous purchases to restore.',
+          [{ text: 'OK' }]
+        );
+      }
+    } catch (error) {
+      console.error('Error restoring purchases:', error);
+      Alert.alert(
+        'Error',
+        'Failed to restore purchases. Please try again later.',
+        [{ text: 'OK' }]
+      );
+    } finally {
+      setIsRestoring(false);
+    }
+  };
+
+  const getSubscriptionStatus = () => {
+    if (user?.subscription?.source === 'STRIPE') {
+      const type = user.subscription.type === 'PREMIUM' ? 'Premium' : 'Standard';
+      return `${type} (Web Subscription)`;
+    }
+
+    if (hasPremiumAccess) {
+      return 'Premium (Mobile)';
+    }
+
+    if (hasStandardAccess) {
+      return 'Standard (Mobile)';
+    }
+
+    return 'Free';
   };
 
   const SettingRow = ({ icon, title, value, onPress, destructive = false }: {
@@ -168,6 +240,82 @@ const SettingsScreen = () => {
               title="Email"
               value={user?.email}
             />
+
+            <EditablePhoneNumber
+              phoneNumber={user?.phoneNumber}
+              onSave={handleUpdatePhoneNumber}
+            />
+
+            <SettingRow
+              icon={faCrown}
+              title="Subscription"
+              value={getSubscriptionStatus()}
+            />
+          </View>
+
+          {/* Subscription Section */}
+          <View className="bg-white rounded-lg mb-6 overflow-hidden">
+            <View className="p-4 border-b border-gray-100">
+              <Text className="font-inter text-lg font-semibold text-gray-900 mb-2">
+                Subscription & Purchases
+              </Text>
+            </View>
+
+            {user?.subscription?.source === 'STRIPE' ? (
+              <View className="p-4">
+                <Text className="font-inter text-sm text-gray-600 mb-3">
+                  You have a web subscription. To manage your subscription, please visit the website.
+                </Text>
+              </View>
+            ) : (
+              <View className="p-4">
+                {!hasActiveSubscription && (
+                  <>
+                    <Text className="font-inter text-sm text-gray-600 mb-3">
+                      Unlock unlimited tickets and premium features
+                    </Text>
+                    <UpgradeButton fullWidth variant="primary" />
+                  </>
+                )}
+
+                {hasActiveSubscription && !hasPremiumAccess && (
+                  <>
+                    <Text className="font-inter text-sm text-gray-600 mb-3">
+                      Upgrade to Premium for more features
+                    </Text>
+                    <UpgradeButton fullWidth variant="primary" />
+                  </>
+                )}
+
+                {hasPremiumAccess && (
+                  <View className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                    <Text className="font-inter text-sm text-blue-700 text-center">
+                      You have Premium access
+                    </Text>
+                  </View>
+                )}
+              </View>
+            )}
+
+            <Pressable
+              className="flex-row items-center p-4 border-t border-gray-100 active:bg-gray-50"
+              onPress={handleRestorePurchases}
+              disabled={isRestoring}
+            >
+              {isRestoring ? (
+                <ActivityIndicator size="small" color={Colors[colorScheme ?? 'light'].text} style={{ marginRight: 12 }} />
+              ) : (
+                <FontAwesomeIcon
+                  icon={faRotateRight}
+                  size={20}
+                  color={Colors[colorScheme ?? 'light'].text}
+                  style={{ marginRight: 12 }}
+                />
+              )}
+              <Text className="font-inter text-base text-gray-900">
+                {isRestoring ? 'Restoring...' : 'Restore Purchases'}
+              </Text>
+            </Pressable>
           </View>
 
           <View className="bg-white rounded-lg mb-6 overflow-hidden">

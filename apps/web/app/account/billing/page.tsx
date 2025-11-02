@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import {
   Card,
@@ -17,7 +17,7 @@ import BillingToggle from '@/components/pricing/BillingToggle';
 import { SUBSCRIPTION_PRICING } from '@/lib/pricing-data';
 import useLogger from '@/lib/use-logger';
 
-const BillingPage = () => {
+const BillingContent = () => {
   const searchParams = useSearchParams();
   const logger = useLogger({ page: 'billing' });
   const [billingPeriod, setBillingPeriod] = useState<'monthly' | 'yearly'>(
@@ -224,5 +224,30 @@ const BillingPage = () => {
     </div>
   );
 };
+
+const BillingPage = () => (
+  <Suspense
+    fallback={
+      <div className="container mx-auto py-12 px-4">
+        <Card>
+          <CardHeader>
+            <CardTitle className="font-slab">Loading...</CardTitle>
+            <CardDescription>Please wait</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="flex justify-center py-8">
+              <FontAwesomeIcon
+                icon={faSpinnerThird}
+                className="h-12 w-12 text-primary animate-spin"
+              />
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    }
+  >
+    <BillingContent />
+  </Suspense>
+);
 
 export default BillingPage;

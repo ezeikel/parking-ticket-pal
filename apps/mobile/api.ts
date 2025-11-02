@@ -29,6 +29,16 @@ export const getTickets = async () => {
   return response.data;
 }
 
+export const getTicket = async (ticketId: string) => {
+  const token = await SecureStore.getItemAsync('sessionToken');
+
+  const response = await axios.get(`${apiUrlFromEnv}/tickets/${ticketId}`, {
+    headers: { Authorization: `Bearer ${token}` }
+  });
+
+  return response.data;
+}
+
 export const getVehicles = async () => {
   const token = await SecureStore.getItemAsync('sessionToken');
 
@@ -128,3 +138,157 @@ export const uploadImage = async (data: string, text?: string) => {
 
   return response.data;
 }
+
+/**
+ * Confirm a RevenueCat purchase with the backend
+ * Used for consumable purchases (ticket upgrades)
+ */
+export const confirmPurchase = async (ticketId: string, productId: string) => {
+  const token = await SecureStore.getItemAsync('sessionToken');
+
+  const response = await axios.post(`${apiUrlFromEnv}/iap/confirm-purchase`, {
+    ticketId,
+    productId
+  }, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json'
+    }
+  });
+
+  return response.data;
+}
+
+/**
+ * Update user profile information
+ */
+export const updateUser = async (userId: string, data: { phoneNumber?: string; name?: string }) => {
+  const token = await SecureStore.getItemAsync('sessionToken');
+
+  const response = await axios.patch(`${apiUrlFromEnv}/user/${userId}`, data, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json'
+    }
+  });
+
+  return response.data;
+}
+
+/**
+ * Generate a challenge letter for a ticket
+ */
+export const generateChallengeLetter = async (
+  pcnNumber: string,
+  challengeReason: string,
+  additionalDetails?: string
+) => {
+  const token = await SecureStore.getItemAsync('sessionToken');
+
+  const response = await axios.post(
+    `${apiUrlFromEnv}/letters/generate`,
+    {
+      pcnNumber,
+      challengeReason,
+      additionalDetails,
+    },
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+    }
+  );
+
+  return response.data;
+};
+
+/**
+ * Generate a TE7 form for a ticket
+ */
+export const generateTE7Form = async (pcnNumber: string) => {
+  const token = await SecureStore.getItemAsync('sessionToken');
+
+  const response = await axios.post(
+    `${apiUrlFromEnv}/forms/te7`,
+    { pcnNumber },
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+    }
+  );
+
+  return response.data;
+};
+
+/**
+ * Generate a TE9 form for a ticket
+ */
+export const generateTE9Form = async (pcnNumber: string) => {
+  const token = await SecureStore.getItemAsync('sessionToken');
+
+  const response = await axios.post(
+    `${apiUrlFromEnv}/forms/te9`,
+    { pcnNumber },
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+    }
+  );
+
+  return response.data;
+};
+
+/**
+ * Generate a PE2 form for a ticket
+ */
+export const generatePE2Form = async (pcnNumber: string) => {
+  const token = await SecureStore.getItemAsync('sessionToken');
+
+  const response = await axios.post(
+    `${apiUrlFromEnv}/forms/pe2`,
+    { pcnNumber },
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+    }
+  );
+
+  return response.data;
+};
+
+/**
+ * Generate a PE3 form for a ticket
+ */
+export const generatePE3Form = async (pcnNumber: string) => {
+  const token = await SecureStore.getItemAsync('sessionToken');
+
+  const response = await axios.post(
+    `${apiUrlFromEnv}/forms/pe3`,
+    { pcnNumber },
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+    }
+  );
+
+  return response.data;
+};
+
+export const deleteTicket = async (ticketId: string) => {
+  const token = await SecureStore.getItemAsync('sessionToken');
+
+  const response = await axios.delete(`${apiUrlFromEnv}/tickets/${ticketId}`, {
+    headers: { Authorization: `Bearer ${token}` }
+  });
+
+  return response.data;
+};

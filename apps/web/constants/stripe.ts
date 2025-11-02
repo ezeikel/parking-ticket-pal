@@ -141,6 +141,29 @@ export const isConsumerSubscriptionPrice = (priceId: string): boolean =>
   }).includes(priceId);
 
 /**
+ * Get subscription tier (STANDARD or PREMIUM) from a Stripe price ID
+ */
+export const getSubscriptionTierFromPriceId = (priceId: string): 'STANDARD' | 'PREMIUM' | null => {
+  // Check STANDARD prices
+  if (
+    priceId === STRIPE_PRICE_IDS.SUBSCRIPTION_STANDARD_MONTHLY ||
+    priceId === STRIPE_PRICE_IDS.SUBSCRIPTION_STANDARD_YEARLY
+  ) {
+    return 'STANDARD';
+  }
+
+  // Check PREMIUM prices
+  if (
+    priceId === STRIPE_PRICE_IDS.SUBSCRIPTION_PREMIUM_MONTHLY ||
+    priceId === STRIPE_PRICE_IDS.SUBSCRIPTION_PREMIUM_YEARLY
+  ) {
+    return 'PREMIUM';
+  }
+
+  return null;
+};
+
+/**
  * Check if a price ID is for a fleet/business plan
  */
 export const isFleetPrice = (priceId: string): boolean =>
