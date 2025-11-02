@@ -3,8 +3,8 @@ generator client {
 }
 
 datasource db {
-  provider  = "postgresql"
-  url       = env("DATABASE_URL")
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
 }
 
 model User {
@@ -29,16 +29,16 @@ model User {
   //  longitude: -0.1278
   //  }
 
-  role                  UserRole      @default(USER)
-  stripeCustomerId      String? // set after Stripe customer creation
-  revenueCatCustomerId  String? // set after RevenueCat identification
-  createdAt             DateTime      @default(now())
-  updatedAt             DateTime      @updatedAt
-  signatureUrl          String?
-  subscription          Subscription?
-  vehicles              Vehicle[]
-  accounts              Account[]
-  sessions              Session[]
+  role                 UserRole      @default(USER)
+  stripeCustomerId     String? // set after Stripe customer creation
+  revenueCatCustomerId String? // set after RevenueCat identification
+  createdAt            DateTime      @default(now())
+  updatedAt            DateTime      @updatedAt
+  signatureUrl         String?
+  subscription         Subscription?
+  vehicles             Vehicle[]
+  accounts             Account[]
+  sessions             Session[]
 
   @@map("users")
 }
@@ -499,8 +499,8 @@ enum UserTitle {
 
 // London Tribunal Cases - scraped historical data for ML predictions
 model LondonTribunalCase {
-  id                    String          @id @default(cuid())
-  caseReference         String          @unique
+  id                    String         @id @default(cuid())
+  caseReference         String         @unique
   declarant             String?
   authority             String
   vrm                   String?
@@ -508,16 +508,16 @@ model LondonTribunalCase {
   contraventionDate     DateTime?
   contraventionTime     String?
   contraventionLocation String?
-  penaltyAmount         Decimal?        @db.Decimal(10, 2)
+  penaltyAmount         Decimal?       @db.Decimal(10, 2)
   contravention         String?
   referralDate          DateTime?
   decisionDate          DateTime?
   adjudicator           String?
   appealDecision        AppealDecision
   direction             String?
-  reasons               String          @db.Text
-  scrapedAt             DateTime        @default(now())
-  updatedAt             DateTime        @updatedAt
+  reasons               String         @db.Text
+  scrapedAt             DateTime       @default(now())
+  updatedAt             DateTime       @updatedAt
 
   @@index([authority, contravention])
   @@index([appealDecision])
