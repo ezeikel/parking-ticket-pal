@@ -573,7 +573,7 @@ const generateChallengeLetterByTicketId = async (
     // TODO: make this step optional in UI
     // send email with challenge letter as a PDF attachment
     await resend.emails.send({
-      from: 'Parking Ticket Pal <letters@parkingticketpal.com>',
+      from: `Parking Ticket Pal <${process.env.DEFAULT_FROM_EMAIL}>`,
       to: user.email,
       subject: emailData.subject,
       html: emailData.htmlContent,

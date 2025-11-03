@@ -1,10 +1,11 @@
 import React, { forwardRef, useMemo, useState } from 'react';
-import { View, Text, TextInput, ActivityIndicator, Alert, ScrollView } from 'react-native';
+import { View, Text, TextInput, Alert, ScrollView } from 'react-native';
 import BottomSheet, { BottomSheetBackdrop, BottomSheetView } from '@gorhom/bottom-sheet';
 import { Picker } from '@react-native-picker/picker';
 import { IssuerType } from '@parking-ticket-pal/types';
 import { getChallengeReasons } from '@/constants/challenges';
 import SquishyPressable from '@/components/SquishyPressable/SquishyPressable';
+import Loader from '@/components/Loader/Loader';
 import { generateChallengeLetter } from '@/api';
 
 interface ChallengeLetterBottomSheetProps {
@@ -31,28 +32,45 @@ const ChallengeLetterBottomSheet = forwardRef<BottomSheet, ChallengeLetterBottom
 
       setIsLoading(true);
       try {
-        await generateChallengeLetter(pcnNumber, selectedReason, additionalDetails);
+        console.log('Generating challenge letter...', { pcnNumber, selectedReason });
+        const result = await generateChallengeLetter(pcnNumber, selectedReason, additionalDetails);
+        console.log('Challenge letter result:', result);
 
-        Alert.alert(
-          'Success!',
-          'Your challenge letter has been generated and sent to your email address.',
-          [
-            {
-              text: 'OK',
-              onPress: () => {
-                // Reset form
-                setSelectedReason('');
-                setAdditionalDetails('');
-                onSuccess();
+        // Check if the result indicates success
+        if (result && result.success) {
+          Alert.alert(
+            'Success!',
+            'Your challenge letter has been generated and sent to your email address.',
+            [
+              {
+                text: 'OK',
+                onPress: () => {
+                  // Reset form
+                  setSelectedReason('');
+                  setAdditionalDetails('');
+                  onSuccess();
+                },
               },
-            },
-          ]
-        );
+            ]
+          );
+        } else {
+          // API returned but indicated failure
+          console.error('Challenge letter generation failed:', result);
+          Alert.alert(
+            'Error',
+            result?.message || 'Failed to generate challenge letter. Please try again.'
+          );
+        }
       } catch (error: any) {
         console.error('Error generating challenge letter:', error);
+        console.error('Error details:', {
+          message: error.message,
+          response: error.response?.data,
+          status: error.response?.status,
+        });
         Alert.alert(
           'Error',
-          error.response?.data?.message || 'Failed to generate challenge letter. Please try again.'
+          error.response?.data?.error || error.response?.data?.message || 'Failed to generate challenge letter. Please try again.'
         );
       } finally {
         setIsLoading(false);
@@ -136,7 +154,7 @@ const ChallengeLetterBottomSheet = forwardRef<BottomSheet, ChallengeLetterBottom
               >
                 {isLoading ? (
                   <View className="flex-row items-center">
-                    <ActivityIndicator color="#ffffff" size="small" />
+                    <Loader size={20} color="#ffffff" />
                     <Text className="text-white font-semibold ml-2">Generating...</Text>
                   </View>
                 ) : (

@@ -67,7 +67,7 @@ const config = {
           const emailHtml = await render(MagicLinkEmail({ magicLink: url }));
 
           await resendClient.emails.send({
-            from: process.env.DEFAULT_FROM_EMAIL as string,
+            from: `Parking Ticket Pal <${process.env.DEFAULT_FROM_EMAIL}>`,
             to: email,
             subject: 'Sign in to Parking Ticket Pal',
             html: emailHtml,

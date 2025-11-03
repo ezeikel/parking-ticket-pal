@@ -14,7 +14,7 @@ import {
 } from '@fortawesome/pro-regular-svg-icons';
 import { faCarSide } from '@fortawesome/pro-solid-svg-icons';
 import { format } from 'date-fns';
-import { useRef } from 'react';
+import { useRef, useCallback, useState } from 'react';
 import BottomSheet from '@gorhom/bottom-sheet';
 import useTicket from '@/hooks/api/useTicket';
 import { TicketUpgradeButton } from '@/components/TicketUpgradeButton';
@@ -66,20 +66,31 @@ export default function TicketDetailScreen() {
   const premiumActionsSheetRef = useRef<BottomSheet>(null);
   const challengeLetterSheetRef = useRef<BottomSheet>(null);
   const formsSheetRef = useRef<BottomSheet>(null);
-  const selectedFormTypeRef = useRef<FormType | null>(null);
+
+  // Track selected form type with state so component re-renders
+  const [selectedFormType, setSelectedFormType] = useState<FormType | null>(null);
+
+  // Track pending action to open after premium sheet closes (using ref to avoid stale closure)
+  const pendingActionRef = useRef<'challenge-letter' | FormType | null>(null);
 
   const handlePremiumActionSelect = (action: 'challenge-letter' | FormType) => {
+    pendingActionRef.current = action;
     premiumActionsSheetRef.current?.close();
+  };
 
-    setTimeout(() => {
-      if (action === 'challenge-letter') {
+  // Handle opening the next sheet when premium actions sheet closes
+  const handlePremiumActionsSheetChange = useCallback((index: number) => {
+    // When sheet is fully closed (index === -1), open the next sheet
+    if (index === -1 && pendingActionRef.current) {
+      if (pendingActionRef.current === 'challenge-letter') {
         challengeLetterSheetRef.current?.snapToIndex(0);
       } else {
-        selectedFormTypeRef.current = action;
+        setSelectedFormType(pendingActionRef.current);
         formsSheetRef.current?.snapToIndex(0);
       }
-    }, 300);
-  };
+      pendingActionRef.current = null;
+    }
+  }, []);
 
   const handleSuccess = () => {
     challengeLetterSheetRef.current?.close();
@@ -370,6 +381,7 @@ export default function TicketDetailScreen() {
         ref={premiumActionsSheetRef}
         issuerType={ticketData.issuerType}
         onActionSelect={handlePremiumActionSelect}
+        onChange={handlePremiumActionsSheetChange}
       />
 
       <ChallengeLetterBottomSheet
@@ -379,11 +391,11 @@ export default function TicketDetailScreen() {
         onSuccess={handleSuccess}
       />
 
-      {selectedFormTypeRef.current && (
+      {selectedFormType && (
         <FormsBottomSheet
           ref={formsSheetRef}
           pcnNumber={ticketData.pcnNumber}
-          formType={selectedFormTypeRef.current}
+          formType={selectedFormType}
           onSuccess={handleSuccess}
         />
       )}

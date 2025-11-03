@@ -80,7 +80,7 @@ const handleFormGeneration = async (
     // send email if email is provided
     if (formFields.userEmail) {
       await resend.emails.send({
-        from: 'Parking Ticket Pal <forms@parkingticketpal.com>',
+        from: `Parking Ticket Pal <${process.env.DEFAULT_FROM_EMAIL}>`,
         to: formFields.userEmail,
         subject: `Your ${formType} Form`,
         react: FormEmail({

@@ -5,16 +5,18 @@ import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { faFileLines, faFileContract } from '@fortawesome/pro-regular-svg-icons';
 import { IssuerType } from '@parking-ticket-pal/types';
 import { getAvailableForms, FORM_TYPES, FormType } from '@/constants/challenges';
+import SquishyPressable from './SquishyPressable/SquishyPressable';
 
 type PremiumAction = 'challenge-letter' | FormType;
 
 interface PremiumActionsBottomSheetProps {
   issuerType: IssuerType;
   onActionSelect: (action: PremiumAction) => void;
+  onChange?: (index: number) => void;
 }
 
 const PremiumActionsBottomSheet = forwardRef<BottomSheet, PremiumActionsBottomSheetProps>(
-  ({ issuerType, onActionSelect }, ref) => {
+  ({ issuerType, onActionSelect, onChange }, ref) => {
     const snapPoints = useMemo(() => ['50%', '75%'], []);
     const availableForms = useMemo(() => getAvailableForms(issuerType), [issuerType]);
 
@@ -29,6 +31,7 @@ const PremiumActionsBottomSheet = forwardRef<BottomSheet, PremiumActionsBottomSh
         snapPoints={snapPoints}
         enablePanDownToClose
         backdropComponent={renderBackdrop}
+        onChange={onChange}
       >
         <BottomSheetView style={{ flex: 1, paddingHorizontal: 16 }}>
           <Text className="text-xl font-bold text-gray-900 mb-4">Premium Actions</Text>
@@ -37,7 +40,7 @@ const PremiumActionsBottomSheet = forwardRef<BottomSheet, PremiumActionsBottomSh
           </Text>
 
           {/* Challenge Letter */}
-          <Pressable
+          <SquishyPressable
             onPress={() => onActionSelect('challenge-letter')}
             className="mb-3 active:opacity-70"
           >
@@ -54,7 +57,7 @@ const PremiumActionsBottomSheet = forwardRef<BottomSheet, PremiumActionsBottomSh
                 </Text>
               </View>
             </View>
-          </Pressable>
+          </SquishyPressable>
 
           {/* Divider */}
           {availableForms.length > 0 && (
@@ -70,7 +73,7 @@ const PremiumActionsBottomSheet = forwardRef<BottomSheet, PremiumActionsBottomSh
           {availableForms.map((formType) => {
             const formInfo = FORM_TYPES[formType];
             return (
-              <Pressable
+              <SquishyPressable
                 key={formType}
                 onPress={() => onActionSelect(formType)}
                 className="mb-3 active:opacity-70"
@@ -88,7 +91,7 @@ const PremiumActionsBottomSheet = forwardRef<BottomSheet, PremiumActionsBottomSh
                     </Text>
                   </View>
                 </View>
-              </Pressable>
+              </SquishyPressable>
             );
           })}
         </BottomSheetView>

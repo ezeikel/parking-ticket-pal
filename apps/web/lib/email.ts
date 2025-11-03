@@ -52,7 +52,7 @@ const checkRateLimit = (identifier: string): boolean => {
 };
 
 const getFromAddress = (customFrom?: string): string =>
-  customFrom || process.env.DEFAULT_FROM_EMAIL || 'no-reply@parkingticketpal.com';
+  customFrom || `Parking Ticket Pal <${process.env.DEFAULT_FROM_EMAIL}>` || 'no-reply@notifications.parkingticketpal.com';
 
 const createEmailTransporter = () => {
   if (process.env.NODE_ENV === 'production') {

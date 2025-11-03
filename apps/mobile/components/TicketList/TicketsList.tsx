@@ -4,13 +4,12 @@ import { FlashList } from "@shopify/flash-list";
 import { router } from 'expo-router';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import {
-  faCircleExclamation,
   faClock,
   faCarSide,
   faCalendar,
   faMoneyBill,
   faMapMarkerAlt,
-  faTrash
+  faTrashCan
 } from "@fortawesome/pro-regular-svg-icons";
 import {
   differenceInMinutes, differenceInHours, differenceInDays,
@@ -173,7 +172,7 @@ const TicketItem = ({ ticket, style, onDelete }: {
         </View>
         <Pressable onPress={handleDelete} className="p-2">
           <FontAwesomeIcon
-            icon={faTrash}
+            icon={faTrashCan}
             size={18}
             color="#dc2626"
           />

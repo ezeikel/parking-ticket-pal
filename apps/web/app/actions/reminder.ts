@@ -124,7 +124,7 @@ export const sendReminder = async (reminderId: string) => {
       );
 
       await resend.emails.send({
-        from: 'Parking Ticket Pal Reminders <reminders@parkingticketpal.com>',
+        from: `Parking Ticket Pal <${process.env.DEFAULT_FROM_EMAIL}>`,
         to: user.email,
         subject: `🚨 ${reminderLabel} Ticket Reminder`,
         html,

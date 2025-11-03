@@ -1,8 +1,10 @@
 import React, { forwardRef, useMemo, useState } from 'react';
-import { View, Text, ActivityIndicator, Alert } from 'react-native';
+import { View, Text, TextInput, Alert, ScrollView } from 'react-native';
 import BottomSheet, { BottomSheetBackdrop, BottomSheetView } from '@gorhom/bottom-sheet';
+import Checkbox from 'expo-checkbox';
 import { FormType, FORM_TYPES } from '@/constants/challenges';
 import SquishyPressable from '@/components/SquishyPressable/SquishyPressable';
+import Loader from '@/components/Loader/Loader';
 import { generateTE7Form, generateTE9Form, generatePE2Form, generatePE3Form } from '@/api';
 
 interface FormsBottomSheetProps {
@@ -13,46 +15,100 @@ interface FormsBottomSheetProps {
 
 const FormsBottomSheet = forwardRef<BottomSheet, FormsBottomSheetProps>(
   ({ pcnNumber, formType, onSuccess }, ref) => {
-    const snapPoints = useMemo(() => ['40%', '60%'], []);
+    const snapPoints = useMemo(() => ['75%', '90%'], []);
     const formInfo = useMemo(() => FORM_TYPES[formType], [formType]);
     const [isLoading, setIsLoading] = useState(false);
 
+    // Form data states
+    const [reasonText, setReasonText] = useState('');
+    const [grounds, setGrounds] = useState({
+      didNotReceiveNotice: false,
+      madeRepresentations: false,
+      hadNoResponse: false,
+      appealNotDetermined: false,
+      appealInFavour: false,
+      paidInFull: false,
+    });
+
     const handleGenerate = async () => {
+      // Validate based on form type
+      if ((formType === 'TE7' || formType === 'PE2') && !reasonText.trim()) {
+        Alert.alert('Required Field', 'Please provide a reason for filing out of time');
+        return;
+      }
+
+      if ((formType === 'TE9' || formType === 'PE3')) {
+        const hasSelectedGround = Object.values(grounds).some(v => v);
+        if (!hasSelectedGround) {
+          Alert.alert('Required Field', 'Please select at least one ground for your statement');
+          return;
+        }
+      }
+
       setIsLoading(true);
       try {
+        console.log('Generating form...', { formType, pcnNumber });
         let result;
         switch (formType) {
           case 'TE7':
-            result = await generateTE7Form(pcnNumber);
+            result = await generateTE7Form(pcnNumber, reasonText);
             break;
           case 'TE9':
-            result = await generateTE9Form(pcnNumber);
+            result = await generateTE9Form(pcnNumber, grounds);
             break;
           case 'PE2':
-            result = await generatePE2Form(pcnNumber);
+            result = await generatePE2Form(pcnNumber, reasonText);
             break;
           case 'PE3':
-            result = await generatePE3Form(pcnNumber);
+            result = await generatePE3Form(pcnNumber, grounds);
             break;
           default:
             throw new Error('Invalid form type');
         }
+        console.log('Form generation result:', result);
 
-        Alert.alert(
-          'Success!',
-          `Your ${formInfo.name} has been generated and sent to your email address.`,
-          [
-            {
-              text: 'OK',
-              onPress: onSuccess,
-            },
-          ]
-        );
+        // Check if the result indicates success
+        if (result && result.success) {
+          Alert.alert(
+            'Success!',
+            `Your ${formInfo.name} has been generated and sent to your email address.`,
+            [
+              {
+                text: 'OK',
+                onPress: () => {
+                  // Reset form
+                  setReasonText('');
+                  setGrounds({
+                    didNotReceiveNotice: false,
+                    madeRepresentations: false,
+                    hadNoResponse: false,
+                    appealNotDetermined: false,
+                    appealInFavour: false,
+                    paidInFull: false,
+                  });
+                  onSuccess();
+                },
+              },
+            ]
+          );
+        } else {
+          // API returned but indicated failure
+          console.error('Form generation failed:', result);
+          Alert.alert(
+            'Error',
+            result?.error || `Failed to generate ${formInfo.name}. Please try again.`
+          );
+        }
       } catch (error: any) {
         console.error(`Error generating ${formType} form:`, error);
+        console.error('Error details:', {
+          message: error.message,
+          response: error.response?.data,
+          status: error.response?.status,
+        });
         Alert.alert(
           'Error',
-          error.response?.data?.message || `Failed to generate ${formInfo.name}. Please try again.`
+          error.response?.data?.error || error.response?.data?.message || `Failed to generate ${formInfo.name}. Please try again.`
         );
       } finally {
         setIsLoading(false);
@@ -63,6 +119,124 @@ const FormsBottomSheet = forwardRef<BottomSheet, FormsBottomSheetProps>(
       <BottomSheetBackdrop {...props} disappearsOnIndex={-1} appearsOnIndex={0} />
     );
 
+    const renderFormFields = () => {
+      // TE7 and PE2 - Reason text field
+      if (formType === 'TE7' || formType === 'PE2') {
+        return (
+          <View className="mb-6">
+            <Text className="text-sm font-semibold text-gray-700 mb-2">
+              Reason for filing out of time <Text className="text-red-500">*</Text>
+            </Text>
+            <View className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-3">
+              <Text className="text-xs text-blue-900 font-semibold mb-1">Important</Text>
+              <Text className="text-xs text-blue-800 leading-4">
+                Do NOT give your reasons for appealing the original penalty charge here. Only explain why your statement is late.
+              </Text>
+            </View>
+            <TextInput
+              className="border border-gray-300 rounded-lg p-3 bg-white text-gray-900 min-h-[120px]"
+              placeholder="Explain why you are filing this application late..."
+              placeholderTextColor="#9ca3af"
+              multiline
+              numberOfLines={5}
+              textAlignVertical="top"
+              value={reasonText}
+              onChangeText={setReasonText}
+              editable={!isLoading}
+            />
+          </View>
+        );
+      }
+
+      // TE9 and PE3 - Checkboxes for grounds
+      if (formType === 'TE9' || formType === 'PE3') {
+        return (
+          <View className="mb-6">
+            <Text className="text-sm font-semibold text-gray-700 mb-3">
+              Grounds for statement <Text className="text-red-500">*</Text>
+            </Text>
+            <Text className="text-xs text-gray-600 mb-4">Select all that apply:</Text>
+
+            <View className="space-y-3">
+              <View className="flex-row items-start mb-3">
+                <Checkbox
+                  value={grounds.didNotReceiveNotice}
+                  onValueChange={(value) => setGrounds({ ...grounds, didNotReceiveNotice: value })}
+                  color={grounds.didNotReceiveNotice ? '#9333ea' : undefined}
+                  disabled={isLoading}
+                />
+                <Text className="flex-1 ml-3 text-sm text-gray-900">
+                  I did not receive the penalty charge notice
+                </Text>
+              </View>
+
+              <View className="flex-row items-start mb-3">
+                <Checkbox
+                  value={grounds.madeRepresentations}
+                  onValueChange={(value) => setGrounds({ ...grounds, madeRepresentations: value })}
+                  color={grounds.madeRepresentations ? '#9333ea' : undefined}
+                  disabled={isLoading}
+                />
+                <Text className="flex-1 ml-3 text-sm text-gray-900">
+                  I made representations but did not receive a rejection notice
+                </Text>
+              </View>
+
+              <View className="flex-row items-start mb-3">
+                <Checkbox
+                  value={grounds.hadNoResponse}
+                  onValueChange={(value) => setGrounds({ ...grounds, hadNoResponse: value })}
+                  color={grounds.hadNoResponse ? '#9333ea' : undefined}
+                  disabled={isLoading}
+                />
+                <Text className="flex-1 ml-3 text-sm text-gray-900">
+                  I appealed to an adjudicator but had no response
+                </Text>
+              </View>
+
+              <View className="flex-row items-start mb-3">
+                <Checkbox
+                  value={grounds.appealNotDetermined}
+                  onValueChange={(value) => setGrounds({ ...grounds, appealNotDetermined: value })}
+                  color={grounds.appealNotDetermined ? '#9333ea' : undefined}
+                  disabled={isLoading}
+                />
+                <Text className="flex-1 ml-3 text-sm text-gray-900">
+                  My appeal had not been determined
+                </Text>
+              </View>
+
+              <View className="flex-row items-start mb-3">
+                <Checkbox
+                  value={grounds.appealInFavour}
+                  onValueChange={(value) => setGrounds({ ...grounds, appealInFavour: value })}
+                  color={grounds.appealInFavour ? '#9333ea' : undefined}
+                  disabled={isLoading}
+                />
+                <Text className="flex-1 ml-3 text-sm text-gray-900">
+                  An adjudicator decided my appeal in my favour
+                </Text>
+              </View>
+
+              <View className="flex-row items-start mb-3">
+                <Checkbox
+                  value={grounds.paidInFull}
+                  onValueChange={(value) => setGrounds({ ...grounds, paidInFull: value })}
+                  color={grounds.paidInFull ? '#9333ea' : undefined}
+                  disabled={isLoading}
+                />
+                <Text className="flex-1 ml-3 text-sm text-gray-900">
+                  I paid the penalty charge in full
+                </Text>
+              </View>
+            </View>
+          </View>
+        );
+      }
+
+      return null;
+    };
+
     return (
       <BottomSheet
         ref={ref}
@@ -70,46 +244,53 @@ const FormsBottomSheet = forwardRef<BottomSheet, FormsBottomSheetProps>(
         snapPoints={snapPoints}
         enablePanDownToClose
         backdropComponent={renderBackdrop}
+        keyboardBehavior="interactive"
+        keyboardBlurBehavior="restore"
       >
         <BottomSheetView style={{ flex: 1, paddingHorizontal: 16 }}>
-          <Text className="text-xl font-bold text-gray-900 mb-2">
-            Generate {formInfo.name}
-          </Text>
-          <Text className="text-sm text-gray-600 mb-6">
-            {formInfo.description}
-          </Text>
-
-          {/* Form Information */}
-          <View className="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-6">
-            <Text className="text-sm text-blue-900 font-semibold mb-2">What happens next?</Text>
-            <Text className="text-sm text-blue-800 leading-5">
-              {'\u2022'} Your ticket information will be auto-filled into the form{'\n'}
-              {'\u2022'} The completed form will be emailed to you as a PDF{'\n'}
-              {'\u2022'} You can then review, sign (if required), and submit it
+          <ScrollView showsVerticalScrollIndicator={false}>
+            <Text className="text-xl font-bold text-gray-900 mb-2">
+              Generate {formInfo.name}
             </Text>
-          </View>
+            <Text className="text-sm text-gray-600 mb-6">
+              {formInfo.description}
+            </Text>
 
-          {/* Generate Button */}
-          <SquishyPressable onPress={handleGenerate} disabled={isLoading}>
-            <View
-              className={`rounded-lg p-4 items-center justify-center ${
-                isLoading ? 'bg-purple-400' : 'bg-purple-600'
-              }`}
-            >
-              {isLoading ? (
-                <View className="flex-row items-center">
-                  <ActivityIndicator color="#ffffff" size="small" />
-                  <Text className="text-white font-semibold ml-2">Generating...</Text>
-                </View>
-              ) : (
-                <Text className="text-white font-semibold text-base">Generate & Email Form</Text>
-              )}
+            {/* Form Fields */}
+            {renderFormFields()}
+
+            {/* Form Information */}
+            <View className="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-6">
+              <Text className="text-sm text-blue-900 font-semibold mb-2">What happens next?</Text>
+              <Text className="text-sm text-blue-800 leading-5">
+                {'\u2022'} Your ticket information will be auto-filled into the form{'\n'}
+                {'\u2022'} The completed form will be emailed to you as a PDF{'\n'}
+                {'\u2022'} You can then review, sign (if required), and submit it
+              </Text>
             </View>
-          </SquishyPressable>
 
-          <Text className="text-xs text-gray-500 text-center mt-4">
-            The form will be sent to your registered email address
-          </Text>
+            {/* Generate Button */}
+            <SquishyPressable onPress={handleGenerate} disabled={isLoading}>
+              <View
+                className={`rounded-lg p-4 items-center justify-center ${
+                  isLoading ? 'bg-purple-400' : 'bg-purple-600'
+                }`}
+              >
+                {isLoading ? (
+                  <View className="flex-row items-center">
+                    <Loader size={20} color="#ffffff" />
+                    <Text className="text-white font-semibold ml-2">Generating...</Text>
+                  </View>
+                ) : (
+                  <Text className="text-white font-semibold text-base">Generate & Email Form</Text>
+                )}
+              </View>
+            </SquishyPressable>
+
+            <Text className="text-xs text-gray-500 text-center mt-4 mb-8">
+              The form will be sent to your registered email address
+            </Text>
+          </ScrollView>
         </BottomSheetView>
       </BottomSheet>
     );

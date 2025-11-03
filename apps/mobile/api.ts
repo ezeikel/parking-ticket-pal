@@ -206,12 +206,12 @@ export const generateChallengeLetter = async (
 /**
  * Generate a TE7 form for a ticket
  */
-export const generateTE7Form = async (pcnNumber: string) => {
+export const generateTE7Form = async (pcnNumber: string, reasonText: string) => {
   const token = await SecureStore.getItemAsync('sessionToken');
 
   const response = await axios.post(
     `${apiUrlFromEnv}/forms/te7`,
-    { pcnNumber },
+    { pcnNumber, reasonText },
     {
       headers: {
         Authorization: `Bearer ${token}`,
@@ -226,12 +226,22 @@ export const generateTE7Form = async (pcnNumber: string) => {
 /**
  * Generate a TE9 form for a ticket
  */
-export const generateTE9Form = async (pcnNumber: string) => {
+export const generateTE9Form = async (
+  pcnNumber: string,
+  grounds: {
+    didNotReceiveNotice: boolean;
+    madeRepresentations: boolean;
+    hadNoResponse: boolean;
+    appealNotDetermined: boolean;
+    appealInFavour: boolean;
+    paidInFull: boolean;
+  }
+) => {
   const token = await SecureStore.getItemAsync('sessionToken');
 
   const response = await axios.post(
     `${apiUrlFromEnv}/forms/te9`,
-    { pcnNumber },
+    { pcnNumber, ...grounds },
     {
       headers: {
         Authorization: `Bearer ${token}`,
@@ -246,12 +256,12 @@ export const generateTE9Form = async (pcnNumber: string) => {
 /**
  * Generate a PE2 form for a ticket
  */
-export const generatePE2Form = async (pcnNumber: string) => {
+export const generatePE2Form = async (pcnNumber: string, reasonText: string) => {
   const token = await SecureStore.getItemAsync('sessionToken');
 
   const response = await axios.post(
     `${apiUrlFromEnv}/forms/pe2`,
-    { pcnNumber },
+    { pcnNumber, reasonText },
     {
       headers: {
         Authorization: `Bearer ${token}`,
@@ -266,12 +276,22 @@ export const generatePE2Form = async (pcnNumber: string) => {
 /**
  * Generate a PE3 form for a ticket
  */
-export const generatePE3Form = async (pcnNumber: string) => {
+export const generatePE3Form = async (
+  pcnNumber: string,
+  grounds: {
+    didNotReceiveNotice: boolean;
+    madeRepresentations: boolean;
+    hadNoResponse: boolean;
+    appealNotDetermined: boolean;
+    appealInFavour: boolean;
+    paidInFull: boolean;
+  }
+) => {
   const token = await SecureStore.getItemAsync('sessionToken');
 
   const response = await axios.post(
     `${apiUrlFromEnv}/forms/pe3`,
-    { pcnNumber },
+    { pcnNumber, ...grounds },
     {
       headers: {
         Authorization: `Bearer ${token}`,
