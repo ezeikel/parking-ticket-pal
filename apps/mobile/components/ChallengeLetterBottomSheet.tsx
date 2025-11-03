@@ -1,6 +1,7 @@
 import React, { forwardRef, useMemo, useState } from 'react';
-import { View, Text, TextInput, Alert, ScrollView } from 'react-native';
+import { View, Text, TextInput, Alert } from 'react-native';
 import BottomSheet, { BottomSheetBackdrop, BottomSheetView } from '@gorhom/bottom-sheet';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { Picker } from '@react-native-picker/picker';
 import { IssuerType } from '@parking-ticket-pal/types';
 import { getChallengeReasons } from '@/constants/challenges';
@@ -92,7 +93,7 @@ const ChallengeLetterBottomSheet = forwardRef<BottomSheet, ChallengeLetterBottom
         keyboardBlurBehavior="restore"
       >
         <BottomSheetView style={{ flex: 1, paddingHorizontal: 16 }}>
-          <ScrollView showsVerticalScrollIndicator={false}>
+          <KeyboardAwareScrollView showsVerticalScrollIndicator={false}>
             <Text className="text-xl font-bold text-gray-900 mb-2">
               Generate Challenge Letter
             </Text>
@@ -166,7 +167,7 @@ const ChallengeLetterBottomSheet = forwardRef<BottomSheet, ChallengeLetterBottom
             <Text className="text-xs text-gray-500 text-center mt-4 mb-8">
               The letter will be emailed to you as a PDF attachment
             </Text>
-          </ScrollView>
+          </KeyboardAwareScrollView>
         </BottomSheetView>
       </BottomSheet>
     );

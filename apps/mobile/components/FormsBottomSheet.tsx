@@ -1,6 +1,7 @@
 import React, { forwardRef, useMemo, useState } from 'react';
-import { View, Text, TextInput, Alert, ScrollView } from 'react-native';
+import { View, Text, TextInput, Alert } from 'react-native';
 import BottomSheet, { BottomSheetBackdrop, BottomSheetView } from '@gorhom/bottom-sheet';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import Checkbox from 'expo-checkbox';
 import { FormType, FORM_TYPES } from '@/constants/challenges';
 import SquishyPressable from '@/components/SquishyPressable/SquishyPressable';
@@ -248,7 +249,7 @@ const FormsBottomSheet = forwardRef<BottomSheet, FormsBottomSheetProps>(
         keyboardBlurBehavior="restore"
       >
         <BottomSheetView style={{ flex: 1, paddingHorizontal: 16 }}>
-          <ScrollView showsVerticalScrollIndicator={false}>
+          <KeyboardAwareScrollView showsVerticalScrollIndicator={false}>
             <Text className="text-xl font-bold text-gray-900 mb-2">
               Generate {formInfo.name}
             </Text>
@@ -290,7 +291,7 @@ const FormsBottomSheet = forwardRef<BottomSheet, FormsBottomSheetProps>(
             <Text className="text-xs text-gray-500 text-center mt-4 mb-8">
               The form will be sent to your registered email address
             </Text>
-          </ScrollView>
+          </KeyboardAwareScrollView>
         </BottomSheetView>
       </BottomSheet>
     );
