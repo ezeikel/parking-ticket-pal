@@ -2,6 +2,8 @@ import { generateChallengeLetterByPcn } from '@/app/actions/letter';
 import { NextRequest } from 'next/server';
 import { getUserId } from '@/utils/user';
 
+export const maxDuration = 60;
+
 export const POST = async (req: NextRequest) => {
   try {
     // Development bypass: allow testing with X-Test-User-Id header

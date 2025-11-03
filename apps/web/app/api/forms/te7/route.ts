@@ -2,6 +2,8 @@ import { generateTE7Form, getFormFillDataFromTicket } from '@/app/actions/form';
 import { NextRequest } from 'next/server';
 import { getUserId } from '@/utils/user';
 
+export const maxDuration = 60;
+
 export const POST = async (req: NextRequest) => {
   try {
     // Development bypass: allow testing with X-Test-User-Id header
