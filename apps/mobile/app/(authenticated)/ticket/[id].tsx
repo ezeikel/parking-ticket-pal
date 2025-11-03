@@ -391,14 +391,12 @@ export default function TicketDetailScreen() {
         onSuccess={handleSuccess}
       />
 
-      {selectedFormType && (
-        <FormsBottomSheet
-          ref={formsSheetRef}
-          pcnNumber={ticketData.pcnNumber}
-          formType={selectedFormType}
-          onSuccess={handleSuccess}
-        />
-      )}
+      <FormsBottomSheet
+        ref={formsSheetRef}
+        pcnNumber={ticketData.pcnNumber}
+        formType={selectedFormType || 'TE7'}
+        onSuccess={handleSuccess}
+      />
     </SafeAreaView>
   );
 }
