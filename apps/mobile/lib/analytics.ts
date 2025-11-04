@@ -65,6 +65,15 @@ export type AnalyticsEvent =
   // Settings events
   | "settings_viewed"
   | "user_profile_viewed"
+  | "name_updated"
+  | "phone_number_updated"
+  | "address_updated"
+  | "signature_updated"
+  | "signature_sheet_opened"
+  | "name_sheet_opened"
+  | "email_sheet_opened"
+  | "phone_sheet_opened"
+  | "address_sheet_opened"
 
   // Error events
   | "error_occurred"

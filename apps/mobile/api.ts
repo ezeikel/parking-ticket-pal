@@ -2,6 +2,7 @@ import * as SecureStore from 'expo-secure-store';
 import axios from 'axios';
 import { GoogleSignin } from '@react-native-google-signin/google-signin';
 import { Platform } from 'react-native';
+import type { Address } from '@parking-ticket-pal/types';
 
 // allow an override just for Android if set in EAS
 const apiUrlFromEnv =
@@ -162,7 +163,7 @@ export const confirmPurchase = async (ticketId: string, productId: string) => {
 /**
  * Update user profile information
  */
-export const updateUser = async (userId: string, data: { phoneNumber?: string; name?: string }) => {
+export const updateUser = async (userId: string, data: { phoneNumber?: string; name?: string; address?: Address; signatureDataUrl?: string }) => {
   const token = await SecureStore.getItemAsync('sessionToken');
 
   const response = await axios.patch(`${apiUrlFromEnv}/user/${userId}`, data, {

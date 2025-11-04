@@ -8,12 +8,15 @@ import { STORAGE_PATHS } from '@/constants';
 import { TRACKING_EVENTS } from '@/constants/events';
 import { convertSignaturePointsToSvg } from '@/utils/signature';
 import { createServerLogger } from '@/lib/logger';
+import type { Address } from '@parking-ticket-pal/types';
 
 const logger = createServerLogger({ action: 'user' });
 
 type UpdateUserData = {
   name?: string;
   phoneNumber?: string;
+  address?: Address;
+  // Legacy flat address fields for backward compatibility
   addressLine1?: string;
   addressLine2?: string;
   city?: string;
@@ -56,6 +59,7 @@ const updateUserProfileInternal = async (
     const {
       name,
       phoneNumber,
+      address,
       addressLine1,
       addressLine2,
       city,
@@ -77,11 +81,12 @@ const updateUserProfileInternal = async (
         // Delete any existing signature files
         await deleteExistingSignature(userId);
 
-        // Save to Vercel Blob storage
+        // Save to Vercel Blob storage with random suffix for unique URL
         const blobPath = STORAGE_PATHS.USER_SIGNATURE.replace('%s', userId);
         const signatureBlob = await put(blobPath, svgBuffer, {
           access: 'public',
           contentType: 'image/svg+xml',
+          addRandomSuffix: true,
         });
 
         // Get the URL from the newly created blob
@@ -93,18 +98,28 @@ const updateUserProfileInternal = async (
       }
     }
 
+    // Handle address - support both full Address object and legacy flat fields
+    let addressData = null;
+    if (address) {
+      // New format: full Address object with coordinates
+      addressData = address;
+    } else if (addressLine1 || addressLine2 || city || county || postcode) {
+      // Legacy format: flat fields (for backward compatibility)
+      addressData = {
+        line1: addressLine1,
+        line2: addressLine2,
+        city,
+        county,
+        postcode,
+      };
+    }
+
     const updatedUser = await db.user.update({
       where: { id: userId },
       data: {
         name,
         phoneNumber,
-        address: {
-          line1: addressLine1,
-          line2: addressLine2,
-          city,
-          county,
-          postcode,
-        },
+        address: addressData || undefined,
         signatureUrl: signatureUrl || undefined,
       },
     });

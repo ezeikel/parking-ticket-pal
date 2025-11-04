@@ -120,7 +120,7 @@ const AddressInput = ({ onSelect, initialValue = '', placeholder = 'Start typing
   };
 
   return (
-    <View className="relative">
+    <View>
       <View className="border border-gray-300 rounded-lg">
         <TextInput
           className="px-3 py-3 text-base"
@@ -141,12 +141,12 @@ const AddressInput = ({ onSelect, initialValue = '', placeholder = 'Start typing
       </View>
 
       {showSuggestions && suggestions.length > 0 && (
-        <View className="absolute top-full left-0 right-0 z-50 bg-white border border-gray-300 rounded-lg mt-1 max-h-48">
-          <ScrollView>
+        <View className="bg-white border border-gray-300 rounded-lg mt-2" style={{ maxHeight: 250 }}>
+          <ScrollView style={{ maxHeight: 250 }} nestedScrollEnabled>
             {suggestions.map((feature, index) => (
               <Pressable
                 key={feature.id || index}
-                className="px-3 py-3 border-b border-gray-100 last:border-b-0"
+                className="px-3 py-3 border-b border-gray-100"
                 onPress={() => handleAddressSelect(feature)}
               >
                 <Text className="text-base text-gray-900" numberOfLines={2}>

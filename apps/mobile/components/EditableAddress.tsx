@@ -1,17 +1,29 @@
 import { View, Text } from 'react-native';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
-import { faPlus, faPencil, faPhone } from '@fortawesome/pro-regular-svg-icons';
+import { faPlus, faPencil, faLocationDot } from '@fortawesome/pro-regular-svg-icons';
+import { type Address } from '@parking-ticket-pal/types';
 import { Colors } from '@/constants/Colors';
 import { useColorScheme } from '@/hooks/useColorScheme';
 import SquishyPressable from './SquishyPressable/SquishyPressable';
 
-interface EditablePhoneNumberProps {
-  phoneNumber?: string | null;
+interface EditableAddressProps {
+  address?: Address | null;
   onPress: () => void;
 }
 
-export function EditablePhoneNumber({ phoneNumber, onPress }: EditablePhoneNumberProps) {
+export function EditableAddress({ address, onPress }: EditableAddressProps) {
   const colorScheme = useColorScheme();
+
+  const formatAddress = (addr: Address) => {
+    const parts = [
+      addr.line1,
+      addr.line2,
+      addr.city,
+      addr.county,
+      addr.postcode,
+    ].filter(Boolean);
+    return parts.join(', ');
+  };
 
   return (
     <SquishyPressable
@@ -19,18 +31,18 @@ export function EditablePhoneNumber({ phoneNumber, onPress }: EditablePhoneNumbe
       onPress={onPress}
     >
       <FontAwesomeIcon
-        icon={faPhone}
+        icon={faLocationDot}
         size={20}
         color={Colors[colorScheme ?? 'light'].text}
         style={{ marginRight: 12 }}
       />
       <View className="flex-1">
         <Text className="font-inter text-base text-gray-900">
-          Mobile Number
+          Address
         </Text>
-        {phoneNumber ? (
-          <Text className="font-inter text-sm text-gray-500 mt-1">
-            {phoneNumber}
+        {address ? (
+          <Text className="font-inter text-sm text-gray-500 mt-1" numberOfLines={2}>
+            {formatAddress(address)}
           </Text>
         ) : (
           <Text className="font-inter text-sm text-gray-400 mt-1">
@@ -39,7 +51,7 @@ export function EditablePhoneNumber({ phoneNumber, onPress }: EditablePhoneNumbe
         )}
       </View>
       <FontAwesomeIcon
-        icon={phoneNumber ? faPencil : faPlus}
+        icon={address ? faPencil : faPlus}
         size={16}
         color={Colors[colorScheme ?? 'light'].tint}
       />

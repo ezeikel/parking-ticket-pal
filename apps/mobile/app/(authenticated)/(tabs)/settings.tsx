@@ -1,11 +1,12 @@
 import { Text, View, ScrollView, Pressable, Alert, Dimensions, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
-import { useCallback, useState } from 'react';
+import { useCallback, useState, useRef } from 'react';
 import { router } from 'expo-router';
 import { FontAwesomeIcon } from "@fortawesome/react-native-fontawesome";
-import { faSignOut, faUser, faEnvelope, faInfoCircle, faHeart, faBookOpen, faTrashCan, faCrown, faRotateRight } from "@fortawesome/pro-regular-svg-icons";
+import { faSignOut, faUser, faEnvelope, faInfoCircle, faHeart, faBookOpen, faTrashCan, faCrown, faRotateRight, faPencil, faPlus, faSignature } from "@fortawesome/pro-regular-svg-icons";
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import BottomSheet from '@gorhom/bottom-sheet';
 import { useAuthContext } from '@/contexts/auth';
 import { usePurchases } from '@/contexts/purchases';
 import useUser from '@/hooks/api/useUser';
@@ -18,7 +19,15 @@ import { useAnalytics } from '@/lib/analytics';
 import { resetOnboarding } from '@/utils/onboarding';
 import { UpgradeButton } from '@/components/UpgradeButton';
 import { EditablePhoneNumber } from '@/components/EditablePhoneNumber';
+import { EditableAddress } from '@/components/EditableAddress';
+import SignatureBottomSheet from '@/components/SignatureBottomSheet';
+import SignatureSvg from '@/components/SignatureSvg';
+import EditableNameBottomSheet from '@/components/EditableNameBottomSheet';
+import EditableEmailBottomSheet from '@/components/EditableEmailBottomSheet';
+import EditablePhoneNumberBottomSheet from '@/components/EditablePhoneNumberBottomSheet';
+import EditableAddressBottomSheet from '@/components/EditableAddressBottomSheet';
 import { updateUser } from '@/api';
+import type { Address } from '@parking-ticket-pal/types';
 
 const padding = 16;
 const screenWidth = Dimensions.get('screen').width - padding * 2;
@@ -37,6 +46,11 @@ const SettingsScreen = () => {
   const colorScheme = useColorScheme();
   const { trackScreenView, trackEvent } = useAnalytics();
   const [isRestoring, setIsRestoring] = useState(false);
+  const signatureBottomSheetRef = useRef<BottomSheet>(null);
+  const nameBottomSheetRef = useRef<BottomSheet>(null);
+  const emailBottomSheetRef = useRef<BottomSheet>(null);
+  const phoneBottomSheetRef = useRef<BottomSheet>(null);
+  const addressBottomSheetRef = useRef<BottomSheet>(null);
 
   const appVersion = Constants.expoConfig?.version || '0.1.0';
   const isDev = __DEV__;
@@ -108,12 +122,66 @@ const SettingsScreen = () => {
     );
   };
 
+  const handleUpdateName = async (name: string) => {
+    if (!user?.id) return;
+
+    trackEvent("name_updated", { screen: "settings" });
+    await updateUser(user.id, { name });
+    await refetch();
+    nameBottomSheetRef.current?.close();
+  };
+
   const handleUpdatePhoneNumber = async (phoneNumber: string) => {
     if (!user?.id) return;
 
     trackEvent("phone_number_updated", { screen: "settings" });
     await updateUser(user.id, { phoneNumber });
     await refetch();
+    phoneBottomSheetRef.current?.close();
+  };
+
+  const handleUpdateAddress = async (address: Address) => {
+    if (!user?.id) return;
+
+    trackEvent("address_updated", { screen: "settings" });
+    await updateUser(user.id, { address });
+    await refetch();
+    addressBottomSheetRef.current?.close();
+  };
+
+  const [isEditingSignature, setIsEditingSignature] = useState(false);
+  const [signatureRefreshKey, setSignatureRefreshKey] = useState(0);
+
+  const handleSaveSignature = async (signatureDataUrl: string) => {
+    if (!user?.id) return;
+
+    try {
+      trackEvent("signature_updated", { screen: "settings" });
+      signatureBottomSheetRef.current?.close();
+      setIsEditingSignature(false);
+
+      await updateUser(user.id, { signatureDataUrl });
+      await refetch();
+
+      // Force SignatureSvg to remount with fresh data
+      setSignatureRefreshKey(prev => prev + 1);
+
+      Alert.alert('Success', 'Signature updated successfully');
+    } catch (error) {
+      console.error('Error saving signature:', error);
+      Alert.alert('Error', 'Failed to save signature');
+    }
+  };
+
+  const handleCancelSignature = () => {
+    signatureBottomSheetRef.current?.close();
+    setIsEditingSignature(false);
+  };
+
+  const handleOpenSignatureSheet = () => {
+    trackEvent("signature_sheet_opened", { screen: "settings" });
+    setIsEditingSignature(true);
+    signatureBottomSheetRef.current?.expand();
   };
 
   const handleRestorePurchases = async () => {
@@ -233,18 +301,73 @@ const SettingsScreen = () => {
               icon={faUser}
               title="Name"
               value={user?.name || 'Not set'}
+              onPress={() => {
+                trackEvent("name_sheet_opened", { screen: "settings" });
+                nameBottomSheetRef.current?.expand();
+              }}
             />
 
             <SettingRow
               icon={faEnvelope}
               title="Email"
               value={user?.email}
+              onPress={() => {
+                trackEvent("email_sheet_opened", { screen: "settings" });
+                emailBottomSheetRef.current?.expand();
+              }}
             />
 
             <EditablePhoneNumber
               phoneNumber={user?.phoneNumber}
-              onSave={handleUpdatePhoneNumber}
+              onPress={() => {
+                trackEvent("phone_sheet_opened", { screen: "settings" });
+                phoneBottomSheetRef.current?.expand();
+              }}
             />
+
+            <EditableAddress
+              address={user?.address}
+              onPress={() => {
+                trackEvent("address_sheet_opened", { screen: "settings" });
+                addressBottomSheetRef.current?.expand();
+              }}
+            />
+
+            <Pressable
+              className="flex-row items-center p-4 border-b border-gray-100 active:bg-gray-50"
+              onPress={handleOpenSignatureSheet}
+            >
+              <FontAwesomeIcon
+                icon={faSignature}
+                size={20}
+                color={Colors[colorScheme ?? 'light'].text}
+                style={{ marginRight: 12 }}
+              />
+              <View className="flex-1">
+                <Text className="font-inter text-base text-gray-900">
+                  Signature
+                </Text>
+                {user?.signatureUrl ? (
+                  <View className="mt-2">
+                    <SignatureSvg
+                      uri={user.signatureUrl}
+                      width={150}
+                      height={50}
+                      refreshTrigger={signatureRefreshKey}
+                    />
+                  </View>
+                ) : (
+                  <Text className="font-inter text-sm text-gray-400 mt-1">
+                    Not set
+                  </Text>
+                )}
+              </View>
+              <FontAwesomeIcon
+                icon={faPencil}
+                size={16}
+                color={Colors[colorScheme ?? 'light'].tint}
+              />
+            </Pressable>
 
             <SettingRow
               icon={faCrown}
@@ -379,6 +502,40 @@ const SettingsScreen = () => {
           </View>
         </ScrollView>
       </View>
+
+      <EditableNameBottomSheet
+        ref={nameBottomSheetRef}
+        currentName={user?.name}
+        onSave={handleUpdateName}
+        onCancel={() => nameBottomSheetRef.current?.close()}
+      />
+
+      <EditableEmailBottomSheet
+        ref={emailBottomSheetRef}
+        email={user?.email || ''}
+        onClose={() => emailBottomSheetRef.current?.close()}
+      />
+
+      <EditablePhoneNumberBottomSheet
+        ref={phoneBottomSheetRef}
+        phoneNumber={user?.phoneNumber}
+        onSave={handleUpdatePhoneNumber}
+        onCancel={() => phoneBottomSheetRef.current?.close()}
+      />
+
+      <EditableAddressBottomSheet
+        ref={addressBottomSheetRef}
+        address={user?.address}
+        onSave={handleUpdateAddress}
+        onCancel={() => addressBottomSheetRef.current?.close()}
+      />
+
+      <SignatureBottomSheet
+        ref={signatureBottomSheetRef}
+        onSave={handleSaveSignature}
+        onCancel={handleCancelSignature}
+        existingSignatureUrl={user?.signatureUrl}
+      />
     </SafeAreaView>
   );
 };

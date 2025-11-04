@@ -38,9 +38,16 @@ export const convertSignaturePointsToSvg = async (
   jsonString: string,
 ): Promise<string> => {
   try {
-    const pointGroups = JSON.parse(jsonString);
+    const parsed = JSON.parse(jsonString);
 
-    const svg = pointsToSvg(pointGroups);
+    // Check if it's already SVG data from mobile (expo-drawpad)
+    if (parsed.svg && typeof parsed.svg === 'string') {
+      // Mobile sends { svg: "<svg>...</svg>" }
+      return parsed.svg;
+    }
+
+    // Otherwise, it's point groups from web (react-signature-canvas)
+    const svg = pointsToSvg(parsed);
 
     return svg;
   } catch (error) {

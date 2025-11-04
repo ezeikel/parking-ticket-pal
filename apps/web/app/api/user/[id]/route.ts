@@ -91,11 +91,14 @@ export const PATCH = async (
   const result = await updateUserById(id, authenticatedUserId, {
     name: body.name,
     phoneNumber: body.phoneNumber,
+    address: body.address,
+    // Legacy flat address fields for backward compatibility
     addressLine1: body.addressLine1,
     addressLine2: body.addressLine2,
     city: body.city,
     county: body.county,
     postcode: body.postcode,
+    signatureDataUrl: body.signatureDataUrl,
   });
 
   if (!result.success || !result.user) {

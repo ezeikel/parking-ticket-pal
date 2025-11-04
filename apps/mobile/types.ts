@@ -1,3 +1,5 @@
+import type { Address } from '@parking-ticket-pal/types';
+
 export enum TicketType {
   PARKING_CHARGE_NOTICE = 'PARKING_CHARGE_NOTICE',
   PENALTY_CHARGE_NOTICE = 'PENALTY_CHARGE_NOTICE',
@@ -69,8 +71,9 @@ export type User = {
   id: string;
   name: string;
   email: string;
-  address?: string;
+  address?: Address;
   phoneNumber?: string;
+  signatureUrl?: string;
   vehicles: Vehicle[];
   subscription?: Subscription;
   credits: number;
