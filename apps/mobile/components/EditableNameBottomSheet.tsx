@@ -92,7 +92,6 @@ const EditableNameBottomSheet = forwardRef<BottomSheet, EditableNameBottomSheetP
                 placeholder="Enter your full name"
                 value={name}
                 onChangeText={setName}
-                autoFocus
                 autoCapitalize="words"
               />
             </View>

@@ -174,7 +174,6 @@ const EditablePhoneNumberBottomSheet = forwardRef<BottomSheet, EditablePhoneNumb
                       value={field.state.value}
                       onChangeText={field.handleChange}
                       onBlur={field.handleBlur}
-                      autoFocus
                     />
                     {field.state.meta.errors.length > 0 && (
                       <Text className="font-inter text-xs text-red-500 mt-2">
