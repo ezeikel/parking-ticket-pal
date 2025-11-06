@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { View, Image, Pressable, Text, ActivityIndicator, Alert, Platform } from 'react-native';
+import { View, Image, Text, Alert, Platform } from 'react-native';
 import DocumentScanner, { ResponseType } from 'react-native-document-scanner-plugin';
 import * as ImagePicker from 'expo-image-picker';
 
@@ -8,6 +8,9 @@ import useCreateTicket from '@/hooks/api/useUploadTicket';
 import TicketForm from '@/components/TicketForm/TicketForm';
 import { useAnalytics, getOCRAnalyticsProperties, getTicketFormAnalyticsProperties } from '@/lib/analytics';
 import { useLogger, logScannerIssue } from '@/lib/logger';
+import Loader from '../Loader/Loader';
+import SquishyPressable from '@/components/SquishyPressable/SquishyPressable';
+import { adService } from '@/services/AdService';
 
 
 type ScannerProps = {
@@ -316,6 +319,10 @@ const Scanner = ({ onClose, onImageScanned }: ScannerProps) => {
           screen: "scanner",
           ...formProperties
         });
+
+        // Show interstitial ad before success message
+        await adService.showAd();
+
         Alert.alert('Success', 'Ticket created successfully!', [
           { text: 'OK', onPress: () => onClose?.() }
         ]);
@@ -405,7 +412,7 @@ const Scanner = ({ onClose, onImageScanned }: ScannerProps) => {
         />
         {ocrMutation.isPending && (
           <View className="absolute inset-0 bg-black/50 items-center justify-center rounded-lg">
-            <ActivityIndicator color="white" size="large" />
+            <Loader size={48} color="white" />
             <Text className="text-white mt-2">
               Processing with AI...
             </Text>
@@ -414,7 +421,7 @@ const Scanner = ({ onClose, onImageScanned }: ScannerProps) => {
       </View>
 
       <View className="w-full px-4 flex-row justify-center gap-4">
-        <Pressable
+        <SquishyPressable
           onPress={handleRetry}
           className="flex-1 py-3 border border-gray-300 rounded-lg"
           disabled={ocrMutation.isPending}
@@ -422,21 +429,21 @@ const Scanner = ({ onClose, onImageScanned }: ScannerProps) => {
           <Text className="text-center font-medium">
             Retry Scan
           </Text>
-        </Pressable>
+        </SquishyPressable>
 
-        <Pressable
+        <SquishyPressable
           onPress={handleProcess}
           className="flex-1 bg-blue-500 py-3 rounded-lg"
           disabled={ocrMutation.isPending}
         >
           {ocrMutation.isPending ? (
-            <ActivityIndicator color="white" />
+            <Loader size={20} color="white" />
           ) : (
             <Text className="text-white text-center font-medium">
               Process Image
             </Text>
           )}
-        </Pressable>
+        </SquishyPressable>
       </View>
     </View>
   );

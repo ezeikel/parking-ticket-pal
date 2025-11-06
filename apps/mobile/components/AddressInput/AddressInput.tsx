@@ -1,6 +1,8 @@
 import React, { useState, useCallback } from 'react';
-import { View, Text, TextInput, Pressable, ScrollView, ActivityIndicator } from 'react-native';
+import { View, Text, TextInput, ScrollView } from 'react-native';
 import { type Address } from '@parking-ticket-pal/types';
+import Loader from '../Loader/Loader';
+import SquishyPressable from '@/components/SquishyPressable/SquishyPressable';
 
 type MapboxFeature = {
   id: string;
@@ -135,7 +137,7 @@ const AddressInput = ({ onSelect, initialValue = '', placeholder = 'Start typing
         />
         {isLoading && (
           <View className="absolute right-3 top-3">
-            <ActivityIndicator size="small" color="#666" />
+            <Loader size={16} color="#666" />
           </View>
         )}
       </View>
@@ -144,7 +146,7 @@ const AddressInput = ({ onSelect, initialValue = '', placeholder = 'Start typing
         <View className="bg-white border border-gray-300 rounded-lg mt-2" style={{ maxHeight: 250 }}>
           <ScrollView style={{ maxHeight: 250 }} nestedScrollEnabled>
             {suggestions.map((feature, index) => (
-              <Pressable
+              <SquishyPressable
                 key={feature.id || index}
                 className="px-3 py-3 border-b border-gray-100"
                 onPress={() => handleAddressSelect(feature)}
@@ -152,7 +154,7 @@ const AddressInput = ({ onSelect, initialValue = '', placeholder = 'Start typing
                 <Text className="text-base text-gray-900" numberOfLines={2}>
                   {feature.place_name}
                 </Text>
-              </Pressable>
+              </SquishyPressable>
             ))}
           </ScrollView>
         </View>

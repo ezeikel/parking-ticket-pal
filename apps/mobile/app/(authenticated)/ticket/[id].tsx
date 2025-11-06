@@ -26,6 +26,7 @@ import ChallengeLetterBottomSheet from '@/components/ChallengeLetterBottomSheet'
 import FormsBottomSheet from '@/components/FormsBottomSheet';
 import { FormType } from '@/constants/challenges';
 import { usePurchases } from '@/contexts/purchases';
+import { AdBanner } from '@/components/AdBanner';
 
 type TicketTier = 'FREE' | 'STANDARD' | 'PREMIUM';
 
@@ -375,6 +376,9 @@ export default function TicketDetailScreen() {
           </View>
         )}
       </ScrollView>
+
+      {/* Banner Ad */}
+      <AdBanner placement="ticket-detail" />
 
       {/* Bottom Sheets */}
       <PremiumActionsBottomSheet

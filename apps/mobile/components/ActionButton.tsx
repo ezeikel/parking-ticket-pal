@@ -1,8 +1,9 @@
 import React from 'react';
-import { Text, View, ActivityIndicator } from 'react-native';
+import { Text, View } from 'react-native';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import type { IconDefinition } from '@fortawesome/fontawesome-svg-core';
 import SquishyPressable from './SquishyPressable/SquishyPressable';
+import Loader from './Loader/Loader';
 
 type ButtonVariant = 'primary' | 'secondary' | 'danger';
 
@@ -17,7 +18,7 @@ interface ActionButtonProps {
 }
 
 const getVariantStyles = (variant: ButtonVariant, disabled: boolean) => {
-  const baseStyles = 'px-4 py-2 rounded-lg flex-row items-center justify-center';
+  const baseStyles = 'px-4 py-3.5 rounded-lg flex-row items-center justify-center';
 
   if (disabled) {
     return {
@@ -69,7 +70,7 @@ export function ActionButton({
       style={fullWidth ? { flex: 1 } : undefined}
     >
       {loading ? (
-        <ActivityIndicator size="small" color={styles.iconColor} />
+        <Loader size={16} color={styles.iconColor} />
       ) : (
         <>
           {icon && (

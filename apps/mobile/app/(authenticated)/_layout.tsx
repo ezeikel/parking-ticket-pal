@@ -28,6 +28,13 @@ const AppLayout = () => {
           presentation: 'card',
         }}
       />
+      <Stack.Screen
+        name="notifications"
+        options={{
+          headerShown: false,
+          presentation: 'card',
+        }}
+      />
     </Stack>
   );
 }

@@ -15,9 +15,18 @@ const Providers = ({ children }: { children: React.ReactNode }) => {
     <KeyboardProvider>
       <GestureHandlerRootView style={{ flex: 1 }}>
         <BottomSheetModalProvider>
-          <PostHogProvider apiKey={process.env.EXPO_PUBLIC_POSTHOG_API_KEY} options={{
-            host: 'https://eu.i.posthog.com'
-          }}>
+          <PostHogProvider
+            apiKey={process.env.EXPO_PUBLIC_POSTHOG_API_KEY}
+            options={{
+              host: 'https://eu.i.posthog.com',
+              captureNativeAppLifecycleEvents: true,
+            }}
+            autocapture={{
+              captureTouches: true,
+              captureLifecycleEvents: true,
+              captureScreens: true,
+            }}
+          >
             <QueryClientProvider client={queryClient}>
               <PurchasesContextProvider>
                 <AuthContextProvider>

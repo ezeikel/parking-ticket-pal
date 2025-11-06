@@ -5,6 +5,8 @@ import { LoginManager, AccessToken } from 'react-native-fbsdk-next';
 import appleAuth from '@invertase/react-native-apple-authentication';
 import Purchases from 'react-native-purchases';
 import { useRouter } from 'expo-router';
+import { usePostHog } from 'posthog-react-native';
+import * as Sentry from '@sentry/react-native';
 import { getCurrentUser, signIn as signInApi, signInWithFacebook, signInWithApple, sendMagicLink } from '@/api';
 import { usePurchases } from './purchases';
 
@@ -39,6 +41,7 @@ export const AuthContextProvider = ({ children }: AuthContextProviderProps) => {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const router = useRouter();
+  const posthog = usePostHog();
   const { isConfigured: isPurchasesConfigured } = usePurchases();
 
   const conifgureGoogleSignIn = () => {
@@ -63,6 +66,38 @@ export const AuthContextProvider = ({ children }: AuthContextProviderProps) => {
 
           if (user) {
             setIsAuthenticated(true);
+
+            // Identify user with PostHog
+            if (user.id) {
+              try {
+                posthog.identify(user.id, {
+                  email: user.email,
+                  name: user.name,
+                  created_at: user.createdAt,
+                  subscription_type: user.subscription?.type,
+                  subscription_source: user.subscription?.source,
+                });
+                console.log('[Auth] User identified with PostHog:', user.id);
+              } catch (error) {
+                console.error('[Auth] Error identifying user with PostHog:', error);
+              }
+            }
+
+            // Identify user with Sentry
+            if (user.id) {
+              try {
+                Sentry.setUser({
+                  id: user.id,
+                  email: user.email,
+                  username: user.name,
+                });
+                Sentry.setTag('subscription_type', user.subscription?.type || 'free');
+                Sentry.setTag('subscription_source', user.subscription?.source || 'none');
+                console.log('[Auth] User identified with Sentry:', user.id);
+              } catch (error) {
+                console.error('[Auth] Error identifying user with Sentry:', error);
+              }
+            }
 
             // Identify user with RevenueCat only if SDK is configured
             if (user.id && isPurchasesConfigured) {
@@ -100,8 +135,42 @@ export const AuthContextProvider = ({ children }: AuthContextProviderProps) => {
       await SecureStore.setItemAsync('sessionToken', sessionToken);
       setIsAuthenticated(true);
 
-      // Get user info to identify with RevenueCat only if SDK is configured
+      // Get user info to identify with PostHog and RevenueCat
       const { user } = await getCurrentUser();
+
+      // Identify user with PostHog
+      if (user?.id) {
+        try {
+          posthog.identify(user.id, {
+            email: user.email,
+            name: user.name,
+            created_at: user.createdAt,
+            subscription_type: user.subscription?.type,
+            subscription_source: user.subscription?.source,
+          });
+          console.log('[Auth] User identified with PostHog:', user.id);
+        } catch (error) {
+          console.error('[Auth] Error identifying user with PostHog:', error);
+        }
+      }
+
+      // Identify user with Sentry
+      if (user?.id) {
+        try {
+          Sentry.setUser({
+            id: user.id,
+            email: user.email,
+            username: user.name,
+          });
+          Sentry.setTag('subscription_type', user.subscription?.type || 'free');
+          Sentry.setTag('subscription_source', user.subscription?.source || 'none');
+          console.log('[Auth] User identified with Sentry:', user.id);
+        } catch (error) {
+          console.error('[Auth] Error identifying user with Sentry:', error);
+        }
+      }
+
+      // Identify user with RevenueCat only if SDK is configured
       if (user?.id && isPurchasesConfigured) {
         try {
           await Purchases.logIn(user.id);
@@ -138,8 +207,42 @@ export const AuthContextProvider = ({ children }: AuthContextProviderProps) => {
       await SecureStore.setItemAsync('sessionToken', sessionToken);
       setIsAuthenticated(true);
 
-      // Get user info to identify with RevenueCat only if SDK is configured
+      // Get user info to identify with PostHog and RevenueCat
       const { user } = await getCurrentUser();
+
+      // Identify user with PostHog
+      if (user?.id) {
+        try {
+          posthog.identify(user.id, {
+            email: user.email,
+            name: user.name,
+            created_at: user.createdAt,
+            subscription_type: user.subscription?.type,
+            subscription_source: user.subscription?.source,
+          });
+          console.log('[Auth] User identified with PostHog:', user.id);
+        } catch (error) {
+          console.error('[Auth] Error identifying user with PostHog:', error);
+        }
+      }
+
+      // Identify user with Sentry
+      if (user?.id) {
+        try {
+          Sentry.setUser({
+            id: user.id,
+            email: user.email,
+            username: user.name,
+          });
+          Sentry.setTag('subscription_type', user.subscription?.type || 'free');
+          Sentry.setTag('subscription_source', user.subscription?.source || 'none');
+          console.log('[Auth] User identified with Sentry:', user.id);
+        } catch (error) {
+          console.error('[Auth] Error identifying user with Sentry:', error);
+        }
+      }
+
+      // Identify user with RevenueCat only if SDK is configured
       if (user?.id && isPurchasesConfigured) {
         try {
           await Purchases.logIn(user.id);
@@ -201,6 +304,22 @@ export const AuthContextProvider = ({ children }: AuthContextProviderProps) => {
     try {
       await GoogleSignin.signOut();
       await LoginManager.logOut();
+
+      // Reset PostHog user identity
+      try {
+        posthog.reset();
+        console.log('[Auth] User identity reset in PostHog');
+      } catch (error) {
+        console.error('[Auth] Error resetting PostHog:', error);
+      }
+
+      // Clear Sentry user identity
+      try {
+        Sentry.setUser(null);
+        console.log('[Auth] User identity cleared in Sentry');
+      } catch (error) {
+        console.error('[Auth] Error clearing Sentry user:', error);
+      }
 
       // Only log out from RevenueCat if it's configured
       if (isPurchasesConfigured) {

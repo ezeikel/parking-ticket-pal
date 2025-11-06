@@ -423,19 +423,135 @@ export const deleteTicket = async (
   return result;
 };
 
-export const getTickets = async () => {
+export const getTickets = async (params?: {
+  search?: string;
+  status?: TicketStatus[];
+  issuer?: string[];
+  issuerType?: IssuerType[];
+  ticketType?: TicketType[];
+  dateFrom?: string;
+  dateTo?: string;
+  amountMin?: number;
+  amountMax?: number;
+  verified?: boolean;
+  sortBy?: 'issuedAt' | 'initialAmount' | 'createdAt' | 'status' | 'issuer';
+  sortOrder?: 'asc' | 'desc';
+}) => {
   const userId = await getUserId('get tickets');
 
   if (!userId) {
     return null;
   }
 
-  const tickets = await db.ticket.findMany({
-    where: {
-      vehicle: {
-        userId,
-      },
+  // Build the where clause dynamically
+  const where: Prisma.TicketWhereInput = {
+    vehicle: {
+      userId,
     },
+  };
+
+  // Add search filter
+  if (params?.search) {
+    // Convert search to lowercase for case-insensitive JSON field matching
+    const searchLower = params.search.toLowerCase();
+    const searchUpper = params.search.toUpperCase();
+
+    where.OR = [
+      { pcnNumber: { contains: params.search, mode: 'insensitive' } },
+      { issuer: { contains: params.search, mode: 'insensitive' } },
+      { vehicle: { registrationNumber: { contains: params.search, mode: 'insensitive' } } },
+      // Search in location JSON - try both lowercase and original case
+      { location: { path: ['line1'], string_contains: params.search } },
+      { location: { path: ['line1'], string_contains: searchLower } },
+      { location: { path: ['line1'], string_contains: searchUpper } },
+      { location: { path: ['line2'], string_contains: params.search } },
+      { location: { path: ['line2'], string_contains: searchLower } },
+      { location: { path: ['line2'], string_contains: searchUpper } },
+      { location: { path: ['city'], string_contains: params.search } },
+      { location: { path: ['city'], string_contains: searchLower } },
+      { location: { path: ['city'], string_contains: searchUpper } },
+      { location: { path: ['county'], string_contains: params.search } },
+      { location: { path: ['county'], string_contains: searchLower } },
+      { location: { path: ['county'], string_contains: searchUpper } },
+      { location: { path: ['postcode'], string_contains: params.search } },
+      { location: { path: ['postcode'], string_contains: searchLower } },
+      { location: { path: ['postcode'], string_contains: searchUpper } },
+    ];
+  }
+
+  // Add status filter
+  if (params?.status && params.status.length > 0) {
+    where.status = { in: params.status };
+  }
+
+  // Add issuer filter (by name)
+  if (params?.issuer && params.issuer.length > 0) {
+    where.issuer = { in: params.issuer };
+  }
+
+  // Add issuerType filter
+  if (params?.issuerType && params.issuerType.length > 0) {
+    where.issuerType = { in: params.issuerType };
+  }
+
+  // Add ticketType filter
+  if (params?.ticketType && params.ticketType.length > 0) {
+    where.type = { in: params.ticketType };
+  }
+
+  // Add date range filter
+  if (params?.dateFrom || params?.dateTo) {
+    where.issuedAt = {};
+    if (params.dateFrom) {
+      where.issuedAt.gte = new Date(params.dateFrom);
+    }
+    if (params.dateTo) {
+      where.issuedAt.lte = new Date(params.dateTo);
+    }
+  }
+
+  // Add amount range filter
+  if (params?.amountMin !== undefined || params?.amountMax !== undefined) {
+    where.initialAmount = {};
+    if (params.amountMin !== undefined) {
+      where.initialAmount.gte = params.amountMin;
+    }
+    if (params.amountMax !== undefined) {
+      where.initialAmount.lte = params.amountMax;
+    }
+  }
+
+  // Add verified filter
+  if (params?.verified !== undefined) {
+    where.verified = params.verified;
+  }
+
+  // Build orderBy clause
+  let orderBy: Prisma.TicketOrderByWithRelationInput = { issuedAt: 'desc' };
+
+  if (params?.sortBy) {
+    const sortOrder = params.sortOrder || 'asc';
+    switch (params.sortBy) {
+      case 'issuedAt':
+        orderBy = { issuedAt: sortOrder };
+        break;
+      case 'initialAmount':
+        orderBy = { initialAmount: sortOrder };
+        break;
+      case 'createdAt':
+        orderBy = { createdAt: sortOrder };
+        break;
+      case 'status':
+        orderBy = { status: sortOrder };
+        break;
+      case 'issuer':
+        orderBy = { issuer: sortOrder };
+        break;
+    }
+  }
+
+  const tickets = await db.ticket.findMany({
+    where,
     include: {
       vehicle: true,
       media: {
@@ -445,6 +561,7 @@ export const getTickets = async () => {
       },
       prediction: true,
     },
+    orderBy,
   });
 
   return tickets;

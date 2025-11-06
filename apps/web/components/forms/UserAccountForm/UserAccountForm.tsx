@@ -1,10 +1,9 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useActionState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { useFormState } from 'react-dom';
 import { updateUserProfile } from '@/app/actions/user';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -81,8 +80,8 @@ const UserAccountForm = ({ user }: UserAccountFormProps) => {
     },
   });
 
-  // Use `useFormState` to bind the form to the server action
-  const [, formAction] = useFormState(
+  // Use `useActionState` to bind the form to the server action
+  const [, formAction] = useActionState(
     async (_: unknown, formData: FormData) => updateUserProfile(user.id!, formData),
     null,
   );

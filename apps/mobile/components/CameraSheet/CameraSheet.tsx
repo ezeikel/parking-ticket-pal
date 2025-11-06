@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { View, Pressable, Dimensions, Text, ActivityIndicator } from 'react-native';
+import { View, Dimensions, Text } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Animated, {
   useSharedValue,
@@ -13,6 +13,8 @@ import Animated, {
 import { Gesture, GestureDetector, GestureHandlerRootView } from 'react-native-gesture-handler';
 import Scanner from '@/components/Scanner/Scanner';
 import { useCameraContext } from '@/contexts/CameraContext';
+import Loader from '../Loader/Loader';
+import SquishyPressable from '@/components/SquishyPressable/SquishyPressable';
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 const SHEET_ANIMATION_DURATION = 300;
@@ -171,7 +173,7 @@ const CameraSheet = ({ isVisible, onClose }: CameraSheetProps) => {
           backdropAnimatedStyle,
         ]}
       >
-        <Pressable
+        <SquishyPressable
           style={{ flex: 1 }}
           onPress={handleClose}
         />
@@ -223,7 +225,7 @@ const CameraSheet = ({ isVisible, onClose }: CameraSheetProps) => {
                   alignItems: 'center',
                   backgroundColor: 'black'
                 }}>
-                  <ActivityIndicator size="large" color="white" />
+                  <Loader size={48} color="white" />
                   <Text style={{
                     color: 'white',
                     marginTop: 16,

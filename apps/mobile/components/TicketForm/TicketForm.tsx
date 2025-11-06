@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, Pressable, ScrollView, ActivityIndicator, Alert } from 'react-native';
+import { View, Text, TextInput, ScrollView, Alert } from 'react-native';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import DateTimePicker, { DateTimePickerEvent } from '@react-native-community/datetimepicker';
@@ -8,6 +8,8 @@ import AddressInput from '@/components/AddressInput/AddressInput';
 import { CONTRAVENTION_CODES_OPTIONS } from '@parking-ticket-pal/constants';
 import { ticketFormSchema, type TicketFormData } from '@parking-ticket-pal/types';
 import { useAnalytics, getValidationErrorsProperties } from '@/lib/analytics';
+import Loader from '../Loader/Loader';
+import SquishyPressable from '@/components/SquishyPressable/SquishyPressable';
 
 
 type TicketFormProps = {
@@ -123,7 +125,7 @@ const TicketForm = ({ initialData, onSubmit, onCancel, isLoading = false }: Tick
             name="issuedAt"
             render={({ field: { onChange, value } }) => (
               <>
-                <Pressable
+                <SquishyPressable
                   className="border border-gray-300 rounded-lg px-3 py-3"
                   onPress={() => {
                     trackEvent("date_picker_opened", { screen: "ticket_form" });
@@ -133,7 +135,7 @@ const TicketForm = ({ initialData, onSubmit, onCancel, isLoading = false }: Tick
                   <Text className="text-base">
                     {value ? value.toLocaleDateString() : 'Select date'}
                   </Text>
-                </Pressable>
+                </SquishyPressable>
                 {showDatePicker && (
                   <DateTimePicker
                     value={value || new Date()}
@@ -287,25 +289,25 @@ const TicketForm = ({ initialData, onSubmit, onCancel, isLoading = false }: Tick
       {/* Action Buttons */}
       <View className="p-4 bg-white border-t border-gray-200">
         <View className="flex-row gap-3">
-          <Pressable
+          <SquishyPressable
             onPress={onCancel}
             className="flex-1 py-4 border border-gray-300 rounded-lg bg-gray-50"
             disabled={isLoading}
           >
             <Text className="text-center font-semibold text-gray-700">Cancel</Text>
-          </Pressable>
+          </SquishyPressable>
 
-          <Pressable
+          <SquishyPressable
             onPress={handleSubmit(onFormSubmit)}
             className="flex-1 bg-blue-500 py-4 rounded-lg shadow-sm"
             disabled={isLoading}
           >
             {isLoading ? (
-              <ActivityIndicator color="white" />
+              <Loader size={20} color="white" />
             ) : (
               <Text className="text-white text-center font-semibold">Create Ticket</Text>
             )}
-          </Pressable>
+          </SquishyPressable>
         </View>
       </View>
     </View>

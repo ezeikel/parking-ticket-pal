@@ -1,9 +1,10 @@
-import { Modal, View, Text, Pressable } from 'react-native';
+import { Modal, View, Text } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { FontAwesomeIcon } from "@fortawesome/react-native-fontawesome";
 import { faXmark } from "@fortawesome/pro-regular-svg-icons";
 import Scanner from '@/components/Scanner/Scanner';
 import { useState } from 'react';
+import SquishyPressable from '@/components/SquishyPressable/SquishyPressable';
 
 type CaptureModalProps = {
   isVisible: boolean;
@@ -30,13 +31,13 @@ const CaptureModal = ({ isVisible, setIsVisible }: CaptureModalProps) => {
                 <Text className="font-lato font-bold text-2xl">
                   Scan Ticket
                 </Text>
-                <Pressable
+                <SquishyPressable
                   onPress={() => setIsVisible(false)}
                   className="absolute top-0 right-0"
                   hitSlop={8}
                 >
                   <FontAwesomeIcon icon={faXmark} size={24} />
-                </Pressable>
+                </SquishyPressable>
               </View>
             </View>
           )}

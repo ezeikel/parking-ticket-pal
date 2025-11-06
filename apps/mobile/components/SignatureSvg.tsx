@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, ActivityIndicator } from 'react-native';
+import { View, Text } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
+import Loader from './Loader/Loader';
 
 interface SignatureSvgProps {
   uri: string;
@@ -106,7 +107,7 @@ const SignatureSvg: React.FC<SignatureSvgProps> = ({ uri, width, height, refresh
   if (loading) {
     return (
       <View style={{ width, height, justifyContent: 'center', alignItems: 'center' }}>
-        <ActivityIndicator size="small" />
+        <Loader size={16} />
       </View>
     );
   }
