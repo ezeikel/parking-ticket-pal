@@ -12,9 +12,14 @@ import Animated, {
 } from 'react-native-reanimated';
 import { Gesture, GestureDetector, GestureHandlerRootView } from 'react-native-gesture-handler';
 import Scanner from '@/components/Scanner/Scanner';
+import VisionCameraScanner from '@/components/VisionCameraScanner/VisionCameraScanner';
 import { useCameraContext } from '@/contexts/CameraContext';
 import Loader from '../Loader/Loader';
 import SquishyPressable from '@/components/SquishyPressable/SquishyPressable';
+
+// Feature flag for Vision Camera
+// Set EXPO_PUBLIC_USE_VISION_CAMERA=true in .env to enable
+const USE_VISION_CAMERA = process.env.EXPO_PUBLIC_USE_VISION_CAMERA === 'true';
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 const SHEET_ANIMATION_DURATION = 300;
@@ -237,13 +242,23 @@ const CameraSheet = ({ isVisible, onClose }: CameraSheetProps) => {
                 </View>
               ) : shouldShowScanner ? (
                 /* Controlled Scanner mounting for proper lifecycle */
-                <Scanner
-                  key={`scanner-${scannerKey}`}
-                  onClose={handleClose}
-                  onImageScanned={() => {
-                    // Keep sheet open during image processing
-                  }}
-                />
+                USE_VISION_CAMERA ? (
+                  <VisionCameraScanner
+                    key={`vision-scanner-${scannerKey}`}
+                    onClose={handleClose}
+                    onImageScanned={() => {
+                      // Keep sheet open during image processing
+                    }}
+                  />
+                ) : (
+                  <Scanner
+                    key={`scanner-${scannerKey}`}
+                    onClose={handleClose}
+                    onImageScanned={() => {
+                      // Keep sheet open during image processing
+                    }}
+                  />
+                )
               ) : (
                 /* Black placeholder while not ready */
                 <View style={{

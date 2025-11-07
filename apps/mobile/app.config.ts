@@ -110,6 +110,13 @@ export default ({ config }: ConfigContext): ExpoConfig => {
           "cameraPermission": "We need camera access, so you can scan documents"
         }
       ],
+      [
+        "react-native-vision-camera",
+        {
+          "cameraPermissionText": "This app uses your camera to scan parking tickets and related documents.",
+          "enableMicrophonePermission": false
+        }
+      ],
       "expo-secure-store",
       [
         "@sentry/react-native/expo",
