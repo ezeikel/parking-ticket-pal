@@ -181,7 +181,9 @@ const CameraSheet = ({ isVisible, onClose }: CameraSheetProps) => {
         <SquishyPressable
           style={{ flex: 1 }}
           onPress={handleClose}
-        />
+        >
+          <View style={{ flex: 1 }} />
+        </SquishyPressable>
       </Animated.View>
 
       {/* Camera Sheet */}

@@ -10,6 +10,7 @@ type CameraControlsProps = {
   onFlashToggle?: () => void;
   flashEnabled?: boolean;
   isProcessing?: boolean;
+  documentDetected?: boolean; // New prop for document detection state
 };
 
 export const CameraControls = ({
@@ -19,6 +20,7 @@ export const CameraControls = ({
   onFlashToggle,
   flashEnabled = false,
   isProcessing = false,
+  documentDetected = false,
 }: CameraControlsProps) => {
   return (
     <View style={styles.container}>
@@ -61,11 +63,17 @@ export const CameraControls = ({
         {/* Capture button - center */}
         <SquishyPressable
           onPress={onCapturePress}
-          style={styles.captureButton}
+          style={[
+            styles.captureButton,
+            documentDetected && styles.captureButtonActive,
+          ]}
           disabled={isProcessing}
         >
-          <View style={styles.captureButtonInner}>
-            <FontAwesomeIcon icon={faCamera} size={32} color="white" />
+          <View style={[
+            styles.captureButtonInner,
+            documentDetected && styles.captureButtonInnerActive,
+          ]}>
+            <FontAwesomeIcon icon={faCamera} size={32} color={documentDetected ? '#00FF00' : 'white'} />
           </View>
         </SquishyPressable>
 
@@ -138,6 +146,9 @@ const styles = StyleSheet.create({
     borderWidth: 4,
     borderColor: 'white',
   },
+  captureButtonActive: {
+    borderColor: '#00FF00',
+  },
   captureButtonInner: {
     width: 68,
     height: 68,
@@ -145,6 +156,9 @@ const styles = StyleSheet.create({
     backgroundColor: 'white',
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  captureButtonInnerActive: {
+    backgroundColor: '#000000',
   },
   spacer: {
     width: 56, // Same as gallery button for symmetry

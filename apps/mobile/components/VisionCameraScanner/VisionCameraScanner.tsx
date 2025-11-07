@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { View, Text, Alert, Platform, StyleSheet } from 'react-native';
+import { View, Text, Alert, Platform, StyleSheet, Dimensions } from 'react-native';
 import { Camera, useCameraDevice, useCameraPermission } from 'react-native-vision-camera';
 import * as ImagePicker from 'expo-image-picker';
 
@@ -11,9 +11,8 @@ import { useLogger, logScannerIssue } from '@/lib/logger';
 import Loader from '../Loader/Loader';
 import { adService } from '@/services/AdService';
 import { CameraControls } from './CameraControls';
-
-// TODO: Import document detection when implemented
-// import { useDocumentDetection } from '@/hooks/useDocumentDetection';
+import { useDocumentDetection } from '@/hooks/useDocumentDetection';
+import DocumentOverlay from './DocumentOverlay';
 
 type VisionCameraScannerProps = {
   onClose?: () => void;
@@ -34,6 +33,10 @@ const VisionCameraScanner = ({ onClose, onImageScanned }: VisionCameraScannerPro
   const createTicketMutation = useCreateTicket();
   const { trackEvent, trackError } = useAnalytics();
   const logger = useLogger();
+
+  // Document detection integration
+  const { frameProcessor, detectedCorners, confidence } = useDocumentDetection();
+  const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
   // Request camera permission on mount
   useEffect(() => {
@@ -121,12 +124,39 @@ const VisionCameraScanner = ({ onClose, onImageScanned }: VisionCameraScannerPro
   };
 
   const handleCapture = async () => {
-    // TODO: Implement document capture with perspective correction
     try {
-      trackEvent("vision_camera_capture_initiated", { screen: "vision_camera_scanner" });
+      trackEvent("vision_camera_capture_initiated", {
+        screen: "vision_camera_scanner",
+        has_document_detected: !!detectedCorners.value,
+        confidence: confidence.value,
+      });
 
-      // Temporary: Just open gallery until capture is implemented
-      await handleOpenGallery();
+      // If document is detected with good confidence, use it for capture
+      // Otherwise, fall back to gallery
+      if (detectedCorners.value && confidence.value > 0.4) {
+        logger.info('Document detected for capture', {
+          screen: "vision_camera_scanner",
+          confidence: confidence.value,
+          corners_count: detectedCorners.value.length,
+        });
+
+        // TODO: Implement actual photo capture with Camera.takePhoto()
+        // TODO: Apply perspective correction using detected corners
+        // For now, fall back to gallery
+        trackEvent("document_capture_not_implemented", {
+          screen: "vision_camera_scanner",
+          confidence: confidence.value,
+        });
+        await handleOpenGallery();
+      } else {
+        // No document detected or low confidence - use gallery
+        logger.info('No document detected, opening gallery', {
+          screen: "vision_camera_scanner",
+          has_corners: !!detectedCorners.value,
+          confidence: confidence.value,
+        });
+        await handleOpenGallery();
+      }
     } catch (error) {
       logger.error('Capture error', { screen: "vision_camera_scanner" }, error as Error);
       trackError(error as Error, {
@@ -290,8 +320,15 @@ const VisionCameraScanner = ({ onClose, onImageScanned }: VisionCameraScannerPro
         isActive={isActive}
         photo={true}
         torch={flashEnabled ? 'on' : 'off'}
-        // TODO: Add frame processor for document detection
-        // frameProcessor={frameProcessor}
+        frameProcessor={frameProcessor}
+      />
+
+      {/* Document detection overlay */}
+      <DocumentOverlay
+        corners={detectedCorners.value}
+        confidence={confidence.value}
+        frameWidth={SCREEN_WIDTH}
+        frameHeight={SCREEN_HEIGHT}
       />
 
       {/* Camera controls overlay */}
@@ -302,10 +339,8 @@ const VisionCameraScanner = ({ onClose, onImageScanned }: VisionCameraScannerPro
         onFlashToggle={handleFlashToggle}
         flashEnabled={flashEnabled}
         isProcessing={ocrMutation.isPending}
+        documentDetected={!!detectedCorners.value && confidence.value > 0.4}
       />
-
-      {/* TODO: Document overlay will go here */}
-      {/* <DocumentOverlay corners={detectedCorners} /> */}
     </View>
   );
 };
