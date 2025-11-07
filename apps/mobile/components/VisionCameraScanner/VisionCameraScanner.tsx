@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
-import { View, Text, Alert, Platform, StyleSheet, Dimensions } from 'react-native';
+import { View, Text, Alert, Platform, StyleSheet, Dimensions, StatusBar, Image } from 'react-native';
 import { Camera, useCameraDevice, useCameraPermission } from 'react-native-vision-camera';
+import { BlurView } from 'expo-blur';
 import * as ImagePicker from 'expo-image-picker';
 
 import useOCR from '@/hooks/api/useOCR';
@@ -13,6 +14,7 @@ import { adService } from '@/services/AdService';
 import { CameraControls } from './CameraControls';
 import { useDocumentDetection } from '@/hooks/useDocumentDetection';
 import DocumentOverlay from './DocumentOverlay';
+import { UPLOADING_TICKET_TEXT, CREATING_CHALLENGE_LETTER_TEXT } from '@/constants/loadingMessages';
 
 type VisionCameraScannerProps = {
   onClose?: () => void;
@@ -25,6 +27,8 @@ const VisionCameraScanner = ({ onClose, onImageScanned }: VisionCameraScannerPro
   const [showForm, setShowForm] = useState(false);
   const [isActive, setIsActive] = useState(true);
   const [flashEnabled, setFlashEnabled] = useState(false);
+  const [isProcessingSubmission, setIsProcessingSubmission] = useState(false);
+  const [loadingMessage, setLoadingMessage] = useState<string>('');
 
   const device = useCameraDevice('back');
   const { hasPermission, requestPermission } = useCameraPermission();
@@ -38,8 +42,60 @@ const VisionCameraScanner = ({ onClose, onImageScanned }: VisionCameraScannerPro
   const { frameProcessor, detectedCorners, confidence } = useDocumentDetection();
   const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
-  // Request camera permission on mount
+  // Rotating loading messages for OCR processing
   useEffect(() => {
+    if (ocrMutation.isPending && scannedImage) {
+      // Set initial message
+      setLoadingMessage(UPLOADING_TICKET_TEXT[0]);
+
+      // Rotate messages every 1.5 seconds
+      const interval = setInterval(() => {
+        const randomIndex = Math.floor(Math.random() * UPLOADING_TICKET_TEXT.length);
+        setLoadingMessage(UPLOADING_TICKET_TEXT[randomIndex]);
+      }, 1500);
+
+      return () => clearInterval(interval);
+    }
+  }, [ocrMutation.isPending, scannedImage]);
+
+  // Rotating loading messages for form submission
+  useEffect(() => {
+    if (isProcessingSubmission) {
+      // Set initial message
+      setLoadingMessage(CREATING_CHALLENGE_LETTER_TEXT[0]);
+
+      // Rotate messages every 1.5 seconds
+      const interval = setInterval(() => {
+        const randomIndex = Math.floor(Math.random() * CREATING_CHALLENGE_LETTER_TEXT.length);
+        setLoadingMessage(CREATING_CHALLENGE_LETTER_TEXT[randomIndex]);
+      }, 1500);
+
+      return () => clearInterval(interval);
+    }
+  }, [isProcessingSubmission]);
+
+  // Debug logging for document detection
+  useEffect(() => {
+    // Log to analytics (works in all build types)
+    const interval = setInterval(() => {
+      if (detectedCorners.value || confidence.value > 0) {
+        logger.info('[VisionCamera] Document detection status', {
+          screen: 'vision_camera_scanner',
+          hasCorners: !!detectedCorners.value,
+          cornersCount: detectedCorners.value?.length || 0,
+          confidence: confidence.value,
+        });
+      }
+    }, 5000); // Log every 5 seconds when there's activity
+
+    return () => clearInterval(interval);
+  }, [detectedCorners, confidence, logger]);
+
+  // Request camera permission on mount and hide status bar
+  useEffect(() => {
+    // Hide status bar for full-screen camera experience
+    StatusBar.setHidden(true);
+
     if (!hasPermission) {
       logger.info("VisionCameraScanner mounted, requesting permissions", { screen: "vision_camera_scanner" });
       requestPermission().then((granted) => {
@@ -62,6 +118,8 @@ const VisionCameraScanner = ({ onClose, onImageScanned }: VisionCameraScannerPro
     }
 
     return () => {
+      // Show status bar again when unmounting
+      StatusBar.setHidden(false);
       setIsActive(false);
       setScannedImage(undefined);
     };
@@ -233,12 +291,17 @@ const VisionCameraScanner = ({ onClose, onImageScanned }: VisionCameraScannerPro
       const result = await createTicketMutation.mutateAsync(ticketData);
 
       if (result.success) {
+        // Show processing overlay while ad loads
+        setIsProcessingSubmission(true);
+
         trackEvent("ticket_created", {
           screen: "vision_camera_scanner",
           ...formProperties
         });
 
         await adService.showAd();
+
+        setIsProcessingSubmission(false);
 
         Alert.alert('Success', 'Ticket created successfully!', [
           { text: 'OK', onPress: () => onClose?.() }
@@ -252,6 +315,7 @@ const VisionCameraScanner = ({ onClose, onImageScanned }: VisionCameraScannerPro
         Alert.alert('Error', result.error || 'Failed to create ticket.');
       }
     } catch (error) {
+      setIsProcessingSubmission(false);
       logger.error('Error creating ticket', { screen: "vision_camera_scanner" }, error as Error);
       trackError(error as Error, {
         screen: "vision_camera_scanner",
@@ -291,12 +355,26 @@ const VisionCameraScanner = ({ onClose, onImageScanned }: VisionCameraScannerPro
     };
 
     return (
-      <TicketForm
-        initialData={initialFormData}
-        onSubmit={handleFormSubmit}
-        onCancel={handleFormCancel}
-        isLoading={createTicketMutation.isPending}
-      />
+      <View style={styles.container}>
+        <TicketForm
+          initialData={initialFormData}
+          onSubmit={handleFormSubmit}
+          onCancel={handleFormCancel}
+          isLoading={createTicketMutation.isPending}
+        />
+
+        {/* Processing overlay after form submission */}
+        {isProcessingSubmission && (
+          <View style={StyleSheet.absoluteFill}>
+            <BlurView intensity={50} tint="dark" style={StyleSheet.absoluteFill}>
+              <View style={styles.centerContainer}>
+                <Loader size={48} color="white" />
+                <Text style={styles.loadingText}>{loadingMessage}</Text>
+              </View>
+            </BlurView>
+          </View>
+        )}
+      </View>
     );
   }
 
@@ -321,6 +399,7 @@ const VisionCameraScanner = ({ onClose, onImageScanned }: VisionCameraScannerPro
         photo={true}
         torch={flashEnabled ? 'on' : 'off'}
         frameProcessor={frameProcessor}
+        enableZoomGesture={false}
       />
 
       {/* Document detection overlay */}
@@ -341,6 +420,26 @@ const VisionCameraScanner = ({ onClose, onImageScanned }: VisionCameraScannerPro
         isProcessing={ocrMutation.isPending}
         documentDetected={!!detectedCorners.value && confidence.value > 0.4}
       />
+
+      {/* OCR processing overlay - gallery to form */}
+      {ocrMutation.isPending && scannedImage && (
+        <View style={StyleSheet.absoluteFill}>
+          {/* Show the uploaded image */}
+          <Image
+            source={{ uri: `data:image/jpeg;base64,${scannedImage}` }}
+            style={StyleSheet.absoluteFill}
+            resizeMode="cover"
+          />
+
+          {/* Blur overlay */}
+          <BlurView intensity={50} tint="dark" style={StyleSheet.absoluteFill}>
+            <View style={styles.centerContainer}>
+              <Loader size={48} color="white" />
+              <Text style={styles.loadingText}>{loadingMessage}</Text>
+            </View>
+          </BlurView>
+        </View>
+      )}
     </View>
   );
 };

@@ -1,6 +1,5 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { View, Dimensions, Text } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -222,10 +221,9 @@ const CameraSheet = ({ isVisible, onClose }: CameraSheetProps) => {
             />
           </View>
 
-          <SafeAreaView style={{ flex: 1 }} edges={['bottom']}>
-            <View style={{ flex: 1, backgroundColor: 'black' }}>
-              {/* Show loading state while permissions are being requested */}
-              {isLoadingPermissions ? (
+          <View style={{ flex: 1, backgroundColor: 'black' }}>
+            {/* Show loading state while permissions are being requested */}
+            {isLoadingPermissions ? (
                 <View style={{
                   flex: 1,
                   justifyContent: 'center',
@@ -268,8 +266,7 @@ const CameraSheet = ({ isVisible, onClose }: CameraSheetProps) => {
                   backgroundColor: 'black'
                 }} />
               )}
-            </View>
-          </SafeAreaView>
+          </View>
         </Animated.View>
       </GestureDetector>
     </GestureHandlerRootView>

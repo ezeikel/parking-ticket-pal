@@ -9,6 +9,8 @@ module.exports = (api) => {
     plugins: [
       // Required for react-native-vision-camera frame processors
       ['react-native-worklets-core/plugin'],
+      // Required for react-native-reanimated v4 - must be last
+      ['react-native-reanimated/plugin'],
     ],
   };
 };

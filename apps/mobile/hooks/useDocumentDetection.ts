@@ -171,8 +171,10 @@ export const useDocumentDetection = () => {
         confidence.value = detectionConfidence;
 
       } catch (error) {
-        // Log error and reset detection state
-        console.error('Document detection error:', error);
+        // Log error with context and reset detection state
+        // Note: This runs on worklet thread, so we can't directly call logger
+        // Instead, log to console which appears in native console (Xcode/Logcat)
+        console.error('[DocumentDetection] Frame processing error:', error);
         detectedCorners.value = null;
         confidence.value = 0;
       } finally {

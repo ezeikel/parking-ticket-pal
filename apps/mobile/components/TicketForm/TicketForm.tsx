@@ -291,22 +291,24 @@ const TicketForm = ({ initialData, onSubmit, onCancel, isLoading = false }: Tick
         <View className="flex-row gap-3">
           <SquishyPressable
             onPress={onCancel}
-            className="flex-1 py-4 border border-gray-300 rounded-lg bg-gray-50"
             disabled={isLoading}
           >
-            <Text className="text-center font-semibold text-gray-700">Cancel</Text>
+            <View className="flex-1 py-4 border border-gray-300 rounded-lg bg-gray-50">
+              <Text className="text-center font-semibold text-gray-700">Cancel</Text>
+            </View>
           </SquishyPressable>
 
           <SquishyPressable
             onPress={handleSubmit(onFormSubmit)}
-            className="flex-1 bg-blue-500 py-4 rounded-lg shadow-sm"
             disabled={isLoading}
           >
-            {isLoading ? (
-              <Loader size={20} color="white" />
-            ) : (
-              <Text className="text-white text-center font-semibold">Create Ticket</Text>
-            )}
+            <View className="flex-1 bg-blue-500 py-4 rounded-lg shadow-sm">
+              {isLoading ? (
+                <Loader size={20} color="white" />
+              ) : (
+                <Text className="text-white text-center font-semibold">Create Ticket</Text>
+              )}
+            </View>
           </SquishyPressable>
         </View>
       </View>
