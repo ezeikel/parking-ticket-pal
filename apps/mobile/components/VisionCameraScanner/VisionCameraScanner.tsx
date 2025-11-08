@@ -43,12 +43,20 @@ const VisionCameraScanner = ({ onClose, onImageScanned }: VisionCameraScannerPro
   // Document detection integration
   const { frameProcessor, detectedCorners, confidence, frameCount, lastError, processingStep, debugInfo } = useDocumentDetection();
 
-  // Track frame processor execution and log detections
+  // React state to trigger re-renders when shared values change
+  const [cornersState, setCornersState] = useState<any>(null);
+  const [confidenceState, setConfidenceState] = useState<number>(0);
+
+  // Poll shared values and update React state to trigger re-renders
   useEffect(() => {
     const interval = setInterval(() => {
       // Read shared values
       const corners = detectedCorners.value;
       const conf = confidence.value;
+
+      // Update React state to trigger re-renders
+      setCornersState(corners);
+      setConfidenceState(conf);
 
       // Log to PostHog when detection finds something
       if (corners && conf > 0) {
@@ -59,7 +67,7 @@ const VisionCameraScanner = ({ onClose, onImageScanned }: VisionCameraScannerPro
           frame_count: frameCount.value,
         });
       }
-    }, 2000); // Check every 2 seconds
+    }, 100); // Poll at 10 FPS (faster than 5 FPS processing for smooth UI)
 
     return () => clearInterval(interval);
   }, [detectedCorners, confidence, frameCount, logger]);
@@ -468,8 +476,8 @@ const VisionCameraScanner = ({ onClose, onImageScanned }: VisionCameraScannerPro
       {/* Document detection overlay - only render when we have camera dimensions */}
       {cameraLayout.width > 0 && cameraLayout.height > 0 && (
         <DocumentOverlay
-          corners={detectedCorners.value}
-          confidence={confidence.value}
+          corners={cornersState}
+          confidence={confidenceState}
           frameWidth={cameraLayout.width}
           frameHeight={cameraLayout.height}
         />
@@ -513,7 +521,7 @@ const VisionCameraScanner = ({ onClose, onImageScanned }: VisionCameraScannerPro
         onFlashToggle={handleFlashToggle}
         flashEnabled={flashEnabled}
         isProcessing={ocrMutation.isPending}
-        documentDetected={!!detectedCorners.value && confidence.value > 0.4}
+        documentDetected={!!cornersState && confidenceState > 0.4}
       />
 
       {/* OCR processing overlay - gallery to form */}

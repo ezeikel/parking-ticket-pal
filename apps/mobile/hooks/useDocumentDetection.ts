@@ -133,13 +133,14 @@ export const useDocumentDetection = () => {
         processingStep.value = 'applying_blur';
         OpenCV.invoke('GaussianBlur', source, source, blurKernel, 0);
 
-        // Step 8: Apply Canny edge detection
-        // Lower thresholds to detect more edges (documents may have subtle edges)
-        // Thresholds: 50 (lower) and 150 (upper)
-        // Pixels with gradient > 150 are strong edges
-        // Pixels with gradient between 50-150 are weak edges (kept if connected to strong)
+        // Step 8: Apply Canny edge detection with LOWER thresholds for low-light conditions
+        // Optimized for detecting edges in poor lighting without flash
+        // Thresholds: 30 (lower) and 90 (upper) - more sensitive than previous 50/150
+        // This allows detection of subtle document edges even in low contrast situations
+        // Pixels with gradient > 90 are strong edges
+        // Pixels with gradient between 30-90 are weak edges (kept if connected to strong)
         processingStep.value = 'applying_canny';
-        OpenCV.invoke('Canny', source, source, 50, 150);
+        OpenCV.invoke('Canny', source, source, 30, 90);
 
         // Step 9: Apply morphological closing AFTER edge detection to connect fragmented edges
         // This helps connect broken document edges into continuous contours
