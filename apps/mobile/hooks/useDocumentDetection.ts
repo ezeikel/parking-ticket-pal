@@ -1,4 +1,4 @@
-import { useSkiaFrameProcessor, runAtTargetFps } from 'react-native-vision-camera';
+import { useSkiaFrameProcessor } from 'react-native-vision-camera';
 import { useResizePlugin } from 'vision-camera-resize-plugin';
 import { useSharedValue } from 'react-native-worklets-core';
 import { Skia, PaintStyle, PointMode, vec } from '@shopify/react-native-skia';
@@ -135,26 +135,23 @@ export const useDocumentDetection = () => {
 
   /**
    * Main frame processor for document detection with Skia drawing
-   * Uses runAtTargetFps to throttle processing to 5 FPS
+   * Processes every frame (like blog post) - no throttling
    */
   const frameProcessor = useSkiaFrameProcessor((frame) => {
     'worklet';
 
-    // Process at 5 FPS to balance performance and responsiveness
-    // Full camera still runs at 30/60 FPS for smooth preview
-    runAtTargetFps(5, () => {
-      'worklet';
+    // Process EVERY frame (like blog post - no throttling)
+    // Define variables for this frame
+    const SCALE_FACTOR = 4;
+    let bestContour: DocumentCorner[] | null = null;
 
-      // Define variables outside try block so they're accessible in finally
-      const SCALE_FACTOR = 4;
-      let bestContour: DocumentCorner[] | null = null;
+    try {
+      // Increment frame counter for debugging
+      frameCount.value = frameCount.value + 1;
+      lastError.value = null;
 
-      try {
-        // Increment frame counter for debugging
-        frameCount.value = frameCount.value + 1;
-        lastError.value = null;
-        // Step 1: Calculate scaled dimensions (1/4 resolution for 16x speedup)
-        processingStep.value = 'calculating_dimensions';
+      // Step 1: Calculate scaled dimensions (1/4 resolution for 16x speedup)
+      processingStep.value = 'calculating_dimensions';
         const scaledWidth = Math.floor(frame.width / SCALE_FACTOR);
         const scaledHeight = Math.floor(frame.height / SCALE_FACTOR);
 
@@ -514,38 +511,27 @@ export const useDocumentDetection = () => {
         processingStep.value = 'error';
       }
 
-      // Render frame (like blog - after OpenCV, before Skia drawing)
+      // Render frame (like blog - after OpenCV processing)
       frame.render();
 
-      // Step 14: Draw document border directly on camera frame using Skia
-      // This happens AFTER frame.render() like in blog post
-      // Scale coordinates from processing resolution to full frame resolution
+      // Draw document border with Skia (like blog - after render)
       if (bestContour && bestContour.length === 4) {
         const path = Skia.Path.Make();
         const pointsToShow = [];
 
-        // bestContour is in scaled (processing) resolution
-        // Scale back to full frame resolution by DIVIDING by scale factor
-        // Blog uses: pointX = points[index].x / ratio
-        // We use: pointX = corners[i].x / SCALE_FACTOR
-        // But wait - we scaled DOWN to process, so we need to scale UP to draw!
-        // Actually: ratio in blog is how much they scaled DOWN (500/frame.width)
-        // So dividing by ratio scales back UP to original size
-        // Our SCALE_FACTOR is 4, meaning we divided by 4
-        // So we need to MULTIPLY by 4 to get back to original
-        const ratio = 1 / SCALE_FACTOR; // This is our scaling ratio (0.25)
-        const corners = bestContour;
+        // Corners are in scaled (processing) resolution, scale up to full frame
+        const ratio = 1 / SCALE_FACTOR; // 0.25
 
-        // Start path at last point (like article example)
-        const lastX = corners[3].x / ratio;
-        const lastY = corners[3].y / ratio;
+        // Start path at last point (like blog)
+        const lastX = bestContour[3].x / ratio;
+        const lastY = bestContour[3].y / ratio;
         path.moveTo(lastX, lastY);
         pointsToShow.push(vec(lastX, lastY));
 
         // Draw path through all 4 corners
         for (let i = 0; i < 4; i++) {
-          const pointX = corners[i].x / ratio;
-          const pointY = corners[i].y / ratio;
+          const pointX = bestContour[i].x / ratio;
+          const pointY = bestContour[i].y / ratio;
           path.lineTo(pointX, pointY);
           pointsToShow.push(vec(pointX, pointY));
         }
@@ -557,13 +543,12 @@ export const useDocumentDetection = () => {
         frame.drawPoints(PointMode.Polygon, pointsToShow, border);
       }
 
-      // Clear OpenCV buffers (like blog - at the very end)
+      // Clear OpenCV buffers at the end (like blog)
       try {
         OpenCV.clearBuffers();
       } catch (clearError) {
         console.error('[DocumentDetection] Error clearing buffers:', clearError);
       }
-    });
   }, []);
 
   return {
