@@ -205,76 +205,106 @@ export const useDocumentDetection = () => {
             // Get perimeter for polygon approximation
             const { value: perimeter } = OpenCV.invoke('arcLength', contour, true);
 
-            // Approximate contour to polygon using minAreaRect (handles rotation) or boundingRect
-            // minAreaRect gives us a rotated rectangle which is better for angled documents
+            // Approximate contour to polygon using approxPolyDP (official example approach)
+            // This properly approximates contours to polygons and returns actual corner points
             processingStep.value = 'approximating_contour';
             let approxData: any = null;
             
-            // Try minAreaRect first (better for rotated documents)
             try {
-              const rotatedRect = OpenCV.invoke('minAreaRect', contour);
-              if (rotatedRect) {
-                // minAreaRect returns a RotatedRect with center, size, and angle
-                // We need to calculate the 4 corner points from this
-                const rect = rotatedRect as any;
-                const centerX = rect.center?.x || rect.x || 0;
-                const centerY = rect.center?.y || rect.y || 0;
-                const width = rect.size?.width || rect.width || 0;
-                const height = rect.size?.height || rect.height || 0;
-                const angle = rect.angle || 0;
-                
-                if (width > 0 && height > 0) {
-                  // Calculate corner points accounting for rotation
-                  // For now, use axis-aligned corners (we'll improve rotation later if needed)
-                  const halfW = width / 2;
-                  const halfH = height / 2;
-                  
-                  // Simple axis-aligned corners (minAreaRect gives us the size, but rotation is complex)
-                  // For now, use boundingRect which is simpler and works
-                  debugInfo.value = `${debugInfo.value}, minAreaRect: ${width.toFixed(0)}x${height.toFixed(0)}`;
-                  
-                  // Fall through to boundingRect for simplicity
-                }
-              }
-            } catch (minAreaError) {
-              // Continue to boundingRect
-            }
-            
-            // Use boundingRect (simpler and more reliable)
-            try {
-              const rectResult = OpenCV.invoke('boundingRect', contour) as any;
-              const rect = rectResult?.value || rectResult;
+              // Create PointVector for approxPolyDP output (not MatVector!)
+              // According to official example: approxPolyDP(contour, approx, epsilon, closed)
+              const approx = OpenCV.createObject(ObjectType.PointVector);
               
-              if (rect && rect.x !== undefined && rect.width !== undefined) {
-                const x = rect.x || 0;
-                const y = rect.y || 0;
-                const w = rect.width || 0;
-                const h = rect.height || 0;
+              // Epsilon = 2% of perimeter (controls approximation accuracy)
+              // Smaller epsilon = more accurate but more points
+              // Larger epsilon = less accurate but fewer points
+              const epsilon = 0.02 * perimeter;
+              
+              // Call approxPolyDP: approximates contour to polygon
+              OpenCV.invoke('approxPolyDP', contour, approx, epsilon, true);
+              
+              // Convert PointVector to JS value (this works correctly with PointVector)
+              const approxResult = OpenCV.toJSValue(approx);
+              
+              // Check if we got valid approximation data
+              if (approxResult && (approxResult as any).array) {
+                const points = (approxResult as any).array as any[];
+                const pointCount = points.length;
+                debugInfo.value = `${debugInfo.value}, approx=${pointCount}pts`;
                 
-                if (w > 0 && h > 0) {
-                  // Calculate the 4 corners of the bounding rectangle
+                // Check if polygon has exactly 4 corners (quadrilateral - likely a document)
+                if (pointCount === 4) {
+                  approxData = approxResult;
+                  debugInfo.value = `${debugInfo.value}, ✓4pts`;
+                } else if (pointCount > 4) {
+                  // If we have more than 4 points, extract the 4 extreme points
+                  // This handles cases where the approximation gives us more corners
+                  let topLeft: any = points[0];
+                  let topRight: any = points[0];
+                  let bottomRight: any = points[0];
+                  let bottomLeft: any = points[0];
+
+                  for (let j = 0; j < points.length; j++) {
+                    const p: any = points[j];
+                    const sum = p.x + p.y;
+                    const diff = p.x - p.y;
+
+                    // Find extreme points (corners of bounding box)
+                    if (sum < (topLeft.x + topLeft.y)) topLeft = p;
+                    if (diff > (topRight.x - topRight.y)) topRight = p;
+                    if (sum > (bottomRight.x + bottomRight.y)) bottomRight = p;
+                    if (diff < (bottomLeft.x - bottomLeft.y)) bottomLeft = p;
+                  }
+
                   approxData = {
-                    array: [
-                      { x: x, y: y },           // Top-left
-                      { x: x + w, y: y },        // Top-right
-                      { x: x + w, y: y + h },    // Bottom-right
-                      { x: x, y: y + h }         // Bottom-left
-                    ]
+                    array: [topLeft, topRight, bottomRight, bottomLeft]
                   };
-                  debugInfo.value = `${debugInfo.value}, ✓boundingRect`;
+                  debugInfo.value = `${debugInfo.value}, ✓extracted4`;
                 } else {
-                  debugInfo.value = `${debugInfo.value}, rectZeroSize`;
+                  // Less than 4 points - not a valid quadrilateral
+                  debugInfo.value = `${debugInfo.value}, tooFewPoints`;
                   continue;
                 }
               } else {
-                debugInfo.value = `${debugInfo.value}, rectInvalid`;
+                debugInfo.value = `${debugInfo.value}, approxInvalid`;
                 continue;
               }
-            } catch (rectError) {
-              const errorMsg = rectError instanceof Error ? rectError.message : String(rectError);
-              debugInfo.value = `${debugInfo.value}, rectError: ${errorMsg}`;
-              console.warn('[DocumentDetection] boundingRect failed:', errorMsg);
-              continue;
+            } catch (approxError) {
+              // If approxPolyDP fails, fallback to boundingRect
+              const errorMsg = approxError instanceof Error ? approxError.message : String(approxError);
+              debugInfo.value = `${debugInfo.value}, approxError: ${errorMsg}`;
+              console.warn('[DocumentDetection] approxPolyDP failed, using boundingRect fallback:', errorMsg);
+              
+              try {
+                const rectResult = OpenCV.invoke('boundingRect', contour) as any;
+                const rect = rectResult?.value || rectResult;
+                
+                if (rect && rect.x !== undefined && rect.width !== undefined) {
+                  const x = rect.x || 0;
+                  const y = rect.y || 0;
+                  const w = rect.width || 0;
+                  const h = rect.height || 0;
+                  
+                  if (w > 0 && h > 0) {
+                    approxData = {
+                      array: [
+                        { x: x, y: y },
+                        { x: x + w, y: y },
+                        { x: x + w, y: y + h },
+                        { x: x, y: y + h }
+                      ]
+                    };
+                    debugInfo.value = `${debugInfo.value}, fallback=boundingRect`;
+                  } else {
+                    continue;
+                  }
+                } else {
+                  continue;
+                }
+              } catch (rectError) {
+                debugInfo.value = `${debugInfo.value}, rectError: ${rectError}`;
+                continue;
+              }
             }
 
             // Check if we have valid approximation with 4 corners
