@@ -23,6 +23,79 @@ export type DocumentDetectionResult = {
 };
 
 /**
+ * Validates if a 4-point polygon is roughly rectangular
+ * Checks aspect ratio and angle constraints to filter out weird shapes
+ *
+ * @param points Array of 4 points representing a quadrilateral
+ * @returns true if shape passes rectangle validation
+ */
+const validateRectangularShape = (points: any[]): boolean => {
+  'worklet';
+
+  if (points.length !== 4) return false;
+
+  // Calculate distances between consecutive points (side lengths)
+  const distances: number[] = [];
+  for (let i = 0; i < 4; i++) {
+    const p1 = points[i];
+    const p2 = points[(i + 1) % 4];
+    const dist = Math.sqrt(Math.pow(p2.x - p1.x, 2) + Math.pow(p2.y - p1.y, 2));
+    distances.push(dist);
+  }
+
+  // Sort to get [shorter side, shorter side, longer side, longer side]
+  const sortedDistances = [...distances].sort((a, b) => a - b);
+
+  // Check aspect ratio: reject extremely elongated rectangles
+  // Documents are typically A4 (1.414:1) or letter (1.29:1), allow 1:1 to 3:1
+  const shortSide = (sortedDistances[0] + sortedDistances[1]) / 2;
+  const longSide = (sortedDistances[2] + sortedDistances[3]) / 2;
+  const aspectRatio = longSide / shortSide;
+
+  // Reject if aspect ratio is too extreme (not document-like)
+  if (aspectRatio > 3.0 || aspectRatio < 0.3) {
+    return false;
+  }
+
+  // Check that opposite sides are roughly equal (rectangle property)
+  // Allow 30% variation due to perspective distortion
+  const side1Diff = Math.abs(distances[0] - distances[2]) / Math.max(distances[0], distances[2]);
+  const side2Diff = Math.abs(distances[1] - distances[3]) / Math.max(distances[1], distances[3]);
+
+  if (side1Diff > 0.3 || side2Diff > 0.3) {
+    return false;
+  }
+
+  // Calculate angles at each corner (should be roughly 90° for rectangles)
+  for (let i = 0; i < 4; i++) {
+    const p1 = points[(i - 1 + 4) % 4];
+    const p2 = points[i];
+    const p3 = points[(i + 1) % 4];
+
+    // Vectors from p2 to p1 and p2 to p3
+    const v1x = p1.x - p2.x;
+    const v1y = p1.y - p2.y;
+    const v2x = p3.x - p2.x;
+    const v2y = p3.y - p2.y;
+
+    // Dot product and magnitudes
+    const dot = v1x * v2x + v1y * v2y;
+    const mag1 = Math.sqrt(v1x * v1x + v1y * v1y);
+    const mag2 = Math.sqrt(v2x * v2x + v2y * v2y);
+
+    // Calculate angle in degrees
+    const angle = Math.acos(dot / (mag1 * mag2)) * (180 / Math.PI);
+
+    // Reject if angle is too far from 90° (allow 45° to 135° due to perspective)
+    if (angle < 45 || angle > 135) {
+      return false;
+    }
+  }
+
+  return true;
+};
+
+/**
  * Custom hook for real-time document edge detection using OpenCV
  *
  * Performance optimizations:
@@ -42,6 +115,10 @@ export const useDocumentDetection = () => {
   const lastError = useSharedValue<string | null>(null); // Debug: track last error message
   const processingStep = useSharedValue<string>('idle'); // Debug: track current processing step
   const debugInfo = useSharedValue<string>(''); // Debug: additional info about detection
+
+  // Confidence smoothing: use exponential moving average to reduce flickering
+  const smoothedConfidence = useSharedValue<number>(0);
+  const CONFIDENCE_SMOOTHING = 0.3; // 30% new value, 70% old value (higher = more responsive)
 
   /**
    * Main frame processor for document detection
@@ -169,13 +246,18 @@ export const useDocumentDetection = () => {
         let maxArea = 0;
         let detectionConfidence = 0;
 
-        // Minimum area threshold (scaled to processing resolution)
+        // Minimum and maximum area thresholds (scaled to processing resolution)
         // At 1/4 scale: 300 pixels = 4800 pixels at full resolution
-        // Lowered because edges may be fragmented, requiring multiple contours to be considered
         const MIN_AREA = 300;
 
-        // Calculate frame area for confidence scoring
+        // Calculate frame area for filtering and confidence scoring
         const frameArea = scaledWidth * scaledHeight;
+
+        // Maximum area: reject contours larger than 70% of frame (likely table/floor edges)
+        const MAX_AREA = frameArea * 0.7;
+
+        // Minimum area: require at least 5% of frame to avoid tiny detections
+        const MIN_AREA_RATIO = 0.05;
 
         // Debug: Log contour count
         const contourCount = contoursData.array.length;
@@ -318,6 +400,26 @@ export const useDocumentDetection = () => {
 
             // Check if polygon has exactly 4 corners (quadrilateral)
             if (approxData.array.length === 4 && area > maxArea) {
+              // Calculate area ratio for validation
+              const areaRatio = area / frameArea;
+
+              // Validate area is within reasonable bounds for a document
+              // Skip if too small (< 5%) or too large (> 70% - likely table/floor)
+              if (areaRatio < MIN_AREA_RATIO || area > MAX_AREA) {
+                debugInfo.value = `${debugInfo.value}, skippedArea:${(areaRatio * 100).toFixed(1)}%`;
+                continue;
+              }
+
+              // Validate shape is roughly rectangular (not too skewed/distorted)
+              const points = approxData.array;
+              const isValidRectangle = validateRectangularShape(points);
+
+              if (!isValidRectangle) {
+                debugInfo.value = `${debugInfo.value}, skippedShape`;
+                continue;
+              }
+
+              // This is a valid candidate - update best contour
               maxArea = area;
 
               // Scale corners back to original frame resolution
@@ -326,32 +428,37 @@ export const useDocumentDetection = () => {
                 y: point.y * SCALE_FACTOR,
               }));
 
-              // Calculate confidence score (0-1)
-              // Based on area coverage and shape quality
-              const areaRatio = area / frameArea;
-
-              // Good document detection: covers 10-80% of frame
-              if (areaRatio > 0.1 && areaRatio < 0.8) {
-                detectionConfidence = Math.min(areaRatio * 5, 1); // Scale to 0-1
-              } else if (areaRatio >= 0.8) {
-                detectionConfidence = 0.8; // Too large, might be frame edge
+              // Calculate confidence score (0-1) based on area coverage
+              // Optimal document size: 15-60% of frame
+              if (areaRatio >= 0.15 && areaRatio <= 0.6) {
+                detectionConfidence = 1.0; // Perfect size
+              } else if (areaRatio > 0.6 && areaRatio <= 0.7) {
+                detectionConfidence = 0.8; // Large but acceptable
+              } else if (areaRatio >= 0.05 && areaRatio < 0.15) {
+                detectionConfidence = 0.6; // Small but acceptable
               } else {
-                detectionConfidence = areaRatio * 3; // Small document, lower confidence
+                detectionConfidence = 0.5; // Edge cases
               }
             }
           }
         }
 
-        // Step 12: Update shared values with detection results
+        // Step 12: Apply confidence smoothing to reduce flickering
+        // Use exponential moving average: smoothed = α * new + (1-α) * old
+        smoothedConfidence.value =
+          CONFIDENCE_SMOOTHING * detectionConfidence +
+          (1 - CONFIDENCE_SMOOTHING) * smoothedConfidence.value;
+
+        // Step 13: Update shared values with detection results
         processingStep.value = 'complete';
         detectedCorners.value = bestContour;
-        confidence.value = detectionConfidence;
-        
+        confidence.value = smoothedConfidence.value; // Use smoothed confidence
+
         // Debug: Log final detection result
         if (!bestContour) {
           debugInfo.value = `${debugInfo.value}, no document found`;
         } else {
-          debugInfo.value = `${debugInfo.value}, found doc: ${bestContour.length} corners, conf=${(detectionConfidence * 100).toFixed(1)}%`;
+          debugInfo.value = `${debugInfo.value}, found doc: ${bestContour.length} corners, conf=${(smoothedConfidence.value * 100).toFixed(1)}%`;
         }
 
       } catch (error) {
