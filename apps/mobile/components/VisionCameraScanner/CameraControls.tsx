@@ -1,4 +1,5 @@
 import { View, StyleSheet } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { faImage, faCamera, faXmark, faBolt } from '@fortawesome/pro-regular-svg-icons';
 import SquishyPressable from '@/components/SquishyPressable/SquishyPressable';
@@ -22,10 +23,12 @@ export const CameraControls = ({
   isProcessing = false,
   documentDetected = false,
 }: CameraControlsProps) => {
+  const insets = useSafeAreaInsets();
+
   return (
     <View style={styles.container}>
       {/* Top controls - Close and Flash */}
-      <View style={styles.topControls}>
+      <View style={[styles.topControls, { paddingTop: Math.max(insets.top, 20) + 10 }]}>
         <SquishyPressable
           onPress={onClosePress}
           style={styles.closeButton}
@@ -97,7 +100,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingTop: 60, // Account for status bar
     paddingHorizontal: 20,
   },
   closeButton: {

@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { View, Text, Alert, Platform, StyleSheet, Dimensions, StatusBar, Image } from 'react-native';
+import { View, Text, Alert, Platform, StyleSheet, StatusBar, Image, type LayoutChangeEvent } from 'react-native';
 import { Camera, useCameraDevice, useCameraPermission } from 'react-native-vision-camera';
 import { BlurView } from 'expo-blur';
 import * as ImagePicker from 'expo-image-picker';
@@ -29,6 +29,7 @@ const VisionCameraScanner = ({ onClose, onImageScanned }: VisionCameraScannerPro
   const [flashEnabled, setFlashEnabled] = useState(false);
   const [isProcessingSubmission, setIsProcessingSubmission] = useState(false);
   const [loadingMessage, setLoadingMessage] = useState<string>('');
+  const [cameraLayout, setCameraLayout] = useState<{ width: number; height: number }>({ width: 0, height: 0 });
 
   const device = useCameraDevice('back');
   const { hasPermission, requestPermission } = useCameraPermission();
@@ -39,8 +40,28 @@ const VisionCameraScanner = ({ onClose, onImageScanned }: VisionCameraScannerPro
   const logger = useLogger();
 
   // Document detection integration
-  const { frameProcessor, detectedCorners, confidence } = useDocumentDetection();
-  const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
+  const { frameProcessor, detectedCorners, confidence, frameCount } = useDocumentDetection();
+
+  // Track frame processor execution and log detections
+  useEffect(() => {
+    const interval = setInterval(() => {
+      // Read shared values
+      const corners = detectedCorners.value;
+      const conf = confidence.value;
+
+      // Log to PostHog when detection finds something
+      if (corners && conf > 0) {
+        logger.info("Document detected", {
+          screen: "vision_camera_scanner",
+          confidence: conf,
+          corners_count: corners.length,
+          frame_count: frameCount.value,
+        });
+      }
+    }, 2000); // Check every 2 seconds
+
+    return () => clearInterval(interval);
+  }, [detectedCorners, confidence, frameCount, logger]);
 
   // Rotating loading messages for OCR processing
   useEffect(() => {
@@ -333,6 +354,11 @@ const VisionCameraScanner = ({ onClose, onImageScanned }: VisionCameraScannerPro
     setScannedImage(undefined);
   };
 
+  const handleCameraLayout = (event: LayoutChangeEvent) => {
+    const { width, height } = event.nativeEvent.layout;
+    setCameraLayout({ width, height });
+  };
+
   // Show ticket form if we have OCR data
   if (showForm && ocrData) {
     const initialFormData = {
@@ -400,15 +426,35 @@ const VisionCameraScanner = ({ onClose, onImageScanned }: VisionCameraScannerPro
         torch={flashEnabled ? 'on' : 'off'}
         frameProcessor={frameProcessor}
         enableZoomGesture={false}
+        onLayout={handleCameraLayout}
       />
 
-      {/* Document detection overlay */}
-      <DocumentOverlay
-        corners={detectedCorners.value}
-        confidence={confidence.value}
-        frameWidth={SCREEN_WIDTH}
-        frameHeight={SCREEN_HEIGHT}
-      />
+      {/* Document detection overlay - only render when we have camera dimensions */}
+      {cameraLayout.width > 0 && cameraLayout.height > 0 && (
+        <DocumentOverlay
+          corners={detectedCorners.value}
+          confidence={confidence.value}
+          frameWidth={cameraLayout.width}
+          frameHeight={cameraLayout.height}
+        />
+      )}
+
+      {/* Temporary debug panel - remove after testing */}
+      <View style={styles.debugPanel}>
+        <Text style={styles.debugPanelText}>🔍 Detection Debug</Text>
+        <Text style={styles.debugPanelText}>
+          FP Frames: {frameCount.value} {frameCount.value > 0 ? '✅' : '❌'}
+        </Text>
+        <Text style={styles.debugPanelText}>
+          Corners: {detectedCorners.value ? `${detectedCorners.value.length} pts` : 'null'}
+        </Text>
+        <Text style={styles.debugPanelText}>
+          Confidence: {(confidence.value * 100).toFixed(1)}%
+        </Text>
+        <Text style={styles.debugPanelText}>
+          Camera: {cameraLayout.width}x{cameraLayout.height}
+        </Text>
+      </View>
 
       {/* Camera controls overlay */}
       <CameraControls
@@ -459,6 +505,22 @@ const styles = StyleSheet.create({
     color: 'white',
     marginTop: 16,
     fontSize: 16,
+  },
+  debugPanel: {
+    position: 'absolute',
+    top: 80,
+    left: 10,
+    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+    padding: 12,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.3)',
+  },
+  debugPanelText: {
+    color: '#FFFFFF',
+    fontSize: 12,
+    fontFamily: 'Inter18pt-Regular',
+    marginBottom: 4,
   },
 });
 

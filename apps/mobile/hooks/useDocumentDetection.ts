@@ -38,6 +38,7 @@ export const useDocumentDetection = () => {
   // Shared values for cross-worklet communication (no bridge crossing)
   const detectedCorners = useSharedValue<DocumentCorner[] | null>(null);
   const confidence = useSharedValue<number>(0);
+  const frameCount = useSharedValue<number>(0); // Debug: track frame processor execution
 
   /**
    * Main frame processor for document detection
@@ -50,6 +51,9 @@ export const useDocumentDetection = () => {
     // Full camera still runs at 30/60 FPS for smooth preview
     runAtTargetFps(5, () => {
       'worklet';
+
+      // Increment frame counter for debugging
+      frameCount.value = frameCount.value + 1;
 
       try {
         // 1. Calculate scaled dimensions (1/4 resolution for 16x speedup)
@@ -66,10 +70,11 @@ export const useDocumentDetection = () => {
         });
 
         // 3. Convert buffer to OpenCV Mat
-        const source = OpenCV.frameBufferToMat(
+        const source = OpenCV.bufferToMat(
+          'uint8',      // Data type - MUST be first parameter
           scaledHeight,
           scaledWidth,
-          3, // 3 channels (BGR)
+          3,            // 3 channels (BGR)
           resizedBuffer
         );
 
@@ -189,5 +194,6 @@ export const useDocumentDetection = () => {
     frameProcessor,
     detectedCorners,
     confidence,
+    frameCount, // Debug: expose frame count
   };
 };
