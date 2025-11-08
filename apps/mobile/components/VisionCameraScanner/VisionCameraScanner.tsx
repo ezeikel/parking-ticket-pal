@@ -473,15 +473,11 @@ const VisionCameraScanner = ({ onClose, onImageScanned }: VisionCameraScannerPro
         onLayout={handleCameraLayout}
       />
 
-      {/* Document detection overlay - only render when we have camera dimensions */}
-      {cameraLayout.width > 0 && cameraLayout.height > 0 && (
-        <DocumentOverlay
-          corners={cornersState}
-          confidence={confidenceState}
-          frameWidth={cameraLayout.width}
-          frameHeight={cameraLayout.height}
-        />
-      )}
+      {/* Document detection UI overlay - polygon is drawn on frame via Skia */}
+      <DocumentOverlay
+        corners={cornersState}
+        confidence={confidenceState}
+      />
 
       {/* Temporary debug panel - remove after testing */}
       <View style={styles.debugPanel}>

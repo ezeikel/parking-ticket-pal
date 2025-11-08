@@ -8,24 +8,24 @@ import Animated, {
   withSequence,
   Easing,
 } from 'react-native-reanimated';
-import Svg, { Polygon, Circle } from 'react-native-svg';
 import type { DocumentCorner } from '@/hooks/useDocumentDetection';
 
 type DocumentOverlayProps = {
   corners: DocumentCorner[] | null;
   confidence: number; // 0-1
-  frameWidth: number;
-  frameHeight: number;
 };
 
 /**
- * Visual overlay component for document detection feedback
+ * UI overlay component for document detection feedback
+ *
+ * Note: Document polygon is now drawn directly on camera frame using Skia.
+ * This component only shows UI elements (text hints, animations, debug info).
  *
  * Features:
- * - Draws detected document rectangle with confidence-based coloring
- * - Shows corner dots for precise positioning feedback
  * - Displays capture hint text based on detection quality
- * - Smooth color transitions as confidence changes
+ * - Pulse animation when ready to capture
+ * - Color-coded backgrounds for visual feedback
+ * - Debug confidence display (dev mode only)
  *
  * Color scheme:
  * - Green (confidence > 0.7): Document well-detected, ready to capture
@@ -35,8 +35,6 @@ type DocumentOverlayProps = {
 const DocumentOverlay = ({
   corners,
   confidence,
-  frameWidth,
-  frameHeight,
 }: DocumentOverlayProps) => {
   const opacity = useSharedValue(0);
   const pulseScale = useSharedValue(1);
@@ -92,38 +90,9 @@ const DocumentOverlay = ({
   const color = getColor();
   const hintText = getHintText();
 
-  // Convert corners array to SVG polygon points string
-  // Format: "x1,y1 x2,y2 x3,y3 x4,y4"
-  const polygonPoints = corners
-    .map((corner) => `${corner.x},${corner.y}`)
-    .join(' ');
-
   return (
-    <View style={[styles.container, { width: frameWidth, height: frameHeight }]} pointerEvents="none">
+    <View style={StyleSheet.absoluteFill} pointerEvents="none">
       <Animated.View style={[styles.overlay, animatedStyle]}>
-        <Svg width={frameWidth} height={frameHeight} style={styles.svg}>
-          {/* Document rectangle */}
-          <Polygon
-            points={polygonPoints}
-            fill="transparent"
-            stroke={color}
-            strokeWidth={3}
-            strokeOpacity={0.9}
-          />
-
-          {/* Corner dots for precise feedback */}
-          {corners.map((corner, index) => (
-            <Circle
-              key={`corner-${index}`}
-              cx={corner.x}
-              cy={corner.y}
-              r={8}
-              fill={color}
-              opacity={0.9}
-            />
-          ))}
-        </Svg>
-
         {/* Hint text at top */}
         <View style={styles.hintContainer}>
           <View
@@ -152,18 +121,8 @@ const DocumentOverlay = ({
 };
 
 const styles = StyleSheet.create({
-  container: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-  },
   overlay: {
     flex: 1,
-  },
-  svg: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
   },
   hintContainer: {
     position: 'absolute',

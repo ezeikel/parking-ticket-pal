@@ -1,6 +1,7 @@
-import { useFrameProcessor, runAtTargetFps } from 'react-native-vision-camera';
+import { useSkiaFrameProcessor, runAtTargetFps } from 'react-native-vision-camera';
 import { useResizePlugin } from 'vision-camera-resize-plugin';
 import { useSharedValue } from 'react-native-worklets-core';
+import { Skia, PaintStyle, PointMode, vec } from '@shopify/react-native-skia';
 import {
   OpenCV,
   ObjectType,
@@ -46,23 +47,24 @@ const validateRectangularShape = (points: any[]): boolean => {
   // Sort to get [shorter side, shorter side, longer side, longer side]
   const sortedDistances = [...distances].sort((a, b) => a - b);
 
-  // Check aspect ratio: reject extremely elongated rectangles
-  // Documents are typically A4 (1.414:1) or letter (1.29:1), allow 1:1 to 3:1
+  // Check aspect ratio: reject elongated rectangles
+  // Documents are typically A4 (1.414:1) or letter (1.29:1)
+  // Allow range from square (1:1) to wide (2:1) to cover common document formats
   const shortSide = (sortedDistances[0] + sortedDistances[1]) / 2;
   const longSide = (sortedDistances[2] + sortedDistances[3]) / 2;
   const aspectRatio = longSide / shortSide;
 
-  // Reject if aspect ratio is too extreme (not document-like)
-  if (aspectRatio > 3.0 || aspectRatio < 0.3) {
+  // Reject if aspect ratio is too extreme (relaxed: 0.4-2.5 for better detection)
+  if (aspectRatio > 2.5 || aspectRatio < 0.4) {
     return false;
   }
 
   // Check that opposite sides are roughly equal (rectangle property)
-  // Allow 30% variation due to perspective distortion
+  // Allow 25% variation (relaxed from 20%) due to perspective distortion
   const side1Diff = Math.abs(distances[0] - distances[2]) / Math.max(distances[0], distances[2]);
   const side2Diff = Math.abs(distances[1] - distances[3]) / Math.max(distances[1], distances[3]);
 
-  if (side1Diff > 0.3 || side2Diff > 0.3) {
+  if (side1Diff > 0.25 || side2Diff > 0.25) {
     return false;
   }
 
@@ -86,8 +88,9 @@ const validateRectangularShape = (points: any[]): boolean => {
     // Calculate angle in degrees
     const angle = Math.acos(dot / (mag1 * mag2)) * (180 / Math.PI);
 
-    // Reject if angle is too far from 90° (allow 45° to 135° due to perspective)
-    if (angle < 45 || angle > 135) {
+    // Reject if angle is too far from 90°
+    // Relaxed: 50°-130° (allows more perspective distortion)
+    if (angle < 50 || angle > 130) {
       return false;
     }
   }
@@ -120,11 +123,20 @@ export const useDocumentDetection = () => {
   const smoothedConfidence = useSharedValue<number>(0);
   const CONFIDENCE_SMOOTHING = 0.3; // 30% new value, 70% old value (higher = more responsive)
 
+  // Skia paint objects for drawing on camera frame
+  const paint = Skia.Paint();
+  const border = Skia.Paint();
+  paint.setStyle(PaintStyle.Fill);
+  paint.setColor(Skia.Color(0x40_00_ff_00)); // Semi-transparent green fill (25% opacity)
+  border.setStyle(PaintStyle.Stroke);
+  border.setColor(Skia.Color(0xff_00_ff_00)); // Solid green border
+  border.setStrokeWidth(4);
+
   /**
-   * Main frame processor for document detection
+   * Main frame processor for document detection with Skia drawing
    * Uses runAtTargetFps to throttle processing to 5 FPS
    */
-  const frameProcessor = useFrameProcessor((frame) => {
+  const frameProcessor = useSkiaFrameProcessor((frame) => {
     'worklet';
 
     // Process at 5 FPS to balance performance and responsiveness
@@ -191,7 +203,7 @@ export const useDocumentDetection = () => {
         // Step 5: Create kernels for morphological operations and blurring
         processingStep.value = 'creating_kernels';
         const morphKernel = OpenCV.createObject(ObjectType.Size, 5, 5);
-        const blurKernel = OpenCV.createObject(ObjectType.Size, 5, 5);
+        const blurKernel = OpenCV.createObject(ObjectType.Size, 7, 7); // Larger kernel for better noise reduction
 
         // Step 6: Create structuring element for morphological closing
         // Helps reduce noise and fill small gaps in edges
@@ -206,32 +218,35 @@ export const useDocumentDetection = () => {
           throw new Error('Failed to create structuring element');
         }
 
-        // Step 7: Apply Gaussian blur to reduce noise before edge detection
+        // Step 7: Apply morphological opening to remove small noise/artifacts
+        // Opening = erosion followed by dilation - removes small bright spots
+        processingStep.value = 'applying_morph_open';
+        OpenCV.invoke('morphologyEx', source, source, MorphTypes.MORPH_OPEN, structElement);
+
+        // Step 8: Apply morphological closing to fill small gaps
+        // Closing = dilation followed by erosion - fills small dark gaps
+        processingStep.value = 'applying_morph_close';
+        OpenCV.invoke('morphologyEx', source, source, MorphTypes.MORPH_CLOSE, structElement);
+
+        // Step 9: Apply Gaussian blur to reduce noise before edge detection
         processingStep.value = 'applying_blur';
         OpenCV.invoke('GaussianBlur', source, source, blurKernel, 0);
 
-        // Step 8: Apply Canny edge detection with LOWER thresholds for low-light conditions
-        // Optimized for detecting edges in poor lighting without flash
-        // Thresholds: 30 (lower) and 90 (upper) - more sensitive than previous 50/150
-        // This allows detection of subtle document edges even in low contrast situations
-        // Pixels with gradient > 90 are strong edges
-        // Pixels with gradient between 30-90 are weak edges (kept if connected to strong)
+        // Step 10: Apply Canny edge detection
+        // Thresholds: 50 (lower) and 120 (upper) - balanced for various lighting
+        // Higher than our original 30/90 to reduce false edges
+        // Still lower than typical 75/150 for low-light tolerance
         processingStep.value = 'applying_canny';
-        OpenCV.invoke('Canny', source, source, 30, 90);
+        OpenCV.invoke('Canny', source, source, 50, 120);
 
-        // Step 9: Apply morphological closing AFTER edge detection to connect fragmented edges
-        // This helps connect broken document edges into continuous contours
-        processingStep.value = 'applying_morphology';
-        OpenCV.invoke('morphologyEx', source, source, MorphTypes.MORPH_CLOSE, structElement);
-
-        // Step 10: Find contours in the edge-detected image
+        // Step 11: Find contours in the edge-detected image
         processingStep.value = 'finding_contours';
         const contours = OpenCV.createObject(ObjectType.MatVector);
         OpenCV.invoke(
           'findContours',
           source,
           contours,
-          RetrievalModes.RETR_EXTERNAL, // Only external contours (faster)
+          RetrievalModes.RETR_LIST, // All contours without hierarchy (article approach)
           ContourApproximationModes.CHAIN_APPROX_SIMPLE // Compress contours (faster)
         );
 
@@ -247,16 +262,19 @@ export const useDocumentDetection = () => {
         let detectionConfidence = 0;
 
         // Minimum and maximum area thresholds (scaled to processing resolution)
-        // At 1/4 scale: 300 pixels = 4800 pixels at full resolution
-        const MIN_AREA = 300;
+        // At 1/4 scale: 800 pixels minimum (relaxed from 1500 for better detection)
+        // Balances filtering noise while allowing smaller/distant documents
+        const MIN_AREA = 800;
 
         // Calculate frame area for filtering and confidence scoring
         const frameArea = scaledWidth * scaledHeight;
 
-        // Maximum area: reject contours larger than 70% of frame (likely table/floor edges)
-        const MAX_AREA = frameArea * 0.7;
+        // Maximum area: reject contours larger than 60% of frame (relaxed from 50%)
+        // Allows larger documents while still filtering table/floor edges
+        const MAX_AREA = frameArea * 0.6;
 
-        // Minimum area: require at least 5% of frame to avoid tiny detections
+        // Minimum area: require at least 5% of frame (relaxed from 8%)
+        // Allows detection of smaller or more distant documents
         const MIN_AREA_RATIO = 0.05;
 
         // Debug: Log contour count
@@ -298,10 +316,12 @@ export const useDocumentDetection = () => {
               // According to official example: approxPolyDP(contour, approx, epsilon, closed)
               const approx = OpenCV.createObject(ObjectType.PointVector);
               
-              // Epsilon = 2% of perimeter (controls approximation accuracy)
+              // Epsilon = 10% of perimeter (controls approximation accuracy)
+              // Article uses 10% - VERY aggressive simplification
+              // This is the KEY difference - eliminates irregular shapes dramatically
               // Smaller epsilon = more accurate but more points
-              // Larger epsilon = less accurate but fewer points
-              const epsilon = 0.02 * perimeter;
+              // Larger epsilon = less accurate but fewer points (perfect for documents)
+              const epsilon = 0.1 * perimeter;
               
               // Call approxPolyDP: approximates contour to polygon
               OpenCV.invoke('approxPolyDP', contour, approx, epsilon, true);
@@ -410,6 +430,13 @@ export const useDocumentDetection = () => {
                 continue;
               }
 
+              // Check if contour is convex (concave shapes are not documents)
+              const { value: isConvex } = OpenCV.invoke('isContourConvex', contour);
+              if (!isConvex) {
+                debugInfo.value = `${debugInfo.value}, skippedConcave`;
+                continue;
+              }
+
               // Validate shape is roughly rectangular (not too skewed/distorted)
               const points = approxData.array;
               const isValidRectangle = validateRectangularShape(points);
@@ -429,13 +456,13 @@ export const useDocumentDetection = () => {
               }));
 
               // Calculate confidence score (0-1) based on area coverage
-              // Optimal document size: 15-60% of frame
-              if (areaRatio >= 0.15 && areaRatio <= 0.6) {
-                detectionConfidence = 1.0; // Perfect size
-              } else if (areaRatio > 0.6 && areaRatio <= 0.7) {
+              // Optimal document size: 15-45% of frame (tighter range for better documents)
+              if (areaRatio >= 0.15 && areaRatio <= 0.45) {
+                detectionConfidence = 1.0; // Perfect size - well-framed document
+              } else if (areaRatio > 0.45 && areaRatio <= 0.5) {
                 detectionConfidence = 0.8; // Large but acceptable
-              } else if (areaRatio >= 0.05 && areaRatio < 0.15) {
-                detectionConfidence = 0.6; // Small but acceptable
+              } else if (areaRatio >= 0.08 && areaRatio < 0.15) {
+                detectionConfidence = 0.6; // Small but acceptable - document far from camera
               } else {
                 detectionConfidence = 0.5; // Edge cases
               }
@@ -460,6 +487,37 @@ export const useDocumentDetection = () => {
         } else {
           debugInfo.value = `${debugInfo.value}, found doc: ${bestContour.length} corners, conf=${(smoothedConfidence.value * 100).toFixed(1)}%`;
         }
+
+        // Step 14: Draw document border directly on camera frame using Skia
+        // This ensures the overlay is always visible and coordinates match perfectly
+        if (bestContour && bestContour.length === 4) {
+          const path = Skia.Path.Make();
+          const pointsToShow = [];
+
+          // Scale corners back from full resolution to processing resolution for frame drawing
+          // bestContour is already scaled to full frame resolution (x SCALE_FACTOR)
+          // But frame dimensions might differ, so we use the corners as-is
+          const corners = bestContour;
+
+          // Start path at last point (like article example)
+          path.moveTo(corners[3].x, corners[3].y);
+          pointsToShow.push(vec(corners[3].x, corners[3].y));
+
+          // Draw path through all 4 corners
+          for (let i = 0; i < 4; i++) {
+            path.lineTo(corners[i].x, corners[i].y);
+            pointsToShow.push(vec(corners[i].x, corners[i].y));
+          }
+
+          path.close();
+
+          // Draw filled polygon and border on frame
+          frame.drawPath(path, paint);
+          frame.drawPoints(PointMode.Polygon, pointsToShow, border);
+        }
+
+        // Render the frame (required for Skia)
+        frame.render();
 
       } catch (error) {
         // Log error with context and reset detection state
