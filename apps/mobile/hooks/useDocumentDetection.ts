@@ -39,6 +39,9 @@ export const useDocumentDetection = () => {
   const detectedCorners = useSharedValue<DocumentCorner[] | null>(null);
   const confidence = useSharedValue<number>(0);
   const frameCount = useSharedValue<number>(0); // Debug: track frame processor execution
+  const lastError = useSharedValue<string | null>(null); // Debug: track last error message
+  const processingStep = useSharedValue<string>('idle'); // Debug: track current processing step
+  const debugInfo = useSharedValue<string>(''); // Debug: additional info about detection
 
   /**
    * Main frame processor for document detection
@@ -54,14 +57,21 @@ export const useDocumentDetection = () => {
 
       // Increment frame counter for debugging
       frameCount.value = frameCount.value + 1;
+      lastError.value = null;
 
       try {
-        // 1. Calculate scaled dimensions (1/4 resolution for 16x speedup)
+        // Step 1: Calculate scaled dimensions (1/4 resolution for 16x speedup)
+        processingStep.value = 'calculating_dimensions';
         const SCALE_FACTOR = 4;
         const scaledWidth = Math.floor(frame.width / SCALE_FACTOR);
         const scaledHeight = Math.floor(frame.height / SCALE_FACTOR);
 
-        // 2. Resize frame using GPU-accelerated plugin
+        if (scaledWidth <= 0 || scaledHeight <= 0) {
+          throw new Error(`Invalid scaled dimensions: ${scaledWidth}x${scaledHeight}`);
+        }
+
+        // Step 2: Resize frame using GPU-accelerated plugin
+        processingStep.value = 'resizing_frame';
         // Use BGR format as OpenCV expects BGR by default
         const resizedBuffer = resize(frame, {
           scale: { width: scaledWidth, height: scaledHeight },
@@ -69,7 +79,22 @@ export const useDocumentDetection = () => {
           dataType: 'uint8',
         });
 
-        // 3. Convert buffer to OpenCV Mat
+        if (!resizedBuffer || resizedBuffer.length === 0) {
+          throw new Error('Resize plugin returned empty buffer');
+        }
+
+        // Validate buffer size matches expected dimensions
+        // For BGR format: width * height * 3 channels
+        const expectedBufferSize = scaledWidth * scaledHeight * 3;
+        if (resizedBuffer.length !== expectedBufferSize) {
+          throw new Error(
+            `Buffer size mismatch: expected ${expectedBufferSize} bytes, got ${resizedBuffer.length} bytes. ` +
+            `Dimensions: ${scaledWidth}x${scaledHeight}, channels: 3`
+          );
+        }
+
+        // Step 3: Convert buffer to OpenCV Mat
+        processingStep.value = 'converting_to_mat';
         const source = OpenCV.bufferToMat(
           'uint8',      // Data type - MUST be first parameter
           scaledHeight,
@@ -78,35 +103,51 @@ export const useDocumentDetection = () => {
           resizedBuffer
         );
 
-        // 4. Convert to grayscale for edge detection
+        if (!source) {
+          throw new Error('Failed to create OpenCV Mat from buffer');
+        }
+
+        // Step 4: Convert to grayscale for edge detection
+        processingStep.value = 'converting_to_grayscale';
         OpenCV.invoke('cvtColor', source, source, ColorConversionCodes.COLOR_BGR2GRAY);
 
-        // 5. Create kernels for morphological operations and blurring
+        // Step 5: Create kernels for morphological operations and blurring
+        processingStep.value = 'creating_kernels';
         const morphKernel = OpenCV.createObject(ObjectType.Size, 5, 5);
         const blurKernel = OpenCV.createObject(ObjectType.Size, 5, 5);
 
-        // 6. Create structuring element for morphological closing
+        // Step 6: Create structuring element for morphological closing
         // Helps reduce noise and fill small gaps in edges
+        processingStep.value = 'creating_structuring_element';
         const structElement = OpenCV.invoke(
           'getStructuringElement',
           MorphShapes.MORPH_ELLIPSE,
           morphKernel
         );
 
-        // 7. Apply morphological closing (dilate then erode)
-        // Removes small dark spots and connects nearby edges
-        OpenCV.invoke('morphologyEx', source, source, MorphTypes.MORPH_CLOSE, structElement);
+        if (!structElement) {
+          throw new Error('Failed to create structuring element');
+        }
 
-        // 8. Apply Gaussian blur to reduce noise before edge detection
+        // Step 7: Apply Gaussian blur to reduce noise before edge detection
+        processingStep.value = 'applying_blur';
         OpenCV.invoke('GaussianBlur', source, source, blurKernel, 0);
 
-        // 9. Apply Canny edge detection
-        // Thresholds: 75 (lower) and 100 (upper)
-        // Pixels with gradient > 100 are strong edges
-        // Pixels with gradient between 75-100 are weak edges (kept if connected to strong)
-        OpenCV.invoke('Canny', source, source, 75, 100);
+        // Step 8: Apply Canny edge detection
+        // Lower thresholds to detect more edges (documents may have subtle edges)
+        // Thresholds: 50 (lower) and 150 (upper)
+        // Pixels with gradient > 150 are strong edges
+        // Pixels with gradient between 50-150 are weak edges (kept if connected to strong)
+        processingStep.value = 'applying_canny';
+        OpenCV.invoke('Canny', source, source, 50, 150);
 
-        // 10. Find contours in the edge-detected image
+        // Step 9: Apply morphological closing AFTER edge detection to connect fragmented edges
+        // This helps connect broken document edges into continuous contours
+        processingStep.value = 'applying_morphology';
+        OpenCV.invoke('morphologyEx', source, source, MorphTypes.MORPH_CLOSE, structElement);
+
+        // Step 10: Find contours in the edge-detected image
+        processingStep.value = 'finding_contours';
         const contours = OpenCV.createObject(ObjectType.MatVector);
         OpenCV.invoke(
           'findContours',
@@ -116,18 +157,41 @@ export const useDocumentDetection = () => {
           ContourApproximationModes.CHAIN_APPROX_SIMPLE // Compress contours (faster)
         );
 
-        // 11. Find the largest quadrilateral contour (likely the document)
+        if (!contours) {
+          throw new Error('Failed to create contours MatVector');
+        }
+
+        // Step 11: Find the largest quadrilateral contour (likely the document)
+        processingStep.value = 'processing_contours';
         const contoursData = OpenCV.toJSValue(contours);
         let bestContour: DocumentCorner[] | null = null;
         let maxArea = 0;
         let detectionConfidence = 0;
 
         // Minimum area threshold (scaled to processing resolution)
-        // At 1/4 scale: 1000 pixels = 16000 pixels at full resolution
-        const MIN_AREA = 1000;
+        // At 1/4 scale: 300 pixels = 4800 pixels at full resolution
+        // Lowered because edges may be fragmented, requiring multiple contours to be considered
+        const MIN_AREA = 300;
 
         // Calculate frame area for confidence scoring
         const frameArea = scaledWidth * scaledHeight;
+
+        // Debug: Log contour count
+        const contourCount = contoursData.array.length;
+        let largeContourCount = 0;
+        let totalArea = 0;
+        let maxContourArea = 0;
+        
+        // First pass: analyze all contours
+        for (let i = 0; i < contoursData.array.length; i++) {
+          const contour = OpenCV.copyObjectFromVector(contours, i);
+          const { value: area } = OpenCV.invoke('contourArea', contour, false);
+          totalArea += area;
+          if (area > maxContourArea) maxContourArea = area;
+          if (area > MIN_AREA) largeContourCount++;
+        }
+        
+        debugInfo.value = `Found ${contourCount} contours, frame: ${scaledWidth}x${scaledHeight}, maxArea=${maxContourArea.toFixed(0)}, large=${largeContourCount}, MIN=${MIN_AREA}`;
 
         for (let i = 0; i < contoursData.array.length; i++) {
           const contour = OpenCV.copyObjectFromVector(contours, i);
@@ -135,15 +199,91 @@ export const useDocumentDetection = () => {
 
           // Filter out small contours
           if (area > MIN_AREA) {
+            // Debug: Log large contours found
+            debugInfo.value = `${debugInfo.value}, [${i}]area=${area.toFixed(0)}`;
+            
             // Get perimeter for polygon approximation
             const { value: perimeter } = OpenCV.invoke('arcLength', contour, true);
 
-            // Approximate contour to polygon
-            // Epsilon = 2% of perimeter (controls approximation accuracy)
-            const approx = OpenCV.createObject(ObjectType.MatVector);
-            OpenCV.invoke('approxPolyDP', contour, approx, 0.02 * perimeter, true);
+            // Approximate contour to polygon using minAreaRect (handles rotation) or boundingRect
+            // minAreaRect gives us a rotated rectangle which is better for angled documents
+            processingStep.value = 'approximating_contour';
+            let approxData: any = null;
+            
+            // Try minAreaRect first (better for rotated documents)
+            try {
+              const rotatedRect = OpenCV.invoke('minAreaRect', contour);
+              if (rotatedRect) {
+                // minAreaRect returns a RotatedRect with center, size, and angle
+                // We need to calculate the 4 corner points from this
+                const rect = rotatedRect as any;
+                const centerX = rect.center?.x || rect.x || 0;
+                const centerY = rect.center?.y || rect.y || 0;
+                const width = rect.size?.width || rect.width || 0;
+                const height = rect.size?.height || rect.height || 0;
+                const angle = rect.angle || 0;
+                
+                if (width > 0 && height > 0) {
+                  // Calculate corner points accounting for rotation
+                  // For now, use axis-aligned corners (we'll improve rotation later if needed)
+                  const halfW = width / 2;
+                  const halfH = height / 2;
+                  
+                  // Simple axis-aligned corners (minAreaRect gives us the size, but rotation is complex)
+                  // For now, use boundingRect which is simpler and works
+                  debugInfo.value = `${debugInfo.value}, minAreaRect: ${width.toFixed(0)}x${height.toFixed(0)}`;
+                  
+                  // Fall through to boundingRect for simplicity
+                }
+              }
+            } catch (minAreaError) {
+              // Continue to boundingRect
+            }
+            
+            // Use boundingRect (simpler and more reliable)
+            try {
+              const rectResult = OpenCV.invoke('boundingRect', contour) as any;
+              const rect = rectResult?.value || rectResult;
+              
+              if (rect && rect.x !== undefined && rect.width !== undefined) {
+                const x = rect.x || 0;
+                const y = rect.y || 0;
+                const w = rect.width || 0;
+                const h = rect.height || 0;
+                
+                if (w > 0 && h > 0) {
+                  // Calculate the 4 corners of the bounding rectangle
+                  approxData = {
+                    array: [
+                      { x: x, y: y },           // Top-left
+                      { x: x + w, y: y },        // Top-right
+                      { x: x + w, y: y + h },    // Bottom-right
+                      { x: x, y: y + h }         // Bottom-left
+                    ]
+                  };
+                  debugInfo.value = `${debugInfo.value}, ✓boundingRect`;
+                } else {
+                  debugInfo.value = `${debugInfo.value}, rectZeroSize`;
+                  continue;
+                }
+              } else {
+                debugInfo.value = `${debugInfo.value}, rectInvalid`;
+                continue;
+              }
+            } catch (rectError) {
+              const errorMsg = rectError instanceof Error ? rectError.message : String(rectError);
+              debugInfo.value = `${debugInfo.value}, rectError: ${errorMsg}`;
+              console.warn('[DocumentDetection] boundingRect failed:', errorMsg);
+              continue;
+            }
 
-            const approxData = OpenCV.toJSValue(approx);
+            // Check if we have valid approximation with 4 corners
+            if (!approxData || !approxData.array || approxData.array.length !== 4) {
+              // Debug: Log why contour was skipped
+              const pointCount = approxData?.array?.length || 0;
+              debugInfo.value = `${debugInfo.value}, skipped: ${pointCount} points (need 4)`;
+              continue; // Skip this contour
+            }
 
             // Check if polygon has exactly 4 corners (quadrilateral)
             if (approxData.array.length === 4 && area > maxArea) {
@@ -171,21 +311,46 @@ export const useDocumentDetection = () => {
           }
         }
 
-        // 12. Update shared values with detection results
+        // Step 12: Update shared values with detection results
+        processingStep.value = 'complete';
         detectedCorners.value = bestContour;
         confidence.value = detectionConfidence;
+        
+        // Debug: Log final detection result
+        if (!bestContour) {
+          debugInfo.value = `${debugInfo.value}, no document found`;
+        } else {
+          debugInfo.value = `${debugInfo.value}, found doc: ${bestContour.length} corners, conf=${(detectionConfidence * 100).toFixed(1)}%`;
+        }
 
       } catch (error) {
         // Log error with context and reset detection state
         // Note: This runs on worklet thread, so we can't directly call logger
         // Instead, log to console which appears in native console (Xcode/Logcat)
-        console.error('[DocumentDetection] Frame processing error:', error);
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        const stepInfo = processingStep.value;
+        
+        // Store error in shared value for UI display
+        lastError.value = `${stepInfo}: ${errorMessage}`;
+        
+        // Log to console (visible in Xcode console on iOS)
+        console.error('[DocumentDetection] Frame processing error:', {
+          step: stepInfo,
+          error: errorMessage,
+          frameNumber: frameCount.value,
+        });
+        
         detectedCorners.value = null;
         confidence.value = 0;
+        processingStep.value = 'error';
       } finally {
         // CRITICAL: Clear OpenCV buffers to prevent memory leaks
         // Must be called after every frame, even if error occurred
-        OpenCV.clearBuffers();
+        try {
+          OpenCV.clearBuffers();
+        } catch (clearError) {
+          console.error('[DocumentDetection] Error clearing buffers:', clearError);
+        }
       }
     });
   }, []);
@@ -195,5 +360,8 @@ export const useDocumentDetection = () => {
     detectedCorners,
     confidence,
     frameCount, // Debug: expose frame count
+    lastError, // Debug: expose last error
+    processingStep, // Debug: expose current processing step
+    debugInfo, // Debug: expose debug info
   };
 };

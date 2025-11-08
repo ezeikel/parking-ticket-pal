@@ -1,6 +1,6 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { View, Text, Alert, Platform, StyleSheet, StatusBar, Image, type LayoutChangeEvent } from 'react-native';
-import { Camera, useCameraDevice, useCameraPermission } from 'react-native-vision-camera';
+import { Camera, useCameraDevice, useCameraPermission, type Camera as CameraType } from 'react-native-vision-camera';
 import { BlurView } from 'expo-blur';
 import * as ImagePicker from 'expo-image-picker';
 
@@ -33,6 +33,7 @@ const VisionCameraScanner = ({ onClose, onImageScanned }: VisionCameraScannerPro
 
   const device = useCameraDevice('back');
   const { hasPermission, requestPermission } = useCameraPermission();
+  const cameraRef = useRef<CameraType>(null);
 
   const ocrMutation = useOCR();
   const createTicketMutation = useCreateTicket();
@@ -40,7 +41,7 @@ const VisionCameraScanner = ({ onClose, onImageScanned }: VisionCameraScannerPro
   const logger = useLogger();
 
   // Document detection integration
-  const { frameProcessor, detectedCorners, confidence, frameCount } = useDocumentDetection();
+  const { frameProcessor, detectedCorners, confidence, frameCount, lastError, processingStep, debugInfo } = useDocumentDetection();
 
   // Track frame processor execution and log detections
   useEffect(() => {
@@ -210,7 +211,7 @@ const VisionCameraScanner = ({ onClose, onImageScanned }: VisionCameraScannerPro
         confidence: confidence.value,
       });
 
-      // If document is detected with good confidence, use it for capture
+      // If document is detected with good confidence, capture photo
       // Otherwise, fall back to gallery
       if (detectedCorners.value && confidence.value > 0.4) {
         logger.info('Document detected for capture', {
@@ -219,14 +220,48 @@ const VisionCameraScanner = ({ onClose, onImageScanned }: VisionCameraScannerPro
           corners_count: detectedCorners.value.length,
         });
 
-        // TODO: Implement actual photo capture with Camera.takePhoto()
-        // TODO: Apply perspective correction using detected corners
-        // For now, fall back to gallery
-        trackEvent("document_capture_not_implemented", {
-          screen: "vision_camera_scanner",
-          confidence: confidence.value,
-        });
-        await handleOpenGallery();
+        // Capture photo using camera
+        if (cameraRef.current) {
+          try {
+            setIsActive(false); // Temporarily stop camera for capture
+            const photo = await cameraRef.current.takePhoto({
+              flash: flashEnabled ? 'on' : 'off',
+            });
+
+            // Convert photo to base64 for OCR processing
+            // Note: photo.path is a file path, we need to read it and convert to base64
+            const photoUri = photo.path.startsWith('file://') ? photo.path : `file://${photo.path}`;
+            
+            // Read file and convert to base64
+            const { readAsStringAsync } = await import('expo-file-system');
+            const base64Image = await readAsStringAsync(photoUri, {
+              encoding: 'base64',
+            });
+
+            if (base64Image) {
+              setScannedImage(base64Image);
+              setIsActive(true); // Resume camera
+              onImageScanned?.();
+              trackEvent("document_captured_with_detection", {
+                screen: "vision_camera_scanner",
+                confidence: confidence.value,
+              });
+              // Process image immediately
+              await processImage(base64Image);
+            } else {
+              throw new Error('Failed to read captured photo');
+            }
+          } catch (photoError) {
+            logger.error('Photo capture error', { screen: "vision_camera_scanner" }, photoError as Error);
+            setIsActive(true); // Resume camera on error
+            // Fall back to gallery on error
+            await handleOpenGallery();
+          }
+        } else {
+          // Camera ref not available, fall back to gallery
+          logger.warn('Camera ref not available, falling back to gallery');
+          await handleOpenGallery();
+        }
       } else {
         // No document detected or low confidence - use gallery
         logger.info('No document detected, opening gallery', {
@@ -419,6 +454,7 @@ const VisionCameraScanner = ({ onClose, onImageScanned }: VisionCameraScannerPro
   return (
     <View style={styles.container}>
       <Camera
+        ref={cameraRef}
         style={StyleSheet.absoluteFill}
         device={device}
         isActive={isActive}
@@ -446,6 +482,9 @@ const VisionCameraScanner = ({ onClose, onImageScanned }: VisionCameraScannerPro
           FP Frames: {frameCount.value} {frameCount.value > 0 ? '✅' : '❌'}
         </Text>
         <Text style={styles.debugPanelText}>
+          Step: {processingStep.value}
+        </Text>
+        <Text style={styles.debugPanelText}>
           Corners: {detectedCorners.value ? `${detectedCorners.value.length} pts` : 'null'}
         </Text>
         <Text style={styles.debugPanelText}>
@@ -454,6 +493,16 @@ const VisionCameraScanner = ({ onClose, onImageScanned }: VisionCameraScannerPro
         <Text style={styles.debugPanelText}>
           Camera: {cameraLayout.width}x{cameraLayout.height}
         </Text>
+        {lastError.value && (
+          <Text style={[styles.debugPanelText, styles.errorText]}>
+            Error: {lastError.value}
+          </Text>
+        )}
+        {debugInfo.value && (
+          <Text style={styles.debugPanelText}>
+            Debug: {debugInfo.value}
+          </Text>
+        )}
       </View>
 
       {/* Camera controls overlay */}
@@ -521,6 +570,10 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontFamily: 'Inter18pt-Regular',
     marginBottom: 4,
+  },
+  errorText: {
+    color: '#FF4444',
+    fontWeight: 'bold',
   },
 });
 
