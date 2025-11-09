@@ -486,12 +486,9 @@ export const useDocumentDetection = (callbacks?: DocumentDetectionCallbacks) => 
                 continue;
               }
 
-              // Check if contour is convex (concave shapes are not documents)
-              const { value: isConvex } = OpenCV.invoke('isContourConvex', contour);
-              if (!isConvex) {
-                debugInfo.value = `${debugInfo.value}, skippedConcave`;
-                continue;
-              }
+              // Note: Removed strict convexity check as real documents can appear slightly
+              // concave due to perspective distortion, paper curves, or edge detection artifacts.
+              // The rectangular shape validation below is sufficient to identify documents.
 
               // Validate shape is roughly rectangular (not too skewed/distorted)
               const points = approxData.array;
