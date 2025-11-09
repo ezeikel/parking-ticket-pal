@@ -142,7 +142,13 @@ export const useDocumentDetection = () => {
 
   /**
    * Main frame processor for document detection with Skia drawing
-   * Processes every frame (like blog post) - no throttling
+   *
+   * FPS LIMITATION WORKAROUND:
+   * Limiting to 10 FPS to prevent memory leak crashes on Skia 2.2.10
+   * See: https://github.com/mrousavy/react-native-vision-camera/issues/3598
+   *
+   * Above 12-15 FPS causes crashes due to memory leaks in older Skia versions.
+   * This leaves just enough time for memory to be flushed before crash.
    */
   const frameProcessor = useSkiaFrameProcessor((frame) => {
     'worklet';
@@ -151,6 +157,19 @@ export const useDocumentDetection = () => {
       // Log first frame only
       if (frameCount.value === 0) {
         console.log('[DocumentDetection] First frame received! Frame processor is running.');
+      }
+
+      // FPS LIMITING: Process every Nth frame to limit to ~10 FPS
+      // At 30 FPS camera: process every 3rd frame = 10 FPS processing rate
+      // At 60 FPS camera: process every 6th frame = 10 FPS processing rate
+      const TARGET_FPS = 10;
+      const skipFrames = Math.floor(30 / TARGET_FPS); // Assuming 30 FPS camera
+
+      if (frameCount.value % skipFrames !== 0) {
+        // Skip this frame, but still render it to prevent freeze
+        frame.render();
+        frameCount.value = frameCount.value + 1;
+        return;
       }
 
       // MINIMAL TEST: Just render and count (no OpenCV)

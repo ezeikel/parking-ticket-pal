@@ -58,7 +58,7 @@
     "@react-navigation/native": "^7.0.0",
     "@sentry/react-native": "^7.2.0",
     "@shopify/flash-list": "2.0.2",
-    "@shopify/react-native-skia": "2.3.10",
+    "@shopify/react-native-skia": "2.2.10",
     "@tanstack/react-form": "^1.23.8",
     "@tanstack/react-query": "^5.62.0",
     "axios": "^1.7.8",
