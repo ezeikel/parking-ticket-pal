@@ -153,6 +153,10 @@ export const useDocumentDetection = () => {
   const frameProcessor = useSkiaFrameProcessor((frame) => {
     'worklet';
 
+    // Define variables for this frame
+    const SCALE_FACTOR = 4;
+    let bestContour: DocumentCorner[] | null = null;
+
     try {
       // Log first frame only
       if (frameCount.value === 0) {
@@ -161,7 +165,6 @@ export const useDocumentDetection = () => {
 
       // FPS LIMITING: Process every Nth frame to limit to ~10 FPS
       // At 30 FPS camera: process every 3rd frame = 10 FPS processing rate
-      // At 60 FPS camera: process every 6th frame = 10 FPS processing rate
       const TARGET_FPS = 10;
       const skipFrames = Math.floor(30 / TARGET_FPS); // Assuming 30 FPS camera
 
@@ -172,27 +175,7 @@ export const useDocumentDetection = () => {
         return;
       }
 
-      // MINIMAL TEST: Just render and count (no OpenCV)
-      frameCount.value = frameCount.value + 1;
-      processingStep.value = 'rendering';
-
-      frame.render();
-
-      renderCount.value = renderCount.value + 1;
-      lastRenderTime.value = Date.now();
-    } catch (error) {
-      console.error('[DocumentDetection] Frame processor error:', error);
-      errorCount.value = errorCount.value + 1;
-    }
-
-    /* TEMPORARILY DISABLED FOR TESTING - FULL OPENCV PROCESSING
-
-    // Process EVERY frame (like blog post - no throttling)
-    // Define variables for this frame
-    const SCALE_FACTOR = 4;
-    let bestContour: DocumentCorner[] | null = null;
-
-    try {
+      // PROCESS THIS FRAME (every 3rd frame = 10 FPS)
       // Increment frame counter for debugging
       frameCount.value = frameCount.value + 1;
       lastError.value = null;
@@ -593,6 +576,8 @@ export const useDocumentDetection = () => {
         errorCount.value = errorCount.value + 1;
       } finally {
         // CRITICAL: Always render frame, even on error (prevents freeze)
+        // This must happen AFTER Skia drawing (which happens in try block)
+        // so that the overlay is included in the rendered frame
         frame.render();
         renderCount.value = renderCount.value + 1;
         lastRenderTime.value = Date.now();
@@ -605,8 +590,6 @@ export const useDocumentDetection = () => {
           console.error('[DocumentDetection] Error clearing buffers:', clearError);
         }
       }
-    */
-    // END TEMPORARILY DISABLED CODE
   }, []);
 
   return {
