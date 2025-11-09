@@ -171,8 +171,8 @@ export const useDocumentDetection = (callbacks?: DocumentDetectionCallbacks) => 
 
   // Hysteresis thresholds to prevent rapid state transitions
   const ENTER_THRESHOLD = 0.6;  // Need 60% confidence to show overlay
-  const EXIT_THRESHOLD = 0.3;   // Must drop below 30% to hide overlay
-  const MIN_STABLE_FRAMES = 2;  // Require 2 consecutive frames (200ms at 10 FPS)
+  const EXIT_THRESHOLD = 0.1;   // Must drop below 10% to hide overlay (more sticky)
+  const MIN_STABLE_FRAMES = 4;  // Require 4 consecutive frames (400ms at 10 FPS)
 
   // Create Skia paint objects OUTSIDE worklet (like blog post)
   // Creating inside worklet recreates on every frame and can cause issues
