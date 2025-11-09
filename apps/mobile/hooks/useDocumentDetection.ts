@@ -629,7 +629,11 @@ export const useDocumentDetection = (callbacks?: DocumentDetectionCallbacks) => 
         }
 
         if (onDetectionUpdateJS) {
-          onDetectionUpdateJS(detectedCorners.value, confidence.value);
+          // Explicitly serialize corners to plain array for runOnJS
+          const cornersToSend = detectedCorners.value
+            ? detectedCorners.value.map(c => ({ x: c.x, y: c.y }))
+            : null;
+          onDetectionUpdateJS(cornersToSend, confidence.value);
         }
       }
   }, [onFrameProcessedJS, onDetectionUpdateJS]);
