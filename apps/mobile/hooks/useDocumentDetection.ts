@@ -132,6 +132,48 @@ const validateRectangularShape = (points: any[]): boolean => {
 };
 
 /**
+ * Validates if new corners are similar enough to existing tracked corners
+ * Prevents sudden shape morphing by rejecting contours that are too different
+ *
+ * @param newCorners - New corner positions from current detection
+ * @param existingCorners - Currently tracked smoothed corner positions
+ * @param maxMovementRatio - Maximum allowed movement as ratio of document size (e.g., 0.15 = 15%)
+ * @returns true if corners are similar enough to accept
+ */
+const areCornersSimular = (
+  newCorners: DocumentCorner[],
+  existingCorners: DocumentCorner[],
+  maxMovementRatio: number
+): boolean => {
+  'worklet';
+
+  if (newCorners.length !== 4 || existingCorners.length !== 4) {
+    return false;
+  }
+
+  // Calculate current document size (bounding box diagonal)
+  const existingXs = existingCorners.map(c => c.x);
+  const existingYs = existingCorners.map(c => c.y);
+  const width = Math.max(...existingXs) - Math.min(...existingXs);
+  const height = Math.max(...existingYs) - Math.min(...existingYs);
+  const documentSize = Math.sqrt(width * width + height * height);
+
+  // Calculate average corner movement
+  let totalMovement = 0;
+  for (let i = 0; i < 4; i++) {
+    const dx = newCorners[i].x - existingCorners[i].x;
+    const dy = newCorners[i].y - existingCorners[i].y;
+    const movement = Math.sqrt(dx * dx + dy * dy);
+    totalMovement += movement;
+  }
+  const avgMovement = totalMovement / 4;
+
+  // Reject if average corner movement exceeds threshold
+  const maxAllowedMovement = documentSize * maxMovementRatio;
+  return avgMovement <= maxAllowedMovement;
+};
+
+/**
  * Smooths corner positions using exponential moving average
  * Reduces visual jitter in the overlay rectangle
  *
@@ -228,7 +270,7 @@ export const useDocumentDetection = (callbacks?: DocumentDetectionCallbacks) => 
   // Hysteresis thresholds to prevent rapid state transitions
   const ENTER_THRESHOLD = 0.6;  // Need 60% confidence to show overlay
   const EXIT_THRESHOLD = 0.3;   // Must drop below 30% to hide overlay (more realistic with EMA)
-  const MIN_STABLE_FRAMES = 4;  // Require 4 consecutive frames (800ms at 5 FPS)
+  const MIN_STABLE_FRAMES = 4;  // Require 4 consecutive frames (400ms at 10 FPS)
   const POST_EXIT_GRACE_FRAMES = 3;  // Prevent immediate re-entry after exit (debounce)
 
   // Create Skia paint objects OUTSIDE worklet (like blog post)
@@ -245,13 +287,16 @@ export const useDocumentDetection = (callbacks?: DocumentDetectionCallbacks) => 
    * Main frame processor for document detection with Skia drawing
    *
    * FPS LIMITATION WORKAROUND:
-   * Limiting to 5 FPS to prevent memory leak crashes on Skia 2.2.10
-   * and to give Skia more time to properly composite/present overlays
+   * Processing at 10 FPS to prevent memory leak crashes on Skia 2.2.10
+   * while maintaining good detection responsiveness
    * See: https://github.com/mrousavy/react-native-vision-camera/issues/3598
    *
    * Above 12-15 FPS causes crashes due to memory leaks in older Skia versions.
-   * Slower processing rate also helps eliminate overlay flickering by giving
-   * Skia more time per frame to composite the overlay before next processing cycle.
+   *
+   * FLICKER FIX:
+   * Heavy OpenCV processing runs at 10 FPS, but frame.render() and Skia overlay
+   * drawing happen on EVERY frame (30 FPS) using cached detection results.
+   * This eliminates flickering while keeping CPU usage reasonable.
    */
   const frameProcessor = useSkiaFrameProcessor((frame) => {
     'worklet';
@@ -270,15 +315,15 @@ export const useDocumentDetection = (callbacks?: DocumentDetectionCallbacks) => 
       frameCount.value = frameCount.value + 1;
 
       // FPS LIMITING: Only run heavy OpenCV processing every Nth frame
-      // At 30 FPS camera: process every 6th frame = 5 FPS processing rate
+      // At 30 FPS camera: process every 3rd frame = 10 FPS processing rate
       // But we'll still render and draw overlay on ALL frames using cached detection results
-      const TARGET_FPS = 5;
+      const TARGET_FPS = 10;
       const skipFrames = Math.floor(30 / TARGET_FPS); // Assuming 30 FPS camera
       const shouldProcessDetection = (frameCount.value - 1) % skipFrames === 0;
 
       // Only run heavy detection processing on designated frames
       if (shouldProcessDetection) {
-        // PROCESS THIS FRAME (every 6th frame = 5 FPS)
+        // PROCESS THIS FRAME (every 3rd frame = 10 FPS)
         lastError.value = null;
 
       // Step 1: Calculate scaled dimensions (1/4 resolution for 16x speedup)
@@ -698,14 +743,31 @@ export const useDocumentDetection = (callbacks?: DocumentDetectionCallbacks) => 
 
         // Step 15: Smooth corner positions to reduce visual jitter
         // Use persistence to prevent corners from disappearing on brief detection failures
+        // Also validate corner similarity to prevent shape morphing
         if (bestContour && bestContour.length === 4) {
-          // Valid corners detected - update smoothed corners and reset persistence counter
-          smoothedCorners.value = smoothCorners(
-            bestContour,
-            smoothedCorners.value,
-            CORNER_SMOOTHING
-          );
-          cornerPersistenceCounter.value = CORNER_PERSISTENCE_FRAMES;
+          // Validate new corners against existing tracked shape (if we're already tracking)
+          const shouldAcceptCorners =
+            detectionState.value === DetectionState.NO_DOCUMENT || // Always accept when not tracking
+            !smoothedCorners.value || // Always accept if no previous corners
+            areCornersSimular(bestContour, smoothedCorners.value, 0.15); // Accept if similar (15% tolerance)
+
+          if (shouldAcceptCorners) {
+            // Valid corners detected and passed similarity check - update smoothed corners
+            smoothedCorners.value = smoothCorners(
+              bestContour,
+              smoothedCorners.value,
+              CORNER_SMOOTHING
+            );
+            cornerPersistenceCounter.value = CORNER_PERSISTENCE_FRAMES;
+          } else {
+            // Corners too different from current shape - reject to prevent morphing
+            // Treat as if no corners were detected this frame
+            if (cornerPersistenceCounter.value > 0) {
+              cornerPersistenceCounter.value--;
+            } else {
+              smoothedCorners.value = null;
+            }
+          }
         } else {
           // No corners detected this frame
           if (cornerPersistenceCounter.value > 0) {
