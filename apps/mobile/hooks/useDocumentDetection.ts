@@ -119,6 +119,13 @@ export const useDocumentDetection = () => {
   const processingStep = useSharedValue<string>('idle'); // Debug: track current processing step
   const debugInfo = useSharedValue<string>(''); // Debug: additional info about detection
 
+  // Debug counters to diagnose freezing
+  const renderCount = useSharedValue<number>(0); // How many times frame.render() called
+  const clearBufferCount = useSharedValue<number>(0); // How many times clearBuffers() succeeded
+  const skiaDrawCount = useSharedValue<number>(0); // How many times Skia drawing executed
+  const errorCount = useSharedValue<number>(0); // How many errors occurred
+  const lastRenderTime = useSharedValue<number>(0); // Timestamp of last render
+
   // Confidence smoothing: use exponential moving average to reduce flickering
   const smoothedConfidence = useSharedValue<number>(0);
   const CONFIDENCE_SMOOTHING = 0.3; // 30% new value, 70% old value (higher = more responsive)
@@ -139,6 +146,27 @@ export const useDocumentDetection = () => {
    */
   const frameProcessor = useSkiaFrameProcessor((frame) => {
     'worklet';
+
+    try {
+      // Log first frame only
+      if (frameCount.value === 0) {
+        console.log('[DocumentDetection] First frame received! Frame processor is running.');
+      }
+
+      // MINIMAL TEST: Just render and count (no OpenCV)
+      frameCount.value = frameCount.value + 1;
+      processingStep.value = 'rendering';
+
+      frame.render();
+
+      renderCount.value = renderCount.value + 1;
+      lastRenderTime.value = Date.now();
+    } catch (error) {
+      console.error('[DocumentDetection] Frame processor error:', error);
+      errorCount.value = errorCount.value + 1;
+    }
+
+    /* TEMPORARILY DISABLED FOR TESTING - FULL OPENCV PROCESSING
 
     // Process EVERY frame (like blog post - no throttling)
     // Define variables for this frame
@@ -257,7 +285,7 @@ export const useDocumentDetection = () => {
         // Step 11: Find the largest quadrilateral contour (likely the document)
         processingStep.value = 'processing_contours';
         const contoursData = OpenCV.toJSValue(contours);
-        // bestContour defined at top of runAtTargetFps
+        // bestContour defined at top of frame processor
         let maxArea = 0;
         let detectionConfidence = 0;
 
@@ -489,6 +517,38 @@ export const useDocumentDetection = () => {
           debugInfo.value = `${debugInfo.value}, found doc: ${bestContour.length} corners, conf=${(smoothedConfidence.value * 100).toFixed(1)}%`;
         }
 
+        // Draw document border with Skia (BEFORE frame.render, inside try block)
+        if (bestContour && bestContour.length === 4) {
+          const path = Skia.Path.Make();
+          const pointsToShow = [];
+
+          // Corners are in scaled (processing) resolution, scale up to full frame
+          const ratio = 1 / SCALE_FACTOR; // 0.25
+
+          // Start path at last point (like blog)
+          const lastX = bestContour[3].x / ratio;
+          const lastY = bestContour[3].y / ratio;
+          path.moveTo(lastX, lastY);
+          pointsToShow.push(vec(lastX, lastY));
+
+          // Draw path through all 4 corners
+          for (let i = 0; i < 4; i++) {
+            const pointX = bestContour[i].x / ratio;
+            const pointY = bestContour[i].y / ratio;
+            path.lineTo(pointX, pointY);
+            pointsToShow.push(vec(pointX, pointY));
+          }
+
+          path.close();
+
+          // Draw filled polygon and border on frame
+          frame.drawPath(path, paint);
+          frame.drawPoints(PointMode.Polygon, pointsToShow, border);
+
+          // Debug: Increment Skia draw counter
+          skiaDrawCount.value = skiaDrawCount.value + 1;
+        }
+
       } catch (error) {
         // Log error with context and reset detection state
         // Note: This runs on worklet thread, so we can't directly call logger
@@ -509,46 +569,25 @@ export const useDocumentDetection = () => {
         detectedCorners.value = null;
         confidence.value = 0;
         processingStep.value = 'error';
-      }
 
-      // Render frame (like blog - after OpenCV processing)
-      frame.render();
+        // Debug: Increment error counter
+        errorCount.value = errorCount.value + 1;
+      } finally {
+        // CRITICAL: Always render frame, even on error (prevents freeze)
+        frame.render();
+        renderCount.value = renderCount.value + 1;
+        lastRenderTime.value = Date.now();
 
-      // Draw document border with Skia (like blog - after render)
-      if (bestContour && bestContour.length === 4) {
-        const path = Skia.Path.Make();
-        const pointsToShow = [];
-
-        // Corners are in scaled (processing) resolution, scale up to full frame
-        const ratio = 1 / SCALE_FACTOR; // 0.25
-
-        // Start path at last point (like blog)
-        const lastX = bestContour[3].x / ratio;
-        const lastY = bestContour[3].y / ratio;
-        path.moveTo(lastX, lastY);
-        pointsToShow.push(vec(lastX, lastY));
-
-        // Draw path through all 4 corners
-        for (let i = 0; i < 4; i++) {
-          const pointX = bestContour[i].x / ratio;
-          const pointY = bestContour[i].y / ratio;
-          path.lineTo(pointX, pointY);
-          pointsToShow.push(vec(pointX, pointY));
+        // CRITICAL: Always clear OpenCV buffers (prevents memory leaks)
+        try {
+          OpenCV.clearBuffers();
+          clearBufferCount.value = clearBufferCount.value + 1;
+        } catch (clearError) {
+          console.error('[DocumentDetection] Error clearing buffers:', clearError);
         }
-
-        path.close();
-
-        // Draw filled polygon and border on frame
-        frame.drawPath(path, paint);
-        frame.drawPoints(PointMode.Polygon, pointsToShow, border);
       }
-
-      // Clear OpenCV buffers at the end (like blog)
-      try {
-        OpenCV.clearBuffers();
-      } catch (clearError) {
-        console.error('[DocumentDetection] Error clearing buffers:', clearError);
-      }
+    */
+    // END TEMPORARILY DISABLED CODE
   }, []);
 
   return {
@@ -559,5 +598,11 @@ export const useDocumentDetection = () => {
     lastError, // Debug: expose last error
     processingStep, // Debug: expose current processing step
     debugInfo, // Debug: expose debug info
+    // Debug counters for diagnosing freezes
+    renderCount,
+    clearBufferCount,
+    skiaDrawCount,
+    errorCount,
+    lastRenderTime,
   };
 };

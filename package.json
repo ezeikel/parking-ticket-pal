@@ -8,9 +8,11 @@
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",
     "check-types": "turbo run check-types",
     "clean": "rm -rf apps/*/node_modules packages/*/node_modules",
-    "clean:deep": "rm -rf apps/*/node_modules packages/*/node_modules pnpm-lock.yaml && pnpm install"
+    "clean:deep": "rm -rf apps/*/node_modules packages/*/node_modules pnpm-lock.yaml && pnpm install",
+    "postinstall": "patch-package --patch-dir apps/mobile/patches"
   },
   "devDependencies": {
+    "patch-package": "^8.0.1",
     "prettier": "^3.6.2",
     "turbo": "^2.5.6",
     "typescript": "5.8.3"

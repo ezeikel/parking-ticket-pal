@@ -41,7 +41,20 @@ const VisionCameraScanner = ({ onClose, onImageScanned }: VisionCameraScannerPro
   const logger = useLogger();
 
   // Document detection integration
-  const { frameProcessor, detectedCorners, confidence, frameCount, lastError, processingStep, debugInfo } = useDocumentDetection();
+  const {
+    frameProcessor,
+    detectedCorners,
+    confidence,
+    frameCount,
+    lastError,
+    processingStep,
+    debugInfo,
+    renderCount,
+    clearBufferCount,
+    skiaDrawCount,
+    errorCount,
+    lastRenderTime,
+  } = useDocumentDetection();
 
   // React state to trigger re-renders when shared values change
   const [cornersState, setCornersState] = useState<any>(null);
@@ -297,6 +310,21 @@ const VisionCameraScanner = ({ onClose, onImageScanned }: VisionCameraScannerPro
     });
   };
 
+  const handleCameraStarted = useCallback(() => {
+    console.log('[VisionCamera] Camera started - frame processor should be running');
+    logger.info('[VisionCamera] Camera started', { screen: 'vision_camera_scanner' });
+  }, [logger]);
+
+  const handleCameraInitialized = useCallback(() => {
+    console.log('[VisionCamera] Camera initialized');
+    logger.info('[VisionCamera] Camera initialized', { screen: 'vision_camera_scanner' });
+  }, [logger]);
+
+  const handleCameraError = useCallback((error: any) => {
+    console.error('[VisionCamera] Camera error:', error);
+    logger.error('Camera error', { screen: 'vision_camera_scanner' }, error);
+  }, [logger]);
+
   const processImage = async (imageBase64: string) => {
     try {
       const startTime = Date.now();
@@ -462,6 +490,7 @@ const VisionCameraScanner = ({ onClose, onImageScanned }: VisionCameraScannerPro
   return (
     <View style={styles.container}>
       <Camera
+        key={device?.id}
         ref={cameraRef}
         style={StyleSheet.absoluteFill}
         device={device}
@@ -471,6 +500,9 @@ const VisionCameraScanner = ({ onClose, onImageScanned }: VisionCameraScannerPro
         frameProcessor={frameProcessor}
         enableZoomGesture={false}
         onLayout={handleCameraLayout}
+        onInitialized={handleCameraInitialized}
+        onStarted={handleCameraStarted}
+        onError={handleCameraError}
       />
 
       {/* Document detection UI overlay - polygon is drawn on frame via Skia */}
@@ -486,6 +518,15 @@ const VisionCameraScanner = ({ onClose, onImageScanned }: VisionCameraScannerPro
           FP Frames: {frameCount.value} {frameCount.value > 0 ? '✅' : '❌'}
         </Text>
         <Text style={styles.debugPanelText}>
+          Renders: {renderCount.value} {renderCount.value > 0 ? '✅' : '❌'}
+        </Text>
+        <Text style={styles.debugPanelText}>
+          Skia Draws: {skiaDrawCount.value} | Errors: {errorCount.value}
+        </Text>
+        <Text style={styles.debugPanelText}>
+          Buffers Cleared: {clearBufferCount.value}
+        </Text>
+        <Text style={styles.debugPanelText}>
           Step: {processingStep.value}
         </Text>
         <Text style={styles.debugPanelText}>
@@ -496,6 +537,9 @@ const VisionCameraScanner = ({ onClose, onImageScanned }: VisionCameraScannerPro
         </Text>
         <Text style={styles.debugPanelText}>
           Camera: {cameraLayout.width}x{cameraLayout.height}
+        </Text>
+        <Text style={styles.debugPanelText}>
+          Last Render: {lastRenderTime.value > 0 ? new Date(lastRenderTime.value).toLocaleTimeString() : 'never'}
         </Text>
         {lastError.value && (
           <Text style={[styles.debugPanelText, styles.errorText]}>

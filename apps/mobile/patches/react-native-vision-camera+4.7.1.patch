@@ -1,0 +1,52 @@
+diff --git a/node_modules/react-native-vision-camera/src/skia/SkiaCameraCanvas.tsx b/node_modules/react-native-vision-camera/src/skia/SkiaCameraCanvas.tsx
+index 56d4e0e..5b3e4c2 100644
+--- a/node_modules/react-native-vision-camera/src/skia/SkiaCameraCanvas.tsx
++++ b/node_modules/react-native-vision-camera/src/skia/SkiaCameraCanvas.tsx
+@@ -1,10 +1,11 @@
+-import React, { useCallback, useState } from 'react'
+-import type { LayoutChangeEvent, ViewProps } from 'react-native'
++import React from 'react'
++import type { ViewProps } from 'react-native'
+ import type { CameraProps } from '../types/CameraProps'
+ import type { ISharedValue } from 'react-native-worklets-core'
+ import type { SkImage } from '@shopify/react-native-skia'
+ import { ReanimatedProxy } from '../dependencies/ReanimatedProxy'
+ import { SkiaProxy } from '../dependencies/SkiaProxy'
++import { useDerivedValue, useSharedValue } from 'react-native-reanimated'
+
+ interface SkiaCameraCanvasProps extends ViewProps {
+   /**
+@@ -21,8 +22,13 @@ interface SkiaCameraCanvasProps extends ViewProps {
+
+ function SkiaCameraCanvasImpl({ offscreenTextures, resizeMode = 'cover', children, ...props }: SkiaCameraCanvasProps): React.ReactElement {
+   const texture = ReanimatedProxy.useSharedValue<SkImage | null>(null)
+-  const [width, setWidth] = useState(0)
+-  const [height, setHeight] = useState(0)
++
++  const size = useSharedValue({ width: 0, height: 0 });
++
++  const rect = useDerivedValue(() => {
++    const {width, height} = size.value;
++    return { x: 0, y: 0, width, height };
++  });
+
+   ReanimatedProxy.useFrameCallback(() => {
+     'worklet'
+@@ -41,15 +47,10 @@ function SkiaCameraCanvasImpl({ offscreenTextures, resizeMode = 'cover', childre
+     texture.value = latestTexture
+   })
+
+-  const onLayout = useCallback(({ nativeEvent: { layout } }: LayoutChangeEvent) => {
+-    setWidth(Math.round(layout.width))
+-    setHeight(Math.round(layout.height))
+-  }, [])
+-
+   return (
+-    <SkiaProxy.Canvas {...props} onLayout={onLayout} pointerEvents="none">
++    <SkiaProxy.Canvas {...props} onSize={size} pointerEvents="none">
+       {children}
+-      <SkiaProxy.Image x={0} y={0} width={width} height={height} fit={resizeMode} image={texture} />
++      <SkiaProxy.Image rect={rect} fit={resizeMode} image={texture} />
+     </SkiaProxy.Canvas>
+   )
+ }
