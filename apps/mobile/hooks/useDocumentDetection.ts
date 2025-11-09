@@ -125,6 +125,32 @@ const validateRectangularShape = (points: any[]): boolean => {
 };
 
 /**
+ * Smooths corner positions using exponential moving average
+ * Reduces visual jitter in the overlay rectangle
+ *
+ * @param newCorners - Raw corner positions from current frame
+ * @param previousCorners - Smoothed corner positions from previous frame
+ * @param alpha - Smoothing factor (0-1), higher = more responsive
+ * @returns Smoothed corner positions
+ */
+const smoothCorners = (
+  newCorners: DocumentCorner[],
+  previousCorners: DocumentCorner[] | null,
+  alpha: number
+): DocumentCorner[] => {
+  'worklet';
+
+  if (!previousCorners || previousCorners.length !== 4) {
+    return newCorners; // First detection, no smoothing
+  }
+
+  return newCorners.map((corner, i) => ({
+    x: alpha * corner.x + (1 - alpha) * previousCorners[i].x,
+    y: alpha * corner.y + (1 - alpha) * previousCorners[i].y,
+  }));
+};
+
+/**
  * Custom hook for real-time document edge detection using OpenCV
  *
  * Performance optimizations:
@@ -148,7 +174,11 @@ export const useDocumentDetection = (callbacks?: DocumentDetectionCallbacks) => 
 
   // Shared values for cross-worklet communication (no bridge crossing)
   const detectedCorners = useSharedValue<DocumentCorner[] | null>(null);
+  const smoothedCorners = useSharedValue<DocumentCorner[] | null>(null);
   const confidence = useSharedValue<number>(0);
+
+  // Corner smoothing factor (0-1, higher = more responsive but more jitter)
+  const CORNER_SMOOTHING = 0.3;
   const frameCount = useSharedValue<number>(0); // Debug: track frame processor execution
   const lastError = useSharedValue<string | null>(null); // Debug: track last error message
   const processingStep = useSharedValue<string>('idle'); // Debug: track current processing step
@@ -573,7 +603,18 @@ export const useDocumentDetection = (callbacks?: DocumentDetectionCallbacks) => 
           }
         }
 
-        // Step 14: Update shared values with detection results
+        // Step 14: Smooth corner positions to reduce visual jitter
+        if (bestContour && bestContour.length === 4) {
+          smoothedCorners.value = smoothCorners(
+            bestContour,
+            smoothedCorners.value,
+            CORNER_SMOOTHING
+          );
+        } else {
+          smoothedCorners.value = null;
+        }
+
+        // Step 15: Update shared values with detection results
         processingStep.value = 'complete';
         detectedCorners.value = bestContour;
         confidence.value = smoothedConfidence.value; // Use smoothed confidence
@@ -592,7 +633,8 @@ export const useDocumentDetection = (callbacks?: DocumentDetectionCallbacks) => 
 
         // THEN draw document border overlay on top of rendered frame
         // Only draw when in stable DOCUMENT_DETECTED state to prevent flickering
-        if (bestContour && bestContour.length === 4 && detectionState.value === DetectionState.DOCUMENT_DETECTED) {
+        // Use smoothed corners to eliminate visual jitter
+        if (smoothedCorners.value && smoothedCorners.value.length === 4 && detectionState.value === DetectionState.DOCUMENT_DETECTED) {
           const path = Skia.Path.Make();
           const pointsToShow = [];
 
@@ -600,15 +642,15 @@ export const useDocumentDetection = (callbacks?: DocumentDetectionCallbacks) => 
           const ratio = 1 / SCALE_FACTOR; // 0.25
 
           // Start path at last point (like blog)
-          const lastX = bestContour[3].x / ratio;
-          const lastY = bestContour[3].y / ratio;
+          const lastX = smoothedCorners.value[3].x / ratio;
+          const lastY = smoothedCorners.value[3].y / ratio;
           path.moveTo(lastX, lastY);
           pointsToShow.push(vec(lastX, lastY));
 
-          // Draw path through all 4 corners
+          // Draw path through all 4 smoothed corners
           for (let i = 0; i < 4; i++) {
-            const pointX = bestContour[i].x / ratio;
-            const pointY = bestContour[i].y / ratio;
+            const pointX = smoothedCorners.value[i].x / ratio;
+            const pointY = smoothedCorners.value[i].y / ratio;
             path.lineTo(pointX, pointY);
             pointsToShow.push(vec(pointX, pointY));
           }
@@ -678,10 +720,10 @@ export const useDocumentDetection = (callbacks?: DocumentDetectionCallbacks) => 
         }
 
         if (onDetectionUpdateJS) {
-          // Only send corners when in stable DOCUMENT_DETECTED state
-          // This prevents flickering in the UI
-          const cornersToSend = detectionState.value === DetectionState.DOCUMENT_DETECTED && detectedCorners.value
-            ? detectedCorners.value.map(c => ({ x: c.x, y: c.y }))
+          // Only send smoothed corners when in stable DOCUMENT_DETECTED state
+          // This prevents flickering in the UI and eliminates visual jitter
+          const cornersToSend = detectionState.value === DetectionState.DOCUMENT_DETECTED && smoothedCorners.value
+            ? smoothedCorners.value.map(c => ({ x: c.x, y: c.y }))
             : null;
           onDetectionUpdateJS(cornersToSend, confidence.value);
         }
