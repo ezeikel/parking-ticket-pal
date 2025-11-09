@@ -1,6 +1,6 @@
 import { useSkiaFrameProcessor } from 'react-native-vision-camera';
 import { useResizePlugin } from 'vision-camera-resize-plugin';
-import { useSharedValue } from 'react-native-worklets-core';
+import { useSharedValue, Worklets } from 'react-native-worklets-core';
 import { Skia, PaintStyle, PointMode, vec } from '@shopify/react-native-skia';
 import {
   OpenCV,
@@ -21,6 +21,23 @@ export type DocumentCorner = {
 export type DocumentDetectionResult = {
   corners: DocumentCorner[] | null;
   confidence: number; // 0-1, where 1 is perfect detection
+};
+
+export type DebugData = {
+  frameCount: number;
+  renderCount: number;
+  clearBufferCount: number;
+  skiaDrawCount: number;
+  errorCount: number;
+  processingStep: string;
+  debugInfo: string;
+  lastRenderTime: number;
+  lastError: string | null;
+};
+
+export type DocumentDetectionCallbacks = {
+  onFrameProcessed?: (data: DebugData) => void;
+  onDetectionUpdate?: (corners: DocumentCorner[] | null, confidence: number) => void;
 };
 
 /**
@@ -103,13 +120,22 @@ const validateRectangularShape = (points: any[]): boolean => {
  *
  * Performance optimizations:
  * - Processes at 1/4 scale (16x faster than full resolution)
- * - Targets 5 FPS processing rate (~200ms per frame)
- * - Uses async processing to avoid blocking camera thread
+ * - Targets 10 FPS processing rate via frame limiting
+ * - Uses runOnJS to bridge worklet values to React state
  *
+ * @param callbacks - Optional callbacks for receiving updates from frame processor
  * @returns Frame processor and detection result shared values
  */
-export const useDocumentDetection = () => {
+export const useDocumentDetection = (callbacks?: DocumentDetectionCallbacks) => {
   const { resize } = useResizePlugin();
+
+  // Create worklet-compatible callbacks using Worklets.createRunOnJS
+  const onFrameProcessedJS = callbacks?.onFrameProcessed
+    ? Worklets.createRunOnJS(callbacks.onFrameProcessed)
+    : null;
+  const onDetectionUpdateJS = callbacks?.onDetectionUpdate
+    ? Worklets.createRunOnJS(callbacks.onDetectionUpdate)
+    : null;
 
   // Shared values for cross-worklet communication (no bridge crossing)
   const detectedCorners = useSharedValue<DocumentCorner[] | null>(null);
@@ -589,8 +615,27 @@ export const useDocumentDetection = () => {
         } catch (clearError) {
           console.error('[DocumentDetection] Error clearing buffers:', clearError);
         }
+
+        // Push updates to React state via runOnJS callbacks
+        if (onFrameProcessedJS) {
+          onFrameProcessedJS({
+            frameCount: frameCount.value,
+            renderCount: renderCount.value,
+            clearBufferCount: clearBufferCount.value,
+            skiaDrawCount: skiaDrawCount.value,
+            errorCount: errorCount.value,
+            processingStep: processingStep.value,
+            debugInfo: debugInfo.value,
+            lastRenderTime: lastRenderTime.value,
+            lastError: lastError.value,
+          });
+        }
+
+        if (onDetectionUpdateJS) {
+          onDetectionUpdateJS(detectedCorners.value, confidence.value);
+        }
       }
-  }, []);
+  }, [onFrameProcessedJS, onDetectionUpdateJS]);
 
   return {
     frameProcessor,

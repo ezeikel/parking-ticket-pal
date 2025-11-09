@@ -40,50 +40,31 @@ const VisionCameraScanner = ({ onClose, onImageScanned }: VisionCameraScannerPro
   const { trackEvent, trackError } = useAnalytics();
   const logger = useLogger();
 
-  // Document detection integration
-  const {
-    frameProcessor,
-    detectedCorners,
-    confidence,
-    frameCount,
-    lastError,
-    processingStep,
-    debugInfo,
-    renderCount,
-    clearBufferCount,
-    skiaDrawCount,
-    errorCount,
-    lastRenderTime,
-  } = useDocumentDetection();
-
-  // React state to trigger re-renders when shared values change
+  // React state for document detection and debug info
   const [cornersState, setCornersState] = useState<any>(null);
   const [confidenceState, setConfidenceState] = useState<number>(0);
+  const [debugState, setDebugState] = useState({
+    frameCount: 0,
+    renderCount: 0,
+    clearBufferCount: 0,
+    skiaDrawCount: 0,
+    errorCount: 0,
+    processingStep: 'idle',
+    debugInfo: '',
+    lastRenderTime: 0,
+    lastError: null as string | null,
+  });
 
-  // Poll shared values and update React state to trigger re-renders
-  useEffect(() => {
-    const interval = setInterval(() => {
-      // Read shared values
-      const corners = detectedCorners.value;
-      const conf = confidence.value;
-
-      // Update React state to trigger re-renders
+  // Document detection integration with runOnJS callbacks
+  const { frameProcessor } = useDocumentDetection({
+    onFrameProcessed: (data) => {
+      setDebugState(data);
+    },
+    onDetectionUpdate: (corners, conf) => {
       setCornersState(corners);
       setConfidenceState(conf);
-
-      // Log to PostHog when detection finds something
-      if (corners && conf > 0) {
-        logger.info("Document detected", {
-          screen: "vision_camera_scanner",
-          confidence: conf,
-          corners_count: corners.length,
-          frame_count: frameCount.value,
-        });
-      }
-    }, 100); // Poll at 10 FPS (faster than 5 FPS processing for smooth UI)
-
-    return () => clearInterval(interval);
-  }, [detectedCorners, confidence, frameCount, logger]);
+    },
+  });
 
   // Rotating loading messages for OCR processing
   useEffect(() => {
@@ -119,20 +100,16 @@ const VisionCameraScanner = ({ onClose, onImageScanned }: VisionCameraScannerPro
 
   // Debug logging for document detection
   useEffect(() => {
-    // Log to analytics (works in all build types)
-    const interval = setInterval(() => {
-      if (detectedCorners.value || confidence.value > 0) {
-        logger.info('[VisionCamera] Document detection status', {
-          screen: 'vision_camera_scanner',
-          hasCorners: !!detectedCorners.value,
-          cornersCount: detectedCorners.value?.length || 0,
-          confidence: confidence.value,
-        });
-      }
-    }, 5000); // Log every 5 seconds when there's activity
-
-    return () => clearInterval(interval);
-  }, [detectedCorners, confidence, logger]);
+    // Log to analytics when detection finds something
+    if (cornersState && confidenceState > 0) {
+      logger.info('[VisionCamera] Document detection status', {
+        screen: 'vision_camera_scanner',
+        hasCorners: !!cornersState,
+        cornersCount: cornersState?.length || 0,
+        confidence: confidenceState,
+      });
+    }
+  }, [cornersState, confidenceState, logger]);
 
   // Request camera permission on mount and hide status bar
   useEffect(() => {
@@ -228,17 +205,17 @@ const VisionCameraScanner = ({ onClose, onImageScanned }: VisionCameraScannerPro
     try {
       trackEvent("vision_camera_capture_initiated", {
         screen: "vision_camera_scanner",
-        has_document_detected: !!detectedCorners.value,
-        confidence: confidence.value,
+        has_document_detected: !!cornersState,
+        confidence: confidenceState,
       });
 
       // If document is detected with good confidence, capture photo
       // Otherwise, fall back to gallery
-      if (detectedCorners.value && confidence.value > 0.4) {
+      if (cornersState && confidenceState > 0.4) {
         logger.info('Document detected for capture', {
           screen: "vision_camera_scanner",
-          confidence: confidence.value,
-          corners_count: detectedCorners.value.length,
+          confidence: confidenceState,
+          corners_count: cornersState.length,
         });
 
         // Capture photo using camera
@@ -265,7 +242,7 @@ const VisionCameraScanner = ({ onClose, onImageScanned }: VisionCameraScannerPro
               onImageScanned?.();
               trackEvent("document_captured_with_detection", {
                 screen: "vision_camera_scanner",
-                confidence: confidence.value,
+                confidence: confidenceState,
               });
               // Process image immediately
               await processImage(base64Image);
@@ -287,8 +264,8 @@ const VisionCameraScanner = ({ onClose, onImageScanned }: VisionCameraScannerPro
         // No document detected or low confidence - use gallery
         logger.info('No document detected, opening gallery', {
           screen: "vision_camera_scanner",
-          has_corners: !!detectedCorners.value,
-          confidence: confidence.value,
+          has_corners: !!cornersState,
+          confidence: confidenceState,
         });
         await handleOpenGallery();
       }
@@ -515,40 +492,40 @@ const VisionCameraScanner = ({ onClose, onImageScanned }: VisionCameraScannerPro
       <View style={styles.debugPanel}>
         <Text style={styles.debugPanelText}>🔍 Detection Debug</Text>
         <Text style={styles.debugPanelText}>
-          FP Frames: {frameCount.value} {frameCount.value > 0 ? '✅' : '❌'}
+          FP Frames: {debugState.frameCount} {debugState.frameCount > 0 ? '✅' : '❌'}
         </Text>
         <Text style={styles.debugPanelText}>
-          Renders: {renderCount.value} {renderCount.value > 0 ? '✅' : '❌'}
+          Renders: {debugState.renderCount} {debugState.renderCount > 0 ? '✅' : '❌'}
         </Text>
         <Text style={styles.debugPanelText}>
-          Skia Draws: {skiaDrawCount.value} | Errors: {errorCount.value}
+          Skia Draws: {debugState.skiaDrawCount} | Errors: {debugState.errorCount}
         </Text>
         <Text style={styles.debugPanelText}>
-          Buffers Cleared: {clearBufferCount.value}
+          Buffers Cleared: {debugState.clearBufferCount}
         </Text>
         <Text style={styles.debugPanelText}>
-          Step: {processingStep.value}
+          Step: {debugState.processingStep}
         </Text>
         <Text style={styles.debugPanelText}>
-          Corners: {detectedCorners.value ? `${detectedCorners.value.length} pts` : 'null'}
+          Corners: {cornersState ? `${cornersState.length} pts` : 'null'}
         </Text>
         <Text style={styles.debugPanelText}>
-          Confidence: {(confidence.value * 100).toFixed(1)}%
+          Confidence: {(confidenceState * 100).toFixed(1)}%
         </Text>
         <Text style={styles.debugPanelText}>
           Camera: {cameraLayout.width}x{cameraLayout.height}
         </Text>
         <Text style={styles.debugPanelText}>
-          Last Render: {lastRenderTime.value > 0 ? new Date(lastRenderTime.value).toLocaleTimeString() : 'never'}
+          Last Render: {debugState.lastRenderTime > 0 ? new Date(debugState.lastRenderTime).toLocaleTimeString() : 'never'}
         </Text>
-        {lastError.value && (
+        {debugState.lastError && (
           <Text style={[styles.debugPanelText, styles.errorText]}>
-            Error: {lastError.value}
+            Error: {debugState.lastError}
           </Text>
         )}
-        {debugInfo.value && (
+        {debugState.debugInfo && (
           <Text style={styles.debugPanelText}>
-            Debug: {debugInfo.value}
+            Debug: {debugState.debugInfo}
           </Text>
         )}
       </View>
