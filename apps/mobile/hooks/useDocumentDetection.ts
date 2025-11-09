@@ -41,6 +41,15 @@ export type DocumentDetectionCallbacks = {
 };
 
 /**
+ * Detection state machine states for temporal smoothing
+ * Prevents flickering by using hysteresis (different enter/exit thresholds)
+ */
+enum DetectionState {
+  NO_DOCUMENT = 'no_document',
+  DOCUMENT_DETECTED = 'document_detected',
+}
+
+/**
  * Validates if a 4-point polygon is roughly rectangular
  * Checks aspect ratio and angle constraints to filter out weird shapes
  *
@@ -155,6 +164,15 @@ export const useDocumentDetection = (callbacks?: DocumentDetectionCallbacks) => 
   // Confidence smoothing: use exponential moving average to reduce flickering
   const smoothedConfidence = useSharedValue<number>(0);
   const CONFIDENCE_SMOOTHING = 0.3; // 30% new value, 70% old value (higher = more responsive)
+
+  // State machine for stable detection (prevents flickering with hysteresis)
+  const detectionState = useSharedValue<DetectionState>(DetectionState.NO_DOCUMENT);
+  const stableFrameCount = useSharedValue<number>(0);
+
+  // Hysteresis thresholds to prevent rapid state transitions
+  const ENTER_THRESHOLD = 0.6;  // Need 60% confidence to show overlay
+  const EXIT_THRESHOLD = 0.3;   // Must drop below 30% to hide overlay
+  const MIN_STABLE_FRAMES = 2;  // Require 2 consecutive frames (200ms at 10 FPS)
 
   // Create Skia paint objects OUTSIDE worklet (like blog post)
   // Creating inside worklet recreates on every frame and can cause issues
@@ -530,7 +548,32 @@ export const useDocumentDetection = (callbacks?: DocumentDetectionCallbacks) => 
           CONFIDENCE_SMOOTHING * detectionConfidence +
           (1 - CONFIDENCE_SMOOTHING) * smoothedConfidence.value;
 
-        // Step 13: Update shared values with detection results
+        // Step 13: Apply state machine with hysteresis to prevent flickering
+        // Uses different enter/exit thresholds to create "stickiness"
+        if (detectionState.value === DetectionState.NO_DOCUMENT) {
+          // Currently not showing detection - require high confidence to enter
+          if (smoothedConfidence.value >= ENTER_THRESHOLD) {
+            stableFrameCount.value++;
+            if (stableFrameCount.value >= MIN_STABLE_FRAMES) {
+              detectionState.value = DetectionState.DOCUMENT_DETECTED;
+            }
+          } else {
+            stableFrameCount.value = 0;
+          }
+        } else {
+          // Currently showing detection - require low confidence to exit (creates "stickiness")
+          if (smoothedConfidence.value < EXIT_THRESHOLD) {
+            stableFrameCount.value++;
+            if (stableFrameCount.value >= MIN_STABLE_FRAMES) {
+              detectionState.value = DetectionState.NO_DOCUMENT;
+              stableFrameCount.value = 0;
+            }
+          } else {
+            stableFrameCount.value = 0;
+          }
+        }
+
+        // Step 14: Update shared values with detection results
         processingStep.value = 'complete';
         detectedCorners.value = bestContour;
         confidence.value = smoothedConfidence.value; // Use smoothed confidence
@@ -548,7 +591,8 @@ export const useDocumentDetection = (callbacks?: DocumentDetectionCallbacks) => 
         renderCount.value = renderCount.value + 1;
 
         // THEN draw document border overlay on top of rendered frame
-        if (bestContour && bestContour.length === 4) {
+        // Only draw when in stable DOCUMENT_DETECTED state to prevent flickering
+        if (bestContour && bestContour.length === 4 && detectionState.value === DetectionState.DOCUMENT_DETECTED) {
           const path = Skia.Path.Make();
           const pointsToShow = [];
 
@@ -634,8 +678,9 @@ export const useDocumentDetection = (callbacks?: DocumentDetectionCallbacks) => 
         }
 
         if (onDetectionUpdateJS) {
-          // Explicitly serialize corners to plain array for runOnJS
-          const cornersToSend = detectedCorners.value
+          // Only send corners when in stable DOCUMENT_DETECTED state
+          // This prevents flickering in the UI
+          const cornersToSend = detectionState.value === DetectionState.DOCUMENT_DETECTED && detectedCorners.value
             ? detectedCorners.value.map(c => ({ x: c.x, y: c.y }))
             : null;
           onDetectionUpdateJS(cornersToSend, confidence.value);
