@@ -542,7 +542,12 @@ export const useDocumentDetection = (callbacks?: DocumentDetectionCallbacks) => 
           debugInfo.value = `${debugInfo.value}, found doc: ${bestContour.length} corners, conf=${(smoothedConfidence.value * 100).toFixed(1)}%`;
         }
 
-        // Draw document border with Skia (BEFORE frame.render, inside try block)
+        // CRITICAL: Render camera frame FIRST (per official Skia guide)
+        // https://react-native-vision-camera.com/docs/guides/skia-frame-processors
+        frame.render();
+        renderCount.value = renderCount.value + 1;
+
+        // THEN draw document border overlay on top of rendered frame
         if (bestContour && bestContour.length === 4) {
           const path = Skia.Path.Make();
           const pointsToShow = [];
@@ -595,14 +600,14 @@ export const useDocumentDetection = (callbacks?: DocumentDetectionCallbacks) => 
         confidence.value = 0;
         processingStep.value = 'error';
 
+        // Render frame even on error to prevent freeze
+        frame.render();
+        renderCount.value = renderCount.value + 1;
+
         // Debug: Increment error counter
         errorCount.value = errorCount.value + 1;
       } finally {
-        // CRITICAL: Always render frame, even on error (prevents freeze)
-        // This must happen AFTER Skia drawing (which happens in try block)
-        // so that the overlay is included in the rendered frame
-        frame.render();
-        renderCount.value = renderCount.value + 1;
+        // Track render timing for debugging
         lastRenderTime.value = Date.now();
 
         // CRITICAL: Always clear OpenCV buffers (prevents memory leaks)
