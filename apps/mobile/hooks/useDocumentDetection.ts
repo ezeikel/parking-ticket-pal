@@ -228,7 +228,7 @@ export const useDocumentDetection = (callbacks?: DocumentDetectionCallbacks) => 
   // Hysteresis thresholds to prevent rapid state transitions
   const ENTER_THRESHOLD = 0.6;  // Need 60% confidence to show overlay
   const EXIT_THRESHOLD = 0.3;   // Must drop below 30% to hide overlay (more realistic with EMA)
-  const MIN_STABLE_FRAMES = 4;  // Require 4 consecutive frames (400ms at 10 FPS)
+  const MIN_STABLE_FRAMES = 4;  // Require 4 consecutive frames (800ms at 5 FPS)
   const POST_EXIT_GRACE_FRAMES = 3;  // Prevent immediate re-entry after exit (debounce)
 
   // Create Skia paint objects OUTSIDE worklet (like blog post)
@@ -245,11 +245,13 @@ export const useDocumentDetection = (callbacks?: DocumentDetectionCallbacks) => 
    * Main frame processor for document detection with Skia drawing
    *
    * FPS LIMITATION WORKAROUND:
-   * Limiting to 10 FPS to prevent memory leak crashes on Skia 2.2.10
+   * Limiting to 5 FPS to prevent memory leak crashes on Skia 2.2.10
+   * and to give Skia more time to properly composite/present overlays
    * See: https://github.com/mrousavy/react-native-vision-camera/issues/3598
    *
    * Above 12-15 FPS causes crashes due to memory leaks in older Skia versions.
-   * This leaves just enough time for memory to be flushed before crash.
+   * Slower processing rate also helps eliminate overlay flickering by giving
+   * Skia more time per frame to composite the overlay before next processing cycle.
    */
   const frameProcessor = useSkiaFrameProcessor((frame) => {
     'worklet';
@@ -264,22 +266,20 @@ export const useDocumentDetection = (callbacks?: DocumentDetectionCallbacks) => 
         console.log('[DocumentDetection] First frame received! Frame processor is running.');
       }
 
-      // FPS LIMITING: Process every Nth frame to limit to ~10 FPS
-      // At 30 FPS camera: process every 3rd frame = 10 FPS processing rate
-      const TARGET_FPS = 10;
-      const skipFrames = Math.floor(30 / TARGET_FPS); // Assuming 30 FPS camera
-
-      if (frameCount.value % skipFrames !== 0) {
-        // Skip this frame, but still render it to prevent freeze
-        frame.render();
-        frameCount.value = frameCount.value + 1;
-        return;
-      }
-
-      // PROCESS THIS FRAME (every 3rd frame = 10 FPS)
-      // Increment frame counter for debugging
+      // Increment frame counter for ALL frames
       frameCount.value = frameCount.value + 1;
-      lastError.value = null;
+
+      // FPS LIMITING: Only run heavy OpenCV processing every Nth frame
+      // At 30 FPS camera: process every 6th frame = 5 FPS processing rate
+      // But we'll still render and draw overlay on ALL frames using cached detection results
+      const TARGET_FPS = 5;
+      const skipFrames = Math.floor(30 / TARGET_FPS); // Assuming 30 FPS camera
+      const shouldProcessDetection = (frameCount.value - 1) % skipFrames === 0;
+
+      // Only run heavy detection processing on designated frames
+      if (shouldProcessDetection) {
+        // PROCESS THIS FRAME (every 6th frame = 5 FPS)
+        lastError.value = null;
 
       // Step 1: Calculate scaled dimensions (1/4 resolution for 16x speedup)
       processingStep.value = 'calculating_dimensions';
@@ -729,67 +729,71 @@ export const useDocumentDetection = (callbacks?: DocumentDetectionCallbacks) => 
         } else {
           debugInfo.value = `${debugInfo.value}, found doc: ${bestContour.length} corners, conf=${(smoothedConfidence.value * 100).toFixed(1)}%`;
         }
+      } // End of shouldProcessDetection block
 
-        // CRITICAL: Render camera frame FIRST (per official Skia guide)
-        // https://react-native-vision-camera.com/docs/guides/skia-frame-processors
-        frame.render();
-        renderCount.value = renderCount.value + 1;
+      // CRITICAL: Render camera frame on EVERY frame (not just processed frames)
+      // This ensures smooth 30 FPS camera feed display
+      // https://react-native-vision-camera.com/docs/guides/skia-frame-processors
+      frame.render();
+      renderCount.value = renderCount.value + 1;
 
-        // Snapshot state before drawing to prevent race conditions
-        // This ensures state doesn't change between the check and the actual drawing
-        const stateSnapshot = detectionState.value;
+      // Draw overlay on EVERY frame using last known detection state
+      // This eliminates flickering by maintaining consistent overlay at 30 FPS
+      // even though detection only updates at 5 FPS
+      const stateSnapshot = detectionState.value;
 
-        // THEN draw document border overlay on top of rendered frame
-        // Only draw when in stable DOCUMENT_DETECTED state to prevent flickering
-        // Use smoothed corners to eliminate visual jitter
-        if (smoothedCorners.value && smoothedCorners.value.length === 4 && stateSnapshot === DetectionState.DOCUMENT_DETECTED) {
-          const path = Skia.Path.Make();
-          const pointsToShow = [];
+      // Draw document border overlay when in stable DOCUMENT_DETECTED state
+      // Uses smoothed corners from last detection pass (cached at 5 FPS, drawn at 30 FPS)
+      if (smoothedCorners.value && smoothedCorners.value.length === 4 && stateSnapshot === DetectionState.DOCUMENT_DETECTED) {
+        const path = Skia.Path.Make();
+        const pointsToShow = [];
 
-          // Corners are in scaled (processing) resolution, scale up to full frame
-          const ratio = 1 / SCALE_FACTOR; // 0.25
+        // Corners are in scaled (processing) resolution, scale up to full frame
+        const ratio = 1 / SCALE_FACTOR; // 0.25
 
-          // Start path at last point (like blog)
-          const lastX = smoothedCorners.value[3].x / ratio;
-          const lastY = smoothedCorners.value[3].y / ratio;
-          path.moveTo(lastX, lastY);
-          pointsToShow.push(vec(lastX, lastY));
+        // Start path at last point (like blog)
+        const lastX = smoothedCorners.value[3].x / ratio;
+        const lastY = smoothedCorners.value[3].y / ratio;
+        path.moveTo(lastX, lastY);
+        pointsToShow.push(vec(lastX, lastY));
 
-          // Draw path through all 4 smoothed corners
-          for (let i = 0; i < 4; i++) {
-            const pointX = smoothedCorners.value[i].x / ratio;
-            const pointY = smoothedCorners.value[i].y / ratio;
-            path.lineTo(pointX, pointY);
-            pointsToShow.push(vec(pointX, pointY));
-          }
-
-          path.close();
-
-          // Draw filled polygon and border on frame
-          frame.drawPath(path, paint);
-          frame.drawPoints(PointMode.Polygon, pointsToShow, border);
-
-          // Debug: Increment Skia draw counter and clear skip reason
-          skiaDrawCount.value = skiaDrawCount.value + 1;
-          skiaDrawSkipReason.value = '';
-        } else {
-          // Track why drawing was skipped for debugging
-          let skipReason = '';
-          if (!smoothedCorners.value) {
-            skipReason = 'no_corners';
-          } else if (smoothedCorners.value.length !== 4) {
-            skipReason = `wrong_count:${smoothedCorners.value.length}`;
-          } else if (stateSnapshot !== DetectionState.DOCUMENT_DETECTED) {
-            skipReason = 'state_not_detected';
-          } else {
-            skipReason = 'unknown';
-          }
-          skiaDrawSkipReason.value = skipReason;
-          // Log skip reason changes to help diagnose flickering
-          console.log(`[DocumentDetection] Skia draw skipped: ${skipReason} (frame ${frameCount.value})`);
+        // Draw path through all 4 smoothed corners
+        for (let i = 0; i < 4; i++) {
+          const pointX = smoothedCorners.value[i].x / ratio;
+          const pointY = smoothedCorners.value[i].y / ratio;
+          path.lineTo(pointX, pointY);
+          pointsToShow.push(vec(pointX, pointY));
         }
 
-      } catch (error) {
+        path.close();
+
+        // Draw filled polygon and border on frame
+        frame.drawPath(path, paint);
+        frame.drawPoints(PointMode.Polygon, pointsToShow, border);
+
+        // Debug: Increment Skia draw counter and clear skip reason
+        skiaDrawCount.value = skiaDrawCount.value + 1;
+        skiaDrawSkipReason.value = '';
+      } else {
+        // Track why drawing was skipped for debugging
+        let skipReason = '';
+        if (!smoothedCorners.value) {
+          skipReason = 'no_corners';
+        } else if (smoothedCorners.value.length !== 4) {
+          skipReason = `wrong_count:${smoothedCorners.value.length}`;
+        } else if (stateSnapshot !== DetectionState.DOCUMENT_DETECTED) {
+          skipReason = 'state_not_detected';
+        } else {
+          skipReason = 'unknown';
+        }
+        skiaDrawSkipReason.value = skipReason;
+        // Only log on processed frames to avoid console spam
+        if (shouldProcessDetection) {
+          console.log(`[DocumentDetection] Skia draw skipped: ${skipReason} (frame ${frameCount.value})`);
+        }
+      }
+
+    } catch (error) {
         // Log error with context and reset detection state
         // Note: This runs on worklet thread, so we can't directly call logger
         // Instead, log to console which appears in native console (Xcode/Logcat)
