@@ -33,6 +33,13 @@ export type DebugData = {
   debugInfo: string;
   lastRenderTime: number;
   lastError: string | null;
+  // State machine debug data
+  detectionState: string;
+  stableFrameCount: number;
+  postExitGraceCounter: number;
+  lastStateTransition: string;
+  skiaDrawSkipReason: string;
+  smoothedConfidence: number;
 };
 
 export type DocumentDetectionCallbacks = {
@@ -179,6 +186,16 @@ export const useDocumentDetection = (callbacks?: DocumentDetectionCallbacks) => 
 
   // Corner smoothing factor (0-1, higher = more responsive but more jitter)
   const CORNER_SMOOTHING = 0.3;
+
+  // Corner persistence: keep corners visible even when temporarily not detected
+  const CORNER_PERSISTENCE_FRAMES = 3;  // Keep corners for 3 frames after detection loss
+  const cornerPersistenceCounter = useSharedValue<number>(0);
+
+  // Frame voting buffer to prevent single-frame failures from crashing confidence
+  const VOTE_HISTORY_SIZE = 5;      // Look at last 5 frames
+  const VOTE_THRESHOLD = 3;          // Need 3/5 frames to agree
+  const detectionVotes = useSharedValue<boolean[]>([]);
+
   const frameCount = useSharedValue<number>(0); // Debug: track frame processor execution
   const lastError = useSharedValue<string | null>(null); // Debug: track last error message
   const processingStep = useSharedValue<string>('idle'); // Debug: track current processing step
@@ -191,6 +208,14 @@ export const useDocumentDetection = (callbacks?: DocumentDetectionCallbacks) => 
   const errorCount = useSharedValue<number>(0); // How many errors occurred
   const lastRenderTime = useSharedValue<number>(0); // Timestamp of last render
 
+  // Debug values for state machine diagnostics
+  const detectionStateDebug = useSharedValue<string>('no_document');
+  const stableFrameCountDebug = useSharedValue<number>(0);
+  const postExitGraceCounterDebug = useSharedValue<number>(0);
+  const lastStateTransition = useSharedValue<string>('none');
+  const skiaDrawSkipReason = useSharedValue<string>('');
+  const smoothedConfidenceDebug = useSharedValue<number>(0);
+
   // Confidence smoothing: use exponential moving average to reduce flickering
   const smoothedConfidence = useSharedValue<number>(0);
   const CONFIDENCE_SMOOTHING = 0.3; // 30% new value, 70% old value (higher = more responsive)
@@ -198,11 +223,13 @@ export const useDocumentDetection = (callbacks?: DocumentDetectionCallbacks) => 
   // State machine for stable detection (prevents flickering with hysteresis)
   const detectionState = useSharedValue<DetectionState>(DetectionState.NO_DOCUMENT);
   const stableFrameCount = useSharedValue<number>(0);
+  const postExitGraceCounter = useSharedValue<number>(0);  // Debounce counter after exit
 
   // Hysteresis thresholds to prevent rapid state transitions
   const ENTER_THRESHOLD = 0.6;  // Need 60% confidence to show overlay
-  const EXIT_THRESHOLD = 0.1;   // Must drop below 10% to hide overlay (more sticky)
+  const EXIT_THRESHOLD = 0.3;   // Must drop below 30% to hide overlay (more realistic with EMA)
   const MIN_STABLE_FRAMES = 4;  // Require 4 consecutive frames (400ms at 10 FPS)
+  const POST_EXIT_GRACE_FRAMES = 3;  // Prevent immediate re-entry after exit (debounce)
 
   // Create Skia paint objects OUTSIDE worklet (like blog post)
   // Creating inside worklet recreates on every frame and can cause issues
@@ -572,49 +599,126 @@ export const useDocumentDetection = (callbacks?: DocumentDetectionCallbacks) => 
           }
         }
 
-        // Step 12: Apply confidence smoothing to reduce flickering
+        // Step 12: Force confidence to 0 if no valid document found
+        // This prevents stale high confidence from previous frames when document disappears
+        if (!bestContour || bestContour.length !== 4) {
+          detectionConfidence = 0;
+        }
+
+        // Step 13: Apply frame voting to stabilize detection
+        // Track whether THIS frame found a valid document
+        const rawDetectionFound = bestContour !== null && bestContour.length === 4;
+
+        // Add vote to history
+        detectionVotes.value.push(rawDetectionFound);
+        if (detectionVotes.value.length > VOTE_HISTORY_SIZE) {
+          detectionVotes.value.shift();  // Keep only last N frames
+        }
+
+        // Count votes: how many recent frames detected a document?
+        let votesForDetection = 0;
+        for (let i = 0; i < detectionVotes.value.length; i++) {
+          if (detectionVotes.value[i]) votesForDetection++;
+        }
+
+        // Consensus: require majority of frames to agree
+        const hasConsensus = votesForDetection >= VOTE_THRESHOLD;
+
+        // Only enforce voting during initial warmup to prevent false detection starts
+        // After warmup, let confidence calculation + EMA smoothing handle stability naturally
+        const isWarmingUp = detectionVotes.value.length < VOTE_HISTORY_SIZE;
+
+        if (isWarmingUp && !hasConsensus) {
+          detectionConfidence = 0;  // Block detection until warmup complete
+        }
+        // After warmup, voting is advisory-only (tracked for debugging)
+        // Natural confidence calculation + EMA smoothing provide stability
+
+        // Step 13: Apply confidence smoothing to reduce flickering
         // Use exponential moving average: smoothed = α * new + (1-α) * old
         smoothedConfidence.value =
           CONFIDENCE_SMOOTHING * detectionConfidence +
           (1 - CONFIDENCE_SMOOTHING) * smoothedConfidence.value;
 
-        // Step 13: Apply state machine with hysteresis to prevent flickering
+        // Update debug value
+        smoothedConfidenceDebug.value = smoothedConfidence.value;
+
+        // Step 14: Apply state machine with hysteresis to prevent flickering
         // Uses different enter/exit thresholds to create "stickiness"
         if (detectionState.value === DetectionState.NO_DOCUMENT) {
-          // Currently not showing detection - require high confidence to enter
-          if (smoothedConfidence.value >= ENTER_THRESHOLD) {
-            stableFrameCount.value++;
-            if (stableFrameCount.value >= MIN_STABLE_FRAMES) {
-              detectionState.value = DetectionState.DOCUMENT_DETECTED;
-            }
+          // Decrement grace counter if in grace period (prevents immediate re-entry)
+          if (postExitGraceCounter.value > 0) {
+            postExitGraceCounter.value--;
+            stableFrameCount.value = 0;  // Block entry during grace period
           } else {
-            stableFrameCount.value = 0;
+            // Grace period over, check if we should enter DOCUMENT_DETECTED state
+            if (smoothedConfidence.value >= ENTER_THRESHOLD) {
+              stableFrameCount.value++;
+              if (stableFrameCount.value >= MIN_STABLE_FRAMES) {
+                // STATE TRANSITION: NO_DOCUMENT → DOCUMENT_DETECTED
+                detectionState.value = DetectionState.DOCUMENT_DETECTED;
+                detectionStateDebug.value = 'document_detected';
+                const transitionMsg = `entered at conf=${(smoothedConfidence.value * 100).toFixed(1)}% frame=${frameCount.value}`;
+                lastStateTransition.value = transitionMsg;
+                console.log(`[DocumentDetection] STATE TRANSITION: ${transitionMsg}`);
+                stableFrameCount.value = 0;  // Reset after successful transition
+              }
+            } else {
+              // Confidence dropped below enter threshold - reset counter only if we were counting
+              if (stableFrameCount.value > 0) {
+                stableFrameCount.value = 0;
+              }
+            }
           }
         } else {
           // Currently showing detection - require low confidence to exit (creates "stickiness")
           if (smoothedConfidence.value < EXIT_THRESHOLD) {
             stableFrameCount.value++;
             if (stableFrameCount.value >= MIN_STABLE_FRAMES) {
+              // STATE TRANSITION: DOCUMENT_DETECTED → NO_DOCUMENT
               detectionState.value = DetectionState.NO_DOCUMENT;
-              stableFrameCount.value = 0;
+              detectionStateDebug.value = 'no_document';
+              const transitionMsg = `exited at conf=${(smoothedConfidence.value * 100).toFixed(1)}% frame=${frameCount.value}`;
+              lastStateTransition.value = transitionMsg;
+              console.log(`[DocumentDetection] STATE TRANSITION: ${transitionMsg}`);
+              stableFrameCount.value = 0;  // Reset after successful transition
+              postExitGraceCounter.value = POST_EXIT_GRACE_FRAMES;  // Start grace period
             }
           } else {
-            stableFrameCount.value = 0;
+            // Confidence recovered above exit threshold - reset counter only if we were counting toward exit
+            if (stableFrameCount.value > 0) {
+              stableFrameCount.value = 0;
+            }
           }
         }
 
-        // Step 14: Smooth corner positions to reduce visual jitter
+        // Update debug counters
+        stableFrameCountDebug.value = stableFrameCount.value;
+        postExitGraceCounterDebug.value = postExitGraceCounter.value;
+
+        // Step 15: Smooth corner positions to reduce visual jitter
+        // Use persistence to prevent corners from disappearing on brief detection failures
         if (bestContour && bestContour.length === 4) {
+          // Valid corners detected - update smoothed corners and reset persistence counter
           smoothedCorners.value = smoothCorners(
             bestContour,
             smoothedCorners.value,
             CORNER_SMOOTHING
           );
+          cornerPersistenceCounter.value = CORNER_PERSISTENCE_FRAMES;
         } else {
-          smoothedCorners.value = null;
+          // No corners detected this frame
+          if (cornerPersistenceCounter.value > 0) {
+            // Still in persistence period - keep showing last known corners
+            cornerPersistenceCounter.value--;
+            // Don't modify smoothedCorners.value - it retains previous value
+          } else {
+            // Persistence period expired - clear corners
+            smoothedCorners.value = null;
+          }
         }
 
-        // Step 15: Update shared values with detection results
+        // Step 16: Update shared values with detection results
         processingStep.value = 'complete';
         detectedCorners.value = bestContour;
         confidence.value = smoothedConfidence.value; // Use smoothed confidence
@@ -631,10 +735,14 @@ export const useDocumentDetection = (callbacks?: DocumentDetectionCallbacks) => 
         frame.render();
         renderCount.value = renderCount.value + 1;
 
+        // Snapshot state before drawing to prevent race conditions
+        // This ensures state doesn't change between the check and the actual drawing
+        const stateSnapshot = detectionState.value;
+
         // THEN draw document border overlay on top of rendered frame
         // Only draw when in stable DOCUMENT_DETECTED state to prevent flickering
         // Use smoothed corners to eliminate visual jitter
-        if (smoothedCorners.value && smoothedCorners.value.length === 4 && detectionState.value === DetectionState.DOCUMENT_DETECTED) {
+        if (smoothedCorners.value && smoothedCorners.value.length === 4 && stateSnapshot === DetectionState.DOCUMENT_DETECTED) {
           const path = Skia.Path.Make();
           const pointsToShow = [];
 
@@ -661,8 +769,24 @@ export const useDocumentDetection = (callbacks?: DocumentDetectionCallbacks) => 
           frame.drawPath(path, paint);
           frame.drawPoints(PointMode.Polygon, pointsToShow, border);
 
-          // Debug: Increment Skia draw counter
+          // Debug: Increment Skia draw counter and clear skip reason
           skiaDrawCount.value = skiaDrawCount.value + 1;
+          skiaDrawSkipReason.value = '';
+        } else {
+          // Track why drawing was skipped for debugging
+          let skipReason = '';
+          if (!smoothedCorners.value) {
+            skipReason = 'no_corners';
+          } else if (smoothedCorners.value.length !== 4) {
+            skipReason = `wrong_count:${smoothedCorners.value.length}`;
+          } else if (stateSnapshot !== DetectionState.DOCUMENT_DETECTED) {
+            skipReason = 'state_not_detected';
+          } else {
+            skipReason = 'unknown';
+          }
+          skiaDrawSkipReason.value = skipReason;
+          // Log skip reason changes to help diagnose flickering
+          console.log(`[DocumentDetection] Skia draw skipped: ${skipReason} (frame ${frameCount.value})`);
         }
 
       } catch (error) {
@@ -716,6 +840,13 @@ export const useDocumentDetection = (callbacks?: DocumentDetectionCallbacks) => 
             debugInfo: debugInfo.value,
             lastRenderTime: lastRenderTime.value,
             lastError: lastError.value,
+            // State machine debug data
+            detectionState: detectionStateDebug.value,
+            stableFrameCount: stableFrameCountDebug.value,
+            postExitGraceCounter: postExitGraceCounterDebug.value,
+            lastStateTransition: lastStateTransition.value,
+            skiaDrawSkipReason: skiaDrawSkipReason.value,
+            smoothedConfidence: smoothedConfidenceDebug.value,
           });
         }
 

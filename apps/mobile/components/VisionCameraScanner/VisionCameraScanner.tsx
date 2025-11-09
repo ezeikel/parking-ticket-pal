@@ -53,6 +53,13 @@ const VisionCameraScanner = ({ onClose, onImageScanned }: VisionCameraScannerPro
     debugInfo: '',
     lastRenderTime: 0,
     lastError: null as string | null,
+    // State machine debug data
+    detectionState: 'no_document',
+    stableFrameCount: 0,
+    postExitGraceCounter: 0,
+    lastStateTransition: 'none',
+    skiaDrawSkipReason: '',
+    smoothedConfidence: 0,
   });
 
   // Document detection integration with runOnJS callbacks
@@ -512,6 +519,28 @@ const VisionCameraScanner = ({ onClose, onImageScanned }: VisionCameraScannerPro
         <Text style={styles.debugPanelText}>
           Confidence: {(confidenceState * 100).toFixed(1)}%
         </Text>
+        <Text style={[styles.debugPanelText, { fontWeight: 'bold', color: debugState.detectionState === 'document_detected' ? '#00FF00' : '#FFA500' }]}>
+          State: {debugState.detectionState.toUpperCase()}
+        </Text>
+        <Text style={styles.debugPanelText}>
+          Smoothed Conf: {(debugState.smoothedConfidence * 100).toFixed(1)}% (Enter{'>='}60%, Exit{'<'}30%)
+        </Text>
+        <Text style={styles.debugPanelText}>
+          Stable Frames: {debugState.stableFrameCount}/4
+        </Text>
+        {debugState.postExitGraceCounter > 0 && (
+          <Text style={[styles.debugPanelText, { color: '#FFA500' }]}>
+            Grace Period: {debugState.postExitGraceCounter} frames
+          </Text>
+        )}
+        <Text style={styles.debugPanelText}>
+          Last Transition: {debugState.lastStateTransition}
+        </Text>
+        {debugState.skiaDrawSkipReason && (
+          <Text style={[styles.debugPanelText, { color: '#FF6600' }]}>
+            Skia Skip: {debugState.skiaDrawSkipReason}
+          </Text>
+        )}
         <Text style={styles.debugPanelText}>
           Camera: {cameraLayout.width}x{cameraLayout.height}
         </Text>
