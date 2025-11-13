@@ -97,12 +97,12 @@ const validateRectangularShape = (points: any[]): boolean => {
   }
 
   // Check that opposite sides are roughly equal (rectangle property)
-  // Allow 35% variation for crumpled/creased documents like parking tickets
-  // Creases and folds can cause perspective distortion that makes sides appear unequal
+  // Allow 45% variation for heavily creased/crumpled documents
+  // Real-world parking tickets often have significant creases and folds
   const side1Diff = Math.abs(distances[0] - distances[2]) / Math.max(distances[0], distances[2]);
   const side2Diff = Math.abs(distances[1] - distances[3]) / Math.max(distances[1], distances[3]);
 
-  if (side1Diff > 0.35 || side2Diff > 0.35) {
+  if (side1Diff > 0.45 || side2Diff > 0.45) {
     return false;
   }
 
@@ -266,7 +266,7 @@ export const useDocumentDetection = (callbacks?: DocumentDetectionCallbacks) => 
 
   // Confidence smoothing: use exponential moving average to reduce flickering
   const smoothedConfidence = useSharedValue<number>(0);
-  const CONFIDENCE_SMOOTHING = 0.3; // 30% new value, 70% old value (higher = more responsive)
+  const CONFIDENCE_SMOOTHING = 0.5; // 50% new value, 50% old value (balanced responsiveness)
 
   // State machine for stable detection (prevents flickering with hysteresis)
   const detectionState = useSharedValue<DetectionState>(DetectionState.NO_DOCUMENT);
@@ -276,8 +276,8 @@ export const useDocumentDetection = (callbacks?: DocumentDetectionCallbacks) => 
   // Hysteresis thresholds to prevent rapid state transitions
   const ENTER_THRESHOLD = 0.6;  // Need 60% confidence to show overlay
   const EXIT_THRESHOLD = 0.3;   // Must drop below 30% to hide overlay (more realistic with EMA)
-  const MIN_STABLE_FRAMES = 4;  // Require 4 consecutive frames (400ms at 10 FPS)
-  const POST_EXIT_GRACE_FRAMES = 3;  // Prevent immediate re-entry after exit (debounce)
+  const MIN_STABLE_FRAMES = 2;  // Require 2 consecutive frames (faster response - ~130ms at 15 FPS)
+  const POST_EXIT_GRACE_FRAMES = 1;  // Minimal debounce for quick re-detection
 
   // Create Skia paint objects OUTSIDE worklet (like blog post)
   // Creating inside worklet recreates on every frame and can cause issues
@@ -321,15 +321,15 @@ export const useDocumentDetection = (callbacks?: DocumentDetectionCallbacks) => 
       frameCount.value = frameCount.value + 1;
 
       // FPS LIMITING: Only run heavy OpenCV processing every Nth frame
-      // At 30 FPS camera: process every 3rd frame = 10 FPS processing rate
+      // At 30 FPS camera: process every 2nd frame = 15 FPS processing rate
       // But we'll still render and draw overlay on ALL frames using cached detection results
-      const TARGET_FPS = 10;
+      const TARGET_FPS = 15;
       const skipFrames = Math.floor(30 / TARGET_FPS); // Assuming 30 FPS camera
       const shouldProcessDetection = (frameCount.value - 1) % skipFrames === 0;
 
       // Only run heavy detection processing on designated frames
       if (shouldProcessDetection) {
-        // PROCESS THIS FRAME (every 3rd frame = 10 FPS)
+        // PROCESS THIS FRAME (every 2nd frame = 15 FPS)
         lastError.value = null;
 
       // Step 1: Calculate scaled dimensions (1/4 resolution for 16x speedup)
@@ -454,10 +454,10 @@ export const useDocumentDetection = (callbacks?: DocumentDetectionCallbacks) => 
         let detectionConfidence = 0;
 
         // Minimum and maximum area thresholds (scaled to processing resolution)
-        // At 1/4 scale: 150 pixels minimum
-        // Lowered from 200 to better support smaller documents like parking tickets
-        // Parking tickets at arm's length might only be 50x130 pixels = 6,500 pixels total
-        const MIN_AREA = 150;
+        // At 1/4 scale: 100 pixels minimum
+        // Lowered to better support smaller or distant documents
+        // Parking tickets at distance might be even smaller than expected
+        const MIN_AREA = 100;
 
         // Calculate frame area for filtering and confidence scoring
         const frameArea = scaledWidth * scaledHeight;
@@ -626,10 +626,10 @@ export const useDocumentDetection = (callbacks?: DocumentDetectionCallbacks) => 
                 detectionConfidence = 1.0; // Perfect size - well-framed document
               } else if (areaRatio > 0.45 && areaRatio <= 0.5) {
                 detectionConfidence = 0.8; // Large but acceptable
-              } else if (areaRatio >= 0.08 && areaRatio < 0.15) {
-                detectionConfidence = 0.6; // Small but acceptable - document far from camera
+              } else if (areaRatio >= 0.05 && areaRatio < 0.15) {
+                detectionConfidence = 0.7; // Small but acceptable - document far from camera
               } else {
-                detectionConfidence = 0.5; // Edge cases
+                detectionConfidence = 0.6; // Edge cases - still give decent confidence
               }
             }
           }

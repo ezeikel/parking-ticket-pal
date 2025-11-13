@@ -614,6 +614,8 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 80,
     left: 10,
+    right: 10,
+    maxWidth: 400,
     backgroundColor: 'rgba(0, 0, 0, 0.7)',
     padding: 12,
     borderRadius: 8,
