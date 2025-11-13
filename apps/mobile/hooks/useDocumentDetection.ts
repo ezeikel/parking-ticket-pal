@@ -10,7 +10,8 @@ import {
   MorphTypes,
   RetrievalModes,
   ContourApproximationModes,
-  DataTypes
+  DataTypes,
+  BorderTypes
 } from 'react-native-fast-opencv';
 
 export type DocumentCorner = {
@@ -81,23 +82,27 @@ const validateRectangularShape = (points: any[]): boolean => {
   const sortedDistances = [...distances].sort((a, b) => a - b);
 
   // Check aspect ratio: reject elongated rectangles
-  // Documents are typically A4 (1.414:1) or letter (1.29:1)
-  // Allow range from square (1:1) to wide (2:1) to cover common document formats
+  // Documents range from:
+  // - Standard letters: A4 (1.414:1) or Letter (1.29:1)
+  // - Parking tickets: typically 3:1 to 4:1 (narrow and tall)
+  // Allow wide range to support both document types
   const shortSide = (sortedDistances[0] + sortedDistances[1]) / 2;
   const longSide = (sortedDistances[2] + sortedDistances[3]) / 2;
   const aspectRatio = longSide / shortSide;
 
-  // Reject if aspect ratio is too extreme (relaxed: 0.4-2.5 for better detection)
-  if (aspectRatio > 2.5 || aspectRatio < 0.4) {
+  // Reject if aspect ratio is too extreme (0.5-4.0 covers all real documents)
+  // 5:1 ratio is a thin strip, not a document - this filters out false positives
+  if (aspectRatio > 4.0 || aspectRatio < 0.5) {
     return false;
   }
 
   // Check that opposite sides are roughly equal (rectangle property)
-  // Allow 25% variation (relaxed from 20%) due to perspective distortion
+  // Allow 35% variation for crumpled/creased documents like parking tickets
+  // Creases and folds can cause perspective distortion that makes sides appear unequal
   const side1Diff = Math.abs(distances[0] - distances[2]) / Math.max(distances[0], distances[2]);
   const side2Diff = Math.abs(distances[1] - distances[3]) / Math.max(distances[1], distances[3]);
 
-  if (side1Diff > 0.25 || side2Diff > 0.25) {
+  if (side1Diff > 0.35 || side2Diff > 0.35) {
     return false;
   }
 
@@ -122,8 +127,9 @@ const validateRectangularShape = (points: any[]): boolean => {
     const angle = Math.acos(dot / (mag1 * mag2)) * (180 / Math.PI);
 
     // Reject if angle is too far from 90°
-    // Relaxed: 50°-130° (allows more perspective distortion)
-    if (angle < 50 || angle > 130) {
+    // Very relaxed for crumpled parking tickets: 45°-135° (allows significant distortion)
+    // Upturned corners, creases, and folds can cause corners to deviate from perfect 90°
+    if (angle < 45 || angle > 135) {
       return false;
     }
   }
@@ -376,17 +382,17 @@ export const useDocumentDetection = (callbacks?: DocumentDetectionCallbacks) => 
         processingStep.value = 'converting_to_grayscale';
         OpenCV.invoke('cvtColor', source, source, ColorConversionCodes.COLOR_BGR2GRAY);
 
-        // Step 5: Create kernels for morphological operations and blurring
-        processingStep.value = 'creating_kernels';
-        const morphKernel = OpenCV.createObject(ObjectType.Size, 5, 5);
-        const blurKernel = OpenCV.createObject(ObjectType.Size, 7, 7); // Larger kernel for better noise reduction
+        // Step 5: Apply Gaussian blur to reduce noise
+        processingStep.value = 'applying_blur';
+        const blurKernel = OpenCV.createObject(ObjectType.Size, 5, 5);
+        OpenCV.invoke('GaussianBlur', source, source, blurKernel, 0);
 
-        // Step 6: Create structuring element for morphological closing
-        // Helps reduce noise and fill small gaps in edges
+        // Step 6: Create structuring element for morphological operations
         processingStep.value = 'creating_structuring_element';
+        const morphKernel = OpenCV.createObject(ObjectType.Size, 3, 3);
         const structElement = OpenCV.invoke(
           'getStructuringElement',
-          MorphShapes.MORPH_ELLIPSE,
+          MorphShapes.MORPH_RECT,
           morphKernel
         );
 
@@ -394,26 +400,36 @@ export const useDocumentDetection = (callbacks?: DocumentDetectionCallbacks) => 
           throw new Error('Failed to create structuring element');
         }
 
-        // Step 7: Apply morphological opening to remove small noise/artifacts
-        // Opening = erosion followed by dilation - removes small bright spots
-        processingStep.value = 'applying_morph_open';
-        OpenCV.invoke('morphologyEx', source, source, MorphTypes.MORPH_OPEN, structElement);
-
-        // Step 8: Apply morphological closing to fill small gaps
-        // Closing = dilation followed by erosion - fills small dark gaps
+        // Step 7: Apply morphological closing to fill small gaps and connect edges
+        // This helps detect documents with weak/broken edges (like parking tickets)
         processingStep.value = 'applying_morph_close';
         OpenCV.invoke('morphologyEx', source, source, MorphTypes.MORPH_CLOSE, structElement);
 
-        // Step 9: Apply Gaussian blur to reduce noise before edge detection
-        processingStep.value = 'applying_blur';
-        OpenCV.invoke('GaussianBlur', source, source, blurKernel, 0);
-
-        // Step 10: Apply Canny edge detection
-        // Thresholds: 50 (lower) and 120 (upper) - balanced for various lighting
-        // Higher than our original 30/90 to reduce false edges
-        // Still lower than typical 75/150 for low-light tolerance
+        // Step 8: Apply Canny edge detection with LOWER thresholds
+        // Lower thresholds (30/90 vs 50/120) make it more sensitive to weak edges
+        // This is crucial for detecting low-contrast documents like parking tickets
         processingStep.value = 'applying_canny';
-        OpenCV.invoke('Canny', source, source, 50, 120);
+        OpenCV.invoke('Canny', source, source, 30, 90);
+
+        // Step 9: Apply dilation to strengthen detected edges
+        // This makes weak edges more prominent and helps connect nearby edge segments
+        processingStep.value = 'dilating_edges';
+        const dilateKernel = OpenCV.createObject(ObjectType.Size, 3, 3);
+        const dilateElement = OpenCV.invoke(
+          'getStructuringElement',
+          MorphShapes.MORPH_RECT,
+          dilateKernel
+        );
+        const anchor = OpenCV.createObject(ObjectType.Point, -1, -1);
+        const borderValue = OpenCV.createObject(ObjectType.Scalar, 0, 0, 0, 0);
+        OpenCV.invoke('dilate', source, source, dilateElement, anchor, 2, BorderTypes.BORDER_DEFAULT, borderValue);
+
+        // Step 10: Apply light Gaussian blur to smooth noisy edges
+        // This helps with parking tickets that have decorative text borders
+        // The blur reduces jagged edges while preserving corner structure
+        processingStep.value = 'smoothing_edges';
+        const smoothKernel = OpenCV.createObject(ObjectType.Size, 3, 3);
+        OpenCV.invoke('GaussianBlur', source, source, smoothKernel, 0);
 
         // Step 11: Find contours in the edge-detected image
         processingStep.value = 'finding_contours';
@@ -438,9 +454,10 @@ export const useDocumentDetection = (callbacks?: DocumentDetectionCallbacks) => 
         let detectionConfidence = 0;
 
         // Minimum and maximum area thresholds (scaled to processing resolution)
-        // At 1/4 scale: 800 pixels minimum (relaxed from 1500 for better detection)
-        // Balances filtering noise while allowing smaller/distant documents
-        const MIN_AREA = 800;
+        // At 1/4 scale: 150 pixels minimum
+        // Lowered from 200 to better support smaller documents like parking tickets
+        // Parking tickets at arm's length might only be 50x130 pixels = 6,500 pixels total
+        const MIN_AREA = 150;
 
         // Calculate frame area for filtering and confidence scoring
         const frameArea = scaledWidth * scaledHeight;
@@ -449,9 +466,9 @@ export const useDocumentDetection = (callbacks?: DocumentDetectionCallbacks) => 
         // Allows larger documents while still filtering table/floor edges
         const MAX_AREA = frameArea * 0.6;
 
-        // Minimum area: require at least 5% of frame (relaxed from 8%)
-        // Allows detection of smaller or more distant documents
-        const MIN_AREA_RATIO = 0.05;
+        // Minimum area: require at least 3% of frame (relaxed from 5%)
+        // Allows detection of thin parking tickets which have less area than letters
+        const MIN_AREA_RATIO = 0.03;
 
         // Debug: Log contour count
         const contourCount = contoursData.array.length;
@@ -478,74 +495,55 @@ export const useDocumentDetection = (callbacks?: DocumentDetectionCallbacks) => 
           if (area > MIN_AREA) {
             // Debug: Log large contours found
             debugInfo.value = `${debugInfo.value}, [${i}]area=${area.toFixed(0)}`;
-            
-            // Get perimeter for polygon approximation
+
+            // SIMPLIFIED DOCUMENT DETECTION - NO CONVEX HULL
+            // Standard approach: contour → approxPolyDP → 4 corners
+            // ConvexHull is unnecessary - documents are already convex rectangles
+
+            // Get perimeter directly from contour for epsilon calculation
             const { value: perimeter } = OpenCV.invoke('arcLength', contour, true);
 
-            // Approximate contour to polygon using approxPolyDP (official example approach)
-            // This properly approximates contours to polygons and returns actual corner points
+            // Apply adaptive epsilon to find 4-point polygon
             processingStep.value = 'approximating_contour';
             let approxData: any = null;
-            
+
             try {
-              // Create PointVector for approxPolyDP output (not MatVector!)
-              // According to official example: approxPolyDP(contour, approx, epsilon, closed)
-              const approx = OpenCV.createObject(ObjectType.PointVector);
-              
-              // Epsilon = 10% of perimeter (controls approximation accuracy)
-              // Article uses 10% - VERY aggressive simplification
-              // This is the KEY difference - eliminates irregular shapes dramatically
-              // Smaller epsilon = more accurate but more points
-              // Larger epsilon = less accurate but fewer points (perfect for documents)
-              const epsilon = 0.1 * perimeter;
-              
-              // Call approxPolyDP: approximates contour to polygon
-              OpenCV.invoke('approxPolyDP', contour, approx, epsilon, true);
-              
-              // Convert PointVector to JS value (this works correctly with PointVector)
-              const approxResult = OpenCV.toJSValue(approx);
-              
-              // Check if we got valid approximation data
-              if (approxResult && (approxResult as any).array) {
-                const points = (approxResult as any).array as any[];
+              // Simplified epsilon values - start small for accuracy
+              // Lower values (0.02-0.05) work for both clean letters and noisy parking tickets
+              const epsilonMultipliers = [0.02, 0.025, 0.03, 0.035, 0.04, 0.05];
+              let foundFourPoints = false;
+
+              for (const multiplier of epsilonMultipliers) {
+                const epsilon = multiplier * perimeter;
+
+                // Create PointVector for approxPolyDP output
+                const approxPointVector = OpenCV.createObject(ObjectType.PointVector);
+
+                // Apply approxPolyDP DIRECTLY to contour (no hull needed!)
+                OpenCV.invoke('approxPolyDP', contour, approxPointVector, epsilon, true);
+
+                // Extract result using toJSValue (works with PointVector!)
+                const approxResult = OpenCV.toJSValue(approxPointVector);
+                const points = (approxResult as any)?.array || [];
                 const pointCount = points.length;
-                debugInfo.value = `${debugInfo.value}, approx=${pointCount}pts`;
-                
-                // Check if polygon has exactly 4 corners (quadrilateral - likely a document)
+
+                // Check if polygon has exactly 4 corners (quadrilateral - document)
                 if (pointCount === 4) {
-                  approxData = approxResult;
-                  debugInfo.value = `${debugInfo.value}, ✓4pts`;
-                } else if (pointCount > 4) {
-                  // If we have more than 4 points, extract the 4 extreme points
-                  // This handles cases where the approximation gives us more corners
-                  let topLeft: any = points[0];
-                  let topRight: any = points[0];
-                  let bottomRight: any = points[0];
-                  let bottomLeft: any = points[0];
-
-                  for (let j = 0; j < points.length; j++) {
-                    const p: any = points[j];
-                    const sum = p.x + p.y;
-                    const diff = p.x - p.y;
-
-                    // Find extreme points (corners of bounding box)
-                    if (sum < (topLeft.x + topLeft.y)) topLeft = p;
-                    if (diff > (topRight.x - topRight.y)) topRight = p;
-                    if (sum > (bottomRight.x + bottomRight.y)) bottomRight = p;
-                    if (diff < (bottomLeft.x - bottomLeft.y)) bottomLeft = p;
-                  }
-
-                  approxData = {
-                    array: [topLeft, topRight, bottomRight, bottomLeft]
-                  };
-                  debugInfo.value = `${debugInfo.value}, ✓extracted4`;
-                } else {
-                  // Less than 4 points - not a valid quadrilateral
-                  debugInfo.value = `${debugInfo.value}, tooFewPoints`;
-                  continue;
+                  approxData = { array: points };
+                  foundFourPoints = true;
+                  debugInfo.value = `${debugInfo.value}, approx=${pointCount}pts ✓`;
+                  break;
+                } else if (pointCount < 4) {
+                  // Epsilon too large, simplified too much
+                  debugInfo.value = `${debugInfo.value}, approx=${pointCount}pts, tooFew`;
+                  break;
                 }
-              } else {
-                debugInfo.value = `${debugInfo.value}, approxInvalid`;
+                // If pointCount > 4, continue to next epsilon (need more simplification)
+              }
+
+              // Process the 4-point contour if we found one
+              if (!foundFourPoints || !approxData) {
+                debugInfo.value = `${debugInfo.value}, noQuad`;
                 continue;
               }
             } catch (approxError) {
@@ -586,16 +584,9 @@ export const useDocumentDetection = (callbacks?: DocumentDetectionCallbacks) => 
               }
             }
 
-            // Check if we have valid approximation with 4 corners
-            if (!approxData || !approxData.array || approxData.array.length !== 4) {
-              // Debug: Log why contour was skipped
-              const pointCount = approxData?.array?.length || 0;
-              debugInfo.value = `${debugInfo.value}, skipped: ${pointCount} points (need 4)`;
-              continue; // Skip this contour
-            }
-
-            // Check if polygon has exactly 4 corners (quadrilateral)
-            if (approxData.array.length === 4 && area > maxArea) {
+            // At this point, we have valid 4-point approximation
+            // Check if this is the largest valid contour so far
+            if (area > maxArea) {
               // Calculate area ratio for validation
               const areaRatio = area / frameArea;
 

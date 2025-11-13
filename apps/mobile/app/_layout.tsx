@@ -1,14 +1,16 @@
 import { useEffect } from 'react';
 import { Slot, useNavigationContainerRef } from 'expo-router';
+import { Stack, useGlobalSearchParams, usePathname } from 'expo-router';
 import Constants, { ExecutionEnvironment } from "expo-constants";
 import * as Sentry from '@sentry/react-native';
 import { ErrorBoundary } from '@sentry/react-native';
 import { View, Text, Button } from 'react-native';
+import { usePostHog } from 'posthog-react-native';
 import Providers from "@/providers";
 import { PostHogNavigationTracker } from "@/components/PostHogNavigationTracker";
 import { purchaseService } from '@/services/PurchaseService';
 import { registerForPushNotifications, setupNotificationListeners } from '@/lib/notifications';
-import "../global.css";
+import "@/global.css";
 
 const navigationIntegration = Sentry.reactNavigationIntegration({
   enableTimeToInitialDisplay: Constants.executionEnvironment === ExecutionEnvironment.StoreClient,
@@ -32,6 +34,16 @@ Sentry.init({
 
 const RootLayout = () => {
   const ref = useNavigationContainerRef();
+  const pathname = usePathname();
+  const params = useGlobalSearchParams();
+  const posthog = usePostHog();
+
+  useEffect(() => {
+    if (posthog) {
+      // Track screen views for analytics
+      posthog.screen(pathname, params);
+    }
+  }, [pathname, params, posthog]);
 
   useEffect(() => {
     if (ref) {

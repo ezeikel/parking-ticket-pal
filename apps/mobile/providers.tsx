@@ -19,13 +19,8 @@ const Providers = ({ children }: { children: React.ReactNode }) => {
             apiKey={process.env.EXPO_PUBLIC_POSTHOG_API_KEY}
             options={{
               host: 'https://eu.i.posthog.com',
-              captureNativeAppLifecycleEvents: true,
             }}
-            autocapture={{
-              captureTouches: true,
-              captureLifecycleEvents: true,
-              captureScreens: true,
-            }}
+            autocapture
           >
             <QueryClientProvider client={queryClient}>
               <PurchasesContextProvider>

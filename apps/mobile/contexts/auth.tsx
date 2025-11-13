@@ -91,8 +91,6 @@ export const AuthContextProvider = ({ children }: AuthContextProviderProps) => {
                   email: user.email,
                   username: user.name,
                 });
-                Sentry.setTag('subscription_type', user.subscription?.type || 'free');
-                Sentry.setTag('subscription_source', user.subscription?.source || 'none');
                 console.log('[Auth] User identified with Sentry:', user.id);
               } catch (error) {
                 console.error('[Auth] Error identifying user with Sentry:', error);
@@ -144,9 +142,6 @@ export const AuthContextProvider = ({ children }: AuthContextProviderProps) => {
           posthog.identify(user.id, {
             email: user.email,
             name: user.name,
-            created_at: user.createdAt,
-            subscription_type: user.subscription?.type,
-            subscription_source: user.subscription?.source,
           });
           console.log('[Auth] User identified with PostHog:', user.id);
         } catch (error) {
@@ -162,8 +157,6 @@ export const AuthContextProvider = ({ children }: AuthContextProviderProps) => {
             email: user.email,
             username: user.name,
           });
-          Sentry.setTag('subscription_type', user.subscription?.type || 'free');
-          Sentry.setTag('subscription_source', user.subscription?.source || 'none');
           console.log('[Auth] User identified with Sentry:', user.id);
         } catch (error) {
           console.error('[Auth] Error identifying user with Sentry:', error);
@@ -234,8 +227,6 @@ export const AuthContextProvider = ({ children }: AuthContextProviderProps) => {
             email: user.email,
             username: user.name,
           });
-          Sentry.setTag('subscription_type', user.subscription?.type || 'free');
-          Sentry.setTag('subscription_source', user.subscription?.source || 'none');
           console.log('[Auth] User identified with Sentry:', user.id);
         } catch (error) {
           console.error('[Auth] Error identifying user with Sentry:', error);
