@@ -802,18 +802,19 @@ export const useDocumentDetection = (callbacks?: DocumentDetectionCallbacks) => 
         const pointsToShow = [];
 
         // Corners are in scaled (processing) resolution, scale up to full frame
-        const ratio = 1 / SCALE_FACTOR; // 0.25
+        // Detection happens at 1/4 scale, so multiply by SCALE_FACTOR to get full coordinates
+        const ratio = SCALE_FACTOR; // 4 - multiply to scale UP from 1/4 to full
 
         // Start path at last point (like blog)
-        const lastX = smoothedCorners.value[3].x / ratio;
-        const lastY = smoothedCorners.value[3].y / ratio;
+        const lastX = smoothedCorners.value[3].x * ratio;
+        const lastY = smoothedCorners.value[3].y * ratio;
         path.moveTo(lastX, lastY);
         pointsToShow.push(vec(lastX, lastY));
 
         // Draw path through all 4 smoothed corners
         for (let i = 0; i < 4; i++) {
-          const pointX = smoothedCorners.value[i].x / ratio;
-          const pointY = smoothedCorners.value[i].y / ratio;
+          const pointX = smoothedCorners.value[i].x * ratio;
+          const pointY = smoothedCorners.value[i].y * ratio;
           path.lineTo(pointX, pointY);
           pointsToShow.push(vec(pointX, pointY));
         }

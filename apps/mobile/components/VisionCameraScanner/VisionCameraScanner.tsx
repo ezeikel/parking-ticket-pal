@@ -483,6 +483,7 @@ const VisionCameraScanner = ({ onClose, onImageScanned }: VisionCameraScannerPro
         torch={flashEnabled ? 'on' : 'off'}
         frameProcessor={frameProcessor}
         enableZoomGesture={false}
+        resizeMode="contain"
         onLayout={handleCameraLayout}
         onInitialized={handleCameraInitialized}
         onStarted={handleCameraStarted}
