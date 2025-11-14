@@ -195,32 +195,12 @@ const CameraSheet = ({ isVisible, onClose }: CameraSheetProps) => {
               left: 0,
               right: 0,
               height: SCREEN_HEIGHT,
-              backgroundColor: 'white',
+              backgroundColor: 'black',
               zIndex: 1002,
-              borderTopLeftRadius: 16,
-              borderTopRightRadius: 16,
             },
             sheetAnimatedStyle,
           ]}
         >
-          {/* Drag Handle */}
-          <View
-            style={{
-              alignItems: 'center',
-              paddingTop: 8,
-              paddingBottom: 4,
-            }}
-          >
-            <View
-              style={{
-                width: 36,
-                height: 4,
-                backgroundColor: '#D1D5DB',
-                borderRadius: 2,
-              }}
-            />
-          </View>
-
           <View style={{ flex: 1, backgroundColor: 'black' }}>
             {/* Show loading state while permissions are being requested */}
             {isLoadingPermissions ? (
