@@ -4,7 +4,6 @@ import {
   Image,
   Text,
   StyleSheet,
-  Dimensions,
   ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -20,10 +19,9 @@ import {
 } from 'react-native-gesture-handler';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { faRotateLeft, faCheck } from '@fortawesome/pro-regular-svg-icons';
+import Svg, { Line } from 'react-native-svg';
 import SquishyPressable from '@/components/SquishyPressable/SquishyPressable';
 import type { DocumentCorner } from '@/hooks/useDocumentDetection';
-
-const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
 type PostCapturePreviewProps = {
   imageBase64: string;
@@ -106,17 +104,18 @@ const PostCapturePreview: React.FC<PostCapturePreviewProps> = ({
   isProcessing = false,
   stabilityProgress = 0,
 }) => {
-  // Initialize corners from detected or default to full image
+  // Initialize corners from detected or default to normalized coordinates (0-1)
   const [corners, setCorners] = useState<DocumentCorner[]>(() => {
     if (detectedCorners && detectedCorners.length === 4) {
       return detectedCorners;
     }
-    // Default to image corners if no detection
+    // Default corners as normalized percentage values (0-1)
+    // These will be scaled to actual image dimensions in handleImageLayout
     return [
-      { x: SCREEN_WIDTH * 0.2, y: SCREEN_HEIGHT * 0.2 }, // Top-left
-      { x: SCREEN_WIDTH * 0.8, y: SCREEN_HEIGHT * 0.2 }, // Top-right
-      { x: SCREEN_WIDTH * 0.8, y: SCREEN_HEIGHT * 0.7 }, // Bottom-right
-      { x: SCREEN_WIDTH * 0.2, y: SCREEN_HEIGHT * 0.7 }, // Bottom-left
+      { x: 0.15, y: 0.15 }, // Top-left - 15% inset from edges
+      { x: 0.85, y: 0.15 }, // Top-right
+      { x: 0.85, y: 0.85 }, // Bottom-right
+      { x: 0.15, y: 0.85 }, // Bottom-left
     ];
   });
 
@@ -132,14 +131,19 @@ const PostCapturePreview: React.FC<PostCapturePreviewProps> = ({
     const { width, height, x, y } = event.nativeEvent.layout;
     setImageLayout({ width, height, x, y });
 
-    // Scale corners to fit image if they were detected at different resolution
-    if (detectedCorners && detectedCorners.length === 4 && width > 0 && height > 0) {
-      // Assuming corners are normalized 0-1, scale to image size
-      // Adjust this based on your actual corner coordinate system
-      const scaledCorners = detectedCorners.map(corner => ({
+    // Scale corners to actual image dimensions
+    if (width > 0 && height > 0) {
+      // Check if we have detected corners or using default normalized corners
+      const cornersToScale = (detectedCorners && detectedCorners.length === 4)
+        ? detectedCorners
+        : corners;
+
+      // Scale normalized corners (0-1) to actual pixel coordinates
+      const scaledCorners = cornersToScale.map(corner => ({
         x: corner.x * width,
         y: corner.y * height,
       }));
+
       setCorners(scaledCorners);
     }
   };
@@ -257,11 +261,6 @@ const PostCapturePreview: React.FC<PostCapturePreviewProps> = ({
   );
 };
 
-// Note: react-native-svg import for border lines
-// You'll need to install: pnpm dlx expo install react-native-svg
-const Svg = require('react-native-svg').default;
-const Line = require('react-native-svg').Line;
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -362,6 +361,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     backgroundColor: 'rgba(255, 255, 255, 0.2)',
     paddingVertical: 16,
+    paddingHorizontal: 12,
     borderRadius: 12,
     gap: 8,
   },
@@ -372,6 +372,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     backgroundColor: '#00FF00',
     paddingVertical: 16,
+    paddingHorizontal: 12,
     borderRadius: 12,
     gap: 8,
   },
