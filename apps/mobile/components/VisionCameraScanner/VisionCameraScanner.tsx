@@ -13,7 +13,9 @@ import Loader from '../Loader/Loader';
 import { adService } from '@/services/AdService';
 import { CameraControls } from './CameraControls';
 import { useDocumentDetection } from '@/hooks/useDocumentDetection';
+import { useDocumentScanHaptics } from '@/hooks/useDocumentScanHaptics';
 import DocumentOverlay from './DocumentOverlay';
+import ShutterAnimation from './ShutterAnimation';
 import { UPLOADING_TICKET_TEXT, CREATING_CHALLENGE_LETTER_TEXT } from '@/constants/loadingMessages';
 
 type VisionCameraScannerProps = {
@@ -30,6 +32,9 @@ const VisionCameraScanner = ({ onClose, onImageScanned }: VisionCameraScannerPro
   const [isProcessingSubmission, setIsProcessingSubmission] = useState(false);
   const [loadingMessage, setLoadingMessage] = useState<string>('');
   const [cameraLayout, setCameraLayout] = useState<{ width: number; height: number }>({ width: 0, height: 0 });
+  const [showShutter, setShowShutter] = useState(false);
+  const [autoCaptureEnabled, setAutoCaptureEnabled] = useState(true);
+  const [stabilityProgress, setStabilityProgress] = useState(0);
 
   const device = useCameraDevice('back');
   const { hasPermission, requestPermission } = useCameraPermission();
@@ -39,6 +44,7 @@ const VisionCameraScanner = ({ onClose, onImageScanned }: VisionCameraScannerPro
   const createTicketMutation = useCreateTicket();
   const { trackEvent, trackError } = useAnalytics();
   const logger = useLogger();
+  const haptics = useDocumentScanHaptics();
 
   // React state for document detection and debug info
   const [cornersState, setCornersState] = useState<any>(null);
@@ -62,16 +68,56 @@ const VisionCameraScanner = ({ onClose, onImageScanned }: VisionCameraScannerPro
     smoothedConfidence: 0,
   });
 
+  // Previous detection state for haptic feedback
+  const prevDetectionRef = useRef<{ detected: boolean; ready: boolean }>({ detected: false, ready: false });
+
   // Document detection integration with runOnJS callbacks
-  const { frameProcessor } = useDocumentDetection({
+  const { frameProcessor, setAutoCaptureEnabled: setAutoCaptureInHook, resetAutoCapture } = useDocumentDetection({
     onFrameProcessed: (data) => {
       setDebugState(data);
     },
     onDetectionUpdate: (corners, conf) => {
       setCornersState(corners);
       setConfidenceState(conf);
+
+      // Haptic feedback for detection state changes
+      const detected = corners !== null && conf > 0;
+      const ready = conf >= 0.75;
+
+      // Document first detected
+      if (detected && !prevDetectionRef.current.detected) {
+        haptics.documentDetected();
+      }
+
+      // Document ready for capture
+      if (ready && !prevDetectionRef.current.ready) {
+        haptics.readyToCapture();
+      }
+
+      prevDetectionRef.current = { detected, ready };
+    },
+    onAutoCapture: () => {
+      // Trigger auto-capture
+      handleCapture();
+    },
+    onStabilityUpdate: (progress) => {
+      setStabilityProgress(progress);
+
+      // Haptic tick at 33%, 66%, and 100%
+      if (progress >= 0.33 && progress < 0.34) {
+        haptics.countdownTick();
+      } else if (progress >= 0.66 && progress < 0.67) {
+        haptics.countdownTick();
+      } else if (progress >= 0.99) {
+        haptics.countdownTick();
+      }
     },
   });
+
+  // Sync auto-capture state with hook
+  useEffect(() => {
+    setAutoCaptureInHook(autoCaptureEnabled);
+  }, [autoCaptureEnabled, setAutoCaptureInHook]);
 
   // Rotating loading messages for OCR processing
   useEffect(() => {
@@ -210,10 +256,17 @@ const VisionCameraScanner = ({ onClose, onImageScanned }: VisionCameraScannerPro
 
   const handleCapture = async () => {
     try {
+      // Show shutter animation
+      setShowShutter(true);
+
+      // Haptic feedback for capture
+      haptics.captureSuccess();
+
       trackEvent("vision_camera_capture_initiated", {
         screen: "vision_camera_scanner",
         has_document_detected: !!cornersState,
         confidence: confidenceState,
+        auto_capture: stabilityProgress >= 1.0,
       });
 
       // If document is detected with good confidence, capture photo
@@ -494,10 +547,19 @@ const VisionCameraScanner = ({ onClose, onImageScanned }: VisionCameraScannerPro
       <DocumentOverlay
         corners={cornersState}
         confidence={confidenceState}
+        stabilityProgress={stabilityProgress}
+        autoCaptureEnabled={autoCaptureEnabled}
       />
 
-      {/* Temporary debug panel - remove after testing */}
-      <View style={styles.debugPanel}>
+      {/* Shutter animation */}
+      <ShutterAnimation
+        visible={showShutter}
+        onAnimationComplete={() => setShowShutter(false)}
+      />
+
+      {/* Debug panel - only shown in development */}
+      {__DEV__ && (
+        <View style={styles.debugPanel}>
         <Text style={styles.debugPanelText}>🔍 Detection Debug</Text>
         <Text style={styles.debugPanelText}>
           FP Frames: {debugState.frameCount} {debugState.frameCount > 0 ? '✅' : '❌'}
@@ -559,6 +621,7 @@ const VisionCameraScanner = ({ onClose, onImageScanned }: VisionCameraScannerPro
           </Text>
         )}
       </View>
+      )}
 
       {/* Camera controls overlay */}
       <CameraControls

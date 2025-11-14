@@ -46,6 +46,8 @@ export type DebugData = {
 export type DocumentDetectionCallbacks = {
   onFrameProcessed?: (data: DebugData) => void;
   onDetectionUpdate?: (corners: DocumentCorner[] | null, confidence: number) => void;
+  onAutoCapture?: () => void;
+  onStabilityUpdate?: (stabilityProgress: number) => void;
 };
 
 /**
@@ -226,6 +228,12 @@ export const useDocumentDetection = (callbacks?: DocumentDetectionCallbacks) => 
   const onDetectionUpdateJS = callbacks?.onDetectionUpdate
     ? Worklets.createRunOnJS(callbacks.onDetectionUpdate)
     : null;
+  const onAutoCaptureJS = callbacks?.onAutoCapture
+    ? Worklets.createRunOnJS(callbacks.onAutoCapture)
+    : null;
+  const onStabilityUpdateJS = callbacks?.onStabilityUpdate
+    ? Worklets.createRunOnJS(callbacks.onStabilityUpdate)
+    : null;
 
   // Shared values for cross-worklet communication (no bridge crossing)
   const detectedCorners = useSharedValue<DocumentCorner[] | null>(null);
@@ -278,6 +286,17 @@ export const useDocumentDetection = (callbacks?: DocumentDetectionCallbacks) => 
   const EXIT_THRESHOLD = 0.3;   // Must drop below 30% to hide overlay (more realistic with EMA)
   const MIN_STABLE_FRAMES = 2;  // Require 2 consecutive frames (faster response - ~130ms at 15 FPS)
   const POST_EXIT_GRACE_FRAMES = 1;  // Minimal debounce for quick re-detection
+
+  // Auto-capture configuration
+  const AUTO_CAPTURE_CONFIDENCE_THRESHOLD = 0.75;  // Need 75% confidence for auto-capture
+  const AUTO_CAPTURE_STABILITY_FRAMES = 8;  // ~533ms at 15 FPS for stability
+  const AUTO_CAPTURE_MOVEMENT_THRESHOLD = 0.03;  // Max 3% movement allowed for stability
+
+  // Auto-capture state tracking
+  const stabilityCounter = useSharedValue<number>(0);
+  const lastStableCorners = useSharedValue<DocumentCorner[] | null>(null);
+  const autoCaptureTriggered = useSharedValue<boolean>(false);
+  const autoCaptureEnabled = useSharedValue<boolean>(true); // Can be toggled via settings
 
   // Create Skia paint objects OUTSIDE worklet (like blog post)
   // Creating inside worklet recreates on every frame and can cause issues
@@ -771,7 +790,64 @@ export const useDocumentDetection = (callbacks?: DocumentDetectionCallbacks) => 
           }
         }
 
-        // Step 16: Update shared values with detection results
+        // Step 16: Auto-capture logic - check stability for hands-free capture
+        if (
+          autoCaptureEnabled.value &&
+          !autoCaptureTriggered.value &&
+          detectionState.value === DetectionState.DOCUMENT_DETECTED &&
+          smoothedConfidence.value >= AUTO_CAPTURE_CONFIDENCE_THRESHOLD &&
+          smoothedCorners.value
+        ) {
+          // Check if corners are stable (not moving much)
+          const isStable = lastStableCorners.value
+            ? areCornersSimular(smoothedCorners.value, lastStableCorners.value, AUTO_CAPTURE_MOVEMENT_THRESHOLD)
+            : false;
+
+          if (isStable) {
+            stabilityCounter.value++;
+
+            // Update stability progress for UI feedback
+            const stabilityProgress = Math.min(stabilityCounter.value / AUTO_CAPTURE_STABILITY_FRAMES, 1.0);
+            if (onStabilityUpdateJS) {
+              onStabilityUpdateJS(stabilityProgress);
+            }
+
+            // Trigger auto-capture after sufficient stable frames
+            if (stabilityCounter.value >= AUTO_CAPTURE_STABILITY_FRAMES) {
+              autoCaptureTriggered.value = true;
+              stabilityCounter.value = 0;
+
+              // Trigger auto-capture callback
+              if (onAutoCaptureJS) {
+                onAutoCaptureJS();
+              }
+
+              // Reset after a delay to allow for another capture
+              setTimeout(() => {
+                'worklet';
+                autoCaptureTriggered.value = false;
+              }, 2000); // 2 second cooldown before allowing another auto-capture
+            }
+          } else {
+            // Corners moved too much, reset stability tracking
+            stabilityCounter.value = 0;
+            lastStableCorners.value = [...smoothedCorners.value]; // Deep copy
+
+            if (onStabilityUpdateJS) {
+              onStabilityUpdateJS(0);
+            }
+          }
+        } else {
+          // Reset stability when conditions not met
+          if (stabilityCounter.value > 0) {
+            stabilityCounter.value = 0;
+            if (onStabilityUpdateJS) {
+              onStabilityUpdateJS(0);
+            }
+          }
+        }
+
+        // Step 17: Update shared values with detection results
         processingStep.value = 'complete';
         detectedCorners.value = bestContour;
         confidence.value = smoothedConfidence.value; // Use smoothed confidence
@@ -917,7 +993,7 @@ export const useDocumentDetection = (callbacks?: DocumentDetectionCallbacks) => 
           onDetectionUpdateJS(cornersToSend, confidence.value);
         }
       }
-  }, [onFrameProcessedJS, onDetectionUpdateJS]);
+  }, [onFrameProcessedJS, onDetectionUpdateJS, onAutoCaptureJS, onStabilityUpdateJS]);
 
   return {
     frameProcessor,
@@ -933,5 +1009,15 @@ export const useDocumentDetection = (callbacks?: DocumentDetectionCallbacks) => 
     skiaDrawCount,
     errorCount,
     lastRenderTime,
+    // Auto-capture controls
+    setAutoCaptureEnabled: (enabled: boolean) => {
+      'worklet';
+      autoCaptureEnabled.value = enabled;
+    },
+    resetAutoCapture: () => {
+      'worklet';
+      autoCaptureTriggered.value = false;
+      stabilityCounter.value = 0;
+    },
   };
 };

@@ -13,6 +13,8 @@ import type { DocumentCorner } from '@/hooks/useDocumentDetection';
 type DocumentOverlayProps = {
   corners: DocumentCorner[] | null;
   confidence: number; // 0-1
+  stabilityProgress?: number; // 0-1 progress towards auto-capture
+  autoCaptureEnabled?: boolean;
 };
 
 /**
@@ -35,6 +37,8 @@ type DocumentOverlayProps = {
 const DocumentOverlay = ({
   corners,
   confidence,
+  stabilityProgress = 0,
+  autoCaptureEnabled = false,
 }: DocumentOverlayProps) => {
   const opacity = useSharedValue(0);
   const pulseScale = useSharedValue(1);
@@ -80,9 +84,16 @@ const DocumentOverlay = ({
     return '#FF4444'; // Red - poor
   };
 
-  // Get hint text based on confidence
+  // Get hint text based on confidence and auto-capture state
   const getHintText = (): string => {
-    if (confidence > 0.7) return 'Tap to capture';
+    if (autoCaptureEnabled && confidence >= 0.75 && stabilityProgress > 0) {
+      if (stabilityProgress >= 1) {
+        return 'Capturing...';
+      }
+      const percentage = Math.floor(stabilityProgress * 100);
+      return `Hold steady... ${percentage}%`;
+    }
+    if (confidence > 0.7) return autoCaptureEnabled ? 'Hold steady for auto-capture' : 'Tap to capture';
     if (confidence > 0.4) return 'Hold steady';
     return 'Align document';
   };
@@ -102,6 +113,19 @@ const DocumentOverlay = ({
             ]}
           >
             <Text style={styles.hintText}>{hintText}</Text>
+            {/* Stability progress bar for auto-capture */}
+            {autoCaptureEnabled && confidence >= 0.75 && stabilityProgress > 0 && stabilityProgress < 1 && (
+              <View style={styles.progressBarContainer}>
+                <View style={styles.progressBarBackground}>
+                  <View
+                    style={[
+                      styles.progressBarFill,
+                      { width: `${stabilityProgress * 100}%` },
+                    ]}
+                  />
+                </View>
+              </View>
+            )}
           </View>
         </View>
 
@@ -160,6 +184,21 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontSize: 14,
     fontFamily: 'Inter18pt-Regular',
+  },
+  progressBarContainer: {
+    marginTop: 8,
+    paddingHorizontal: 4,
+  },
+  progressBarBackground: {
+    height: 4,
+    backgroundColor: 'rgba(0, 0, 0, 0.3)',
+    borderRadius: 2,
+    overflow: 'hidden',
+  },
+  progressBarFill: {
+    height: '100%',
+    backgroundColor: '#FFFFFF',
+    borderRadius: 2,
   },
 });
 
