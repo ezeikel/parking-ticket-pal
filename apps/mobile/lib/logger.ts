@@ -22,7 +22,7 @@ export type LogContext = {
   appInfo?: {
     version: string
     buildNumber?: string
-    environment: 'development' | 'staging' | 'production'
+    environment: 'development' | 'preview' | 'production' | 'beta'
   }
   [key: string]: any
 }
@@ -51,6 +51,16 @@ class Logger {
     return `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
   }
 
+  private getEnvironment(): 'development' | 'preview' | 'production' | 'beta' {
+    if (__DEV__) return 'development'
+    // Check for EAS build environment
+    const environment = process.env.EXPO_PUBLIC_ENVIRONMENT
+    if (environment === 'preview' || environment === 'beta' || environment === 'production') {
+      return environment as 'preview' | 'production' | 'beta'
+    }
+    return 'production' // Default to production if not specified
+  }
+
   private getBaseContext(): LogContext {
     return {
       sessionId: this.sessionId,
@@ -60,7 +70,7 @@ class Logger {
       },
       appInfo: {
         version: Constants.expoConfig?.version || '0.1.0',
-        environment: __DEV__ ? 'development' : 'production'
+        environment: this.getEnvironment()
       },
       timestamp: new Date().toISOString()
     }
@@ -85,7 +95,9 @@ class Logger {
   }
 
   private logToConsole(entry: LogEntry) {
-    if (!__DEV__) return
+    // Log to console in development and preview environments
+    const shouldLogToConsole = __DEV__ || process.env.EXPO_PUBLIC_ENVIRONMENT === 'preview'
+    if (!shouldLogToConsole) return
 
     const prefix = `[${entry.level.toUpperCase()}] ${entry.timestamp}`
     const contextStr = entry.context ? JSON.stringify(entry.context, null, 2) : ''
@@ -149,7 +161,8 @@ class Logger {
           break
       }
     } catch (error) {
-      if (__DEV__) {
+      const shouldLogToConsole = __DEV__ || process.env.EXPO_PUBLIC_ENVIRONMENT === 'preview'
+      if (shouldLogToConsole) {
         console.error('Failed to log to Sentry:', error)
       }
     }
@@ -171,16 +184,17 @@ class Logger {
         ...entry.context
       })
     } catch (error) {
-      if (__DEV__) {
+      const shouldLogToConsole = __DEV__ || process.env.EXPO_PUBLIC_ENVIRONMENT === 'preview'
+      if (shouldLogToConsole) {
         console.error('Failed to log to PostHog:', error)
       }
     }
   }
 
   // Logging strategy:
-  // - Console: All levels in dev, none in production
-  // - Sentry: Breadcrumbs for debug/info, reports for warn/error
-  // - PostHog: All levels for analytics and behavior tracking
+  // - Console: All levels in dev and preview, none in production/beta
+  // - Sentry: Breadcrumbs for debug/info, reports for warn/error (all environments)
+  // - PostHog: All levels for analytics and behavior tracking (all environments)
 
   debug(message: string, context?: LogContext) {
     const entry = this.createLogEntry('debug', message, context)

@@ -11,13 +11,12 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
-  useAnimatedGestureHandler,
   runOnJS,
 } from 'react-native-reanimated';
 import {
-  PanGestureHandler,
+  Gesture,
+  GestureDetector,
   GestureHandlerRootView,
-  PanGestureHandlerGestureEvent,
 } from 'react-native-gesture-handler';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { faRotateLeft, faCheck } from '@fortawesome/pro-regular-svg-icons';
@@ -52,28 +51,26 @@ const CornerHandle: React.FC<{
 }> = ({ position, onPositionChange, cornerIndex, imageWidth, imageHeight }) => {
   const translateX = useSharedValue(position.x);
   const translateY = useSharedValue(position.y);
+  const startX = useSharedValue(0);
+  const startY = useSharedValue(0);
 
   const updatePosition = useCallback((x: number, y: number) => {
     onPositionChange({ x, y });
   }, [onPositionChange]);
 
-  const gestureHandler = useAnimatedGestureHandler<
-    PanGestureHandlerGestureEvent,
-    { startX: number; startY: number }
-  >({
-    onStart: (_, ctx) => {
-      ctx.startX = translateX.value;
-      ctx.startY = translateY.value;
-    },
-    onActive: (event, ctx) => {
+  const pan = Gesture.Pan()
+    .onStart(() => {
+      startX.value = translateX.value;
+      startY.value = translateY.value;
+    })
+    .onUpdate((event) => {
       // Constrain to image bounds
-      translateX.value = Math.max(0, Math.min(imageWidth, ctx.startX + event.translationX));
-      translateY.value = Math.max(0, Math.min(imageHeight, ctx.startY + event.translationY));
-    },
-    onEnd: () => {
+      translateX.value = Math.max(0, Math.min(imageWidth, startX.value + event.translationX));
+      translateY.value = Math.max(0, Math.min(imageHeight, startY.value + event.translationY));
+    })
+    .onEnd(() => {
       runOnJS(updatePosition)(translateX.value, translateY.value);
-    },
-  });
+    });
 
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [
@@ -86,14 +83,14 @@ const CornerHandle: React.FC<{
   const cornerLabels = ['Top Left', 'Top Right', 'Bottom Right', 'Bottom Left'];
 
   return (
-    <PanGestureHandler onGestureEvent={gestureHandler}>
+    <GestureDetector gesture={pan}>
       <Animated.View style={[styles.cornerHandle, animatedStyle]}>
         <View style={styles.cornerHandleInner}>
           <View style={styles.cornerHandleCenter} />
         </View>
         <Text style={styles.cornerLabel}>{cornerLabels[cornerIndex]}</Text>
       </Animated.View>
-    </PanGestureHandler>
+    </GestureDetector>
   );
 };
 

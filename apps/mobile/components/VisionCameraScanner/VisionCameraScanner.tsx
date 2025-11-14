@@ -253,7 +253,7 @@ const VisionCameraScanner = ({ onClose, onImageScanned }: VisionCameraScannerPro
       trackError(error as Error, {
         screen: "vision_camera_scanner",
         action: "open_gallery",
-        errorType: "gallery"
+        errorType: "general"
       });
     }
   };
@@ -285,19 +285,68 @@ const VisionCameraScanner = ({ onClose, onImageScanned }: VisionCameraScannerPro
         // Capture photo using camera
         if (cameraRef.current) {
           try {
+            logger.info('Starting photo capture', {
+              screen: "vision_camera_scanner",
+              flash: flashEnabled,
+              has_corners: !!cornersState,
+              confidence: confidenceState,
+            });
+
             setIsActive(false); // Temporarily stop camera for capture
             const photo = await cameraRef.current.takePhoto({
               flash: flashEnabled ? 'on' : 'off',
             });
 
+            logger.info('Photo taken successfully', {
+              screen: "vision_camera_scanner",
+              photo_path: photo.path,
+              photo_width: photo.width,
+              photo_height: photo.height,
+              photo_orientation: photo.orientation,
+              photo_isMirrored: photo.isMirrored,
+            });
+
             // Convert photo to base64 for OCR processing
-            // Note: photo.path is a file path, we need to read it and convert to base64
-            const photoUri = photo.path.startsWith('file://') ? photo.path : `file://${photo.path}`;
-            
-            // Read file and convert to base64
-            const { readAsStringAsync } = await import('expo-file-system');
-            const base64Image = await readAsStringAsync(photoUri, {
-              encoding: 'base64',
+            // Remove file:// prefix if present as File constructor expects a path
+            const photoPath = photo.path.startsWith('file://')
+              ? photo.path.slice(7)  // Remove 'file://' prefix
+              : photo.path;
+
+            logger.info('Attempting to read photo file', {
+              screen: "vision_camera_scanner",
+              original_path: photo.path,
+              cleaned_path: photoPath,
+            });
+
+            // Read file and convert to base64 using new File API
+            const { File } = await import('expo-file-system');
+
+            logger.debug('expo-file-system File class imported, creating File instance', {
+              screen: "vision_camera_scanner",
+              path: photoPath,
+            });
+
+            // Create File instance with the photo path
+            // The File constructor expects (directory, filename) but we have a full path
+            // So we need to split the path
+            const pathParts = photoPath.split('/');
+            const filename = pathParts.pop() || '';
+            const directory = pathParts.join('/');
+
+            logger.debug('Creating File instance', {
+              screen: "vision_camera_scanner",
+              directory: directory,
+              filename: filename,
+            });
+
+            const file = new File(directory, filename);
+            const base64Image = await file.base64();
+
+            logger.info('File read result', {
+              screen: "vision_camera_scanner",
+              has_base64: !!base64Image,
+              base64_length: base64Image ? base64Image.length : 0,
+              base64_preview: base64Image ? base64Image.substring(0, 50) + '...' : null,
             });
 
             if (base64Image) {
@@ -316,12 +365,38 @@ const VisionCameraScanner = ({ onClose, onImageScanned }: VisionCameraScannerPro
               // Don't process immediately - wait for user to accept in preview
               onImageScanned?.();
             } else {
-              throw new Error('Failed to read captured photo');
+              logger.error('Base64 image is empty or null', {
+                screen: "vision_camera_scanner",
+                photo_path: photo.path,
+                cleaned_path: photoPath,
+                directory: directory,
+                filename: filename,
+              });
+              throw new Error('Failed to read captured photo - base64 is empty');
             }
           } catch (photoError) {
-            logger.error('Photo capture error', { screen: "vision_camera_scanner" }, photoError as Error);
+            const error = photoError as Error;
+            logger.error('Photo capture/processing error', {
+              screen: "vision_camera_scanner",
+              error_message: error.message,
+              error_name: error.name,
+              error_stack: error.stack,
+              step: 'capture_or_read',
+            }, error);
+
+            logScannerIssue('document_scan', error, {
+              screen: "vision_camera_scanner",
+              flash: flashEnabled,
+              has_corners: !!cornersState,
+              confidence: confidenceState,
+            });
+
             setIsActive(true); // Resume camera on error
             // Fall back to gallery on error
+            logger.info('Falling back to gallery due to capture error', {
+              screen: "vision_camera_scanner",
+              error: error.message,
+            });
             await handleOpenGallery();
           }
         } else {
@@ -343,7 +418,7 @@ const VisionCameraScanner = ({ onClose, onImageScanned }: VisionCameraScannerPro
       trackError(error as Error, {
         screen: "vision_camera_scanner",
         action: "capture",
-        errorType: "capture"
+        errorType: "scanning"
       });
     }
   };
