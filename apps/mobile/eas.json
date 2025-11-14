@@ -36,7 +36,8 @@
         "simulator": false
       },
       "env": {
-        "EXPO_PUBLIC_ENVIRONMENT": "preview"
+        "EXPO_PUBLIC_ENVIRONMENT": "preview",
+        "EXPO_PUBLIC_SHOW_DEBUG_PANELS": "true"
       },
       "autoIncrement": true
     },

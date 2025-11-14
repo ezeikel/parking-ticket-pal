@@ -696,8 +696,8 @@ const VisionCameraScanner = ({ onClose, onImageScanned }: VisionCameraScannerPro
         onAnimationComplete={() => setShowShutter(false)}
       />
 
-      {/* Debug panel - only shown in development */}
-      {__DEV__ && (
+      {/* Debug panel - only shown when EXPO_PUBLIC_SHOW_SCANNER_DEBUG is enabled */}
+      {(process.env.EXPO_PUBLIC_SHOW_SCANNER_DEBUG === 'true') && (
         <View style={styles.debugPanel}>
         <Text style={styles.debugPanelText}>🔍 Detection Debug</Text>
         <Text style={styles.debugPanelText}>
