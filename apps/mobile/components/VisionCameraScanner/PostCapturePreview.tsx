@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import {
   View,
   Image,
@@ -120,6 +120,29 @@ const PostCapturePreview: React.FC<PostCapturePreviewProps> = ({
   });
 
   const [imageLayout, setImageLayout] = useState({ width: 0, height: 0, x: 0, y: 0 });
+  const [imageDimensions, setImageDimensions] = useState({ width: 0, height: 0 });
+  const [displayBounds, setDisplayBounds] = useState({
+    width: 0,
+    height: 0,
+    offsetX: 0,
+    offsetY: 0
+  });
+
+  // Get actual image dimensions from base64
+  useEffect(() => {
+    if (imageBase64) {
+      const imageUri = `data:image/jpeg;base64,${imageBase64}`;
+      Image.getSize(
+        imageUri,
+        (width, height) => {
+          setImageDimensions({ width, height });
+        },
+        (error) => {
+          console.error('[PostCapturePreview] Failed to get image size:', error);
+        }
+      );
+    }
+  }, [imageBase64]);
 
   const handleCornerChange = (index: number, position: CornerPosition) => {
     const newCorners = [...corners];
@@ -128,53 +151,93 @@ const PostCapturePreview: React.FC<PostCapturePreviewProps> = ({
   };
 
   const handleImageLayout = (event: any) => {
-    const { width, height, x, y } = event.nativeEvent.layout;
-    setImageLayout({ width, height, x, y });
+    const { width: containerWidth, height: containerHeight, x, y } = event.nativeEvent.layout;
+    setImageLayout({ width: containerWidth, height: containerHeight, x, y });
 
-    // Scale corners to actual image dimensions
-    if (width > 0 && height > 0) {
-      // Check if we have detected corners or using default normalized corners
-      const cornersToScale = (detectedCorners && detectedCorners.length === 4)
-        ? detectedCorners
-        : corners;
+    // Can't calculate display bounds until we have both container and image dimensions
+    if (imageDimensions.width === 0 || imageDimensions.height === 0) return;
+    if (containerWidth === 0 || containerHeight === 0) return;
 
-      // Scale normalized corners (0-1) to actual pixel coordinates
-      const scaledCorners = cornersToScale.map(corner => ({
-        x: corner.x * width,
-        y: corner.y * height,
-      }));
+    // Calculate actual displayed image bounds accounting for resizeMode="contain"
+    const imageRatio = imageDimensions.width / imageDimensions.height;
+    const containerRatio = containerWidth / containerHeight;
 
-      setCorners(scaledCorners);
+    let displayedWidth, displayedHeight, offsetX, offsetY;
+
+    if (imageRatio > containerRatio) {
+      // Image is wider - constrained by container width
+      displayedWidth = containerWidth;
+      displayedHeight = containerWidth / imageRatio;
+      offsetX = 0;
+      offsetY = (containerHeight - displayedHeight) / 2;
+    } else {
+      // Image is taller - constrained by container height
+      displayedHeight = containerHeight;
+      displayedWidth = containerHeight * imageRatio;
+      offsetX = (containerWidth - displayedWidth) / 2;
+      offsetY = 0;
     }
+
+    setDisplayBounds({ width: displayedWidth, height: displayedHeight, offsetX, offsetY });
+
+    // Transform normalized corners (0-1) to screen coordinates
+    const cornersToScale = (detectedCorners && detectedCorners.length === 4)
+      ? detectedCorners
+      : corners;
+
+    // Scale to displayed image dimensions and add offsets
+    const scaledCorners = cornersToScale.map(corner => ({
+      x: corner.x * displayedWidth + offsetX,
+      y: corner.y * displayedHeight + offsetY,
+    }));
+
+    setCorners(scaledCorners);
   };
 
   const handleAccept = () => {
-    onAccept(corners);
+    // Convert screen coordinates back to normalized (0-1) for processing
+    if (displayBounds.width === 0 || displayBounds.height === 0) {
+      // Fallback if display bounds not calculated yet
+      onAccept(corners);
+      return;
+    }
+
+    const normalizedCorners = corners.map(corner => ({
+      x: (corner.x - displayBounds.offsetX) / displayBounds.width,
+      y: (corner.y - displayBounds.offsetY) / displayBounds.height,
+    }));
+
+    onAccept(normalizedCorners);
   };
 
   // Draw connecting lines between corners
   const renderBorderLines = () => {
-    if (corners.length !== 4) return null;
+    if (corners.length !== 4 || displayBounds.width === 0) return null;
 
     return (
       <Svg
         style={StyleSheet.absoluteFill}
-        width={imageLayout.width}
-        height={imageLayout.height}
+        width={displayBounds.width}
+        height={displayBounds.height}
       >
         {/* Draw lines connecting corners */}
         {corners.map((corner, index) => {
           const nextCorner = corners[(index + 1) % 4];
+          // Convert absolute screen coordinates to overlay-relative coordinates
+          const x1 = corner.x - displayBounds.offsetX;
+          const y1 = corner.y - displayBounds.offsetY;
+          const x2 = nextCorner.x - displayBounds.offsetX;
+          const y2 = nextCorner.y - displayBounds.offsetY;
+
           return (
             <Line
               key={`line-${index}`}
-              x1={corner.x}
-              y1={corner.y}
-              x2={nextCorner.x}
-              y2={nextCorner.y}
+              x1={x1}
+              y1={y1}
+              x2={x2}
+              y2={y2}
               stroke="#00FF00"
-              strokeWidth="2"
-              strokeDasharray="5,5"
+              strokeWidth="3"
             />
           );
         })}
@@ -205,9 +268,18 @@ const PostCapturePreview: React.FC<PostCapturePreviewProps> = ({
             onLayout={handleImageLayout}
           />
 
-          {/* Overlay with corner handles and border */}
-          {imageLayout.width > 0 && (
-            <View style={StyleSheet.absoluteFill} pointerEvents="box-none">
+          {/* Overlay with corner handles and border - positioned to match actual image bounds */}
+          {displayBounds.width > 0 && (
+            <View
+              style={{
+                position: 'absolute',
+                left: displayBounds.offsetX,
+                top: displayBounds.offsetY,
+                width: displayBounds.width,
+                height: displayBounds.height,
+              }}
+              pointerEvents="box-none"
+            >
               {/* Border lines */}
               <View style={StyleSheet.absoluteFill} pointerEvents="none">
                 {renderBorderLines()}
@@ -217,11 +289,17 @@ const PostCapturePreview: React.FC<PostCapturePreviewProps> = ({
               {corners.map((corner, index) => (
                 <CornerHandle
                   key={`corner-${index}`}
-                  position={corner}
-                  onPositionChange={(pos) => handleCornerChange(index, pos)}
+                  position={{
+                    x: corner.x - displayBounds.offsetX,
+                    y: corner.y - displayBounds.offsetY,
+                  }}
+                  onPositionChange={(pos) => handleCornerChange(index, {
+                    x: pos.x + displayBounds.offsetX,
+                    y: pos.y + displayBounds.offsetY,
+                  })}
                   cornerIndex={index}
-                  imageWidth={imageLayout.width}
-                  imageHeight={imageLayout.height}
+                  imageWidth={displayBounds.width}
+                  imageHeight={displayBounds.height}
                 />
               ))}
             </View>
