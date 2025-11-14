@@ -16,6 +16,7 @@ import { useDocumentDetection } from '@/hooks/useDocumentDetection';
 import { useDocumentScanHaptics } from '@/hooks/useDocumentScanHaptics';
 import DocumentOverlay from './DocumentOverlay';
 import ShutterAnimation from './ShutterAnimation';
+import PostCapturePreview from './PostCapturePreview';
 import { UPLOADING_TICKET_TEXT, CREATING_CHALLENGE_LETTER_TEXT } from '@/constants/loadingMessages';
 
 type VisionCameraScannerProps = {
@@ -35,6 +36,9 @@ const VisionCameraScanner = ({ onClose, onImageScanned }: VisionCameraScannerPro
   const [showShutter, setShowShutter] = useState(false);
   const [autoCaptureEnabled, setAutoCaptureEnabled] = useState(true);
   const [stabilityProgress, setStabilityProgress] = useState(0);
+  const [showPostCapturePreview, setShowPostCapturePreview] = useState(false);
+  const [capturedImageBase64, setCapturedImageBase64] = useState<string | null>(null);
+  const [capturedCorners, setCapturedCorners] = useState<any>(null);
 
   const device = useCameraDevice('back');
   const { hasPermission, requestPermission } = useCameraPermission();
@@ -297,15 +301,20 @@ const VisionCameraScanner = ({ onClose, onImageScanned }: VisionCameraScannerPro
             });
 
             if (base64Image) {
-              setScannedImage(base64Image);
-              setIsActive(true); // Resume camera
-              onImageScanned?.();
+              // Store captured data for preview
+              setCapturedImageBase64(base64Image);
+              setCapturedCorners(cornersState);
+              setShowPostCapturePreview(true);
+              setIsActive(false); // Keep camera paused during preview
+
               trackEvent("document_captured_with_detection", {
                 screen: "vision_camera_scanner",
                 confidence: confidenceState,
+                auto_capture: stabilityProgress >= 1.0,
               });
-              // Process image immediately
-              await processImage(base64Image);
+
+              // Don't process immediately - wait for user to accept in preview
+              onImageScanned?.();
             } else {
               throw new Error('Failed to read captured photo');
             }
@@ -339,12 +348,53 @@ const VisionCameraScanner = ({ onClose, onImageScanned }: VisionCameraScannerPro
     }
   };
 
+  // Handle accepting the captured photo from preview
+  const handleAcceptCapture = async (adjustedCorners: any) => {
+    if (!capturedImageBase64) return;
+
+    trackEvent("ticket_scan_success", {
+      screen: "vision_camera_scanner",
+      source: "camera_capture",
+    });
+
+    // TODO: Apply perspective transform with adjusted corners before processing
+    // For now, store the adjusted corners for future use
+    console.log('Adjusted corners:', adjustedCorners);
+    setScannedImage(capturedImageBase64);
+    setShowPostCapturePreview(false);
+
+    // Process the accepted image
+    await processImage(capturedImageBase64);
+  };
+
+  // Handle retaking the photo
+  const handleRetakeCapture = () => {
+    trackEvent("ticket_scan_retry", {
+      screen: "vision_camera_scanner",
+    });
+
+    setShowPostCapturePreview(false);
+    setCapturedImageBase64(null);
+    setCapturedCorners(null);
+    setIsActive(true); // Resume camera for retake
+    resetAutoCapture(); // Reset auto-capture state
+  };
+
   const handleFlashToggle = () => {
     setFlashEnabled(!flashEnabled);
     trackEvent("flash_toggled", {
       screen: "vision_camera_scanner",
       enabled: !flashEnabled
     });
+  };
+
+  const handleAutoCaptureToggle = () => {
+    const newState = !autoCaptureEnabled;
+    setAutoCaptureEnabled(newState);
+    setAutoCaptureInHook(newState);
+
+    // Log the toggle action
+    console.log('[VisionCamera] Auto-capture toggled:', newState);
   };
 
   const handleCameraStarted = useCallback(() => {
@@ -524,6 +574,20 @@ const VisionCameraScanner = ({ onClose, onImageScanned }: VisionCameraScannerPro
     );
   }
 
+  // Show post-capture preview if we have a captured image
+  if (showPostCapturePreview && capturedImageBase64) {
+    return (
+      <PostCapturePreview
+        imageBase64={capturedImageBase64}
+        detectedCorners={capturedCorners}
+        onAccept={handleAcceptCapture}
+        onRetake={handleRetakeCapture}
+        isProcessing={ocrMutation.isPending}
+        stabilityProgress={stabilityProgress}
+      />
+    );
+  }
+
   return (
     <View style={styles.container}>
       <Camera
@@ -629,7 +693,9 @@ const VisionCameraScanner = ({ onClose, onImageScanned }: VisionCameraScannerPro
         onCapturePress={handleCapture}
         onClosePress={() => onClose?.()}
         onFlashToggle={handleFlashToggle}
+        onAutoCaptureToggle={handleAutoCaptureToggle}
         flashEnabled={flashEnabled}
+        autoCaptureEnabled={autoCaptureEnabled}
         isProcessing={ocrMutation.isPending}
         documentDetected={!!cornersState && confidenceState > 0.4}
       />

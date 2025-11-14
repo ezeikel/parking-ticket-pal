@@ -1,7 +1,7 @@
 import { View, StyleSheet } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
-import { faImage, faCamera, faXmark, faBolt } from '@fortawesome/pro-regular-svg-icons';
+import { faImage, faCamera, faXmark, faBolt, faTimer } from '@fortawesome/pro-regular-svg-icons';
 import SquishyPressable from '@/components/SquishyPressable/SquishyPressable';
 
 type CameraControlsProps = {
@@ -9,7 +9,9 @@ type CameraControlsProps = {
   onCapturePress: () => void;
   onClosePress: () => void;
   onFlashToggle?: () => void;
+  onAutoCaptureToggle?: () => void;
   flashEnabled?: boolean;
+  autoCaptureEnabled?: boolean;
   isProcessing?: boolean;
   documentDetected?: boolean; // New prop for document detection state
 };
@@ -19,7 +21,9 @@ export const CameraControls = ({
   onCapturePress,
   onClosePress,
   onFlashToggle,
+  onAutoCaptureToggle,
   flashEnabled = false,
+  autoCaptureEnabled = false,
   isProcessing = false,
   documentDetected = false,
 }: CameraControlsProps) => {
@@ -27,7 +31,7 @@ export const CameraControls = ({
 
   return (
     <View style={styles.container}>
-      {/* Top controls - Close and Flash */}
+      {/* Top controls - Close, Auto-capture, and Flash */}
       <View style={[styles.topControls, { paddingTop: Math.max(insets.top, 20) + 10 }]}>
         <SquishyPressable
           onPress={onClosePress}
@@ -37,19 +41,35 @@ export const CameraControls = ({
           <FontAwesomeIcon icon={faXmark} size={28} color="white" />
         </SquishyPressable>
 
-        {onFlashToggle && (
-          <SquishyPressable
-            onPress={onFlashToggle}
-            style={[styles.flashButton, flashEnabled && styles.flashActive]}
-            disabled={isProcessing}
-          >
-            <FontAwesomeIcon
-              icon={faBolt}
-              size={24}
-              color={flashEnabled ? '#FFD700' : 'white'}
-            />
-          </SquishyPressable>
-        )}
+        <View style={styles.rightControls}>
+          {onAutoCaptureToggle && (
+            <SquishyPressable
+              onPress={onAutoCaptureToggle}
+              style={[styles.autoCaptureButton, autoCaptureEnabled && styles.autoCaptureActive]}
+              disabled={isProcessing}
+            >
+              <FontAwesomeIcon
+                icon={faTimer}
+                size={24}
+                color={autoCaptureEnabled ? '#00FF00' : 'white'}
+              />
+            </SquishyPressable>
+          )}
+
+          {onFlashToggle && (
+            <SquishyPressable
+              onPress={onFlashToggle}
+              style={[styles.flashButton, flashEnabled && styles.flashActive]}
+              disabled={isProcessing}
+            >
+              <FontAwesomeIcon
+                icon={faBolt}
+                size={24}
+                color={flashEnabled ? '#FFD700' : 'white'}
+              />
+            </SquishyPressable>
+          )}
+        </View>
       </View>
 
       {/* Bottom controls - Gallery and Capture */}
@@ -109,6 +129,21 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  rightControls: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  autoCaptureButton: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  autoCaptureActive: {
+    backgroundColor: 'rgba(0, 255, 0, 0.3)',
   },
   flashButton: {
     width: 48,
