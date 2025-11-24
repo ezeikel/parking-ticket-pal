@@ -5,9 +5,9 @@ import Animated, {
   useAnimatedStyle,
   withTiming,
   withSequence,
-  runOnJS,
   Easing,
 } from 'react-native-reanimated';
+import { scheduleOnRN } from 'react-native-worklets';
 
 type ShutterAnimationProps = {
   visible: boolean;
@@ -44,7 +44,7 @@ const ShutterAnimation: React.FC<ShutterAnimationProps> = ({
           easing: Easing.in(Easing.ease),
         }, (finished) => {
           if (finished && onAnimationComplete) {
-            runOnJS(onAnimationComplete)();
+            scheduleOnRN(onAnimationComplete);
           }
         })
       );
