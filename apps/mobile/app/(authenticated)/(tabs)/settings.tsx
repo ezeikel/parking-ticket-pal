@@ -338,7 +338,6 @@ const SettingsScreen = () => {
         </View>
       </View>
 
-      {/* Banner Ad */}
       <AdBanner placement="settings" />
 
       <View className="flex-1 bg-gray-50">

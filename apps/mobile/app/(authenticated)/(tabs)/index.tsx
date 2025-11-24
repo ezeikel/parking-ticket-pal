@@ -196,7 +196,6 @@ const TicketsScreen = () => {
         </View>
       </View>
 
-      {/* Banner Ad */}
       <AdBanner placement="tickets" />
 
       <View className="flex-1 bg-gray-50">

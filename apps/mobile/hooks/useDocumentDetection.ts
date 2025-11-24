@@ -213,7 +213,7 @@ const smoothCorners = (
  * Performance optimizations:
  * - Processes at 1/4 scale (16x faster than full resolution)
  * - Targets 10 FPS processing rate via frame limiting
- * - Uses runOnJS to bridge worklet values to React state
+ * - Callbacks can be called directly from worklets (Reanimated 4.x)
  *
  * @param callbacks - Optional callbacks for receiving updates from frame processor
  * @returns Frame processor and detection result shared values
@@ -221,7 +221,8 @@ const smoothCorners = (
 export const useDocumentDetection = (callbacks?: DocumentDetectionCallbacks) => {
   const { resize } = useResizePlugin();
 
-  // Create worklet-compatible callbacks using Worklets.createRunOnJS
+  // Create runOnJS wrappers inline (VisionCamera + Reanimated 4.x non-deprecated pattern)
+  // Using Worklets.createRunOnJS from react-native-worklets-core (not deprecated runOnJS from reanimated)
   const onFrameProcessedJS = callbacks?.onFrameProcessed
     ? Worklets.createRunOnJS(callbacks.onFrameProcessed)
     : null;
@@ -297,6 +298,8 @@ export const useDocumentDetection = (callbacks?: DocumentDetectionCallbacks) => 
   const lastStableCorners = useSharedValue<DocumentCorner[] | null>(null);
   const autoCaptureTriggered = useSharedValue<boolean>(false);
   const autoCaptureEnabled = useSharedValue<boolean>(true); // Can be toggled via settings
+  const autoCaptureResetFrameCount = useSharedValue<number>(0); // Frame counter for reset delay
+  const AUTOCAPTURE_RESET_FRAMES = 60; // ~2 seconds at 30 FPS
 
   // Create Skia paint objects OUTSIDE worklet (like blog post)
   // Creating inside worklet recreates on every frame and can cause issues
@@ -333,11 +336,21 @@ export const useDocumentDetection = (callbacks?: DocumentDetectionCallbacks) => 
     try {
       // Log first frame only
       if (frameCount.value === 0) {
-        console.log('[DocumentDetection] First frame received! Frame processor is running.');
+        // console.log('[DocumentDetection] First frame received! Frame processor is running.');
+        // Commented out: console calls crash in worklet context
       }
 
       // Increment frame counter for ALL frames
       frameCount.value = frameCount.value + 1;
+
+      // Handle auto-capture reset countdown
+      if (autoCaptureResetFrameCount.value > 0) {
+        autoCaptureResetFrameCount.value = autoCaptureResetFrameCount.value - 1;
+        if (autoCaptureResetFrameCount.value === 0) {
+          // Reset complete - allow another auto-capture
+          autoCaptureTriggered.value = false;
+        }
+      }
 
       // FPS LIMITING: Only run heavy OpenCV processing every Nth frame
       // At 30 FPS camera: process every 2nd frame = 15 FPS processing rate
@@ -569,7 +582,8 @@ export const useDocumentDetection = (callbacks?: DocumentDetectionCallbacks) => 
               // If approxPolyDP fails, fallback to boundingRect
               const errorMsg = approxError instanceof Error ? approxError.message : String(approxError);
               debugInfo.value = `${debugInfo.value}, approxError: ${errorMsg}`;
-              console.warn('[DocumentDetection] approxPolyDP failed, using boundingRect fallback:', errorMsg);
+              // console.warn('[DocumentDetection] approxPolyDP failed, using boundingRect fallback:', errorMsg);
+              // Commented out: console calls crash in worklet context
               
               try {
                 const rectResult = OpenCV.invoke('boundingRect', contour) as any;
@@ -715,7 +729,8 @@ export const useDocumentDetection = (callbacks?: DocumentDetectionCallbacks) => 
                 detectionStateDebug.value = 'document_detected';
                 const transitionMsg = `entered at conf=${(smoothedConfidence.value * 100).toFixed(1)}% frame=${frameCount.value}`;
                 lastStateTransition.value = transitionMsg;
-                console.log(`[DocumentDetection] STATE TRANSITION: ${transitionMsg}`);
+                // console.log(`[DocumentDetection] STATE TRANSITION: ${transitionMsg}`);
+                // Commented out: console calls crash in worklet context
                 stableFrameCount.value = 0;  // Reset after successful transition
               }
             } else {
@@ -735,7 +750,8 @@ export const useDocumentDetection = (callbacks?: DocumentDetectionCallbacks) => 
               detectionStateDebug.value = 'no_document';
               const transitionMsg = `exited at conf=${(smoothedConfidence.value * 100).toFixed(1)}% frame=${frameCount.value}`;
               lastStateTransition.value = transitionMsg;
-              console.log(`[DocumentDetection] STATE TRANSITION: ${transitionMsg}`);
+              // console.log(`[DocumentDetection] STATE TRANSITION: ${transitionMsg}`);
+              // Commented out: console calls crash in worklet context
               stableFrameCount.value = 0;  // Reset after successful transition
               postExitGraceCounter.value = POST_EXIT_GRACE_FRAMES;  // Start grace period
             }
@@ -822,11 +838,9 @@ export const useDocumentDetection = (callbacks?: DocumentDetectionCallbacks) => 
                 onAutoCaptureJS();
               }
 
-              // Reset after a delay to allow for another capture
-              setTimeout(() => {
-                'worklet';
-                autoCaptureTriggered.value = false;
-              }, 2000); // 2 second cooldown before allowing another auto-capture
+              // Start frame counter for reset delay (2 second cooldown)
+              // Reset will happen after AUTOCAPTURE_RESET_FRAMES frames
+              autoCaptureResetFrameCount.value = AUTOCAPTURE_RESET_FRAMES;
             }
           } else {
             // Corners moved too much, reset stability tracking
@@ -919,7 +933,8 @@ export const useDocumentDetection = (callbacks?: DocumentDetectionCallbacks) => 
         skiaDrawSkipReason.value = skipReason;
         // Only log on processed frames to avoid console spam
         if (shouldProcessDetection) {
-          console.log(`[DocumentDetection] Skia draw skipped: ${skipReason} (frame ${frameCount.value})`);
+          // console.log(`[DocumentDetection] Skia draw skipped: ${skipReason} (frame ${frameCount.value})`);
+          // Commented out: console calls crash in worklet context
         }
       }
 
@@ -934,11 +949,12 @@ export const useDocumentDetection = (callbacks?: DocumentDetectionCallbacks) => 
         lastError.value = `${stepInfo}: ${errorMessage}`;
 
         // Log to console (visible in Xcode console on iOS)
-        console.error('[DocumentDetection] Frame processing error:', {
-          step: stepInfo,
-          error: errorMessage,
-          frameNumber: frameCount.value,
-        });
+        // console.error('[DocumentDetection] Frame processing error:', {
+        //   step: stepInfo,
+        //   error: errorMessage,
+        //   frameNumber: frameCount.value,
+        // });
+        // Commented out: console calls crash in worklet context
 
         detectedCorners.value = null;
         confidence.value = 0;
@@ -959,12 +975,15 @@ export const useDocumentDetection = (callbacks?: DocumentDetectionCallbacks) => 
           OpenCV.clearBuffers();
           clearBufferCount.value = clearBufferCount.value + 1;
         } catch (clearError) {
-          console.error('[DocumentDetection] Error clearing buffers:', clearError);
+          // console.error('[DocumentDetection] Error clearing buffers:', clearError);
+          // Commented out: console calls crash in worklet context
         }
 
-        // Push updates to React state via runOnJS callbacks
+        // Push updates to React state via callbacks
+        // Use createRunOnJS wrappers to bridge from worklet thread to JS thread for React state updates
         if (onFrameProcessedJS) {
-          onFrameProcessedJS({
+          // Extract primitive values before scheduling to avoid serialization errors
+          const debugData = {
             frameCount: frameCount.value,
             renderCount: renderCount.value,
             clearBufferCount: clearBufferCount.value,
@@ -981,7 +1000,8 @@ export const useDocumentDetection = (callbacks?: DocumentDetectionCallbacks) => 
             lastStateTransition: lastStateTransition.value,
             skiaDrawSkipReason: skiaDrawSkipReason.value,
             smoothedConfidence: smoothedConfidenceDebug.value,
-          });
+          };
+          onFrameProcessedJS(debugData);
         }
 
         if (onDetectionUpdateJS) {

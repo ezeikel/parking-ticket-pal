@@ -1,22 +1,13 @@
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback, useEffect, useMemo, useRef } from 'react';
 import {
   View,
-  Image,
   Text,
   StyleSheet,
   ActivityIndicator,
 } from 'react-native';
+import { Image } from 'expo-image';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import Animated, {
-  useSharedValue,
-  useAnimatedStyle,
-  runOnJS,
-} from 'react-native-reanimated';
-import {
-  Gesture,
-  GestureDetector,
-  GestureHandlerRootView,
-} from 'react-native-gesture-handler';
+import * as Sentry from '@sentry/react-native';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { faRotateLeft, faCheck } from '@fortawesome/pro-regular-svg-icons';
 import Svg, { Line } from 'react-native-svg';
@@ -24,6 +15,8 @@ import SquishyPressable from '@/components/SquishyPressable/SquishyPressable';
 import type { DocumentCorner } from '@/hooks/useDocumentDetection';
 import { logger } from '@/lib/logger';
 import { usePostCaptureDebug } from '@/hooks/usePostCaptureDebug';
+import { useAnalytics } from '@/lib/analytics';
+// import CornerHandle from './CornerHandle'; // Temporarily disabled
 
 type PostCapturePreviewProps = {
   imageBase64: string;
@@ -34,104 +27,160 @@ type PostCapturePreviewProps = {
   stabilityProgress?: number; // For showing auto-capture progress
 };
 
-type CornerPosition = {
-  x: number;
-  y: number;
-};
-
-/**
- * Draggable corner handle component
- */
-const CornerHandle: React.FC<{
-  position: CornerPosition;
-  onPositionChange: (position: CornerPosition) => void;
-  cornerIndex: number;
-  imageWidth: number;
-  imageHeight: number;
-}> = ({ position, onPositionChange, cornerIndex, imageWidth, imageHeight }) => {
-  const translateX = useSharedValue(position.x);
-  const translateY = useSharedValue(position.y);
-  const startX = useSharedValue(0);
-  const startY = useSharedValue(0);
-
-  const updatePosition = useCallback((x: number, y: number) => {
-    onPositionChange({ x, y });
-  }, [onPositionChange]);
-
-  const pan = Gesture.Pan()
-    .onStart(() => {
-      startX.value = translateX.value;
-      startY.value = translateY.value;
-    })
-    .onUpdate((event) => {
-      // Constrain to image bounds
-      translateX.value = Math.max(0, Math.min(imageWidth, startX.value + event.translationX));
-      translateY.value = Math.max(0, Math.min(imageHeight, startY.value + event.translationY));
-    })
-    .onEnd(() => {
-      runOnJS(updatePosition)(translateX.value, translateY.value);
-    });
-
-  const animatedStyle = useAnimatedStyle(() => ({
-    transform: [
-      { translateX: translateX.value - 20 }, // Center the handle
-      { translateY: translateY.value - 20 },
-    ],
-  }));
-
-  // Corner labels for accessibility
-  const cornerLabels = ['Top Left', 'Top Right', 'Bottom Right', 'Bottom Left'];
-
-  return (
-    <GestureDetector gesture={pan}>
-      <Animated.View style={[styles.cornerHandle, animatedStyle]}>
-        <View style={styles.cornerHandleInner}>
-          <View style={styles.cornerHandleCenter} />
-        </View>
-        <Text style={styles.cornerLabel}>{cornerLabels[cornerIndex]}</Text>
-      </Animated.View>
-    </GestureDetector>
-  );
-};
-
 /**
  * Post-capture preview component
  * Shows captured image with adjustable document corners
  */
-const PostCapturePreview: React.FC<PostCapturePreviewProps> = ({
+const PostCapturePreview = ({
   imageBase64,
   detectedCorners,
   onAccept,
   onRetake,
   isProcessing = false,
   stabilityProgress = 0,
-}) => {
+}: PostCapturePreviewProps) => {
+  // Log component mount (critical lifecycle event)
+  useEffect(() => {
+    // Add breadcrumb for component lifecycle
+    Sentry.addBreadcrumb({
+      message: 'PostCapturePreview mounting',
+      category: 'component',
+      level: 'info',
+      data: {
+        hasImageBase64: !!imageBase64,
+        imageBase64Length: imageBase64?.length || 0,
+        hasDetectedCorners: !!(detectedCorners && detectedCorners.length === 4),
+        detectedCornersCount: detectedCorners?.length || 0,
+      },
+    });
+
+    logger.info('[PostCapturePreview] Component mounting', {
+      screen: 'post_capture_preview',
+      action: 'component_mount',
+      hasImageBase64: !!imageBase64,
+      imageBase64Length: imageBase64?.length || 0,
+      hasDetectedCorners: !!(detectedCorners && detectedCorners.length === 4),
+      detectedCornersCount: detectedCorners?.length || 0,
+    });
+
+    // Validate props on mount
+    if (!imageBase64) {
+      logger.error('[PostCapturePreview] Missing imageBase64 on mount', {
+        screen: 'post_capture_preview',
+        action: 'validation_error',
+      });
+      Sentry.captureMessage('PostCapturePreview mounted without imageBase64', 'warning');
+    }
+
+    // Track in PostHog
+    if ((global as any).posthog) {
+      (global as any).posthog.capture('post_capture_preview_mounted', {
+        has_image: !!imageBase64,
+        has_corners: !!detectedCorners,
+        corners_count: detectedCorners?.length || 0,
+        image_size: imageBase64?.length || 0,
+      });
+    }
+
+    return () => {
+      Sentry.addBreadcrumb({
+        message: 'PostCapturePreview unmounting',
+        category: 'component',
+        level: 'info',
+      });
+
+      logger.info('[PostCapturePreview] Component unmounting', {
+        screen: 'post_capture_preview',
+        action: 'component_unmount',
+      });
+    };
+  }, []);
+
   // Debug state for tracking rendering pipeline (only in preview builds)
   const { debugState, dispatch } = usePostCaptureDebug(
     process.env.EXPO_PUBLIC_SHOW_DEBUG_PANELS === 'true'
   );
 
   // Initialize corners from detected or default to normalized coordinates (0-1)
+  // This runs during component initialization - wrap in try-catch to catch crashes
   const [corners, setCorners] = useState<DocumentCorner[]>(() => {
-    const initialCorners = (detectedCorners && detectedCorners.length === 4)
-      ? detectedCorners
-      : [
+    try {
+      logger.info('[PostCapturePreview] Initializing corners state', {
+        screen: 'post_capture_preview',
+        action: 'corners_init_start',
+        hasDetectedCorners: !!(detectedCorners && detectedCorners.length === 4),
+        detectedCorners: detectedCorners,
+        hasImageBase64: !!imageBase64,
+        imageBase64Length: imageBase64?.length || 0,
+      });
+
+      // Validate detectedCorners before using
+      let initialCorners: DocumentCorner[];
+      if (detectedCorners && detectedCorners.length === 4) {
+        // Validate all corners are valid numbers
+        const isValid = detectedCorners.every(c => 
+          typeof c.x === 'number' && 
+          typeof c.y === 'number' && 
+          isFinite(c.x) && 
+          isFinite(c.y)
+        );
+        
+        if (isValid) {
+          initialCorners = detectedCorners;
+        } else {
+          logger.warn('[PostCapturePreview] Invalid detectedCorners, using defaults', {
+            screen: 'post_capture_preview',
+            action: 'corners_validation_failed',
+            detectedCorners,
+          });
+          initialCorners = [
+            { x: 0.15, y: 0.15 }, // Top-left - 15% inset from edges
+            { x: 0.85, y: 0.15 }, // Top-right
+            { x: 0.85, y: 0.85 }, // Bottom-right
+            { x: 0.15, y: 0.85 }, // Bottom-left
+          ];
+        }
+      } else {
+        initialCorners = [
           { x: 0.15, y: 0.15 }, // Top-left - 15% inset from edges
           { x: 0.85, y: 0.15 }, // Top-right
           { x: 0.85, y: 0.85 }, // Bottom-right
           { x: 0.15, y: 0.85 }, // Bottom-left
         ];
+      }
 
-    logger.info('[PostCapturePreview] Component initialized', {
-      screen: 'post_capture_preview',
-      hasDetectedCorners: !!(detectedCorners && detectedCorners.length === 4),
-      detectedCorners: detectedCorners,
-      initialCorners,
-      hasImageBase64: !!imageBase64,
-      imageBase64Length: imageBase64?.length || 0,
-    });
+      logger.info('[PostCapturePreview] Component initialized', {
+        screen: 'post_capture_preview',
+        action: 'corners_init_success',
+        hasDetectedCorners: !!(detectedCorners && detectedCorners.length === 4),
+        detectedCorners: detectedCorners,
+        initialCorners,
+        hasImageBase64: !!imageBase64,
+        imageBase64Length: imageBase64?.length || 0,
+      });
 
-    return initialCorners;
+      return initialCorners;
+    } catch (error) {
+      logger.error('[PostCapturePreview] Error initializing corners state', {
+        screen: 'post_capture_preview',
+        action: 'corners_init_error',
+        hasDetectedCorners: !!(detectedCorners && detectedCorners.length === 4),
+        hasImageBase64: !!imageBase64,
+      }, error instanceof Error ? error : new Error(String(error)));
+      Sentry.captureException(error instanceof Error ? error : new Error(String(error)), {
+        tags: {
+          screen: 'post_capture_preview',
+          action: 'corners_init_error',
+        },
+      });
+      // Return safe defaults
+      return [
+        { x: 0.15, y: 0.15 },
+        { x: 0.85, y: 0.15 },
+        { x: 0.85, y: 0.85 },
+        { x: 0.15, y: 0.85 },
+      ];
+    }
   });
 
   // Dispatch component init after mount
@@ -145,9 +194,10 @@ const PostCapturePreview: React.FC<PostCapturePreviewProps> = ({
         detectedCornersCount: detectedCorners?.length || 0,
       },
     });
-  }, []);
+  }, [dispatch, imageBase64, detectedCorners]);
 
   const [imageDimensions, setImageDimensions] = useState({ width: 0, height: 0 });
+  const [containerDimensions, setContainerDimensions] = useState({ width: 0, height: 0 });
   const [displayBounds, setDisplayBounds] = useState({
     width: 0,
     height: 0,
@@ -155,108 +205,21 @@ const PostCapturePreview: React.FC<PostCapturePreviewProps> = ({
     offsetY: 0
   });
 
-  // Get actual image dimensions from base64
-  useEffect(() => {
-    if (imageBase64) {
-      logger.debug('[PostCapturePreview] Starting Image.getSize', {
-        screen: 'post_capture_preview',
-        has_base64: !!imageBase64,
-        base64_length: imageBase64.length,
-      });
-
-      const imageUri = `data:image/jpeg;base64,${imageBase64}`;
-      Image.getSize(
-        imageUri,
-        (width, height) => {
-          dispatch({
-            type: 'IMAGE_DIMENSIONS_RECEIVED',
-            payload: { width, height },
-          });
-
-          logger.info('[PostCapturePreview] Image dimensions received', {
-            screen: 'post_capture_preview',
-            width,
-            height,
-          });
-          setImageDimensions({ width, height });
-        },
-        (error) => {
-          dispatch({ type: 'IMAGE_DIMENSIONS_FAILED' });
-
-          logger.error('[PostCapturePreview] Failed to get image size', {
-            screen: 'post_capture_preview',
-          }, error as Error);
-        }
-      );
-    } else {
-      logger.warn('[PostCapturePreview] No imageBase64 provided', {
-        screen: 'post_capture_preview',
-      });
-    }
-  }, [imageBase64, dispatch]);
-
-  // Track SVG lines rendering state
-  useEffect(() => {
-    if (corners.length === 4 && displayBounds.width > 0) {
-      dispatch({
-        type: 'SVG_LINES_RENDERING',
-        payload: { rendering: true, lineCount: 4 },
-      });
-    } else {
-      dispatch({
-        type: 'SVG_LINES_RENDERING',
-        payload: { rendering: false, lineCount: 0 },
-      });
-    }
-  }, [corners.length, displayBounds.width, dispatch]);
-
-  // Track overlay rendering state
-  useEffect(() => {
-    if (displayBounds.width > 0) {
-      dispatch({
-        type: 'OVERLAY_RENDERING',
-        payload: { rendering: true, cornerHandleCount: corners.length },
-      });
-    } else {
-      dispatch({
-        type: 'OVERLAY_RENDERING',
-        payload: { rendering: false, cornerHandleCount: 0 },
-      });
-    }
-  }, [displayBounds.width, corners.length, dispatch]);
-
-  const handleCornerChange = (index: number, position: CornerPosition) => {
-    const newCorners = [...corners];
-    newCorners[index] = position;
-    setCorners(newCorners);
-  };
-
-  const handleImageLayout = (event: any) => {
-    const { width: containerWidth, height: containerHeight, x, y } = event.nativeEvent.layout;
-
-    dispatch({
-      type: 'LAYOUT_UPDATED',
-      payload: { containerWidth, containerHeight },
-    });
-
-    logger.debug('[PostCapturePreview] handleImageLayout called', {
-      screen: 'post_capture_preview',
-      containerWidth,
-      containerHeight,
-      x,
-      y,
-      imageDimensionsWidth: imageDimensions.width,
-      imageDimensionsHeight: imageDimensions.height,
-    });
+  // Calculate display bounds accounting for resizeMode="contain"
+  // Moved before handleImageLoad to avoid dependency issues
+  const calculateAndSetDisplayBounds = useCallback((containerWidth: number, containerHeight: number, imageWidth?: number, imageHeight?: number) => {
+    // Use provided image dimensions or fall back to state
+    const imgWidth = imageWidth ?? imageDimensions.width;
+    const imgHeight = imageHeight ?? imageDimensions.height;
 
     // Can't calculate display bounds until we have both container and image dimensions
-    if (imageDimensions.width === 0 || imageDimensions.height === 0) {
+    if (imgWidth === 0 || imgHeight === 0) {
       dispatch({ type: 'DISPLAY_BOUNDS_FAILED' });
 
       logger.warn('[PostCapturePreview] Cannot calculate display bounds - image dimensions not ready', {
         screen: 'post_capture_preview',
-        imageDimensionsWidth: imageDimensions.width,
-        imageDimensionsHeight: imageDimensions.height,
+        imageDimensionsWidth: imgWidth,
+        imageDimensionsHeight: imgHeight,
       });
       return;
     }
@@ -272,7 +235,7 @@ const PostCapturePreview: React.FC<PostCapturePreviewProps> = ({
     }
 
     // Calculate actual displayed image bounds accounting for resizeMode="contain"
-    const imageRatio = imageDimensions.width / imageDimensions.height;
+    const imageRatio = imgWidth / imgHeight;
     const containerRatio = containerWidth / containerHeight;
 
     let displayedWidth, displayedHeight, offsetX, offsetY;
@@ -316,9 +279,15 @@ const PostCapturePreview: React.FC<PostCapturePreviewProps> = ({
     setDisplayBounds({ width: displayedWidth, height: displayedHeight, offsetX, offsetY });
 
     // Transform normalized corners (0-1) to screen coordinates
+    // Use detectedCorners if available, otherwise use default normalized coordinates
     const cornersToScale = (detectedCorners && detectedCorners.length === 4)
       ? detectedCorners
-      : corners;
+      : [
+          { x: 0.15, y: 0.15 }, // Top-left - 15% inset from edges
+          { x: 0.85, y: 0.15 }, // Top-right
+          { x: 0.85, y: 0.85 }, // Bottom-right
+          { x: 0.15, y: 0.85 }, // Bottom-left
+        ];
 
     logger.debug('[PostCapturePreview] Corners before scaling', {
       screen: 'post_capture_preview',
@@ -343,7 +312,157 @@ const PostCapturePreview: React.FC<PostCapturePreviewProps> = ({
     });
 
     setCorners(scaledCorners);
+  }, [imageDimensions.width, imageDimensions.height, detectedCorners, dispatch]);
+
+  // Handle image load to get actual dimensions
+  // Using onLoad instead of Image.getSize() to avoid race condition
+  // expo-image provides dimensions in event.source instead of event.nativeEvent.source
+  const handleImageLoad = useCallback((event: any) => {
+    try {
+      const { width, height } = event.source;
+
+      logger.info('[PostCapturePreview] Image loaded with dimensions', {
+        screen: 'post_capture_preview',
+        action: 'image_load',
+        width,
+        height,
+        hasWidth: !!width,
+        hasHeight: !!height,
+      });
+
+      if (width && height) {
+        dispatch({
+          type: 'IMAGE_DIMENSIONS_RECEIVED',
+          payload: { width, height },
+        });
+
+        setImageDimensions({ width, height });
+
+        // Recalculate display bounds if container is ready
+        if (containerDimensions.width > 0 && containerDimensions.height > 0) {
+          logger.info('[PostCapturePreview] Image loaded, recalculating display bounds', {
+            screen: 'post_capture_preview',
+            action: 'recalculate_bounds',
+            imageDimensions: { width, height },
+            containerDimensions,
+          });
+          // Pass image dimensions directly to avoid waiting for state update
+          calculateAndSetDisplayBounds(containerDimensions.width, containerDimensions.height, width, height);
+        }
+      } else {
+        logger.warn('[PostCapturePreview] Image loaded but missing dimensions', {
+          screen: 'post_capture_preview',
+          action: 'image_load_incomplete',
+          event: event,
+        });
+        dispatch({ type: 'IMAGE_DIMENSIONS_FAILED' });
+      }
+    } catch (error) {
+      logger.error('[PostCapturePreview] Error in handleImageLoad', {
+        screen: 'post_capture_preview',
+        action: 'image_load_error',
+      }, error as Error);
+
+      dispatch({ type: 'IMAGE_DIMENSIONS_FAILED' });
+
+      Sentry.captureException(error, {
+        tags: {
+          screen: 'post_capture_preview',
+          action: 'image_load_error',
+        },
+      });
+    }
+  }, [containerDimensions, calculateAndSetDisplayBounds, dispatch]);
+
+  // Recalculate display bounds when image dimensions change
+  // This useEffect is now triggered by onLoad instead of Image.getSize
+  useEffect(() => {
+    if (imageDimensions.width > 0 && imageDimensions.height > 0 &&
+        containerDimensions.width > 0 && containerDimensions.height > 0) {
+      logger.info('[PostCapturePreview] Image dimensions received, recalculating display bounds', {
+        screen: 'post_capture_preview',
+        imageDimensions,
+        containerDimensions,
+      });
+      calculateAndSetDisplayBounds(containerDimensions.width, containerDimensions.height);
+    }
+  }, [imageDimensions.width, imageDimensions.height, containerDimensions.width, containerDimensions.height, calculateAndSetDisplayBounds]);
+
+  // Track SVG lines rendering state
+  useEffect(() => {
+    if (corners.length === 4 && displayBounds.width > 0) {
+      dispatch({
+        type: 'SVG_LINES_RENDERING',
+        payload: { rendering: true, lineCount: 4 },
+      });
+    } else {
+      dispatch({
+        type: 'SVG_LINES_RENDERING',
+        payload: { rendering: false, lineCount: 0 },
+      });
+    }
+  }, [corners.length, displayBounds.width, dispatch]);
+
+  // Track overlay rendering state
+  useEffect(() => {
+    if (displayBounds.width > 0) {
+      logger.info('[PostCapturePreview] Overlay ready to render', {
+        screen: 'post_capture_preview',
+        overlayLeft: displayBounds.offsetX,
+        overlayTop: displayBounds.offsetY,
+        overlayWidth: displayBounds.width,
+        overlayHeight: displayBounds.height,
+        cornersCount: corners.length,
+      });
+      dispatch({
+        type: 'OVERLAY_RENDERING',
+        payload: { rendering: true, cornerHandleCount: corners.length },
+      });
+    } else {
+      logger.debug('[PostCapturePreview] Overlay not ready - displayBounds.width is 0', {
+        screen: 'post_capture_preview',
+        displayBounds,
+      });
+      dispatch({
+        type: 'OVERLAY_RENDERING',
+        payload: { rendering: false, cornerHandleCount: 0 },
+      });
+    }
+  }, [displayBounds.width, displayBounds.height, displayBounds.offsetX, displayBounds.offsetY, corners.length, dispatch]);
+
+  const handleCornerChange = (index: number, position: CornerPosition) => {
+    const newCorners = [...corners];
+    newCorners[index] = position;
+    setCorners(newCorners);
   };
+
+  const handleImageLayout = useCallback((event: any) => {
+    const { width: containerWidth, height: containerHeight, x, y } = event.nativeEvent.layout;
+
+    // Only log if dimensions actually changed to reduce noise
+    if (containerWidth !== containerDimensions.width || containerHeight !== containerDimensions.height) {
+      logger.debug('[PostCapturePreview] handleImageLayout called', {
+        screen: 'post_capture_preview',
+        containerWidth,
+        containerHeight,
+        x,
+        y,
+        imageDimensionsWidth: imageDimensions.width,
+        imageDimensionsHeight: imageDimensions.height,
+      });
+    }
+
+    dispatch({
+      type: 'LAYOUT_UPDATED',
+      payload: { containerWidth, containerHeight },
+    });
+
+    // Store container dimensions for later recalculation when image dimensions arrive
+    setContainerDimensions({ width: containerWidth, height: containerHeight });
+
+    // Try to calculate display bounds (will return early if image dimensions not ready)
+    calculateAndSetDisplayBounds(containerWidth, containerHeight);
+  }, [containerDimensions.width, containerDimensions.height, imageDimensions.width, imageDimensions.height, calculateAndSetDisplayBounds, dispatch]);
 
   const handleAccept = () => {
     // Convert screen coordinates back to normalized (0-1) for processing
@@ -377,10 +496,31 @@ const PostCapturePreview: React.FC<PostCapturePreviewProps> = ({
       return null;
     }
 
-    if (displayBounds.width === 0) {
-      logger.warn('[PostCapturePreview] Cannot render border lines - displayBounds width is 0', {
+    // Safety checks: Validate display bounds
+    if (!displayBounds.width || !displayBounds.height || 
+        displayBounds.width <= 0 || displayBounds.height <= 0 ||
+        !isFinite(displayBounds.width) || !isFinite(displayBounds.height)) {
+      logger.warn('[PostCapturePreview] Cannot render border lines - invalid display bounds', {
         screen: 'post_capture_preview',
         displayBounds,
+      });
+      return null;
+    }
+
+    // Safety check: Don't render if corners are still in normalized coordinates (0-1 range)
+    if (!corners.every(c => c.x > 1 && c.y > 1)) {
+      logger.warn('[PostCapturePreview] Cannot render border lines - corners not yet scaled to screen coordinates', {
+        screen: 'post_capture_preview',
+        corners,
+      });
+      return null;
+    }
+
+    // Safety check: Validate corner coordinates are finite numbers
+    if (!corners.every(c => isFinite(c.x) && isFinite(c.y))) {
+      logger.warn('[PostCapturePreview] Cannot render border lines - invalid corner coordinates', {
+        screen: 'post_capture_preview',
+        corners,
       });
       return null;
     }
@@ -393,8 +533,35 @@ const PostCapturePreview: React.FC<PostCapturePreviewProps> = ({
       const x2 = nextCorner.x - displayBounds.offsetX;
       const y2 = nextCorner.y - displayBounds.offsetY;
 
+      // Validate SVG coordinates are finite numbers
+      if (!isFinite(x1) || !isFinite(y1) || !isFinite(x2) || !isFinite(y2)) {
+        logger.warn(`[PostCapturePreview] Invalid SVG coordinates for line ${index}`, {
+          screen: 'post_capture_preview',
+          index,
+          x1,
+          y1,
+          x2,
+          y2,
+          corner,
+          nextCorner,
+          displayBounds,
+        });
+        return null;
+      }
+
       logger.debug(`[PostCapturePreview] Border line ${index}`, {
         screen: 'post_capture_preview',
+        index,
+        x1,
+        y1,
+        x2,
+        y2,
+      });
+
+      // Log right before creating SVG Line (potential crash point)
+      logger.debug(`[PostCapturePreview] Creating SVG Line ${index}`, {
+        screen: 'post_capture_preview',
+        action: 'svg_line_create',
         index,
         x1,
         y1,
@@ -413,7 +580,7 @@ const PostCapturePreview: React.FC<PostCapturePreviewProps> = ({
           strokeWidth="3"
         />
       );
-    });
+    }).filter(Boolean); // Filter out null entries
 
     logger.info('[PostCapturePreview] Rendering SVG border lines', {
       screen: 'post_capture_preview',
@@ -422,19 +589,45 @@ const PostCapturePreview: React.FC<PostCapturePreviewProps> = ({
       svgHeight: displayBounds.height,
     });
 
-    return (
-      <Svg
-        style={StyleSheet.absoluteFill}
-        width={displayBounds.width}
-        height={displayBounds.height}
-      >
-        {lines}
-      </Svg>
-    );
+    // Log right before creating SVG component (potential crash point)
+    logger.info('[PostCapturePreview] Creating SVG component', {
+      screen: 'post_capture_preview',
+      action: 'svg_component_create',
+      width: displayBounds.width,
+      height: displayBounds.height,
+      lineCount: lines.length,
+    });
+
+    try {
+      return (
+        <Svg
+          style={StyleSheet.absoluteFill}
+          width={displayBounds.width}
+          height={displayBounds.height}
+        >
+          {lines}
+        </Svg>
+      );
+    } catch (error) {
+      logger.error('[PostCapturePreview] Error creating SVG component', {
+        screen: 'post_capture_preview',
+        action: 'svg_component_error',
+        width: displayBounds.width,
+        height: displayBounds.height,
+        lineCount: lines.length,
+      }, error instanceof Error ? error : new Error(String(error)));
+      Sentry.captureException(error instanceof Error ? error : new Error(String(error)), {
+        tags: {
+          screen: 'post_capture_preview',
+          action: 'svg_component_error',
+        },
+      });
+      return null;
+    }
   };
 
   return (
-    <GestureHandlerRootView style={styles.container}>
+    <View style={styles.container}>
       <SafeAreaView style={styles.safeArea}>
         <View style={styles.header}>
           <Text style={styles.title}>Adjust Document Corners</Text>
@@ -452,29 +645,28 @@ const PostCapturePreview: React.FC<PostCapturePreviewProps> = ({
           <Image
             source={{ uri: `data:image/jpeg;base64,${imageBase64}` }}
             style={styles.image}
-            resizeMode="contain"
+            contentFit="contain"
             onLayout={handleImageLayout}
+            onLoad={handleImageLoad}
           />
 
           {/* Overlay with corner handles and border - positioned to match actual image bounds */}
-          {(() => {
-            logger.debug('[PostCapturePreview] Overlay render check', {
+          {displayBounds.width > 0 && 
+           displayBounds.height > 0 &&
+           isFinite(displayBounds.width) && 
+           isFinite(displayBounds.height) &&
+           isFinite(displayBounds.offsetX) &&
+           isFinite(displayBounds.offsetY) && (() => {
+            // Log right before rendering overlay (critical crash point)
+            logger.info('[PostCapturePreview] Rendering overlay', {
               screen: 'post_capture_preview',
-              displayBoundsWidth: displayBounds.width,
-              shouldRenderOverlay: displayBounds.width > 0,
+              action: 'overlay_render_start',
+              displayBounds,
+              cornersCount: corners.length,
+              corners: corners.map(c => ({ x: c.x, y: c.y })),
             });
 
-            if (displayBounds.width > 0) {
-              logger.info('[PostCapturePreview] Rendering overlay', {
-                screen: 'post_capture_preview',
-                overlayLeft: displayBounds.offsetX,
-                overlayTop: displayBounds.offsetY,
-                overlayWidth: displayBounds.width,
-                overlayHeight: displayBounds.height,
-                cornersCount: corners.length,
-              });
-
-              return (
+            return (
                 <View
                   style={{
                     position: 'absolute',
@@ -487,48 +679,91 @@ const PostCapturePreview: React.FC<PostCapturePreviewProps> = ({
                 >
                   {/* Border lines */}
                   <View style={StyleSheet.absoluteFill} pointerEvents="none">
-                    {renderBorderLines()}
+                    {(() => {
+                      logger.debug('[PostCapturePreview] Rendering border lines', {
+                        screen: 'post_capture_preview',
+                        action: 'border_lines_render',
+                      });
+                      return renderBorderLines();
+                    })()}
                   </View>
 
-                  {/* Corner handles */}
-                  {corners.map((corner, index) => {
-                    const handlePosition = {
-                      x: corner.x - displayBounds.offsetX,
-                      y: corner.y - displayBounds.offsetY,
-                    };
+                  {/* Corner handles - only render when corners are properly scaled to screen coordinates */}
+                  {(() => {
+                    // Strict validation: corners must be scaled (x > 1, y > 1) and all values finite
+                    const areCornersScaled = corners.length === 4 && 
+                      corners.every(c => 
+                        c.x > 1 && 
+                        c.y > 1 && 
+                        isFinite(c.x) && 
+                        isFinite(c.y) &&
+                        c.x < 10000 && // Reasonable upper bound
+                        c.y < 10000
+                      );
 
-                    logger.debug(`[PostCapturePreview] Rendering corner handle ${index}`, {
-                      screen: 'post_capture_preview',
-                      index,
-                      cornerX: corner.x,
-                      cornerY: corner.y,
-                      handlePositionX: handlePosition.x,
-                      handlePositionY: handlePosition.y,
-                    });
+                    if (!areCornersScaled) {
+                      // Don't log on every render - only log once when we detect the issue
+                      if (corners.length > 0) {
+                        logger.debug('[PostCapturePreview] Corners not yet scaled, skipping handle render', {
+                          screen: 'post_capture_preview',
+                          cornersLength: corners.length,
+                          corners,
+                          displayBoundsWidth: displayBounds.width,
+                          displayBoundsHeight: displayBounds.height,
+                        });
+                      }
+                      return null;
+                    }
 
-                    return (
-                      <CornerHandle
-                        key={`corner-${index}`}
-                        position={handlePosition}
-                        onPositionChange={(pos) => handleCornerChange(index, {
-                          x: pos.x + displayBounds.offsetX,
-                          y: pos.y + displayBounds.offsetY,
-                        })}
-                        cornerIndex={index}
-                        imageWidth={displayBounds.width}
-                        imageHeight={displayBounds.height}
-                      />
-                    );
-                  })}
+                    // Temporarily disabled - CornerHandle causing crashes
+                    return null;
+
+                    // return corners.map((corner, index) => {
+                    //   const handlePosition = {
+                    //     x: corner.x - displayBounds.offsetX,
+                    //     y: corner.y - displayBounds.offsetY,
+                    //   };
+
+                    //   // Validate handle position before rendering
+                    //   if (!isFinite(handlePosition.x) || !isFinite(handlePosition.y) ||
+                    //       handlePosition.x < 0 || handlePosition.y < 0 ||
+                    //       handlePosition.x > displayBounds.width || handlePosition.y > displayBounds.height) {
+                    //     logger.warn(`[PostCapturePreview] Invalid handle position for corner ${index}`, {
+                    //       screen: 'post_capture_preview',
+                    //       index,
+                    //       corner,
+                    //       handlePosition,
+                    //       displayBounds,
+                    //     });
+                    //     return null;
+                    //   }
+
+                    //   logger.debug(`[PostCapturePreview] Rendering corner handle ${index}`, {
+                    //     screen: 'post_capture_preview',
+                    //     index,
+                    //     cornerX: corner.x,
+                    //     cornerY: corner.y,
+                    //     handlePositionX: handlePosition.x,
+                    //     handlePositionY: handlePosition.y,
+                    //   });
+
+                    //   return (
+                    //     <CornerHandle
+                    //       key={`corner-${index}`}
+                    //       position={handlePosition}
+                    //       onPositionChange={(pos) => handleCornerChange(index, {
+                    //         x: pos.x + displayBounds.offsetX,
+                    //         y: pos.y + displayBounds.offsetY,
+                    //       })}
+                    //       cornerIndex={index}
+                    //       imageWidth={displayBounds.width}
+                    //       imageHeight={displayBounds.height}
+                    //     />
+                    //   );
+                    // }).filter(Boolean);
+                  })()}
                 </View>
-              );
-            } else {
-              logger.warn('[PostCapturePreview] Not rendering overlay - displayBounds.width is 0', {
-                screen: 'post_capture_preview',
-                displayBounds,
-              });
-              return null;
-            }
+            );
           })()}
 
           {isProcessing && (
@@ -613,7 +848,7 @@ const PostCapturePreview: React.FC<PostCapturePreviewProps> = ({
           </View>
         )}
       </SafeAreaView>
-    </GestureHandlerRootView>
+    </View>
   );
 };
 

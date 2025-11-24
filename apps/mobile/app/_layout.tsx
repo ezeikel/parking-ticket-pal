@@ -1,6 +1,5 @@
 import { useEffect } from 'react';
-import { Slot, useNavigationContainerRef } from 'expo-router';
-import { Stack, useGlobalSearchParams, usePathname } from 'expo-router';
+import { Slot, useNavigationContainerRef, useGlobalSearchParams, usePathname } from 'expo-router';
 import Constants, { ExecutionEnvironment } from "expo-constants";
 import * as Sentry from '@sentry/react-native';
 import { ErrorBoundary } from '@sentry/react-native';

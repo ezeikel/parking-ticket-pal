@@ -18,6 +18,16 @@ export type AnalyticsEvent =
   | "ticket_image_picker_used"
   | "ticket_document_scanner_used"
 
+  // Vision camera events
+  | "vision_camera_scan_started"
+  | "vision_camera_capture_initiated"
+  | "document_captured_with_detection"
+  | "vision_camera_permission_result"
+  | "gallery_opened_from_vision_camera"
+  | "image_selected_from_gallery"
+  | "gallery_cancelled"
+  | "flash_toggled"
+
   // OCR processing events
   | "ocr_processing_started"
   | "ocr_processing_success"
@@ -91,6 +101,20 @@ export type AnalyticsEvent =
   | "network_error"
   | "permission_denied"
 
+  // PostCapturePreview / CornerHandle debugging events
+  | "corner_handle_mounted"
+  | "corner_position_change_called"
+  | "corner_position_change_success"
+  | "corner_position_change_error"
+  | "corner_wrapper_creation_attempt"
+  | "corner_wrapper_creation_success"
+  | "corner_wrapper_creation_error"
+  | "corner_wrapper_status"
+  | "corner_gesture_start"
+  | "corner_gesture_end"
+  | "corner_gesture_end_before_call"
+  | "corner_gesture_end_error"
+
 export type AnalyticsProperties = {
   // Screen/navigation properties
   screen?: string
@@ -116,6 +140,11 @@ export type AnalyticsProperties = {
   has_extracted_date?: boolean
   has_extracted_amount?: boolean
 
+  // Document detection properties
+  confidence?: number
+  auto_capture?: boolean
+  has_document_detected?: boolean
+
   // Form properties
   form_field?: string
   validation_errors?: string[]
@@ -130,7 +159,7 @@ export type AnalyticsProperties = {
   // Error properties
   error_message?: string
   error_code?: string
-  error_type?: "validation" | "network" | "permission" | "ocr" | "scanning" | "general"
+  error_type?: "validation" | "network" | "permission" | "ocr" | "scanning" | "general" | "ad_sdk" | "component_render" | "state_update"
 
   // Device/app properties
   platform?: "ios" | "android" | "windows" | "macos" | "web"
@@ -150,6 +179,9 @@ export type AnalyticsProperties = {
   button_location?: string
   interaction_type?: "tap" | "long_press" | "swipe"
   scan_method?: "document_scanner" | "image_picker"
+
+  // Camera/scanner properties
+  enabled?: boolean
 
   // Search properties
   searchTerm?: string
@@ -174,6 +206,22 @@ export type AnalyticsProperties = {
   sortOrder?: "asc" | "desc"
   previousSortBy?: string
   previousSortOrder?: "asc" | "desc"
+
+  // PostCapturePreview / CornerHandle debugging properties
+  corner_index?: number
+  position_x?: number
+  position_y?: number
+  new_position_x?: number
+  new_position_y?: number
+  image_width?: number
+  image_height?: number
+  method?: string
+  wrapper_type?: string
+  has_wrapper?: boolean
+  will_use_fallback?: boolean
+  final_x?: number
+  final_y?: number
+  hasWrapper?: boolean
 }
 
 /**

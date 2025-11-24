@@ -295,7 +295,7 @@ export { logger }
 
 // Convenience function to track scanner issues specifically
 export function logScannerIssue(
-  step: 'initialization' | 'permission' | 'camera_open' | 'document_scan' | 'image_pick' | 'ocr_process',
+  step: 'initialization' | 'permission' | 'camera_open' | 'document_scan' | 'image_pick' | 'ocr_process' | 'gallery_open',
   error: Error,
   context?: LogContext
 ) {

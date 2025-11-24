@@ -12,25 +12,24 @@ type UnitMap = {
   interstitial: Sided;
 };
 
-// TODO: Replace these with your actual AdMob ad unit IDs from Google AdMob Console
 const UNITS: UnitMap = {
   banners: {
     tickets: {
-      ios: 'ca-app-pub-XXXXXXXXXXXXXXXX/XXXXXXXXXX', // TODO: Add your iOS banner ad unit ID for tickets screen
-      android: 'ca-app-pub-XXXXXXXXXXXXXXXX/XXXXXXXXXX', // TODO: Add your Android banner ad unit ID for tickets screen
+      ios: 'ca-app-pub-7677365102925875/8504641161',
+      android: 'ca-app-pub-7677365102925875/1346290159',
     },
     settings: {
-      ios: 'ca-app-pub-XXXXXXXXXXXXXXXX/XXXXXXXXXX', // TODO: Add your iOS banner ad unit ID for settings screen
-      android: 'ca-app-pub-XXXXXXXXXXXXXXXX/XXXXXXXXXX', // TODO: Add your Android banner ad unit ID for settings screen
+      ios: 'ca-app-pub-7677365102925875/6999987803',
+      android: 'ca-app-pub-7677365102925875/2659371826',
     },
     'ticket-detail': {
-      ios: 'ca-app-pub-XXXXXXXXXXXXXXXX/XXXXXXXXXX', // TODO: Add your iOS banner ad unit ID for ticket detail screen
-      android: 'ca-app-pub-XXXXXXXXXXXXXXXX/XXXXXXXXXX', // TODO: Add your Android banner ad unit ID for ticket detail screen
+      ios: 'ca-app-pub-7677365102925875/1444408793',
+      android: 'ca-app-pub-7677365102925875/2640573419',
     },
   },
   interstitial: {
-    ios: 'ca-app-pub-XXXXXXXXXXXXXXXX/XXXXXXXXXX', // TODO: Add your iOS interstitial ad unit ID
-    android: 'ca-app-pub-XXXXXXXXXXXXXXXX/XXXXXXXXXX', // TODO: Add your Android interstitial ad unit ID
+    ios: 'ca-app-pub-7677365102925875/9131327129',
+    android: 'ca-app-pub-7677365102925875/9033208484',
   },
 };
 

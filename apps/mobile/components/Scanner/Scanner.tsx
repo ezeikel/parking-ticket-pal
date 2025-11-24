@@ -320,8 +320,21 @@ const Scanner = ({ onClose, onImageScanned }: ScannerProps) => {
           ...formProperties
         });
 
-        // Show interstitial ad before success message
-        await adService.showAd();
+        // Show interstitial ad before success message with error handling
+        try {
+          await adService.showAd();
+        } catch (error) {
+          // Log error but don't crash - ads are non-critical
+          logger.error('Failed to show ad after ticket creation', {
+            screen: 'scanner',
+            action: 'ad_show_error',
+          }, error instanceof Error ? error : new Error(String(error)));
+          trackError(error instanceof Error ? error : new Error(String(error)), {
+            screen: 'scanner',
+            action: 'ad_show_error',
+            errorType: 'ad_sdk',
+          });
+        }
 
         Alert.alert('Success', 'Ticket created successfully!', [
           { text: 'OK', onPress: () => onClose?.() }

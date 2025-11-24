@@ -4,12 +4,11 @@ import Animated, {
   useSharedValue,
   useAnimatedStyle,
   withTiming,
-  runOnJS,
   interpolate,
-  Extrapolate,
+  Extrapolation,
   Easing,
 } from 'react-native-reanimated';
-import { Gesture, GestureDetector, GestureHandlerRootView } from 'react-native-gesture-handler';
+import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Scanner from '@/components/Scanner/Scanner';
 import VisionCameraScanner from '@/components/VisionCameraScanner/VisionCameraScanner';
 import { useCameraContext } from '@/contexts/CameraContext';
@@ -113,7 +112,7 @@ const CameraSheet = ({ isVisible, onClose }: CameraSheetProps) => {
         event.velocityY > 1000; // Fast swipe down
 
       if (shouldDismiss) {
-        runOnJS(handleClose)();
+        handleClose();
       } else {
         // Snap back to open position - backdrop will follow automatically
         translateY.value = withTiming(0, {
@@ -138,7 +137,7 @@ const CameraSheet = ({ isVisible, onClose }: CameraSheetProps) => {
       translateY.value,
       [SCREEN_HEIGHT, 0],
       [0, 0.4],
-      Extrapolate.CLAMP
+      Extrapolation.CLAMP
     );
 
     return {
@@ -152,7 +151,7 @@ const CameraSheet = ({ isVisible, onClose }: CameraSheetProps) => {
   }
 
   return (
-    <GestureHandlerRootView
+    <View
       style={{
         position: 'absolute',
         top: 0,
@@ -249,7 +248,7 @@ const CameraSheet = ({ isVisible, onClose }: CameraSheetProps) => {
           </View>
         </Animated.View>
       </GestureDetector>
-    </GestureHandlerRootView>
+    </View>
   );
 };
 

@@ -377,7 +377,6 @@ export default function TicketDetailScreen() {
         )}
       </ScrollView>
 
-      {/* Banner Ad */}
       <AdBanner placement="ticket-detail" />
 
       {/* Bottom Sheets */}

@@ -20,7 +20,6 @@ const Providers = ({ children }: { children: React.ReactNode }) => {
             options={{
               host: 'https://eu.i.posthog.com',
             }}
-            autocapture
           >
             <QueryClientProvider client={queryClient}>
               <PurchasesContextProvider>

@@ -106,7 +106,8 @@ export const applyPerspectiveTransform = (
   'worklet';
 
   if (!corners || corners.length !== 4) {
-    console.error('Invalid corners for perspective transform');
+    // console.error('Invalid corners for perspective transform');
+    // Commented out: console calls crash in worklet context
     return null;
   }
 
@@ -188,7 +189,8 @@ export const applyPerspectiveTransform = (
     return null;
 
   } catch (error) {
-    console.error('Perspective transform error:', error);
+    // console.error('Perspective transform error:', error);
+    // Commented out: console calls crash in worklet context
     OpenCV.clearBuffers(); // Ensure cleanup on error
     return null;
   }

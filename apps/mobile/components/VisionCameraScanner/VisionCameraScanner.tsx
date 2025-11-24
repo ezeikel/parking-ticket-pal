@@ -1,8 +1,9 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { View, Text, Alert, Platform, StyleSheet, StatusBar, Image, type LayoutChangeEvent } from 'react-native';
+import { View, Text, Alert, Platform, StyleSheet, StatusBar, Image, Pressable, type LayoutChangeEvent } from 'react-native';
 import { Camera, useCameraDevice, useCameraPermission, type Camera as CameraType } from 'react-native-vision-camera';
 import { BlurView } from 'expo-blur';
 import * as ImagePicker from 'expo-image-picker';
+import * as Sentry from '@sentry/react-native';
 
 import useOCR from '@/hooks/api/useOCR';
 import useCreateTicket from '@/hooks/api/useUploadTicket';
@@ -76,7 +77,11 @@ const VisionCameraScanner = ({ onClose, onImageScanned }: VisionCameraScannerPro
   const prevDetectionRef = useRef<{ detected: boolean; ready: boolean }>({ detected: false, ready: false });
 
   // Document detection integration with runOnJS callbacks
-  const { frameProcessor, setAutoCaptureEnabled: setAutoCaptureInHook, resetAutoCapture } = useDocumentDetection({
+  const {
+    frameProcessor,
+    setAutoCaptureEnabled: setAutoCaptureInHook,
+    resetAutoCapture
+  } = useDocumentDetection({
     onFrameProcessed: (data) => {
       setDebugState(data);
     },
@@ -285,7 +290,7 @@ const VisionCameraScanner = ({ onClose, onImageScanned }: VisionCameraScannerPro
         // Capture photo using camera
         if (cameraRef.current) {
           try {
-            logger.info('Starting photo capture', {
+            logger.info('[VisionCameraScanner] Starting photo capture', {
               screen: "vision_camera_scanner",
               flash: flashEnabled,
               has_corners: !!cornersState,
@@ -297,7 +302,7 @@ const VisionCameraScanner = ({ onClose, onImageScanned }: VisionCameraScannerPro
               flash: flashEnabled ? 'on' : 'off',
             });
 
-            logger.info('Photo taken successfully', {
+            logger.info('[VisionCameraScanner] Photo taken successfully', {
               screen: "vision_camera_scanner",
               photo_path: photo.path,
               photo_width: photo.width,
@@ -350,20 +355,58 @@ const VisionCameraScanner = ({ onClose, onImageScanned }: VisionCameraScannerPro
             });
 
             if (base64Image) {
-              // Store captured data for preview
-              setCapturedImageBase64(base64Image);
-              setCapturedCorners(cornersState);
-              setShowPostCapturePreview(true);
-              setIsActive(false); // Keep camera paused during preview
-
-              trackEvent("document_captured_with_detection", {
+              // Log right before transitioning to PostCapturePreview (critical crash point)
+              logger.info('[VisionCameraScanner] Preparing to show PostCapturePreview', {
                 screen: "vision_camera_scanner",
+                action: 'preview_transition_start',
+                hasBase64Image: !!base64Image,
+                base64Length: base64Image.length,
+                hasCornersState: !!cornersState,
+                cornersStateLength: cornersState?.length || 0,
+                cornersState: cornersState,
                 confidence: confidenceState,
-                auto_capture: stabilityProgress >= 1.0,
               });
 
-              // Don't process immediately - wait for user to accept in preview
-              onImageScanned?.();
+              try {
+                // Store captured data for preview
+                setCapturedImageBase64(base64Image);
+                setCapturedCorners(cornersState);
+                
+                logger.info('[VisionCameraScanner] State set, showing PostCapturePreview', {
+                  screen: "vision_camera_scanner",
+                  action: 'preview_transition_state_set',
+                });
+                
+                setShowPostCapturePreview(true);
+                setIsActive(false); // Keep camera paused during preview
+
+                logger.info('[VisionCameraScanner] PostCapturePreview should now render', {
+                  screen: "vision_camera_scanner",
+                  action: 'preview_transition_complete',
+                });
+
+                trackEvent("document_captured_with_detection", {
+                  screen: "vision_camera_scanner",
+                  confidence: confidenceState,
+                  auto_capture: stabilityProgress >= 1.0,
+                });
+
+                // Don't process immediately - wait for user to accept in preview
+                onImageScanned?.();
+              } catch (error) {
+                logger.error('[VisionCameraScanner] Error transitioning to PostCapturePreview', {
+                  screen: "vision_camera_scanner",
+                  action: 'preview_transition_error',
+                  hasBase64Image: !!base64Image,
+                  hasCornersState: !!cornersState,
+                }, error instanceof Error ? error : new Error(String(error)));
+                trackError(error instanceof Error ? error : new Error(String(error)), {
+                  screen: "vision_camera_scanner",
+                  action: "preview_transition",
+                  errorType: "state_update",
+                });
+                throw error; // Re-throw to be caught by outer try-catch
+              }
             } else {
               logger.error('Base64 image is empty or null', {
                 screen: "vision_camera_scanner",
@@ -376,7 +419,7 @@ const VisionCameraScanner = ({ onClose, onImageScanned }: VisionCameraScannerPro
             }
           } catch (photoError) {
             const error = photoError as Error;
-            logger.error('Photo capture/processing error', {
+            logger.error('[VisionCameraScanner] Photo capture/processing error', {
               screen: "vision_camera_scanner",
               error_message: error.message,
               error_name: error.name,
@@ -553,7 +596,21 @@ const VisionCameraScanner = ({ onClose, onImageScanned }: VisionCameraScannerPro
           ...formProperties
         });
 
-        await adService.showAd();
+        // Show ad with error handling to prevent crashes
+        try {
+          await adService.showAd();
+        } catch (error) {
+          // Log error but don't crash - ads are non-critical
+          logger.error('Failed to show ad after ticket creation', {
+            screen: 'vision_camera_scanner',
+            action: 'ad_show_error',
+          }, error instanceof Error ? error : new Error(String(error)));
+          trackError(error instanceof Error ? error : new Error(String(error)), {
+            screen: 'vision_camera_scanner',
+            action: 'ad_show_error',
+            errorType: 'ad_sdk',
+          });
+        }
 
         setIsProcessingSubmission(false);
 
@@ -651,6 +708,17 @@ const VisionCameraScanner = ({ onClose, onImageScanned }: VisionCameraScannerPro
 
   // Show post-capture preview if we have a captured image
   if (showPostCapturePreview && capturedImageBase64) {
+    // Log right before rendering PostCapturePreview (critical crash point)
+    logger.info('[VisionCameraScanner] Rendering PostCapturePreview component', {
+      screen: "vision_camera_scanner",
+      action: 'preview_render_start',
+      hasImageBase64: !!capturedImageBase64,
+      imageBase64Length: capturedImageBase64.length,
+      hasDetectedCorners: !!capturedCorners,
+      detectedCornersLength: capturedCorners?.length || 0,
+      detectedCorners: capturedCorners,
+    });
+
     return (
       <PostCapturePreview
         imageBase64={capturedImageBase64}
