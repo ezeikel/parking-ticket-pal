@@ -13,12 +13,6 @@ import { Worklets } from 'react-native-worklets-core';
 import * as Sentry from '@sentry/react-native';
 import { logger } from '@/lib/logger';
 import { useAnalytics } from '@/lib/analytics';
-import {
-  createWorkletLogger,
-  createBreadcrumbTracker,
-  validateWorkletValue,
-  safeWorklet
-} from '@/utils/workletDebugger';
 
 type CornerPosition = {
   x: number;
@@ -43,10 +37,6 @@ const CornerHandle = ({
   imageWidth,
   imageHeight
 }: CornerHandleProps) => {
-  // Create worklet-safe logging utilities for this component
-  const workletLogger = useMemo(() => createWorkletLogger(`CornerHandle-${cornerIndex}`), [cornerIndex]);
-  const breadcrumbs = useMemo(() => createBreadcrumbTracker(`CornerHandle-${cornerIndex}`), [cornerIndex]);
-
   // Validate position values before using in Reanimated (prevents Skia crashes)
   const safeX = isFinite(position.x) && !isNaN(position.x) ? position.x : 0;
   const safeY = isFinite(position.y) && !isNaN(position.y) ? position.y : 0;
@@ -348,150 +338,46 @@ const CornerHandle = ({
   const pan = Gesture.Pan()
     .onStart(() => {
       'worklet';
-      breadcrumbs.add('Gesture started', {
-        cornerIndex,
-        startX: translateX.value,
-        startY: translateY.value,
-      });
-
       startX.value = translateX.value;
       startY.value = translateY.value;
       trackGestureStartJS();
-
-      workletLogger.debug('Pan gesture started', {
-        cornerIndex,
-        initialPosition: { x: translateX.value, y: translateY.value },
-      });
     })
     .onUpdate((event) => {
       'worklet';
       // Validate values before using to prevent NaN crashes
-      const translationX = validateWorkletValue(event.translationX, 0, 'translationX');
-      const translationY = validateWorkletValue(event.translationY, 0, 'translationY');
+      const translationX = isFinite(event.translationX) ? event.translationX : 0;
+      const translationY = isFinite(event.translationY) ? event.translationY : 0;
 
       // Constrain to image bounds (use safe values to prevent crashes)
-      const newX = validateWorkletValue(startX.value + translationX, 0, 'newX');
-      const newY = validateWorkletValue(startY.value + translationY, 0, 'newY');
+      const newX = isFinite(startX.value + translationX) ? startX.value + translationX : 0;
+      const newY = isFinite(startY.value + translationY) ? startY.value + translationY : 0;
 
       translateX.value = Math.max(0, Math.min(safeWidth, newX));
       translateY.value = Math.max(0, Math.min(safeHeight, newY));
     })
     .onEnd(() => {
-      'worklet'; // Ensure it's treated as worklet
+      'worklet';
 
-      // Add breadcrumb at the start of onEnd
-      breadcrumbs.add('Gesture ended - starting position update', {
-        cornerIndex,
-        finalX: translateX.value,
-        finalY: translateY.value,
-      });
-
-      const finalX = validateWorkletValue(translateX.value, 0, 'finalX');
-      const finalY = validateWorkletValue(translateY.value, 0, 'finalY');
+      const finalX = isFinite(translateX.value) ? translateX.value : 0;
+      const finalY = isFinite(translateY.value) ? translateY.value : 0;
       const finalPosition = { x: finalX, y: finalY };
-      const hasWrapper = !!positionChangeWrapper;
-      const method = hasWrapper ? 'worklets_wrapper' : 'scheduleOnRN';
-
-      workletLogger.info('Gesture ended, preparing to call position update', {
-        cornerIndex,
-        finalPosition,
-        method,
-        hasWrapper,
-      });
-
-      // Track before attempting the call - this MUST happen before the call
-      // so we can see in PostHog if we got this far
-      trackGestureEndBeforeCallJS(hasWrapper, finalX, finalY);
-
-      // Defensive checks before calling - the crash might be because these are undefined
-      const scheduleOnRNExists = typeof scheduleOnRN !== 'undefined' && scheduleOnRN !== null;
-      const updatePositionExists = typeof updatePosition !== 'undefined' && updatePosition !== null;
-      const wrapperExists = hasWrapper && typeof positionChangeWrapper !== 'undefined' && positionChangeWrapper !== null;
 
       try {
-        breadcrumbs.add('Attempting position update', {
-          method,
-          wrapperExists,
-          scheduleOnRNExists,
-          updatePositionExists,
-        });
-
-        // Try Worklets.createRunOnJS first (working pattern from useDocumentDetection)
-        if (wrapperExists && positionChangeWrapper) {
-          // Verify it's actually a function before calling
-          if (typeof positionChangeWrapper === 'function') {
-            workletLogger.debug('Calling positionChangeWrapper', { cornerIndex, finalPosition });
-            breadcrumbs.add('Calling positionChangeWrapper');
-
-            positionChangeWrapper(finalPosition);
-
-            breadcrumbs.add('positionChangeWrapper called successfully');
-            trackGestureEndJS('worklets_wrapper', finalX, finalY);
-            workletLogger.info('Position update successful via wrapper', { cornerIndex, method: 'wrapper' });
-          } else {
-            // Wrapper exists but isn't a function - this is the bug!
-            const errorMsg = `positionChangeWrapper is not a function, type: ${typeof positionChangeWrapper}`;
-            workletLogger.error(errorMsg, { cornerIndex });
-            breadcrumbs.add('Wrapper type error', { type: typeof positionChangeWrapper });
-            throw new Error(errorMsg);
-          }
-        } else if (scheduleOnRNExists && updatePositionExists) {
-          // Fallback to scheduleOnRN - verify both exist and are functions
-          // IMPORTANT: scheduleOnRN expects spread parameters, not an object
-          // Use updatePosition adapter which accepts (x, y) and converts to { x, y }
-          if (typeof scheduleOnRN === 'function' && typeof updatePosition === 'function') {
-            workletLogger.debug('Calling scheduleOnRN with updatePosition', { cornerIndex, finalX, finalY });
-            breadcrumbs.add('Calling scheduleOnRN');
-
-            scheduleOnRN(updatePosition, finalX, finalY);
-
-            breadcrumbs.add('scheduleOnRN called successfully');
-            trackGestureEndJS('scheduleOnRN', finalX, finalY);
-            workletLogger.info('Position update successful via scheduleOnRN', { cornerIndex, method: 'scheduleOnRN' });
-          } else {
-            const errorMsg = `scheduleOnRN or updatePosition is not a function. scheduleOnRN: ${typeof scheduleOnRN}, updatePosition: ${typeof updatePosition}`;
-            workletLogger.error(errorMsg, { cornerIndex });
-            breadcrumbs.add('Function type error', {
-              scheduleOnRNType: typeof scheduleOnRN,
-              updatePositionType: typeof updatePosition,
-            });
-            throw new Error(errorMsg);
-          }
-        } else {
-          // Neither method is available - this shouldn't happen but let's handle it
-          const errorMsg = `No valid method available. hasWrapper: ${hasWrapper}, wrapperExists: ${wrapperExists}, scheduleOnRNExists: ${scheduleOnRNExists}, updatePositionExists: ${updatePositionExists}`;
-          workletLogger.error(errorMsg, { cornerIndex });
-          breadcrumbs.add('No valid method available', {
-            hasWrapper,
-            wrapperExists,
-            scheduleOnRNExists,
-            updatePositionExists,
-          });
-          throw new Error(errorMsg);
+        // Try Worklets.createRunOnJS wrapper first (working pattern from useDocumentDetection)
+        if (positionChangeWrapper) {
+          positionChangeWrapper(finalPosition);
+          trackGestureEndJS('worklets_wrapper', finalX, finalY);
+        } else if (updatePosition) {
+          // Fallback to scheduleOnRN
+          scheduleOnRN(updatePosition, finalX, finalY);
+          trackGestureEndJS('scheduleOnRN', finalX, finalY);
         }
       } catch (error) {
-        // Log error from JS thread (can't log directly from worklet)
-        // This catch should handle JS exceptions, but native crashes might not be caught
-        breadcrumbs.add('Error in position update', {
-          errorMessage: (error as Error)?.message,
-          errorName: (error as Error)?.name,
-        });
-
-        workletLogger.error('Failed to update position', {
-          cornerIndex,
-          method,
-          errorMessage: (error as Error)?.message,
-        }, error);
-
+        // Log error from JS thread
         logErrorJS(error as Error, {
-          method,
           gesture: {
             finalX,
             finalY,
-            hasWrapper,
-            wrapperExists,
-            scheduleOnRNExists,
-            updatePositionExists,
           },
           component: {
             imageWidth,
@@ -499,16 +385,7 @@ const CornerHandle = ({
             positionX: position.x,
             positionY: position.y,
           },
-          extra: {
-            handlePositionChangeType: typeof handlePositionChange,
-            wrapperType: typeof positionChangeWrapper,
-            scheduleOnRNType: typeof scheduleOnRN,
-            errorName: (error as Error)?.name,
-            errorMessage: (error as Error)?.message,
-          },
         });
-        // Don't re-throw - we've logged it, let's try to continue
-        // Re-throwing might cause the app to crash before events are sent
       }
     });
 

@@ -16,7 +16,7 @@ import type { DocumentCorner } from '@/hooks/useDocumentDetection';
 import { logger } from '@/lib/logger';
 import { usePostCaptureDebug } from '@/hooks/usePostCaptureDebug';
 import { useAnalytics } from '@/lib/analytics';
-// import CornerHandle from './CornerHandle'; // Temporarily disabled
+import CornerHandle from './CornerHandle';
 
 type PostCapturePreviewProps = {
   imageBase64: string;
@@ -430,7 +430,7 @@ const PostCapturePreview = ({
     }
   }, [displayBounds.width, displayBounds.height, displayBounds.offsetX, displayBounds.offsetY, corners.length, dispatch]);
 
-  const handleCornerChange = (index: number, position: CornerPosition) => {
+  const handleCornerChange = (index: number, position: DocumentCorner) => {
     const newCorners = [...corners];
     newCorners[index] = position;
     setCorners(newCorners);
@@ -715,52 +715,49 @@ const PostCapturePreview = ({
                       return null;
                     }
 
-                    // Temporarily disabled - CornerHandle causing crashes
-                    return null;
+                    return corners.map((corner, index) => {
+                      const handlePosition = {
+                        x: corner.x - displayBounds.offsetX,
+                        y: corner.y - displayBounds.offsetY,
+                      };
 
-                    // return corners.map((corner, index) => {
-                    //   const handlePosition = {
-                    //     x: corner.x - displayBounds.offsetX,
-                    //     y: corner.y - displayBounds.offsetY,
-                    //   };
+                      // Validate handle position before rendering
+                      if (!isFinite(handlePosition.x) || !isFinite(handlePosition.y) ||
+                          handlePosition.x < 0 || handlePosition.y < 0 ||
+                          handlePosition.x > displayBounds.width || handlePosition.y > displayBounds.height) {
+                        logger.warn(`[PostCapturePreview] Invalid handle position for corner ${index}`, {
+                          screen: 'post_capture_preview',
+                          index,
+                          corner,
+                          handlePosition,
+                          displayBounds,
+                        });
+                        return null;
+                      }
 
-                    //   // Validate handle position before rendering
-                    //   if (!isFinite(handlePosition.x) || !isFinite(handlePosition.y) ||
-                    //       handlePosition.x < 0 || handlePosition.y < 0 ||
-                    //       handlePosition.x > displayBounds.width || handlePosition.y > displayBounds.height) {
-                    //     logger.warn(`[PostCapturePreview] Invalid handle position for corner ${index}`, {
-                    //       screen: 'post_capture_preview',
-                    //       index,
-                    //       corner,
-                    //       handlePosition,
-                    //       displayBounds,
-                    //     });
-                    //     return null;
-                    //   }
+                      logger.debug(`[PostCapturePreview] Rendering corner handle ${index}`, {
+                        screen: 'post_capture_preview',
+                        index,
+                        cornerX: corner.x,
+                        cornerY: corner.y,
+                        handlePositionX: handlePosition.x,
+                        handlePositionY: handlePosition.y,
+                      });
 
-                    //   logger.debug(`[PostCapturePreview] Rendering corner handle ${index}`, {
-                    //     screen: 'post_capture_preview',
-                    //     index,
-                    //     cornerX: corner.x,
-                    //     cornerY: corner.y,
-                    //     handlePositionX: handlePosition.x,
-                    //     handlePositionY: handlePosition.y,
-                    //   });
-
-                    //   return (
-                    //     <CornerHandle
-                    //       key={`corner-${index}`}
-                    //       position={handlePosition}
-                    //       onPositionChange={(pos) => handleCornerChange(index, {
-                    //         x: pos.x + displayBounds.offsetX,
-                    //         y: pos.y + displayBounds.offsetY,
-                    //       })}
-                    //       cornerIndex={index}
-                    //       imageWidth={displayBounds.width}
-                    //       imageHeight={displayBounds.height}
-                    //     />
-                    //   );
-                    // }).filter(Boolean);
+                      return (
+                        <CornerHandle
+                          key={`corner-${index}`}
+                          position={handlePosition}
+                          onPositionChange={(pos) => handleCornerChange(index, {
+                            x: pos.x + displayBounds.offsetX,
+                            y: pos.y + displayBounds.offsetY,
+                          })}
+                          cornerIndex={index}
+                          imageWidth={displayBounds.width}
+                          imageHeight={displayBounds.height}
+                        />
+                      );
+                    }).filter(Boolean);
                   })()}
                 </View>
             );
