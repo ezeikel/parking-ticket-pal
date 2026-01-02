@@ -5,7 +5,7 @@ import { config } from '@fortawesome/fontawesome-svg-core';
 import { Toaster } from 'sonner';
 import '@fortawesome/fontawesome-svg-core/styles.css';
 import cn from '@/utils/cn';
-import Header from '@/components/Header/Header';
+import HeaderWrapper from '@/components/Header/HeaderWrapper';
 import FundAccountDialog from '@/components/dialogs/FundAccountDialog/FundAccountDialog';
 import Footer from '@/components/Footer/Footer';
 import PendingActionHandler from '@/components/PendingActionHandler';
@@ -48,8 +48,8 @@ const RootLayout = ({
     <body>
       <Providers>
         <PendingActionHandler />
-        <Header />
-        <main className="flex flex-col min-h-[calc(100vh-72px)] [&>div:not(#modal-root)]:flex-1 px-4">
+        <HeaderWrapper />
+        <main className="flex flex-col min-h-screen pt-[72px] [&>div:not(#modal-root)]:flex-1 px-4">
           <div id="modal-root" />
           {children}
         </main>

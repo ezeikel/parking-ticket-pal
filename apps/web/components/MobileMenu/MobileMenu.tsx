@@ -23,9 +23,11 @@ type MobileNavItem = {
 type MobileMenuProps = {
   items: MobileNavItem[];
   user?: Partial<User>;
+  hamburgerClassName?: string;
+  hamburgerIconClassName?: string;
 };
 
-const MobileMenu = ({ items, user }: MobileMenuProps) => {
+const MobileMenu = ({ items, user, hamburgerClassName, hamburgerIconClassName }: MobileMenuProps) => {
   const [isOpen, setIsOpen] = useState(false);
 
   const renderMenuItem = (item: MobileNavItem) => {
@@ -38,9 +40,6 @@ const MobileMenu = ({ items, user }: MobileMenuProps) => {
               className="flex items-center gap-2 p-2 w-full text-left hover:bg-muted/50 rounded-lg transition-colors"
               type="button"
             >
-              {item.iconName && (
-                <FontAwesomeIcon icon={item.iconName} size="lg" />
-              )}
               {item.label}
             </button>
           }
@@ -51,7 +50,6 @@ const MobileMenu = ({ items, user }: MobileMenuProps) => {
     if (item.component) {
       return (
         <div className="flex items-center gap-2 p-2">
-          {item.iconName && <FontAwesomeIcon icon={item.iconName} size="lg" />}
           {item.component}
         </div>
       );
@@ -67,7 +65,6 @@ const MobileMenu = ({ items, user }: MobileMenuProps) => {
             await signOut({ callbackUrl: '/' });
           }}
         >
-          {item.iconName && <FontAwesomeIcon icon={item.iconName} size="lg" />}
           {item.label}
         </button>
       );
@@ -83,9 +80,6 @@ const MobileMenu = ({ items, user }: MobileMenuProps) => {
             className="flex items-center gap-2 p-2 hover:bg-muted/50 rounded-lg transition-colors"
             onClick={() => setIsOpen(false)}
           >
-            {item.iconName && (
-              <FontAwesomeIcon icon={item.iconName} size="lg" />
-            )}
             {item.label}
           </a>
         );
@@ -97,7 +91,6 @@ const MobileMenu = ({ items, user }: MobileMenuProps) => {
           className="flex items-center gap-2 p-2 hover:bg-muted/50 rounded-lg transition-colors"
           onClick={() => setIsOpen(false)}
         >
-          {item.iconName && <FontAwesomeIcon icon={item.iconName} size="lg" />}
           {item.label}
         </Link>
       );
@@ -105,7 +98,6 @@ const MobileMenu = ({ items, user }: MobileMenuProps) => {
 
     return (
       <div className="flex items-center gap-2 p-2">
-        {item.iconName && <FontAwesomeIcon icon={item.iconName} size="lg" />}
         {item.label}
       </div>
     );
@@ -116,10 +108,13 @@ const MobileMenu = ({ items, user }: MobileMenuProps) => {
       <button
         type="button"
         onClick={() => setIsOpen(true)}
-        className="p-2 hover:bg-muted/50 rounded-lg transition-colors"
+        className={cn(
+          'p-2 rounded-lg transition-colors',
+          hamburgerClassName,
+        )}
         aria-label="Open menu"
       >
-        <FontAwesomeIcon icon={faBars} size="lg" />
+        <FontAwesomeIcon icon={faBars} size="lg" className={hamburgerIconClassName} />
       </button>
 
       {/* Overlay */}

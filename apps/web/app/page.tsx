@@ -9,8 +9,9 @@ import TrustIndicators from '@/components/TrustIndicators/TrustIndicators';
 
 const HomePage = () => (
   <>
-    <div className="flex flex-col gap-12 md:gap-16 pb-12 pt-12 md:pt-24">
-      <Hero />
+    {/* Hero takes full viewport - no padding */}
+    <Hero />
+    <div className="flex flex-col gap-12 md:gap-16 pb-12 pt-12 md:pt-16">
       <ProblemPain />
       <TrustIndicators />
       <HowItWorks />
