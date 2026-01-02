@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { View, Text, ActivityIndicator } from 'react-native';
+import { View, Text } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import * as SecureStore from 'expo-secure-store';
@@ -8,6 +8,7 @@ import { faCheckCircle, faExclamationCircle } from '@fortawesome/pro-regular-svg
 import { verifyMagicLink } from '@/api';
 import { useColorScheme } from '@/hooks/useColorScheme';
 import { Colors } from '@/constants/Colors';
+import Loader from '@/components/Loader/Loader';
 
 const MagicLinkVerify = () => {
   const { token } = useLocalSearchParams<{ token: string }>();
@@ -55,7 +56,7 @@ const MagicLinkVerify = () => {
       <View className="flex-1 justify-center items-center px-8">
         <View className="items-center gap-y-6">
           {status === 'verifying' && (
-            <ActivityIndicator size="large" color={Colors[colorScheme ?? 'light'].tint} />
+            <Loader size={64} color={Colors[colorScheme ?? 'light'].tint} />
           )}
           {status === 'success' && (
             <FontAwesomeIcon

@@ -29,16 +29,19 @@ model User {
   //  longitude: -0.1278
   //  }
 
-  role                 UserRole      @default(USER)
-  stripeCustomerId     String? // set after Stripe customer creation
-  revenueCatCustomerId String? // set after RevenueCat identification
-  createdAt            DateTime      @default(now())
-  updatedAt            DateTime      @updatedAt
-  signatureUrl         String?
-  subscription         Subscription?
-  vehicles             Vehicle[]
-  accounts             Account[]
-  sessions             Session[]
+  role                    UserRole       @default(USER)
+  stripeCustomerId        String? // set after Stripe customer creation
+  revenueCatCustomerId    String? // set after RevenueCat identification
+  notificationPreferences Json?          @default("{\"inApp\":true,\"email\":true,\"sms\":true,\"push\":true}")
+  createdAt               DateTime       @default(now())
+  updatedAt               DateTime       @updatedAt
+  signatureUrl            String?
+  subscription            Subscription?
+  vehicles                Vehicle[]
+  accounts                Account[]
+  sessions                Session[]
+  pushTokens              PushToken[]
+  notifications           Notification[]
 
   @@map("users")
 }
@@ -106,6 +109,7 @@ model Ticket {
   reminders       Reminder[]
   amountIncreases AmountIncrease[]
   challenges      Challenge[]
+  notifications   Notification[]
   vehicle         Vehicle          @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
   verification    Verification?
 
@@ -274,6 +278,40 @@ model Challenge {
   @@map("challenges")
 }
 
+model Notification {
+  id        String                @id @default(cuid())
+  userId    String
+  user      User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  ticketId  String?
+  ticket    Ticket?               @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  type      NotificationEventType
+  title     String
+  body      String
+  data      Json? // For navigation/metadata
+  read      Boolean               @default(false)
+  readAt    DateTime?
+  createdAt DateTime              @default(now())
+
+  @@index([userId, read])
+  @@index([userId, createdAt])
+  @@map("notifications")
+}
+
+model PushToken {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  token     String   @unique
+  platform  Platform
+  deviceId  String?
+  lastUsed  DateTime @default(now())
+  createdAt DateTime @default(now())
+
+  @@unique([userId, token])
+  @@index([userId])
+  @@map("push_tokens")
+}
+
 // Auth.js models
 
 model Account {
@@ -404,6 +442,7 @@ enum ReminderType {
 enum NotificationType {
   EMAIL
   SMS
+  PUSH
 }
 
 enum TransactionType {
@@ -532,4 +571,19 @@ enum AppealDecision {
   PARTIALLY_ALLOWED
   WITHDRAWN
   STRUCK_OUT
+}
+
+enum NotificationEventType {
+  TICKET_DEADLINE_REMINDER
+  TICKET_STATUS_UPDATE
+  FORM_DEADLINE_REMINDER
+  APPEAL_SUBMITTED
+  APPEAL_RESPONSE_RECEIVED
+  CHALLENGE_COMPLETE
+  PAYMENT_DUE
+}
+
+enum Platform {
+  IOS
+  ANDROID
 }

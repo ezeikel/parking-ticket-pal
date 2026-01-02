@@ -8,6 +8,7 @@ import twilio from 'twilio';
 import { ReminderType, NotificationType, Prisma } from '@prisma/client';
 import { addDays, isAfter, isSameDay } from 'date-fns';
 import { createServerLogger } from '@/lib/logger';
+import { createAndSendNotification } from '@/lib/notifications/create';
 
 const resend = new Resend(process.env.RESEND_API_KEY!);
 const twilioClient = twilio(
@@ -109,7 +110,25 @@ export const sendReminder = async (reminderId: string) => {
   const reminderLabel =
     reminder.type === ReminderType.DISCOUNT_PERIOD ? '14-day' : '28-day';
 
+  const notificationTitle = `${reminderLabel} Ticket Reminder`;
+  const notificationBody = `Your parking ticket ${reminder.ticket.pcnNumber} for ${reminder.ticket.vehicle.registrationNumber} is approaching the ${reminderLabel} deadline.`;
+
   try {
+    // Create in-app notification and send push (respects user preferences)
+    if (reminder.notificationType === NotificationType.PUSH) {
+      await createAndSendNotification({
+        userId: user.id,
+        ticketId: reminder.ticket.id,
+        type: 'TICKET_DEADLINE_REMINDER',
+        title: notificationTitle,
+        body: notificationBody,
+        data: {
+          reminderType: reminderLabel,
+          pcnNumber: reminder.ticket.pcnNumber,
+        },
+      });
+    }
+
     // email
     if (reminder.notificationType === NotificationType.EMAIL) {
       const html = await render(

@@ -75,6 +75,17 @@ export type AnalyticsEvent =
   | "phone_sheet_opened"
   | "address_sheet_opened"
 
+  // Search, filter, and sort events
+  | "search_opened"
+  | "search_performed"
+  | "search_cleared"
+  | "filter_opened"
+  | "filters_applied"
+  | "filters_cleared"
+  | "sort_opened"
+  | "sort_applied"
+  | "sort_cleared"
+
   // Error events
   | "error_occurred"
   | "network_error"
@@ -139,6 +150,30 @@ export type AnalyticsProperties = {
   button_location?: string
   interaction_type?: "tap" | "long_press" | "swipe"
   scan_method?: "document_scanner" | "image_picker"
+
+  // Search properties
+  searchTerm?: string
+  searchLength?: number
+  resultCount?: number
+  hasResults?: boolean
+  previousTerm?: string
+  hadResults?: boolean
+  source?: string
+
+  // Filter properties
+  issuerCount?: number
+  statusCount?: number
+  issuers?: string[]
+  statuses?: string[]
+  totalFilters?: number
+  clearedIssuers?: string[]
+  clearedStatuses?: string[]
+
+  // Sort properties
+  sortBy?: string
+  sortOrder?: "asc" | "desc"
+  previousSortBy?: string
+  previousSortOrder?: "asc" | "desc"
 }
 
 /**

@@ -1,5 +1,5 @@
 import React, { forwardRef, useMemo } from 'react';
-import { View, Text, Pressable } from 'react-native';
+import { View, Text } from 'react-native';
 import BottomSheet, { BottomSheetBackdrop, BottomSheetView } from '@gorhom/bottom-sheet';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { faFileLines, faFileContract } from '@fortawesome/pro-regular-svg-icons';

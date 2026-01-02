@@ -104,6 +104,28 @@ class PurchaseService {
   getIsInitialized(): boolean {
     return this.isInitialized;
   }
+
+  /**
+   * Check if user has any premium plan (Standard or Ultimate)
+   * This determines if ads should be hidden
+   */
+  async isPremium(): Promise<boolean> {
+    try {
+      const customerInfo = await this.getCustomerInfo();
+      if (!customerInfo) {
+        return false;
+      }
+
+      // Check if user has any active entitlements
+      // Both Standard and Ultimate plans should have entitlements that make them ad-free
+      const hasActiveEntitlements = Object.keys(customerInfo.entitlements.active).length > 0;
+
+      return hasActiveEntitlements;
+    } catch (error) {
+      console.error('[PurchaseService] Failed to check premium status:', error);
+      return false;
+    }
+  }
 }
 
 export const purchaseService = new PurchaseService();

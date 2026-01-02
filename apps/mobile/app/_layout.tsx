@@ -5,7 +5,9 @@ import * as Sentry from '@sentry/react-native';
 import { ErrorBoundary } from '@sentry/react-native';
 import { View, Text, Button } from 'react-native';
 import Providers from "@/providers";
+import { PostHogNavigationTracker } from "@/components/PostHogNavigationTracker";
 import { purchaseService } from '@/services/PurchaseService';
+import { registerForPushNotifications, setupNotificationListeners } from '@/lib/notifications';
 import "../global.css";
 
 const navigationIntegration = Sentry.reactNavigationIntegration({
@@ -40,6 +42,16 @@ const RootLayout = () => {
   useEffect(() => {
     // Initialize RevenueCat when app starts, before any providers
     purchaseService.initialize();
+
+    // Initialize push notifications
+    registerForPushNotifications();
+
+    // Setup notification listeners
+    const cleanupNotificationListeners = setupNotificationListeners();
+
+    return () => {
+      cleanupNotificationListeners();
+    };
   }, []);
 
   return (
@@ -57,6 +69,7 @@ const RootLayout = () => {
       )}
     >
       <Providers>
+        <PostHogNavigationTracker />
         <Slot />
       </Providers>
     </ErrorBoundary>

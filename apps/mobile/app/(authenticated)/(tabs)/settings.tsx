@@ -1,10 +1,11 @@
-import { Text, View, ScrollView, Pressable, Alert, Dimensions, ActivityIndicator } from 'react-native';
+import { Text, View, ScrollView, Alert, Dimensions } from 'react-native';
+import Switch from '@/components/Switch/Switch';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useFocusEffect } from '@react-navigation/native';
-import { useCallback, useState, useRef } from 'react';
+import SquishyPressable from '@/components/SquishyPressable/SquishyPressable';
+import { useState, useRef } from 'react';
 import { router } from 'expo-router';
 import { FontAwesomeIcon } from "@fortawesome/react-native-fontawesome";
-import { faSignOut, faUser, faEnvelope, faInfoCircle, faHeart, faBookOpen, faTrashCan, faCrown, faRotateRight, faPencil, faPlus, faSignature } from "@fortawesome/pro-regular-svg-icons";
+import { faSignOut, faUser, faEnvelope, faInfoCircle, faHeart, faBookOpen, faTrashCan, faCrown, faRotateRight, faPencil, faPlus, faSignature, faBell as faBellRegular, faComment } from "@fortawesome/pro-regular-svg-icons";
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import BottomSheet from '@gorhom/bottom-sheet';
 import { useAuthContext } from '@/contexts/auth';
@@ -28,6 +29,9 @@ import EditablePhoneNumberBottomSheet from '@/components/EditablePhoneNumberBott
 import EditableAddressBottomSheet from '@/components/EditableAddressBottomSheet';
 import { updateUser } from '@/api';
 import type { Address } from '@parking-ticket-pal/types';
+import { useNotificationPreferences, useUpdateNotificationPreferences } from '@/hooks/api/useNotificationPreferences';
+import NotificationBell from '@/components/NotificationBell';
+import { AdBanner } from '@/components/AdBanner';
 
 const padding = 16;
 const screenWidth = Dimensions.get('screen').width - padding * 2;
@@ -44,7 +48,7 @@ const SettingsScreen = () => {
     refreshCustomerInfo
   } = usePurchases();
   const colorScheme = useColorScheme();
-  const { trackScreenView, trackEvent } = useAnalytics();
+  const { trackEvent } = useAnalytics();
   const [isRestoring, setIsRestoring] = useState(false);
   const signatureBottomSheetRef = useRef<BottomSheet>(null);
   const nameBottomSheetRef = useRef<BottomSheet>(null);
@@ -52,15 +56,19 @@ const SettingsScreen = () => {
   const phoneBottomSheetRef = useRef<BottomSheet>(null);
   const addressBottomSheetRef = useRef<BottomSheet>(null);
 
+  // Notification preferences
+  const { data: preferencesData } = useNotificationPreferences();
+  const { mutate: updatePreferences } = useUpdateNotificationPreferences();
+  const preferences = preferencesData?.preferences || {
+    inApp: true,
+    email: true,
+    sms: true,
+    push: true,
+  };
+
   const appVersion = Constants.expoConfig?.version || '0.1.0';
   const isDev = __DEV__;
 
-  useFocusEffect(
-    useCallback(() => {
-      trackScreenView('settings');
-      trackEvent("settings_viewed", { screen: "settings" });
-    }, [])
-  );
 
   const handleSignOut = () => {
     trackEvent("auth_sign_out", { screen: "settings" });
@@ -236,39 +244,79 @@ const SettingsScreen = () => {
     return 'Free';
   };
 
+  const handleToggleNotification = (key: 'inApp' | 'email' | 'sms' | 'push') => {
+    // Check if user is trying to enable email/sms without subscription
+    if (!hasActiveSubscription && (key === 'email' || key === 'sms')) {
+      Alert.alert(
+        'Upgrade Required',
+        `${key === 'email' ? 'Email' : 'SMS'} notifications are only available for Standard and Premium subscribers.`,
+        [{ text: 'OK' }]
+      );
+      return;
+    }
+
+    // When toggling push, also toggle inApp to keep them in sync
+    if (key === 'push') {
+      updatePreferences({
+        ...preferences,
+        push: !preferences.push,
+        inApp: !preferences.push,
+      });
+    } else {
+      updatePreferences({
+        ...preferences,
+        [key]: !preferences[key],
+      });
+    }
+  };
+
   const SettingRow = ({ icon, title, value, onPress, destructive = false }: {
     icon: any;
     title: string;
     value?: string;
     onPress?: () => void;
     destructive?: boolean;
-  }) => (
-    <Pressable
-      className={`flex-row items-center p-4 border-b border-gray-100 ${
-        onPress ? 'active:bg-gray-50' : ''
-      }`}
-      onPress={onPress}
-    >
-      <FontAwesomeIcon
-        icon={icon}
-        size={20}
-        color={destructive ? '#ef4444' : Colors[colorScheme ?? 'light'].text}
-        style={{ marginRight: 12 }}
-      />
-      <View className="flex-1">
-        <Text className={`font-inter text-base ${
-          destructive ? 'text-red-500' : 'text-gray-900'
-        }`}>
-          {title}
-        </Text>
-        {value && (
-          <Text className="font-inter text-sm text-gray-500 mt-1">
-            {value}
+  }) => {
+    const content = (
+      <>
+        <FontAwesomeIcon
+          icon={icon}
+          size={20}
+          color={destructive ? '#ef4444' : Colors[colorScheme ?? 'light'].text}
+          style={{ marginRight: 12 }}
+        />
+        <View className="flex-1">
+          <Text className={`font-inter text-base ${
+            destructive ? 'text-red-500' : 'text-gray-900'
+          }`}>
+            {title}
           </Text>
-        )}
+          {value && (
+            <Text className="font-inter text-sm text-gray-500 mt-1">
+              {value}
+            </Text>
+          )}
+        </View>
+      </>
+    );
+
+    if (onPress) {
+      return (
+        <SquishyPressable
+          className="flex-row items-center p-4 border-b border-gray-100 active:bg-gray-50"
+          onPress={onPress}
+        >
+          {content}
+        </SquishyPressable>
+      );
+    }
+
+    return (
+      <View className="flex-row items-center p-4 border-b border-gray-100">
+        {content}
       </View>
-    </Pressable>
-  );
+    );
+  };
 
   if (isLoading) {
     return (
@@ -279,17 +327,30 @@ const SettingsScreen = () => {
   }
 
   return (
-    <SafeAreaView className="flex-1 bg-gray-50" edges={['top', 'left', 'right']}>
-      <View
-        className="flex-1"
-        style={{
-          marginTop: padding,
-          width: screenWidth,
-          alignSelf: 'center',
-        }}
-      >
+    <SafeAreaView className="flex-1 bg-white" edges={['top']}>
+      {/* Header */}
+      <View className="bg-white border-b border-gray-200 px-4 pb-4">
+        <View className="flex-row justify-between items-center">
+          <Text className="text-2xl font-bold text-gray-900">
+            Settings
+          </Text>
+          <NotificationBell />
+        </View>
+      </View>
 
-        <ScrollView className="flex-1">
+      {/* Banner Ad */}
+      <AdBanner placement="settings" />
+
+      <View className="flex-1 bg-gray-50">
+        <View
+          className="flex-1"
+          style={{
+            marginTop: padding,
+            width: screenWidth,
+            alignSelf: 'center',
+          }}
+        >
+          <ScrollView className="flex-1">
           <View className="bg-white rounded-lg mb-6 overflow-hidden">
             <View className="p-4 border-b border-gray-100">
               <Text className="font-inter text-lg font-semibold text-gray-900 mb-2">
@@ -333,7 +394,7 @@ const SettingsScreen = () => {
               }}
             />
 
-            <Pressable
+            <SquishyPressable
               className="flex-row items-center p-4 border-b border-gray-100 active:bg-gray-50"
               onPress={handleOpenSignatureSheet}
             >
@@ -367,7 +428,7 @@ const SettingsScreen = () => {
                 size={16}
                 color={Colors[colorScheme ?? 'light'].tint}
               />
-            </Pressable>
+            </SquishyPressable>
 
             <SettingRow
               icon={faCrown}
@@ -420,13 +481,15 @@ const SettingsScreen = () => {
               </View>
             )}
 
-            <Pressable
+            <SquishyPressable
               className="flex-row items-center p-4 border-t border-gray-100 active:bg-gray-50"
               onPress={handleRestorePurchases}
               disabled={isRestoring}
             >
               {isRestoring ? (
-                <ActivityIndicator size="small" color={Colors[colorScheme ?? 'light'].text} style={{ marginRight: 12 }} />
+                <View style={{ marginRight: 12 }}>
+                  <Loader size={20} color={Colors[colorScheme ?? 'light'].text} />
+                </View>
               ) : (
                 <FontAwesomeIcon
                   icon={faRotateRight}
@@ -438,7 +501,114 @@ const SettingsScreen = () => {
               <Text className="font-inter text-base text-gray-900">
                 {isRestoring ? 'Restoring...' : 'Restore Purchases'}
               </Text>
-            </Pressable>
+            </SquishyPressable>
+          </View>
+
+          {/* Notification Preferences Section */}
+          <View className="bg-white rounded-lg mb-6 overflow-hidden">
+            <View className="p-4 border-b border-gray-100">
+              <Text className="font-inter text-lg font-semibold text-gray-900 mb-2">
+                Notification Preferences
+              </Text>
+              <Text className="font-inter text-sm text-gray-600">
+                Choose how you want to receive notifications about your tickets
+              </Text>
+            </View>
+
+            {/* Push Notifications */}
+            <View className="flex-row items-center justify-between p-4 border-b border-gray-100">
+              <View className="flex-row items-center flex-1">
+                <FontAwesomeIcon
+                  icon={faBellRegular}
+                  size={20}
+                  color={Colors[colorScheme ?? 'light'].text}
+                  style={{ marginRight: 12 }}
+                />
+                <View className="flex-1">
+                  <Text className="font-inter text-base text-gray-900">
+                    Push Notifications
+                  </Text>
+                  <Text className="font-inter text-xs text-gray-500 mt-1">
+                    Get notified in-app and when app is closed
+                  </Text>
+                </View>
+              </View>
+              <Switch
+                value={preferences.push && preferences.inApp}
+                onValueChange={() => handleToggleNotification('push')}
+                trackColors={{ off: '#d1d5db', on: '#16a34a' }}
+              />
+            </View>
+
+            {/* Email Notifications */}
+            <View className="flex-row items-center justify-between p-4 border-b border-gray-100">
+              <View className="flex-row items-center flex-1">
+                <FontAwesomeIcon
+                  icon={faEnvelope}
+                  size={20}
+                  color={hasActiveSubscription ? Colors[colorScheme ?? 'light'].text : '#9ca3af'}
+                  style={{ marginRight: 12 }}
+                />
+                <View className="flex-1">
+                  <View className="flex-row items-center">
+                    <Text className={`font-inter text-base ${hasActiveSubscription ? 'text-gray-900' : 'text-gray-400'}`}>
+                      Email Notifications
+                    </Text>
+                    {!hasActiveSubscription && (
+                      <View className="ml-2 bg-purple-100 rounded-full px-2 py-0.5">
+                        <Text className="font-inter text-xs text-purple-700 font-semibold">
+                          Premium
+                        </Text>
+                      </View>
+                    )}
+                  </View>
+                  <Text className="font-inter text-xs text-gray-500 mt-1">
+                    {hasActiveSubscription ? 'Get email alerts' : 'Available for Standard & Premium'}
+                  </Text>
+                </View>
+              </View>
+              <Switch
+                value={preferences.email && hasActiveSubscription}
+                onValueChange={() => handleToggleNotification('email')}
+                disabled={!hasActiveSubscription}
+                trackColors={{ off: '#d1d5db', on: '#16a34a' }}
+              />
+            </View>
+
+            {/* SMS Notifications */}
+            <View className="flex-row items-center justify-between p-4">
+              <View className="flex-row items-center flex-1">
+                <FontAwesomeIcon
+                  icon={faComment}
+                  size={20}
+                  color={hasActiveSubscription ? Colors[colorScheme ?? 'light'].text : '#9ca3af'}
+                  style={{ marginRight: 12 }}
+                />
+                <View className="flex-1">
+                  <View className="flex-row items-center">
+                    <Text className={`font-inter text-base ${hasActiveSubscription ? 'text-gray-900' : 'text-gray-400'}`}>
+                      SMS Notifications
+                    </Text>
+                    {!hasActiveSubscription && (
+                      <View className="ml-2 bg-purple-100 rounded-full px-2 py-0.5">
+                        <Text className="font-inter text-xs text-purple-700 font-semibold">
+                          Premium
+                        </Text>
+                      </View>
+                    )}
+                  </View>
+                  <Text className="font-inter text-xs text-gray-500 mt-1">
+                    {hasActiveSubscription ? 'Get text message alerts' : 'Available for Standard & Premium'}
+                  </Text>
+                </View>
+              </View>
+              <Switch
+                value={preferences.sms && hasActiveSubscription}
+                onValueChange={() => handleToggleNotification('sms')}
+                disabled={!hasActiveSubscription}
+                trackColors={{ off: '#d1d5db', on: '#16a34a' }}
+              />
+            </View>
           </View>
 
           <View className="bg-white rounded-lg mb-6 overflow-hidden">
@@ -501,6 +671,7 @@ const SettingsScreen = () => {
             </View>
           </View>
         </ScrollView>
+        </View>
       </View>
 
       <EditableNameBottomSheet

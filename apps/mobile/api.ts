@@ -3,12 +3,29 @@ import axios from 'axios';
 import { GoogleSignin } from '@react-native-google-signin/google-signin';
 import { Platform } from 'react-native';
 import type { Address } from '@parking-ticket-pal/types';
+import { TicketStatus, IssuerType, TicketType } from './types';
 
 // allow an override just for Android if set in EAS
 const apiUrlFromEnv =
   Platform.OS === 'android'
     ? process.env.EXPO_PUBLIC_API_URL_ANDROID ?? process.env.EXPO_PUBLIC_API_URL
     : process.env.EXPO_PUBLIC_API_URL;
+
+// Filter types for tickets
+export type TicketFilters = {
+  search?: string;
+  status?: TicketStatus[];
+  issuers?: string[];
+  issuerType?: IssuerType[];
+  ticketType?: TicketType[];
+  dateFrom?: string;
+  dateTo?: string;
+  amountMin?: number;
+  amountMax?: number;
+  verified?: boolean;
+  sortBy?: 'issuedAt' | 'initialAmount' | 'createdAt' | 'status' | 'issuer';
+  sortOrder?: 'asc' | 'desc';
+};
 
 export const getCurrentUser = async () => {
   const token = await SecureStore.getItemAsync('sessionToken');
@@ -20,10 +37,64 @@ export const getCurrentUser = async () => {
   return response.data;
 }
 
-export const getTickets = async () => {
+export const getTickets = async (filters?: TicketFilters) => {
   const token = await SecureStore.getItemAsync('sessionToken');
 
-  const response = await axios.get(`${apiUrlFromEnv}/tickets`, {
+  // Build query params
+  const params = new URLSearchParams();
+
+  if (filters?.search) {
+    params.append('search', filters.search);
+  }
+
+  if (filters?.status && filters.status.length > 0) {
+    filters.status.forEach(status => params.append('status', status));
+  }
+
+  if (filters?.issuers && filters.issuers.length > 0) {
+    filters.issuers.forEach(issuer => params.append('issuer', issuer));
+  }
+
+  if (filters?.issuerType && filters.issuerType.length > 0) {
+    filters.issuerType.forEach(type => params.append('issuerType', type));
+  }
+
+  if (filters?.ticketType && filters.ticketType.length > 0) {
+    filters.ticketType.forEach(type => params.append('ticketType', type));
+  }
+
+  if (filters?.dateFrom) {
+    params.append('dateFrom', filters.dateFrom);
+  }
+
+  if (filters?.dateTo) {
+    params.append('dateTo', filters.dateTo);
+  }
+
+  if (filters?.amountMin !== undefined) {
+    params.append('amountMin', filters.amountMin.toString());
+  }
+
+  if (filters?.amountMax !== undefined) {
+    params.append('amountMax', filters.amountMax.toString());
+  }
+
+  if (filters?.verified !== undefined) {
+    params.append('verified', filters.verified.toString());
+  }
+
+  if (filters?.sortBy) {
+    params.append('sortBy', filters.sortBy);
+  }
+
+  if (filters?.sortOrder) {
+    params.append('sortOrder', filters.sortOrder);
+  }
+
+  const queryString = params.toString();
+  const url = queryString ? `${apiUrlFromEnv}/tickets?${queryString}` : `${apiUrlFromEnv}/tickets`;
+
+  const response = await axios.get(url, {
     headers: { Authorization: `Bearer ${token}` }
   });
 
@@ -310,6 +381,118 @@ export const deleteTicket = async (ticketId: string) => {
   const response = await axios.delete(`${apiUrlFromEnv}/tickets/${ticketId}`, {
     headers: { Authorization: `Bearer ${token}` }
   });
+
+  return response.data;
+};
+
+/**
+ * Fetch user notifications
+ */
+export const getNotifications = async (limit = 50, offset = 0, unreadOnly = false) => {
+  const token = await SecureStore.getItemAsync('sessionToken');
+
+  const response = await axios.get(`${apiUrlFromEnv}/notifications`, {
+    params: { limit, offset, unreadOnly },
+    headers: { Authorization: `Bearer ${token}` }
+  });
+
+  return response.data;
+};
+
+/**
+ * Mark notification as read
+ */
+export const markNotificationAsRead = async (notificationId: string) => {
+  const token = await SecureStore.getItemAsync('sessionToken');
+
+  const response = await axios.patch(
+    `${apiUrlFromEnv}/notifications/${notificationId}/read`,
+    {},
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      }
+    }
+  );
+
+  return response.data;
+};
+
+/**
+ * Get notification preferences
+ */
+export const getNotificationPreferences = async () => {
+  const token = await SecureStore.getItemAsync('sessionToken');
+
+  const response = await axios.get(`${apiUrlFromEnv}/notifications/preferences`, {
+    headers: { Authorization: `Bearer ${token}` }
+  });
+
+  return response.data;
+};
+
+/**
+ * Update notification preferences
+ */
+export const updateNotificationPreferences = async (preferences: {
+  inApp: boolean;
+  email: boolean;
+  sms: boolean;
+  push: boolean;
+}) => {
+  const token = await SecureStore.getItemAsync('sessionToken');
+
+  const response = await axios.patch(
+    `${apiUrlFromEnv}/notifications/preferences`,
+    { preferences },
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      }
+    }
+  );
+
+  return response.data;
+};
+
+/**
+ * Register push token
+ */
+export const registerPushToken = async (token: string, platform: 'IOS' | 'ANDROID', deviceId?: string) => {
+  const sessionToken = await SecureStore.getItemAsync('sessionToken');
+
+  const response = await axios.post(
+    `${apiUrlFromEnv}/notifications/register-token`,
+    { token, platform, deviceId },
+    {
+      headers: {
+        Authorization: `Bearer ${sessionToken}`,
+        'Content-Type': 'application/json'
+      }
+    }
+  );
+
+  return response.data;
+};
+
+/**
+ * Unregister push token
+ */
+export const unregisterPushToken = async (token: string) => {
+  const sessionToken = await SecureStore.getItemAsync('sessionToken');
+
+  const response = await axios.post(
+    `${apiUrlFromEnv}/notifications/unregister-token`,
+    { token },
+    {
+      headers: {
+        Authorization: `Bearer ${sessionToken}`,
+        'Content-Type': 'application/json'
+      }
+    }
+  );
 
   return response.data;
 };

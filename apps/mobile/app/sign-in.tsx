@@ -1,8 +1,6 @@
-import { View, Dimensions, Text, TextInput, Alert, ActivityIndicator, Image } from 'react-native';
+import { View, Dimensions, Text, TextInput, Alert, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
-import { useFocusEffect } from '@react-navigation/native';
-import { useCallback } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { faApple, faFacebook, faGoogle } from '@fortawesome/free-brands-svg-icons';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
@@ -13,6 +11,7 @@ import { useState } from 'react';
 import { useAnalytics } from '@/lib/analytics';
 import * as WebBrowser from 'expo-web-browser';
 import SquishyPressable from '@/components/SquishyPressable/SquishyPressable';
+import Loader from '@/components/Loader/Loader';
 
 const padding = 16;
 const screenWidth = Dimensions.get('screen').width - padding * 2;
@@ -22,13 +21,7 @@ const AuthScreen = () => {
   const colorScheme = useColorScheme();
   const [email, setEmail] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const { trackScreenView, trackEvent, trackError } = useAnalytics();
-
-  useFocusEffect(
-    useCallback(() => {
-      trackScreenView('sign_in');
-    }, [])
-  );
+  const { trackEvent, trackError } = useAnalytics();
 
   const handleContinue = async () => {
     if (!email.trim()) {
@@ -247,7 +240,7 @@ const AuthScreen = () => {
           }}
         >
           {isLoading ? (
-            <ActivityIndicator color="white" />
+            <Loader size={20} color="white" />
           ) : (
             <Text className="font-inter font-semibold text-white text-base">
               Continue

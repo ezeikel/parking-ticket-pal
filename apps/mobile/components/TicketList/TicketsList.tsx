@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Pressable, Text, View, Alert } from 'react-native';
+import { Text, View, Alert } from 'react-native';
 import { FlashList } from "@shopify/flash-list";
 import { router } from 'expo-router';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
@@ -18,13 +18,17 @@ import {
 import { useQueryClient } from '@tanstack/react-query';
 import useTickets from '@/hooks/api/useTickets';
 import { Ticket, TicketStatus } from '@/types';
-import { deleteTicket } from '@/api';
+import { deleteTicket, type TicketFilters } from '@/api';
 
 type TicketTier = 'FREE' | 'STANDARD' | 'PREMIUM';
 import { Address } from '@parking-ticket-pal/types';
 import { useColorScheme } from '@/hooks/useColorScheme';
 import Loader from '@/components/Loader/Loader';
 import SquishyPressable from '@/components/SquishyPressable/SquishyPressable';
+
+interface TicketsListProps {
+  filters?: TicketFilters;
+}
 
 const DISCOUNT_THRESHOLD_MS = 172800000; // 48 hours in milliseconds
 
@@ -170,13 +174,13 @@ const TicketItem = ({ ticket, style, onDelete }: {
             {ticket.issuer}
           </Text>
         </View>
-        <Pressable onPress={handleDelete} className="p-2">
+        <SquishyPressable onPress={handleDelete} className="p-2">
           <FontAwesomeIcon
             icon={faTrashCan}
             size={18}
             color="#dc2626"
           />
-        </Pressable>
+        </SquishyPressable>
       </View>
 
       {/* Status Badge & Tier Indicator */}
@@ -290,8 +294,8 @@ const TicketItem = ({ ticket, style, onDelete }: {
   );
 };
 
-const TicketsList = () => {
-  const { data: { tickets } = {}, isLoading } = useTickets();
+const TicketsList = ({ filters }: TicketsListProps) => {
+  const { data: { tickets } = {}, isLoading } = useTickets(filters);
   const queryClient = useQueryClient();
 
   const handleDeleteTicket = async (ticketId: string) => {
@@ -315,37 +319,58 @@ const TicketsList = () => {
   }
 
   if (!tickets || !tickets.length) {
+    const hasActiveFilters = filters?.search ||
+                             (filters?.status && filters.status.length > 0) ||
+                             (filters?.issuerType && filters.issuerType.length > 0) ||
+                             (filters?.ticketType && filters.ticketType.length > 0);
+
     return (
       <View className="flex-1 items-center justify-center px-8">
         <Text className="font-inter text-lg text-gray-600 text-center mb-2">
-          No tickets yet
+          {hasActiveFilters ? 'No tickets found' : 'No tickets yet'}
         </Text>
         <Text className="font-inter text-sm text-gray-500 text-center">
-          Use the camera button to capture your first parking ticket
+          {hasActiveFilters
+            ? 'Try adjusting your filters or search terms'
+            : 'Use the camera button to capture your first parking ticket'
+          }
         </Text>
       </View>
     );
   }
 
-  // Check for upcoming deadlines
-  const hasUpcomingDeadlines = tickets.some(ticket => {
-    const estimatedFullPaymentDeadline = addDays(new Date(ticket.issuedAt), 28);
-    return differenceInMilliseconds(estimatedFullPaymentDeadline, new Date()) < DISCOUNT_THRESHOLD_MS;
-  });
+  // Note: Sorting is now handled by the backend based on filters.sortBy and filters.sortOrder
+  // Only apply client-side sorting if no sortBy is specified (for backward compatibility)
+  const displayTickets = !filters?.sortBy
+    ? [...tickets].sort((a, b) => {
+        const aDeadline = addDays(new Date(a.issuedAt), a.status === TicketStatus.ISSUED_DISCOUNT_PERIOD ? 14 : 28);
+        const bDeadline = addDays(new Date(b.issuedAt), b.status === TicketStatus.ISSUED_DISCOUNT_PERIOD ? 14 : 28);
+        return aDeadline.getTime() - bDeadline.getTime();
+      })
+    : tickets;
 
-  // Sort tickets by urgency (most urgent first)
-  const sortedTickets = tickets.sort((a, b) => {
-    const aDeadline = addDays(new Date(a.issuedAt), a.status === TicketStatus.ISSUED_DISCOUNT_PERIOD ? 14 : 28);
-    const bDeadline = addDays(new Date(b.issuedAt), b.status === TicketStatus.ISSUED_DISCOUNT_PERIOD ? 14 : 28);
-    return aDeadline.getTime() - bDeadline.getTime();
-  });
+  // Show result count if search or filters are active
+  const hasSearch = !!filters?.search;
+  const hasFilters = (filters?.status && filters.status.length > 0) ||
+                     (filters?.issuers && filters.issuers.length > 0) ||
+                     (filters?.issuerType && filters.issuerType.length > 0) ||
+                     (filters?.ticketType && filters.ticketType.length > 0);
+  const showResultCount = hasSearch || hasFilters;
 
   return (
     <View className="flex-1">
+      {showResultCount && (
+        <View className="mb-3">
+          <Text className="font-inter text-sm text-gray-600">
+            Found {tickets.length} {tickets.length === 1 ? 'ticket' : 'tickets'}
+            {hasSearch && ` matching "${filters.search}"`}
+          </Text>
+        </View>
+      )}
       <FlashList
-        data={sortedTickets}
+        data={displayTickets}
         renderItem={({ item, index }) => {
-          const isLastRow = index === sortedTickets.length - 1;
+          const isLastRow = index === displayTickets.length - 1;
           return (
             <TicketItem
               ticket={item}
