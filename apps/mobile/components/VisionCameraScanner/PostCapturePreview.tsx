@@ -21,6 +21,7 @@ import CornerHandle from './CornerHandle';
 type PostCapturePreviewProps = {
   imageBase64: string;
   detectedCorners: DocumentCorner[] | null;
+  captureFrameDimensions?: { width: number; height: number }; // Actual camera frame dimensions when photo was taken
   onAccept: (corners: DocumentCorner[]) => void;
   onRetake: () => void;
   isProcessing?: boolean;
@@ -34,6 +35,7 @@ type PostCapturePreviewProps = {
 const PostCapturePreview = ({
   imageBase64,
   detectedCorners,
+  captureFrameDimensions,
   onAccept,
   onRetake,
   isProcessing = false,
@@ -278,10 +280,21 @@ const PostCapturePreview = ({
 
     setDisplayBounds({ width: displayedWidth, height: displayedHeight, offsetX, offsetY });
 
-    // Transform normalized corners (0-1) to screen coordinates
-    // Use detectedCorners if available, otherwise use default normalized coordinates
-    const cornersToScale = (detectedCorners && detectedCorners.length === 4)
-      ? detectedCorners
+    // Get dimensions for normalization
+    // CRITICAL: Use captureFrameDimensions (actual camera frame) if available,
+    // otherwise fall back to imageDimensions from expo-image (may be incorrect due to VisionCamera patch)
+    const normalizeWidth = captureFrameDimensions?.width || imageDimensions?.width || 1;
+    const normalizeHeight = captureFrameDimensions?.height || imageDimensions?.height || 1;
+    const SCALE_FACTOR = 4; // Detection runs at 1/4 scale
+
+    // Normalize detected corners from scaled pixel space to 0-1 range
+    // Detected corners come in scaled pixel coordinates (e.g., 100, 200 at 1/4 scale)
+    // We need to convert them to normalized 0-1 range first
+    const normalizedCorners = (detectedCorners && detectedCorners.length === 4)
+      ? detectedCorners.map(c => ({
+          x: (c.x * SCALE_FACTOR) / normalizeWidth,  // Convert from scaled pixels to normalized
+          y: (c.y * SCALE_FACTOR) / normalizeHeight,
+        }))
       : [
           { x: 0.15, y: 0.15 }, // Top-left - 15% inset from edges
           { x: 0.85, y: 0.15 }, // Top-right
@@ -289,14 +302,21 @@ const PostCapturePreview = ({
           { x: 0.15, y: 0.85 }, // Bottom-left
         ];
 
-    logger.debug('[PostCapturePreview] Corners before scaling', {
+    logger.debug('[PostCapturePreview] Corners normalization', {
       screen: 'post_capture_preview',
-      cornersToScale,
+      detectedCorners,
+      normalizedCorners,
+      captureFrameDimensions,
+      normalizeWidth,
+      normalizeHeight,
+      imageDimensionsWidth: imageDimensions?.width,
+      imageDimensionsHeight: imageDimensions?.height,
       usingDetectedCorners: !!(detectedCorners && detectedCorners.length === 4),
+      usingCaptureFrameDimensions: !!captureFrameDimensions,
     });
 
-    // Scale to displayed image dimensions and add offsets
-    const scaledCorners = cornersToScale.map(corner => ({
+    // Scale normalized corners (0-1) to display coordinates
+    const scaledCorners = normalizedCorners.map(corner => ({
       x: corner.x * displayedWidth + offsetX,
       y: corner.y * displayedHeight + offsetY,
     }));
@@ -650,119 +670,6 @@ const PostCapturePreview = ({
             onLoad={handleImageLoad}
           />
 
-          {/* Overlay with corner handles and border - positioned to match actual image bounds */}
-          {displayBounds.width > 0 && 
-           displayBounds.height > 0 &&
-           isFinite(displayBounds.width) && 
-           isFinite(displayBounds.height) &&
-           isFinite(displayBounds.offsetX) &&
-           isFinite(displayBounds.offsetY) && (() => {
-            // Log right before rendering overlay (critical crash point)
-            logger.info('[PostCapturePreview] Rendering overlay', {
-              screen: 'post_capture_preview',
-              action: 'overlay_render_start',
-              displayBounds,
-              cornersCount: corners.length,
-              corners: corners.map(c => ({ x: c.x, y: c.y })),
-            });
-
-            return (
-                <View
-                  style={{
-                    position: 'absolute',
-                    left: displayBounds.offsetX,
-                    top: displayBounds.offsetY,
-                    width: displayBounds.width,
-                    height: displayBounds.height,
-                  }}
-                  pointerEvents="box-none"
-                >
-                  {/* Border lines */}
-                  <View style={StyleSheet.absoluteFill} pointerEvents="none">
-                    {(() => {
-                      logger.debug('[PostCapturePreview] Rendering border lines', {
-                        screen: 'post_capture_preview',
-                        action: 'border_lines_render',
-                      });
-                      return renderBorderLines();
-                    })()}
-                  </View>
-
-                  {/* Corner handles - only render when corners are properly scaled to screen coordinates */}
-                  {(() => {
-                    // Strict validation: corners must be scaled (x > 1, y > 1) and all values finite
-                    const areCornersScaled = corners.length === 4 && 
-                      corners.every(c => 
-                        c.x > 1 && 
-                        c.y > 1 && 
-                        isFinite(c.x) && 
-                        isFinite(c.y) &&
-                        c.x < 10000 && // Reasonable upper bound
-                        c.y < 10000
-                      );
-
-                    if (!areCornersScaled) {
-                      // Don't log on every render - only log once when we detect the issue
-                      if (corners.length > 0) {
-                        logger.debug('[PostCapturePreview] Corners not yet scaled, skipping handle render', {
-                          screen: 'post_capture_preview',
-                          cornersLength: corners.length,
-                          corners,
-                          displayBoundsWidth: displayBounds.width,
-                          displayBoundsHeight: displayBounds.height,
-                        });
-                      }
-                      return null;
-                    }
-
-                    return corners.map((corner, index) => {
-                      const handlePosition = {
-                        x: corner.x - displayBounds.offsetX,
-                        y: corner.y - displayBounds.offsetY,
-                      };
-
-                      // Validate handle position before rendering
-                      if (!isFinite(handlePosition.x) || !isFinite(handlePosition.y) ||
-                          handlePosition.x < 0 || handlePosition.y < 0 ||
-                          handlePosition.x > displayBounds.width || handlePosition.y > displayBounds.height) {
-                        logger.warn(`[PostCapturePreview] Invalid handle position for corner ${index}`, {
-                          screen: 'post_capture_preview',
-                          index,
-                          corner,
-                          handlePosition,
-                          displayBounds,
-                        });
-                        return null;
-                      }
-
-                      logger.debug(`[PostCapturePreview] Rendering corner handle ${index}`, {
-                        screen: 'post_capture_preview',
-                        index,
-                        cornerX: corner.x,
-                        cornerY: corner.y,
-                        handlePositionX: handlePosition.x,
-                        handlePositionY: handlePosition.y,
-                      });
-
-                      return (
-                        <CornerHandle
-                          key={`corner-${index}`}
-                          position={handlePosition}
-                          onPositionChange={(pos) => handleCornerChange(index, {
-                            x: pos.x + displayBounds.offsetX,
-                            y: pos.y + displayBounds.offsetY,
-                          })}
-                          cornerIndex={index}
-                          imageWidth={displayBounds.width}
-                          imageHeight={displayBounds.height}
-                        />
-                      );
-                    }).filter(Boolean);
-                  })()}
-                </View>
-            );
-          })()}
-
           {isProcessing && (
             <View style={styles.processingOverlay}>
               <ActivityIndicator size="large" color="#00FF00" />
@@ -770,6 +677,119 @@ const PostCapturePreview = ({
             </View>
           )}
         </View>
+
+        {/* Overlay with corner handles and border - positioned at screen level to appear above expo-image */}
+        {displayBounds.width > 0 &&
+         displayBounds.height > 0 &&
+         isFinite(displayBounds.width) &&
+         isFinite(displayBounds.height) &&
+         isFinite(displayBounds.offsetX) &&
+         isFinite(displayBounds.offsetY) && (() => {
+          // Log right before rendering overlay (critical crash point)
+          logger.info('[PostCapturePreview] Rendering overlay', {
+            screen: 'post_capture_preview',
+            action: 'overlay_render_start',
+            displayBounds,
+            cornersCount: corners.length,
+            corners: corners.map(c => ({ x: c.x, y: c.y })),
+          });
+
+          return (
+              <View
+                style={{
+                  ...StyleSheet.absoluteFillObject,
+                  top: displayBounds.offsetY,
+                  left: displayBounds.offsetX,
+                  width: displayBounds.width,
+                  height: displayBounds.height,
+                }}
+                pointerEvents="box-none"
+              >
+                {/* Border lines */}
+                <View style={StyleSheet.absoluteFill} pointerEvents="none">
+                  {(() => {
+                    logger.debug('[PostCapturePreview] Rendering border lines', {
+                      screen: 'post_capture_preview',
+                      action: 'border_lines_render',
+                    });
+                    return renderBorderLines();
+                  })()}
+                </View>
+
+                {/* Corner handles - only render when corners are properly scaled to screen coordinates */}
+                {(() => {
+                  // Strict validation: corners must be scaled (x > 1, y > 1) and all values finite
+                  const areCornersScaled = corners.length === 4 &&
+                    corners.every(c =>
+                      c.x > 1 &&
+                      c.y > 1 &&
+                      isFinite(c.x) &&
+                      isFinite(c.y) &&
+                      c.x < 10000 && // Reasonable upper bound
+                      c.y < 10000
+                    );
+
+                  if (!areCornersScaled) {
+                    // Don't log on every render - only log once when we detect the issue
+                    if (corners.length > 0) {
+                      logger.debug('[PostCapturePreview] Corners not yet scaled, skipping handle render', {
+                        screen: 'post_capture_preview',
+                        cornersLength: corners.length,
+                        corners,
+                        displayBoundsWidth: displayBounds.width,
+                        displayBoundsHeight: displayBounds.height,
+                      });
+                    }
+                    return null;
+                  }
+
+                  return corners.map((corner, index) => {
+                    const handlePosition = {
+                      x: corner.x - displayBounds.offsetX,
+                      y: corner.y - displayBounds.offsetY,
+                    };
+
+                    // Validate handle position before rendering
+                    if (!isFinite(handlePosition.x) || !isFinite(handlePosition.y) ||
+                        handlePosition.x < 0 || handlePosition.y < 0 ||
+                        handlePosition.x > displayBounds.width || handlePosition.y > displayBounds.height) {
+                      logger.warn(`[PostCapturePreview] Invalid handle position for corner ${index}`, {
+                        screen: 'post_capture_preview',
+                        index,
+                        corner,
+                        handlePosition,
+                        displayBounds,
+                      });
+                      return null;
+                    }
+
+                    logger.debug(`[PostCapturePreview] Rendering corner handle ${index}`, {
+                      screen: 'post_capture_preview',
+                      index,
+                      cornerX: corner.x,
+                      cornerY: corner.y,
+                      handlePositionX: handlePosition.x,
+                      handlePositionY: handlePosition.y,
+                    });
+
+                    return (
+                      <CornerHandle
+                        key={`corner-${index}`}
+                        position={handlePosition}
+                        onPositionChange={(pos) => handleCornerChange(index, {
+                          x: pos.x + displayBounds.offsetX,
+                          y: pos.y + displayBounds.offsetY,
+                        })}
+                        cornerIndex={index}
+                        imageWidth={displayBounds.width}
+                        imageHeight={displayBounds.height}
+                      />
+                    );
+                  }).filter(Boolean);
+                })()}
+              </View>
+          );
+        })()}
 
         <View style={styles.controls}>
           <SquishyPressable

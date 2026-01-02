@@ -40,6 +40,7 @@ const VisionCameraScanner = ({ onClose, onImageScanned }: VisionCameraScannerPro
   const [showPostCapturePreview, setShowPostCapturePreview] = useState(false);
   const [capturedImageBase64, setCapturedImageBase64] = useState<string | null>(null);
   const [capturedCorners, setCapturedCorners] = useState<any>(null);
+  const [capturedFrameDimensions, setCapturedFrameDimensions] = useState<{ width: number; height: number } | null>(null);
 
   const device = useCameraDevice('back');
   const { hasPermission, requestPermission } = useCameraPermission();
@@ -311,6 +312,9 @@ const VisionCameraScanner = ({ onClose, onImageScanned }: VisionCameraScannerPro
               photo_isMirrored: photo.isMirrored,
             });
 
+            // Store photo dimensions for accurate corner normalization
+            setCapturedFrameDimensions({ width: photo.width, height: photo.height });
+
             // Convert photo to base64 for OCR processing
             // Remove file:// prefix if present as File constructor expects a path
             const photoPath = photo.path.startsWith('file://')
@@ -494,6 +498,7 @@ const VisionCameraScanner = ({ onClose, onImageScanned }: VisionCameraScannerPro
     setShowPostCapturePreview(false);
     setCapturedImageBase64(null);
     setCapturedCorners(null);
+    setCapturedFrameDimensions(null);
     setIsActive(true); // Resume camera for retake
     resetAutoCapture(); // Reset auto-capture state
   };
@@ -723,6 +728,7 @@ const VisionCameraScanner = ({ onClose, onImageScanned }: VisionCameraScannerPro
       <PostCapturePreview
         imageBase64={capturedImageBase64}
         detectedCorners={capturedCorners}
+        captureFrameDimensions={capturedFrameDimensions || undefined}
         onAccept={handleAcceptCapture}
         onRetake={handleRetakeCapture}
         isProcessing={ocrMutation.isPending}

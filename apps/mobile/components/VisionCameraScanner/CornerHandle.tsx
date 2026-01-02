@@ -450,6 +450,7 @@ const styles = StyleSheet.create({
     height: 40,
     justifyContent: 'center',
     alignItems: 'center',
+    zIndex: 10,
   },
   cornerHandleInner: {
     width: 32,
