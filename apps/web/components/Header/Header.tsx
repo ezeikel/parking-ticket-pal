@@ -18,7 +18,6 @@ import {
   faCommentDots,
   faNewspaper,
 } from '@fortawesome/pro-regular-svg-icons';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import type { IconDefinition } from '@fortawesome/fontawesome-svg-core';
 import cn from '@/utils/cn';
 import MobileMenu from '@/components/MobileMenu/MobileMenu';
