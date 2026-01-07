@@ -43,7 +43,7 @@ export async function createAndSendNotification(
       };
     }
 
-    const preferences = (user.notificationPreferences as NotificationPreferences) || {
+    const preferences = (user.notificationPreferences as unknown as NotificationPreferences) || {
       inApp: true,
       email: true,
       sms: true,

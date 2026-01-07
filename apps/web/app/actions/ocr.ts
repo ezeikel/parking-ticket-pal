@@ -158,7 +158,8 @@ export const extractOCRTextWithOpenAI = async (
         ],
       },
     ],
-    response_format: zodResponseFormat(DocumentSchema, 'document'),
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    response_format: zodResponseFormat(DocumentSchema as any, 'document'),
   });
 
   const imageInfo = response.choices[0].message.content;
@@ -445,7 +446,8 @@ export const extractOCRTextWithVision = async (
         content: generateOcrAnalysisPrompt(googleOcrText),
       },
     ],
-    response_format: zodResponseFormat(DocumentSchema, 'document'),
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    response_format: zodResponseFormat(DocumentSchema as any, 'document'),
   });
 
   const imageInfo = response.choices[0].message.content;

@@ -1111,7 +1111,7 @@ export const OPENAI_MODEL_GPT_IMAGE_OPTIONS = {
   quality: 'high',
 } as const;
 
-export const STRIPE_API_VERSION = '2025-08-27.basil';
+export const STRIPE_API_VERSION = '2025-12-15.clover';
 
 export const USER_SIGNATURE_PATH = 'users/%s/profile/signature.svg';
 

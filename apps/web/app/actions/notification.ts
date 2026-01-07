@@ -1,7 +1,7 @@
 'use server';
 
 import { db as prisma } from '@/lib/prisma';
-import type { NotificationEventType, Platform } from '@prisma/client';
+import type { NotificationEventType, Platform, Prisma } from '@prisma/client';
 
 interface NotificationPreferences {
   inApp: boolean;
@@ -120,7 +120,7 @@ export async function getNotificationPreferences(userId: string) {
       };
     }
 
-    const preferences = user.notificationPreferences as NotificationPreferences || {
+    const preferences = (user.notificationPreferences as unknown as NotificationPreferences) || {
       inApp: true,
       email: true,
       sms: true,
@@ -149,14 +149,14 @@ export async function updateNotificationPreferences(
     const user = await prisma.user.update({
       where: { id: userId },
       data: {
-        notificationPreferences: preferences,
+        notificationPreferences: preferences as unknown as Prisma.InputJsonValue,
       },
       select: { notificationPreferences: true },
     });
 
     return {
       success: true,
-      preferences: user.notificationPreferences as NotificationPreferences,
+      preferences: user.notificationPreferences as unknown as NotificationPreferences,
     };
   } catch (error) {
     console.error('Error updating notification preferences:', error);
