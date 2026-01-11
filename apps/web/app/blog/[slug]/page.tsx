@@ -1,25 +1,29 @@
 import { notFound } from 'next/navigation';
-import { connection } from 'next/server';
 import Image from 'next/image';
 import Link from 'next/link';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faArrowLeft } from '@fortawesome/pro-regular-svg-icons';
-import { getAllPosts, getPostBySlug } from '@/lib/queries/blog';
+import { getAllPostSlugs, getPostBySlug } from '@/lib/queries/blog';
 import PortableText from '@/components/PortableText/PortableText';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { PLACEHOLDER_AVATAR_IMAGE, PLACEHOLDER_BLOG_IMAGE } from '@/constants';
 
-// Return a placeholder param for Cache Components validation
-// All real blog slugs are handled dynamically at runtime
-export const generateStaticParams = () => [{ slug: 'placeholder' }];
+// Pre-generate all published blog posts at build time
+export async function generateStaticParams() {
+  const slugs = await getAllPostSlugs();
+  // Return placeholder if no posts exist to satisfy Cache Components validation
+  if (slugs.length === 0) {
+    return [{ slug: 'placeholder' }];
+  }
+  return slugs.map((slug) => ({ slug }));
+}
 
 export const generateMetadata = async ({
   params,
 }: {
   params: Promise<{ slug: string }>;
 }) => {
-  await connection();
   const { slug } = await params;
   const post = await getPostBySlug(slug);
   if (!post) {
@@ -45,7 +49,6 @@ const BlogPostPage = async ({
 }: {
   params: Promise<{ slug: string }>;
 }) => {
-  await connection();
   const { slug } = await params;
   const post = await getPostBySlug(slug);
 
