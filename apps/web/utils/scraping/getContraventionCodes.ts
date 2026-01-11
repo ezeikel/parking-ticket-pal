@@ -1,10 +1,8 @@
-import { PrismaClient } from '@parking-ticket-pal/db';
+import { db } from '@parking-ticket-pal/db';
 import * as fs from 'fs';
 import * as path from 'path';
 import { createObjectCsvWriter } from 'csv-writer';
 import * as cheerio from 'cheerio';
-
-const prisma = new PrismaClient();
 
 // Define the structure of a contravention code
 type ContraventionCode = {
@@ -44,9 +42,9 @@ async function saveToCSV(
 /*
 async function saveToDatabase(contraventionCodes: ContraventionCode[]): Promise<void> {
   console.log('💾 Saving contravention codes to database...');
-  
+
   for (const code of contraventionCodes) {
-    await prisma.contraventionCode.upsert({
+    await db.contraventionCode.upsert({
       where: { code: code.code },
       update: {
         description: code.description,
@@ -59,7 +57,7 @@ async function saveToDatabase(contraventionCodes: ContraventionCode[]): Promise<
       }
     });
   }
-  
+
   console.log('✅ Saved contravention codes to database');
 }
 */
@@ -136,7 +134,7 @@ async function main() {
     console.error('💥 Script failed:', error);
     process.exit(1);
   } finally {
-    await prisma.$disconnect();
+    await db.$disconnect();
   }
 }
 

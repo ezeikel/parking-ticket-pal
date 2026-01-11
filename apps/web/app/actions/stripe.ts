@@ -37,11 +37,12 @@ export const createCheckoutSession = async (
   _productType: ProductType,
 ): Promise<{
   id: string;
-  // eslint-disable-next-line arrow-body-style
+  url?: string;
 } | null> => {
   // TODO: reinstate this once pricing page ctas are refactored - using createTicketCheckoutSession directly for now
   return {
     id: 'no-id',
+    url: undefined,
   };
 
   // let priceId;

@@ -1,5 +1,5 @@
 import { type NextRequest, NextResponse } from 'next/server';
-import { revalidateTag } from 'next/cache';
+import { revalidatePath } from 'next/cache';
 import {
   generateBlogPostForTopic,
   generateRandomBlogPost,
@@ -86,8 +86,8 @@ const handleRequest = async (request: NextRequest) => {
     }
 
     // revalidate blog pages to show new content
-    revalidateTag('/blog');
-    revalidateTag('/blog/[slug]');
+    revalidatePath('/blog');
+    revalidatePath('/blog/[slug]', 'page');
 
     console.log(`Successfully generated blog post: ${result.title}`);
 

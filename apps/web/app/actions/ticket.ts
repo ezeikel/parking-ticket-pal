@@ -2,7 +2,6 @@
 
 import { del, put } from '@vercel/blob';
 import { revalidatePath } from 'next/cache';
-import { z } from 'zod';
 import { after } from 'next/server';
 import {
   IssuerType,
@@ -17,7 +16,7 @@ import {
   ChallengeStatus,
 } from '@parking-ticket-pal/db';
 import getVehicleInfo from '@/utils/getVehicleInfo';
-import { ticketFormSchema } from '@parking-ticket-pal/types';
+import type { TicketFormData } from '@parking-ticket-pal/types';
 import { db } from '@parking-ticket-pal/db';
 import { verify, challenge } from '@/utils/automation';
 import { generateReminders } from '@/app/actions/reminder';
@@ -35,7 +34,7 @@ import {
 const logger = createServerLogger({ action: 'ticket' });
 
 export const createTicket = async (
-  values: z.infer<typeof ticketFormSchema> & {
+  values: TicketFormData & {
     tempImageUrl?: string;
     tempImagePath?: string;
     extractedText?: string;
@@ -194,7 +193,7 @@ export const createTicket = async (
 
 export const updateTicket = async (
   id: string,
-  values: z.infer<typeof ticketFormSchema>,
+  values: TicketFormData,
 ) => {
   const userId = await getUserId('update a ticket');
 
