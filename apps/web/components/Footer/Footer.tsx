@@ -1,3 +1,6 @@
+'use client';
+
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -8,7 +11,14 @@ type FooterProps = {
   className?: string;
 };
 
-const Footer = ({ className }: FooterProps) => (
+const Footer = ({ className }: FooterProps) => {
+  const [year, setYear] = useState<number | null>(null);
+
+  useEffect(() => {
+    setYear(new Date().getFullYear());
+  }, []);
+
+  return (
   <footer
     className={cn('bg-[#2f2f2f] text-white pt-12 pb-6 px-4 mt-auto', className)}
   >
@@ -68,8 +78,7 @@ const Footer = ({ className }: FooterProps) => (
     <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center mt-12 pt-6 text-gray-400 text-sm gap-2">
       <div className="flex flex-col md:flex-row items-center gap-4">
         <span>
-          &copy; {new Date().getFullYear()} Parking Ticket Pal. All rights
-          reserved.
+          &copy; {year ?? '2025'} Parking Ticket Pal. All rights reserved.
         </span>
         <div className="flex gap-4">
           <Link href="/privacy" className="hover:text-white transition-colors">
@@ -86,6 +95,7 @@ const Footer = ({ className }: FooterProps) => (
       </span>
     </div>
   </footer>
-);
+  );
+};
 
 export default Footer;

@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { isPathAuthenticated } from './utils/isAuthenticatedPath';
 import { decrypt } from './app/lib/session';
 
-export const middleware = async (req: NextRequest) => {
+export const proxy = async (req: NextRequest) => {
   // object added to req from next-auth wrapper this function
   const { pathname } = req.nextUrl;
 

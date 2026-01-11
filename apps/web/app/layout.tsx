@@ -1,3 +1,4 @@
+import { Suspense } from 'react';
 import type { Metadata } from 'next';
 import { Analytics } from '@vercel/analytics/react';
 import PlausibleProvider from 'next-plausible';
@@ -46,16 +47,18 @@ const RootLayout = ({
       <PlausibleProvider domain="parkingticketpal.com" />
     </head>
     <body>
-      <Providers>
-        <PendingActionHandler />
-        <HeaderWrapper />
-        <main className="flex flex-col min-h-screen pt-[72px] [&>div:not(#modal-root)]:flex-1 px-4">
-          <div id="modal-root" />
-          {children}
-        </main>
-        <Footer />
-        <FundAccountDialog />
-      </Providers>
+      <Suspense>
+        <Providers>
+          <PendingActionHandler />
+          <HeaderWrapper />
+          <main className="flex flex-col min-h-screen pt-[72px] [&>div:not(#modal-root)]:flex-1 px-4">
+            <div id="modal-root" />
+            {children}
+          </main>
+          <Footer />
+          <FundAccountDialog />
+        </Providers>
+      </Suspense>
       <Toaster
         richColors
         toastOptions={{
