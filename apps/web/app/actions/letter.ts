@@ -3,7 +3,7 @@
 import { after } from 'next/server';
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
-import { del, put } from '@vercel/blob';
+import { del, put } from '@/lib/storage';
 import {
   MediaSource,
   MediaType,
@@ -144,8 +144,8 @@ export const createLetter = async (
           validatedData.tempImagePath!.split('.').pop() || 'jpg';
 
         // Move file to permanent location with letter ID
-        const permanentPath = STORAGE_PATHS.LETTER_IMAGE.replace('%s', userId)
-          .replace('%s', ticket.id)
+        // New path: letters/{letterId}/image.{ext}
+        const permanentPath = STORAGE_PATHS.LETTER_IMAGE
           .replace('%s', letter.id)
           .replace('%s', extension);
 
@@ -159,8 +159,7 @@ export const createLetter = async (
 
         const tempBuffer = await tempResponse.arrayBuffer();
 
-        const permanentBlob = await put(permanentPath, tempBuffer, {
-          access: 'public',
+        const permanentBlob = await put(permanentPath, Buffer.from(tempBuffer), {
           contentType: `image/${extension === 'jpg' ? 'jpeg' : extension}`,
         });
 
@@ -560,13 +559,11 @@ const generateChallengeLetterByTicketId = async (
     // convert PDF stream to buffer
     const pdfBuffer = await streamToBuffer(pdfStream as Readable);
 
-    // save PDF to blob storage
-    const pdfPath = STORAGE_PATHS.CHALLENGE_LETTER_PDF.replace('%s', userId)
-      .replace('%s', ticket.id)
-      .replace('%s', challenge.id);
+    // save PDF to R2 storage
+    // New path: letters/{letterId}/challenge.pdf
+    const pdfPath = STORAGE_PATHS.CHALLENGE_LETTER_PDF.replace('%s', challenge.id);
 
     const pdfBlob = await put(pdfPath, pdfBuffer, {
-      access: 'public',
       contentType: 'application/pdf',
     });
 

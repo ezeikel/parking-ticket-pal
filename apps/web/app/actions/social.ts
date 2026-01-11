@@ -2,12 +2,12 @@
 
 'use server';
 
-import { put, del } from '@vercel/blob';
 import sharp from 'sharp';
 import { PostPlatform, type Post } from '@/types';
 import openai from '@/lib/openai';
 import { OPENAI_MODEL_GPT_4O } from '@/constants';
 import { createServerLogger } from '@/lib/logger';
+import { put, del } from '@/lib/storage';
 
 const logger = createServerLogger({ action: 'social' });
 
@@ -147,7 +147,6 @@ const uploadToTempStorage = async (
 
   try {
     const { url } = await put(tempFileName, imageBuffer, {
-      access: 'public',
       contentType: 'image/jpeg',
     });
 

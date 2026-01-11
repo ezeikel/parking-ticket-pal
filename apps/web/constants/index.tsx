@@ -1114,37 +1114,77 @@ export const STRIPE_API_VERSION = '2025-12-15.clover';
 
 export const USER_SIGNATURE_PATH = 'users/%s/profile/signature.svg';
 
+/**
+ * Flattened Storage Paths for R2
+ *
+ * New simplified directory structure for Cloudflare R2:
+ * - Flattened paths for easier management
+ * - Clear organization by resource type
+ * - Consistent naming conventions
+ */
 export const STORAGE_PATHS = {
-  // Blog posts (public content)
-  BLOG_POST: 'blog/%s.mdx', // blog/{slug}.mdx
+  // ============================================================================
+  // Ticket files (flattened structure)
+  // ============================================================================
+  TICKET_IMAGE: 'tickets/%s/front.%s', // tickets/{ticketId}/front.{ext}
+  TICKET_EVIDENCE: 'tickets/%s/evidence/%s.%s', // tickets/{ticketId}/evidence/{evidenceId}.{ext}
 
-  // Temporary uploads (auto-cleanup after 48 hours)
-  TEMP_UPLOAD: 'temp/%s/%s.%s', // temp/{userId}/{timestamp}.{extension}
+  // ============================================================================
+  // Letter files
+  // ============================================================================
+  LETTER_IMAGE: 'letters/%s/image.%s', // letters/{letterId}/image.{ext}
+  CHALLENGE_LETTER_PDF: 'letters/%s/challenge.pdf', // letters/{letterId}/challenge.pdf
 
+  // ============================================================================
+  // Form files
+  // ============================================================================
+  TICKET_FORM: 'forms/%s.pdf', // forms/{formId}.pdf
+
+  // ============================================================================
   // User profile files
-  USER_AVATAR: 'users/%s/profile/avatar.%s',
-  USER_SIGNATURE: 'users/%s/profile/signature.svg',
+  // ============================================================================
+  USER_AVATAR: 'users/%s/avatar.%s', // users/{userId}/avatar.{ext}
+  USER_SIGNATURE: 'users/%s/signature.svg', // users/{userId}/signature.svg
 
-  // Ticket-related files (organized by ticketId)
-  TICKET_IMAGE: 'users/%s/tickets/%s/images/ticket-front.%s',
-  TICKET_FORM: 'users/%s/tickets/%s/forms/%s-%s-%s-%s.pdf',
-  TICKET_EVIDENCE: 'users/%s/tickets/%s/evidence/evidence-%s.jpg',
-  TICKET_SCREENSHOT: 'users/%s/tickets/%s/evidence/screenshots/%s-%s.png',
+  // ============================================================================
+  // Automation files
+  // ============================================================================
+  AUTOMATION_SCREENSHOT: 'automation/%s/screenshot-%s.png', // automation/{ticketId}/screenshot-{timestamp}.png
 
-  // Letter files (stored under the associated ticket)
-  LETTER_IMAGE: 'users/%s/tickets/%s/letters/%s/images/letter-front.%s',
+  // ============================================================================
+  // Temporary uploads (auto-cleanup)
+  // ============================================================================
+  TEMP_UPLOAD: 'temp/%s/%s.%s', // temp/{userId}/{timestamp}.{ext}
 
-  // Challenge letter PDFs (stored under the associated ticket)
-  CHALLENGE_LETTER_PDF:
+  // ============================================================================
+  // Blog posts (will be migrated to Sanity)
+  // ============================================================================
+  BLOG_POST: 'blog/%s.mdx', // blog/{slug}.mdx (legacy - moving to Sanity)
+
+  // ============================================================================
+  // Legacy paths (deprecated - for migration reference only)
+  // ============================================================================
+  /** @deprecated Use TICKET_IMAGE instead */
+  LEGACY_TICKET_IMAGE: 'users/%s/tickets/%s/images/ticket-front.%s',
+  /** @deprecated Use TICKET_FORM instead */
+  LEGACY_TICKET_FORM: 'users/%s/tickets/%s/forms/%s-%s-%s-%s.pdf',
+  /** @deprecated Use TICKET_EVIDENCE instead */
+  LEGACY_TICKET_EVIDENCE: 'users/%s/tickets/%s/evidence/evidence-%s.jpg',
+  /** @deprecated Use LETTER_IMAGE instead */
+  LEGACY_LETTER_IMAGE: 'users/%s/tickets/%s/letters/%s/images/letter-front.%s',
+  /** @deprecated Use CHALLENGE_LETTER_PDF instead */
+  LEGACY_CHALLENGE_LETTER_PDF:
     'users/%s/tickets/%s/challenges/%s/challenge-letter.pdf',
-
-  // Automation files (stored under the associated ticket)
-  AUTOMATION_SCREENSHOT: 'users/%s/tickets/%s/automation/screenshots/%s-%s.png',
-  AUTOMATION_EVIDENCE:
-    'users/%s/tickets/%s/automation/evidence/evidence-%s.jpg',
-
-  // Legacy paths for backward compatibility (deprecated)
+  /** @deprecated Use AUTOMATION_SCREENSHOT instead */
+  LEGACY_AUTOMATION_SCREENSHOT:
+    'users/%s/tickets/%s/automation/screenshots/%s-%s.png',
+  /** @deprecated Use USER_AVATAR instead */
+  LEGACY_USER_AVATAR: 'users/%s/profile/avatar.%s',
+  /** @deprecated Use USER_SIGNATURE instead */
+  LEGACY_USER_SIGNATURE: 'users/%s/profile/signature.svg',
+  /** @deprecated */
   USER_IMAGE: 'users/%s/image.%s',
+  /** @deprecated */
   USER_TICKET_FORM: 'users/%s/tickets/%s/forms/%s-%s-%s-%s.pdf',
 };
 

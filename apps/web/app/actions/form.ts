@@ -8,7 +8,7 @@ import FormEmail from '@/components/emails/FormEmail';
 import { FormType } from '@parking-ticket-pal/db';
 import { PdfFormFields } from '@/types';
 import { Address } from '@parking-ticket-pal/types';
-import { put } from '@vercel/blob';
+import { put } from '@/lib/storage';
 import { STORAGE_PATHS } from '@/constants';
 import resend from '@/lib/resend';
 import { db } from '@parking-ticket-pal/db';
@@ -35,24 +35,15 @@ const handleFormGeneration = async (
     const fileBuffer = Buffer.from(filledFormBytes);
     const fileName = `${formType}_form.pdf`;
 
-    // upload to vercel blob with organised path structure
-    const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-    // Format the user's name for the filename (lowercase and hyphenated)
-    const userName = formFields.userName || 'unknown';
-    const formattedUserName = userName.toLowerCase().replace(/\s+/g, '-');
-
-    const blobPath = STORAGE_PATHS.TICKET_FORM.replace('%s', formFields.userId)
-      .replace('%s', formFields.ticketId)
-      .replace('%s', formType)
-      .replace('%s', formattedUserName)
-      .replace('%s', formFields.penaltyChargeNo)
-      .replace('%s', timestamp);
+    // upload to R2 storage
+    // New path: forms/{formId}.pdf
+    const formId = crypto.randomUUID();
+    const storagePath = STORAGE_PATHS.TICKET_FORM.replace('%s', formId);
 
     let blob;
 
     try {
-      blob = await put(blobPath, fileBuffer, {
-        access: 'public',
+      blob = await put(storagePath, fileBuffer, {
         contentType: 'application/pdf',
       });
     } catch (error) {

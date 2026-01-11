@@ -1,11 +1,10 @@
 import { notFound } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
-import { MDXRemote } from 'next-mdx-remote/rsc';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faArrowLeft } from '@fortawesome/pro-regular-svg-icons';
 import { getAllPosts, getPostBySlug } from '@/lib/queries/blog';
-import MDXComponents from '@/components/MDXComponents/MDXComponents';
+import PortableText from '@/components/PortableText/PortableText';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { PLACEHOLDER_AVATAR_IMAGE, PLACEHOLDER_BLOG_IMAGE } from '@/constants';
@@ -54,7 +53,7 @@ const BlogPostPage = async ({
     notFound();
   }
 
-  const { meta, content, readingTime } = post;
+  const { meta, bodyBlocks, readingTime } = post;
 
   return (
     <div className="bg-white dark:bg-gray-950">
@@ -114,7 +113,7 @@ const BlogPostPage = async ({
 
         {/* Main Content */}
         <div className="prose dark:prose-invert lg:prose-xl max-w-4xl mx-auto px-6 py-12 md:py-16">
-          <MDXRemote source={content} components={MDXComponents} />
+          <PortableText value={bodyBlocks} />
         </div>
       </article>
 

@@ -56,9 +56,7 @@ const handleContactDetailsForm = async (page: any, args: ChallengeArgs) => {
   // Take final screenshot before submission
   await takeScreenShot({
     page,
-    userId: args.ticket.vehicle.user.id,
     ticketId: args.ticket.id,
-    name: 'westminster-challenge-final-form',
     fullPage: true,
   });
 
@@ -77,9 +75,7 @@ const handleContactDetailsForm = async (page: any, args: ChallengeArgs) => {
   // Take final success screenshot
   await takeScreenShot({
     page,
-    userId: args.ticket.vehicle.user.id,
     ticketId: args.ticket.id,
-    name: 'westminster-challenge-success-confirmation',
     fullPage: true,
   });
 };
@@ -216,7 +212,6 @@ export const verify = async (args: CommonPcnArgs) => {
   // DEBUG: take screenshot
   await takeScreenShot({
     page,
-    userId: ticket.vehicle.user.id,
     ticketId: ticket.id,
   });
 
@@ -244,7 +239,6 @@ export const verify = async (args: CommonPcnArgs) => {
     if (fullSizeImages.length > 0) {
       await uploadEvidence({
         page,
-        userId: ticket.vehicle.user.id,
         ticketId: ticket.id,
         imageSources: fullSizeImages,
       });
@@ -306,9 +300,7 @@ export const challenge = async (args: ChallengeArgs) => {
 
   await takeScreenShot({
     page: args.page,
-    userId: args.ticket.vehicle.user.id,
     ticketId: args.ticket.id,
-    name: 'westminster-challenge-completed',
     fullPage: true,
   });
 
