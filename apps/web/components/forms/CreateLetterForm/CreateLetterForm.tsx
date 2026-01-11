@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { CreateLetterValues, letterFormSchema } from '@/types';
 import { createLetter } from '@/app/actions/letter';
-import { LetterType } from '@prisma/client';
+import { LetterType } from '@parking-ticket-pal/db';
 import { Button } from '@/components/ui/button';
 import {
   Form,

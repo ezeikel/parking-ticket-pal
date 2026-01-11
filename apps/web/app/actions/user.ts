@@ -1,7 +1,7 @@
 'use server';
 
 import { signOut } from '@/auth';
-import { db } from '@/lib/prisma';
+import { db } from '@parking-ticket-pal/db';
 import { del, put, list } from '@vercel/blob';
 import { track } from '@/utils/analytics-server';
 import { STORAGE_PATHS } from '@/constants';

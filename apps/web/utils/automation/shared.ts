@@ -1,6 +1,6 @@
 import { Page } from 'playwright';
 import { chromium } from 'playwright-extra';
-import { Ticket } from '@prisma/client';
+import { Ticket } from '@parking-ticket-pal/db';
 import { put, list } from '@vercel/blob';
 import { Address } from '@parking-ticket-pal/types';
 import { STORAGE_PATHS } from '@/constants';

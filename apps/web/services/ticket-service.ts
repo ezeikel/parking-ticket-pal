@@ -1,7 +1,7 @@
 'use server';
 
-import { PredictionType, Ticket } from '@prisma/client';
-import { db } from '@/lib/prisma';
+import { PredictionType, Ticket } from '@parking-ticket-pal/db';
+import { db } from '@parking-ticket-pal/db';
 
 /**
  * Updates or creates a prediction for a ticket

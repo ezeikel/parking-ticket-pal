@@ -5,7 +5,7 @@ import FacebookProvider from 'next-auth/providers/facebook';
 import AppleProvider from 'next-auth/providers/apple';
 import Resend from 'next-auth/providers/resend';
 import { PrismaAdapter } from '@auth/prisma-adapter';
-import { db } from '@/lib/prisma';
+import { db } from '@parking-ticket-pal/db';
 import { createServerLogger } from '@/lib/logger';
 import { generateAppleClientSecret } from '@/lib/apple';
 import { render } from '@react-email/render';

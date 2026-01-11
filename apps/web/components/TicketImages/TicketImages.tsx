@@ -1,6 +1,6 @@
 'use client';
 
-import type { Media } from '@prisma/client';
+import type { Media } from '@parking-ticket-pal/db';
 import {
   Card,
   CardContent,

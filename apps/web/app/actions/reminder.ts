@@ -3,9 +3,9 @@
 import { Resend } from 'resend';
 import { render } from '@react-email/render';
 import ReminderEmail from '@/components/emails/ReminderEmail';
-import { db } from '@/lib/prisma';
+import { db } from '@parking-ticket-pal/db';
 import twilio from 'twilio';
-import { ReminderType, NotificationType, Prisma } from '@prisma/client';
+import { ReminderType, NotificationType, Prisma } from '@parking-ticket-pal/db';
 import { addDays, isAfter, isSameDay } from 'date-fns';
 import { createServerLogger } from '@/lib/logger';
 import { createAndSendNotification } from '@/lib/notifications/create';

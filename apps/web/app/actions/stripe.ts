@@ -2,11 +2,11 @@
 
 import { headers } from 'next/headers';
 import Stripe from 'stripe';
-import { ProductType, TicketTier, UserRole } from '@prisma/client';
+import { ProductType, TicketTier, UserRole } from '@parking-ticket-pal/db';
 import { track } from '@/utils/analytics-server';
 import { getTierPriceId, getConsumerSubscriptionPriceId } from '@/constants';
 import { TRACKING_EVENTS } from '@/constants/events';
-import { db } from '@/lib/prisma';
+import { db } from '@parking-ticket-pal/db';
 import stripe from '@/lib/stripe';
 import { getUserId } from '@/utils/user';
 import { createServerLogger } from '@/lib/logger';

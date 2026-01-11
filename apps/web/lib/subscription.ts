@@ -3,7 +3,7 @@
  * Handles both Stripe (web) and RevenueCat (mobile) subscriptions
  */
 
-import { User, Subscription, SubscriptionType, SubscriptionSource } from '@prisma/client';
+import { User, Subscription, SubscriptionType, SubscriptionSource } from '@parking-ticket-pal/db';
 
 export type UserWithSubscription = User & {
   subscription: Subscription | null;

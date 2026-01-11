@@ -1,4 +1,4 @@
-import { MediaSource, TicketTier } from '@prisma/client';
+import { MediaSource, TicketTier } from '@parking-ticket-pal/db';
 import TicketUpsellCTA from '@/components/TicketUpsellCTA/TicketUpsellCTA';
 import TicketDetailsCard from '@/components/TicketDetailsCard/TicketDetailsCard';
 import ChallengeTicket from '@/components/ChallengeTicket/ChallengeTicket';

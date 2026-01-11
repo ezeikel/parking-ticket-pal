@@ -1,6 +1,6 @@
 import { headers } from 'next/headers';
 import { auth } from '@/auth';
-import { db } from '@/lib/prisma';
+import { db } from '@parking-ticket-pal/db';
 import { CurrentUser } from '@/types';
 
 export const getUserId = async (action?: string) => {

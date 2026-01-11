@@ -2,7 +2,7 @@
 
 import { Suspense, useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { TicketTier } from '@prisma/client';
+import { TicketTier } from '@parking-ticket-pal/db';
 import { createTicketCheckoutSession } from '@/app/actions/stripe';
 import {
   Card,

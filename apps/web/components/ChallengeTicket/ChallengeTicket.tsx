@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { ChallengeType, IssuerType, TicketTier } from '@prisma/client';
+import { ChallengeType, IssuerType, TicketTier } from '@parking-ticket-pal/db';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
   faFileLines,

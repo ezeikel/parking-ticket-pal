@@ -1,10 +1,10 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
-import { Prisma, VerificationStatus, VerificationType } from '@prisma/client';
+import { Prisma, VerificationStatus, VerificationType } from '@parking-ticket-pal/db';
 import getVehicleInfo from '@/utils/getVehicleInfo';
 import { track } from '@/utils/analytics-server';
-import { db } from '@/lib/prisma';
+import { db } from '@parking-ticket-pal/db';
 import { TRACKING_EVENTS } from '@/constants/events';
 import { getUserId } from '@/utils/user';
 import type { VehicleInfo } from '@/utils/getVehicleInfo';

@@ -1,4 +1,4 @@
-import { TicketStatus } from '@prisma/client';
+import { TicketStatus } from '@parking-ticket-pal/db';
 import { differenceInDays } from 'date-fns';
 
 type PriceIncrease = {

@@ -1,4 +1,4 @@
-import { TicketStatus, IssuerType } from '@prisma/client';
+import { TicketStatus, IssuerType } from '@parking-ticket-pal/db';
 
 export type TimelineStage = {
   id: string;

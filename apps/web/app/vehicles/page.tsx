@@ -2,7 +2,7 @@ import VehicleCard from '@/components/VehicleCard/VehicleCard';
 import AddVehicleDialog from '@/components/AddVehicleDialog/AddVehicleDialog';
 import IssueNotification from '@/components/IssueNotification/IssueNotification';
 import EmptyList from '@/components/EmptyList/EmptyList';
-import { TicketStatus } from '@prisma/client';
+import { TicketStatus } from '@parking-ticket-pal/db';
 import { getVehicles } from '../actions/vehicle';
 
 const ACTIVE_TICKET_STATUSES: TicketStatus[] = [

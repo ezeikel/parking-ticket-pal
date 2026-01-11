@@ -1,6 +1,6 @@
 /* eslint-disable import/prefer-default-export */
 
-import { db } from '@/lib/prisma';
+import { db } from '@parking-ticket-pal/db';
 import { decrypt, encrypt } from '@/app/lib/session';
 
 export const POST = async (req: Request) => {

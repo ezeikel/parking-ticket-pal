@@ -1,8 +1,8 @@
 /* eslint-disable import/prefer-default-export */
 
 import Stripe from 'stripe';
-import { db } from '@/lib/prisma';
-import { SubscriptionType, SubscriptionSource, TicketTier } from '@prisma/client';
+import { db } from '@parking-ticket-pal/db';
+import { SubscriptionType, SubscriptionSource, TicketTier } from '@parking-ticket-pal/db';
 import {
   STRIPE_API_VERSION,
   isTierUpgradePrice,

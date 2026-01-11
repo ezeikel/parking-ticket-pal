@@ -1,4 +1,4 @@
-import { db } from '@/lib/prisma';
+import { db } from '@parking-ticket-pal/db';
 
 // longer duration to account for openai api calls
 export const maxDuration = 30;

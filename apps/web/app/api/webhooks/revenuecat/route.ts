@@ -1,7 +1,7 @@
 /* eslint-disable import/prefer-default-export */
 
-import { db } from '@/lib/prisma';
-import { SubscriptionType, SubscriptionSource } from '@prisma/client';
+import { db } from '@parking-ticket-pal/db';
+import { SubscriptionType, SubscriptionSource } from '@parking-ticket-pal/db';
 import { revalidatePath } from 'next/cache';
 import crypto from 'crypto';
 

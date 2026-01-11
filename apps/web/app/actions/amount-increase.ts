@@ -2,13 +2,13 @@
 
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
-import { db } from '@/lib/prisma';
+import { db } from '@parking-ticket-pal/db';
 import { createServerLogger } from '@/lib/logger';
 import {
   AmountIncrease,
   AmountIncreaseSourceType,
   Letter,
-} from '@prisma/client';
+} from '@parking-ticket-pal/db';
 
 const logger = createServerLogger({ action: 'amount-increase' });
 

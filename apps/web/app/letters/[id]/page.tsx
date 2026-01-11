@@ -10,7 +10,7 @@ import { getLetter } from '@/app/actions/letter';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { format } from 'date-fns';
-import { LetterType } from '@prisma/client';
+import { LetterType } from '@parking-ticket-pal/db';
 
 type LetterPageProps = {
   params: Promise<{ id: string }>;

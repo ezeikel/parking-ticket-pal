@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { db } from '@/lib/prisma';
+import { db } from '@parking-ticket-pal/db';
 import { sendReminder } from '@/app/actions/reminder';
 import { startOfDay, endOfDay } from 'date-fns';
 

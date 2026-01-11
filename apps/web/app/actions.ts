@@ -1,11 +1,11 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
-import { MediaType, MediaSource } from '@prisma/client';
+import { MediaType, MediaSource } from '@parking-ticket-pal/db';
 import { chromium } from 'playwright-extra';
 import stealth from 'puppeteer-extra-plugin-stealth';
 import RecaptchaPlugin from 'puppeteer-extra-plugin-recaptcha';
-import { db } from '@/lib/prisma';
+import { db } from '@parking-ticket-pal/db';
 import { getUserId } from '@/utils/user';
 import { createServerLogger } from '@/lib/logger';
 

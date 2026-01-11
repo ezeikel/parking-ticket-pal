@@ -1,7 +1,7 @@
 'use server';
 
-import { Prisma } from '@prisma/client';
-import { db } from '@/lib/prisma';
+import { Prisma } from '@parking-ticket-pal/db';
+import { db } from '@parking-ticket-pal/db';
 import getVehicleInfo from '@/utils/getVehicleInfo';
 
 /**

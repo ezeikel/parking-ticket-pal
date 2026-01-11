@@ -1,7 +1,7 @@
 'use server';
 
-import { db as prisma } from '@/lib/prisma';
-import type { NotificationEventType, Platform, Prisma } from '@prisma/client';
+import { db as prisma } from '@parking-ticket-pal/db';
+import type { NotificationEventType, Platform, Prisma } from '@parking-ticket-pal/db';
 
 interface NotificationPreferences {
   inApp: boolean;

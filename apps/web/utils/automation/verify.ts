@@ -1,5 +1,5 @@
 import { findIssuer, isAutomationSupported } from '@/constants/index';
-import { db } from '@/lib/prisma';
+import { db } from '@parking-ticket-pal/db';
 import { lewisham, horizon } from './issuers';
 import { CommonPcnArgs, setupBrowser } from './shared';
 

@@ -28,7 +28,7 @@ import {
   faSpinnerThird,
   faInfoCircle,
 } from '@fortawesome/pro-regular-svg-icons';
-import { FormType, TicketTier } from '@prisma/client';
+import { FormType, TicketTier } from '@parking-ticket-pal/db';
 import { toast } from 'sonner';
 import {
   generatePE2Form,

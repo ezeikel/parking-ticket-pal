@@ -5,13 +5,13 @@ import fillPE3Form from '@/utils/automation/forms/PE3';
 import fillTE7Form from '@/utils/automation/forms/TE7';
 import fillTE9Form from '@/utils/automation/forms/TE9';
 import FormEmail from '@/components/emails/FormEmail';
-import { FormType } from '@prisma/client';
+import { FormType } from '@parking-ticket-pal/db';
 import { PdfFormFields } from '@/types';
 import { Address } from '@parking-ticket-pal/types';
 import { put } from '@vercel/blob';
 import { STORAGE_PATHS } from '@/constants';
 import resend from '@/lib/resend';
-import { db } from '@/lib/prisma';
+import { db } from '@parking-ticket-pal/db';
 import { createServerLogger } from '@/lib/logger';
 
 const logger = createServerLogger({ action: 'form' });

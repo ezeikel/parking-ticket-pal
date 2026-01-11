@@ -1,5 +1,5 @@
 import { Expo, ExpoPushMessage, ExpoPushTicket } from 'expo-server-sdk';
-import { db as prisma } from '@/lib/prisma';
+import { db as prisma } from '@parking-ticket-pal/db';
 
 // Create a new Expo SDK client
 const expo = new Expo({

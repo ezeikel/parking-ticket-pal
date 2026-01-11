@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faBars, faXmark } from '@fortawesome/pro-regular-svg-icons';
 import { signOut } from 'next-auth/react';
-import { User } from '@prisma/client';
+import { User } from '@parking-ticket-pal/db';
 import type { IconDefinition } from '@fortawesome/fontawesome-svg-core';
 import cn from '@/utils/cn';
 import FeedbackDialog from '@/components/FeedbackDialog/FeedbackDialog';

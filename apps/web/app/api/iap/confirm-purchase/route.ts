@@ -1,7 +1,7 @@
 /* eslint-disable import/prefer-default-export */
 
-import { db } from '@/lib/prisma';
-import { TicketTier } from '@prisma/client';
+import { db } from '@parking-ticket-pal/db';
+import { TicketTier } from '@parking-ticket-pal/db';
 import { verifyPurchase } from '@/lib/revenuecat';
 import { decrypt } from '@/app/lib/session';
 

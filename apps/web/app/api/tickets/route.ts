@@ -1,7 +1,7 @@
 /* eslint-disable import/prefer-default-export */
 
 import { getTickets } from '@/app/actions/ticket';
-import { TicketStatus, IssuerType, TicketType } from '@prisma/client';
+import { TicketStatus, IssuerType, TicketType } from '@parking-ticket-pal/db';
 
 export const GET = async (request: Request) => {
   const { searchParams } = new URL(request.url);

@@ -16,9 +16,9 @@ import {
   Letter,
   ChallengeType,
   ChallengeStatus,
-} from '@prisma/client';
+} from '@parking-ticket-pal/db';
 import { Readable } from 'stream';
-import { db } from '@/lib/prisma';
+import { db } from '@parking-ticket-pal/db';
 import getVehicleInfo from '@/utils/getVehicleInfo';
 import {
   letterFormSchema,

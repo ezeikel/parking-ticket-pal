@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import type { ReactNode } from 'react';
-import { TicketStatus } from '@prisma/client';
+import { TicketStatus } from '@parking-ticket-pal/db';
 import {
   faCalendarDays,
   faCarSide,

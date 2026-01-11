@@ -12,7 +12,7 @@ import {
   TicketStatus,
   TicketTier,
   User,
-} from '@prisma/client';
+} from '@parking-ticket-pal/db';
 import { z } from 'zod';
 import { TRACKING_EVENTS } from '@/constants/events';
 import { BLOG_TAGS } from '@/constants/blog';

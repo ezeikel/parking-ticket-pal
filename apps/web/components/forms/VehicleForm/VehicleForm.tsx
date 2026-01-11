@@ -24,7 +24,7 @@ import {
 } from '@/components/ui/select';
 import { useRouter } from 'next/navigation';
 import VerifiedBadge from '@/components/VerifiedBadge/VerifiedBadge';
-import { VerificationStatus } from '@prisma/client';
+import { VerificationStatus } from '@parking-ticket-pal/db';
 
 const vehicleFormSchema = z.object({
   registrationNumber: z.string().min(1, 'Registration number is required'),

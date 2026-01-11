@@ -1,7 +1,7 @@
 /* eslint-disable import/prefer-default-export */
 
 import { OAuth2Client } from 'google-auth-library';
-import { db } from '@/lib/prisma';
+import { db } from '@parking-ticket-pal/db';
 import { encrypt } from '@/app/lib/session';
 
 const client = new OAuth2Client(

@@ -1,7 +1,7 @@
-import type { NotificationEventType } from '@prisma/client';
+import type { NotificationEventType } from '@parking-ticket-pal/db';
 import { createNotification } from '@/app/actions/notification';
 import { sendPushNotification } from './push';
-import { db as prisma } from '@/lib/prisma';
+import { db as prisma } from '@parking-ticket-pal/db';
 
 interface NotificationPreferences {
   inApp: boolean;

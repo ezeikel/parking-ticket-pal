@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import { formatCurrency } from '@/utils/getCurrentAmountDue';
 import ChallengeStats from '@/components/ChallengeStats/ChallengeStats';
 import { TicketWithRelations } from '@/types';
-import { TicketTier } from '@prisma/client';
+import { TicketTier } from '@parking-ticket-pal/db';
 import { createTicketCheckoutSession } from '@/app/actions/stripe';
 
 type TicketUpsellCTAProps = {

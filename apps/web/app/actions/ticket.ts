@@ -15,10 +15,10 @@ import {
   Prisma,
   Ticket,
   ChallengeStatus,
-} from '@prisma/client';
+} from '@parking-ticket-pal/db';
 import getVehicleInfo from '@/utils/getVehicleInfo';
 import { ticketFormSchema } from '@parking-ticket-pal/types';
-import { db } from '@/lib/prisma';
+import { db } from '@parking-ticket-pal/db';
 import { verify, challenge } from '@/utils/automation';
 import { generateReminders } from '@/app/actions/reminder';
 import { STORAGE_PATHS } from '@/constants';

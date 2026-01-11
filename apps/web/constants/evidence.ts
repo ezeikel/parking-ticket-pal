@@ -1,4 +1,4 @@
-import { EvidenceType } from '@prisma/client';
+import { EvidenceType } from '@parking-ticket-pal/db';
 
 export const evidenceTypeOptions: { value: EvidenceType; label: string }[] = [
   { value: EvidenceType.PHOTO_OF_SIGNAGE, label: 'Photo of Signage' },

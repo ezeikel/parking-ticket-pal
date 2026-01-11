@@ -14,7 +14,7 @@ import {
   faCircleCheck,
   faClock,
 } from '@fortawesome/pro-regular-svg-icons';
-import { TicketTier, type Reminder } from '@prisma/client';
+import { TicketTier, type Reminder } from '@parking-ticket-pal/db';
 
 type RemindersCardProps = {
   tier: TicketTier;
