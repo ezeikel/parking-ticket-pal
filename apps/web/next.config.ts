@@ -41,6 +41,8 @@ const nextConfig: NextConfig = {
     'puppeteer-extra-plugin-stealth',
     'puppeteer-extra-plugin-recaptcha',
     'posthog-node',
+    'gray-matter',
+    'kind-of',
   ],
   experimental: {
     serverActions: {

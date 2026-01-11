@@ -35,14 +35,14 @@ jobs:
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
           DATABASE_URL_UNPOOLED: ${{ secrets.DATABASE_URL_UNPOOLED }}
-        working-directory: ./apps/web
+        working-directory: ./packages/db
         run: pnpm dlx prisma validate
 
       - name: Check for formatting issues
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
           DATABASE_URL_UNPOOLED: ${{ secrets.DATABASE_URL_UNPOOLED }}
-        working-directory: ./apps/web
+        working-directory: ./packages/db
         run: pnpm dlx prisma format --check
 
   migrate:
@@ -74,12 +74,12 @@ jobs:
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
           DATABASE_URL_UNPOOLED: ${{ secrets.DATABASE_URL_UNPOOLED }}
-        working-directory: ./apps/web
+        working-directory: ./packages/db
         run: pnpm dlx prisma generate
 
       - name: Run database migrations
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
           DATABASE_URL_UNPOOLED: ${{ secrets.DATABASE_URL_UNPOOLED }}
-        working-directory: ./apps/web
+        working-directory: ./packages/db
         run: pnpm dlx prisma migrate deploy
