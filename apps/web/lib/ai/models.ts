@@ -18,11 +18,13 @@ export const MODEL_IDS = {
   GPT_IMAGE: 'gpt-image-1',
   DALL_E_3: 'dall-e-3',
 
-  // Google Gemini models
-  GEMINI_2_FLASH: 'gemini-2.0-flash',
-  // Gemini image generation models (use with generateText, not generateImage)
+  // Google Gemini models (updated Jan 2026)
+  // Most balanced model - speed, scale, and frontier intelligence
+  GEMINI_3_FLASH: 'gemini-3-flash-preview',
+  // Most intelligent multimodal model - best for vision/evaluation
+  GEMINI_3_PRO: 'gemini-3-pro-preview',
+  // Image generation model (use with generateText, not generateImage)
   GEMINI_3_PRO_IMAGE: 'gemini-3-pro-image-preview',
-  GEMINI_2_5_FLASH_IMAGE: 'gemini-2.5-flash-image-preview',
 } as const;
 
 // Pre-configured model instances
@@ -35,14 +37,18 @@ export const models = {
   // Best for: simple text extraction, formatting, quick responses
   textFast: openai(MODEL_IDS.GPT_4O_MINI),
 
-  // Ultra-fast vision model for analytics (Gemini 2 Flash)
+  // Balanced vision model for analytics (Gemini 3 Flash)
   // Best for: image analysis, categorization, structured extraction
-  // Pricing: Very cost-effective for high-volume tasks
-  analytics: google(MODEL_IDS.GEMINI_2_FLASH),
+  // Pricing: Cost-effective for high-volume tasks with frontier intelligence
+  analytics: google(MODEL_IDS.GEMINI_3_FLASH),
+
+  // Most intelligent vision model for evaluation (Gemini 3 Pro)
+  // Best for: evaluating image relevance, quality assessment, complex reasoning
+  // Use when accuracy matters more than speed
+  vision: google(MODEL_IDS.GEMINI_3_PRO),
 
   // Gemini image generation model (uses generateText, not generateImage)
   // Best for: blog featured images when Pexels doesn't have suitable photos
-  // Supports reference images as actual inputs for style matching
   geminiImage: google(MODEL_IDS.GEMINI_3_PRO_IMAGE),
 
   // Legacy image model - for backwards compatibility

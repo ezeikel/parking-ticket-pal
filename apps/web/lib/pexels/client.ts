@@ -217,6 +217,62 @@ export async function fetchBlogPhoto(
   };
 }
 
+export interface FetchBlogPhotosResult {
+  photos: Array<{
+    photo: PexelsPhoto;
+    searchTerm: string;
+  }>;
+  error?: string;
+}
+
+/**
+ * Fetch multiple blog photos for AI evaluation
+ *
+ * Returns top photos from multiple search terms for AI to evaluate
+ * and select the most relevant one.
+ *
+ * @param searchTerms - Array of search terms to try
+ * @param options - Search options
+ * @param maxPhotos - Maximum number of photos to return (default: 5)
+ * @returns Array of photos with their search terms
+ */
+export async function fetchBlogPhotosForEvaluation(
+  searchTerms: string[],
+  options: SearchOptions = { orientation: 'landscape', size: 'large' },
+  maxPhotos: number = 5,
+): Promise<FetchBlogPhotosResult> {
+  const results: Array<{ photo: PexelsPhoto; searchTerm: string }> = [];
+
+  for (const term of searchTerms) {
+    if (results.length >= maxPhotos) break;
+
+    try {
+      const response = await searchPhotos(term, options);
+
+      // Take top photos from this search term
+      const remaining = maxPhotos - results.length;
+      const topPhotos = response.photos.slice(0, Math.min(3, remaining));
+
+      for (const photo of topPhotos) {
+        results.push({ photo, searchTerm: term });
+        if (results.length >= maxPhotos) break;
+      }
+    } catch (error) {
+      console.error(`Error searching Pexels for "${term}":`, error);
+      // Continue to next search term
+    }
+  }
+
+  if (results.length === 0) {
+    return {
+      photos: [],
+      error: 'No photos found for any search term',
+    };
+  }
+
+  return { photos: results };
+}
+
 /**
  * Download a photo and return it as a buffer
  * Useful for uploading to Sanity
