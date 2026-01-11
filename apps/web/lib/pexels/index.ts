@@ -4,12 +4,14 @@ export {
   getCuratedPhotos,
   selectPhotoFromResults,
   fetchBlogPhoto,
+  fetchBlogPhotosForEvaluation,
   downloadPhoto,
   formatPhotoCredit,
   type PexelsPhoto,
   type PexelsSearchResponse,
   type SearchOptions,
   type FetchPhotoResult,
+  type FetchBlogPhotosResult,
 } from './client';
 
 export {
