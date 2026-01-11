@@ -3,8 +3,6 @@ import { db } from '@parking-ticket-pal/db';
 import { sendReminder } from '@/app/actions/reminder';
 import { startOfDay, endOfDay } from 'date-fns';
 
-export const dynamic = 'force-dynamic';
-
 const handleRequest = async () => {
   const now = new Date();
   const start = startOfDay(now);

@@ -1,7 +1,7 @@
 #!/usr/bin/env tsx
 
 import { postToSocialMedia } from '@/app/actions/social';
-import { getAllPosts } from '@/app/actions/blog';
+import { getAllPosts } from '@/lib/queries/blog';
 
 const testSocialPosting = async () => {
   try {

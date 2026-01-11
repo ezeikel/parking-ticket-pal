@@ -1,5 +1,5 @@
 import { ImageResponse } from 'next/og';
-import { getPostBySlug } from '@/app/actions/blog';
+import { getPostBySlug } from '@/lib/queries/blog';
 
 // load fonts from Google Fonts
 const getInterRegularFont = fetch(

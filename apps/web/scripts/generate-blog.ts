@@ -5,7 +5,8 @@
  * Usage: npm run test-blog-gen
  */
 
-import { generateRandomBlogPost, getCoveredTopics } from '@/app/actions/blog';
+import { generateRandomBlogPost } from '@/app/actions/blog';
+import { getCoveredTopics } from '@/lib/queries/blog';
 
 const testBlogGeneration = async () => {
   console.log('🚀 Testing Blog Post Generation System');

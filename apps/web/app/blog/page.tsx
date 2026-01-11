@@ -1,7 +1,5 @@
-import { getAllPosts } from '@/app/actions/blog';
+import { getAllPosts } from '@/lib/queries/blog';
 import BlogPostGrid from '@/components/BlogPostGrid/BlogPostGrid';
-
-export const revalidate = 3600; // revalidate every hour
 
 const BlogIndexPage = async () => {
   const posts = await getAllPosts();

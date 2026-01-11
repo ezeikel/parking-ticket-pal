@@ -1,8 +1,41 @@
 import { withSentryConfig } from '@sentry/nextjs';
+import type { NextConfig } from 'next';
 
-/** @type {import('next').NextConfig} */
-const nextConfig = {
+const nextConfig: NextConfig = {
   reactStrictMode: true,
+  cacheComponents: true,
+  cacheLife: {
+    // Ticket data - rarely changes after creation
+    ticket: {
+      stale: 60 * 60, // 1 hour
+      revalidate: 60 * 60 * 24, // 24 hours
+      expire: 60 * 60 * 24 * 30, // 30 days
+    },
+    // User-specific data
+    'user-data': {
+      stale: 60 * 5, // 5 minutes
+      revalidate: 60 * 60, // 1 hour
+      expire: 60 * 60 * 24, // 24 hours
+    },
+    // Blog/static content
+    blog: {
+      stale: 60 * 60, // 1 hour
+      revalidate: 60 * 60 * 24, // 24 hours
+      expire: 60 * 60 * 24 * 30, // 30 days
+    },
+    // Vehicle lookup data
+    vehicle: {
+      stale: 60 * 60 * 24, // 24 hours
+      revalidate: 60 * 60 * 24 * 7, // 7 days
+      expire: 60 * 60 * 24 * 90, // 90 days
+    },
+    // Issuer/contravention codes (rarely change)
+    'reference-data': {
+      stale: 60 * 60 * 24, // 24 hours
+      revalidate: 60 * 60 * 24 * 7, // 7 days
+      expire: 60 * 60 * 24 * 90, // 90 days
+    },
+  },
   serverExternalPackages: [
     'playwright-extra',
     'puppeteer-extra-plugin-stealth',

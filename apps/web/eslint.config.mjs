@@ -1,100 +1,127 @@
-import { FlatCompat } from '@eslint/eslintrc';
+import next from 'eslint-config-next';
+import nextCoreWebVitals from 'eslint-config-next/core-web-vitals';
+import nextTypescript from 'eslint-config-next/typescript';
+import path from 'node:path';
+
+import { includeIgnoreFile } from '@eslint/compat';
 import js from '@eslint/js';
-import eslintConfigPrettier from 'eslint-config-prettier';
-import globals from 'globals';
-import tseslint from 'typescript-eslint';
+import { configs, plugins } from 'eslint-config-airbnb-extended';
+import { rules as prettierConfigRules } from 'eslint-config-prettier';
+import prettierPlugin from 'eslint-plugin-prettier';
 
-const compat = new FlatCompat({
-  baseDirectory: import.meta.dirname,
-});
+export const projectRoot = path.resolve('.');
+export const gitignorePath = path.resolve(projectRoot, '.gitignore');
 
-export default tseslint.config(
+const jsConfig = [
+  // eslint recommended rules
   {
-    // Global ignores
-    ignores: [
-      '**/node_modules/**',
-      '**/dist/**',
-      '**/.next/**',
-      '**/build/**',
-      '**/coverage/**',
-      'components/ui/**',
-    ],
+    name: 'js/config',
+    ...js.configs.recommended,
   },
+  // stylistic plugin
+  plugins.stylistic,
+  // import x plugin
+  plugins.importX,
+  // airbnb base recommended config
+  ...configs.base.recommended,
+];
 
-  // Base configs
-  js.configs.recommended,
-  ...tseslint.configs.recommended,
+const typescriptConfig = [
+  // typescript eslint plugin
+  plugins.typescriptEslint,
+  // airbnb base typescript config
+  ...configs.base.typescript,
+];
 
-  // Layer in configurations using FlatCompat
-  ...compat.extends('airbnb', 'airbnb-typescript', 'next/core-web-vitals'),
-
-  // Add Prettier config last
-  eslintConfigPrettier,
-
-  // Your custom rules and overrides
+const prettierConfig = [
+  // prettier plugin
   {
-    languageOptions: {
-      globals: {
-        ...globals.browser,
-        ...globals.es2021,
-        ...globals.node,
-        React: 'readonly',
-      },
-      parserOptions: {
-        project: true,
-        tsconfigRootDir: import.meta.dirname,
-      },
+    name: 'prettier/plugin/config',
+    plugins: {
+      prettier: prettierPlugin,
     },
+  },
+  // prettier config
+  {
+    name: 'prettier/config',
+    rules: {
+      ...prettierConfigRules,
+      'prettier/prettier': 'error',
+    },
+  },
+  {
+    files: ['**/*.{ts,tsx}'],
+    rules: {
+      'react/require-default-props': 'off',
+    },
+  },
+  {
+    files: ['**/*.{ts,tsx}'],
+    ignores: ['**/ui/**', 'next-auth.d.ts'],
+    rules: {
+      '@typescript-eslint/consistent-type-definitions': ['error', 'type'],
+      'react/function-component-definition': 'off',
+    },
+  },
+  {
+    files: ['**/components/ui/**'],
+    rules: {
+      'arrow-body-style': 'off',
+      '@typescript-eslint/no-empty-object-type': 'off',
+      'import-x/prefer-default-export': 'off',
+      '@typescript-eslint/no-unused-vars': 'off',
+      'prefer-arrow-callback': 'off',
+    },
+  },
+];
+
+export default [
+  // Next.js configs (includes react, react-hooks, jsx-a11y, next plugins)
+  ...next,
+  ...nextCoreWebVitals,
+  ...nextTypescript,
+  // ignore .gitignore files/folder in eslint
+  includeIgnoreFile(gitignorePath),
+  // javascript config
+  ...jsConfig,
+  // typescript config
+  ...typescriptConfig,
+  // prettier config
+  ...prettierConfig,
+  // Settings and rule overrides for Next.js projects
+  {
     settings: {
-      'import/resolver': {
-        typescript: true,
+      'import-x/resolver': {
+        typescript: {
+          alwaysTryTypes: true,
+          project: './tsconfig.json',
+        },
         node: true,
-      },
-      react: {
-        version: 'detect',
       },
     },
     rules: {
-      // Your custom rules
-      '@typescript-eslint/no-unused-vars': 'warn',
-      '@typescript-eslint/no-explicit-any': 'warn',
-      'no-console': 'warn',
-      'class-methods-use-this': 'off',
-      'import/first': 'warn',
-      'default-case': 'warn',
-
-      // Next.js doesn't require React in scope
-      'react/react-in-jsx-scope': 'off',
-
-      // Relax some strict Airbnb rules for better DX
-      'react/jsx-props-no-spreading': 'off',
-      'react/require-default-props': 'off',
-
-      // Allow arrow functions for defining components
-      'react/function-component-definition': [
+      // Disable extension requirement for TypeScript files
+      'import-x/extensions': [
         'error',
+        'ignorePackages',
         {
-          namedComponents: 'arrow-function',
-          unnamedComponents: 'arrow-function',
+          ts: 'never',
+          tsx: 'never',
+          js: 'never',
+          jsx: 'never',
         },
       ],
-
-      // Fixes for airbnb-typescript and typescript-eslint v8+
-      '@typescript-eslint/lines-between-class-members': 'off',
-      '@typescript-eslint/no-throw-literal': 'off',
-
-      'import/no-extraneous-dependencies': [
-        'error',
-        {
-          devDependencies: [
-            '**/*.test.ts',
-            '**/*.test.tsx',
-            '**/*.spec.ts',
-            '**/*.spec.tsx',
-            'eslint.config.mjs',
-          ],
-        },
-      ],
+      // Disable no-unresolved for path aliases (handled by TypeScript)
+      'import-x/no-unresolved': 'off',
     },
   },
-);
+  {
+    ignores: [
+      'node_modules/**',
+      '.next/**',
+      'out/**',
+      'build/**',
+      'next-env.d.ts',
+    ],
+  },
+];

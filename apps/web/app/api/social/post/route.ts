@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import * as Sentry from '@sentry/nextjs';
 import { postToSocialMedia } from '@/app/actions/social';
-import { getPostBySlug, getAllPosts } from '@/app/actions/blog';
+import { getPostBySlug, getAllPosts } from '@/lib/queries/blog';
 import { PostPlatform } from '@/types';
 
 export const maxDuration = 180;

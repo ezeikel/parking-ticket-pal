@@ -9,9 +9,7 @@ export const metadata: Metadata = {
 const PrivacyPolicy = () => (
   <div className="max-w-4xl mx-auto py-12 px-4">
     <h1 className="text-4xl font-bold mb-8">Privacy Policy</h1>
-    <p className="text-gray-600 mb-8">
-      Last updated: {new Date().toLocaleDateString()}
-    </p>
+    <p className="text-gray-600 mb-8">Last updated: January 11, 2025</p>
 
     <section className="mb-8">
       <h2 className="text-2xl font-semibold mb-4">1. Introduction</h2>

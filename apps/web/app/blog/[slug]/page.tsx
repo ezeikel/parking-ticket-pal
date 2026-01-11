@@ -4,13 +4,11 @@ import Link from 'next/link';
 import { MDXRemote } from 'next-mdx-remote/rsc';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faArrowLeft } from '@fortawesome/pro-regular-svg-icons';
-import { getAllPosts, getPostBySlug } from '@/app/actions/blog';
+import { getAllPosts, getPostBySlug } from '@/lib/queries/blog';
 import MDXComponents from '@/components/MDXComponents/MDXComponents';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { PLACEHOLDER_AVATAR_IMAGE, PLACEHOLDER_BLOG_IMAGE } from '@/constants';
-
-export const revalidate = 3600; // revalidate every hour
 
 export const generateStaticParams = async () => {
   const posts = await getAllPosts();
