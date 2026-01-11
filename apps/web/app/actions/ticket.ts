@@ -18,7 +18,9 @@ import {
 import getVehicleInfo from '@/utils/getVehicleInfo';
 import type { TicketFormData } from '@parking-ticket-pal/types';
 import { db } from '@parking-ticket-pal/db';
-import { verify, challenge } from '@/utils/automation';
+// Dynamic imports for automation to avoid loading puppeteer plugins on every page
+// These are only loaded when verifyTicket or challengeTicket are actually called
+const getAutomation = () => import('@/utils/automation');
 import { generateReminders } from '@/app/actions/reminder';
 import { STORAGE_PATHS } from '@/constants';
 import { track } from '@/utils/analytics-server';
@@ -654,6 +656,7 @@ export const getTicket = async (id: string) => {
 
 export const verifyTicket = async (pcnNumber: string) => {
   try {
+    const { verify } = await getAutomation();
     const result = await verify(pcnNumber);
     return result;
   } catch (error) {
@@ -694,6 +697,7 @@ export const challengeTicket = async (
 
     try {
       // Attempt the actual challenge
+      const { challenge } = await getAutomation();
       const result = await challenge(
         pcnNumber,
         challengeReason,
