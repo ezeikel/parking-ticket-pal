@@ -1,4 +1,5 @@
 import { notFound } from 'next/navigation';
+import { connection } from 'next/server';
 import Image from 'next/image';
 import Link from 'next/link';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -9,21 +10,16 @@ import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { PLACEHOLDER_AVATAR_IMAGE, PLACEHOLDER_BLOG_IMAGE } from '@/constants';
 
-// Allow dynamic routes even when generateStaticParams returns empty
-export const dynamicParams = true;
-
-export const generateStaticParams = async () => {
-  const posts = await getAllPosts();
-  return posts.map((post) => ({
-    slug: post.meta.slug,
-  }));
-};
+// Return a placeholder param for Cache Components validation
+// All real blog slugs are handled dynamically at runtime
+export const generateStaticParams = () => [{ slug: 'placeholder' }];
 
 export const generateMetadata = async ({
   params,
 }: {
   params: Promise<{ slug: string }>;
 }) => {
+  await connection();
   const { slug } = await params;
   const post = await getPostBySlug(slug);
   if (!post) {
@@ -49,6 +45,7 @@ const BlogPostPage = async ({
 }: {
   params: Promise<{ slug: string }>;
 }) => {
+  await connection();
   const { slug } = await params;
   const post = await getPostBySlug(slug);
 
