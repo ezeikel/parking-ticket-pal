@@ -1,6 +1,5 @@
 'use server';
 
-import { put } from '@vercel/blob';
 import { zodResponseFormat } from 'openai/helpers/zod';
 import openai from '@/lib/openai';
 import vision from '@google-cloud/vision';
@@ -14,6 +13,7 @@ import {
 import { generateOcrAnalysisPrompt } from '@/utils/promptGenerators';
 import { Address, DocumentSchema } from '@parking-ticket-pal/types';
 import { createServerLogger } from '@/lib/logger';
+import { put } from '@/lib/storage';
 
 const logger = createServerLogger({ action: 'ocr' });
 
@@ -80,9 +80,10 @@ export const extractOCRTextWithOpenAI = async (
       .replace(/%s/, timestamp)
       .replace(/%s/, extension);
 
-    // store the image in temporary Vercel Blob storage
-    const ticketFrontBlob = await put(tempImagePath, image, {
-      access: 'public',
+    // store the image in temporary R2 storage
+    const fileBuffer = Buffer.from(await image.arrayBuffer());
+    const ticketFrontBlob = await put(tempImagePath, fileBuffer, {
+      contentType: image.type,
     });
 
     // update the Blob storage URL for further processing
@@ -112,10 +113,9 @@ export const extractOCRTextWithOpenAI = async (
       .replace(/%s/, timestamp)
       .replace(/%s/, ext);
 
-    // upload the base64 string as a Blob to temporary location
+    // upload the base64 string to R2 temporary location
     const buffer = Buffer.from(base64Image, 'base64');
     const ticketFrontBlob = await put(tempImagePath, buffer, {
-      access: 'public',
       contentType: mimeType,
     });
 
@@ -367,9 +367,10 @@ export const extractOCRTextWithVision = async (
       .replace(/%s/, timestamp)
       .replace(/%s/, extension);
 
-    // store the image in temporary Vercel Blob storage
-    const ticketFrontBlob = await put(tempImagePath, image, {
-      access: 'public',
+    // store the image in temporary R2 storage
+    const fileBuffer = Buffer.from(await image.arrayBuffer());
+    const ticketFrontBlob = await put(tempImagePath, fileBuffer, {
+      contentType: image.type,
     });
 
     // update the Blob storage URL for further processing
@@ -399,10 +400,9 @@ export const extractOCRTextWithVision = async (
       .replace(/%s/, timestamp)
       .replace(/%s/, ext);
 
-    // upload the base64 string as a Blob to temporary location
+    // upload the base64 string to R2 temporary location
     const buffer = Buffer.from(base64Image, 'base64');
     const ticketFrontBlob = await put(tempImagePath, buffer, {
-      access: 'public',
       contentType: mimeType,
     });
 

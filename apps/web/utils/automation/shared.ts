@@ -1,9 +1,9 @@
 import { Page } from 'playwright';
 import { chromium } from 'playwright-extra';
 import { Ticket } from '@parking-ticket-pal/db/types';
-import { put, list } from '@vercel/blob';
 import { Address } from '@parking-ticket-pal/types';
 import { STORAGE_PATHS } from '@/constants';
+import { put, list } from '@/lib/storage';
 
 export type CommonPcnArgs = {
   page: Page;
@@ -43,59 +43,47 @@ export const setupBrowser = async () => {
 
 type TakeScreenShotArgs = {
   page: Page;
-  userId: string;
   ticketId: string;
-  name?: string;
   fullPage?: boolean;
 };
 
 export const takeScreenShot = async ({
   page,
-  userId,
   ticketId,
-  name,
   fullPage = true,
 }: TakeScreenShotArgs) => {
   const buffer = await page.screenshot({ fullPage });
   const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-  const screenshotName = name || `${timestamp}-screenshot`;
 
-  await put(
-    STORAGE_PATHS.AUTOMATION_SCREENSHOT.replace('%s', userId)
-      .replace('%s', ticketId)
-      .replace('%s', screenshotName)
-      .replace('%s', timestamp),
-    buffer,
-    {
-      access: 'public',
-      contentType: 'image/png',
-    },
-  );
+  // New path: automation/{ticketId}/screenshot-{timestamp}.png
+  const storagePath = STORAGE_PATHS.AUTOMATION_SCREENSHOT
+    .replace('%s', ticketId)
+    .replace('%s', timestamp);
+
+  await put(storagePath, buffer, {
+    contentType: 'image/png',
+  });
 };
 
 type UploadEvidenceArgs = {
   page: Page;
-  userId: string;
   ticketId: string;
   imageSources: string[];
 };
 
 export const uploadEvidence = async ({
   page,
-  userId,
   ticketId,
   imageSources,
 }: UploadEvidenceArgs) => {
-  // check if evidence folder exists by trying to list blobs with the evidence prefix
-  const evidencePath = STORAGE_PATHS.AUTOMATION_EVIDENCE.replace('%s', userId)
-    .replace('%s', ticketId)
-    .replace('%s', '1')
-    .replace('/evidence-1.jpg', '/');
+  // check if evidence folder exists by trying to list files with the evidence prefix
+  // New path pattern: tickets/{ticketId}/evidence/
+  const evidencePath = `tickets/${ticketId}/evidence/`;
 
   const existingEvidence = await list({ prefix: evidencePath });
 
   // if evidence already exists, skip uploading
-  if (existingEvidence.blobs.length > 0) {
+  if (existingEvidence.blobs && existingEvidence.blobs.length > 0) {
     console.log('Evidence folder already exists, skipping upload');
     return true;
   }
@@ -105,16 +93,16 @@ export const uploadEvidence = async ({
       const imageResponse = await page.request.get(src);
       const imageBuffer = await imageResponse.body();
 
-      await put(
-        STORAGE_PATHS.AUTOMATION_EVIDENCE.replace('%s', userId)
-          .replace('%s', ticketId)
-          .replace('%s', (i + 1).toString()),
-        imageBuffer,
-        {
-          access: 'public',
-          contentType: 'image/jpeg',
-        },
-      );
+      // New path: tickets/{ticketId}/evidence/{evidenceId}.jpg
+      const evidenceId = crypto.randomUUID();
+      const storagePath = STORAGE_PATHS.TICKET_EVIDENCE
+        .replace('%s', ticketId)
+        .replace('%s', evidenceId)
+        .replace('%s', 'jpg');
+
+      await put(storagePath, imageBuffer, {
+        contentType: 'image/jpeg',
+      });
     } catch (error) {
       console.error(`Failed to process evidence image ${i + 1}:`, error);
     }

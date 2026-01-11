@@ -11,7 +11,6 @@ export const access = async ({ page, pcnNumber, ticket }: CommonPcnArgs) => {
   await page.waitForSelector('h2:has-text("View your PCN")');
   await takeScreenShot({
     page,
-    userId: ticket.vehicle.user.id,
     ticketId: ticket.id,
   });
   return true;
@@ -21,7 +20,6 @@ export const verify = async (args: CommonPcnArgs) => {
   await access(args);
   await takeScreenShot({
     page: args.page,
-    userId: args.ticket.vehicle.user.id,
     ticketId: args.ticket.id,
   });
   return true;
@@ -47,9 +45,7 @@ export const challenge = async (args: ChallengeArgs) => {
 
   await takeScreenShot({
     page: args.page,
-    userId: args.ticket.vehicle.user.id,
     ticketId: args.ticket.id,
-    name: 'challenge-submitted',
   });
   return {
     success: true,

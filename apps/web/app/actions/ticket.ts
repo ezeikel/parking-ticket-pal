@@ -1,8 +1,8 @@
 'use server';
 
-import { del, put } from '@vercel/blob';
 import { revalidatePath } from 'next/cache';
 import { after } from 'next/server';
+import { del, put } from '@/lib/storage';
 import {
   IssuerType,
   MediaSource,
@@ -60,7 +60,8 @@ export const createTicket = async (
         const extension = values.tempImagePath!.split('.').pop() || 'jpg';
 
         // move file to permanent location
-        const permanentPath = STORAGE_PATHS.TICKET_IMAGE.replace('%s', userId)
+        // New path: tickets/{ticketId}/front.{ext}
+        const permanentPath = STORAGE_PATHS.TICKET_IMAGE
           .replace('%s', ticket.id)
           .replace('%s', extension);
 
@@ -74,8 +75,7 @@ export const createTicket = async (
 
         const tempBuffer = await tempResponse.arrayBuffer();
 
-        const permanentBlob = await put(permanentPath, tempBuffer, {
-          access: 'public',
+        const permanentBlob = await put(permanentPath, Buffer.from(tempBuffer), {
           contentType: `image/${extension === 'jpg' ? 'jpeg' : extension}`,
         });
 

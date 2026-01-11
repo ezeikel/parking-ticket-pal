@@ -2,7 +2,7 @@
 
 import { signOut } from '@/auth';
 import { db } from '@parking-ticket-pal/db';
-import { del, put, list } from '@vercel/blob';
+import { del, put, list } from '@/lib/storage';
 import { track } from '@/utils/analytics-server';
 import { STORAGE_PATHS } from '@/constants';
 import { TRACKING_EVENTS } from '@/constants/events';
@@ -81,12 +81,11 @@ const updateUserProfileInternal = async (
         // Delete any existing signature files
         await deleteExistingSignature(userId);
 
-        // Save to Vercel Blob storage with random suffix for unique URL
-        const blobPath = STORAGE_PATHS.USER_SIGNATURE.replace('%s', userId);
-        const signatureBlob = await put(blobPath, svgBuffer, {
-          access: 'public',
+        // Save to R2 storage
+        // New path: users/{userId}/signature.svg
+        const storagePath = STORAGE_PATHS.USER_SIGNATURE.replace('%s', userId);
+        const signatureBlob = await put(storagePath, svgBuffer, {
           contentType: 'image/svg+xml',
-          addRandomSuffix: true,
         });
 
         // Get the URL from the newly created blob

@@ -1,74 +1,65 @@
 'use cache';
 
-import fs from 'fs';
-import path from 'path';
-import matter from 'gray-matter';
-import readingTime from 'reading-time';
-import { list } from '@vercel/blob';
-import { STORAGE_PATHS } from '@/constants';
 import { cacheLife, cacheTag } from 'next/cache';
-import type { Post, PostMeta } from '@/types';
-import { notFound } from 'next/navigation';
 import { createServerLogger } from '@/lib/logger';
+import { client } from '@/lib/sanity/client';
+import { postsQuery, postBySlugQuery, postSlugsQuery } from '@/lib/sanity/queries';
+import type { SanityPost, SanityPostSummary } from '@/lib/sanity/types';
+import {
+  transformSanityPostToLegacy,
+  transformSanityPostsToLegacy,
+} from '@/lib/sanity/types';
+import type { Post } from '@/types';
+import type { PortableTextBlock } from '@portabletext/types';
 
 const logger = createServerLogger({ action: 'blog-query' });
 
-const postsDirectory = path.join(process.cwd(), 'content/blog');
+/**
+ * Transform a Sanity post with Portable Text body to a legacy Post type
+ * This maintains backwards compatibility with existing components
+ */
+function toPost(post: SanityPost): Post & { bodyBlocks: PortableTextBlock[] } {
+  const transformed = transformSanityPostToLegacy(post);
+  return {
+    meta: transformed.meta,
+    content: '', // Legacy MDX content string - not used for Sanity posts
+    readingTime: transformed.readingTime,
+    bodyBlocks: transformed.content, // Portable Text blocks for rendering
+  };
+}
 
 /**
  * Get a single blog post by slug with caching
  */
-export const getPostBySlug = async (slug: string): Promise<Post> => {
+export const getPostBySlug = async (
+  slug: string,
+): Promise<(Post & { bodyBlocks: PortableTextBlock[] }) | null> => {
   cacheLife('blog');
   cacheTag('blog', `blog-post-${slug}`);
 
-  const realSlug = slug.replace(/\.mdx$/, '');
+  try {
+    const post = await client.fetch<SanityPost | null>(postBySlugQuery, {
+      slug,
+    });
 
-  // first, try to read from local file system
-  const localPath = path.join(postsDirectory, `${realSlug}.mdx`);
-  let fileContents: string;
-
-  if (fs.existsSync(localPath)) {
-    fileContents = fs.readFileSync(localPath, 'utf8');
-  } else {
-    // if not found locally, try blob storage
-    const blobPath = STORAGE_PATHS.BLOG_POST.replace('%s', realSlug);
-    try {
-      const { blobs } = await list({ prefix: blobPath });
-
-      if (blobs.length === 0) {
-        notFound();
-      }
-
-      const response = await fetch(blobs[0].url);
-      fileContents = await response.text();
-    } catch (error) {
-      logger.error(
-        'Error fetching blog post from blob storage',
-        {
-          slug: realSlug,
-          blobPath,
-        },
-        error instanceof Error ? error : new Error(String(error)),
-      );
-      notFound();
+    if (!post) {
+      return null;
     }
+
+    // Check if post is scheduled for the future
+    if (new Date(post.publishedAt) > new Date()) {
+      return null;
+    }
+
+    return toPost(post);
+  } catch (error) {
+    logger.error(
+      'Error fetching blog post from Sanity',
+      { slug },
+      error instanceof Error ? error : new Error(String(error)),
+    );
+    return null;
   }
-
-  const { data, content } = matter(fileContents);
-  const stats = readingTime(content);
-
-  // if post date is in the future, treat as not found
-  // this prevents direct access to unpublished posts
-  if (new Date(data.date) > new Date()) {
-    notFound();
-  }
-
-  return {
-    meta: { ...(data as PostMeta), slug: realSlug },
-    content,
-    readingTime: stats.text,
-  };
 };
 
 /**
@@ -78,84 +69,43 @@ export const getAllPosts = async (): Promise<Post[]> => {
   cacheLife('blog');
   cacheTag('blog', 'blog-posts');
 
-  const allSlugs: Array<{ slug: string; date: string }> = [];
-
-  // get posts from local file system
-  if (fs.existsSync(postsDirectory)) {
-    const localSlugs = fs.readdirSync(postsDirectory);
-    const localPosts = localSlugs.map((slug) => {
-      const realSlug = slug.replace(/\.mdx$/, '');
-      const fullPath = path.join(postsDirectory, `${realSlug}.mdx`);
-      const fileContents = fs.readFileSync(fullPath, 'utf8');
-      const { data } = matter(fileContents);
-      return { slug: realSlug, date: data.date };
-    });
-    allSlugs.push(...localPosts);
-  }
-
-  // get posts from blob storage
   try {
-    const { blobs } = await list({ prefix: 'blog/' });
-    const blobPosts = await Promise.all(
-      blobs.map(async (blob) => {
-        const response = await fetch(blob.url);
-        const content = await response.text();
-        const { data } = matter(content);
-        const slug = blob.pathname.replace('blog/', '').replace('.mdx', '');
-        return { slug, date: data.date };
-      }),
-    );
-    allSlugs.push(...blobPosts);
+    const posts = await client.fetch<SanityPostSummary[]>(postsQuery);
+
+    if (!posts || posts.length === 0) {
+      return [];
+    }
+
+    // Transform Sanity posts to legacy format
+    return transformSanityPostsToLegacy(posts);
   } catch (error) {
     logger.error(
-      'Error fetching blog posts from blob storage',
+      'Error fetching blog posts from Sanity',
       {},
       error instanceof Error ? error : new Error(String(error)),
     );
+    return [];
   }
+};
 
-  // remove duplicates (prefer local files over blob storage)
-  const uniqueSlugs = allSlugs.filter(
-    (post, index, self) =>
-      index === self.findIndex((p) => p.slug === post.slug),
-  );
+/**
+ * Get all post slugs for static generation
+ */
+export const getAllPostSlugs = async (): Promise<string[]> => {
+  cacheLife('blog');
+  cacheTag('blog', 'blog-slugs');
 
-  // Note: We can't use the cached getPostBySlug here as it would create circular caching
-  // Instead, fetch the posts directly
-  const posts = await Promise.all(
-    uniqueSlugs
-      // filter out posts with a future date
-      .filter((post) => new Date(post.date) <= new Date())
-      // get the full post data for the remaining posts
-      .map(async (post) => {
-        const realSlug = post.slug.replace(/\.mdx$/, '');
-        const localPath = path.join(postsDirectory, `${realSlug}.mdx`);
-        let fileContents: string;
-
-        if (fs.existsSync(localPath)) {
-          fileContents = fs.readFileSync(localPath, 'utf8');
-        } else {
-          const blobPath = STORAGE_PATHS.BLOG_POST.replace('%s', realSlug);
-          const { blobs } = await list({ prefix: blobPath });
-          const response = await fetch(blobs[0].url);
-          fileContents = await response.text();
-        }
-
-        const { data, content } = matter(fileContents);
-        const stats = readingTime(content);
-
-        return {
-          meta: { ...(data as PostMeta), slug: realSlug },
-          content,
-          readingTime: stats.text,
-        };
-      }),
-  );
-
-  // sort them
-  return posts.sort((post1, post2) =>
-    new Date(post1.meta.date) > new Date(post2.meta.date) ? -1 : 1,
-  );
+  try {
+    const slugs = await client.fetch<string[]>(postSlugsQuery);
+    return slugs ?? [];
+  } catch (error) {
+    logger.error(
+      'Error fetching blog post slugs from Sanity',
+      {},
+      error instanceof Error ? error : new Error(String(error)),
+    );
+    return [];
+  }
 };
 
 /**
@@ -166,8 +116,8 @@ export const getCoveredTopics = async (): Promise<string[]> => {
   cacheTag('blog', 'blog-topics');
 
   try {
-    const posts = await getAllPosts();
-    return posts.map((post) => post.meta.slug);
+    const slugs = await getAllPostSlugs();
+    return slugs;
   } catch (error) {
     logger.error(
       'Error getting covered topics',

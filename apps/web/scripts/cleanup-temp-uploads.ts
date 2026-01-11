@@ -1,4 +1,4 @@
-import { list, del } from '@vercel/blob';
+import { list, del } from '@/lib/storage';
 
 const cleanupTempUploads = async () => {
   const CUTOFF_TIME = 48 * 60 * 60 * 1000; // 48 hours in milliseconds
@@ -9,7 +9,7 @@ const cleanupTempUploads = async () => {
     // list all temp files
     const { blobs } = await list({ prefix: 'temp/' });
 
-    if (blobs.length === 0) {
+    if (!blobs || blobs.length === 0) {
       console.log('No temporary files found');
       return;
     }

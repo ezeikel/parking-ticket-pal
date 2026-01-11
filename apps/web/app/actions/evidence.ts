@@ -1,12 +1,12 @@
 'use server';
 
-import { put, del } from '@vercel/blob';
 import { revalidatePath } from 'next/cache';
 import { EvidenceType, MediaSource, MediaType } from '@parking-ticket-pal/db';
 import { db } from '@parking-ticket-pal/db';
 import { getUserId } from '@/utils/user';
 import { STORAGE_PATHS } from '@/constants';
 import { createServerLogger } from '@/lib/logger';
+import { put, del } from '@/lib/storage';
 
 const logger = createServerLogger({ action: 'evidence' });
 
@@ -42,15 +42,17 @@ export const uploadEvidence = async (ticketId: string, formData: FormData) => {
   }
 
   try {
-    // Use proper storage path pattern
+    // Use proper storage path pattern: tickets/{ticketId}/evidence/{evidenceId}.{ext}
     const fileExtension = file.name.split('.').pop() || 'jpg';
-    const timestamp = Date.now();
-    const blobPath = STORAGE_PATHS.TICKET_EVIDENCE.replace('%s', userId)
+    const evidenceId = crypto.randomUUID();
+    const storagePath = STORAGE_PATHS.TICKET_EVIDENCE
       .replace('%s', ticketId)
-      .replace('evidence-%s.jpg', `evidence-${timestamp}.${fileExtension}`);
+      .replace('%s', evidenceId)
+      .replace('%s', fileExtension);
 
-    const blob = await put(blobPath, file, {
-      access: 'public',
+    const fileBuffer = Buffer.from(await file.arrayBuffer());
+    const blob = await put(storagePath, fileBuffer, {
+      contentType: file.type,
     });
 
     // Create media record with proper field names

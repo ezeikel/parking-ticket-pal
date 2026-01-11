@@ -129,7 +129,6 @@ export const verify = async (args: CommonPcnArgs) => {
   // DEBUG: take screenshot
   await takeScreenShot({
     page,
-    userId: ticket.vehicle.user.id,
     ticketId: ticket.id,
   });
 
@@ -156,7 +155,6 @@ export const verify = async (args: CommonPcnArgs) => {
   if (fullSizeImages.length > 0) {
     await uploadEvidence({
       page,
-      userId: ticket.vehicle.user.id,
       ticketId: ticket.id,
       imageSources: fullSizeImages,
     });
@@ -237,9 +235,7 @@ export const challenge = async (args: ChallengeArgs) => {
 
   await takeScreenShot({
     page: args.page,
-    userId: args.ticket.vehicle.user.id,
     ticketId: args.ticket.id,
-    name: 'challenge-pre-submit',
     fullPage: true,
   });
 
@@ -248,9 +244,7 @@ export const challenge = async (args: ChallengeArgs) => {
 
   await takeScreenShot({
     page: args.page,
-    userId: args.ticket.vehicle.user.id,
     ticketId: args.ticket.id,
-    name: 'challenge-submitted',
   });
 
   return { success: true, challengeText };
