@@ -1,5 +1,4 @@
 import { ImageResponse } from 'next/og';
-import { connection } from 'next/server';
 import { getPostBySlug } from '@/lib/queries/blog';
 
 // load fonts from Google Fonts
@@ -43,7 +42,6 @@ export default async function Image({
 }: {
   params: Promise<{ slug: string }>;
 }) {
-  await connection();
   const { slug } = await params;
 
   // load fonts
