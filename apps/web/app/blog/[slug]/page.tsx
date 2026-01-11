@@ -9,6 +9,9 @@ import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { PLACEHOLDER_AVATAR_IMAGE, PLACEHOLDER_BLOG_IMAGE } from '@/constants';
 
+// Allow dynamic routes even when generateStaticParams returns empty
+export const dynamicParams = true;
+
 export const generateStaticParams = async () => {
   const posts = await getAllPosts();
   return posts.map((post) => ({
