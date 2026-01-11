@@ -41,7 +41,7 @@ export const letterFormSchema = z.object({
     .min(1, { message: 'Vehicle registration is required' }),
   type: z.nativeEnum(LetterType),
   summary: z.string().min(1, { message: 'Summary is required' }),
-  sentAt: z.date({ required_error: 'Date sent is required' }),
+  sentAt: z.date({ message: 'Date sent is required' }),
   extractedText: z.string().optional(),
 });
 

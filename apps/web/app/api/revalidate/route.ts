@@ -1,5 +1,5 @@
 /* eslint-disable import/prefer-default-export */
-import { revalidateTag } from 'next/cache';
+import { revalidatePath } from 'next/cache';
 import { type NextRequest, NextResponse } from 'next/server';
 
 export const GET = async (request: NextRequest) => {
@@ -11,8 +11,8 @@ export const GET = async (request: NextRequest) => {
     return new Response('Unauthorized', { status: 401 });
   }
 
-  revalidateTag('/blog');
-  revalidateTag('/blog/[slug]');
+  revalidatePath('/blog');
+  revalidatePath('/blog/[slug]', 'page');
 
   return NextResponse.json({ revalidated: true, now: Date.now() });
 };

@@ -3,7 +3,6 @@
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -32,7 +31,7 @@ import cn from '@/utils/cn';
 import { format } from 'date-fns';
 import { CONTRAVENTION_CODES_OPTIONS } from '@/constants';
 import { TicketWithRelations } from '@/types';
-import { Address, ticketFormSchema } from '@parking-ticket-pal/types';
+import { Address, ticketFormSchema, type TicketFormData } from '@parking-ticket-pal/types';
 import {
   refreshTicket,
   refreshTickets,
@@ -52,7 +51,7 @@ const EditTicketForm = ({ ticket }: EditTicketFormProps) => {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
 
-  const form = useForm<z.infer<typeof ticketFormSchema>>({
+  const form = useForm<TicketFormData>({
     resolver: zodResolver(ticketFormSchema),
     defaultValues: {
       vehicleReg: ticket.vehicle.registrationNumber,
@@ -65,7 +64,7 @@ const EditTicketForm = ({ ticket }: EditTicketFormProps) => {
     },
   });
 
-  const onSubmit = async (values: z.infer<typeof ticketFormSchema>) => {
+  const onSubmit = async (values: TicketFormData) => {
     setIsLoading(true);
 
     try {

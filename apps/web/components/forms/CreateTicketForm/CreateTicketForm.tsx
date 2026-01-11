@@ -3,7 +3,6 @@
 import { ChangeEvent, useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
 import { useRouter } from 'next/navigation';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { Button } from '@/components/ui/button';
@@ -32,7 +31,7 @@ import {
 import cn from '@/utils/cn';
 import { format } from 'date-fns';
 import { CONTRAVENTION_CODES_OPTIONS } from '@parking-ticket-pal/constants';
-import { ticketFormSchema } from '@parking-ticket-pal/types';
+import { ticketFormSchema, type TicketFormData } from '@parking-ticket-pal/types';
 import { createTicket } from '@/app/actions/ticket';
 import {
   faCalendar,
@@ -78,7 +77,7 @@ const CreateTicketForm = ({ tier, source }: CreateTicketFormProps) => {
       code.label.toLowerCase().includes(contraventionSearch.toLowerCase()),
   );
 
-  const form = useForm<z.infer<typeof ticketFormSchema>>({
+  const form = useForm<TicketFormData>({
     resolver: zodResolver(ticketFormSchema),
     defaultValues: {
       vehicleReg: '',
@@ -91,7 +90,7 @@ const CreateTicketForm = ({ tier, source }: CreateTicketFormProps) => {
     },
   });
 
-  const onSubmit = async (values: z.infer<typeof ticketFormSchema>) => {
+  const onSubmit = async (values: TicketFormData) => {
     setIsLoading(true);
 
     try {
