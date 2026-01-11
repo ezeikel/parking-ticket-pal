@@ -1,9 +1,30 @@
 import { Page } from 'playwright';
 import { chromium } from 'playwright-extra';
+import stealth from 'puppeteer-extra-plugin-stealth';
+import RecaptchaPlugin from 'puppeteer-extra-plugin-recaptcha';
 import { Ticket } from '@parking-ticket-pal/db/types';
 import { Address } from '@parking-ticket-pal/types';
 import { STORAGE_PATHS } from '@/constants';
 import { put, list } from '@/lib/storage';
+
+// Configure browser plugins for stealth and reCAPTCHA solving
+// TODO: Migrate from playwright-extra + puppeteer plugins to pure Playwright solution
+// when a native Playwright stealth/anti-detection library becomes available.
+// Current approach uses puppeteer-extra-plugin-stealth which has complex dependencies
+// that cause module resolution issues in serverless environments (Vercel).
+// Requirements for migration:
+// - Anti-bot detection bypass (equivalent to puppeteer-extra-plugin-stealth)
+// - reCAPTCHA solving integration (currently using 2captcha via puppeteer-extra-plugin-recaptcha)
+chromium.use(
+  RecaptchaPlugin({
+    provider: {
+      id: '2captcha',
+      token: process.env.TWO_CAPTCHA_API_KEY,
+    },
+    visualFeedback: true,
+  }),
+);
+chromium.use(stealth());
 
 export type CommonPcnArgs = {
   page: Page;

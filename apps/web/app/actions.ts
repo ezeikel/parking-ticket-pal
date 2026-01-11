@@ -2,27 +2,11 @@
 
 import { revalidatePath } from 'next/cache';
 import { MediaType, MediaSource } from '@parking-ticket-pal/db';
-import { chromium } from 'playwright-extra';
-import stealth from 'puppeteer-extra-plugin-stealth';
-import RecaptchaPlugin from 'puppeteer-extra-plugin-recaptcha';
 import { db } from '@parking-ticket-pal/db';
 import { getUserId } from '@/utils/user';
 import { createServerLogger } from '@/lib/logger';
 
 const logger = createServerLogger({ action: 'actions' });
-
-chromium.use(
-  RecaptchaPlugin({
-    provider: {
-      id: '2captcha',
-      token: process.env.TWO_CAPTCHA_API_KEY,
-    },
-    // TODO: only set to true if running on localhost
-    visualFeedback: true, // colorize reCAPTCHAs (violet = detected, green = solved)
-  }),
-);
-
-chromium.use(stealth());
 
 export const getSubscription = async () => {
   const userId = await getUserId('get the subscription');
