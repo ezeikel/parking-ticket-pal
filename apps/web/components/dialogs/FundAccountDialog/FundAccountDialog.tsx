@@ -13,7 +13,7 @@ import {
 } from '@/components/ui/dialog';
 import { useAccountContext } from '@/contexts/account';
 import { loadStripe } from '@stripe/stripe-js';
-import { ProductType } from '@parking-ticket-pal/db';
+import { ProductType } from '@parking-ticket-pal/db/types';
 
 // Make sure to call `loadStripe` outside of a component’s render to avoid
 // recreating the `Stripe` object on every render.

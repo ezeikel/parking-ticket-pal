@@ -5,7 +5,7 @@ import {
   faLock,
 } from '@fortawesome/pro-regular-svg-icons';
 import { cn } from '@/lib/utils';
-import { TicketTier } from '@parking-ticket-pal/db';
+import { TicketTier } from '@parking-ticket-pal/db/types';
 import { Button } from '@/components/ui/button';
 
 type ChallengeStatsProps = {

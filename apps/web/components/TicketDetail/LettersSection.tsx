@@ -16,7 +16,7 @@ import {
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Prisma, LetterType } from '@parking-ticket-pal/db';
+import { Prisma, LetterType } from '@parking-ticket-pal/db/types';
 import { format } from 'date-fns';
 import { useRouter } from 'next/navigation';
 

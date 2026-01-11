@@ -1,4 +1,4 @@
-import { EvidenceType } from '@parking-ticket-pal/db';
+import { EvidenceType } from '@parking-ticket-pal/db/types';
 
 export const evidenceTypeOptions: { value: EvidenceType; label: string }[] = [
   { value: EvidenceType.PHOTO_OF_SIGNAGE, label: 'Photo of Signage' },

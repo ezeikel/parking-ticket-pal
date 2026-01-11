@@ -12,7 +12,7 @@ import {
   TicketStatus,
   TicketTier,
   User,
-} from '@parking-ticket-pal/db';
+} from '@parking-ticket-pal/db/types';
 import { z } from 'zod';
 import { TRACKING_EVENTS } from '@/constants/events';
 import { BLOG_TAGS } from '@/constants/blog';

@@ -3,7 +3,7 @@ import {
   faCheckCircle,
 } from '@fortawesome/pro-regular-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { VerificationStatus } from '@parking-ticket-pal/db';
+import { VerificationStatus } from '@parking-ticket-pal/db/types';
 
 type VerifiedBadgeProps = {
   status: VerificationStatus;

@@ -1,4 +1,4 @@
-import { TicketStatus, IssuerType } from '@parking-ticket-pal/db';
+import { TicketStatus, IssuerType } from '@parking-ticket-pal/db/types';
 
 export type TimelineStage = {
   id: string;

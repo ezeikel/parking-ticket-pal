@@ -31,7 +31,7 @@ import {
 import { uploadEvidence, deleteEvidence } from '@/app/actions/evidence';
 import { evidenceTypeOptions } from '@/constants/evidence';
 import { cn } from '@/lib/utils';
-import { Media, EvidenceType } from '@parking-ticket-pal/db';
+import { Media, EvidenceType } from '@parking-ticket-pal/db/types';
 import { faCloudArrowUp } from '@fortawesome/pro-regular-svg-icons';
 
 type StagedFile = {

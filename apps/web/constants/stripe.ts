@@ -1,4 +1,4 @@
-import { TicketTier } from '@parking-ticket-pal/db';
+import { TicketTier } from '@parking-ticket-pal/db/types';
 
 // Stripe Price IDs for different tiers and subscription types
 export const STRIPE_PRICE_IDS = {

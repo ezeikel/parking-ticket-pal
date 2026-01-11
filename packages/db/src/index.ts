@@ -2,10 +2,10 @@
 export { prisma as db } from "./client";
 
 // Re-export everything from Prisma client
-export * from "./generated/prisma";
+export * from "./generated/prisma/client";
 
 // Re-export Prisma namespace separately for explicit access
-export { Prisma, type $Enums } from "./generated/prisma";
+export { Prisma } from "./generated/prisma/client";
 
 // Re-export specific model types with Db prefix for convenience
 export type {
@@ -27,4 +27,4 @@ export type {
   Session as DbSessionType,
   VerificationToken as DbVerificationTokenType,
   LondonTribunalCase as DbLondonTribunalCaseType,
-} from "./generated/prisma";
+} from "./generated/prisma/client";

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { ChallengeType, IssuerType, TicketTier } from '@parking-ticket-pal/db';
+import { ChallengeType, IssuerType, TicketTier } from '@parking-ticket-pal/db/types';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
   faFileLines,

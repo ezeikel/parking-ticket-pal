@@ -19,7 +19,7 @@ import {
   faMoneyBill,
   faMapMarkerAlt,
 } from '@fortawesome/pro-regular-svg-icons';
-import { Prisma, TicketStatus } from '@parking-ticket-pal/db';
+import { Prisma, TicketStatus } from '@parking-ticket-pal/db/types';
 import { formatDateWithDueStatus, calculateAmountDue } from '@/utils/dates';
 import AmountDue from '@/components/AmountDue/AmountDue';
 import DueDate from '@/components/DueDate/DueDate';

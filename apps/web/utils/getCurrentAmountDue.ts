@@ -1,4 +1,4 @@
-import { TicketStatus } from '@parking-ticket-pal/db';
+import { TicketStatus } from '@parking-ticket-pal/db/types';
 import { differenceInDays } from 'date-fns';
 
 type PriceIncrease = {

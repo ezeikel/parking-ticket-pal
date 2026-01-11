@@ -4,7 +4,7 @@ import { loadStripe } from '@stripe/stripe-js';
 import { createCheckoutSession } from '@/app/actions/stripe';
 import { Button } from '@/components/ui/button';
 import cn from '@/utils/cn';
-import { ProductType } from '@parking-ticket-pal/db';
+import { ProductType } from '@parking-ticket-pal/db/types';
 
 // Make sure to call `loadStripe` outside of a component’s render to avoid
 // recreating the `Stripe` object on every render.

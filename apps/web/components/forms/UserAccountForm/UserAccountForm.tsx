@@ -17,7 +17,7 @@ import {
 } from '@/components/ui/form';
 import AddressInput from '@/components/forms/inputs/AddressInput/AddressInput';
 import SignatureInput from '@/components/SignatureInput/SignatureInput';
-import { User } from '@parking-ticket-pal/db';
+import { User } from '@parking-ticket-pal/db/types';
 import { Address } from '@parking-ticket-pal/types';
 
 // Define an interface for the user address structure

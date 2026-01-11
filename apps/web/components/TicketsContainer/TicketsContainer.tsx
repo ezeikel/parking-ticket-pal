@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPlus } from '@fortawesome/pro-regular-svg-icons';
 import TicketCard from '@/components/TicketCard/TicketCard';
-import type { Prisma } from '@parking-ticket-pal/db';
+import type { Prisma } from '@parking-ticket-pal/db/types';
 import ViewToggle from '@/components/ViewToggle/ViewToggle';
 import MapView from '@/components/MapView/MapView';
 import EmptyList from '@/components/EmptyList/EmptyList';

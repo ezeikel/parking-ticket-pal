@@ -1,6 +1,6 @@
 'use client';
 
-import type { Media } from '@parking-ticket-pal/db';
+import type { Media } from '@parking-ticket-pal/db/types';
 import {
   Card,
   CardContent,

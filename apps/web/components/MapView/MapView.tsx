@@ -3,7 +3,7 @@
 import { useEffect } from 'react';
 import { Card } from '@/components/ui/card';
 import mapboxgl from 'mapbox-gl';
-import { Prisma } from '@parking-ticket-pal/db';
+import { Prisma } from '@parking-ticket-pal/db/types';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCarMirrors } from '@fortawesome/pro-solid-svg-icons';
 

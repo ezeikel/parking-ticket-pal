@@ -1,6 +1,6 @@
 import { useSession } from 'next-auth/react';
 import { useState, useEffect } from 'react';
-import { User as PrismaUser } from '@parking-ticket-pal/db';
+import { User as PrismaUser } from '@parking-ticket-pal/db/types';
 
 type SessionUser = {
   dbId?: string;
