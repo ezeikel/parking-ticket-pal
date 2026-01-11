@@ -80,6 +80,10 @@ const nextConfig: NextConfig = {
         hostname: '**.public.blob.vercel-storage.com',
         pathname: '**',
       },
+      {
+        protocol: 'https',
+        hostname: 'cdn.sanity.io',
+      },
     ],
   },
 };
