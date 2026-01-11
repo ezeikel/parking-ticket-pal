@@ -154,18 +154,12 @@ export async function del(urlOrPathname: string): Promise<void> {
   // Extract pathname from URL if full URL is provided
   let pathname = urlOrPathname;
   if (urlOrPathname.startsWith('http')) {
-    // Handle both R2 public URLs and legacy Vercel blob URLs
     if (urlOrPathname.includes(publicUrl)) {
       pathname = urlOrPathname.replace(`${publicUrl}/`, '');
-    } else if (urlOrPathname.includes('blob.vercel-storage.com')) {
-      // Extract pathname from Vercel blob URL
-      // Format: https://*.blob.vercel-storage.com/pathname
-      const url = new URL(urlOrPathname);
-      pathname = url.pathname.slice(1); // Remove leading slash
     } else {
       // Try to extract pathname from any URL
       const url = new URL(urlOrPathname);
-      pathname = url.pathname.slice(1);
+      pathname = url.pathname.slice(1); // Remove leading slash
     }
   }
 
@@ -308,19 +302,6 @@ function inferContentType(pathname: string): string {
 }
 
 /**
- * Convert a Vercel Blob URL to R2 URL (for migration purposes)
- *
- * @param vercelUrl - The Vercel Blob URL
- * @returns The equivalent R2 URL
- */
-export function convertBlobUrlToR2(vercelUrl: string): string {
-  const publicUrl = getPublicUrl();
-  const url = new URL(vercelUrl);
-  const pathname = url.pathname.slice(1); // Remove leading slash
-  return `${publicUrl}/${pathname}`;
-}
-
-/**
  * Check if a URL is an R2 URL
  */
 export function isR2Url(url: string): boolean {
@@ -330,11 +311,4 @@ export function isR2Url(url: string): boolean {
   } catch {
     return false;
   }
-}
-
-/**
- * Check if a URL is a Vercel Blob URL
- */
-export function isBlobUrl(url: string): boolean {
-  return url.includes('blob.vercel-storage.com');
 }
