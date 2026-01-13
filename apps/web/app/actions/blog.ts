@@ -140,27 +140,50 @@ export const searchBlogImages = async (
 };
 
 /**
- * Generate image with Gemini when Pexels doesn't have suitable options
+ * Generate image with Gemini 3 Pro Image when Pexels doesn't have suitable options
+ * Uses Google's Gemini 3 Pro Image model via Vercel AI SDK
  */
 const generateImageWithGemini = async (
   title: string,
-): Promise<{ buffer: Buffer; mimeType: string }> => {
+): Promise<{ buffer: Buffer; mimeType: string } | null> => {
   const prompt = BLOG_IMAGE_GENERATION_PROMPT.replace('{{TITLE}}', title);
 
-  // Gemini image generation returns images via generateText with special response
-  const { text: imageData } = await generateText({
-    model: models.geminiImage,
-    prompt: `Generate an image: ${prompt}. Return the image data as base64.`,
-  });
+  try {
+    logger.info('Generating image with Gemini 3 Pro Image', { title });
 
-  // Parse the response - Gemini returns base64 image data
-  // Note: The actual format depends on how @ai-sdk/google handles image generation
-  const buffer = Buffer.from(imageData, 'base64');
+    // Use Gemini 3 Pro Image via Vercel AI SDK
+    const result = await generateText({
+      model: models.geminiImage,
+      prompt: `Generate a high-quality professional photograph for this blog post. Do not include any text in the image. ${prompt}`,
+    });
 
-  return {
-    buffer,
-    mimeType: 'image/png',
-  };
+    // Images come back in result.files for image generation models
+    // GeneratedFile has: base64, uint8Array, and mediaType properties
+    const imageFile = result.files?.find((f) =>
+      f.mediaType?.startsWith('image/'),
+    );
+
+    if (imageFile) {
+      logger.info('Gemini 3 Pro Image generated image successfully');
+      // Use uint8Array to create buffer (more efficient than base64 decoding)
+      const buffer = Buffer.from(imageFile.uint8Array);
+
+      return {
+        buffer,
+        mimeType: imageFile.mediaType,
+      };
+    }
+
+    logger.error('Gemini 3 Pro Image response did not contain image data');
+    return null;
+  } catch (error) {
+    logger.error(
+      'Gemini 3 Pro Image generation failed',
+      { title },
+      error instanceof Error ? error : new Error(String(error)),
+    );
+    return null;
+  }
 };
 
 /**
@@ -277,8 +300,9 @@ const getFeaturedImage = async (
     logger.info('No suitable Pexels image found, falling back to Gemini generation', {
       title,
     });
-    try {
-      const geminiResult = await generateImageWithGemini(title);
+    const geminiResult = await generateImageWithGemini(title);
+
+    if (geminiResult) {
       const assetRef = await uploadImageToSanity(
         geminiResult.buffer,
         `${slug}-featured-generated.png`,
@@ -289,13 +313,10 @@ const getFeaturedImage = async (
         alt: searchTerms.altText,
         credit: 'Generated with AI',
       };
-    } catch (geminiError) {
-      logger.warn('Gemini image generation failed', {
-        title,
-        error: geminiError instanceof Error ? geminiError.message : String(geminiError),
-      });
-      return null;
     }
+
+    logger.warn('Gemini image generation returned no image', { title });
+    return null;
   } catch (error) {
     logger.error(
       'Error getting featured image',
