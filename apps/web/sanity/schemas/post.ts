@@ -234,6 +234,18 @@ export default defineType({
           rows: 2,
           description: 'The prompt used to generate this content',
         }),
+        defineField({
+          name: 'pexelsPhotoId',
+          title: 'Pexels Photo ID',
+          type: 'string',
+          description: 'ID of the Pexels photo used (for deduplication)',
+        }),
+        defineField({
+          name: 'imageUpdatedAt',
+          title: 'Image Updated At',
+          type: 'datetime',
+          description: 'When the image was last updated',
+        }),
       ],
       options: {
         collapsible: true,

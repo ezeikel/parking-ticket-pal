@@ -44,6 +44,7 @@ interface FeaturedImage {
   alt: string;
   credit?: string;
   creditUrl?: string;
+  pexelsPhotoId?: string;
 }
 
 interface PexelsSearchResult {
@@ -66,6 +67,19 @@ const ImageSearchSchema = z.object({
   altText: z.string().describe('Descriptive alt text'),
   style: z.string().describe('Photographic style preference'),
 });
+
+/**
+ * Get all Pexels photo IDs currently in use across blog posts
+ * Used for deduplication to avoid using the same photo twice
+ */
+async function getUsedPexelsIds(excludePostId?: string): Promise<string[]> {
+  const query = excludePostId
+    ? `*[_type == "post" && _id != $excludePostId && defined(generationMeta.pexelsPhotoId)].generationMeta.pexelsPhotoId`
+    : `*[_type == "post" && defined(generationMeta.pexelsPhotoId)].generationMeta.pexelsPhotoId`;
+
+  const ids = await writeClient.fetch<string[]>(query, { excludePostId });
+  return ids;
+}
 
 /**
  * Generate a unique slug from title
@@ -212,7 +226,7 @@ const IMAGE_EVALUATION_THRESHOLD = 60;
  *
  * Flow:
  * 1. Generate search terms based on blog content
- * 2. Fetch multiple candidate photos from Pexels
+ * 2. Fetch multiple candidate photos from Pexels (excluding already-used photos)
  * 3. Use AI vision model to evaluate each photo's relevance
  * 4. Select the best photo that meets the confidence threshold
  * 5. Fall back to Gemini image generation if no Pexels photo qualifies
@@ -222,19 +236,22 @@ const getFeaturedImage = async (
   excerpt: string,
   category: string,
   slug: string,
+  excludeIds: string[] = [],
 ): Promise<FeaturedImage | null> => {
   try {
     // 1. Generate search terms
     logger.info('Generating image search terms', { title });
     const searchTerms = await generateImageSearchTerms(title, excerpt, category);
 
-    // 2. Fetch multiple candidate photos from Pexels
+    // 2. Fetch multiple candidate photos from Pexels (excluding already-used)
     logger.info('Searching Pexels for candidate images', {
       searchTerms: searchTerms.searchTerms,
+      excludingCount: excludeIds.length,
     });
     const pexelsResult = await fetchBlogPhotosForEvaluation(searchTerms.searchTerms, {
       orientation: 'landscape',
       size: 'large',
+      excludeIds,
     });
 
     let selectedPhoto: PexelsPhoto | null = null;
@@ -264,6 +281,7 @@ const getFeaturedImage = async (
         logger.info('AI selected Pexels image', {
           searchTerm: selectedSearchTerm,
           photographer: selectedPhoto.photographer,
+          photoId: selectedPhoto.id,
           confidence: evaluationResult.confidence,
           reasoning: evaluationResult.reasoning,
         });
@@ -293,6 +311,7 @@ const getFeaturedImage = async (
         alt: searchTerms.altText,
         credit: credit.credit,
         creditUrl: credit.creditUrl,
+        pexelsPhotoId: String(selectedPhoto.id),
       };
     }
 
@@ -579,6 +598,15 @@ const createSanityPost = async (
       credit: featuredImage.credit,
       creditUrl: featuredImage.creditUrl,
     };
+
+    // Track image source and pexels photo ID in generationMeta
+    const imageSource = featuredImage.pexelsPhotoId ? 'pexels' : 'gemini';
+    doc.generationMeta = {
+      ...doc.generationMeta,
+      imageSource,
+      imageUpdatedAt: new Date().toISOString(),
+      ...(featuredImage.pexelsPhotoId && { pexelsPhotoId: featuredImage.pexelsPhotoId }),
+    };
   }
 
   const result = await writeClient.create(doc);
@@ -627,11 +655,14 @@ export const generateBlogPostForTopic = async (
 
     // 5. Get featured image (Pexels first, then Gemini)
     logger.info('Getting featured image', { title: meta.title });
+    const usedPexelsIds = await getUsedPexelsIds();
+    logger.info('Excluding already-used Pexels photos', { count: usedPexelsIds.length });
     const featuredImage = await getFeaturedImage(
       meta.title,
       meta.excerpt,
       meta.category,
       meta.slug,
+      usedPexelsIds,
     );
 
     // 6. Convert content to Portable Text
@@ -775,36 +806,45 @@ export const regeneratePostImage = async (
 
     logger.info('Regenerating image for post', { postId, title: post.title });
 
-    // 2. Get new featured image using AI Judge + Gemini fallback
+    // 2. Get used Pexels IDs (excluding this post's current ID)
+    const usedPexelsIds = await getUsedPexelsIds(postId);
+    logger.info('Excluding already-used Pexels photos', { count: usedPexelsIds.length });
+
+    // 3. Get new featured image using AI Judge + Gemini fallback
     const featuredImage = await getFeaturedImage(
       post.title,
       post.excerpt || '',
       post.category || 'Parking',
       post.slug,
+      usedPexelsIds,
     );
 
     if (!featuredImage) {
       return { success: false, error: 'Failed to generate image' };
     }
 
-    // 3. Determine image source
-    const imageSource = featuredImage.credit === 'Generated with AI' ? 'gemini' : 'pexels';
+    // 4. Determine image source
+    const imageSource = featuredImage.pexelsPhotoId ? 'pexels' : 'gemini';
 
-    // 4. Update post with new image
-    await writeClient
-      .patch(postId)
-      .set({
-        featuredImage: {
-          _type: 'image',
-          asset: featuredImage.asset,
-          alt: featuredImage.alt,
-          credit: featuredImage.credit,
-          creditUrl: featuredImage.creditUrl,
-        },
-        'generationMeta.imageSource': imageSource,
-        'generationMeta.imageUpdatedAt': new Date().toISOString(),
-      })
-      .commit();
+    // 5. Update post with new image
+    const patchData: Record<string, any> = {
+      featuredImage: {
+        _type: 'image',
+        asset: featuredImage.asset,
+        alt: featuredImage.alt,
+        credit: featuredImage.credit,
+        creditUrl: featuredImage.creditUrl,
+      },
+      'generationMeta.imageSource': imageSource,
+      'generationMeta.imageUpdatedAt': new Date().toISOString(),
+    };
+
+    // Add pexelsPhotoId if available
+    if (featuredImage.pexelsPhotoId) {
+      patchData['generationMeta.pexelsPhotoId'] = featuredImage.pexelsPhotoId;
+    }
+
+    await writeClient.patch(postId).set(patchData).commit();
 
     logger.info('Successfully regenerated image', {
       postId,
