@@ -24,7 +24,9 @@ export const postsQuery = groq`
       _id,
       name,
       slug,
-      image
+      image {
+        asset->
+      }
     },
     categories[]->{
       _id,
@@ -57,7 +59,9 @@ export const postBySlugQuery = groq`
       name,
       slug,
       title,
-      image,
+      image {
+        asset->
+      },
       bio
     },
     categories[]->{
@@ -101,7 +105,9 @@ export const postsByCategoryQuery = groq`
       _id,
       name,
       slug,
-      image
+      image {
+        asset->
+      }
     },
     categories[]->{
       _id,
@@ -159,7 +165,9 @@ export const authorsQuery = groq`
     name,
     slug,
     title,
-    image,
+    image {
+      asset->
+    },
     bio
   }
 `;
@@ -173,7 +181,9 @@ export const authorBySlugQuery = groq`
     name,
     slug,
     title,
-    image,
+    image {
+      asset->
+    },
     bio,
     "posts": *[_type == "post" && status == "published" && author._ref == ^._id] | order(publishedAt desc) {
       _id,
