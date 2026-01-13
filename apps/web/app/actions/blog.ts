@@ -744,3 +744,160 @@ export const previewBlogImages = async (
     };
   }
 };
+
+/**
+ * Regenerate featured image for an existing post
+ * Uses AI Judge + Gemini fallback flow
+ */
+export const regeneratePostImage = async (
+  postId: string,
+): Promise<{
+  success: boolean;
+  imageSource?: 'pexels' | 'gemini';
+  error?: string;
+}> => {
+  try {
+    // 1. Fetch post details
+    const post = await writeClient.fetch(
+      `*[_type == "post" && _id == $postId][0]{
+        _id,
+        title,
+        excerpt,
+        "slug": slug.current,
+        "category": categories[0]->title
+      }`,
+      { postId },
+    );
+
+    if (!post) {
+      return { success: false, error: 'Post not found' };
+    }
+
+    logger.info('Regenerating image for post', { postId, title: post.title });
+
+    // 2. Get new featured image using AI Judge + Gemini fallback
+    const featuredImage = await getFeaturedImage(
+      post.title,
+      post.excerpt || '',
+      post.category || 'Parking',
+      post.slug,
+    );
+
+    if (!featuredImage) {
+      return { success: false, error: 'Failed to generate image' };
+    }
+
+    // 3. Determine image source
+    const imageSource = featuredImage.credit === 'Generated with AI' ? 'gemini' : 'pexels';
+
+    // 4. Update post with new image
+    await writeClient
+      .patch(postId)
+      .set({
+        featuredImage: {
+          _type: 'image',
+          asset: featuredImage.asset,
+          alt: featuredImage.alt,
+          credit: featuredImage.credit,
+          creditUrl: featuredImage.creditUrl,
+        },
+        'generationMeta.imageSource': imageSource,
+        'generationMeta.imageUpdatedAt': new Date().toISOString(),
+      })
+      .commit();
+
+    logger.info('Successfully regenerated image', {
+      postId,
+      title: post.title,
+      imageSource,
+    });
+
+    return { success: true, imageSource };
+  } catch (error) {
+    logger.error(
+      'Failed to regenerate post image',
+      { postId },
+      error instanceof Error ? error : new Error(String(error)),
+    );
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Unknown error',
+    };
+  }
+};
+
+/**
+ * Regenerate images for all posts (batch operation)
+ * Returns progress updates via generator
+ */
+export const regenerateAllPostImages = async (): Promise<{
+  total: number;
+  successful: number;
+  failed: number;
+  results: Array<{
+    postId: string;
+    title: string;
+    success: boolean;
+    imageSource?: 'pexels' | 'gemini';
+    error?: string;
+  }>;
+}> => {
+  // Fetch all posts
+  const posts = await writeClient.fetch<
+    Array<{ _id: string; title: string }>
+  >(`*[_type == "post"] | order(publishedAt desc) { _id, title }`);
+
+  logger.info('Starting batch image regeneration', { totalPosts: posts.length });
+  console.log(`Found ${posts.length} posts to process\n`);
+
+  const results: Array<{
+    postId: string;
+    title: string;
+    success: boolean;
+    imageSource?: 'pexels' | 'gemini';
+    error?: string;
+  }> = [];
+
+  let successful = 0;
+  let failed = 0;
+
+  for (const post of posts) {
+    const progress = `[${results.length + 1}/${posts.length}]`;
+    logger.info(`Processing ${results.length + 1}/${posts.length}: ${post.title}`);
+    console.log(`${progress} Processing: ${post.title}`);
+
+    const result = await regeneratePostImage(post._id);
+
+    results.push({
+      postId: post._id,
+      title: post.title,
+      success: result.success,
+      imageSource: result.imageSource,
+      error: result.error,
+    });
+
+    if (result.success) {
+      successful++;
+      console.log(`${progress} ✓ Success (${result.imageSource})`);
+    } else {
+      failed++;
+      console.log(`${progress} ✗ Failed: ${result.error}`);
+    }
+
+    // Small delay to avoid rate limits
+    await new Promise((resolve) => setTimeout(resolve, 2000));
+  }
+
+  logger.info('Batch image regeneration complete', {
+    total: posts.length,
+    successful,
+    failed,
+  });
+
+  return {
+    total: posts.length,
+    successful,
+    failed,
+    results,
+  };
+};
