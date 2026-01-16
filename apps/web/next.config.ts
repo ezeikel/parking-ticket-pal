@@ -1,4 +1,5 @@
 import { withSentryConfig } from '@sentry/nextjs';
+import { withPlausibleProxy } from 'next-plausible';
 import type { NextConfig } from 'next';
 
 const nextConfig: NextConfig = {
@@ -111,4 +112,4 @@ const sentryOptions = {
 
 const configWithSentry = withSentryConfig(nextConfig, sentryOptions);
 
-export default configWithSentry;
+export default withPlausibleProxy()(configWithSentry);
