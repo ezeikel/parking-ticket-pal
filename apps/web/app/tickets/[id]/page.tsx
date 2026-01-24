@@ -1,10 +1,6 @@
 import { Suspense } from 'react';
-import Link from 'next/link';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { Button } from '@/components/ui/button';
-import { faArrowLeft } from '@fortawesome/pro-regular-svg-icons';
 import { getTicket } from '@/app/actions/ticket';
-import TicketDetail from '@/components/TicketDetail/TicketDetail';
+import { TicketDetailPage } from '@/components/ticket-detail';
 import PaymentRedirectHandler from '@/components/PaymentRedirectHandler/PaymentRedirectHandler';
 
 type TicketPageProps = {
@@ -16,24 +12,25 @@ const TicketPage = async ({ params }: TicketPageProps) => {
   const ticket = await getTicket(id);
 
   if (!ticket) {
-    return <div>Ticket not found</div>;
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-light">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold text-dark">Ticket not found</h1>
+          <p className="mt-2 text-gray">
+            The ticket you&apos;re looking for doesn&apos;t exist or has been deleted.
+          </p>
+        </div>
+      </div>
+    );
   }
 
   return (
-    <div className="container mx-auto py-6 space-y-6">
+    <>
       <Suspense fallback={null}>
         <PaymentRedirectHandler ticketId={id} />
       </Suspense>
-      <div className="flex items-center justify-between">
-        <Link href="/tickets">
-          <Button variant="ghost" className="flex items-center gap-2">
-            <FontAwesomeIcon icon={faArrowLeft} size="lg" />
-            <span>Back to Tickets</span>
-          </Button>
-        </Link>
-      </div>
-      <TicketDetail ticket={ticket} />
-    </div>
+      <TicketDetailPage ticket={ticket} />
+    </>
   );
 };
 

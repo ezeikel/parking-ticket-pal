@@ -68,7 +68,8 @@ export const ModelName = {
   Account: 'Account',
   Session: 'Session',
   VerificationToken: 'VerificationToken',
-  LondonTribunalCase: 'LondonTribunalCase'
+  LondonTribunalCase: 'LondonTribunalCase',
+  PendingTicket: 'PendingTicket'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -381,6 +382,30 @@ export const LondonTribunalCaseScalarFieldEnum = {
 } as const
 
 export type LondonTribunalCaseScalarFieldEnum = (typeof LondonTribunalCaseScalarFieldEnum)[keyof typeof LondonTribunalCaseScalarFieldEnum]
+
+
+export const PendingTicketScalarFieldEnum = {
+  id: 'id',
+  email: 'email',
+  stripeSessionId: 'stripeSessionId',
+  pcnNumber: 'pcnNumber',
+  vehicleReg: 'vehicleReg',
+  issuerType: 'issuerType',
+  ticketStage: 'ticketStage',
+  tier: 'tier',
+  challengeReason: 'challengeReason',
+  imageUrl: 'imageUrl',
+  tempImagePath: 'tempImagePath',
+  initialAmount: 'initialAmount',
+  issuer: 'issuer',
+  claimed: 'claimed',
+  claimedAt: 'claimedAt',
+  claimedByUserId: 'claimedByUserId',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type PendingTicketScalarFieldEnum = (typeof PendingTicketScalarFieldEnum)[keyof typeof PendingTicketScalarFieldEnum]
 
 
 export const SortOrder = {

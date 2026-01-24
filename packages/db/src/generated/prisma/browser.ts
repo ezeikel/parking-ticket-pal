@@ -107,3 +107,8 @@ export type VerificationToken = Prisma.VerificationTokenModel
  * 
  */
 export type LondonTribunalCase = Prisma.LondonTribunalCaseModel
+/**
+ * Model PendingTicket
+ * 
+ */
+export type PendingTicket = Prisma.PendingTicketModel

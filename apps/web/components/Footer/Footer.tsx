@@ -1,100 +1,230 @@
 'use client';
 
-import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import {
+  faXTwitter,
+  faInstagram,
+  faTiktok,
+  faLinkedinIn,
+  faApple,
+  faGooglePlay,
+} from '@fortawesome/free-brands-svg-icons';
 import cn from '@/utils/cn';
-import { SOCIAL_LINKS } from '@/constants';
 
 type FooterProps = {
   className?: string;
 };
 
+type FooterLink = {
+  label: string;
+  href: string;
+};
+
+const productLinks: FooterLink[] = [
+  { label: 'Upload Ticket', href: '/new' },
+  { label: 'Pricing', href: '/pricing' },
+  { label: 'How It Works', href: '/#how-it-works' },
+  { label: 'Dashboard', href: '/dashboard' },
+];
+
+const resourceLinks: FooterLink[] = [
+  { label: 'Blog', href: '/blog' },
+  { label: 'FAQ', href: '/#faq' },
+  { label: 'Success Stories', href: '/#testimonials' },
+  { label: 'UK Parking Laws Guide', href: '/blog' },
+  { label: 'Contravention Codes', href: '/blog' },
+];
+
+const companyLinks: FooterLink[] = [
+  { label: 'About Us', href: '/about' },
+  { label: 'Contact', href: 'mailto:support@parkticketpal.com' },
+];
+
+type SocialLink = {
+  icon: typeof faXTwitter;
+  href: string;
+  label: string;
+};
+
+const socialLinks: SocialLink[] = [
+  { icon: faXTwitter, href: 'https://twitter.com/parkticketpal', label: 'Twitter' },
+  { icon: faInstagram, href: 'https://instagram.com/parkticketpal', label: 'Instagram' },
+  { icon: faTiktok, href: 'https://tiktok.com/@parkticketpal', label: 'TikTok' },
+  { icon: faLinkedinIn, href: 'https://linkedin.com/company/parkticketpal', label: 'LinkedIn' },
+];
+
 const Footer = ({ className }: FooterProps) => {
-  const [year, setYear] = useState<number | null>(null);
-
-  useEffect(() => {
-    setYear(new Date().getFullYear());
-  }, []);
-
   return (
-  <footer
-    className={cn('bg-[#2f2f2f] text-white pt-12 pb-6 px-4 mt-auto', className)}
-  >
-    <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between gap-12 md:gap-0">
-      <div className="flex-1 min-w-[220px] flex flex-col gap-8">
-        <div className="mb-4">
-          <Link href="/" className="flex items-center gap-x-4">
-            <Image src="/logos/ptp.svg" alt="Parking Ticket Pal logo" height={40} width={35} />
-            <span className="font-display font-bold text-2xl">
-              Parking Ticket Pal
-            </span>
-          </Link>
-        </div>
-        <div>
-          <h3 className="font-slab font-bold text-lg mb-2">About</h3>
-          <p className="text-gray-300 text-base max-w-xs">
-            Your all-in-one solution for handling Parking Charge Notices and
-            Penalty Charge Notices <br />
-            <span className="font-bold text-white">Track. Challenge. Win.</span>
-          </p>
-        </div>
-        <div className="mt-6">
-          <h3 className="font-slab font-bold text-lg mb-2">Connect</h3>
-          <ul className="flex gap-6 mt-2">
-            {SOCIAL_LINKS.map(({ id, label, href, icon }) => (
-              <li key={id}>
-                <a
-                  href={href}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="group"
-                  aria-label={`${label} link`}
-                >
+    <footer className={cn('bg-footer py-16 mt-auto', className)}>
+      <div className="mx-auto max-w-[1280px] px-6">
+        {/* Main Footer Content */}
+        <div className="grid gap-12 md:grid-cols-2 lg:grid-cols-4">
+          {/* Brand Column */}
+          <div>
+            <Link href="/" className="flex items-center gap-2">
+              <Image
+                src="/logos/ptp.svg"
+                alt="Parking Ticket Pal"
+                width={32}
+                height={32}
+                className="h-8 w-auto"
+              />
+              <span className="font-display font-bold text-lg text-white">
+                Parking Ticket Pal
+              </span>
+            </Link>
+            <p className="mt-4 text-sm text-white/60">
+              Fight unfair parking tickets with AI. Track, challenge, and win.
+            </p>
+
+            {/* App Store Badges */}
+            <div className="mt-6 flex flex-col gap-2">
+              <a
+                href="#"
+                className="opacity-70 transition-opacity hover:opacity-100"
+              >
+                <div className="flex h-10 w-32 items-center gap-2 rounded-lg border border-white/20 bg-white/5 px-3">
                   <FontAwesomeIcon
-                    icon={icon}
-                    size="2x"
-                    className="fill-gray-400 group-hover:text-[#1ABC9C] group-hover:transition-colors group-hover:duration-300 group-hover:fill-[#1ABC9C] group-hover:ease-in-out"
+                    icon={faApple}
+                    className="text-lg text-white"
                   />
-                </a>
-              </li>
+                  <div className="flex flex-col text-left">
+                    <span className="text-[8px] leading-tight text-white/60">
+                      Download on the
+                    </span>
+                    <span className="text-xs font-semibold leading-tight text-white">
+                      App Store
+                    </span>
+                  </div>
+                </div>
+              </a>
+              <a
+                href="#"
+                className="opacity-70 transition-opacity hover:opacity-100"
+              >
+                <div className="flex h-10 w-32 items-center gap-2 rounded-lg border border-white/20 bg-white/5 px-3">
+                  <FontAwesomeIcon
+                    icon={faGooglePlay}
+                    className="text-sm text-white"
+                  />
+                  <div className="flex flex-col text-left">
+                    <span className="text-[8px] leading-tight text-white/60">
+                      GET IT ON
+                    </span>
+                    <span className="text-xs font-semibold leading-tight text-white">
+                      Google Play
+                    </span>
+                  </div>
+                </div>
+              </a>
+            </div>
+          </div>
+
+          {/* Product Column */}
+          <div>
+            <h4 className="text-sm font-semibold text-white">Product</h4>
+            <ul className="mt-4 space-y-3">
+              {productLinks.map((link) => (
+                <li key={link.label}>
+                  <Link
+                    href={link.href}
+                    className="text-sm text-white/60 transition-colors hover:text-white"
+                  >
+                    {link.label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          {/* Resources Column */}
+          <div>
+            <h4 className="text-sm font-semibold text-white">Resources</h4>
+            <ul className="mt-4 space-y-3">
+              {resourceLinks.map((link) => (
+                <li key={link.label}>
+                  <Link
+                    href={link.href}
+                    className="text-sm text-white/60 transition-colors hover:text-white"
+                  >
+                    {link.label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          {/* Company Column */}
+          <div>
+            <h4 className="text-sm font-semibold text-white">Company</h4>
+            <ul className="mt-4 space-y-3">
+              {companyLinks.map((link) => (
+                <li key={link.label}>
+                  {link.href.startsWith('mailto:') ? (
+                    <a
+                      href={link.href}
+                      className="text-sm text-white/60 transition-colors hover:text-white"
+                    >
+                      {link.label}
+                    </a>
+                  ) : (
+                    <Link
+                      href={link.href}
+                      className="text-sm text-white/60 transition-colors hover:text-white"
+                    >
+                      {link.label}
+                    </Link>
+                  )}
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
+
+        {/* Divider */}
+        <div className="mt-12 h-px bg-white/10" />
+
+        {/* Bottom Footer */}
+        <div className="mt-8 flex flex-col items-center justify-between gap-6 md:flex-row">
+          {/* Social Links */}
+          <div className="flex items-center gap-6">
+            {socialLinks.map((social) => (
+              <a
+                key={social.label}
+                href={social.href}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-white/60 transition-colors duration-300 hover:text-teal"
+                aria-label={social.label}
+              >
+                <FontAwesomeIcon icon={social.icon} className="text-2xl" />
+              </a>
             ))}
-          </ul>
+          </div>
+
+          {/* Made in text */}
+          <p className="text-sm text-white/40">
+            Made with <span className="text-red-500 font-bold text-lg">♡</span> in{' '}
+            <span className="text-white font-bold">South London</span>
+          </p>
+
+          {/* Legal Links */}
+          <div className="flex items-center gap-4 text-sm text-white/60">
+            <span>© {new Date().getFullYear()} Parking Ticket Pal</span>
+            <span className="hidden md:inline">·</span>
+            <Link href="/privacy" className="hover:text-white">
+              Privacy Policy
+            </Link>
+            <span className="hidden md:inline">·</span>
+            <Link href="/terms" className="hover:text-white">
+              Terms of Service
+            </Link>
+          </div>
         </div>
       </div>
-      <div className="flex-1 min-w-[220px] flex flex-col gap-8 justify-center md:items-end">
-        <div>
-          <h3 className="font-slab font-bold text-lg mb-2">Support</h3>
-          <a
-            href="mailto:support@parkticketpal.com"
-            className="text-gray-300 text-base hover:text-white transition-colors"
-          >
-            support@parkticketpal.com
-          </a>
-        </div>
-      </div>
-    </div>
-    <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center mt-12 pt-6 text-gray-400 text-sm gap-2">
-      <div className="flex flex-col md:flex-row items-center gap-4">
-        <span>
-          &copy; {year ?? '2025'} Parking Ticket Pal. All rights reserved.
-        </span>
-        <div className="flex gap-4">
-          <Link href="/privacy" className="hover:text-white transition-colors">
-            Privacy Policy
-          </Link>
-          <Link href="/terms" className="hover:text-white transition-colors">
-            Terms of Service
-          </Link>
-        </div>
-      </div>
-      <span>
-        Made with <span className="text-red-500 font-bold text-lg">♡</span> in{' '}
-        <span className="text-white font-bold">South London</span>
-      </span>
-    </div>
-  </footer>
+    </footer>
   );
 };
 

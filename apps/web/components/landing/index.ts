@@ -1,0 +1,12 @@
+export { default as StatsBar } from './StatsBar';
+export { default as ProblemSection } from './ProblemSection';
+export { default as HowItWorksSection } from './HowItWorksSection';
+export { default as FeaturesSection } from './FeaturesSection';
+export { default as NotificationSection } from './NotificationSection';
+export { default as Testimonials } from './Testimonials';
+export { default as Authorities } from './Authorities';
+export { default as FAQSection } from './FAQSection';
+export { default as PricingSection } from './PricingSection';
+export { default as Newsletter } from './Newsletter';
+export { default as FinalCTA } from './FinalCTA';
+export { default as Footer } from './Footer';

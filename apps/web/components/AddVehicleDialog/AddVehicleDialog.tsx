@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useActionState } from 'react';
+import { useState, useEffect, useActionState, type ReactNode } from 'react';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -27,7 +27,11 @@ import { faInfoCircle } from '@fortawesome/pro-regular-svg-icons';
 
 type Step = 'enterReg' | 'reviewDetails' | 'manualEntry';
 
-const AddVehicleDialog = () => {
+type AddVehicleDialogProps = {
+  trigger?: ReactNode;
+};
+
+const AddVehicleDialog = ({ trigger }: AddVehicleDialogProps) => {
   const [open, setOpen] = useState(false);
   const [step, setStep] = useState<Step>('enterReg');
   const [registration, setRegistration] = useState('');
@@ -331,10 +335,12 @@ const AddVehicleDialog = () => {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button>
-          <FontAwesomeIcon icon={faPlus} size="lg" />
-          Add Vehicle
-        </Button>
+        {trigger || (
+          <Button>
+            <FontAwesomeIcon icon={faPlus} size="lg" />
+            Add Vehicle
+          </Button>
+        )}
       </DialogTrigger>
       <DialogContent className="sm:max-w-md">
         <form>{renderContent()}</form>

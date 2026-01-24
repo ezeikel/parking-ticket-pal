@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { ChallengeType, IssuerType, TicketTier } from '@parking-ticket-pal/db/types';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
@@ -45,6 +45,7 @@ import { toast } from 'sonner';
 import { TicketWithRelations } from '@/types';
 import { useAnalytics } from '@/utils/analytics-client';
 import { TRACKING_EVENTS } from '@/constants/events';
+import SignatureGateModal from '@/components/SignatureGateModal/SignatureGateModal';
 
 type ChallengeTicketProps = {
   ticket: TicketWithRelations;
@@ -134,7 +135,14 @@ const ChallengeTicket = ({ ticket, issuerType }: ChallengeTicketProps) => {
     ChallengeHistoryItem[]
   >([]);
   const [isLoadingHistory, setIsLoadingHistory] = useState(true);
+  const [showSignatureModal, setShowSignatureModal] = useState(false);
+  const [pendingAction, setPendingAction] = useState<'letter' | 'auto-challenge' | null>(null);
+  const [userSignatureUrl, setUserSignatureUrl] = useState<string | null>(
+    ticket.vehicle.user.signatureUrl || null
+  );
   const { track } = useAnalytics();
+
+  const userId = ticket.vehicle.user.id;
 
   // Load challenge history from database
   useEffect(() => {
@@ -244,7 +252,8 @@ const ChallengeTicket = ({ ticket, issuerType }: ChallengeTicketProps) => {
     }
   };
 
-  const handleGenerateLetter = async () => {
+  // Actual letter generation logic (called after signature check)
+  const executeGenerateLetter = useCallback(async () => {
     // ensure we get the label, not the key
     const challengeReasonEntry =
       challengeReasons[selectedReason as keyof typeof challengeReasons];
@@ -275,9 +284,21 @@ const ChallengeTicket = ({ ticket, issuerType }: ChallengeTicketProps) => {
         ),
       setIsGeneratingLetter,
     );
+  }, [challengeReasons, selectedReason, customReason, ticket.id, track]);
+
+  const handleGenerateLetter = async () => {
+    // Check if user has signature - if not, show modal
+    if (!userSignatureUrl) {
+      setPendingAction('letter');
+      setShowSignatureModal(true);
+      return;
+    }
+
+    executeGenerateLetter();
   };
 
-  const handleAutoChallenge = async () => {
+  // Actual auto-challenge logic (called after signature check)
+  const executeAutoChallenge = useCallback(async () => {
     // ensure we get the label, not the key
     const challengeReasonEntry =
       challengeReasons[selectedReason as keyof typeof challengeReasons];
@@ -304,6 +325,17 @@ const ChallengeTicket = ({ ticket, issuerType }: ChallengeTicketProps) => {
         challengeTicket(ticket.pcnNumber, challengeReasonLabel, customReason),
       setIsAutoChallenging,
     );
+  }, [challengeReasons, selectedReason, customReason, ticket.id, ticket.pcnNumber, track]);
+
+  const handleAutoChallenge = async () => {
+    // Check if user has signature - if not, show modal
+    if (!userSignatureUrl) {
+      setPendingAction('auto-challenge');
+      setShowSignatureModal(true);
+      return;
+    }
+
+    executeAutoChallenge();
   };
 
   const handleRetry = (item: ChallengeHistoryItem) => {
@@ -335,6 +367,37 @@ const ChallengeTicket = ({ ticket, issuerType }: ChallengeTicketProps) => {
     setSelectedReason('');
     setCustomReason('');
     toast.info('Challenge form cleared.');
+  };
+
+  // Signature modal handlers
+  const handleSignatureSaved = () => {
+    setShowSignatureModal(false);
+    setUserSignatureUrl('saved'); // Set to truthy value to indicate signature exists
+
+    // Execute the pending action
+    if (pendingAction === 'letter') {
+      executeGenerateLetter();
+    } else if (pendingAction === 'auto-challenge') {
+      executeAutoChallenge();
+    }
+    setPendingAction(null);
+  };
+
+  const handleSignatureSkip = () => {
+    setShowSignatureModal(false);
+
+    // Execute the pending action anyway (will use typed name fallback)
+    if (pendingAction === 'letter') {
+      executeGenerateLetter();
+    } else if (pendingAction === 'auto-challenge') {
+      executeAutoChallenge();
+    }
+    setPendingAction(null);
+  };
+
+  const handleSignatureModalClose = () => {
+    setShowSignatureModal(false);
+    setPendingAction(null);
   };
 
   return (
@@ -487,6 +550,16 @@ const ChallengeTicket = ({ ticket, issuerType }: ChallengeTicketProps) => {
           </div>
         )}
       </CardFooter>
+
+      {/* Signature Gate Modal */}
+      <SignatureGateModal
+        isOpen={showSignatureModal}
+        onClose={handleSignatureModalClose}
+        onSignatureSaved={handleSignatureSaved}
+        onSkip={handleSignatureSkip}
+        userId={userId}
+        existingSignatureUrl={userSignatureUrl}
+      />
     </Card>
   );
 };

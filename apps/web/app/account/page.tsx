@@ -1,40 +1,41 @@
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
-import UserAccountForm from '@/components/forms/UserAccountForm/UserAccountForm';
+import { Suspense } from 'react';
+import { redirect } from 'next/navigation';
 import { getCurrentUser } from '@/utils/user';
+import { AccountSettingsPage } from '@/components/account';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faSpinnerThird } from '@fortawesome/pro-solid-svg-icons';
 
-const AccountPage = async () => {
+type Tab = 'profile' | 'notifications' | 'billing' | 'security' | 'delete';
+
+const VALID_TABS: Tab[] = ['profile', 'notifications', 'billing', 'security', 'delete'];
+
+type AccountPageProps = {
+  searchParams: Promise<{ tab?: string }>;
+};
+
+const AccountPageFallback = () => (
+  <div className="min-h-screen bg-light flex items-center justify-center">
+    <FontAwesomeIcon icon={faSpinnerThird} className="h-8 w-8 animate-spin text-teal" />
+  </div>
+);
+
+const AccountPage = async ({ searchParams }: AccountPageProps) => {
   const user = await getCurrentUser();
+  const { tab } = await searchParams;
 
   if (!user) {
-    return <div>Loading...</div>;
+    redirect('/signin?redirect=/account');
   }
 
-  return (
-    <div className="container mx-auto py-6 space-y-6 max-w-3xl">
-      <div className="flex items-center justify-between">
-        <h1 className="font-slab font-bold text-3xl">Account Settings</h1>
-      </div>
+  // Validate the tab parameter
+  const initialTab: Tab = tab && VALID_TABS.includes(tab as Tab)
+    ? (tab as Tab)
+    : 'profile';
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="font-slab font-medium text-2xl">
-            Profile Information
-          </CardTitle>
-          <CardDescription>
-            Update your personal details and address information.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <UserAccountForm user={user} />
-        </CardContent>
-      </Card>
-    </div>
+  return (
+    <Suspense fallback={<AccountPageFallback />}>
+      <AccountSettingsPage user={user} initialTab={initialTab} />
+    </Suspense>
   );
 };
 

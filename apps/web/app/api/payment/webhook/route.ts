@@ -64,6 +64,44 @@ export const POST = async (req: Request) => {
       email = completedCheckoutSession.customer_details.email;
     }
 
+    // Handle guest checkout - create PendingTicket record
+    const { isGuest } = completedCheckoutSession.metadata || {};
+
+    if (isGuest === 'true' && email) {
+      const metadata = completedCheckoutSession.metadata || {};
+
+      try {
+        // Create pending ticket record for guest to claim after signup
+        await db.pendingTicket.create({
+          data: {
+            email,
+            stripeSessionId: completedCheckoutSession.id,
+            pcnNumber: metadata.pcnNumber || '',
+            vehicleReg: metadata.vehicleReg || '',
+            issuerType: metadata.issuerType || 'council',
+            ticketStage: metadata.ticketStage || 'initial',
+            tier: metadata.tier === 'PREMIUM' ? TicketTier.PREMIUM : TicketTier.STANDARD,
+            challengeReason: metadata.challengeReason || null,
+            tempImagePath: metadata.tempImagePath || null,
+            initialAmount: metadata.initialAmount ? parseInt(metadata.initialAmount, 10) : null,
+            issuer: metadata.issuer || null,
+          },
+        });
+
+        console.log(`[Stripe] Created pending ticket for guest: ${email}, PCN: ${metadata.pcnNumber}`);
+      } catch (error) {
+        // Check for unique constraint violation (duplicate session ID)
+        if (
+          error instanceof Error &&
+          error.message.includes('Unique constraint failed')
+        ) {
+          console.log(`[Stripe] Pending ticket already exists for session: ${completedCheckoutSession.id}`);
+        } else {
+          console.error('[Stripe] Error creating pending ticket:', error);
+        }
+      }
+    }
+
     if (email) {
       // check for ticket-specific tier upgrades
       const { ticketId, tier } = completedCheckoutSession.metadata || {};

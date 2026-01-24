@@ -70,7 +70,7 @@ export const TRACKING_EVENTS = {
   SUPPORT_CONTACTED: 'support_contacted',
   HELP_ARTICLE_VIEWED: 'help_article_viewed',
 
-  // Demo & Testing Features
-  FAKE_NOTIFICATIONS_ENABLED: 'fake_notifications_enabled',
-  FAKE_NOTIFICATIONS_DISABLED: 'fake_notifications_disabled',
+  // Demo Features
+  NOTIFICATION_DEMO_STARTED: 'notification_demo_started',
+  NOTIFICATION_DEMO_STOPPED: 'notification_demo_stopped',
 } as const;

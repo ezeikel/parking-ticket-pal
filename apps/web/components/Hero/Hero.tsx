@@ -1,11 +1,18 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
-import { signIn } from 'next-auth/react';
-import { faBolt, faCheck } from '@fortawesome/pro-solid-svg-icons';
+import { useState, useEffect, useRef, useCallback } from 'react';
+import { motion, AnimatePresence, type Variants } from 'framer-motion';
+import { faApple, faGooglePlay } from '@fortawesome/free-brands-svg-icons';
+import { faBolt, faCamera } from '@fortawesome/pro-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import Image from 'next/image';
+import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
+import TicketWizard, {
+  type ExtractedData,
+  type WizardCompleteData,
+} from '@/components/TicketWizard/TicketWizard';
+import { extractOCRTextWithVision } from '@/app/actions/ocr';
 
 const HERO_VIDEOS = [
   '/videos/hero-london-01-box-junction.mp4',
@@ -21,21 +28,51 @@ const HERO_IMAGES = [
   '/images/hero-london-04-resident-bay-permit.png',
 ];
 
-const IMAGE_INTERVAL = 5000; // 5 seconds for mobile image carousel
-const FADE_DURATION = 1500; // 1.5 second fade transition
+const IMAGE_INTERVAL = 5000;
+const FADE_DURATION = 1500;
+
+const fadeUpVariants: Variants = {
+  hidden: { opacity: 0, y: 30 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.6, ease: 'easeOut' as const },
+  },
+};
+
+const staggerContainer: Variants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: { staggerChildren: 0.1, delayChildren: 0.2 },
+  },
+};
+
+const slideFromRight: Variants = {
+  hidden: { opacity: 0, x: 100 },
+  visible: {
+    opacity: 1,
+    x: 0,
+    transition: { type: 'spring' as const, damping: 25, stiffness: 120, delay: 0.4 },
+  },
+};
 
 const Hero = () => {
   const [activeVideoIndex, setActiveVideoIndex] = useState(0);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [isWizardOpen, setIsWizardOpen] = useState(false);
+  const [extractedData, setExtractedData] = useState<ExtractedData | undefined>(
+    undefined,
+  );
+  const [isUploading, setIsUploading] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
   const videoRefs = useRef<(HTMLVideoElement | null)[]>([]);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Handle video end - start next video and fade
   const handleVideoEnded = (index: number) => {
     if (index !== activeVideoIndex) return;
 
     const nextIndex = (index + 1) % HERO_VIDEOS.length;
-
-    // Start playing the next video before transitioning
     const nextVideo = videoRefs.current[nextIndex];
     if (nextVideo) {
       nextVideo.currentTime = 0;
@@ -45,21 +82,18 @@ const Hero = () => {
     setActiveVideoIndex(nextIndex);
   };
 
-  // Initial setup - play first video and preload others
   useEffect(() => {
     videoRefs.current.forEach((video, index) => {
       if (video) {
         if (index === 0) {
           video.play().catch(() => {});
         } else {
-          // Preload other videos
           video.load();
         }
       }
     });
   }, []);
 
-  // Image carousel for mobile - cycle every 5 seconds
   useEffect(() => {
     const interval = setInterval(() => {
       setCurrentImageIndex((prev) => (prev + 1) % HERO_IMAGES.length);
@@ -68,121 +102,348 @@ const Hero = () => {
     return () => clearInterval(interval);
   }, []);
 
+  const handlePhotoUpload = useCallback(async (file: File) => {
+    setIsUploading(true);
+
+    try {
+      const formData = new FormData();
+      formData.append('image', file);
+
+      const result = await extractOCRTextWithVision(formData);
+
+      if (result.success && result.data) {
+        setExtractedData({
+          pcnNumber: result.data.pcnNumber || '',
+          vehicleReg: result.data.vehicleReg || '',
+          issuerType: 'council',
+          ticketStage: 'initial',
+          initialAmount: result.data.initialAmount,
+          issuer: result.data.issuer,
+          imageUrl: result.imageUrl,
+          tempImagePath: result.tempImagePath,
+        });
+        setIsWizardOpen(true);
+      } else {
+        toast.error(result.message || 'Failed to extract ticket details');
+        // Still open wizard for manual entry
+        setExtractedData(undefined);
+        setIsWizardOpen(true);
+      }
+    } catch {
+      toast.error('Something went wrong. Please try again.');
+      setExtractedData(undefined);
+      setIsWizardOpen(true);
+    } finally {
+      setIsUploading(false);
+    }
+  }, []);
+
+  const handleManualEntry = () => {
+    setExtractedData(undefined);
+    setIsWizardOpen(true);
+  };
+
+  const handleFileChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const file = e.target.files?.[0];
+      if (file) {
+        handlePhotoUpload(file);
+      }
+    },
+    [handlePhotoUpload],
+  );
+
+  const handleDrop = useCallback(
+    (e: React.DragEvent) => {
+      e.preventDefault();
+      setIsDragging(false);
+
+      const file = e.dataTransfer.files?.[0];
+      if (
+        file &&
+        (file.type.startsWith('image/') || file.type === 'application/pdf')
+      ) {
+        handlePhotoUpload(file);
+      }
+    },
+    [handlePhotoUpload],
+  );
+
+  const handleDragOver = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(true);
+  }, []);
+
+  const handleDragLeave = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+  }, []);
+
+  const handleUploadClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleWizardComplete = (data: WizardCompleteData) => {
+    setIsWizardOpen(false);
+
+    // Store wizard data in localStorage for guest flows
+    const guestTicketData = {
+      pcnNumber: data.pcnNumber,
+      vehicleReg: data.vehicleReg,
+      issuerType: data.issuerType,
+      ticketStage: data.ticketStage,
+      intent: data.intent,
+      challengeReason: data.challengeReason,
+      tier: data.tier,
+      // Include extracted data if available (from OCR)
+      imageUrl: data.extractedData?.imageUrl,
+      tempImagePath: data.extractedData?.tempImagePath,
+      initialAmount: data.extractedData?.initialAmount,
+      issuer: data.extractedData?.issuer,
+      createdAt: new Date().toISOString(),
+    };
+
+    localStorage.setItem('guestTicketData', JSON.stringify(guestTicketData));
+
+    // Branch based on user intent
+    if (data.intent === 'track') {
+      // Track flow: redirect to signup page where ticket will be created after auth
+      window.location.href = '/guest/signup?source=wizard';
+    } else if (data.tier === 'subscription') {
+      // Challenge flow with subscription
+      window.location.href = '/pricing?source=wizard';
+    } else {
+      // Challenge flow with one-time tier
+      window.location.href = `/checkout?tier=${data.tier}&source=wizard`;
+    }
+  };
+
   return (
-    <section className="relative h-[100dvh] w-[calc(100%+2rem)] -mx-4 -mt-[72px] overflow-hidden">
-      {/* Desktop Video Background - All videos stacked, toggle opacity */}
-      <div className="absolute inset-0 hidden md:block bg-black">
-        {HERO_VIDEOS.map((src, index) => (
-          <video
-            key={src}
-            ref={(el) => {
-              videoRefs.current[index] = el;
-            }}
-            className="absolute inset-0 h-full w-full object-cover transition-opacity ease-in-out"
-            style={{
-              transitionDuration: `${FADE_DURATION}ms`,
-              opacity: index === activeVideoIndex ? 1 : 0,
-              zIndex: index === activeVideoIndex ? 1 : 0,
-            }}
-            muted
-            playsInline
-            preload="auto"
-            onEnded={() => handleVideoEnded(index)}
-          >
-            <source src={src} type="video/mp4" />
-          </video>
-        ))}
-      </div>
-
-      {/* Mobile Image Background */}
-      <div className="absolute inset-0 md:hidden bg-black">
-        {HERO_IMAGES.map((src, index) => (
-          <Image
-            key={src}
-            src={src}
-            alt={`London parking scene ${index + 1}`}
-            fill
-            priority={index === 0}
-            className="object-cover transition-opacity ease-in-out"
-            style={{
-              transitionDuration: `${FADE_DURATION}ms`,
-              opacity: index === currentImageIndex ? 1 : 0,
-            }}
-          />
-        ))}
-      </div>
-
-      {/* Dark Overlay */}
-      <div className="absolute inset-0 bg-black/50 z-[2]" />
-
-      {/* Content Overlay */}
-      <div className="relative z-10 flex h-full items-center justify-center px-4">
-        <div className="flex max-w-3xl flex-col items-center text-center">
-          <h1 className="text-4xl font-extrabold tracking-tight text-white md:text-5xl lg:text-6xl">
-            <span className="relative inline-block">
-              Don&apos;t
-              <span className="absolute -bottom-1 left-0 h-[5px] w-full -rotate-1 animate-draw-line bg-red-500" />
-            </span>{' '}
-            pay that{' '}
-            <span className="mx-1 rounded-md bg-parking-ticket-yellow px-2 py-1 leading-loose text-black">
-              ticket
-            </span>{' '}
-            yet
-          </h1>
-
-          <p className="mt-6 max-w-xl text-lg text-white/90 md:text-xl">
-            Don&apos;t just pay it - challenge it with AI in minutes. Upload
-            your ticket, get a solid legal appeal letter, and we&apos;ll even
-            submit it for you.
-          </p>
-
-          <ul className="mt-8 flex flex-col gap-y-3 text-left text-base text-white/90">
-            <li className="flex items-center">
-              <FontAwesomeIcon
-                icon={faCheck}
-                size="lg"
-                className="mr-3 text-green-400"
-              />
-              Works for both council & private PCNs
-            </li>
-            <li className="flex items-center">
-              <FontAwesomeIcon
-                icon={faCheck}
-                size="lg"
-                className="mr-3 text-green-400"
-              />
-              Tracks deadlines and sends reminders
-            </li>
-            <li className="flex items-center">
-              <FontAwesomeIcon
-                icon={faCheck}
-                size="lg"
-                className="mr-3 text-green-400"
-              />
-              Over 70% of appeals succeed at tribunal
-            </li>
-          </ul>
-
-          <div className="mt-10 flex flex-col items-center gap-2">
-            <Button
-              onClick={() => signIn('google')}
-              className="w-3xs px-6 py-6 bg-parking-teal text-white font-semibold text-md cursor-pointer"
+    <>
+      <section className="relative h-[100dvh] w-[calc(100%+2rem)] -mx-4 -mt-[72px] overflow-hidden">
+        {/* Desktop Video Background */}
+        <div className="absolute inset-0 hidden lg:block bg-black">
+          {HERO_VIDEOS.map((src, index) => (
+            <video
+              key={src}
+              ref={(el) => {
+                videoRefs.current[index] = el;
+              }}
+              className="absolute inset-0 h-full w-full object-cover transition-opacity ease-in-out"
+              style={{
+                transitionDuration: `${FADE_DURATION}ms`,
+                opacity: index === activeVideoIndex ? 1 : 0,
+                zIndex: index === activeVideoIndex ? 1 : 0,
+              }}
+              muted
+              playsInline
+              preload="auto"
+              onEnded={() => handleVideoEnded(index)}
             >
-              <FontAwesomeIcon
-                icon={faBolt}
-                size="lg"
-                className="text-yellow-300"
-              />
-              <span>Try It Out</span>
-            </Button>
-            <p className="mt-2 text-sm text-white/80">
-              <span className="font-bold uppercase underline">Free</span> to add
-              a ticket. Upgrades from £2.99.
-            </p>
-          </div>
+              <source src={src} type="video/mp4" />
+            </video>
+          ))}
         </div>
-      </div>
-    </section>
+
+        {/* Mobile/Tablet Image Background */}
+        <div className="absolute inset-0 lg:hidden bg-black">
+          {HERO_IMAGES.map((src, index) => (
+            <Image
+              key={src}
+              src={src}
+              alt={`London parking scene ${index + 1}`}
+              fill
+              priority={index === 0}
+              className="object-cover transition-opacity ease-in-out"
+              style={{
+                transitionDuration: `${FADE_DURATION}ms`,
+                opacity: index === currentImageIndex ? 1 : 0,
+              }}
+            />
+          ))}
+        </div>
+
+        {/* Dark Overlay */}
+        <div className="absolute inset-0 bg-black/50 z-[2]" />
+
+        {/* Content - Two Column Layout */}
+        <div className="relative z-10 mx-auto flex min-h-dvh max-w-[1280px] flex-col items-center gap-12 px-6 pt-24 pb-16 lg:flex-row lg:items-center lg:gap-16 lg:pt-0">
+          {/* Left Column - Main Messaging */}
+          <motion.div
+            variants={staggerContainer}
+            initial="hidden"
+            animate="visible"
+            className="flex flex-1 flex-col items-center text-center lg:items-start lg:text-left"
+          >
+            {/* Main Headline */}
+            <motion.h1
+              variants={fadeUpVariants}
+              className="text-4xl font-extrabold leading-tight text-white md:text-5xl lg:text-[56px]"
+            >
+              Sort your ticket in minutes,
+              <br />
+              without the hassle.
+            </motion.h1>
+
+            {/* Subheadline */}
+            <motion.p
+              variants={fadeUpVariants}
+              className="mt-6 max-w-lg text-lg text-white/90 md:text-xl"
+            >
+              Upload your ticket to track deadlines, get payment links, and
+              generate a challenge letter when it&apos;s worth it.
+            </motion.p>
+
+            {/* CTA Button - Mobile Only */}
+            <motion.div
+              variants={fadeUpVariants}
+              className="mt-8 flex flex-wrap justify-center gap-4 lg:hidden"
+            >
+              <Button
+                size="lg"
+                className="h-12 gap-2 bg-teal px-6 text-base font-semibold text-white hover:bg-teal-dark"
+                onClick={handleUploadClick}
+                disabled={isUploading}
+              >
+                <FontAwesomeIcon icon={faBolt} className="text-yellow" />
+                {isUploading ? 'Processing...' : 'Start My Appeal'}
+              </Button>
+            </motion.div>
+
+            {/* App Store Buttons */}
+            <motion.div
+              variants={fadeUpVariants}
+              className="mt-6 flex flex-wrap justify-center gap-3 lg:justify-start"
+            >
+              <a
+                href="#"
+                className="opacity-90 transition-opacity hover:opacity-100"
+              >
+                <div className="flex h-11 items-center gap-2 rounded-lg border border-white/30 bg-white/10 px-4">
+                  <FontAwesomeIcon
+                    icon={faApple}
+                    className="text-xl text-white"
+                  />
+                  <div className="flex flex-col text-left">
+                    <span className="text-[9px] leading-tight text-white/60">
+                      Download on the
+                    </span>
+                    <span className="text-xs font-semibold leading-tight text-white">
+                      App Store
+                    </span>
+                  </div>
+                </div>
+              </a>
+              <a
+                href="#"
+                className="opacity-90 transition-opacity hover:opacity-100"
+              >
+                <div className="flex h-11 items-center gap-2 rounded-lg border border-white/30 bg-white/10 px-4">
+                  <FontAwesomeIcon
+                    icon={faGooglePlay}
+                    className="text-lg text-white"
+                  />
+                  <div className="flex flex-col text-left">
+                    <span className="text-[9px] leading-tight text-white/60">
+                      GET IT ON
+                    </span>
+                    <span className="text-xs font-semibold leading-tight text-white">
+                      Google Play
+                    </span>
+                  </div>
+                </div>
+              </a>
+            </motion.div>
+          </motion.div>
+
+          {/* Right Column - Upload Card (Desktop) */}
+          <motion.div
+            variants={slideFromRight}
+            initial="hidden"
+            animate="visible"
+            className="hidden w-full max-w-md lg:block lg:w-[400px]"
+          >
+            <div className="rounded-2xl bg-white p-6 shadow-[0_2px_4px_rgba(0,0,0,0.08),0_4px_12px_rgba(0,0,0,0.08)]">
+              <h3 className="text-lg font-bold text-dark">
+                Get started in seconds
+              </h3>
+
+              {/* Upload Area */}
+              <div className="mt-4">
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*,application/pdf"
+                  onChange={handleFileChange}
+                  className="hidden"
+                />
+                <div
+                  onClick={handleUploadClick}
+                  onKeyDown={(e) => e.key === 'Enter' && handleUploadClick()}
+                  onDrop={handleDrop}
+                  onDragOver={handleDragOver}
+                  onDragLeave={handleDragLeave}
+                  role="button"
+                  tabIndex={0}
+                  className={`flex cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed px-6 py-10 transition-colors ${
+                    isDragging
+                      ? 'border-teal bg-teal/10'
+                      : 'border-gray/30 bg-light/50 hover:border-teal/50'
+                  } ${isUploading ? 'pointer-events-none opacity-50' : ''}`}
+                >
+                  <div className="flex h-14 w-14 items-center justify-center rounded-full bg-teal/10">
+                    <FontAwesomeIcon
+                      icon={faCamera}
+                      className="text-2xl text-teal"
+                    />
+                  </div>
+                  <p className="mt-4 text-center text-sm font-medium text-dark">
+                    {isDragging
+                      ? 'Drop your ticket here'
+                      : 'Drop your ticket here'}
+                  </p>
+                  <p className="mt-1 text-center text-xs text-gray">
+                    JPG, PNG, or PDF
+                  </p>
+                  <Button
+                    className="mt-4 bg-teal text-white hover:bg-teal-dark"
+                    disabled={isUploading}
+                  >
+                    {isUploading ? 'Processing...' : 'Upload Ticket'}
+                  </Button>
+                </div>
+
+                {/* Manual Entry Link */}
+                <button
+                  type="button"
+                  onClick={handleManualEntry}
+                  className="mt-4 w-full text-center text-sm font-medium text-teal hover:underline"
+                  disabled={isUploading}
+                >
+                  Don&apos;t have a photo? Enter details manually
+                </button>
+              </div>
+
+              <p className="mt-4 text-center text-xs text-gray">
+                Free to upload. No credit card required.
+              </p>
+            </div>
+          </motion.div>
+        </div>
+      </section>
+
+      {/* Wizard Modal */}
+      <AnimatePresence>
+        {isWizardOpen && (
+          <TicketWizard
+            isOpen={isWizardOpen}
+            onClose={() => setIsWizardOpen(false)}
+            extractedData={extractedData}
+            onComplete={handleWizardComplete}
+          />
+        )}
+      </AnimatePresence>
+    </>
   );
 };
 

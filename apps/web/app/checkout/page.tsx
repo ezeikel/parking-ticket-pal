@@ -3,7 +3,10 @@
 import { Suspense, useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { TicketTier } from '@parking-ticket-pal/db';
-import { createTicketCheckoutSession } from '@/app/actions/stripe';
+import {
+  createTicketCheckoutSession,
+  createGuestCheckoutSession,
+} from '@/app/actions/stripe';
 import {
   Card,
   CardContent,
@@ -16,6 +19,11 @@ import { faSpinnerThird } from '@fortawesome/pro-regular-svg-icons';
 import { useAnalytics } from '@/utils/analytics-client';
 import { TRACKING_EVENTS } from '@/constants/events';
 import useLogger from '@/lib/use-logger';
+import {
+  getGuestTicketData,
+  isGuestTicketExpired,
+  clearGuestTicketData,
+} from '@/utils/guestTicket';
 
 const CheckoutContent = () => {
   const router = useRouter();
@@ -32,10 +40,77 @@ const CheckoutContent = () => {
         // Get parameters from URL
         const ticketId = searchParams.get('ticketId');
         const tier = searchParams.get('tier') as 'standard' | 'premium' | null;
-        // source is used for analytics tracking (already tracked in CreateTicketForm)
-        // const source = searchParams.get('source');
+        const source = searchParams.get('source');
 
-        // Validate required parameters
+        // Check if this is a guest checkout (from wizard)
+        const isGuestCheckout = source === 'wizard' && !ticketId;
+
+        if (isGuestCheckout) {
+          // Handle guest checkout flow
+          const guestData = getGuestTicketData();
+
+          if (!guestData) {
+            logger.warn('Guest checkout attempted but no wizard data found');
+            setError(
+              'Your session has expired. Please upload your ticket again.',
+            );
+            setIsLoading(false);
+            return;
+          }
+
+          if (isGuestTicketExpired(guestData)) {
+            clearGuestTicketData();
+            logger.warn('Guest checkout attempted with expired data');
+            setError(
+              'Your session has expired. Please upload your ticket again.',
+            );
+            setIsLoading(false);
+            return;
+          }
+
+          const guestTier = tier || guestData.tier;
+          if (
+            !guestTier ||
+            (guestTier !== 'standard' && guestTier !== 'premium')
+          ) {
+            logger.warn('Guest checkout with invalid tier', { tier: guestTier });
+            setError('Invalid pricing tier selected.');
+            setIsLoading(false);
+            return;
+          }
+
+          // Track guest checkout initiation
+          await track(TRACKING_EVENTS.CHECKOUT_SESSION_CREATED, {
+            productType: 'PAY_PER_TICKET' as any,
+            tier: guestTier.toUpperCase() as TicketTier,
+          });
+
+          // Create guest Stripe checkout session
+          // Ensure tier is set (we've already validated it above)
+          const checkoutData = {
+            ...guestData,
+            tier: guestTier as 'standard' | 'premium' | 'subscription',
+          };
+          const session = await createGuestCheckoutSession(
+            guestTier.toUpperCase() as 'STANDARD' | 'PREMIUM',
+            checkoutData,
+          );
+
+          if (!session?.url) {
+            logger.error('Guest checkout session created but no URL returned');
+            setError(
+              'Unable to create checkout session. Please try again or contact support.',
+            );
+            setIsLoading(false);
+            return;
+          }
+
+          // Redirect to Stripe checkout
+          window.location.href = session.url;
+          return;
+        }
+
+        // Standard checkout flow (existing ticket)
         if (!ticketId) {
           logger.warn('Checkout attempted without ticket ID');
           setError('Missing ticket ID. Please create a ticket first.');
@@ -61,10 +136,7 @@ const CheckoutContent = () => {
         });
 
         // Create Stripe checkout session
-        const session = await createTicketCheckoutSession(
-          ticketTier,
-          ticketId,
-        );
+        const session = await createTicketCheckoutSession(ticketTier, ticketId);
 
         if (!session?.url) {
           logger.error('Checkout session created but no URL returned', {
@@ -81,10 +153,14 @@ const CheckoutContent = () => {
         // Redirect to Stripe checkout
         window.location.href = session.url;
       } catch (err) {
-        logger.error('Checkout error', {
-          ticketId: searchParams.get('ticketId'),
-          tier: searchParams.get('tier'),
-        }, err instanceof Error ? err : undefined);
+        logger.error(
+          'Checkout error',
+          {
+            ticketId: searchParams.get('ticketId'),
+            tier: searchParams.get('tier'),
+          },
+          err instanceof Error ? err : undefined,
+        );
         setError(
           'An unexpected error occurred. Please try again or contact support.',
         );

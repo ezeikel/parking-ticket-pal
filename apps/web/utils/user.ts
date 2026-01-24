@@ -47,6 +47,7 @@ export const getCurrentUser = async (): Promise<CurrentUser | null> => {
       address: true,
       phoneNumber: true,
       signatureUrl: true,
+      stripeCustomerId: true,
     },
   });
 

@@ -587,3 +587,35 @@ enum Platform {
   IOS
   ANDROID
 }
+
+// Pending tickets from guest checkout - claimed when user signs up
+model PendingTicket {
+  id              String     @id @default(cuid())
+  email           String // Email from Stripe checkout
+  stripeSessionId String     @unique // Stripe checkout session ID
+
+  // Ticket data from wizard
+  pcnNumber       String
+  vehicleReg      String
+  issuerType      String // 'council' | 'private'
+  ticketStage     String // 'initial' | 'nto' | 'rejection' | 'charge_cert'
+  tier            TicketTier
+  challengeReason String?
+
+  // Optional OCR data
+  imageUrl        String?
+  tempImagePath   String?
+  initialAmount   Int?
+  issuer          String?
+
+  // Tracking
+  claimed         Boolean    @default(false)
+  claimedAt       DateTime?
+  claimedByUserId String? // User who claimed this ticket
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime   @updatedAt
+
+  @@index([email])
+  @@index([claimed])
+  @@map("pending_tickets")
+}

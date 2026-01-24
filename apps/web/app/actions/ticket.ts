@@ -311,6 +311,48 @@ export const updateTicket = async (
   }
 };
 
+export const updateTicketStatus = async (
+  ticketId: string,
+  status: TicketStatus,
+) => {
+  const userId = await getUserId('update ticket status');
+
+  if (!userId) {
+    return { success: false, error: 'Authentication required.' };
+  }
+
+  if (!ticketId) {
+    return { success: false, error: 'Ticket ID is missing.' };
+  }
+
+  try {
+    // Verify ticket belongs to user
+    const ticket = await db.ticket.findFirst({
+      where: {
+        id: ticketId,
+        vehicle: {
+          userId,
+        },
+      },
+    });
+
+    if (!ticket) {
+      return { success: false, error: 'Ticket not found.' };
+    }
+
+    await db.ticket.update({
+      where: { id: ticketId },
+      data: { status },
+    });
+
+    revalidatePath(`/tickets/${ticketId}`);
+    return { success: true };
+  } catch (error) {
+    logger.error('Error updating ticket status', { ticketId, status }, error instanceof Error ? error : new Error(String(error)));
+    return { success: false, error: 'Failed to update ticket status.' };
+  }
+};
+
 export const updateTicketNotes = async (
   _prevState: any,
   formData: FormData,
@@ -602,6 +644,7 @@ export const getTicket = async (id: string) => {
             select: {
               id: true,
               signatureUrl: true,
+              address: true,
             },
           },
         },
@@ -650,6 +693,42 @@ export const getTicket = async (id: string) => {
   });
 
   if (!ticket) return null;
+
+  return ticket;
+};
+
+/**
+ * Get a ticket by PCN number for the current user
+ * Used to check if a ticket already exists before creating a new one
+ */
+export const getTicketByPcnNumber = async (pcnNumber: string) => {
+  const userId = await getUserId('check ticket by PCN');
+
+  if (!userId) {
+    return null;
+  }
+
+  const ticket = await db.ticket.findFirst({
+    where: {
+      pcnNumber,
+      vehicle: {
+        userId,
+      },
+    },
+    select: {
+      id: true,
+      pcnNumber: true,
+      issuer: true,
+      status: true,
+      issuedAt: true,
+      initialAmount: true,
+      vehicle: {
+        select: {
+          registrationNumber: true,
+        },
+      },
+    },
+  });
 
   return ticket;
 };

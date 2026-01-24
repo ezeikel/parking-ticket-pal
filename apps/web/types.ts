@@ -114,6 +114,7 @@ export type TicketWithRelations = Prisma.TicketGetPayload<{
           select: {
             id: true;
             signatureUrl: true;
+            address: true;
           };
         };
       };
@@ -177,7 +178,7 @@ export type HistoryEvent =
 
 export type CurrentUser = Pick<
   User,
-  'id' | 'name' | 'email' | 'address' | 'phoneNumber' | 'signatureUrl'
+  'id' | 'name' | 'email' | 'address' | 'phoneNumber' | 'signatureUrl' | 'stripeCustomerId'
 >;
 
 export type TicketForChallengeLetter = {
@@ -408,9 +409,9 @@ export type EventProperties = {
   [TRACKING_EVENTS.SUPPORT_CONTACTED]: { method: 'email' | 'form' };
   [TRACKING_EVENTS.HELP_ARTICLE_VIEWED]: { articleId: string };
 
-  // Demo & Testing Features
-  [TRACKING_EVENTS.FAKE_NOTIFICATIONS_ENABLED]: Record<string, never>;
-  [TRACKING_EVENTS.FAKE_NOTIFICATIONS_DISABLED]: Record<string, never>;
+  // Demo Features
+  [TRACKING_EVENTS.NOTIFICATION_DEMO_STARTED]: Record<string, never>;
+  [TRACKING_EVENTS.NOTIFICATION_DEMO_STOPPED]: Record<string, never>;
 };
 
 export type PostAuthor = {

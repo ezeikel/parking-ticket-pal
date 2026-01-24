@@ -152,12 +152,185 @@ export const createCustomerPortalSession = async () => {
 
   const portalSession = await stripe.billingPortal.sessions.create({
     customer: user.stripeCustomerId,
-    return_url: `${origin}/account/billing`,
+    return_url: `${origin}/account?tab=billing`,
   });
 
   return {
     url: portalSession.url,
   };
+};
+
+export type PaymentMethodData = {
+  id: string;
+  last4: string;
+  brand: string;
+  expMonth: number;
+  expYear: number;
+  isDefault: boolean;
+};
+
+export const getPaymentMethods = async (): Promise<PaymentMethodData[]> => {
+  const userId = await getUserId('get payment methods');
+
+  if (!userId) {
+    return [];
+  }
+
+  const user = await db.user.findUnique({
+    where: { id: userId },
+    select: { stripeCustomerId: true },
+  });
+
+  if (!user?.stripeCustomerId) {
+    return [];
+  }
+
+  try {
+    // Get the customer to find their default payment method
+    const customer = await stripe.customers.retrieve(user.stripeCustomerId);
+    const defaultPaymentMethodId =
+      typeof customer !== 'string' && !customer.deleted
+        ? (customer.invoice_settings?.default_payment_method as string | null)
+        : null;
+
+    // List all payment methods
+    const paymentMethods = await stripe.paymentMethods.list({
+      customer: user.stripeCustomerId,
+      type: 'card',
+    });
+
+    return paymentMethods.data.map((pm) => ({
+      id: pm.id,
+      last4: pm.card?.last4 || '',
+      brand: pm.card?.brand || '',
+      expMonth: pm.card?.exp_month || 0,
+      expYear: pm.card?.exp_year || 0,
+      isDefault: pm.id === defaultPaymentMethodId,
+    }));
+  } catch (error) {
+    logger.error('Error fetching payment methods', { userId, error });
+    return [];
+  }
+};
+
+export type InvoiceData = {
+  id: string;
+  date: string;
+  description: string;
+  amount: number; // in pence
+  status: 'paid' | 'open' | 'draft' | 'uncollectible' | 'void';
+  invoiceUrl: string | null;
+  pdfUrl: string | null;
+};
+
+export const getInvoices = async (): Promise<InvoiceData[]> => {
+  const userId = await getUserId('get invoices');
+
+  if (!userId) {
+    return [];
+  }
+
+  const user = await db.user.findUnique({
+    where: { id: userId },
+    select: { stripeCustomerId: true },
+  });
+
+  if (!user?.stripeCustomerId) {
+    return [];
+  }
+
+  try {
+    const invoices = await stripe.invoices.list({
+      customer: user.stripeCustomerId,
+      limit: 24, // Last 2 years of monthly invoices
+    });
+
+    return invoices.data.map((invoice) => ({
+      id: invoice.id,
+      date: new Date((invoice.created || 0) * 1000).toISOString(),
+      description: invoice.lines.data[0]?.description || 'Subscription',
+      amount: invoice.amount_paid || 0,
+      status: invoice.status as InvoiceData['status'],
+      invoiceUrl: invoice.hosted_invoice_url || null,
+      pdfUrl: invoice.invoice_pdf || null,
+    }));
+  } catch (error) {
+    logger.error('Error fetching invoices', { userId, error });
+    return [];
+  }
+};
+
+export type SubscriptionData = {
+  id: string;
+  status: string;
+  currentPeriodEnd: string;
+  cancelAtPeriodEnd: boolean;
+  plan: {
+    name: string;
+    amount: number; // in pence
+    interval: 'month' | 'year';
+  };
+} | null;
+
+export const getActiveSubscription = async (): Promise<SubscriptionData> => {
+  const userId = await getUserId('get active subscription');
+
+  if (!userId) {
+    return null;
+  }
+
+  const user = await db.user.findUnique({
+    where: { id: userId },
+    select: { stripeCustomerId: true },
+  });
+
+  if (!user?.stripeCustomerId) {
+    return null;
+  }
+
+  try {
+    const subscriptions = await stripe.subscriptions.list({
+      customer: user.stripeCustomerId,
+      status: 'active',
+      expand: ['data.items.data.price.product'],
+      limit: 1,
+    });
+
+    if (subscriptions.data.length === 0) {
+      return null;
+    }
+
+    const subscription = subscriptions.data[0];
+    const price = subscription.items.data[0]?.price;
+    const product = price?.product;
+    const productName = typeof product === 'object' && product !== null && 'name' in product
+      ? product.name
+      : 'Subscription';
+
+    // Access subscription properties - use type assertion for snake_case properties
+    // that may not be in the TypeScript definitions for this API version
+    const sub = subscription as unknown as {
+      id: string;
+      status: string;
+      current_period_end: number;
+      cancel_at_period_end: boolean;
+    };
+
+    return {
+      id: sub.id,
+      status: sub.status,
+      currentPeriodEnd: new Date(sub.current_period_end * 1000).toISOString(),
+      cancelAtPeriodEnd: sub.cancel_at_period_end,
+      plan: {
+        name: productName,
+        amount: price?.unit_amount || 0,
+        interval: price?.recurring?.interval as 'month' | 'year' || 'month',
+      },
+    };
+  } catch (error) {
+    logger.error('Error fetching subscription', { userId, error });
+    return null;
+  }
 };
 
 // eslint-disable-next-line arrow-body-style
@@ -333,6 +506,83 @@ export const createTicketCheckoutSession = async (
       },
     ];
   }
+
+  const stripeSession = await stripe.checkout.sessions.create(sessionOptions);
+
+  return {
+    url: stripeSession.url!,
+  };
+};
+
+export type GuestTicketCheckoutData = {
+  pcnNumber: string;
+  vehicleReg: string;
+  issuerType: 'council' | 'private' | null;
+  ticketStage: 'initial' | 'nto' | 'rejection' | 'charge_cert' | null;
+  challengeReason: string | null;
+  tier: 'standard' | 'premium' | 'subscription';
+  imageUrl?: string;
+  tempImagePath?: string;
+  initialAmount?: number;
+  issuer?: string;
+  createdAt: string;
+  // Optional email for pre-filling Stripe checkout and claim page
+  email?: string;
+};
+
+export const createGuestCheckoutSession = async (
+  tier: 'STANDARD' | 'PREMIUM',
+  guestData: GuestTicketCheckoutData,
+): Promise<{ url: string } | null> => {
+  const headersList = await headers();
+  const origin = headersList.get('origin');
+
+  const priceId = getTierPriceId(tier);
+
+  if (!priceId) {
+    logger.error('No price ID configured for tier', {
+      tier,
+    });
+    return null;
+  }
+
+  await track(TRACKING_EVENTS.CHECKOUT_SESSION_CREATED, {
+    productType: ProductType.PAY_PER_TICKET,
+    tier: tier as TicketTier,
+  });
+
+  // Store guest data in metadata (Stripe has 500 char limit per value)
+  const sessionOptions: Stripe.Checkout.SessionCreateParams = {
+    payment_method_types: ['card'],
+    line_items: [
+      {
+        price: priceId,
+        quantity: 1,
+      },
+    ],
+    mode: 'payment',
+    // After success, redirect to claim page where user will sign up
+    success_url: `${origin}/guest/claim?session_id={CHECKOUT_SESSION_ID}`,
+    cancel_url: `${origin}/?cancelled=true`,
+
+    // Collect email for guest - pre-fill if available from wizard
+    customer_creation: 'always',
+    ...(guestData.email && { customer_email: guestData.email }),
+
+    // Store ticket data in metadata
+    metadata: {
+      isGuest: 'true',
+      tier,
+      pcnNumber: guestData.pcnNumber,
+      vehicleReg: guestData.vehicleReg,
+      issuerType: guestData.issuerType || '',
+      ticketStage: guestData.ticketStage || '',
+      challengeReason: guestData.challengeReason || '',
+      tempImagePath: guestData.tempImagePath || '',
+      initialAmount: guestData.initialAmount?.toString() || '',
+      issuer: guestData.issuer || '',
+    },
+  };
 
   const stripeSession = await stripe.checkout.sessions.create(sessionOptions);
 

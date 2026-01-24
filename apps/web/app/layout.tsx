@@ -11,7 +11,7 @@ import FundAccountDialog from '@/components/dialogs/FundAccountDialog/FundAccoun
 import Footer from '@/components/Footer/Footer';
 import PendingActionHandler from '@/components/PendingActionHandler';
 import Providers from './providers';
-import { inter, robotoSlab, lato } from './fonts';
+import { plusJakartaSans, robotoSlab, ukNumberPlate } from './fonts';
 import '@/global.css';
 
 config.autoAddCss = false;
@@ -37,9 +37,9 @@ const RootLayout = ({
     lang="en"
     className={cn(
       'antialiased relative',
-      inter.variable,
+      plusJakartaSans.variable,
       robotoSlab.variable,
-      lato.variable,
+      ukNumberPlate.variable,
       'font-sans',
     )}
   >
@@ -51,7 +51,7 @@ const RootLayout = ({
         <Providers>
           <PendingActionHandler />
           <HeaderWrapper />
-          <main className="flex flex-col min-h-screen pt-[72px] [&>div:not(#modal-root)]:flex-1 px-4">
+          <main className="flex flex-col min-h-screen pt-[72px] [&>div:not(#modal-root)]:flex-1">
             <div id="modal-root" />
             {children}
           </main>

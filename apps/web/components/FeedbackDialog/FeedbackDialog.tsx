@@ -1,200 +1,321 @@
 'use client';
 
-import { useState, useEffect, useMemo, useActionState } from 'react';
-import { useFormStatus } from 'react-dom';
+import { useState, useEffect } from 'react';
+import posthog from 'posthog-js';
+import { motion, AnimatePresence } from 'framer-motion';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import {
+  faArrowLeft,
+  faCheckCircle,
+  faSpinnerThird,
+} from '@fortawesome/pro-solid-svg-icons';
+import {
+  faBug,
+  faLightbulb,
+  faCircleQuestion,
+  faCommentDots,
+} from '@fortawesome/pro-regular-svg-icons';
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-  DialogFooter,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-import { sendFeedback } from '@/app/actions/feedback';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faArrowLeft, faCheckCircle } from '@fortawesome/pro-regular-svg-icons';
+import { Input } from '@/components/ui/input';
 
-type Category = 'issue' | 'idea' | 'other';
+type FeedbackType = 'bug' | 'idea' | 'help' | 'other';
 
-const categoryDetails: Record<
-  Category,
-  { emoji: string; title: string; placeholder: string }
+const feedbackTypes: Record<
+  FeedbackType,
+  { icon: typeof faBug; label: string; color: string; bgColor: string; placeholder: string }
 > = {
-  issue: {
-    emoji: '⚠️',
-    title: 'Report an issue',
-    placeholder: 'I noticed that...',
+  bug: {
+    icon: faBug,
+    label: 'Report a bug',
+    color: 'text-red-500',
+    bgColor: 'bg-red-50',
+    placeholder: 'What went wrong? Please include steps to reproduce if possible...',
   },
   idea: {
-    emoji: '💡',
-    title: 'Share an idea',
-    placeholder: 'I would love...',
+    icon: faLightbulb,
+    label: 'Suggest a feature',
+    color: 'text-amber-500',
+    bgColor: 'bg-amber-50',
+    placeholder: 'What would you like to see? How would it help you?',
+  },
+  help: {
+    icon: faCircleQuestion,
+    label: 'Get help',
+    color: 'text-blue-500',
+    bgColor: 'bg-blue-50',
+    placeholder: 'What do you need help with?',
   },
   other: {
-    emoji: '🤔',
-    title: 'Tell us anything!',
-    placeholder: 'What do you want us to know?',
+    icon: faCommentDots,
+    label: 'Something else',
+    color: 'text-teal',
+    bgColor: 'bg-teal/10',
+    placeholder: 'What would you like to tell us?',
   },
 };
 
 type FeedbackDialogProps = {
   userEmail?: string;
+  userName?: string;
   trigger: React.ReactNode;
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
-};
-
-const SubmitButton = () => {
-  const { pending } = useFormStatus();
-  return (
-    <Button type="submit" disabled={pending} className="w-full">
-      {pending ? 'Sending...' : 'Send feedback'}
-    </Button>
-  );
+  defaultType?: FeedbackType;
 };
 
 const FeedbackDialog = ({
   userEmail,
+  userName,
   trigger,
   open: externalOpen,
   onOpenChange: externalOnOpenChange,
+  defaultType,
 }: FeedbackDialogProps) => {
   const [internalOpen, setInternalOpen] = useState(false);
-  const [view, setView] = useState<'category' | 'form' | 'success'>('category');
-  const [selectedCategory, setSelectedCategory] = useState<Category | null>(
-    null,
-  );
+  const [view, setView] = useState<'type' | 'form' | 'success'>('type');
+  const [selectedType, setSelectedType] = useState<FeedbackType | null>(defaultType || null);
+  const [message, setMessage] = useState('');
+  const [email, setEmail] = useState(userEmail || '');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Use external state if provided, otherwise use internal state
   const open = externalOpen !== undefined ? externalOpen : internalOpen;
   const setOpen = externalOnOpenChange || setInternalOpen;
 
-  const initialState = { message: '' };
-  const [state, dispatch] = useActionState(sendFeedback, initialState);
-
-  useEffect(() => {
-    if ('success' in state && state.success) {
-      setView('success');
-      const timer = setTimeout(() => {
-        setOpen(false);
-      }, 2000);
-      return () => clearTimeout(timer);
-    }
-
-    return () => {
-      // no-op
-    };
-  }, [state]);
-
-  // Reset state when dialog is closed
+  // Reset state when dialog closes
   useEffect(() => {
     if (!open) {
-      setTimeout(() => {
-        setView('category');
-        setSelectedCategory(null);
-      }, 200); // Delay to allow closing animation
+      const timer = setTimeout(() => {
+        setView(defaultType ? 'form' : 'type');
+        setSelectedType(defaultType || null);
+        setMessage('');
+        if (!userEmail) setEmail('');
+      }, 200);
+      return () => clearTimeout(timer);
     }
-  }, [open]);
+    return undefined;
+  }, [open, defaultType, userEmail]);
 
-  const handleCategorySelect = (category: Category) => {
-    setSelectedCategory(category);
+  // If defaultType is set, start on form view
+  useEffect(() => {
+    if (defaultType) {
+      setSelectedType(defaultType);
+      setView('form');
+    }
+  }, [defaultType]);
+
+  const handleTypeSelect = (type: FeedbackType) => {
+    setSelectedType(type);
     setView('form');
   };
 
   const handleBack = () => {
-    setView('category');
-    setSelectedCategory(null);
+    if (defaultType) {
+      setOpen(false);
+    } else {
+      setView('type');
+      setSelectedType(null);
+    }
   };
 
-  const currentCategoryDetails = useMemo(
-    () => (selectedCategory ? categoryDetails[selectedCategory] : null),
-    [selectedCategory],
-  );
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedType || !message.trim()) return;
+
+    setIsSubmitting(true);
+
+    try {
+      // Send to PostHog as a survey response
+      posthog.capture('feedback_submitted', {
+        feedback_type: selectedType,
+        feedback_message: message,
+        user_email: email || undefined,
+        user_name: userName || undefined,
+        page_url: typeof window !== 'undefined' ? window.location.href : undefined,
+        $set: email ? { email } : undefined,
+      });
+
+      setView('success');
+
+      // Auto-close after success
+      setTimeout(() => {
+        setOpen(false);
+      }, 2000);
+    } catch (error) {
+      console.error('Failed to submit feedback:', error);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const currentType = selectedType ? feedbackTypes[selectedType] : null;
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>{trigger}</DialogTrigger>
-      <DialogContent className="sm:max-w-[425px]">
-        {view === 'category' && (
-          <>
-            <DialogHeader>
-              <DialogTitle className="text-center">
-                What&apos;s on your mind?
-              </DialogTitle>
-            </DialogHeader>
-            <div className="grid grid-cols-3 gap-4 py-4">
-              {(Object.keys(categoryDetails) as Category[]).map((key) => (
-                <Button
-                  key={key}
-                  variant="outline"
-                  className="flex flex-col h-24 bg-transparent"
-                  onClick={() => handleCategorySelect(key)}
-                >
-                  <span className="text-3xl mb-2">
-                    {categoryDetails[key].emoji}
-                  </span>
-                  <span className="capitalize">{key}</span>
-                </Button>
-              ))}
-            </div>
-          </>
-        )}
-
-        {view === 'form' && currentCategoryDetails && (
-          <form action={dispatch}>
-            <input type="hidden" name="category" value={selectedCategory!} />
-            {userEmail && (
-              <input type="hidden" name="userEmail" value={userEmail} />
-            )}
-            <DialogHeader>
-              <DialogTitle className="flex items-center gap-3">
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  className="h-7 w-7"
-                  onClick={handleBack}
-                >
-                  <FontAwesomeIcon icon={faArrowLeft} />
-                  <span className="sr-only">Back</span>
-                </Button>
-                <span className="text-2xl">{currentCategoryDetails.emoji}</span>
-                {currentCategoryDetails.title}
-              </DialogTitle>
-            </DialogHeader>
-            <div className="py-4">
-              <Textarea
-                name="text"
-                placeholder={currentCategoryDetails.placeholder}
-                className="min-h-[120px]"
-                required
-              />
-              {'errors' in state && (state as any).errors?.text && (
-                <p className="text-sm text-red-500 mt-1">
-                  {(state as any).errors.text[0]}
+      <DialogContent className="sm:max-w-[440px] p-0 gap-0 overflow-hidden">
+        <AnimatePresence mode="wait">
+          {view === 'type' && (
+            <motion.div
+              key="type"
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: 20 }}
+              transition={{ duration: 0.2 }}
+              className="p-6"
+            >
+              <DialogHeader className="pb-4">
+                <DialogTitle className="text-xl font-semibold text-center">
+                  How can we help?
+                </DialogTitle>
+                <p className="text-sm text-gray text-center mt-1">
+                  We read every message and respond as quickly as we can.
                 </p>
-              )}
-            </div>
-            <DialogFooter>
-              <SubmitButton />
-            </DialogFooter>
-          </form>
-        )}
+              </DialogHeader>
 
-        {view === 'success' && (
-          <div className="flex flex-col items-center justify-center text-center py-10">
-            <FontAwesomeIcon
-              icon={faCheckCircle}
-              className="text-green-500 text-5xl mb-4"
-            />
-            <h3 className="text-xl font-semibold">Thank you!</h3>
-            <p className="text-muted-foreground">
-              Your feedback has been sent.
-            </p>
-          </div>
-        )}
+              <div className="grid grid-cols-2 gap-3 mt-2">
+                {(Object.keys(feedbackTypes) as FeedbackType[]).map((type) => {
+                  const config = feedbackTypes[type];
+                  return (
+                    <button
+                      key={type}
+                      type="button"
+                      onClick={() => handleTypeSelect(type)}
+                      className="flex flex-col items-center gap-3 rounded-2xl border-2 border-border p-5 text-center transition-all hover:border-teal hover:bg-teal/5 focus:outline-none focus:ring-2 focus:ring-teal/20"
+                    >
+                      <div
+                        className={`flex h-12 w-12 items-center justify-center rounded-full ${config.bgColor}`}
+                      >
+                        <FontAwesomeIcon
+                          icon={config.icon}
+                          className={`text-lg ${config.color}`}
+                        />
+                      </div>
+                      <span className="text-sm font-medium text-dark">
+                        {config.label}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            </motion.div>
+          )}
+
+          {view === 'form' && currentType && (
+            <motion.div
+              key="form"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              transition={{ duration: 0.2 }}
+            >
+              <div className="p-6 pb-0">
+                <DialogHeader className="pb-4">
+                  <div className="flex items-center gap-3">
+                    <button
+                      type="button"
+                      onClick={handleBack}
+                      className="flex h-8 w-8 items-center justify-center rounded-full transition-colors hover:bg-light"
+                    >
+                      <FontAwesomeIcon icon={faArrowLeft} className="text-gray" />
+                    </button>
+                    <div
+                      className={`flex h-10 w-10 items-center justify-center rounded-full ${currentType.bgColor}`}
+                    >
+                      <FontAwesomeIcon
+                        icon={currentType.icon}
+                        className={currentType.color}
+                      />
+                    </div>
+                    <DialogTitle className="text-lg font-semibold">
+                      {currentType.label}
+                    </DialogTitle>
+                  </div>
+                </DialogHeader>
+              </div>
+
+              <form onSubmit={handleSubmit} className="p-6 pt-2">
+                <div className="space-y-4">
+                  <div>
+                    <Textarea
+                      value={message}
+                      onChange={(e) => setMessage(e.target.value)}
+                      placeholder={currentType.placeholder}
+                      className="min-h-[140px] resize-none rounded-xl border-border focus:border-teal focus:ring-teal/20"
+                      required
+                      autoFocus
+                    />
+                  </div>
+
+                  {!userEmail && (
+                    <div>
+                      <Input
+                        type="email"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        placeholder="Your email (optional, for follow-up)"
+                        className="h-11 rounded-xl border-border focus:border-teal focus:ring-teal/20"
+                      />
+                    </div>
+                  )}
+                </div>
+
+                <div className="mt-6">
+                  <Button
+                    type="submit"
+                    disabled={isSubmitting || !message.trim()}
+                    className="w-full h-12 rounded-xl bg-teal text-white font-medium hover:bg-teal-dark disabled:opacity-50"
+                  >
+                    {isSubmitting ? (
+                      <>
+                        <FontAwesomeIcon
+                          icon={faSpinnerThird}
+                          className="mr-2 animate-spin"
+                        />
+                        Sending...
+                      </>
+                    ) : (
+                      'Send message'
+                    )}
+                  </Button>
+                </div>
+              </form>
+            </motion.div>
+          )}
+
+          {view === 'success' && (
+            <motion.div
+              key="success"
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              transition={{ duration: 0.2 }}
+              className="p-8"
+            >
+              <div className="flex flex-col items-center justify-center text-center py-4">
+                <div className="flex h-16 w-16 items-center justify-center rounded-full bg-teal/10 mb-4">
+                  <FontAwesomeIcon
+                    icon={faCheckCircle}
+                    className="text-3xl text-teal"
+                  />
+                </div>
+                <h3 className="text-xl font-semibold text-dark">
+                  Thanks for your feedback!
+                </h3>
+                <p className="text-gray mt-2">
+                  We appreciate you taking the time to help us improve.
+                </p>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </DialogContent>
     </Dialog>
   );

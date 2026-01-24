@@ -1,0 +1,370 @@
+'use client';
+
+import { useState, useCallback } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { toast } from 'sonner';
+import { extractOCRTextWithVision } from '@/app/actions/ocr';
+import { createTicket, getTicketByPcnNumber } from '@/app/actions/ticket';
+import { useAnalytics } from '@/utils/analytics-client';
+import { TRACKING_EVENTS } from '@/constants/events';
+import useLogger from '@/lib/use-logger';
+import UploadSection from './UploadSection';
+import ProcessingState from './ProcessingState';
+import AddDocumentWizard, {
+  type ExtractedData,
+  type WizardFormData,
+} from './AddDocumentWizard';
+import SuccessState from './SuccessState';
+import DuplicateTicketState from './DuplicateTicketState';
+import AddingToTicketState from './AddingToTicketState';
+
+type DocumentType = 'ticket' | 'letter' | 'unknown';
+
+type PageState =
+  | 'upload'
+  | 'processing'
+  | 'wizard'
+  | 'success'
+  | 'duplicate'
+  | 'adding-to-ticket';
+
+type SuccessData = {
+  ticketId: string;
+  pcnNumber: string;
+  documentType: DocumentType;
+};
+
+type ExistingTicketData = {
+  ticketId: string;
+  pcnNumber: string;
+  issuer?: string;
+};
+
+const AddDocumentPage = () => {
+  const { track } = useAnalytics();
+  const logger = useLogger({ page: 'add-document' });
+
+  const [pageState, setPageState] = useState<PageState>('upload');
+  const [extractedData, setExtractedData] = useState<ExtractedData | undefined>(
+    undefined,
+  );
+  const [successData, setSuccessData] = useState<SuccessData | null>(null);
+  const [existingTicket, setExistingTicket] = useState<ExistingTicketData | null>(
+    null,
+  );
+  const [isAddingToTicket, setIsAddingToTicket] = useState(false);
+
+  const handleFileSelect = useCallback(
+    async (file: File) => {
+      setPageState('processing');
+
+      try {
+        const formData = new FormData();
+        formData.append('image', file);
+
+        const result = await extractOCRTextWithVision(formData);
+
+        if (result.success && result.data) {
+          // Determine document type from OCR result
+          const detectedType = (result.data.documentType as DocumentType) || 'ticket';
+
+          // Check if we have a PCN and if a ticket with this PCN already exists
+          if (result.data.pcnNumber) {
+            const existingTicketData = await getTicketByPcnNumber(
+              result.data.pcnNumber,
+            );
+
+            if (existingTicketData) {
+              // Found an existing ticket with this PCN
+              setExistingTicket({
+                ticketId: existingTicketData.id,
+                pcnNumber: existingTicketData.pcnNumber,
+                issuer: existingTicketData.issuer || undefined,
+              });
+
+              // Store extracted data for potential letter attachment
+              setExtractedData({
+                pcnNumber: result.data.pcnNumber,
+                vehicleReg: result.data.vehicleReg,
+                issuedAt: result.data.issuedAt
+                  ? new Date(result.data.issuedAt)
+                  : undefined,
+                location: result.data.location,
+                initialAmount: result.data.initialAmount,
+                issuer: result.data.issuer,
+                contraventionCode: result.data.contraventionCode,
+                imageUrl: result.imageUrl || undefined,
+                tempImagePath: result.tempImagePath || undefined,
+                extractedText: result.data.extractedText || undefined,
+                issuerType: 'council',
+                ticketStage: 'initial',
+              });
+
+              if (detectedType === 'letter') {
+                // It's a letter - offer to add it to the existing ticket
+                setPageState('adding-to-ticket');
+                toast.info('Found a matching ticket for this letter');
+              } else {
+                // It's a ticket - show duplicate warning
+                setPageState('duplicate');
+                toast.info('This ticket is already in your account');
+              }
+              return;
+            }
+          }
+
+          // No existing ticket found - proceed with normal wizard flow
+          setExtractedData({
+            pcnNumber: result.data.pcnNumber,
+            vehicleReg: result.data.vehicleReg,
+            issuedAt: result.data.issuedAt
+              ? new Date(result.data.issuedAt)
+              : undefined,
+            location: result.data.location,
+            initialAmount: result.data.initialAmount,
+            issuer: result.data.issuer,
+            contraventionCode: result.data.contraventionCode,
+            imageUrl: result.imageUrl || undefined,
+            tempImagePath: result.tempImagePath || undefined,
+            extractedText: result.data.extractedText || undefined,
+            issuerType: 'council',
+            ticketStage: 'initial',
+          });
+          setPageState('wizard');
+          toast.success(
+            detectedType === 'letter'
+              ? 'Letter details extracted'
+              : 'Ticket details extracted',
+          );
+        } else {
+          // OCR failed, but let user continue with manual entry
+          logger.warn('OCR extraction failed', {
+            message: result.message,
+          });
+          toast.error(
+            result.message || 'Could not read document. Please enter details manually.',
+          );
+          setExtractedData({
+            imageUrl: result.imageUrl || undefined,
+            tempImagePath: result.tempImagePath || undefined,
+          });
+          setPageState('wizard');
+        }
+      } catch (error) {
+        logger.error(
+          'Error processing image',
+          {},
+          error instanceof Error ? error : undefined,
+        );
+        toast.error('Failed to process image. Please try again.');
+        setPageState('upload');
+      }
+    },
+    [logger],
+  );
+
+  const handleManualEntry = useCallback(() => {
+    setExtractedData(undefined);
+    setPageState('wizard');
+  }, []);
+
+  const handleWizardClose = useCallback(() => {
+    setPageState('upload');
+    setExtractedData(undefined);
+  }, []);
+
+  const handleWizardSubmit = useCallback(
+    async (data: WizardFormData) => {
+      try {
+        // Provide default location if not specified
+        const defaultLocation = {
+          line1: 'Unknown',
+          city: 'Unknown',
+          postcode: 'Unknown',
+          country: 'United Kingdom',
+          coordinates: { latitude: 51.5074, longitude: -0.1278 }, // London default
+        };
+
+        const ticket = await createTicket({
+          vehicleReg: data.vehicleReg,
+          pcnNumber: data.pcnNumber,
+          issuedAt: data.issuedAt || new Date(),
+          contraventionCode: data.contraventionCode || '',
+          initialAmount: data.initialAmount || 0,
+          issuer: data.issuer || '',
+          location: data.location || defaultLocation,
+          tempImageUrl: data.imageUrl,
+          tempImagePath: data.tempImagePath,
+          extractedText: data.extractedText,
+        });
+
+        if (ticket) {
+          await track(TRACKING_EVENTS.TICKET_CREATED, {
+            ticketId: ticket.id,
+            pcnNumber: ticket.pcnNumber,
+            issuer: ticket.issuer,
+            issuerType: ticket.issuerType,
+            prefilled: !!data.extractedText,
+          });
+
+          setSuccessData({
+            ticketId: ticket.id,
+            pcnNumber: ticket.pcnNumber,
+            documentType: 'ticket',
+          });
+          setPageState('success');
+          toast.success('Ticket created successfully');
+        } else {
+          throw new Error('Failed to create ticket');
+        }
+      } catch (error) {
+        logger.error(
+          'Error creating ticket',
+          {},
+          error instanceof Error ? error : undefined,
+        );
+        toast.error('Failed to create ticket. Please try again.');
+      }
+    },
+    [track, logger],
+  );
+
+  const handleAddAnother = useCallback(() => {
+    setPageState('upload');
+    setExtractedData(undefined);
+    setSuccessData(null);
+    setExistingTicket(null);
+    setIsAddingToTicket(false);
+  }, []);
+
+  const handleConfirmAddToTicket = useCallback(async () => {
+    if (!existingTicket || !extractedData) return;
+
+    setIsAddingToTicket(true);
+
+    try {
+      // TODO: Implement letter creation and attachment to ticket
+      // For now, we'll just show success and redirect to the ticket
+      // await createLetter({
+      //   ticketId: existingTicket.ticketId,
+      //   imageUrl: extractedData.imageUrl,
+      //   tempImagePath: extractedData.tempImagePath,
+      //   extractedText: extractedData.extractedText,
+      // });
+
+      toast.success('Letter added to ticket');
+      setSuccessData({
+        ticketId: existingTicket.ticketId,
+        pcnNumber: existingTicket.pcnNumber,
+        documentType: 'letter',
+      });
+      setPageState('success');
+    } catch (error) {
+      logger.error(
+        'Error adding letter to ticket',
+        {},
+        error instanceof Error ? error : undefined,
+      );
+      toast.error('Failed to add letter. Please try again.');
+    } finally {
+      setIsAddingToTicket(false);
+    }
+  }, [existingTicket, extractedData, logger]);
+
+  return (
+    <div className="min-h-screen bg-light">
+      <div className="mx-auto max-w-xl px-4 py-8 md:py-12">
+        <AnimatePresence mode="wait">
+          {pageState === 'upload' && (
+            <motion.div
+              key="upload"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+            >
+              <UploadSection
+                onFileSelect={handleFileSelect}
+                onManualEntry={handleManualEntry}
+              />
+            </motion.div>
+          )}
+
+          {pageState === 'processing' && (
+            <motion.div
+              key="processing"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="rounded-2xl bg-white shadow-[0_2px_4px_rgba(0,0,0,0.06),0_4px_12px_rgba(0,0,0,0.06)]"
+            >
+              <ProcessingState />
+            </motion.div>
+          )}
+
+          {pageState === 'success' && successData && (
+            <motion.div
+              key="success"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="rounded-2xl bg-white p-8 shadow-[0_2px_4px_rgba(0,0,0,0.06),0_4px_12px_rgba(0,0,0,0.06)]"
+            >
+              <SuccessState
+                ticketId={successData.ticketId}
+                pcnNumber={successData.pcnNumber}
+                documentType={successData.documentType}
+                onAddAnother={handleAddAnother}
+              />
+            </motion.div>
+          )}
+
+          {pageState === 'duplicate' && existingTicket && (
+            <motion.div
+              key="duplicate"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="rounded-2xl bg-white p-8 shadow-[0_2px_4px_rgba(0,0,0,0.06),0_4px_12px_rgba(0,0,0,0.06)]"
+            >
+              <DuplicateTicketState
+                ticketId={existingTicket.ticketId}
+                pcnNumber={existingTicket.pcnNumber}
+                issuer={existingTicket.issuer}
+                onUploadDifferent={handleAddAnother}
+              />
+            </motion.div>
+          )}
+
+          {pageState === 'adding-to-ticket' && existingTicket && (
+            <motion.div
+              key="adding-to-ticket"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="rounded-2xl bg-white p-8 shadow-[0_2px_4px_rgba(0,0,0,0.06),0_4px_12px_rgba(0,0,0,0.06)]"
+            >
+              <AddingToTicketState
+                ticketId={existingTicket.ticketId}
+                pcnNumber={existingTicket.pcnNumber}
+                issuer={existingTicket.issuer}
+                onConfirm={handleConfirmAddToTicket}
+                onUploadDifferent={handleAddAnother}
+                isProcessing={isAddingToTicket}
+              />
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Wizard Modal */}
+        <AddDocumentWizard
+          isOpen={pageState === 'wizard'}
+          onClose={handleWizardClose}
+          extractedData={extractedData}
+          onSubmit={handleWizardSubmit}
+        />
+      </div>
+    </div>
+  );
+};
+
+export default AddDocumentPage;

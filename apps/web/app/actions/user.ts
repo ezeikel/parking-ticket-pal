@@ -216,3 +216,34 @@ export const getUserById = async (
 export const signOutAction = async () => {
   await signOut();
 };
+
+/**
+ * Get user subscription status
+ * Returns whether the user has an active subscription (STANDARD or PREMIUM)
+ */
+export const getUserSubscriptionStatus = async (userId: string) => {
+  if (!userId) {
+    return { hasSubscription: false, subscriptionType: null };
+  }
+
+  try {
+    const user = await db.user.findUnique({
+      where: { id: userId },
+      include: { subscription: true },
+    });
+
+    if (!user || !user.subscription) {
+      return { hasSubscription: false, subscriptionType: null };
+    }
+
+    return {
+      hasSubscription: true,
+      subscriptionType: user.subscription.type,
+    };
+  } catch (error) {
+    logger.error('Error fetching user subscription', {
+      userId
+    }, error instanceof Error ? error : new Error(String(error)));
+    return { hasSubscription: false, subscriptionType: null };
+  }
+};

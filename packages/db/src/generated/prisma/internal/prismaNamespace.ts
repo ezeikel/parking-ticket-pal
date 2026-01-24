@@ -401,7 +401,8 @@ export const ModelName = {
   Account: 'Account',
   Session: 'Session',
   VerificationToken: 'VerificationToken',
-  LondonTribunalCase: 'LondonTribunalCase'
+  LondonTribunalCase: 'LondonTribunalCase',
+  PendingTicket: 'PendingTicket'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -417,7 +418,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "vehicle" | "ticket" | "media" | "letter" | "subscription" | "reminder" | "form" | "prediction" | "amountIncrease" | "verification" | "challenge" | "notification" | "pushToken" | "account" | "session" | "verificationToken" | "londonTribunalCase"
+    modelProps: "user" | "vehicle" | "ticket" | "media" | "letter" | "subscription" | "reminder" | "form" | "prediction" | "amountIncrease" | "verification" | "challenge" | "notification" | "pushToken" | "account" | "session" | "verificationToken" | "londonTribunalCase" | "pendingTicket"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -1753,6 +1754,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    PendingTicket: {
+      payload: Prisma.$PendingTicketPayload<ExtArgs>
+      fields: Prisma.PendingTicketFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.PendingTicketFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PendingTicketPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.PendingTicketFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PendingTicketPayload>
+        }
+        findFirst: {
+          args: Prisma.PendingTicketFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PendingTicketPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.PendingTicketFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PendingTicketPayload>
+        }
+        findMany: {
+          args: Prisma.PendingTicketFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PendingTicketPayload>[]
+        }
+        create: {
+          args: Prisma.PendingTicketCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PendingTicketPayload>
+        }
+        createMany: {
+          args: Prisma.PendingTicketCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.PendingTicketCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PendingTicketPayload>[]
+        }
+        delete: {
+          args: Prisma.PendingTicketDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PendingTicketPayload>
+        }
+        update: {
+          args: Prisma.PendingTicketUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PendingTicketPayload>
+        }
+        deleteMany: {
+          args: Prisma.PendingTicketDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.PendingTicketUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.PendingTicketUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PendingTicketPayload>[]
+        }
+        upsert: {
+          args: Prisma.PendingTicketUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PendingTicketPayload>
+        }
+        aggregate: {
+          args: Prisma.PendingTicketAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregatePendingTicket>
+        }
+        groupBy: {
+          args: Prisma.PendingTicketGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.PendingTicketGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.PendingTicketCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.PendingTicketCountAggregateOutputType> | number
+        }
+      }
+    }
   }
 } & {
   other: {
@@ -2086,6 +2161,30 @@ export const LondonTribunalCaseScalarFieldEnum = {
 } as const
 
 export type LondonTribunalCaseScalarFieldEnum = (typeof LondonTribunalCaseScalarFieldEnum)[keyof typeof LondonTribunalCaseScalarFieldEnum]
+
+
+export const PendingTicketScalarFieldEnum = {
+  id: 'id',
+  email: 'email',
+  stripeSessionId: 'stripeSessionId',
+  pcnNumber: 'pcnNumber',
+  vehicleReg: 'vehicleReg',
+  issuerType: 'issuerType',
+  ticketStage: 'ticketStage',
+  tier: 'tier',
+  challengeReason: 'challengeReason',
+  imageUrl: 'imageUrl',
+  tempImagePath: 'tempImagePath',
+  initialAmount: 'initialAmount',
+  issuer: 'issuer',
+  claimed: 'claimed',
+  claimedAt: 'claimedAt',
+  claimedByUserId: 'claimedByUserId',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type PendingTicketScalarFieldEnum = (typeof PendingTicketScalarFieldEnum)[keyof typeof PendingTicketScalarFieldEnum]
 
 
 export const SortOrder = {
@@ -2695,6 +2794,7 @@ export type GlobalOmitConfig = {
   session?: Prisma.SessionOmit
   verificationToken?: Prisma.VerificationTokenOmit
   londonTribunalCase?: Prisma.LondonTribunalCaseOmit
+  pendingTicket?: Prisma.PendingTicketOmit
 }
 
 /* Types for Logging */

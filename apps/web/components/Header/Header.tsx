@@ -9,7 +9,6 @@ import {
   faTicketPerforated,
   faCarSide,
   faCreditCard,
-  faHeadset,
   faRightToBracket,
   faHome,
   faUser,
@@ -22,6 +21,7 @@ import type { IconDefinition } from '@fortawesome/fontawesome-svg-core';
 import cn from '@/utils/cn';
 import MobileMenu from '@/components/MobileMenu/MobileMenu';
 import UserDropdown from '@/components/UserDropdown/UserDropdown';
+import FeedbackDialog from '@/components/FeedbackDialog/FeedbackDialog';
 import Image from 'next/image';
 
 type HeaderProps = {
@@ -36,7 +36,7 @@ export type NavItem = {
   icon?: React.ReactNode;
   href?: string;
   liClass?: string;
-  component?: (user: Partial<User>) => React.ReactNode;
+  component?: (user: Partial<User> | null, isScrolled: boolean, isHomePage: boolean) => React.ReactNode;
   visibility: Visibility;
 };
 
@@ -54,7 +54,12 @@ const ITEMS: NavItem[] = [
   {
     label: 'Home',
     href: '/',
-    visibility: 'always',
+    visibility: 'unauthenticated',
+  },
+  {
+    label: 'Dashboard',
+    href: '/dashboard',
+    visibility: 'authenticated',
   },
   {
     label: 'Pricing',
@@ -63,7 +68,25 @@ const ITEMS: NavItem[] = [
   },
   {
     label: 'Support',
-    href: 'mailto:support@parkticketpal.com',
+    liClass: 'p-0 flex',
+    component: (user: Partial<User> | null, isScrolled: boolean, isHomePage: boolean) => (
+      <FeedbackDialog
+        userEmail={user?.email ?? undefined}
+        userName={user?.name ?? undefined}
+        defaultType="help"
+        trigger={
+          <button
+            type="button"
+            className={cn(
+              'text-sm font-bold transition-colors hover:text-teal p-2',
+              !isScrolled && isHomePage ? 'text-white' : 'text-dark'
+            )}
+          >
+            Support
+          </button>
+        }
+      />
+    ),
     visibility: 'unauthenticated',
   },
   {
@@ -89,7 +112,9 @@ const ITEMS: NavItem[] = [
   {
     label: 'UserDropdown',
     liClass: 'p-0 flex',
-    component: (user: Partial<User>) => <UserDropdown user={user} />,
+    component: (user: Partial<User> | null, isScrolled: boolean, isHomePage: boolean) => (
+      user ? <UserDropdown user={user} isScrolled={isScrolled} isHomePage={isHomePage} /> : null
+    ),
     visibility: 'authenticated',
   },
 ];
@@ -100,30 +125,20 @@ const getMobileNav = (user: Partial<User> | null): MobileNavItem[] => {
       { label: 'Home', iconName: faHome, href: '/' },
       { label: 'Pricing', iconName: faTag, href: '/pricing' },
       { label: 'Blog', iconName: faNewspaper, href: '/blog' },
-      {
-        label: 'Support',
-        iconName: faHeadset,
-        href: 'mailto:support@parkticketpal.com',
-      },
-      { label: 'Give Feedback', iconName: faCommentDots, isFeedback: true },
+      { label: 'Help & Feedback', iconName: faCommentDots, isFeedback: true },
       { label: 'Sign in', iconName: faRightToBracket, href: '/signin' },
     ];
   }
 
   return [
-    { label: 'Home', iconName: faHome, href: '/' },
+    { label: 'Dashboard', iconName: faHome, href: '/dashboard' },
     { label: 'Add Document', iconName: faUpload, href: '/new' },
     { label: 'Tickets', iconName: faTicketPerforated, href: '/tickets' },
     { label: 'Vehicles', iconName: faCarSide, href: '/vehicles' },
     { label: 'Account', iconName: faUser, href: '/account' },
     { label: 'Billing', iconName: faCreditCard, href: '/account/billing' },
     { label: 'Blog', iconName: faNewspaper, href: '/blog' },
-    {
-      label: 'Support',
-      iconName: faHeadset,
-      href: 'mailto:support@parkticketpal.com',
-    },
-    { label: 'Give Feedback', iconName: faCommentDots, isFeedback: true },
+    { label: 'Help & Feedback', iconName: faCommentDots, isFeedback: true },
     { label: 'Sign out', iconName: faSignOut, action: 'signout' },
   ];
 };
@@ -134,8 +149,20 @@ const renderNavLink = (
   isScrolled: boolean,
   isHomePage: boolean,
 ) => {
-  const textColorClass =
-    !isScrolled && isHomePage ? 'text-white' : 'text-foreground';
+  const textColorClass = cn(
+    'text-sm font-bold transition-colors hover:text-teal',
+    !isScrolled && isHomePage
+      ? 'text-white'
+      : 'text-dark',
+  );
+
+  if (item.component) {
+    return (
+      <div className="flex items-center gap-2">
+        {item.component(user, isScrolled, isHomePage)}
+      </div>
+    );
+  }
 
   if (item.href?.startsWith('mailto:')) {
     return (
@@ -143,7 +170,7 @@ const renderNavLink = (
         href={item.href}
         target="_blank"
         rel="noopener noreferrer"
-        className={cn('flex items-center gap-2 transition-colors', textColorClass)}
+        className={cn('flex items-center gap-2', textColorClass)}
       >
         {item.label}
       </a>
@@ -154,18 +181,14 @@ const renderNavLink = (
     return (
       <Link
         href={item.href}
-        className={cn('flex items-center gap-2 transition-colors', textColorClass)}
+        className={cn('flex items-center gap-2', textColorClass)}
       >
         {item.label}
       </Link>
     );
   }
 
-  return (
-    <div className="flex items-center gap-2">
-      {item.component?.(user as Partial<User>)}
-    </div>
-  );
+  return null;
 };
 
 const Header = ({ className, user }: HeaderProps) => {
@@ -199,9 +222,6 @@ const Header = ({ className, user }: HeaderProps) => {
           return false;
       }
     });
-
-    const textColorClass =
-      !isScrolled && isHomePage ? 'text-white' : 'text-foreground';
 
     if (user) {
       return (
@@ -246,9 +266,10 @@ const Header = ({ className, user }: HeaderProps) => {
         <Link
           href="/signin"
           className={cn(
-            'hidden md:flex items-center gap-2 font-medium px-4 py-2 rounded transition-colors',
-            textColorClass,
-            isScrolled || !isHomePage ? 'hover:bg-muted/50' : 'hover:bg-white/20',
+            'hidden md:flex items-center gap-2 font-semibold text-sm px-5 py-2.5 rounded-lg transition-colors',
+            !isScrolled && isHomePage
+              ? 'text-white hover:bg-white/20'
+              : 'text-dark bg-light hover:bg-light/80',
           )}
         >
           Sign in
@@ -271,24 +292,24 @@ const Header = ({ className, user }: HeaderProps) => {
   return (
     <header
       className={cn(
-        'flex items-center justify-between p-4 fixed top-0 left-0 right-0 z-50 transition-all duration-300',
+        'flex items-center justify-between px-6 py-4 fixed top-0 left-0 right-0 z-50 transition-all duration-300',
         isScrolled || !isHomePage
-          ? 'bg-white border-b shadow-sm'
+          ? 'bg-white border-b border-border shadow-sm'
           : 'bg-transparent border-transparent',
         className,
       )}
     >
-      <Link href="/" className="flex items-center gap-x-4">
+      <Link href="/" className="flex items-center gap-x-3">
         <Image
           src="/logos/ptp.svg"
           alt="Parking Ticket Pal logo"
-          height={40}
-          width={35}
+          height={36}
+          width={32}
         />
         <span
           className={cn(
-            'font-display font-bold text-2xl transition-colors duration-300',
-            !isScrolled && isHomePage ? 'text-white' : 'text-foreground',
+            'font-display font-bold text-xl transition-colors duration-300',
+            !isScrolled && isHomePage ? 'text-white' : 'text-dark',
           )}
         >
           Parking Ticket Pal

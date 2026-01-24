@@ -398,6 +398,7 @@ const generateChallengeLetterByTicketId = async (
       email: true,
       phoneNumber: true,
       signatureUrl: true,
+      stripeCustomerId: true,
     },
   });
 

@@ -176,6 +176,7 @@ export const extractOCRTextWithOpenAI = async (
   }
 
   const {
+    documentType,
     pcnNumber,
     issuedAt,
     vehicleRegistration,
@@ -309,6 +310,7 @@ export const extractOCRTextWithOpenAI = async (
   return {
     success: true,
     data: {
+      documentType: documentType === 'LETTER' ? 'letter' : 'ticket',
       pcnNumber,
       vehicleReg: vehicleRegistration,
       issuedAt: createUTCDate(new Date(issuedAt)),
@@ -464,6 +466,7 @@ export const extractOCRTextWithVision = async (
   }
 
   const {
+    documentType,
     pcnNumber,
     issuedAt,
     vehicleRegistration,
@@ -597,6 +600,7 @@ export const extractOCRTextWithVision = async (
   return {
     success: true,
     data: {
+      documentType: documentType === 'LETTER' ? 'letter' : 'ticket',
       pcnNumber,
       vehicleReg: vehicleRegistration,
       issuedAt: createUTCDate(new Date(issuedAt)),

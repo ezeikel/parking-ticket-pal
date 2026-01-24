@@ -35,6 +35,7 @@ const MobileMenu = ({ items, user, hamburgerClassName, hamburgerIconClassName }:
       return (
         <FeedbackDialog
           userEmail={user?.email ?? undefined}
+          userName={user?.name ?? undefined}
           trigger={
             <button
               className="flex items-center gap-2 p-2 w-full text-left hover:bg-muted/50 rounded-lg transition-colors"

@@ -1,13 +1,9 @@
-import { Prisma } from '@parking-ticket-pal/db/types';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import {
-  faCarSide,
-  faTriangleExclamation,
-} from '@fortawesome/pro-regular-svg-icons';
+'use client';
 
-import { cn } from '@/lib/utils';
+import { motion } from 'framer-motion';
+import { Prisma } from '@parking-ticket-pal/db/types';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faCar } from '@fortawesome/pro-solid-svg-icons';
 import VehicleCardControls from '@/components/VehicleCardControls/VehicleCardControls';
 
 type VehicleCardProps = {
@@ -29,64 +25,85 @@ type VehicleCardProps = {
   }> & {
     activeTickets: number;
     hasUrgentTickets: boolean;
+    urgentTicketCount?: number;
   };
 };
 
-const VehicleCard = ({ vehicle }: VehicleCardProps) => (
-  <Card
-    className={cn(
-      'hover:shadow-md transition-all group',
-      vehicle.hasUrgentTickets
-        ? 'border-amber-500/50 hover:border-amber-500'
-        : 'hover:border-primary/50',
-    )}
-  >
-    <CardHeader className="flex flex-row items-center justify-between pb-2">
-      <CardTitle className="text-base font-bold tracking-wider">
-        {vehicle.registrationNumber}
-      </CardTitle>
-      <VehicleCardControls vehicle={vehicle} />
-    </CardHeader>
-    <CardContent className="space-y-4">
-      <div className="flex items-start gap-4">
-        <div className="flex h-16 w-16 items-center justify-center rounded-lg bg-muted flex-shrink-0">
+const cardVariants = {
+  hidden: { opacity: 0, y: 20 },
+  visible: { opacity: 1, y: 0 },
+  exit: { opacity: 0, x: -100, transition: { duration: 0.2 } },
+};
+
+const VehicleCard = ({ vehicle }: VehicleCardProps) => {
+  const vehicleName = vehicle.make && vehicle.model
+    ? `${vehicle.make} ${vehicle.model}`
+    : 'Unknown Vehicle';
+
+  const ticketText = vehicle.activeTickets === 0
+    ? 'No active tickets'
+    : vehicle.activeTickets === 1
+      ? '1 active ticket'
+      : `${vehicle.activeTickets} active tickets`;
+
+  return (
+    <motion.a
+      href={`/tickets?vehicle=${encodeURIComponent(vehicle.registrationNumber)}`}
+      variants={cardVariants}
+      exit="exit"
+      layout
+      whileHover={{ scale: 1.02 }}
+      whileTap={{ scale: 0.98 }}
+      className="group relative block cursor-pointer"
+    >
+      {/* Car illustration area */}
+      <div className="relative mb-3 aspect-video overflow-hidden rounded-xl bg-white shadow-sm">
+        <div className="absolute inset-0 flex items-center justify-center">
           <FontAwesomeIcon
-            icon={faCarSide}
-            size="lg"
-            className="text-muted-foreground"
+            icon={faCar}
+            className="text-5xl text-dark/10 transition-transform duration-300 group-hover:scale-110"
           />
         </div>
-        <div className="space-y-1 text-sm">
-          <p className="font-medium">
-            {vehicle.make} {vehicle.model}
-          </p>
-          <p className="text-muted-foreground">{vehicle.color}</p>
-          <p className="text-muted-foreground">{vehicle.year}</p>
+
+        {/* Urgent badge */}
+        {vehicle.hasUrgentTickets && (
+          <div className="absolute left-3 top-3 flex items-center gap-1.5 rounded-full bg-coral px-2.5 py-1 text-xs font-medium text-white shadow-sm">
+            <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-white" />
+            {vehicle.urgentTicketCount || 1} urgent
+          </div>
+        )}
+
+        {/* Three-dot menu */}
+        <div
+          className="absolute right-2 top-2 opacity-0 transition-opacity group-hover:opacity-100"
+          onClick={(e) => e.preventDefault()}
+        >
+          <VehicleCardControls vehicle={vehicle} />
         </div>
       </div>
-      <div className="border-t pt-3">
-        <h4 className="text-xs font-semibold text-muted-foreground mb-2">
-          Status
-        </h4>
-        {vehicle.activeTickets > 0 ? (
-          <div className="flex items-center gap-2">
-            {vehicle.hasUrgentTickets ? (
-              <Badge variant="destructive" className="gap-1.5 pl-1.5">
-                <FontAwesomeIcon icon={faTriangleExclamation} size="lg" />
-                {vehicle.activeTickets} Urgent Ticket(s)
-              </Badge>
-            ) : (
-              <Badge variant="secondary">
-                {vehicle.activeTickets} Active Ticket(s)
-              </Badge>
-            )}
-          </div>
-        ) : (
-          <p className="text-sm text-muted-foreground">No active tickets.</p>
-        )}
+
+      {/* Content */}
+      <div className="space-y-1">
+        {/* Registration plate */}
+        <div className="inline-flex items-center rounded bg-yellow px-2 py-0.5">
+          <span className="font-plate text-sm font-bold tracking-wide text-dark">
+            {vehicle.registrationNumber}
+          </span>
+        </div>
+
+        {/* Vehicle name */}
+        <h3 className="font-semibold text-dark">
+          {vehicleName}
+          {vehicle.year && (
+            <span className="font-normal text-gray"> ({vehicle.year})</span>
+          )}
+        </h3>
+
+        {/* Ticket count */}
+        <p className="text-sm text-gray">{ticketText}</p>
       </div>
-    </CardContent>
-  </Card>
-);
+    </motion.a>
+  );
+};
 
 export default VehicleCard;

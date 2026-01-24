@@ -1,4 +1,5 @@
 @import 'tailwindcss';
+@import 'mapbox-gl/dist/mapbox-gl.css';
 
 @plugin "@tailwindcss/typography";
 
@@ -6,10 +7,10 @@
 
 @theme {
   --font-sans:
-    var(--font-inter), ui-sans-serif, system-ui, sans-serif,
+    var(--font-jakarta), ui-sans-serif, system-ui, sans-serif,
     'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
   --font-slab: var(--font-roboto-slab), serif;
-  --font-display: var(--font-lato), sans-serif;
+  --font-plate: var(--font-uk-number-plate), monospace;
 
   --color-border: hsl(var(--border));
   --color-input: hsl(var(--input));
@@ -45,6 +46,19 @@
   --animate-accordion-down: accordion-down 0.2s ease-out;
   --animate-accordion-up: accordion-up 0.2s ease-out;
 
+  /* V0 Design System Colors */
+  --color-teal: #1ABC9C;
+  --color-teal-dark: #16a085;
+  --color-yellow: #fdfa64;
+  --color-coral: #FF5A5F;
+  --color-amber: #FFB400;
+  --color-success: #00A699;
+  --color-dark: #222222;
+  --color-gray: #717171;
+  --color-light: #F7F7F7;
+  --color-footer: #1A1A1A;
+
+  /* Legacy colors (for backward compatibility) */
   --color-parking-teal: #1ABC9C;
   --color-parking-ticket-yellow: #fdfa64;
 

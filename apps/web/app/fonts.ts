@@ -1,9 +1,11 @@
-import { Inter, Roboto_Slab, Lato } from 'next/font/google';
+import { Plus_Jakarta_Sans, Roboto_Slab } from 'next/font/google';
+import localFont from 'next/font/local';
 
-export const inter = Inter({
+export const plusJakartaSans = Plus_Jakarta_Sans({
   subsets: ['latin'],
   display: 'swap',
-  variable: '--font-inter',
+  variable: '--font-jakarta',
+  weight: ['400', '500', '600', '700', '800'],
 });
 
 export const robotoSlab = Roboto_Slab({
@@ -12,9 +14,8 @@ export const robotoSlab = Roboto_Slab({
   variable: '--font-roboto-slab',
 });
 
-export const lato = Lato({
-  subsets: ['latin'],
+export const ukNumberPlate = localFont({
+  src: '../assets/fonts/UKNumberPlate.ttf',
+  variable: '--font-uk-number-plate',
   display: 'swap',
-  variable: '--font-lato',
-  weight: ['700'],
 });
