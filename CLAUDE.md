@@ -128,6 +128,10 @@ pnpm eas:build:production       # Build production
 
 Note: Prebuild regenerates native `ios/` and `android/` folders. Only run when adding native dependencies.
 
+## Icons
+
+Use `faSpinnerThird` from `@fortawesome/pro-solid-svg-icons` for loading spinners (not `faSpinner`). Use the `size` prop for FontAwesome icon sizing (e.g., `size="2x"`) rather than Tailwind width/height classes.
+
 ## Commits
 
 Use semantic commit style (`type(scope): message`). Keep messages as one-liners, succinct but covering work done. Do not attribute Claude in commit messages.

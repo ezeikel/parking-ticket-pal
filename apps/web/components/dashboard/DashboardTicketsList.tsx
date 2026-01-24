@@ -136,7 +136,7 @@ const DashboardTicketsList = ({
     <div className="flex h-full flex-col rounded-2xl bg-white shadow-[0_2px_4px_rgba(0,0,0,0.06),0_4px_12px_rgba(0,0,0,0.06)]">
       {/* Header */}
       <div className="flex flex-col gap-3 border-b border-border p-4 sm:flex-row sm:items-center sm:justify-between">
-        <h2 className="text-lg font-semibold text-dark">Your Tickets</h2>
+        <h2 className="hidden text-lg font-semibold text-dark lg:block">Your Tickets</h2>
         <div className="flex gap-2">
           <Select value={filter} onValueChange={setFilter}>
             <SelectTrigger className="h-9 w-[140px]">

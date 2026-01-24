@@ -136,7 +136,7 @@ const getMobileNav = (user: Partial<User> | null): MobileNavItem[] => {
     { label: 'Tickets', iconName: faTicketPerforated, href: '/tickets' },
     { label: 'Vehicles', iconName: faCarSide, href: '/vehicles' },
     { label: 'Account', iconName: faUser, href: '/account' },
-    { label: 'Billing', iconName: faCreditCard, href: '/account/billing' },
+    { label: 'Billing', iconName: faCreditCard, href: '/account?tab=billing' },
     { label: 'Blog', iconName: faNewspaper, href: '/blog' },
     { label: 'Help & Feedback', iconName: faCommentDots, isFeedback: true },
     { label: 'Sign out', iconName: faSignOut, action: 'signout' },
@@ -308,7 +308,7 @@ const Header = ({ className, user }: HeaderProps) => {
         />
         <span
           className={cn(
-            'font-display font-bold text-xl transition-colors duration-300',
+            'font-display font-bold text-xl transition-colors duration-300 whitespace-nowrap',
             !isScrolled && isHomePage ? 'text-white' : 'text-dark',
           )}
         >

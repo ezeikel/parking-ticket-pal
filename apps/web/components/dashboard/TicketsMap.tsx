@@ -10,7 +10,7 @@ import {
   faExpand,
   faCar,
   faArrowRight,
-  faSpinner,
+  faSpinnerThird,
 } from '@fortawesome/pro-solid-svg-icons';
 import Link from 'next/link';
 import type { TicketStatus } from '@parking-ticket-pal/db';
@@ -100,7 +100,7 @@ const TicketsMap = ({
           <div className="absolute inset-0 flex items-center justify-center bg-light">
             <div className="flex flex-col items-center gap-2">
               <FontAwesomeIcon
-                icon={faSpinner}
+                icon={faSpinnerThird}
                 className="text-2xl text-gray animate-spin"
               />
               <span className="text-sm text-gray">Loading map...</span>

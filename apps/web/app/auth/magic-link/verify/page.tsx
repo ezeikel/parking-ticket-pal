@@ -2,9 +2,14 @@
 
 import { useEffect, useState, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import Link from 'next/link';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faSpinnerThird, faCheckCircle, faExclamationCircle } from '@fortawesome/pro-regular-svg-icons';
+import {
+  faSpinnerThird,
+  faCircleCheck,
+  faCircleExclamation,
+} from '@fortawesome/pro-solid-svg-icons';
+import { Button } from '@/components/ui/button';
 
 const MagicLinkVerifyContent = () => {
   const searchParams = useSearchParams();
@@ -45,63 +50,86 @@ const MagicLinkVerifyContent = () => {
   }, [searchParams, router]);
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gray-50">
-      <Card className="w-[400px]">
-        <CardHeader>
-          <CardTitle>Magic Link Verification</CardTitle>
-          <CardDescription>
-            {status === 'verifying' && 'Please wait while we verify your link...'}
-            {status === 'success' && 'Your account has been verified!'}
-            {status === 'error' && 'Verification failed'}
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="flex flex-col items-center gap-4">
-          {status === 'verifying' && (
-            <FontAwesomeIcon
-              icon={faSpinnerThird}
-              className="h-12 w-12 animate-spin text-primary"
-            />
-          )}
-          {status === 'success' && (
-            <FontAwesomeIcon
-              icon={faCheckCircle}
-              className="h-12 w-12 text-green-600"
-            />
-          )}
+    <div className="min-h-screen bg-light flex items-center justify-center px-4">
+      <div className="max-w-md w-full">
+        {/* Card */}
+        <div className="bg-white rounded-2xl shadow-lg p-8 text-center">
+          {/* Status Icon */}
+          <div className="mb-6">
+            {status === 'verifying' && (
+              <div className="inline-flex h-20 w-20 items-center justify-center rounded-full bg-teal/10">
+                <FontAwesomeIcon
+                  icon={faSpinnerThird}
+                  size="2x"
+                  className="text-teal animate-spin"
+                />
+              </div>
+            )}
+            {status === 'success' && (
+              <div className="inline-flex h-20 w-20 items-center justify-center rounded-full bg-teal/10">
+                <FontAwesomeIcon
+                  icon={faCircleCheck}
+                  size="2x"
+                  className="text-teal"
+                />
+              </div>
+            )}
+            {status === 'error' && (
+              <div className="inline-flex h-20 w-20 items-center justify-center rounded-full bg-red-100">
+                <FontAwesomeIcon
+                  icon={faCircleExclamation}
+                  size="2x"
+                  className="text-red-500"
+                />
+              </div>
+            )}
+          </div>
+
+          {/* Title */}
+          <h1 className="text-2xl font-bold text-dark mb-3">
+            {status === 'verifying' && 'Verifying...'}
+            {status === 'success' && 'Verified!'}
+            {status === 'error' && 'Verification Failed'}
+          </h1>
+
+          {/* Message */}
+          <p className="text-gray mb-8">{message}</p>
+
+          {/* Error Action */}
           {status === 'error' && (
-            <FontAwesomeIcon
-              icon={faExclamationCircle}
-              className="h-12 w-12 text-red-600"
-            />
+            <Link href="/signin">
+              <Button className="w-full h-12 bg-teal text-white hover:bg-teal-dark">
+                Return to Sign In
+              </Button>
+            </Link>
           )}
-          <p className="text-center text-sm text-muted-foreground">{message}</p>
-          {status === 'error' && (
-            <a
-              href="/signin"
-              className="text-sm text-primary underline hover:no-underline"
-            >
-              Return to sign in
-            </a>
-          )}
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     </div>
   );
-}
+};
 
 const MagicLinkVerify = () => (
-  <Suspense fallback={
-    <div className="flex items-center justify-center min-h-screen bg-gray-50">
-      <Card className="w-[400px]">
-        <CardContent className="flex flex-col items-center gap-4 pt-6">
-          <FontAwesomeIcon
-            icon={faSpinnerThird}
-            className="h-12 w-12 animate-spin text-primary"
-          />
-        </CardContent>
-      </Card>
-    </div>
-  }>
+  <Suspense
+    fallback={
+      <div className="min-h-screen bg-light flex items-center justify-center px-4">
+        <div className="max-w-md w-full">
+          <div className="bg-white rounded-2xl shadow-lg p-8 text-center">
+            <div className="mb-6">
+              <div className="inline-flex h-20 w-20 items-center justify-center rounded-full bg-teal/10">
+                <FontAwesomeIcon
+                  icon={faSpinnerThird}
+                  size="2x"
+                  className="text-teal animate-spin"
+                />
+              </div>
+            </div>
+            <h1 className="text-2xl font-bold text-dark mb-3">Loading...</h1>
+          </div>
+        </div>
+      </div>
+    }
+  >
     <MagicLinkVerifyContent />
   </Suspense>
 );

@@ -659,7 +659,7 @@ export const createSubscriptionCheckoutSession = async (
     ],
     mode: 'subscription',
     success_url: `${origin}/account/billing/success`,
-    cancel_url: `${origin}/account/billing`,
+    cancel_url: `${origin}/account?tab=billing`,
     client_reference_id: userId,
     customer: customerId,
 
