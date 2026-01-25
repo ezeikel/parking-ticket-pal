@@ -338,7 +338,7 @@ Playwright (memory limits, no Chromium binary, short timeouts).
 | `/automation/status/:jobId` | GET | Check job status |
 | `/automation/cancel/:jobId` | POST | Cancel a running job |
 
-See the [parking-ticket-pal-scraper](https://github.com/your-repo/parking-ticket-pal-scraper)
+See the [parking-ticket-pal-worker](https://github.com/ezeikel/parking-ticket-pal-worker)
 repository for the Hetzner service implementation.
 
 ### 📊 Comprehensive Analytics
