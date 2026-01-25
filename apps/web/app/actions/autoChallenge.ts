@@ -11,7 +11,7 @@ import {
   startRunJob,
   type AutomationContext,
   type RecipeStep,
-} from '@/utils/automation/hetznerClient';
+} from '@/utils/automation/workerClient';
 import generateChallengeContent from '@/utils/ai/generateChallengeContent';
 
 const logger = createServerLogger({ action: 'autoChallenge' });

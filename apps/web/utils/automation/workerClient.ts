@@ -1,24 +1,24 @@
 /**
- * Hetzner Automation API Client
+ * Worker API Client
  *
- * HTTP client for communicating with the Hetzner-hosted automation service.
+ * HTTP client for communicating with the worker service (automation & scraping).
  * Handles learning new issuer flows and running automation recipes.
  */
 
 import { createServerLogger } from '@/lib/logger';
 
-const logger = createServerLogger({ action: 'hetzner-client' });
+const logger = createServerLogger({ action: 'worker-client' });
 
 /**
  * Configuration from environment variables
  */
 function getConfig() {
-  const baseUrl = process.env.HETZNER_AUTOMATION_URL;
-  const secret = process.env.HETZNER_AUTOMATION_SECRET;
+  const baseUrl = process.env.WORKER_URL;
+  const secret = process.env.WORKER_SECRET;
 
   if (!baseUrl || !secret) {
     throw new Error(
-      'Hetzner automation not configured. Set HETZNER_AUTOMATION_URL and HETZNER_AUTOMATION_SECRET.'
+      'Worker not configured. Set WORKER_URL and WORKER_SECRET environment variables.'
     );
   }
 
@@ -109,7 +109,7 @@ export async function startLearnJob(params: {
   try {
     const { baseUrl, secret } = getConfig();
     const webhookUrl = getWebhookUrl();
-    const webhookSecret = process.env.HETZNER_AUTOMATION_SECRET!;
+    const webhookSecret = process.env.WORKER_SECRET!;
 
     logger.info('Starting learn job', {
       automationId: params.automationId,
@@ -180,7 +180,7 @@ export async function startRunJob(params: {
   try {
     const { baseUrl, secret } = getConfig();
     const webhookUrl = getWebhookUrl();
-    const webhookSecret = process.env.HETZNER_AUTOMATION_SECRET!;
+    const webhookSecret = process.env.WORKER_SECRET!;
 
     logger.info('Starting run job', {
       automationId: params.automationId,

@@ -1,7 +1,7 @@
 /**
- * Webhook Handler for Hetzner Automation Results
+ * Webhook Handler for Worker Automation Results
  *
- * Receives callbacks from the Hetzner automation service when
+ * Receives callbacks from the worker service when
  * learn or run jobs complete.
  */
 
@@ -13,7 +13,7 @@ import { createServerLogger } from '@/lib/logger';
 const logger = createServerLogger({ action: 'automation-webhook' });
 
 /**
- * Webhook payload from Hetzner
+ * Webhook payload from worker
  */
 type WebhookPayload = {
   jobId: string;
@@ -67,7 +67,7 @@ function verifySignature(payload: string, signature: string, secret: string): bo
 }
 
 /**
- * Handle POST requests from Hetzner automation service
+ * Handle POST requests from worker service
  */
 export async function POST(request: NextRequest) {
   try {
@@ -75,7 +75,7 @@ export async function POST(request: NextRequest) {
     const rawBody = await request.text();
 
     // Get the secret for verification
-    const secret = process.env.HETZNER_AUTOMATION_SECRET;
+    const secret = process.env.WORKER_SECRET;
     if (!secret) {
       logger.error('Webhook secret not configured');
       return NextResponse.json({ error: 'Server configuration error' }, { status: 500 });

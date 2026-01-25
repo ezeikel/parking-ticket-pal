@@ -199,7 +199,7 @@ flows, enabling automatic challenge submission for any parking authority.
 
 ```
 utils/automation/
-├── hetznerClient.ts   # HTTP client for Hetzner automation API
+├── workerClient.ts    # HTTP client for worker service API
 ├── shared.ts          # Shared Playwright setup (built-in issuers)
 └── issuers/           # Built-in automation for specific issuers
     ├── lewisham.ts
@@ -210,7 +210,7 @@ app/actions/
 └── autoChallenge.ts   # Server action for initiating auto-challenges
 
 app/api/webhooks/
-└── automation/route.ts # Webhook handler for Hetzner callbacks
+└── automation/route.ts # Webhook handler for worker callbacks
 
 components/ticket-detail/
 ├── ActionsCard.tsx           # Contains "Auto-Submit Challenge" button
@@ -279,9 +279,9 @@ export async function challenge(
 #### Environment Variables
 
 ```bash
-# Hetzner Automation Service
-HETZNER_AUTOMATION_URL="http://your-hetzner-ip:3002"
-HETZNER_AUTOMATION_SECRET="your-shared-secret"
+# Worker Service
+WORKER_URL="http://157.90.168.197:3002"
+WORKER_SECRET="your-shared-secret"
 
 # App URL (for webhook callbacks)
 NEXT_PUBLIC_APP_URL="https://parkingticketpal.com"
@@ -289,7 +289,7 @@ NEXT_PUBLIC_APP_URL="https://parkingticketpal.com"
 
 #### Production Architecture
 
-The automation system uses a **Hetzner VPS** as a dedicated worker for browser
+The automation system uses a dedicated **worker service** for browser
 automation. This is necessary because Vercel's serverless environment cannot run
 Playwright (memory limits, no Chromium binary, short timeouts).
 
