@@ -13,8 +13,6 @@ import {
   faUserShield,
   faCircleCheck,
   faTrophy,
-  faChevronLeft,
-  faChevronRight,
   faXmark,
   faCheck,
   faLightbulb,
@@ -229,17 +227,6 @@ const TicketStatusTimeline = ({
     return () => window.removeEventListener('resize', checkScroll);
   }, []);
 
-  const scroll = (direction: 'left' | 'right') => {
-    if (scrollContainerRef.current) {
-      const scrollAmount = 200;
-      scrollContainerRef.current.scrollBy({
-        left: direction === 'left' ? -scrollAmount : scrollAmount,
-        behavior: 'smooth',
-      });
-      setTimeout(checkScroll, 300);
-    }
-  };
-
   const handleStageClick = (stageId: string) => {
     const stage = [...stages, ...branches].find((s) => s.id === stageId);
     if (!stage) return;
@@ -282,7 +269,7 @@ const TicketStatusTimeline = ({
   };
 
   return (
-    <div className="relative">
+    <div className="relative overflow-hidden">
       {/* Header */}
       <div className="mb-4 flex items-center justify-between">
         <h3 className="font-semibold text-dark">PCN Journey</h3>
@@ -291,128 +278,123 @@ const TicketStatusTimeline = ({
         </span>
       </div>
 
-      {/* Scroll Buttons */}
-      <AnimatePresence>
-        {canScrollLeft && (
-          <motion.button
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            type="button"
-            onClick={() => scroll('left')}
-            className="absolute left-0 top-24 z-10 flex h-8 w-8 items-center justify-center rounded-full bg-white shadow-lg transition-colors hover:bg-light"
-          >
-            <FontAwesomeIcon icon={faChevronLeft} className="text-sm text-dark" />
-          </motion.button>
-        )}
-      </AnimatePresence>
+      {/* Timeline Container with scroll indicators */}
+      <div className="relative">
+        {/* Left fade gradient */}
+        <AnimatePresence>
+          {canScrollLeft && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="pointer-events-none absolute left-0 top-0 z-10 h-full w-8 bg-gradient-to-r from-white to-transparent"
+            />
+          )}
+        </AnimatePresence>
 
-      <AnimatePresence>
-        {canScrollRight && (
-          <motion.button
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            type="button"
-            onClick={() => scroll('right')}
-            className="absolute right-0 top-24 z-10 flex h-8 w-8 items-center justify-center rounded-full bg-white shadow-lg transition-colors hover:bg-light"
-          >
-            <FontAwesomeIcon icon={faChevronRight} className="text-sm text-dark" />
-          </motion.button>
-        )}
-      </AnimatePresence>
+        {/* Right fade gradient */}
+        <AnimatePresence>
+          {canScrollRight && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="pointer-events-none absolute right-0 top-0 z-10 h-full w-8 bg-gradient-to-l from-white to-transparent"
+            />
+          )}
+        </AnimatePresence>
 
-      {/* Timeline Container */}
-      <div
-        ref={scrollContainerRef}
-        onScroll={checkScroll}
-        className="scrollbar-hide overflow-x-auto px-4 pb-4"
-      >
-        <div className="flex min-w-max items-start gap-0">
-          {stages.map((stage, index) => {
-            const status = getStageStatus(index);
-            const isPending = pendingStage === stage.id;
+        <div
+          ref={scrollContainerRef}
+          onScroll={checkScroll}
+          className="scrollbar-hide overflow-x-auto pb-4"
+        >
+          <div className="flex min-w-max items-start gap-0">
+            {stages.map((stage, index) => {
+              const status = getStageStatus(index);
+              const isPending = pendingStage === stage.id;
 
-            return (
-              <div key={stage.id} className="flex items-start">
-                {/* Stage Node */}
-                <button
-                  type="button"
-                  onClick={() => handleStageClick(stage.id)}
-                  className="group flex flex-col items-center"
-                >
-                  {/* Circle */}
-                  <div
-                    className={`relative flex h-10 w-10 items-center justify-center rounded-full border-2 transition-all ${
-                      status === 'completed'
-                        ? 'border-dark bg-dark text-white'
-                        : status === 'current'
-                          ? 'border-dark bg-white text-dark ring-4 ring-dark/10'
-                          : isPending
-                            ? 'border-dark/50 bg-dark/5 text-dark/70 ring-4 ring-dark/10'
-                            : 'border-gray/30 bg-white text-gray/50 hover:border-gray/50 hover:text-gray'
-                    }`}
+              return (
+                <div key={stage.id} className="flex items-start">
+                  {/* Stage Node */}
+                  <button
+                    type="button"
+                    onClick={() => handleStageClick(stage.id)}
+                    className="group flex flex-col items-center"
                   >
-                    <FontAwesomeIcon icon={stage.icon} className="text-sm" />
-                    {status === 'completed' && (
-                      <div className="absolute -right-0.5 -top-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-white">
-                        <FontAwesomeIcon
-                          icon={faCircleCheck}
-                          className="text-xs text-dark"
-                        />
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Label */}
-                  <span
-                    className={`mt-2 max-w-[80px] text-center text-xs font-medium transition-colors ${
-                      status === 'current' || status === 'completed'
-                        ? 'text-dark'
-                        : isPending
-                          ? 'text-dark/70'
-                          : 'text-gray'
-                    }`}
-                  >
-                    {stage.shortLabel}
-                  </span>
-
-                  {/* Current Indicator */}
-                  {status === 'current' && (
-                    <motion.span
-                      initial={{ opacity: 0, y: -5 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      className="mt-1 text-[10px] font-semibold uppercase tracking-wide text-dark"
+                    {/* Circle */}
+                    <div
+                      className={`relative flex h-10 w-10 items-center justify-center rounded-full border-2 transition-all ${
+                        status === 'completed'
+                          ? 'border-dark bg-dark text-white'
+                          : status === 'current'
+                            ? 'border-dark bg-white text-dark ring-4 ring-dark/10'
+                            : isPending
+                              ? 'border-dark/50 bg-dark/5 text-dark/70 ring-4 ring-dark/10'
+                              : 'border-gray/30 bg-white text-gray/50 hover:border-gray/50 hover:text-gray'
+                      }`}
                     >
-                      You are here
-                    </motion.span>
-                  )}
-                </button>
-
-                {/* Connector Line */}
-                {index < stages.length - 1 && (
-                  <div className="mt-5 flex items-center px-1">
-                    <div
-                      className={`h-0.5 w-12 transition-colors ${
-                        status === 'completed' ? 'bg-dark' : 'bg-gray/20'
-                      }`}
-                    />
-                    {stages[index + 1].daysFromPrevious !== undefined &&
-                      stages[index + 1].daysFromPrevious !== 0 && (
-                        <span className="mx-1 text-[10px] text-gray">
-                          {stages[index + 1].daysFromPrevious}d
-                        </span>
+                      <FontAwesomeIcon icon={stage.icon} className="text-sm" />
+                      {status === 'completed' && (
+                        <div className="absolute -right-0.5 -top-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-white">
+                          <FontAwesomeIcon
+                            icon={faCircleCheck}
+                            className="text-xs text-dark"
+                          />
+                        </div>
                       )}
-                    <div
-                      className={`h-0.5 w-12 transition-colors ${
-                        status === 'completed' ? 'bg-dark' : 'bg-gray/20'
+                    </div>
+
+                    {/* Label */}
+                    <span
+                      className={`mt-2 max-w-[80px] text-center text-xs font-medium transition-colors ${
+                        status === 'current' || status === 'completed'
+                          ? 'text-dark'
+                          : isPending
+                            ? 'text-dark/70'
+                            : 'text-gray'
                       }`}
-                    />
-                  </div>
-                )}
-              </div>
-            );
-          })}
+                    >
+                      {stage.shortLabel}
+                    </span>
+
+                    {/* Current Indicator */}
+                    {status === 'current' && (
+                      <motion.span
+                        initial={{ opacity: 0, y: -5 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="mt-1 text-[10px] font-semibold uppercase tracking-wide text-dark"
+                      >
+                        You are here
+                      </motion.span>
+                    )}
+                  </button>
+
+                  {/* Connector Line */}
+                  {index < stages.length - 1 && (
+                    <div className="mt-5 flex items-center px-1">
+                      <div
+                        className={`h-0.5 w-12 transition-colors ${
+                          status === 'completed' ? 'bg-dark' : 'bg-gray/20'
+                        }`}
+                      />
+                      {stages[index + 1].daysFromPrevious !== undefined &&
+                        stages[index + 1].daysFromPrevious !== 0 && (
+                          <span className="mx-1 text-[10px] text-gray">
+                            {stages[index + 1].daysFromPrevious}d
+                          </span>
+                        )}
+                      <div
+                        className={`h-0.5 w-12 transition-colors ${
+                          status === 'completed' ? 'bg-dark' : 'bg-gray/20'
+                        }`}
+                      />
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
         </div>
       </div>
 

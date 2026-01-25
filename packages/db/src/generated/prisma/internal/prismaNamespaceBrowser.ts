@@ -69,6 +69,7 @@ export const ModelName = {
   Session: 'Session',
   VerificationToken: 'VerificationToken',
   LondonTribunalCase: 'LondonTribunalCase',
+  IssuerAutomation: 'IssuerAutomation',
   PendingTicket: 'PendingTicket'
 } as const
 
@@ -382,6 +383,26 @@ export const LondonTribunalCaseScalarFieldEnum = {
 } as const
 
 export type LondonTribunalCaseScalarFieldEnum = (typeof LondonTribunalCaseScalarFieldEnum)[keyof typeof LondonTribunalCaseScalarFieldEnum]
+
+
+export const IssuerAutomationScalarFieldEnum = {
+  id: 'id',
+  issuerId: 'issuerId',
+  issuerName: 'issuerName',
+  challengeUrl: 'challengeUrl',
+  steps: 'steps',
+  screenshots: 'screenshots',
+  status: 'status',
+  needsAccount: 'needsAccount',
+  captchaType: 'captchaType',
+  lastVerified: 'lastVerified',
+  lastFailed: 'lastFailed',
+  failureReason: 'failureReason',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type IssuerAutomationScalarFieldEnum = (typeof IssuerAutomationScalarFieldEnum)[keyof typeof IssuerAutomationScalarFieldEnum]
 
 
 export const PendingTicketScalarFieldEnum = {

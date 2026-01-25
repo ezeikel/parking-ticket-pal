@@ -335,25 +335,14 @@ const EvidenceCard = ({
         </div>
       ) : !showUploadForm ? (
         <div
-          className="mt-4 flex cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-border py-10 transition-colors hover:border-teal"
+          className="mt-4 flex cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-border py-6 transition-colors hover:border-teal"
           onClick={() => setShowUploadForm(true)}
           onKeyDown={(e) => e.key === 'Enter' && setShowUploadForm(true)}
           role="button"
           tabIndex={0}
         >
-          <FontAwesomeIcon icon={faCloudArrowUp} className="text-3xl text-gray/40" />
-          <p className="mt-2 text-sm text-gray">Drag and drop files or click to upload</p>
-          <Button
-            variant="outline"
-            size="sm"
-            className="mt-3 bg-transparent"
-            onClick={(e) => {
-              e.stopPropagation();
-              setShowUploadForm(true);
-            }}
-          >
-            Choose Files
-          </Button>
+          <FontAwesomeIcon icon={faCloudArrowUp} className="text-2xl text-gray/40" />
+          <p className="mt-2 text-sm text-gray">Add supporting evidence</p>
         </div>
       ) : null}
     </motion.div>

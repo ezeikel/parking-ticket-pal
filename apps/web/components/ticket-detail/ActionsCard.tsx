@@ -4,7 +4,6 @@ import { motion } from 'framer-motion';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
   faWandMagicSparkles,
-  faPaperPlane,
   faEye,
   faChartLine,
   faFileLines,
@@ -12,6 +11,7 @@ import {
   faCreditCard,
   faTrash,
   faLock,
+  faRobot,
 } from '@fortawesome/pro-solid-svg-icons';
 import { TicketStatus, TicketTier } from '@parking-ticket-pal/db/types';
 import { Button } from '@/components/ui/button';
@@ -21,8 +21,8 @@ type ActionsCardProps = {
   tier: TicketTier;
   hasLetter: boolean;
   deadlineDays?: number;
+  onAutoChallenge?: () => void;
   onGenerateLetter?: () => void;
-  onSubmitChallenge?: () => void;
   onPreviewLetter?: () => void;
   onTrackStatus?: () => void;
   onViewSubmission?: () => void;
@@ -50,8 +50,8 @@ const ActionsCard = ({
   tier,
   hasLetter,
   deadlineDays,
+  onAutoChallenge,
   onGenerateLetter,
-  onSubmitChallenge,
   onPreviewLetter,
   onTrackStatus,
   onViewSubmission,
@@ -63,8 +63,6 @@ const ActionsCard = ({
   const needsAction = isNeedsAction(status);
   const submitted = isSubmitted(status);
   const isPremium = tier === TicketTier.PREMIUM;
-  const canSubmitChallenge = isPremium;
-  const canGenerateLetter = isPremium;
 
   return (
     <motion.div
@@ -76,75 +74,70 @@ const ActionsCard = ({
       <h2 className="text-lg font-semibold text-dark">Actions</h2>
 
       <div className="mt-4 space-y-3">
-        {/* Primary Actions - Conditional on status and letter existence */}
-        {!hasLetter ? (
-          // No letter yet - show generate button
-          canGenerateLetter ? (
-            <Button
-              className="w-full gap-2 bg-teal text-white hover:bg-teal-dark"
-              onClick={onGenerateLetter}
-            >
-              <FontAwesomeIcon icon={faWandMagicSparkles} />
-              Generate Challenge Letter
-            </Button>
-          ) : (
-            <Button
-              className="w-full gap-2 bg-teal text-white hover:bg-teal-dark"
-              onClick={onUpgrade}
-            >
-              <FontAwesomeIcon icon={faLock} />
-              Upgrade to Challenge Ticket
-            </Button>
-          )
-        ) : needsAction ? (
-          // Has letter and needs action - show submit/preview
-          <>
-            {canSubmitChallenge ? (
+        {/* Primary Actions - Conditional on status, tier, and letter existence */}
+        {isPremium ? (
+          // PREMIUM tier - show both challenge options
+          needsAction ? (
+            <>
+              {/* Auto-Submit Challenge - primary action */}
               <Button
                 className="w-full gap-2 bg-teal text-white hover:bg-teal-dark"
-                onClick={onSubmitChallenge}
+                onClick={onAutoChallenge}
               >
-                <FontAwesomeIcon icon={faPaperPlane} />
-                Submit Challenge
+                <FontAwesomeIcon icon={faRobot} />
+                Auto-Submit Challenge
               </Button>
-            ) : (
+              {/* Generate Letter - secondary option */}
+              <Button
+                variant="outline"
+                className="w-full gap-2 bg-transparent"
+                onClick={onGenerateLetter}
+              >
+                <FontAwesomeIcon icon={faWandMagicSparkles} />
+                Generate Challenge Letter
+              </Button>
+              {/* Preview Letter if one exists */}
+              {hasLetter && (
+                <Button
+                  variant="outline"
+                  className="w-full gap-2 bg-transparent"
+                  onClick={onPreviewLetter}
+                >
+                  <FontAwesomeIcon icon={faEye} />
+                  Preview Letter
+                </Button>
+              )}
+            </>
+          ) : submitted ? (
+            // Already submitted - show tracking options
+            <>
               <Button
                 className="w-full gap-2 bg-teal text-white hover:bg-teal-dark"
-                onClick={onUpgrade}
+                onClick={onTrackStatus}
               >
-                <FontAwesomeIcon icon={faLock} />
-                Upgrade to Challenge
+                <FontAwesomeIcon icon={faChartLine} />
+                Track Status
               </Button>
-            )}
-            <Button
-              variant="outline"
-              className="w-full gap-2 bg-transparent"
-              onClick={onPreviewLetter}
-            >
-              <FontAwesomeIcon icon={faEye} />
-              Preview Letter
-            </Button>
-          </>
-        ) : submitted ? (
-          // Already submitted - show tracking options
-          <>
-            <Button
-              className="w-full gap-2 bg-teal text-white hover:bg-teal-dark"
-              onClick={onTrackStatus}
-            >
-              <FontAwesomeIcon icon={faChartLine} />
-              Track Status
-            </Button>
-            <Button
-              variant="outline"
-              className="w-full gap-2 bg-transparent"
-              onClick={onViewSubmission}
-            >
-              <FontAwesomeIcon icon={faFileLines} />
-              View Submission
-            </Button>
-          </>
-        ) : null}
+              <Button
+                variant="outline"
+                className="w-full gap-2 bg-transparent"
+                onClick={onViewSubmission}
+              >
+                <FontAwesomeIcon icon={faFileLines} />
+                View Submission
+              </Button>
+            </>
+          ) : null
+        ) : (
+          // Not PREMIUM - show upgrade button
+          <Button
+            className="w-full gap-2 bg-teal text-white hover:bg-teal-dark"
+            onClick={onUpgrade}
+          >
+            <FontAwesomeIcon icon={faLock} />
+            Upgrade to Challenge Ticket
+          </Button>
+        )}
 
         {/* Days Remaining Alert - shown prominently in actions */}
         {deadlineDays !== undefined && deadlineDays > 0 && deadlineDays <= 14 && (

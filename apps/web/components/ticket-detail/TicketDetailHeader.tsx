@@ -163,24 +163,25 @@ const TicketDetailHeader = ({
         Back to Tickets
       </Link>
 
-      <div className="mt-4 flex flex-wrap items-start justify-between gap-4">
-        <div>
-          <div className="flex items-center gap-3">
-            <h1 className="text-2xl font-bold text-dark md:text-3xl">
-              {pcnNumber}
-            </h1>
-            <span
-              className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-sm font-semibold ${statusStyle.bg} ${statusStyle.text}`}
-            >
-              <i className={`fa-solid ${statusStyle.icon} text-xs`} />
-              {statusStyle.label}
-            </span>
-          </div>
-          <p className="mt-1 text-gray">{issuer}</p>
+      <div className="mt-4">
+        {/* Title row with PCN number */}
+        <div className="flex flex-wrap items-center gap-2">
+          <h1 className="text-2xl font-bold text-dark md:text-3xl">
+            {pcnNumber}
+          </h1>
+          <span
+            className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-sm font-semibold ${statusStyle.bg} ${statusStyle.text}`}
+          >
+            <i className={`fa-solid ${statusStyle.icon} text-xs`} />
+            {statusStyle.label}
+          </span>
         </div>
 
-        {/* Mobile Actions */}
-        <div className="flex gap-2 md:hidden">
+        {/* Issuer */}
+        <p className="mt-1 text-gray">{issuer}</p>
+
+        {/* Mobile Actions - separate row */}
+        <div className="mt-3 flex gap-2 md:hidden">
           {onEdit && (
             <Button
               size="sm"

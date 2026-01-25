@@ -783,6 +783,23 @@ export type EnumAppealDecisionWithAggregatesFilter<$PrismaModel = never> = {
   _max?: Prisma.NestedEnumAppealDecisionFilter<$PrismaModel>
 }
 
+export type EnumIssuerAutomationStatusFilter<$PrismaModel = never> = {
+  equals?: $Enums.IssuerAutomationStatus | Prisma.EnumIssuerAutomationStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.IssuerAutomationStatus[] | Prisma.ListEnumIssuerAutomationStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.IssuerAutomationStatus[] | Prisma.ListEnumIssuerAutomationStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumIssuerAutomationStatusFilter<$PrismaModel> | $Enums.IssuerAutomationStatus
+}
+
+export type EnumIssuerAutomationStatusWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.IssuerAutomationStatus | Prisma.EnumIssuerAutomationStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.IssuerAutomationStatus[] | Prisma.ListEnumIssuerAutomationStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.IssuerAutomationStatus[] | Prisma.ListEnumIssuerAutomationStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumIssuerAutomationStatusWithAggregatesFilter<$PrismaModel> | $Enums.IssuerAutomationStatus
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumIssuerAutomationStatusFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumIssuerAutomationStatusFilter<$PrismaModel>
+}
+
 export type NestedStringFilter<$PrismaModel = never> = {
   equals?: string | Prisma.StringFieldRefInput<$PrismaModel>
   in?: string[] | Prisma.ListStringFieldRefInput<$PrismaModel>
@@ -1498,6 +1515,23 @@ export type NestedEnumAppealDecisionWithAggregatesFilter<$PrismaModel = never> =
   _count?: Prisma.NestedIntFilter<$PrismaModel>
   _min?: Prisma.NestedEnumAppealDecisionFilter<$PrismaModel>
   _max?: Prisma.NestedEnumAppealDecisionFilter<$PrismaModel>
+}
+
+export type NestedEnumIssuerAutomationStatusFilter<$PrismaModel = never> = {
+  equals?: $Enums.IssuerAutomationStatus | Prisma.EnumIssuerAutomationStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.IssuerAutomationStatus[] | Prisma.ListEnumIssuerAutomationStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.IssuerAutomationStatus[] | Prisma.ListEnumIssuerAutomationStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumIssuerAutomationStatusFilter<$PrismaModel> | $Enums.IssuerAutomationStatus
+}
+
+export type NestedEnumIssuerAutomationStatusWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.IssuerAutomationStatus | Prisma.EnumIssuerAutomationStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.IssuerAutomationStatus[] | Prisma.ListEnumIssuerAutomationStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.IssuerAutomationStatus[] | Prisma.ListEnumIssuerAutomationStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumIssuerAutomationStatusWithAggregatesFilter<$PrismaModel> | $Enums.IssuerAutomationStatus
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumIssuerAutomationStatusFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumIssuerAutomationStatusFilter<$PrismaModel>
 }
 
 

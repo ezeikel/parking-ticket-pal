@@ -143,6 +143,8 @@ export type TicketWithRelations = Prisma.TicketGetPayload<{
         id: true;
         createdAt: true;
         formType: true;
+        fileName: true;
+        fileUrl: true;
       };
     };
     challenges: {
@@ -151,6 +153,7 @@ export type TicketWithRelations = Prisma.TicketGetPayload<{
         type: true;
         reason: true;
         status: true;
+        metadata: true;
         createdAt: true;
         submittedAt: true;
       };

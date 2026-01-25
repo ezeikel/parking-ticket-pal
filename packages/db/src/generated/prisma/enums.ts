@@ -294,3 +294,14 @@ export const Platform = {
 } as const
 
 export type Platform = (typeof Platform)[keyof typeof Platform]
+
+
+export const IssuerAutomationStatus = {
+  LEARNING: 'LEARNING',
+  PENDING_REVIEW: 'PENDING_REVIEW',
+  VERIFIED: 'VERIFIED',
+  NEEDS_HUMAN_HELP: 'NEEDS_HUMAN_HELP',
+  FAILED: 'FAILED'
+} as const
+
+export type IssuerAutomationStatus = (typeof IssuerAutomationStatus)[keyof typeof IssuerAutomationStatus]

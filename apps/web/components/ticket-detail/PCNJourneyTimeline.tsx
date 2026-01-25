@@ -20,7 +20,7 @@ const PCNJourneyTimeline = ({
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.22 }}
-      className="rounded-xl border border-border bg-white p-5 md:p-6"
+      className="overflow-hidden rounded-xl border border-border bg-white p-5 md:p-6"
     >
       <h2 className="mb-4 text-lg font-semibold text-dark">Ticket Journey</h2>
       <p className="mb-4 text-sm text-gray">

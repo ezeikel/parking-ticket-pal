@@ -676,6 +676,11 @@ export const getTicket = async (id: string) => {
           id: true,
           createdAt: true,
           formType: true,
+          fileName: true,
+          fileUrl: true,
+        },
+        orderBy: {
+          createdAt: 'desc',
         },
       },
       challenges: {
@@ -684,8 +689,12 @@ export const getTicket = async (id: string) => {
           type: true,
           reason: true,
           status: true,
+          metadata: true,
           createdAt: true,
           submittedAt: true,
+        },
+        orderBy: {
+          createdAt: 'desc',
         },
       },
       reminders: true,

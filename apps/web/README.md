@@ -138,6 +138,188 @@ Automated form filling for major UK parking authorities:
 - **Smart Field Mapping**: Automatic form field population
 - **Evidence Attachment**: Seamless file uploads
 
+### 🤖 Auto-Challenge Automation System
+
+A self-learning automation system that discovers and records issuer challenge
+flows, enabling automatic challenge submission for any parking authority.
+
+#### How It Works
+
+```
+┌─────────────────────────────────────────────────────────────────────────┐
+│                        AUTO-CHALLENGE FLOW                               │
+├─────────────────────────────────────────────────────────────────────────┤
+│                                                                          │
+│  User clicks "Auto-Submit Challenge"                                     │
+│           │                                                              │
+│           ▼                                                              │
+│  ┌─────────────────┐                                                     │
+│  │ Issuer has      │──Yes──▶ Run existing automation ──▶ Submit         │
+│  │ verified recipe?│                                                     │
+│  └─────────────────┘                                                     │
+│           │ No                                                           │
+│           ▼                                                              │
+│  ┌─────────────────┐                                                     │
+│  │ Learn Flow      │ Playwright navigates issuer site                    │
+│  │ (background)    │ Takes screenshots at each step                      │
+│  └─────────────────┘                                                     │
+│           │                                                              │
+│           ▼                                                              │
+│  ┌─────────────────┐                                                     │
+│  │ Save Recipe     │ Store steps, selectors, screenshots                 │
+│  │ status: PENDING │ in IssuerAutomation table                           │
+│  └─────────────────┘                                                     │
+│           │                                                              │
+│           ▼                                                              │
+│  ┌─────────────────┐                                                     │
+│  │ Human Review    │ Admin verifies recipe is correct                    │
+│  │ (notification)  │ Can test without submitting                         │
+│  └─────────────────┘                                                     │
+│           │                                                              │
+│           ▼                                                              │
+│  ┌─────────────────┐                                                     │
+│  │ Recipe Approved │ status: VERIFIED                                    │
+│  │ Submit Challenge│ Run recipe for pending challenges                   │
+│  └─────────────────┘                                                     │
+│                                                                          │
+└─────────────────────────────────────────────────────────────────────────┘
+```
+
+#### Status Workflow
+
+| Status              | Description                                   |
+| ------------------- | --------------------------------------------- |
+| `LEARNING`          | Currently discovering the issuer's flow       |
+| `PENDING_REVIEW`    | Learned successfully, awaiting verification   |
+| `VERIFIED`          | Approved and ready for use                    |
+| `NEEDS_HUMAN_HELP`  | Requires manual intervention (e.g., account)  |
+| `FAILED`            | Learning or execution failed                  |
+
+#### Key Files
+
+```
+utils/automation/
+├── learn.ts           # Learning service - discovers issuer flows
+├── runAutomation.ts   # Recipe runner - executes learned automations
+├── shared.ts          # Shared Playwright setup with CAPTCHA solving
+└── issuers/           # Built-in automation for specific issuers
+    ├── lewisham.ts
+    ├── horizon.ts
+    └── westminster.ts
+
+app/actions/
+└── autoChallenge.ts   # Server action for initiating auto-challenges
+
+components/ticket-detail/
+├── ActionsCard.tsx           # Contains "Auto-Submit Challenge" button
+└── AutoChallengeDialog.tsx   # Challenge reason selection modal
+```
+
+#### Recipe Step Structure
+
+Each learned recipe contains an array of steps:
+
+```typescript
+type RecipeStep = {
+  order: number;
+  action: 'navigate' | 'fill' | 'click' | 'select' | 'wait' | 'screenshot' | 'solve_captcha';
+  selector?: string;        // CSS selector
+  value?: string;           // Value with placeholders like {{pcnNumber}}
+  description: string;      // Human-readable description
+  screenshotUrl?: string;   // Screenshot after this step
+  waitFor?: string;         // Selector to wait for
+  optional?: boolean;       // Step may not always appear
+};
+```
+
+#### Available Placeholders
+
+The system supports dynamic value injection using placeholders:
+
+| Placeholder          | Description                    |
+| -------------------- | ------------------------------ |
+| `{{pcnNumber}}`      | Penalty Charge Notice number   |
+| `{{vehicleReg}}`     | Vehicle registration number    |
+| `{{firstName}}`      | User's first name              |
+| `{{lastName}}`       | User's last name               |
+| `{{fullName}}`       | User's full name               |
+| `{{email}}`          | User's email address           |
+| `{{phone}}`          | User's phone number            |
+| `{{addressLine1}}`   | Address line 1                 |
+| `{{addressLine2}}`   | Address line 2                 |
+| `{{city}}`           | City                           |
+| `{{postcode}}`       | Postcode                       |
+| `{{challengeReason}}`| Selected challenge reason      |
+| `{{challengeText}}`  | AI-generated challenge content |
+
+#### Adding Built-in Issuer Support
+
+1. Create issuer file in `utils/automation/issuers/`:
+
+```typescript
+// utils/automation/issuers/example.ts
+export async function verify(pcnNumber: string, vehicleReg: string) {
+  // Verify ticket exists on issuer's website
+}
+
+export async function challenge(
+  pcnNumber: string,
+  challengeReason: string,
+  customReason?: string
+) {
+  // Submit challenge via issuer's portal
+}
+```
+
+2. Add to function maps in `utils/automation/index.ts`
+3. Update `isAutomationSupported()` in constants
+
+#### Environment Variables
+
+```bash
+# Required for CAPTCHA solving
+TWOCAPTCHA_API_KEY="your-2captcha-api-key"
+```
+
+#### Production Architecture (Vercel)
+
+**Important**: Playwright browser automation cannot run directly on Vercel's
+serverless environment due to:
+
+- Serverless function memory/time limits (1GB max, 60s timeout)
+- No Chromium browser binary in Vercel runtime
+- Ephemeral, stateless function invocations
+
+**Production Options**:
+
+| Option                     | Description                                      | Pros                          | Cons                        |
+| -------------------------- | ------------------------------------------------ | ----------------------------- | --------------------------- |
+| **Browserless.io**         | Cloud browser automation service                 | Drop-in Playwright support    | Per-minute pricing          |
+| **AWS Lambda + Playwright**| Self-hosted with Chromium layer                  | Full control                  | More infrastructure         |
+| **Dedicated Server**       | Background worker on Railway/Render/EC2          | Persistent process            | Monthly cost                |
+| **BrowserStack Automate**  | Enterprise browser testing platform              | Reliable, supported           | Enterprise pricing          |
+
+**Recommended Setup**:
+
+1. **Learning Phase**: Use Browserless.io or dedicated worker to discover flows
+2. **Recipe Storage**: Store learned recipes in the database
+3. **Execution**: Run automations via external browser service
+4. **Webhooks**: Use webhooks to update challenge status when complete
+
+Example Browserless.io integration:
+
+```typescript
+// Connect Playwright to remote browser
+import { chromium } from 'playwright';
+
+const browser = await chromium.connect({
+  wsEndpoint: `wss://chrome.browserless.io?token=${process.env.BROWSERLESS_TOKEN}`,
+});
+```
+
+The current implementation in `utils/automation/shared.ts` can be adapted to
+connect to a remote browser endpoint instead of launching locally.
+
 ### 📊 Comprehensive Analytics
 
 Dual analytics setup for complete visibility:

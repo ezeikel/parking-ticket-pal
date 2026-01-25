@@ -8,6 +8,7 @@ import { Address } from '@parking-ticket-pal/types';
 import { TicketWithRelations, HistoryEvent } from '@/types';
 import { updateTicketStatus } from '@/app/actions/ticket';
 import { createTicketCheckoutSession } from '@/app/actions/stripe';
+import { initiateAutoChallenge } from '@/app/actions/autoChallenge';
 import TicketDetailHeader from './TicketDetailHeader';
 import TicketPhotoCard from './TicketPhotoCard';
 import TicketInfoCard from './TicketInfoCard';
@@ -16,12 +17,15 @@ import EvidenceCard from './EvidenceCard';
 import PCNJourneyTimeline from './PCNJourneyTimeline';
 import AppealLetterCard from './AppealLetterCard';
 import AppealLetterSummaryCard from './AppealLetterSummaryCard';
+import GeneratedFormsCard from './GeneratedFormsCard';
+import ChallengeLettersCard from './ChallengeLettersCard';
 import SuccessPredictionCard from './SuccessPredictionCard';
 import ActionsCard from './ActionsCard';
 import DeadlineAlertCard from './DeadlineAlertCard';
 import ActivityTimelineCard from './ActivityTimelineCard';
 import MobileStickyFooter from './MobileStickyFooter';
 import LightboxModal from './LightboxModal';
+import AutoChallengeDialog from './AutoChallengeDialog';
 import AddressPromptBanner from '@/components/AddressPromptBanner/AddressPromptBanner';
 
 type TicketDetailPageProps = {
@@ -64,6 +68,7 @@ const TicketDetailPage = ({ ticket }: TicketDetailPageProps) => {
   const router = useRouter();
   const [, startTransition] = useTransition();
   const [lightboxImage, setLightboxImage] = useState<string | null>(null);
+  const [isAutoChallengeDialogOpen, setIsAutoChallengeDialogOpen] = useState(false);
 
   // Parse location
   const location = ticket.location as Address | null;
@@ -156,6 +161,41 @@ const TicketDetailPage = ({ ticket }: TicketDetailPageProps) => {
     toast.info('Delete functionality available via existing UI');
   };
 
+  const handleAutoChallenge = async (reason: string, customReason?: string) => {
+    const toastId = toast.loading('Submitting challenge...');
+
+    try {
+      const result = await initiateAutoChallenge(ticket.id, reason, customReason);
+
+      if (result.success) {
+        switch (result.status) {
+          case 'submitted':
+            toast.success('Challenge submitted successfully!', { id: toastId });
+            break;
+          case 'submitting':
+            toast.success('Challenge is being submitted. You\'ll be notified when complete.', { id: toastId });
+            break;
+          case 'learning':
+            toast.success(result.message, { id: toastId });
+            break;
+          case 'pending_review':
+            toast.info(result.message, { id: toastId });
+            break;
+          case 'needs_human_help':
+            toast.info(result.message, { id: toastId });
+            break;
+          default:
+            toast.success(result.message, { id: toastId });
+        }
+        router.refresh();
+      } else {
+        toast.error(result.message, { id: toastId });
+      }
+    } catch (error) {
+      toast.error('Failed to submit challenge. Please try again.', { id: toastId });
+    }
+  };
+
   const handleReplaceTicketPhoto = () => {
     // TODO: Implement ticket photo replacement
     // This would open a file picker and upload a new ticket image
@@ -171,7 +211,7 @@ const TicketDetailPage = ({ ticket }: TicketDetailPageProps) => {
   return (
     <div className="flex min-h-screen flex-col bg-light">
       {/* Page Content */}
-      <main className="mx-auto w-full max-w-7xl flex-1 px-4 py-6 md:px-6">
+      <main className="mx-auto w-full max-w-7xl flex-1 overflow-hidden px-4 py-6 md:px-6">
         {/* Header */}
         <TicketDetailHeader
           pcnNumber={ticket.pcnNumber}
@@ -184,7 +224,7 @@ const TicketDetailPage = ({ ticket }: TicketDetailPageProps) => {
         {/* Two Column Layout */}
         <div className="grid gap-6 lg:grid-cols-5">
           {/* Left Column - 60% */}
-          <div className="space-y-6 lg:col-span-3">
+          <div className="min-w-0 space-y-6 lg:col-span-3">
             {/* Ticket Details Card */}
             <div id="ticket-details">
               <TicketInfoCard
@@ -225,7 +265,15 @@ const TicketDetailPage = ({ ticket }: TicketDetailPageProps) => {
               onStatusChange={handleStatusChange}
             />
 
-            {/* Appeal Letter Card (Conditional) */}
+            {/* Challenge Letters Card (generated appeal letters) */}
+            {ticket.challenges.length > 0 && (
+              <ChallengeLettersCard
+                challenges={ticket.challenges}
+                onRegenerate={handleGenerateLetter}
+              />
+            )}
+
+            {/* Appeal Letter Card (incoming council letters) */}
             {ticket.letters.length > 0 && (
               <AppealLetterCard
                 letters={ticket.letters}
@@ -243,12 +291,17 @@ const TicketDetailPage = ({ ticket }: TicketDetailPageProps) => {
                 onRegenerate={handleGenerateLetter}
               />
             )}
+
+            {/* Generated Forms Card (Conditional) */}
+            {ticket.forms.length > 0 && (
+              <GeneratedFormsCard forms={ticket.forms} />
+            )}
           </div>
 
           {/* Right Column - 40% */}
-          <div className="space-y-6 lg:col-span-2">
+          <div className="min-w-0 space-y-6 lg:col-span-2">
             {/* Sticky container for right column on desktop */}
-            <div className="lg:sticky lg:top-24 lg:space-y-6">
+            <div className="min-w-0 space-y-6 lg:sticky lg:top-24">
               {/* Address Prompt Banner (for PREMIUM users without address) */}
               {shouldShowAddressPrompt && <AddressPromptBanner />}
 
@@ -267,8 +320,8 @@ const TicketDetailPage = ({ ticket }: TicketDetailPageProps) => {
                   tier={ticket.tier}
                   hasLetter={ticket.letters.length > 0}
                   deadlineDays={deadlineDays}
+                  onAutoChallenge={() => setIsAutoChallengeDialogOpen(true)}
                   onGenerateLetter={handleGenerateLetter}
-                  onSubmitChallenge={handleChallenge}
                   onPreviewLetter={() => {
                     if (ticket.letters.length > 0 && ticket.letters[0].media.length > 0) {
                       window.open(ticket.letters[0].media[0].url, '_blank');
@@ -324,6 +377,14 @@ const TicketDetailPage = ({ ticket }: TicketDetailPageProps) => {
 
       {/* Lightbox Modal */}
       <LightboxModal imageUrl={lightboxImage} onClose={() => setLightboxImage(null)} />
+
+      {/* Auto Challenge Dialog */}
+      <AutoChallengeDialog
+        open={isAutoChallengeDialogOpen}
+        onOpenChange={setIsAutoChallengeDialogOpen}
+        issuerName={ticket.issuer}
+        onSubmit={handleAutoChallenge}
+      />
     </div>
   );
 };

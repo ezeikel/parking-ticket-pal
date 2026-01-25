@@ -588,6 +588,34 @@ enum Platform {
   ANDROID
 }
 
+// Issuer automation recipes - learned flows for auto-submitting challenges
+model IssuerAutomation {
+  id            String                   @id @default(cuid())
+  issuerId      String                   @unique // e.g., "lewisham", "westminster"
+  issuerName    String // Human readable name
+  challengeUrl  String // Starting URL for challenge flow
+  steps         Json // Array of step objects
+  screenshots   Json                     @default("[]") // Array of screenshot URLs per step
+  status        IssuerAutomationStatus   @default(PENDING_REVIEW)
+  needsAccount  Boolean                  @default(false) // Requires account creation
+  captchaType   String? // "recaptcha", "hcaptcha", etc.
+  lastVerified  DateTime? // Last successful validation run
+  lastFailed    DateTime? // Last failed validation
+  failureReason String?
+  createdAt     DateTime                 @default(now())
+  updatedAt     DateTime                 @updatedAt
+
+  @@map("issuer_automations")
+}
+
+enum IssuerAutomationStatus {
+  LEARNING // Currently being learned
+  PENDING_REVIEW // Learned, awaiting human verification
+  VERIFIED // Approved for use
+  NEEDS_HUMAN_HELP // Requires manual intervention (e.g., account creation)
+  FAILED // Learning failed
+}
+
 // Pending tickets from guest checkout - claimed when user signs up
 model PendingTicket {
   id              String     @id @default(cuid())
