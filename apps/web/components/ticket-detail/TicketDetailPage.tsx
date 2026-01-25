@@ -176,7 +176,7 @@ const TicketDetailPage = ({ ticket }: TicketDetailPageProps) => {
     reasonLabel: string,
     customReason?: string,
   ) => {
-    const toastId = toast.loading('Generating challenge letter...');
+    const toastId = toast.loading('Creating your challenge letter...');
 
     try {
       const result = await generateChallengeLetter(
@@ -187,17 +187,20 @@ const TicketDetailPage = ({ ticket }: TicketDetailPageProps) => {
 
       if (result && result.success) {
         toast.success(
-          result.message || 'Challenge letter generated and emailed to you!',
+          result.message || 'Your challenge letter is on the way! Check your inbox.',
           { id: toastId },
         );
         router.refresh();
       } else {
-        toast.error(result?.message || 'Failed to generate letter', {
-          id: toastId,
-        });
+        toast.error(
+          result?.message || 'Something went wrong. Please try again.',
+          {
+            id: toastId,
+          },
+        );
       }
     } catch (error) {
-      toast.error('Failed to generate challenge letter. Please try again.', {
+      toast.error('Something went wrong. Please try again.', {
         id: toastId,
       });
     }

@@ -8,6 +8,12 @@ import { render } from '@react-email/render';
 import MagicLinkEmail from '@/components/emails/MagicLinkEmail';
 import TicketReminderEmail from '@/components/emails/TicketReminderEmail';
 
+const AttachmentSchema = z.object({
+  filename: z.string(),
+  content: z.instanceof(Buffer),
+  contentType: z.string().optional(),
+});
+
 const EmailSchema = z.object({
   to: z.union([z.string().email(), z.array(z.string().email())]),
   subject: z.string().min(1),
@@ -15,8 +21,10 @@ const EmailSchema = z.object({
   from: z.string().email().optional(),
   replyTo: z.string().email().optional(),
   text: z.string().optional(),
+  attachments: z.array(AttachmentSchema).optional(),
 });
 
+export type EmailAttachment = z.infer<typeof AttachmentSchema>;
 export type EmailData = z.infer<typeof EmailSchema>;
 
 interface RateLimitStore {
@@ -52,7 +60,9 @@ const checkRateLimit = (identifier: string): boolean => {
 };
 
 const getFromAddress = (customFrom?: string): string =>
-  customFrom || `Parking Ticket Pal <${process.env.DEFAULT_FROM_EMAIL}>` || 'no-reply@notifications.parkingticketpal.com';
+  customFrom ||
+  `Parking Ticket Pal <${process.env.DEFAULT_FROM_EMAIL}>` ||
+  'no-reply@notifications.parkingticketpal.com';
 
 const createEmailTransporter = () => {
   if (process.env.NODE_ENV === 'production') {
@@ -85,7 +95,9 @@ const createEmailTransporter = () => {
   throw new Error('No email service configured');
 };
 
-export const sendEmail = async (emailData: EmailData): Promise<{
+export const sendEmail = async (
+  emailData: EmailData,
+): Promise<{
   success: boolean;
   messageId?: string;
   error?: string;
@@ -95,8 +107,12 @@ export const sendEmail = async (emailData: EmailData): Promise<{
     const validatedData = EmailSchema.parse(emailData);
 
     // Rate limiting
-    const recipients = Array.isArray(validatedData.to) ? validatedData.to : [validatedData.to];
-    const rateLimitFailed = recipients.find(recipient => !checkRateLimit(recipient));
+    const recipients = Array.isArray(validatedData.to)
+      ? validatedData.to
+      : [validatedData.to];
+    const rateLimitFailed = recipients.find(
+      (recipient) => !checkRateLimit(recipient),
+    );
     if (rateLimitFailed) {
       return {
         success: false,
@@ -116,6 +132,10 @@ export const sendEmail = async (emailData: EmailData): Promise<{
         html: validatedData.html,
         text: validatedData.text,
         replyTo: validatedData.replyTo,
+        attachments: validatedData.attachments?.map((att) => ({
+          filename: att.filename,
+          content: att.content,
+        })),
       });
 
       if (result.error) {
@@ -137,6 +157,11 @@ export const sendEmail = async (emailData: EmailData): Promise<{
       html: validatedData.html,
       text: validatedData.text,
       replyTo: validatedData.replyTo,
+      attachments: validatedData.attachments?.map((att) => ({
+        filename: att.filename,
+        content: att.content,
+        contentType: att.contentType,
+      })),
     });
 
     return {
@@ -144,7 +169,8 @@ export const sendEmail = async (emailData: EmailData): Promise<{
       messageId: result.messageId,
     };
   } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    const errorMessage =
+      error instanceof Error ? error.message : 'Unknown error';
 
     Sentry.captureException(error, {
       tags: {
@@ -164,7 +190,9 @@ export const sendEmail = async (emailData: EmailData): Promise<{
   }
 };
 
-export const sendBatchEmails = async (emails: EmailData[]): Promise<{
+export const sendBatchEmails = async (
+  emails: EmailData[],
+): Promise<{
   success: boolean;
   results: Array<{
     success: boolean;
@@ -177,7 +205,9 @@ export const sendBatchEmails = async (emails: EmailData[]): Promise<{
     emails.map(async (email, index) => {
       // Add delay for each email to avoid overwhelming the service
       if (index > 0) {
-        await new Promise(resolve => { setTimeout(resolve, 100); });
+        await new Promise((resolve) => {
+          setTimeout(resolve, 100);
+        });
       }
 
       const result = await sendEmail(email);
@@ -185,10 +215,10 @@ export const sendBatchEmails = async (emails: EmailData[]): Promise<{
         ...result,
         recipient: email.to,
       };
-    })
+    }),
   );
 
-  const overallSuccess = results.every(result => result.success);
+  const overallSuccess = results.every((result) => result.success);
 
   return {
     success: overallSuccess,
@@ -196,7 +226,10 @@ export const sendBatchEmails = async (emails: EmailData[]): Promise<{
   };
 };
 
-export const sendMagicLinkEmail = async (to: string, magicLink: string): Promise<{
+export const sendMagicLinkEmail = async (
+  to: string,
+  magicLink: string,
+): Promise<{
   success: boolean;
   messageId?: string;
   error?: string;
@@ -211,20 +244,25 @@ export const sendMagicLinkEmail = async (to: string, magicLink: string): Promise
   });
 };
 
-export const sendTicketReminder = async (to: string, ticketData: {
-  pcnNumber: string;
-  dueDate: string;
-  amount: string;
-}): Promise<{
+export const sendTicketReminder = async (
+  to: string,
+  ticketData: {
+    pcnNumber: string;
+    dueDate: string;
+    amount: string;
+  },
+): Promise<{
   success: boolean;
   messageId?: string;
   error?: string;
 }> => {
-  const emailHtml = await render(TicketReminderEmail({
-    pcnNumber: ticketData.pcnNumber,
-    dueDate: ticketData.dueDate,
-    amount: ticketData.amount,
-  }));
+  const emailHtml = await render(
+    TicketReminderEmail({
+      pcnNumber: ticketData.pcnNumber,
+      dueDate: ticketData.dueDate,
+      amount: ticketData.amount,
+    }),
+  );
 
   return sendEmail({
     to,

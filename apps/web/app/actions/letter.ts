@@ -37,7 +37,7 @@ import {
   CHALLENGE_EMAIL_PROMPT,
 } from '@/constants';
 import { generateChallengeEmailPrompt } from '@/utils/promptGenerators';
-import resend from '@/lib/resend';
+import { sendEmail } from '@/lib/email';
 import generatePDF from '@/utils/generatePDF';
 import streamToBuffer from '@/utils/streamToBuffer';
 import generateChallengeContent from '@/utils/ai/generateChallengeContent';
@@ -145,9 +145,10 @@ export const createLetter = async (
 
         // Move file to permanent location with letter ID
         // New path: letters/{letterId}/image.{ext}
-        const permanentPath = STORAGE_PATHS.LETTER_IMAGE
-          .replace('%s', letter.id)
-          .replace('%s', extension);
+        const permanentPath = STORAGE_PATHS.LETTER_IMAGE.replace(
+          '%s',
+          letter.id,
+        ).replace('%s', extension);
 
         // Download temp file and upload to permanent location
         const tempResponse = await fetch(validatedData.tempImageUrl!);
@@ -159,9 +160,13 @@ export const createLetter = async (
 
         const tempBuffer = await tempResponse.arrayBuffer();
 
-        const permanentBlob = await put(permanentPath, Buffer.from(tempBuffer), {
-          contentType: `image/${extension === 'jpg' ? 'jpeg' : extension}`,
-        });
+        const permanentBlob = await put(
+          permanentPath,
+          Buffer.from(tempBuffer),
+          {
+            contentType: `image/${extension === 'jpg' ? 'jpeg' : extension}`,
+          },
+        );
 
         // Create media record with permanent URL
         await db.media.create({
@@ -181,14 +186,18 @@ export const createLetter = async (
           letterId: letter.id,
           tempImagePath: validatedData.tempImagePath,
           permanentPath,
-          ticketId: ticket.id
+          ticketId: ticket.id,
         });
       } catch (error) {
-        logger.error('Failed to move letter image', {
-          letterId: letter.id,
-          tempImagePath: validatedData.tempImagePath,
-          ticketId: ticket.id
-        }, error instanceof Error ? error : new Error(String(error)));
+        logger.error(
+          'Failed to move letter image',
+          {
+            letterId: letter.id,
+            tempImagePath: validatedData.tempImagePath,
+            ticketId: ticket.id,
+          },
+          error instanceof Error ? error : new Error(String(error)),
+        );
         // Optionally, you could create a cleanup job to handle failed moves
         // or retry the operation
       }
@@ -209,11 +218,15 @@ export const createLetter = async (
 
     return letter;
   } catch (error) {
-    logger.error('Error creating letter', {
-      pcnNumber: validatedData.pcnNumber,
-      vehicleReg: validatedData.vehicleReg,
-      userId
-    }, error instanceof Error ? error : new Error(String(error)));
+    logger.error(
+      'Error creating letter',
+      {
+        pcnNumber: validatedData.pcnNumber,
+        vehicleReg: validatedData.vehicleReg,
+        userId,
+      },
+      error instanceof Error ? error : new Error(String(error)),
+    );
     return null;
   }
 };
@@ -238,9 +251,13 @@ export const getLetter = async (letterId: string) => {
 
     return { success: true, data: letter };
   } catch (error) {
-    logger.error('Error getting letter', {
-      letterId
-    }, error instanceof Error ? error : new Error(String(error)));
+    logger.error(
+      'Error getting letter',
+      {
+        letterId,
+      },
+      error instanceof Error ? error : new Error(String(error)),
+    );
     return {
       success: false,
       error: error instanceof Error ? error.message : 'Unknown error',
@@ -273,9 +290,13 @@ export const getLettersByPcnNumber = async (pcnNumber: string) => {
 
     return { success: true, data: letters };
   } catch (error) {
-    logger.error('Error getting letters by PCN', {
-      pcnNumber
-    }, error instanceof Error ? error : new Error(String(error)));
+    logger.error(
+      'Error getting letters by PCN',
+      {
+        pcnNumber,
+      },
+      error instanceof Error ? error : new Error(String(error)),
+    );
     return {
       success: false,
       error: error instanceof Error ? error.message : 'Unknown error',
@@ -329,10 +350,14 @@ export const updateLetter = async (
 
     return { success: true, data: letter };
   } catch (error) {
-    logger.error('Error updating letter', {
-      letterId,
-      pcnNumber: data.pcnNumber
-    }, error instanceof Error ? error : new Error(String(error)));
+    logger.error(
+      'Error updating letter',
+      {
+        letterId,
+        pcnNumber: data.pcnNumber,
+      },
+      error instanceof Error ? error : new Error(String(error)),
+    );
     return {
       success: false,
       error: error instanceof Error ? error.message : 'Unknown error',
@@ -365,9 +390,13 @@ export const deleteLetter = async (letterId: string) => {
 
     return { success: true };
   } catch (error) {
-    logger.error('Error deleting letter', {
-      letterId
-    }, error instanceof Error ? error : new Error(String(error)));
+    logger.error(
+      'Error deleting letter',
+      {
+        letterId,
+      },
+      error instanceof Error ? error : new Error(String(error)),
+    );
     return {
       success: false,
       error: error instanceof Error ? error.message : 'Unknown error',
@@ -385,7 +414,6 @@ const generateChallengeLetterByTicketId = async (
   additionalDetails: string | undefined,
   userId: string,
 ) => {
-
   // get user information
   const user = await db.user.findUnique({
     where: {
@@ -441,7 +469,7 @@ const generateChallengeLetterByTicketId = async (
   if (!ticket) {
     logger.error('Ticket not found for challenge letter generation', {
       ticketId,
-      userId
+      userId,
     });
     return null;
   }
@@ -527,9 +555,8 @@ const generateChallengeLetterByTicketId = async (
 
     if (user.signatureUrl) {
       try {
-        const { downloadSvgFile, extractSvgPathsAndViewBox } = await import(
-          '@/utils/extractSignaturePaths'
-        );
+        const { downloadSvgFile, extractSvgPathsAndViewBox } =
+          await import('@/utils/extractSignaturePaths');
         const svgContent = await downloadSvgFile(user.signatureUrl);
 
         if (svgContent) {
@@ -538,11 +565,15 @@ const generateChallengeLetterByTicketId = async (
           signatureViewBox = extracted.viewBox;
         }
       } catch (error) {
-        logger.error('Error processing signature for challenge letter', {
-          ticketId,
-          userId,
-          signatureUrl: user.signatureUrl
-        }, error instanceof Error ? error : new Error(String(error)));
+        logger.error(
+          'Error processing signature for challenge letter',
+          {
+            ticketId,
+            userId,
+            signatureUrl: user.signatureUrl,
+          },
+          error instanceof Error ? error : new Error(String(error)),
+        );
       }
     }
 
@@ -562,7 +593,10 @@ const generateChallengeLetterByTicketId = async (
 
     // save PDF to R2 storage
     // New path: letters/{letterId}/challenge.pdf
-    const pdfPath = STORAGE_PATHS.CHALLENGE_LETTER_PDF.replace('%s', challenge.id);
+    const pdfPath = STORAGE_PATHS.CHALLENGE_LETTER_PDF.replace(
+      '%s',
+      challenge.id,
+    );
 
     const pdfBlob = await put(pdfPath, pdfBuffer, {
       contentType: 'application/pdf',
@@ -570,8 +604,7 @@ const generateChallengeLetterByTicketId = async (
 
     // TODO: make this step optional in UI
     // send email with challenge letter as a PDF attachment
-    await resend.emails.send({
-      from: `Parking Ticket Pal <${process.env.DEFAULT_FROM_EMAIL}>`,
+    const emailResult = await sendEmail({
       to: user.email,
       subject: emailData.subject,
       html: emailData.htmlContent,
@@ -582,6 +615,10 @@ const generateChallengeLetterByTicketId = async (
         },
       ],
     });
+
+    if (!emailResult.success) {
+      throw new Error(emailResult.error || 'Failed to send email');
+    }
 
     // update challenge record with success
     await db.challenge.update({
@@ -598,7 +635,7 @@ const generateChallengeLetterByTicketId = async (
 
     return {
       success: true,
-      message: 'Challenge letter generated and sent to users email.',
+      message: 'Your challenge letter is on the way! Check your inbox.',
       challengeId: challenge.id,
     };
   } catch (error) {
@@ -613,12 +650,16 @@ const generateChallengeLetterByTicketId = async (
       },
     });
 
-    logger.error('Error generating challenge letter', {
-      ticketId,
-      challengeId: challenge.id,
-      userId,
-      challengeReason
-    }, error instanceof Error ? error : new Error(String(error)));
+    logger.error(
+      'Error generating challenge letter',
+      {
+        ticketId,
+        challengeId: challenge.id,
+        userId,
+        challengeReason,
+      },
+      error instanceof Error ? error : new Error(String(error)),
+    );
     return {
       success: false,
       message: 'Failed to generate challenge letter.',
@@ -652,7 +693,7 @@ export const generateChallengeLetterByPcn = async (
   if (!ticketLookup) {
     logger.error('Ticket not found for challenge letter generation', {
       pcnNumber,
-      userId
+      userId,
     });
     return null;
   }
@@ -668,7 +709,12 @@ export const generateChallengeLetterByPcn = async (
   }
 
   // Use the existing generateChallengeLetter with ticketId
-  return generateChallengeLetterByTicketId(ticketLookup.id, challengeReason, additionalDetails, userId);
+  return generateChallengeLetterByTicketId(
+    ticketLookup.id,
+    challengeReason,
+    additionalDetails,
+    userId,
+  );
 };
 
 /**
@@ -685,5 +731,10 @@ export const generateChallengeLetter = async (
     return null;
   }
 
-  return generateChallengeLetterByTicketId(ticketId, challengeReason, additionalDetails, userId);
+  return generateChallengeLetterByTicketId(
+    ticketId,
+    challengeReason,
+    additionalDetails,
+    userId,
+  );
 };
