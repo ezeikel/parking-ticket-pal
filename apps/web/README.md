@@ -199,9 +199,8 @@ flows, enabling automatic challenge submission for any parking authority.
 
 ```
 utils/automation/
-├── learn.ts           # Learning service - discovers issuer flows
-├── runAutomation.ts   # Recipe runner - executes learned automations
-├── shared.ts          # Shared Playwright setup with CAPTCHA solving
+├── hetznerClient.ts   # HTTP client for Hetzner automation API
+├── shared.ts          # Shared Playwright setup (built-in issuers)
 └── issuers/           # Built-in automation for specific issuers
     ├── lewisham.ts
     ├── horizon.ts
@@ -209,6 +208,9 @@ utils/automation/
 
 app/actions/
 └── autoChallenge.ts   # Server action for initiating auto-challenges
+
+app/api/webhooks/
+└── automation/route.ts # Webhook handler for Hetzner callbacks
 
 components/ticket-detail/
 ├── ActionsCard.tsx           # Contains "Auto-Submit Challenge" button
@@ -277,48 +279,67 @@ export async function challenge(
 #### Environment Variables
 
 ```bash
-# Required for CAPTCHA solving
-TWOCAPTCHA_API_KEY="your-2captcha-api-key"
+# Hetzner Automation Service
+HETZNER_AUTOMATION_URL="http://your-hetzner-ip:3002"
+HETZNER_AUTOMATION_SECRET="your-shared-secret"
+
+# App URL (for webhook callbacks)
+NEXT_PUBLIC_APP_URL="https://parkingticketpal.com"
 ```
 
-#### Production Architecture (Vercel)
+#### Production Architecture
 
-**Important**: Playwright browser automation cannot run directly on Vercel's
-serverless environment due to:
+The automation system uses a **Hetzner VPS** as a dedicated worker for browser
+automation. This is necessary because Vercel's serverless environment cannot run
+Playwright (memory limits, no Chromium binary, short timeouts).
 
-- Serverless function memory/time limits (1GB max, 60s timeout)
-- No Chromium browser binary in Vercel runtime
-- Ephemeral, stateless function invocations
-
-**Production Options**:
-
-| Option                     | Description                                      | Pros                          | Cons                        |
-| -------------------------- | ------------------------------------------------ | ----------------------------- | --------------------------- |
-| **Browserless.io**         | Cloud browser automation service                 | Drop-in Playwright support    | Per-minute pricing          |
-| **AWS Lambda + Playwright**| Self-hosted with Chromium layer                  | Full control                  | More infrastructure         |
-| **Dedicated Server**       | Background worker on Railway/Render/EC2          | Persistent process            | Monthly cost                |
-| **BrowserStack Automate**  | Enterprise browser testing platform              | Reliable, supported           | Enterprise pricing          |
-
-**Recommended Setup**:
-
-1. **Learning Phase**: Use Browserless.io or dedicated worker to discover flows
-2. **Recipe Storage**: Store learned recipes in the database
-3. **Execution**: Run automations via external browser service
-4. **Webhooks**: Use webhooks to update challenge status when complete
-
-Example Browserless.io integration:
-
-```typescript
-// Connect Playwright to remote browser
-import { chromium } from 'playwright';
-
-const browser = await chromium.connect({
-  wsEndpoint: `wss://chrome.browserless.io?token=${process.env.BROWSERLESS_TOKEN}`,
-});
+```
+┌─────────────────────────────────────────────────────────────────────┐
+│                           VERCEL (Web App)                           │
+│                                                                      │
+│  User clicks "Auto-Submit Challenge"                                 │
+│           │                                                          │
+│           ▼                                                          │
+│  ┌─────────────────┐                                                 │
+│  │ autoChallenge   │─── HTTP POST ──►┌─────────────────────────────┐│
+│  │ server action   │                 │                             ││
+│  └─────────────────┘                 │    HETZNER (CX23)           ││
+│           ▲                          │                             ││
+│           │                          │  ┌───────────────────────┐ ││
+│  ┌─────────────────┐                 │  │ Bun + Hono Server     │ ││
+│  │ Webhook handler │◄─── Callback ───│  │ Port 3002             │ ││
+│  │ /api/webhooks/  │                 │  │                       │ ││
+│  │ automation      │                 │  │ /automation/learn     │ ││
+│  └─────────────────┘                 │  │ /automation/run       │ ││
+│           │                          │  └───────────┬───────────┘ ││
+│           ▼                          │              │             ││
+│  ┌─────────────────┐                 │              ▼             ││
+│  │ Update DB       │                 │  ┌───────────────────────┐ ││
+│  │ Challenge status│                 │  │ Playwright + Chromium │ ││
+│  └─────────────────┘                 │  │ Browser automation    │ ││
+│                                      │  └───────────────────────┘ ││
+└──────────────────────────────────────└─────────────────────────────┘
 ```
 
-The current implementation in `utils/automation/shared.ts` can be adapted to
-connect to a remote browser endpoint instead of launching locally.
+**How it works:**
+
+1. Web app receives challenge request from user
+2. Web app calls Hetzner `/automation/learn` or `/automation/run`
+3. Hetzner runs Playwright browser automation
+4. Hetzner sends results back via webhook to `/api/webhooks/automation`
+5. Web app updates challenge status in database
+
+**Hetzner API Endpoints:**
+
+| Endpoint | Method | Purpose |
+|----------|--------|---------|
+| `/automation/learn` | POST | Discover issuer's challenge flow |
+| `/automation/run` | POST | Execute a learned recipe |
+| `/automation/status/:jobId` | GET | Check job status |
+| `/automation/cancel/:jobId` | POST | Cancel a running job |
+
+See the [parking-ticket-pal-scraper](https://github.com/your-repo/parking-ticket-pal-scraper)
+repository for the Hetzner service implementation.
 
 ### 📊 Comprehensive Analytics
 

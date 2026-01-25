@@ -1,26 +1,31 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
-import { after } from 'next/server';
 import { db, ChallengeStatus, IssuerAutomationStatus } from '@parking-ticket-pal/db';
+import { Address } from '@parking-ticket-pal/types';
 import { findIssuer, isAutomationSupported } from '@/constants/index';
 import { getUserId } from '@/utils/user';
 import { createServerLogger } from '@/lib/logger';
-import { learnIssuerFlow } from '@/utils/automation/learn';
-import { runAutomation, buildAutomationContext } from '@/utils/automation/runAutomation';
+import {
+  startLearnJob,
+  startRunJob,
+  type AutomationContext,
+  type RecipeStep,
+} from '@/utils/automation/hetznerClient';
+import generateChallengeContent from '@/utils/ai/generateChallengeContent';
 
 const logger = createServerLogger({ action: 'autoChallenge' });
 
-// Dynamic import for automation to avoid loading on every page
+// Dynamic import for built-in automation (Lewisham, Westminster, etc.)
 const getAutomation = () => import('@/utils/automation');
 
 export type AutoChallengeStatus =
-  | 'submitted'           // Challenge submitted successfully
-  | 'submitting'          // Currently being submitted
-  | 'learning'            // Learning the issuer's flow
-  | 'pending_review'      // Recipe learned, awaiting human verification
-  | 'needs_human_help'    // Requires manual intervention
-  | 'error';              // Error occurred
+  | 'submitted' // Challenge submitted successfully
+  | 'submitting' // Currently being submitted
+  | 'learning' // Learning the issuer's flow
+  | 'pending_review' // Recipe learned, awaiting human verification
+  | 'needs_human_help' // Requires manual intervention
+  | 'error'; // Error occurred
 
 export type AutoChallengeResult = {
   success: boolean;
@@ -30,19 +35,59 @@ export type AutoChallengeResult = {
 };
 
 /**
+ * Build automation context from ticket data
+ */
+function buildAutomationContext(
+  ticket: {
+    pcnNumber: string;
+    vehicle: {
+      registrationNumber: string;
+      user: {
+        name: string | null;
+        email: string;
+        phoneNumber: string | null;
+        address: unknown;
+      };
+    };
+  },
+  challengeReason: string,
+  customReason?: string
+): AutomationContext {
+  const user = ticket.vehicle.user;
+  const address = user.address as Address | null;
+  const nameParts = (user.name || '').split(' ');
+
+  return {
+    pcnNumber: ticket.pcnNumber,
+    vehicleReg: ticket.vehicle.registrationNumber,
+    firstName: nameParts[0] || '',
+    lastName: nameParts.slice(1).join(' ') || '',
+    fullName: user.name || '',
+    email: user.email,
+    phone: user.phoneNumber || undefined,
+    addressLine1: address?.line1 || '',
+    addressLine2: address?.line2 || undefined,
+    city: address?.city || '',
+    postcode: address?.postcode || '',
+    challengeReason,
+    challengeText: customReason,
+  };
+}
+
+/**
  * Initiates an auto-challenge for a parking ticket.
  *
  * Flow:
- * 1. Check if issuer has a verified automation recipe
- * 2a. If yes: Run existing automation and submit challenge
- * 2b. If no recipe exists: Start learning flow
- * 2c. If recipe is pending review: Return pending status
- * 2d. If recipe needs human help: Return that status
+ * 1. Check if issuer has built-in support (Lewisham, etc.)
+ * 2. Check if issuer has a verified automation recipe
+ * 3. If yes: Send to Hetzner to run automation
+ * 4. If no recipe exists: Send to Hetzner to learn the flow
+ * 5. Results come back via webhook
  */
 export async function initiateAutoChallenge(
   ticketId: string,
   challengeReason: string,
-  customReason?: string,
+  customReason?: string
 ): Promise<AutoChallengeResult> {
   const userId = await getUserId('initiate auto-challenge');
 
@@ -108,24 +153,24 @@ export async function initiateAutoChallenge(
       },
     });
 
-    // Scenario 1: Built-in automation support
+    // Scenario 1: Built-in automation support (runs locally for now)
     if (hasBuiltInSupport) {
       return await runBuiltInAutomation(
         ticket.pcnNumber,
         challengeReason,
         customReason,
-        challenge.id,
+        challenge.id
       );
     }
 
-    // Scenario 2: Verified learned recipe exists
+    // Scenario 2: Verified learned recipe exists - send to Hetzner
     if (automation?.status === IssuerAutomationStatus.VERIFIED) {
-      return await runLearnedAutomation(
-        automation.id,
+      return await triggerLearnedAutomation(
+        automation,
         ticket,
         challengeReason,
         customReason,
-        challenge.id,
+        challenge.id
       );
     }
 
@@ -193,7 +238,7 @@ export async function initiateAutoChallenge(
       };
     }
 
-    // Scenario 6: No automation exists - start learning
+    // Scenario 6: No automation exists - trigger learning on Hetzner
     const newAutomation = await db.issuerAutomation.create({
       data: {
         issuerId,
@@ -215,69 +260,58 @@ export async function initiateAutoChallenge(
       },
     });
 
-    // Trigger the learning job in the background using Next.js after()
-    after(async () => {
-      try {
-        logger.info('Starting background learning flow', {
-          automationId: newAutomation.id,
-          ticketId,
-          issuerName,
-        });
-
-        const learnResult = await learnIssuerFlow({
-          automationId: newAutomation.id,
-          ticketId,
-          pcnNumber: ticket.pcnNumber,
-          vehicleReg: ticket.vehicle.registrationNumber,
-          issuerName,
-        });
-
-        logger.info('Background learning flow completed', {
-          automationId: newAutomation.id,
-          success: learnResult.success,
-          needsHumanHelp: learnResult.needsHumanHelp,
-        });
-
-        // Update the challenge status based on learning result
-        if (learnResult.needsHumanHelp) {
-          await db.challenge.update({
-            where: { id: challenge.id },
-            data: {
-              metadata: {
-                learningTriggered: true,
-                automationId: newAutomation.id,
-                learningComplete: true,
-                needsHumanHelp: true,
-                humanHelpReason: learnResult.humanHelpReason,
-              },
-            },
-          });
-        } else if (learnResult.success) {
-          await db.challenge.update({
-            where: { id: challenge.id },
-            data: {
-              metadata: {
-                learningTriggered: true,
-                automationId: newAutomation.id,
-                learningComplete: true,
-                pendingReview: true,
-              },
-            },
-          });
-        }
-      } catch (error) {
-        logger.error('Background learning flow failed', {
-          automationId: newAutomation.id,
-          ticketId,
-        }, error instanceof Error ? error : new Error(String(error)));
-      }
+    // Trigger learning job on Hetzner
+    // Only LocalAuthority has websiteUrl
+    const issuerWebsite = issuer && 'websiteUrl' in issuer ? issuer.websiteUrl : undefined;
+    const learnResult = await startLearnJob({
+      automationId: newAutomation.id,
+      issuerName,
+      issuerWebsite,
+      pcnNumber: ticket.pcnNumber,
+      vehicleReg: ticket.vehicle.registrationNumber,
     });
 
-    logger.info('Learning triggered for new issuer', {
+    if (!learnResult.success) {
+      logger.error('Failed to start learning job', {
+        automationId: newAutomation.id,
+        error: learnResult.error,
+      });
+
+      // Update automation status to failed
+      await db.issuerAutomation.update({
+        where: { id: newAutomation.id },
+        data: {
+          status: IssuerAutomationStatus.FAILED,
+          failureReason: learnResult.error || 'Failed to start learning job',
+        },
+      });
+
+      return {
+        success: false,
+        challengeId: challenge.id,
+        status: 'error',
+        message: 'Failed to start learning the submission process. Please try again later.',
+      };
+    }
+
+    logger.info('Learning job started on Hetzner', {
       ticketId,
       challengeId: challenge.id,
-      issuerId,
+      automationId: newAutomation.id,
+      jobId: learnResult.jobId,
       issuerName,
+    });
+
+    // Update challenge with job ID
+    await db.challenge.update({
+      where: { id: challenge.id },
+      data: {
+        metadata: {
+          learningTriggered: true,
+          automationId: newAutomation.id,
+          hetznerJobId: learnResult.jobId,
+        },
+      },
     });
 
     return {
@@ -287,10 +321,14 @@ export async function initiateAutoChallenge(
       message: `We're learning how to submit challenges to ${issuerName}. This may take a few minutes. We'll notify you when complete.`,
     };
   } catch (error) {
-    logger.error('Error initiating auto-challenge', {
-      ticketId,
-      challengeReason,
-    }, error instanceof Error ? error : new Error(String(error)));
+    logger.error(
+      'Error initiating auto-challenge',
+      {
+        ticketId,
+        challengeReason,
+      },
+      error instanceof Error ? error : new Error(String(error))
+    );
 
     return {
       success: false,
@@ -301,13 +339,14 @@ export async function initiateAutoChallenge(
 }
 
 /**
- * Run the built-in automation for supported issuers
+ * Run the built-in automation for supported issuers (Lewisham, Westminster, etc.)
+ * This still runs locally since these automations are hardcoded.
  */
 async function runBuiltInAutomation(
   pcnNumber: string,
   challengeReason: string,
   customReason: string | undefined,
-  challengeId: string,
+  challengeId: string
 ): Promise<AutoChallengeResult> {
   try {
     const { challenge } = await getAutomation();
@@ -354,17 +393,45 @@ async function runBuiltInAutomation(
 }
 
 /**
- * Run a learned automation recipe
+ * Trigger a learned automation to run on Hetzner
  */
-async function runLearnedAutomation(
-  automationId: string,
-  ticket: any,
+async function triggerLearnedAutomation(
+  automation: {
+    id: string;
+    steps: unknown;
+  },
+  ticket: {
+    id: string;
+    pcnNumber: string;
+    vehicle: {
+      registrationNumber: string;
+      user: {
+        name: string | null;
+        email: string;
+        phoneNumber: string | null;
+        address: unknown;
+      };
+    };
+  },
   challengeReason: string,
   customReason: string | undefined,
-  challengeId: string,
+  challengeId: string
 ): Promise<AutoChallengeResult> {
-  // Build the automation context from ticket data
+  // Build the automation context
   const context = buildAutomationContext(ticket, challengeReason, customReason);
+
+  // Generate challenge text if not provided
+  if (!context.challengeText) {
+    const generatedText = await generateChallengeContent({
+      pcnNumber: context.pcnNumber,
+      challengeReason: context.challengeReason,
+      additionalDetails: undefined,
+      contentType: 'form-field',
+      formFieldPlaceholderText: '',
+      userEvidenceImageUrls: [],
+    });
+    context.challengeText = generatedText || '';
+  }
 
   // Mark challenge as in-progress
   await db.challenge.update({
@@ -372,69 +439,42 @@ async function runLearnedAutomation(
     data: {
       status: ChallengeStatus.PENDING,
       metadata: {
-        automationId,
+        automationId: automation.id,
         submissionStarted: true,
         startedAt: new Date().toISOString(),
       },
     },
   });
 
-  logger.info('Starting learned automation', {
-    automationId,
+  logger.info('Starting learned automation on Hetzner', {
+    automationId: automation.id,
     ticketId: ticket.id,
     challengeId,
   });
 
-  try {
-    // Run the automation
-    const result = await runAutomation({
-      automationId,
+  // Send to Hetzner for execution
+  const runResult = await startRunJob({
+    automationId: automation.id,
+    challengeId,
+    steps: automation.steps as RecipeStep[],
+    context,
+    dryRun: false,
+  });
+
+  if (!runResult.success) {
+    logger.error('Failed to start automation job', {
+      automationId: automation.id,
       challengeId,
-      ticketId: ticket.id,
-      context,
-      dryRun: false,
+      error: runResult.error,
     });
-
-    if (result.success && result.challengeSubmitted) {
-      revalidatePath('/tickets/[id]', 'page');
-
-      return {
-        success: true,
-        challengeId,
-        status: 'submitted',
-        message: 'Your challenge has been submitted successfully.',
-      };
-    }
-
-    if (result.captchaEncountered && !result.success) {
-      return {
-        success: false,
-        challengeId,
-        status: 'needs_human_help',
-        message: 'CAPTCHA verification required. Our team will complete your submission.',
-      };
-    }
-
-    return {
-      success: false,
-      challengeId,
-      status: 'error',
-      message: result.error || 'Failed to submit challenge via automation.',
-    };
-  } catch (error) {
-    logger.error('Learned automation failed', {
-      automationId,
-      ticketId: ticket.id,
-      challengeId,
-    }, error instanceof Error ? error : new Error(String(error)));
 
     await db.challenge.update({
       where: { id: challengeId },
       data: {
         status: ChallengeStatus.ERROR,
         metadata: {
-          automationId,
-          error: error instanceof Error ? error.message : 'Unknown error',
+          automationId: automation.id,
+          error: runResult.error || 'Failed to start automation',
         },
       },
     });
@@ -443,17 +483,44 @@ async function runLearnedAutomation(
       success: false,
       challengeId,
       status: 'error',
-      message: error instanceof Error ? error.message : 'Failed to run automation.',
+      message: 'Failed to start the automation. Please try again later.',
     };
   }
+
+  // Update challenge with job ID - results will come via webhook
+  await db.challenge.update({
+    where: { id: challengeId },
+    data: {
+      metadata: {
+        automationId: automation.id,
+        submissionStarted: true,
+        startedAt: new Date().toISOString(),
+        hetznerJobId: runResult.jobId,
+      },
+    },
+  });
+
+  logger.info('Automation job started on Hetzner', {
+    automationId: automation.id,
+    challengeId,
+    jobId: runResult.jobId,
+  });
+
+  // Return submitting status - webhook will update when done
+  return {
+    success: true,
+    challengeId,
+    status: 'submitting',
+    message: 'Your challenge is being submitted. You will be notified when complete.',
+  };
 }
 
 /**
  * Get the status of a challenge
  */
 export async function getChallengeStatus(
-  challengeId: string,
-): Promise<{ status: ChallengeStatus; metadata: any } | null> {
+  challengeId: string
+): Promise<{ status: ChallengeStatus; metadata: unknown } | null> {
   const challenge = await db.challenge.findUnique({
     where: { id: challengeId },
     select: {
