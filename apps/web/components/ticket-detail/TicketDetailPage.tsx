@@ -3,12 +3,17 @@
 import { useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
-import { MediaSource, TicketStatus, TicketTier } from '@parking-ticket-pal/db/types';
+import {
+  MediaSource,
+  TicketStatus,
+  TicketTier,
+} from '@parking-ticket-pal/db/types';
 import { Address } from '@parking-ticket-pal/types';
 import { TicketWithRelations, HistoryEvent } from '@/types';
 import { updateTicketStatus } from '@/app/actions/ticket';
 import { createTicketCheckoutSession } from '@/app/actions/stripe';
 import { initiateAutoChallenge } from '@/app/actions/autoChallenge';
+import { generateChallengeLetter } from '@/app/actions/letter';
 import TicketDetailHeader from './TicketDetailHeader';
 import TicketPhotoCard from './TicketPhotoCard';
 import TicketInfoCard from './TicketInfoCard';
@@ -26,6 +31,7 @@ import ActivityTimelineCard from './ActivityTimelineCard';
 import MobileStickyFooter from './MobileStickyFooter';
 import LightboxModal from './LightboxModal';
 import AutoChallengeDialog from './AutoChallengeDialog';
+import GenerateLetterDialog from './GenerateLetterDialog';
 import AddressPromptBanner from '@/components/AddressPromptBanner/AddressPromptBanner';
 
 type TicketDetailPageProps = {
@@ -37,7 +43,9 @@ const getDeadlineDays = (issuedAt: Date): number => {
   const deadline = new Date(issued);
   deadline.setDate(deadline.getDate() + 14);
   const now = new Date();
-  return Math.ceil((deadline.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+  return Math.ceil(
+    (deadline.getTime() - now.getTime()) / (1000 * 60 * 60 * 24),
+  );
 };
 
 const getCurrentAmount = (
@@ -68,14 +76,21 @@ const TicketDetailPage = ({ ticket }: TicketDetailPageProps) => {
   const router = useRouter();
   const [, startTransition] = useTransition();
   const [lightboxImage, setLightboxImage] = useState<string | null>(null);
-  const [isAutoChallengeDialogOpen, setIsAutoChallengeDialogOpen] = useState(false);
+  const [isAutoChallengeDialogOpen, setIsAutoChallengeDialogOpen] =
+    useState(false);
+  const [isGenerateLetterDialogOpen, setIsGenerateLetterDialogOpen] =
+    useState(false);
 
   // Parse location
   const location = ticket.location as Address | null;
 
   // Get ticket images and evidence
-  const ticketImages = ticket.media.filter((m) => m.source === MediaSource.TICKET);
-  const userEvidence = ticket.media.filter((m) => m.source === MediaSource.EVIDENCE);
+  const ticketImages = ticket.media.filter(
+    (m) => m.source === MediaSource.TICKET,
+  );
+  const userEvidence = ticket.media.filter(
+    (m) => m.source === MediaSource.EVIDENCE,
+  );
 
   // Build activity timeline
   const letterEvents: HistoryEvent[] = ticket.letters.map((l) => ({
@@ -93,9 +108,11 @@ const TicketDetailPage = ({ ticket }: TicketDetailPageProps) => {
     date: c.submittedAt || c.createdAt,
     data: c,
   }));
-  const historyEvents = [...letterEvents, ...formEvents, ...challengeEvents].sort(
-    (a, b) => b.date.getTime() - a.date.getTime(),
-  );
+  const historyEvents = [
+    ...letterEvents,
+    ...formEvents,
+    ...challengeEvents,
+  ].sort((a, b) => b.date.getTime() - a.date.getTime());
 
   // Calculate amounts and deadlines
   const currentAmount = getCurrentAmount(
@@ -129,7 +146,10 @@ const TicketDetailPage = ({ ticket }: TicketDetailPageProps) => {
   };
 
   const handleUpgrade = async () => {
-    const result = await createTicketCheckoutSession(TicketTier.PREMIUM, ticket.id);
+    const result = await createTicketCheckoutSession(
+      TicketTier.PREMIUM,
+      ticket.id,
+    );
     if (result?.url) {
       window.location.href = result.url;
     } else {
@@ -140,15 +160,51 @@ const TicketDetailPage = ({ ticket }: TicketDetailPageProps) => {
   const handleEdit = () => {
     // Navigate to edit or open edit dialog
     // For now, scroll to ticket details section
-    document.getElementById('ticket-details')?.scrollIntoView({ behavior: 'smooth' });
+    document
+      .getElementById('ticket-details')
+      ?.scrollIntoView({ behavior: 'smooth' });
   };
 
   const handleChallenge = () => {
-    document.getElementById('challenge-section')?.scrollIntoView({ behavior: 'smooth' });
+    document
+      .getElementById('challenge-section')
+      ?.scrollIntoView({ behavior: 'smooth' });
   };
 
-  const handleGenerateLetter = () => {
-    document.getElementById('challenge-section')?.scrollIntoView({ behavior: 'smooth' });
+  const handleGenerateLetter = async (
+    _reason: string,
+    reasonLabel: string,
+    customReason?: string,
+  ) => {
+    const toastId = toast.loading('Generating challenge letter...');
+
+    try {
+      const result = await generateChallengeLetter(
+        ticket.id,
+        reasonLabel,
+        customReason,
+      );
+
+      if (result && result.success) {
+        toast.success(
+          result.message || 'Challenge letter generated and emailed to you!',
+          { id: toastId },
+        );
+        router.refresh();
+      } else {
+        toast.error(result?.message || 'Failed to generate letter', {
+          id: toastId,
+        });
+      }
+    } catch (error) {
+      toast.error('Failed to generate challenge letter. Please try again.', {
+        id: toastId,
+      });
+    }
+  };
+
+  const handleOpenGenerateLetterDialog = () => {
+    setIsGenerateLetterDialogOpen(true);
   };
 
   const handleMarkAsPaid = () => {
@@ -165,7 +221,11 @@ const TicketDetailPage = ({ ticket }: TicketDetailPageProps) => {
     const toastId = toast.loading('Submitting challenge...');
 
     try {
-      const result = await initiateAutoChallenge(ticket.id, reason, customReason);
+      const result = await initiateAutoChallenge(
+        ticket.id,
+        reason,
+        customReason,
+      );
 
       if (result.success) {
         switch (result.status) {
@@ -173,7 +233,10 @@ const TicketDetailPage = ({ ticket }: TicketDetailPageProps) => {
             toast.success('Challenge submitted successfully!', { id: toastId });
             break;
           case 'submitting':
-            toast.success('Challenge is being submitted. You\'ll be notified when complete.', { id: toastId });
+            toast.success(
+              "Challenge is being submitted. You'll be notified when complete.",
+              { id: toastId },
+            );
             break;
           case 'learning':
             toast.success(result.message, { id: toastId });
@@ -192,7 +255,9 @@ const TicketDetailPage = ({ ticket }: TicketDetailPageProps) => {
         toast.error(result.message, { id: toastId });
       }
     } catch (error) {
-      toast.error('Failed to submit challenge. Please try again.', { id: toastId });
+      toast.error('Failed to submit challenge. Please try again.', {
+        id: toastId,
+      });
     }
   };
 
@@ -269,7 +334,7 @@ const TicketDetailPage = ({ ticket }: TicketDetailPageProps) => {
             {ticket.challenges.length > 0 && (
               <ChallengeLettersCard
                 challenges={ticket.challenges}
-                onRegenerate={handleGenerateLetter}
+                onRegenerate={handleOpenGenerateLetterDialog}
               />
             )}
 
@@ -288,7 +353,7 @@ const TicketDetailPage = ({ ticket }: TicketDetailPageProps) => {
                     window.open(letter.media[0].url, '_blank');
                   }
                 }}
-                onRegenerate={handleGenerateLetter}
+                onRegenerate={handleOpenGenerateLetterDialog}
               />
             )}
 
@@ -321,9 +386,12 @@ const TicketDetailPage = ({ ticket }: TicketDetailPageProps) => {
                   hasLetter={ticket.letters.length > 0}
                   deadlineDays={deadlineDays}
                   onAutoChallenge={() => setIsAutoChallengeDialogOpen(true)}
-                  onGenerateLetter={handleGenerateLetter}
+                  onGenerateLetter={handleOpenGenerateLetterDialog}
                   onPreviewLetter={() => {
-                    if (ticket.letters.length > 0 && ticket.letters[0].media.length > 0) {
+                    if (
+                      ticket.letters.length > 0 &&
+                      ticket.letters[0].media.length > 0
+                    ) {
                       window.open(ticket.letters[0].media[0].url, '_blank');
                     }
                   }}
@@ -348,7 +416,7 @@ const TicketDetailPage = ({ ticket }: TicketDetailPageProps) => {
                       window.open(ticket.letters[0].media[0].url, '_blank');
                     }
                   }}
-                  onRegenerate={handleGenerateLetter}
+                  onRegenerate={handleOpenGenerateLetterDialog}
                 />
               )}
 
@@ -376,7 +444,10 @@ const TicketDetailPage = ({ ticket }: TicketDetailPageProps) => {
       />
 
       {/* Lightbox Modal */}
-      <LightboxModal imageUrl={lightboxImage} onClose={() => setLightboxImage(null)} />
+      <LightboxModal
+        imageUrl={lightboxImage}
+        onClose={() => setLightboxImage(null)}
+      />
 
       {/* Auto Challenge Dialog */}
       <AutoChallengeDialog
@@ -384,6 +455,14 @@ const TicketDetailPage = ({ ticket }: TicketDetailPageProps) => {
         onOpenChange={setIsAutoChallengeDialogOpen}
         issuerName={ticket.issuer}
         onSubmit={handleAutoChallenge}
+      />
+
+      {/* Generate Letter Dialog */}
+      <GenerateLetterDialog
+        open={isGenerateLetterDialogOpen}
+        onOpenChange={setIsGenerateLetterDialogOpen}
+        issuerType={ticket.issuerType}
+        onSubmit={handleGenerateLetter}
       />
     </div>
   );
