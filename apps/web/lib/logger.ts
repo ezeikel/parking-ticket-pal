@@ -51,7 +51,8 @@ class Logger {
       sessionId: this.sessionId,
       appInfo: {
         version: process.env.npm_package_version || '0.1.0',
-        environment: process.env.NODE_ENV === 'development' ? 'development' : 'production',
+        environment:
+          process.env.NODE_ENV === 'development' ? 'development' : 'production',
       },
       timestamp: new Date().toISOString(),
     };
@@ -61,7 +62,7 @@ class Logger {
     level: LogLevel,
     message: string,
     context?: LogContext,
-    error?: Error
+    error?: Error,
   ): LogEntry {
     return {
       level,
@@ -79,7 +80,9 @@ class Logger {
     if (process.env.NODE_ENV !== 'development') return;
 
     const prefix = `[${entry.level.toUpperCase()}] ${entry.timestamp}`;
-    const contextStr = entry.context ? JSON.stringify(entry.context, null, 2) : '';
+    const contextStr = entry.context
+      ? JSON.stringify(entry.context, null, 2)
+      : '';
 
     switch (entry.level) {
       case 'debug':
@@ -227,32 +230,48 @@ class Logger {
 
   // Specialized methods for common scenarios
   apiError(message: string, error?: Error, context?: LogContext) {
-    this.error(message, {
-      error_type: 'api',
-      ...context,
-    }, error);
+    this.error(
+      message,
+      {
+        error_type: 'api',
+        ...context,
+      },
+      error,
+    );
   }
 
   ocrError(message: string, error?: Error, context?: LogContext) {
-    this.error(message, {
-      action: 'ocr_processing',
-      error_type: 'ocr',
-      ...context,
-    }, error);
+    this.error(
+      message,
+      {
+        action: 'ocr_processing',
+        error_type: 'ocr',
+        ...context,
+      },
+      error,
+    );
   }
 
   networkError(message: string, error?: Error, context?: LogContext) {
-    this.error(message, {
-      error_type: 'network',
-      ...context,
-    }, error);
+    this.error(
+      message,
+      {
+        error_type: 'network',
+        ...context,
+      },
+      error,
+    );
   }
 
   authError(message: string, error?: Error, context?: LogContext) {
-    this.error(message, {
-      error_type: 'authentication',
-      ...context,
-    }, error);
+    this.error(
+      message,
+      {
+        error_type: 'authentication',
+        ...context,
+      },
+      error,
+    );
   }
 
   // Performance logging
@@ -309,7 +328,10 @@ export function createServerLogger(context?: Partial<LogContext>) {
 
 // Client-side helper with PostHog integration
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export function createClientLogger(posthog?: any, context?: Partial<LogContext>) {
+export function createClientLogger(
+  posthog?: any,
+  context?: Partial<LogContext>,
+) {
   if (posthog) {
     logger.setPostHog(posthog);
   }
@@ -340,11 +362,15 @@ export function createClientLogger(posthog?: any, context?: Partial<LogContext>)
  */
 export function useLogger(context?: Partial<LogContext>) {
   if (typeof window === 'undefined') {
-    throw new Error('useLogger can only be used in client components. Use createServerLogger for server-side logging.');
+    throw new Error(
+      'useLogger can only be used in client components. Use createServerLogger for server-side logging.',
+    );
   }
 
   // eslint-disable-next-line no-console
-  console.warn('DEPRECATED: Import useLogger from "@/lib/use-logger" instead for proper PostHog integration');
+  console.warn(
+    'DEPRECATED: Import useLogger from "@/lib/use-logger" instead for proper PostHog integration',
+  );
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let posthog: any = null;

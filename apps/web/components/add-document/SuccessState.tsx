@@ -35,7 +35,9 @@ const SuccessState = ({
     ? 'Your letter has been linked to the ticket.'
     : 'Your ticket has been saved.';
   const buttonText = isLetter ? 'View Ticket' : 'View Ticket';
-  const addAnotherText = isLetter ? 'Add Another Document' : 'Add Another Ticket';
+  const addAnotherText = isLetter
+    ? 'Add Another Document'
+    : 'Add Another Ticket';
   const successIcon = isLetter ? faEnvelopeOpenText : faTicket;
 
   useEffect(() => {
@@ -71,7 +73,10 @@ const SuccessState = ({
         className="relative"
       >
         <div className="flex h-24 w-24 items-center justify-center rounded-full bg-teal/10">
-          <FontAwesomeIcon icon={faCircleCheck} className="text-5xl text-teal" />
+          <FontAwesomeIcon
+            icon={faCircleCheck}
+            className="text-5xl text-teal"
+          />
         </div>
         {/* Celebration particles */}
         <motion.div

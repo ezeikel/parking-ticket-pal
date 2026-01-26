@@ -4,7 +4,12 @@ import { Suspense, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { signIn, useSession } from 'next-auth/react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faTicket, faSpinnerThird, faBell, faCheckCircle } from '@fortawesome/pro-solid-svg-icons';
+import {
+  faTicket,
+  faSpinnerThird,
+  faBell,
+  faCheckCircle,
+} from '@fortawesome/pro-solid-svg-icons';
 import { faEnvelope } from '@fortawesome/pro-regular-svg-icons';
 import { faGoogle, faApple } from '@fortawesome/free-brands-svg-icons';
 import {
@@ -16,10 +21,7 @@ import {
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import {
-  getGuestTicketData,
-  updateGuestTicketData,
-} from '@/utils/guestTicket';
+import { getGuestTicketData, updateGuestTicketData } from '@/utils/guestTicket';
 
 const SignupContent = () => {
   const router = useRouter();
@@ -148,10 +150,7 @@ const SignupContent = () => {
         <Card>
           <CardHeader className="text-center">
             <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-teal/10">
-              <FontAwesomeIcon
-                icon={faTicket}
-                className="h-8 w-8 text-teal"
-              />
+              <FontAwesomeIcon icon={faTicket} className="h-8 w-8 text-teal" />
             </div>
             <CardTitle>Create Your Free Account</CardTitle>
             <CardDescription>
@@ -173,9 +172,7 @@ const SignupContent = () => {
                     <p className="font-medium text-dark">
                       {ticketInfo.pcnNumber}
                     </p>
-                    <p className="text-sm text-gray">
-                      {ticketInfo.vehicleReg}
-                    </p>
+                    <p className="text-sm text-gray">{ticketInfo.vehicleReg}</p>
                   </div>
                 </div>
               </div>

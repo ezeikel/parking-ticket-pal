@@ -57,7 +57,9 @@ const UrgentAlerts = ({ alerts = [] }: UrgentAlertsProps) => {
                 <div>
                   <h3 className="font-semibold text-dark">{alert.message}</h3>
                   {alert.subMessage && (
-                    <p className="mt-0.5 text-sm text-gray">{alert.subMessage}</p>
+                    <p className="mt-0.5 text-sm text-gray">
+                      {alert.subMessage}
+                    </p>
                   )}
                 </div>
               </div>

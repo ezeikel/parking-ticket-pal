@@ -24,7 +24,9 @@ const components: Partial<PortableTextReactComponents> = {
     h4: ({ children }) => (
       <h4 className="text-xl font-semibold mt-4 mb-2">{children}</h4>
     ),
-    normal: ({ children }) => <p className="mb-4 leading-relaxed">{children}</p>,
+    normal: ({ children }) => (
+      <p className="mb-4 leading-relaxed">{children}</p>
+    ),
     blockquote: ({ children }) => (
       <blockquote className="border-l-4 border-primary pl-4 italic my-6 text-gray-700 dark:text-gray-300">
         {children}

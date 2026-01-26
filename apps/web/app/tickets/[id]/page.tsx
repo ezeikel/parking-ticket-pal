@@ -17,7 +17,8 @@ const TicketPage = async ({ params }: TicketPageProps) => {
         <div className="text-center">
           <h1 className="text-2xl font-bold text-dark">Ticket not found</h1>
           <p className="mt-2 text-gray">
-            The ticket you&apos;re looking for doesn&apos;t exist or has been deleted.
+            The ticket you&apos;re looking for doesn&apos;t exist or has been
+            deleted.
           </p>
         </div>
       </div>

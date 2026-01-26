@@ -3,7 +3,12 @@
  * Handles both Stripe (web) and RevenueCat (mobile) subscriptions
  */
 
-import { User, Subscription, SubscriptionType, SubscriptionSource } from '@parking-ticket-pal/db/types';
+import {
+  User,
+  Subscription,
+  SubscriptionType,
+  SubscriptionSource,
+} from '@parking-ticket-pal/db/types';
 
 export type UserWithSubscription = User & {
   subscription: Subscription | null;
@@ -19,7 +24,9 @@ export function hasActiveSubscription(user: UserWithSubscription): boolean {
 /**
  * Get the subscription type (STANDARD or PREMIUM) if active
  */
-export function getSubscriptionType(user: UserWithSubscription): SubscriptionType | null {
+export function getSubscriptionType(
+  user: UserWithSubscription,
+): SubscriptionType | null {
   if (!user.subscription) {
     return null;
   }
@@ -45,7 +52,9 @@ export function isRevenueCatSubscription(user: UserWithSubscription): boolean {
  * Determine if a user can purchase a mobile IAP subscription
  * Users with active Stripe subscriptions should not be able to purchase mobile subscriptions
  */
-export function canPurchaseMobileSubscription(user: UserWithSubscription): boolean {
+export function canPurchaseMobileSubscription(
+  user: UserWithSubscription,
+): boolean {
   // No subscription - can purchase
   if (!user.subscription) {
     return true;
@@ -76,19 +85,27 @@ export function hasPremiumAccess(user: UserWithSubscription): boolean {
  */
 export function hasStandardAccess(user: UserWithSubscription): boolean {
   const type = getSubscriptionType(user);
-  return type === SubscriptionType.STANDARD || type === SubscriptionType.PREMIUM;
+  return (
+    type === SubscriptionType.STANDARD || type === SubscriptionType.PREMIUM
+  );
 }
 
 /**
  * Get a human-readable subscription status message
  */
-export function getSubscriptionStatusMessage(user: UserWithSubscription): string {
+export function getSubscriptionStatusMessage(
+  user: UserWithSubscription,
+): string {
   if (!user.subscription) {
     return 'No active subscription';
   }
 
-  const typeLabel = user.subscription.type === SubscriptionType.PREMIUM ? 'Premium' : 'Standard';
-  const sourceLabel = user.subscription.source === SubscriptionSource.STRIPE ? 'Web' : 'Mobile';
+  const typeLabel =
+    user.subscription.type === SubscriptionType.PREMIUM
+      ? 'Premium'
+      : 'Standard';
+  const sourceLabel =
+    user.subscription.source === SubscriptionSource.STRIPE ? 'Web' : 'Mobile';
 
   return `${typeLabel} subscription (${sourceLabel})`;
 }
@@ -141,7 +158,9 @@ export function getMonthlyTicketLimit(user: UserWithSubscription): number {
 /**
  * Get the features available for a user's subscription level
  */
-export function getAvailableFeatures(user: UserWithSubscription): readonly string[] {
+export function getAvailableFeatures(
+  user: UserWithSubscription,
+): readonly string[] {
   const type = getSubscriptionType(user);
 
   switch (type) {

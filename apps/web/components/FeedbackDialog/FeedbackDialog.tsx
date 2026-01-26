@@ -30,14 +30,21 @@ type FeedbackType = 'bug' | 'idea' | 'help' | 'other';
 
 const feedbackTypes: Record<
   FeedbackType,
-  { icon: typeof faBug; label: string; color: string; bgColor: string; placeholder: string }
+  {
+    icon: typeof faBug;
+    label: string;
+    color: string;
+    bgColor: string;
+    placeholder: string;
+  }
 > = {
   bug: {
     icon: faBug,
     label: 'Report a bug',
     color: 'text-red-500',
     bgColor: 'bg-red-50',
-    placeholder: 'What went wrong? Please include steps to reproduce if possible...',
+    placeholder:
+      'What went wrong? Please include steps to reproduce if possible...',
   },
   idea: {
     icon: faLightbulb,
@@ -81,7 +88,9 @@ const FeedbackDialog = ({
 }: FeedbackDialogProps) => {
   const [internalOpen, setInternalOpen] = useState(false);
   const [view, setView] = useState<'type' | 'form' | 'success'>('type');
-  const [selectedType, setSelectedType] = useState<FeedbackType | null>(defaultType || null);
+  const [selectedType, setSelectedType] = useState<FeedbackType | null>(
+    defaultType || null,
+  );
   const [message, setMessage] = useState('');
   const [email, setEmail] = useState(userEmail || '');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -138,7 +147,8 @@ const FeedbackDialog = ({
         feedback_message: message,
         user_email: email || undefined,
         user_name: userName || undefined,
-        page_url: typeof window !== 'undefined' ? window.location.href : undefined,
+        page_url:
+          typeof window !== 'undefined' ? window.location.href : undefined,
         $set: email ? { email } : undefined,
       });
 
@@ -224,7 +234,10 @@ const FeedbackDialog = ({
                       onClick={handleBack}
                       className="flex h-8 w-8 items-center justify-center rounded-full transition-colors hover:bg-light"
                     >
-                      <FontAwesomeIcon icon={faArrowLeft} className="text-gray" />
+                      <FontAwesomeIcon
+                        icon={faArrowLeft}
+                        className="text-gray"
+                      />
                     </button>
                     <div
                       className={`flex h-10 w-10 items-center justify-center rounded-full ${currentType.bgColor}`}

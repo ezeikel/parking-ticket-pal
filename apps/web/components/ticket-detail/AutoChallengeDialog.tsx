@@ -2,7 +2,11 @@
 
 import { useState } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faRobot, faSpinner, faCircleInfo } from '@fortawesome/pro-solid-svg-icons';
+import {
+  faRobot,
+  faSpinner,
+  faCircleInfo,
+} from '@fortawesome/pro-solid-svg-icons';
 import {
   Dialog,
   DialogContent,
@@ -29,15 +33,51 @@ type AutoChallengeDialogProps = {
 };
 
 const CHALLENGE_REASONS = [
-  { value: 'SIGNAGE_ISSUE', label: 'Inadequate Signage', description: 'Signs were missing, obscured, or unclear' },
-  { value: 'VEHICLE_STOLEN', label: 'Vehicle Was Stolen', description: 'Your vehicle was stolen at the time' },
-  { value: 'NOT_VEHICLE_OWNER', label: 'Not Vehicle Owner', description: 'You were not the owner/keeper at the time' },
-  { value: 'ALREADY_PAID', label: 'Already Paid', description: 'Payment was made but not registered' },
-  { value: 'INVALID_TMO', label: 'Invalid TMO', description: 'Traffic Management Order was invalid' },
-  { value: 'HIRE_FIRM', label: 'Hire Vehicle', description: 'Vehicle was on hire to another person' },
-  { value: 'MITIGATING_CIRCUMSTANCES', label: 'Mitigating Circumstances', description: 'Special circumstances prevented compliance' },
-  { value: 'PROCEDURAL_ERROR', label: 'Procedural Error', description: 'The PCN was issued incorrectly' },
-  { value: 'OTHER', label: 'Other Reason', description: 'Specify your own reason' },
+  {
+    value: 'SIGNAGE_ISSUE',
+    label: 'Inadequate Signage',
+    description: 'Signs were missing, obscured, or unclear',
+  },
+  {
+    value: 'VEHICLE_STOLEN',
+    label: 'Vehicle Was Stolen',
+    description: 'Your vehicle was stolen at the time',
+  },
+  {
+    value: 'NOT_VEHICLE_OWNER',
+    label: 'Not Vehicle Owner',
+    description: 'You were not the owner/keeper at the time',
+  },
+  {
+    value: 'ALREADY_PAID',
+    label: 'Already Paid',
+    description: 'Payment was made but not registered',
+  },
+  {
+    value: 'INVALID_TMO',
+    label: 'Invalid TMO',
+    description: 'Traffic Management Order was invalid',
+  },
+  {
+    value: 'HIRE_FIRM',
+    label: 'Hire Vehicle',
+    description: 'Vehicle was on hire to another person',
+  },
+  {
+    value: 'MITIGATING_CIRCUMSTANCES',
+    label: 'Mitigating Circumstances',
+    description: 'Special circumstances prevented compliance',
+  },
+  {
+    value: 'PROCEDURAL_ERROR',
+    label: 'Procedural Error',
+    description: 'The PCN was issued incorrectly',
+  },
+  {
+    value: 'OTHER',
+    label: 'Other Reason',
+    description: 'Specify your own reason',
+  },
 ] as const;
 
 const AutoChallengeDialog = ({
@@ -75,7 +115,8 @@ const AutoChallengeDialog = ({
             Auto-Submit Challenge
           </DialogTitle>
           <DialogDescription>
-            We&apos;ll automatically submit your challenge to {issuerName} using browser automation.
+            We&apos;ll automatically submit your challenge to {issuerName} using
+            browser automation.
           </DialogDescription>
         </DialogHeader>
 
@@ -105,7 +146,10 @@ const AutoChallengeDialog = ({
           {/* Custom reason textarea */}
           {reason === 'OTHER' && (
             <div className="space-y-2">
-              <label htmlFor="customReason" className="text-sm font-medium text-dark">
+              <label
+                htmlFor="customReason"
+                className="text-sm font-medium text-dark"
+              >
                 Describe your reason
               </label>
               <Textarea
@@ -121,7 +165,10 @@ const AutoChallengeDialog = ({
           {/* Info box */}
           <div className="rounded-lg bg-teal/5 p-3">
             <div className="flex gap-2">
-              <FontAwesomeIcon icon={faCircleInfo} className="mt-0.5 text-teal" />
+              <FontAwesomeIcon
+                icon={faCircleInfo}
+                className="mt-0.5 text-teal"
+              />
               <div className="text-sm text-dark">
                 <p className="font-medium">How it works</p>
                 <ul className="mt-1 list-inside list-disc space-y-0.5 text-gray">
@@ -145,7 +192,11 @@ const AutoChallengeDialog = ({
           </Button>
           <Button
             onClick={handleSubmit}
-            disabled={!reason || (reason === 'OTHER' && !customReason.trim()) || isSubmitting}
+            disabled={
+              !reason ||
+              (reason === 'OTHER' && !customReason.trim()) ||
+              isSubmitting
+            }
             className="gap-2 bg-teal text-white hover:bg-teal-dark"
           >
             {isSubmitting ? (

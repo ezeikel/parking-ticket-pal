@@ -3,7 +3,12 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faEnvelope, faClock, faBell, faBullhorn } from '@fortawesome/pro-solid-svg-icons';
+import {
+  faEnvelope,
+  faClock,
+  faBell,
+  faBullhorn,
+} from '@fortawesome/pro-solid-svg-icons';
 import { User } from '@parking-ticket-pal/db/types';
 import { Switch } from '@/components/ui/switch';
 import { Button } from '@/components/ui/button';
@@ -27,7 +32,8 @@ const NotificationsTab = ({ user: _user }: NotificationsTabProps) => {
     {
       id: 'deadlines',
       label: 'Ticket deadline reminders',
-      description: "Get notified before your appeal deadlines so you don't miss them.",
+      description:
+        "Get notified before your appeal deadlines so you don't miss them.",
       icon: faClock,
       enabled: true,
     },
@@ -41,7 +47,8 @@ const NotificationsTab = ({ user: _user }: NotificationsTabProps) => {
     {
       id: 'marketing',
       label: 'Tips & promotions',
-      description: 'Get helpful parking tips and occasional promotional offers.',
+      description:
+        'Get helpful parking tips and occasional promotional offers.',
       icon: faBullhorn,
       enabled: false,
     },
@@ -56,7 +63,7 @@ const NotificationsTab = ({ user: _user }: NotificationsTabProps) => {
 
   const handleSettingToggle = (id: string, checked: boolean) => {
     setSettings((prev) =>
-      prev.map((s) => (s.id === id ? { ...s, enabled: checked } : s))
+      prev.map((s) => (s.id === id ? { ...s, enabled: checked } : s)),
     );
     // If enabling any setting, also enable master
     if (checked && !masterEnabled) {
@@ -76,12 +83,17 @@ const NotificationsTab = ({ user: _user }: NotificationsTabProps) => {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
             <div className="flex h-12 w-12 items-center justify-center rounded-full bg-teal/10">
-              <FontAwesomeIcon icon={faEnvelope} className="text-xl text-teal" />
+              <FontAwesomeIcon
+                icon={faEnvelope}
+                className="text-xl text-teal"
+              />
             </div>
             <div>
               <h3 className="font-semibold text-dark">Email Notifications</h3>
               <p className="text-sm text-gray">
-                {masterEnabled ? 'Notifications are enabled' : 'All notifications are turned off'}
+                {masterEnabled
+                  ? 'Notifications are enabled'
+                  : 'All notifications are turned off'}
               </p>
             </div>
           </div>
@@ -98,8 +110,12 @@ const NotificationsTab = ({ user: _user }: NotificationsTabProps) => {
         animate={{ opacity: masterEnabled ? 1 : 0.5 }}
         className="rounded-2xl bg-white p-6 shadow-[0_2px_4px_rgba(0,0,0,0.06),0_4px_12px_rgba(0,0,0,0.06)]"
       >
-        <h3 className="text-lg font-semibold text-dark">Notification Preferences</h3>
-        <p className="mt-1 text-sm text-gray">Choose which emails you want to receive.</p>
+        <h3 className="text-lg font-semibold text-dark">
+          Notification Preferences
+        </h3>
+        <p className="mt-1 text-sm text-gray">
+          Choose which emails you want to receive.
+        </p>
 
         <div className="mt-6 space-y-1">
           {settings.map((setting, index) => (
@@ -121,7 +137,9 @@ const NotificationsTab = ({ user: _user }: NotificationsTabProps) => {
               </div>
               <Switch
                 checked={setting.enabled}
-                onCheckedChange={(checked) => handleSettingToggle(setting.id, checked)}
+                onCheckedChange={(checked) =>
+                  handleSettingToggle(setting.id, checked)
+                }
                 disabled={!masterEnabled}
                 className="data-[state=checked]:bg-teal"
               />
@@ -142,9 +160,9 @@ const NotificationsTab = ({ user: _user }: NotificationsTabProps) => {
       {/* Info Card */}
       <div className="rounded-2xl border border-border bg-light/50 p-6">
         <p className="text-sm text-gray">
-          <strong className="text-dark">Note:</strong> We&apos;ll always send you important
-          account-related emails such as password resets and security alerts, regardless of
-          your notification settings.
+          <strong className="text-dark">Note:</strong> We&apos;ll always send
+          you important account-related emails such as password resets and
+          security alerts, regardless of your notification settings.
         </p>
       </div>
     </div>

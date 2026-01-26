@@ -83,7 +83,9 @@ const SignInOptions = () => {
           <span className="w-full border-t border-border" />
         </div>
         <div className="relative flex justify-center text-xs uppercase">
-          <span className="bg-white px-4 text-gray">Or continue with email</span>
+          <span className="bg-white px-4 text-gray">
+            Or continue with email
+          </span>
         </div>
       </div>
 

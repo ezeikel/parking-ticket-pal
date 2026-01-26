@@ -123,7 +123,8 @@ const TicketReminderEmail = ({
 
         <Text style={text}>
           Your parking ticket <strong>{pcnNumber}</strong> is due soon.
-          Don&apos;t forget to take action before the deadline to avoid additional penalties.
+          Don&apos;t forget to take action before the deadline to avoid
+          additional penalties.
         </Text>
 
         <Section style={detailsBox}>

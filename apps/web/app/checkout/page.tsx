@@ -73,7 +73,9 @@ const CheckoutContent = () => {
             !guestTier ||
             (guestTier !== 'standard' && guestTier !== 'premium')
           ) {
-            logger.warn('Guest checkout with invalid tier', { tier: guestTier });
+            logger.warn('Guest checkout with invalid tier', {
+              tier: guestTier,
+            });
             setError('Invalid pricing tier selected.');
             setIsLoading(false);
             return;

@@ -29,14 +29,19 @@ type MobileMenuProps = {
   hamburgerIconClassName?: string;
 };
 
-const MobileMenu = ({ items, user, hamburgerClassName, hamburgerIconClassName }: MobileMenuProps) => {
+const MobileMenu = ({
+  items,
+  user,
+  hamburgerClassName,
+  hamburgerIconClassName,
+}: MobileMenuProps) => {
   const [isOpen, setIsOpen] = useState(false);
 
   const renderMenuItem = (item: MobileNavItem) => {
     const baseClassName = cn(
       'flex items-center gap-4 px-2 py-4 w-full text-left text-lg font-medium text-dark',
       'border-b border-border/50 transition-colors active:bg-light',
-      item.action === 'signout' && 'text-red-500 border-b-0'
+      item.action === 'signout' && 'text-red-500 border-b-0',
     );
 
     if (item.isFeedback) {
@@ -47,7 +52,10 @@ const MobileMenu = ({ items, user, hamburgerClassName, hamburgerIconClassName }:
           trigger={
             <button className={baseClassName} type="button">
               {item.iconName && (
-                <FontAwesomeIcon icon={item.iconName} className="w-5 text-gray" />
+                <FontAwesomeIcon
+                  icon={item.iconName}
+                  className="w-5 text-gray"
+                />
               )}
               {item.label}
             </button>
@@ -57,11 +65,7 @@ const MobileMenu = ({ items, user, hamburgerClassName, hamburgerIconClassName }:
     }
 
     if (item.component) {
-      return (
-        <div className={baseClassName}>
-          {item.component}
-        </div>
-      );
+      return <div className={baseClassName}>{item.component}</div>;
     }
 
     if (item.action === 'signout') {
@@ -75,7 +79,10 @@ const MobileMenu = ({ items, user, hamburgerClassName, hamburgerIconClassName }:
           }}
         >
           {item.iconName && (
-            <FontAwesomeIcon icon={item.iconName} className="w-5 text-red-400" />
+            <FontAwesomeIcon
+              icon={item.iconName}
+              className="w-5 text-red-400"
+            />
           )}
           {item.label}
         </button>
@@ -129,13 +136,14 @@ const MobileMenu = ({ items, user, hamburgerClassName, hamburgerIconClassName }:
       <button
         type="button"
         onClick={() => setIsOpen(true)}
-        className={cn(
-          'p-2 rounded-lg transition-colors',
-          hamburgerClassName,
-        )}
+        className={cn('p-2 rounded-lg transition-colors', hamburgerClassName)}
         aria-label="Open menu"
       >
-        <FontAwesomeIcon icon={faBars} size="lg" className={hamburgerIconClassName} />
+        <FontAwesomeIcon
+          icon={faBars}
+          size="lg"
+          className={hamburgerIconClassName}
+        />
       </button>
 
       {/* Full Screen Overlay */}
@@ -171,7 +179,11 @@ const MobileMenu = ({ items, user, hamburgerClassName, hamburgerIconClassName }:
                 className="flex h-10 w-10 items-center justify-center rounded-full hover:bg-light transition-colors"
                 aria-label="Close menu"
               >
-                <FontAwesomeIcon icon={faXmark} size="xl" className="text-dark" />
+                <FontAwesomeIcon
+                  icon={faXmark}
+                  size="xl"
+                  className="text-dark"
+                />
               </button>
             </div>
 
@@ -184,7 +196,10 @@ const MobileMenu = ({ items, user, hamburgerClassName, hamburgerIconClassName }:
             >
               <ul>
                 {items.map((item) => (
-                  <li key={item.href || item.label} className={cn(item.liClass)}>
+                  <li
+                    key={item.href || item.label}
+                    className={cn(item.liClass)}
+                  >
                     {renderMenuItem(item)}
                   </li>
                 ))}

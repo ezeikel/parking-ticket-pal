@@ -47,19 +47,19 @@
   --animate-accordion-up: accordion-up 0.2s ease-out;
 
   /* V0 Design System Colors */
-  --color-teal: #1ABC9C;
+  --color-teal: #1abc9c;
   --color-teal-dark: #16a085;
   --color-yellow: #fdfa64;
-  --color-coral: #FF5A5F;
-  --color-amber: #FFB400;
-  --color-success: #00A699;
+  --color-coral: #ff5a5f;
+  --color-amber: #ffb400;
+  --color-success: #00a699;
   --color-dark: #222222;
   --color-gray: #717171;
-  --color-light: #F7F7F7;
-  --color-footer: #1A1A1A;
+  --color-light: #f7f7f7;
+  --color-footer: #1a1a1a;
 
   /* Legacy colors (for backward compatibility) */
-  --color-parking-teal: #1ABC9C;
+  --color-parking-teal: #1abc9c;
   --color-parking-ticket-yellow: #fdfa64;
 
   @keyframes accordion-down {

@@ -63,9 +63,10 @@ export const createTicket = async (
 
         // move file to permanent location
         // New path: tickets/{ticketId}/front.{ext}
-        const permanentPath = STORAGE_PATHS.TICKET_IMAGE
-          .replace('%s', ticket.id)
-          .replace('%s', extension);
+        const permanentPath = STORAGE_PATHS.TICKET_IMAGE.replace(
+          '%s',
+          ticket.id,
+        ).replace('%s', extension);
 
         // download temp file and upload to permanent location
         const tempResponse = await fetch(values.tempImageUrl!);
@@ -77,9 +78,13 @@ export const createTicket = async (
 
         const tempBuffer = await tempResponse.arrayBuffer();
 
-        const permanentBlob = await put(permanentPath, Buffer.from(tempBuffer), {
-          contentType: `image/${extension === 'jpg' ? 'jpeg' : extension}`,
-        });
+        const permanentBlob = await put(
+          permanentPath,
+          Buffer.from(tempBuffer),
+          {
+            contentType: `image/${extension === 'jpg' ? 'jpeg' : extension}`,
+          },
+        );
 
         // create media record with permanent URL
         await db.media.create({
@@ -95,10 +100,14 @@ export const createTicket = async (
         // delete temporary file
         await del(values.tempImageUrl!);
       } catch (error) {
-        logger.error('Failed to move image for ticket', {
-          ticketId: ticket.id,
-          tempImagePath: values.tempImageUrl
-        }, error instanceof Error ? error : new Error(String(error)));
+        logger.error(
+          'Failed to move image for ticket',
+          {
+            ticketId: ticket.id,
+            tempImagePath: values.tempImageUrl,
+          },
+          error instanceof Error ? error : new Error(String(error)),
+        );
         // TODO: optionally create a cleanup job to handle failed moves
         // or retry the operation
       }
@@ -113,9 +122,13 @@ export const createTicket = async (
           userId,
         });
       } catch (error) {
-        logger.error('Error regenerating reminders after ticket update', {
-          ticketId: ticket.id
-        }, error instanceof Error ? error : new Error(String(error)));
+        logger.error(
+          'Error regenerating reminders after ticket update',
+          {
+            ticketId: ticket.id,
+          },
+          error instanceof Error ? error : new Error(String(error)),
+        );
       }
     }
   });
@@ -184,19 +197,20 @@ export const createTicket = async (
 
     return ticket;
   } catch (error) {
-    logger.error('Error creating ticket', {
-      pcnNumber: values.pcnNumber,
-      vehicleReg: values.vehicleReg,
-      userId
-    }, error instanceof Error ? error : new Error(String(error)));
+    logger.error(
+      'Error creating ticket',
+      {
+        pcnNumber: values.pcnNumber,
+        vehicleReg: values.vehicleReg,
+        userId,
+      },
+      error instanceof Error ? error : new Error(String(error)),
+    );
     return null;
   }
 };
 
-export const updateTicket = async (
-  id: string,
-  values: TicketFormData,
-) => {
+export const updateTicket = async (id: string, values: TicketFormData) => {
   const userId = await getUserId('update a ticket');
 
   if (!userId) {
@@ -222,7 +236,7 @@ export const updateTicket = async (
   // DEBUG:
   logger.debug('Checking if issuedAt changed', {
     issuedAtChanged,
-    ticketId: id
+    ticketId: id,
   });
 
   // schedule reminder regeneration after response if issuedAt changed
@@ -241,9 +255,13 @@ export const updateTicket = async (
           userId,
         });
       } catch (error) {
-        logger.error('Error regenerating reminders after ticket update', {
-          ticketId: id
-        }, error instanceof Error ? error : new Error(String(error)));
+        logger.error(
+          'Error regenerating reminders after ticket update',
+          {
+            ticketId: id,
+          },
+          error instanceof Error ? error : new Error(String(error)),
+        );
       }
     }
   });
@@ -302,11 +320,15 @@ export const updateTicket = async (
 
     return ticket;
   } catch (error) {
-    logger.error('Error creating ticket', {
-      pcnNumber: values.pcnNumber,
-      vehicleReg: values.vehicleReg,
-      userId
-    }, error instanceof Error ? error : new Error(String(error)));
+    logger.error(
+      'Error creating ticket',
+      {
+        pcnNumber: values.pcnNumber,
+        vehicleReg: values.vehicleReg,
+        userId,
+      },
+      error instanceof Error ? error : new Error(String(error)),
+    );
     return null;
   }
 };
@@ -348,7 +370,11 @@ export const updateTicketStatus = async (
     revalidatePath(`/tickets/${ticketId}`);
     return { success: true };
   } catch (error) {
-    logger.error('Error updating ticket status', { ticketId, status }, error instanceof Error ? error : new Error(String(error)));
+    logger.error(
+      'Error updating ticket status',
+      { ticketId, status },
+      error instanceof Error ? error : new Error(String(error)),
+    );
     return { success: false, error: 'Failed to update ticket status.' };
   }
 };
@@ -434,10 +460,14 @@ export const deleteTicketById = async (
 
     return { success: true, data: deletedTicket };
   } catch (error) {
-    logger.error('Error deleting ticket', {
-      ticketId,
-      userId
-    }, error instanceof Error ? error : new Error(String(error)));
+    logger.error(
+      'Error deleting ticket',
+      {
+        ticketId,
+        userId,
+      },
+      error instanceof Error ? error : new Error(String(error)),
+    );
     return { success: false, error: 'Failed to delete ticket' };
   }
 };
@@ -502,7 +532,11 @@ export const getTickets = async (params?: {
     where.OR = [
       { pcnNumber: { contains: params.search, mode: 'insensitive' } },
       { issuer: { contains: params.search, mode: 'insensitive' } },
-      { vehicle: { registrationNumber: { contains: params.search, mode: 'insensitive' } } },
+      {
+        vehicle: {
+          registrationNumber: { contains: params.search, mode: 'insensitive' },
+        },
+      },
       // Search in location JSON - try both lowercase and original case
       { location: { path: ['line1'], string_contains: params.search } },
       { location: { path: ['line1'], string_contains: searchLower } },
@@ -748,9 +782,13 @@ export const verifyTicket = async (pcnNumber: string) => {
     const result = await verify(pcnNumber);
     return result;
   } catch (error) {
-    logger.error('Error checking ticket', {
-      pcnNumber
-    }, error instanceof Error ? error : new Error(String(error)));
+    logger.error(
+      'Error checking ticket',
+      {
+        pcnNumber,
+      },
+      error instanceof Error ? error : new Error(String(error)),
+    );
     return false;
   }
 };
@@ -834,11 +872,15 @@ export const challengeTicket = async (
       throw error;
     }
   } catch (error) {
-    logger.error('Error challenging ticket', {
-      ticketId: ticket?.id,
-      pcnNumber,
-      challengeReason
-    }, error instanceof Error ? error : new Error(String(error)));
+    logger.error(
+      'Error challenging ticket',
+      {
+        ticketId: ticket?.id,
+        pcnNumber,
+        challengeReason,
+      },
+      error instanceof Error ? error : new Error(String(error)),
+    );
     return {
       success: false,
       message:

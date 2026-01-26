@@ -188,7 +188,9 @@ const Footer = () => {
           </div>
 
           {/* Made in text */}
-          <p className="text-sm text-white/40">Made with care in South London</p>
+          <p className="text-sm text-white/40">
+            Made with care in South London
+          </p>
 
           {/* Legal Links */}
           <div className="flex items-center gap-4 text-sm text-white/60">

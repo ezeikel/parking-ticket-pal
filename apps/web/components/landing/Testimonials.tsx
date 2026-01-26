@@ -3,7 +3,11 @@
 import { useRef } from 'react';
 import { motion, useInView, type Variants } from 'framer-motion';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faStar, faCheck, faShieldCheck } from '@fortawesome/pro-solid-svg-icons';
+import {
+  faStar,
+  faCheck,
+  faShieldCheck,
+} from '@fortawesome/pro-solid-svg-icons';
 import { faApple, faGooglePlay } from '@fortawesome/free-brands-svg-icons';
 
 type Testimonial = {
@@ -114,7 +118,10 @@ const Testimonials = () => {
           {/* Trust Badges */}
           <div className="flex items-center gap-8">
             <div className="flex items-center gap-2 opacity-60 grayscale transition-all hover:opacity-100 hover:grayscale-0">
-              <FontAwesomeIcon icon={faShieldCheck} className="text-2xl text-[#00b67a]" />
+              <FontAwesomeIcon
+                icon={faShieldCheck}
+                className="text-2xl text-[#00b67a]"
+              />
               <span className="text-sm font-medium text-dark">Trustpilot</span>
             </div>
             <div className="flex items-center gap-2 opacity-60 grayscale transition-all hover:opacity-100 hover:grayscale-0">
@@ -170,7 +177,9 @@ const Testimonials = () => {
                     <FontAwesomeIcon icon={faCheck} />
                     Saved £{testimonial.saved}
                   </span>
-                  <p className="mt-1 text-xs text-gray">{testimonial.timeAgo}</p>
+                  <p className="mt-1 text-xs text-gray">
+                    {testimonial.timeAgo}
+                  </p>
                 </div>
               </div>
             </motion.div>

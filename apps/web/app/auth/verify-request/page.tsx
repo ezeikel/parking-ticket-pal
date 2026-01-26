@@ -32,22 +32,23 @@ const VerifyRequestPage = () => (
         </div>
 
         {/* Title */}
-        <h1 className="text-2xl font-bold text-dark mb-3">
-          Check your email
-        </h1>
+        <h1 className="text-2xl font-bold text-dark mb-3">Check your email</h1>
 
         {/* Description */}
         <p className="text-gray mb-2">
           A sign in link has been sent to your email address.
         </p>
         <p className="text-gray mb-8">
-          Click the link in your email to sign in to your Parking Ticket Pal account.
+          Click the link in your email to sign in to your Parking Ticket Pal
+          account.
         </p>
 
         {/* Security Notice */}
         <div className="bg-light rounded-xl p-4 mb-8">
           <p className="text-sm text-gray">
-            The link will expire in <span className="font-semibold text-dark">15 minutes</span> for security.
+            The link will expire in{' '}
+            <span className="font-semibold text-dark">15 minutes</span> for
+            security.
           </p>
         </div>
 
@@ -61,7 +62,10 @@ const VerifyRequestPage = () => (
         {/* Help Text */}
         <p className="text-xs text-gray mt-6">
           Didn&apos;t receive the email? Check your spam folder or{' '}
-          <Link href="/signin" className="text-teal underline hover:no-underline">
+          <Link
+            href="/signin"
+            className="text-teal underline hover:no-underline"
+          >
             request a new link
           </Link>
         </p>

@@ -35,9 +35,7 @@ const DeadlineAlertCard = ({
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.2 }}
       className={`rounded-xl border p-5 ${
-        isCritical
-          ? 'border-coral/30 bg-coral/5'
-          : 'border-amber/30 bg-amber/5'
+        isCritical ? 'border-coral/30 bg-coral/5' : 'border-amber/30 bg-amber/5'
       }`}
     >
       <div className="flex items-start gap-3">

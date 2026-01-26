@@ -2,7 +2,11 @@
 
 import Stripe from 'stripe';
 import { db } from '@parking-ticket-pal/db';
-import { SubscriptionType, SubscriptionSource, TicketTier } from '@parking-ticket-pal/db';
+import {
+  SubscriptionType,
+  SubscriptionSource,
+  TicketTier,
+} from '@parking-ticket-pal/db';
 import {
   STRIPE_API_VERSION,
   isTierUpgradePrice,
@@ -80,22 +84,31 @@ export const POST = async (req: Request) => {
             vehicleReg: metadata.vehicleReg || '',
             issuerType: metadata.issuerType || 'council',
             ticketStage: metadata.ticketStage || 'initial',
-            tier: metadata.tier === 'PREMIUM' ? TicketTier.PREMIUM : TicketTier.STANDARD,
+            tier:
+              metadata.tier === 'PREMIUM'
+                ? TicketTier.PREMIUM
+                : TicketTier.STANDARD,
             challengeReason: metadata.challengeReason || null,
             tempImagePath: metadata.tempImagePath || null,
-            initialAmount: metadata.initialAmount ? parseInt(metadata.initialAmount, 10) : null,
+            initialAmount: metadata.initialAmount
+              ? parseInt(metadata.initialAmount, 10)
+              : null,
             issuer: metadata.issuer || null,
           },
         });
 
-        console.log(`[Stripe] Created pending ticket for guest: ${email}, PCN: ${metadata.pcnNumber}`);
+        console.log(
+          `[Stripe] Created pending ticket for guest: ${email}, PCN: ${metadata.pcnNumber}`,
+        );
       } catch (error) {
         // Check for unique constraint violation (duplicate session ID)
         if (
           error instanceof Error &&
           error.message.includes('Unique constraint failed')
         ) {
-          console.log(`[Stripe] Pending ticket already exists for session: ${completedCheckoutSession.id}`);
+          console.log(
+            `[Stripe] Pending ticket already exists for session: ${completedCheckoutSession.id}`,
+          );
         } else {
           console.error('[Stripe] Error creating pending ticket:', error);
         }
@@ -224,12 +237,16 @@ export const POST = async (req: Request) => {
                 userId: user.id,
                 type,
                 source: SubscriptionSource.STRIPE,
-                stripeSubscriptionId: completedCheckoutSession.subscription as string | null,
+                stripeSubscriptionId: completedCheckoutSession.subscription as
+                  | string
+                  | null,
               },
               update: {
                 type,
                 source: SubscriptionSource.STRIPE,
-                stripeSubscriptionId: completedCheckoutSession.subscription as string | null,
+                stripeSubscriptionId: completedCheckoutSession.subscription as
+                  | string
+                  | null,
               },
             });
 
@@ -241,7 +258,9 @@ export const POST = async (req: Request) => {
               });
             }
 
-            console.log(`[Stripe] Subscription created/updated: ${type} for user ${user.id}`);
+            console.log(
+              `[Stripe] Subscription created/updated: ${type} for user ${user.id}`,
+            );
 
             // revalidate user-related routes
             revalidatePath('/dashboard');
@@ -308,7 +327,9 @@ export const POST = async (req: Request) => {
       if (!user.stripeCustomerId) {
         await db.user.update({
           where: { id: user.id },
-          data: { stripeCustomerId: createdCustomerSubscription.customer as string },
+          data: {
+            stripeCustomerId: createdCustomerSubscription.customer as string,
+          },
         });
       }
 

@@ -1,6 +1,9 @@
 /* eslint-disable import/prefer-default-export */
 
-import { getNotificationPreferences, updateNotificationPreferences } from '@/app/actions/notification';
+import {
+  getNotificationPreferences,
+  updateNotificationPreferences,
+} from '@/app/actions/notification';
 import { getUserId } from '@/utils/user';
 
 export const GET = async () => {
@@ -53,7 +56,9 @@ export const GET = async () => {
 };
 
 export const PATCH = async (req: Request) => {
-  const authenticatedUserId = await getUserId('update notification preferences');
+  const authenticatedUserId = await getUserId(
+    'update notification preferences',
+  );
 
   if (!authenticatedUserId) {
     return Response.json(
@@ -72,7 +77,10 @@ export const PATCH = async (req: Request) => {
 
   const body = await req.json();
 
-  const result = await updateNotificationPreferences(authenticatedUserId, body.preferences);
+  const result = await updateNotificationPreferences(
+    authenticatedUserId,
+    body.preferences,
+  );
 
   if (!result.success) {
     return Response.json(

@@ -22,22 +22,15 @@ import { db } from '@parking-ticket-pal/db';
 import getVehicleInfo from '@/utils/getVehicleInfo';
 import {
   letterFormSchema,
-  ChallengeEmailSchema,
   TicketForChallengeLetter,
   UserForChallengeLetter,
 } from '@/types';
 import { Address } from '@parking-ticket-pal/types';
 import { getUserId } from '@/utils/user';
-import openai from '@/lib/openai';
-import { zodResponseFormat } from 'openai/helpers/zod';
-import {
-  OPENAI_MODEL_GPT_4O,
-  CONTRAVENTION_CODES,
-  STORAGE_PATHS,
-  CHALLENGE_EMAIL_PROMPT,
-} from '@/constants';
-import { generateChallengeEmailPrompt } from '@/utils/promptGenerators';
+import { CONTRAVENTION_CODES, STORAGE_PATHS } from '@/constants';
 import { sendEmail } from '@/lib/email';
+import ChallengeLetterEmail from '@/components/emails/ChallengeLetterEmail';
+import { render } from '@react-email/render';
 import generatePDF from '@/utils/generatePDF';
 import streamToBuffer from '@/utils/streamToBuffer';
 import generateChallengeContent from '@/utils/ai/generateChallengeContent';
@@ -524,31 +517,6 @@ const generateChallengeLetterByTicketId = async (
       throw new Error('Failed to generate challenge letter content.');
     }
 
-    // generate email using structured output
-    const emailResponse = await openai.chat.completions.create({
-      model: OPENAI_MODEL_GPT_4O,
-      messages: [
-        {
-          role: 'system',
-          content: CHALLENGE_EMAIL_PROMPT,
-        },
-        {
-          role: 'user',
-          content: generateChallengeEmailPrompt(
-            user.name ?? '', // we might not have a name if the user is signed in with Facebook/Apple/Resend
-            ticket.pcnNumber,
-            ticket.issuer,
-          ),
-        },
-      ],
-      response_format: zodResponseFormat(ChallengeEmailSchema, 'email'),
-    });
-
-    // parse the email response
-    const emailData = ChallengeEmailSchema.parse(
-      JSON.parse(emailResponse.choices[0].message.content as string),
-    );
-
     // process signature data if available
     let signaturePaths: string[] = [];
     let signatureViewBox = { x: 0, y: 0, width: 300, height: 150 };
@@ -603,11 +571,21 @@ const generateChallengeLetterByTicketId = async (
     });
 
     // TODO: make this step optional in UI
-    // send email with challenge letter as a PDF attachment
+    // send email with challenge letter as a PDF attachment using React Email template
+    const emailHtml = await render(
+      ChallengeLetterEmail({
+        userName: user.name ?? '',
+        pcnNumber: ticket.pcnNumber,
+        issuer: ticket.issuer,
+        vehicleRegistration: ticket.vehicle.registrationNumber,
+        downloadUrl: pdfBlob.url,
+      }),
+    );
+
     const emailResult = await sendEmail({
       to: user.email,
-      subject: emailData.subject,
-      html: emailData.htmlContent,
+      subject: `Your Challenge Letter for PCN ${ticket.pcnNumber}`,
+      html: emailHtml,
       attachments: [
         {
           filename: `challenge-letter-${ticket.pcnNumber}.pdf`,

@@ -2,7 +2,11 @@
 
 import { motion } from 'framer-motion';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faTicket, faCircleInfo, faArrowRight } from '@fortawesome/pro-solid-svg-icons';
+import {
+  faTicket,
+  faCircleInfo,
+  faArrowRight,
+} from '@fortawesome/pro-solid-svg-icons';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 

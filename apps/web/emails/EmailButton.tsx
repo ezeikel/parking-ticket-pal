@@ -1,49 +1,62 @@
-import { Button } from '@react-email/components';
+import { Button, Section } from '@react-email/components';
 
 type EmailButtonProps = {
   href: string;
   children: React.ReactNode;
-  variant?: 'primary' | 'secondary';
+  variant?: 'primary' | 'secondary' | 'outline';
+  fullWidth?: boolean;
 };
 
 const EmailButton = ({
   href,
   children,
   variant = 'primary',
+  fullWidth = false,
 }: EmailButtonProps) => {
+  const baseStyles = {
+    padding: '14px 32px',
+    borderRadius: '8px',
+    textDecoration: 'none',
+    fontWeight: '600',
+    fontSize: '16px',
+    display: 'inline-block',
+    textAlign: 'center' as const,
+    letterSpacing: '0.3px',
+    width: fullWidth ? '100%' : 'auto',
+  };
+
   const styles = {
     primary: {
+      ...baseStyles,
       backgroundColor: '#1ABC9C',
       color: '#ffffff',
-      padding: '12px 24px',
-      borderRadius: '6px',
-      textDecoration: 'none',
-      fontWeight: '600',
-      fontSize: '16px',
-      display: 'inline-block',
-      textAlign: 'center' as const,
       border: 'none',
-      margin: '16px 0',
     },
     secondary: {
+      ...baseStyles,
+      backgroundColor: '#222222',
+      color: '#ffffff',
+      border: 'none',
+    },
+    outline: {
+      ...baseStyles,
       backgroundColor: 'transparent',
-      color: '#1ABC9C',
-      padding: '12px 24px',
-      borderRadius: '6px',
-      textDecoration: 'none',
-      fontWeight: '600',
-      fontSize: '16px',
-      display: 'inline-block',
-      textAlign: 'center' as const,
-      border: '2px solid #1ABC9C',
-      margin: '16px 0',
+      color: '#222222',
+      border: '2px solid #222222',
     },
   };
 
+  const containerStyle = {
+    textAlign: 'center' as const,
+    margin: '24px 0',
+  };
+
   return (
-    <Button href={href} style={styles[variant]}>
-      {children}
-    </Button>
+    <Section style={containerStyle}>
+      <Button href={href} style={styles[variant]}>
+        {children}
+      </Button>
+    </Section>
   );
 };
 

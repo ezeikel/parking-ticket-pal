@@ -54,13 +54,15 @@ export const getDueDateStatus = (dueDate: Date) => {
       daysMessage: 'Today',
       color: 'amber',
     };
-  } if (isBefore(dueDate, today)) {
+  }
+  if (isBefore(dueDate, today)) {
     return {
       status: 'past',
       daysMessage,
       color: 'red',
     };
-  } if (
+  }
+  if (
     isBefore(today, dueDate) &&
     isAfter(today, addDays(dueDate, -nearFutureDaysThreshold))
   ) {
@@ -69,13 +71,12 @@ export const getDueDateStatus = (dueDate: Date) => {
       daysMessage,
       color: 'amber',
     };
-  } 
-    return {
-      status: 'future',
-      daysMessage,
-      color: 'green',
-    };
-  
+  }
+  return {
+    status: 'future',
+    daysMessage,
+    color: 'green',
+  };
 };
 
 /**
@@ -130,7 +131,8 @@ export const calculateAmountDue = (
           : 'Last day for discount price',
       status: 'discount',
     };
-  } if (daysSinceIssue <= standardPeriodDays) {
+  }
+  if (daysSinceIssue <= standardPeriodDays) {
     // Standard full charge period
     return {
       amount: initialAmount * 2,
@@ -139,14 +141,13 @@ export const calculateAmountDue = (
       message: 'Standard charge (discount expired)',
       status: 'standard',
     };
-  } 
-    // Beyond standard period - could escalate further
-    return {
-      amount: initialAmount * 2,
-      isDiscounted: false,
-      daysUntilIncrease: null,
-      message: 'May be subject to further penalties',
-      status: 'overdue',
-    };
-  
+  }
+  // Beyond standard period - could escalate further
+  return {
+    amount: initialAmount * 2,
+    isDiscounted: false,
+    daysUntilIncrease: null,
+    message: 'May be subject to further penalties',
+    status: 'overdue',
+  };
 };

@@ -5,7 +5,10 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faList, faMap } from '@fortawesome/pro-solid-svg-icons';
 import { TicketTier, SubscriptionType } from '@parking-ticket-pal/db/types';
 import { Button } from '@/components/ui/button';
-import { DashboardTicketsList, DashboardTicketsMap } from '@/components/dashboard';
+import {
+  DashboardTicketsList,
+  DashboardTicketsMap,
+} from '@/components/dashboard';
 
 type TicketStatus =
   | 'NEEDS_ACTION'
@@ -52,7 +55,12 @@ const DashboardTicketsSectionClient = ({
       pcnNumber: ticket.pcnNumber,
       amount: ticket.amount,
       deadlineDays: ticket.deadlineDays,
-      status: ticket.status as 'NEEDS_ACTION' | 'PENDING_APPEAL' | 'WON' | 'PAID' | 'OVERDUE',
+      status: ticket.status as
+        | 'NEEDS_ACTION'
+        | 'PENDING_APPEAL'
+        | 'WON'
+        | 'PAID'
+        | 'OVERDUE',
       location: ticket.location,
       coordinates: ticket.coordinates,
     }));

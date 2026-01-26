@@ -22,7 +22,7 @@ export const POST = async (req: NextRequest) => {
       if (!userId) {
         return Response.json(
           { success: false, error: 'Unauthorized' },
-          { status: 401 }
+          { status: 401 },
         );
       }
     }
@@ -34,14 +34,14 @@ export const POST = async (req: NextRequest) => {
     if (!pcnNumber) {
       return Response.json(
         { success: false, error: 'PCN number is required' },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
     if (!challengeReason) {
       return Response.json(
         { success: false, error: 'Challenge reason is required' },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -51,31 +51,28 @@ export const POST = async (req: NextRequest) => {
       pcnNumber,
       challengeReason,
       userId,
-      additionalDetails
+      additionalDetails,
     );
 
     if (!result) {
       return Response.json(
         { success: false, error: 'Failed to generate challenge letter' },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
-    return Response.json(
-      result,
-      {
-        headers: {
-          'Access-Control-Allow-Origin': '*',
-          'Access-Control-Allow-Methods': 'POST, OPTIONS',
-          'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-        },
-      }
-    );
+    return Response.json(result, {
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Methods': 'POST, OPTIONS',
+        'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+      },
+    });
   } catch (error) {
     console.error('Error in challenge letter API:', error);
     return Response.json(
       { success: false, error: 'Internal server error' },
-      { status: 500 }
+      { status: 500 },
     );
   }
 };

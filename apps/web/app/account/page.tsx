@@ -7,7 +7,13 @@ import { faSpinnerThird } from '@fortawesome/pro-solid-svg-icons';
 
 type Tab = 'profile' | 'notifications' | 'billing' | 'security' | 'delete';
 
-const VALID_TABS: Tab[] = ['profile', 'notifications', 'billing', 'security', 'delete'];
+const VALID_TABS: Tab[] = [
+  'profile',
+  'notifications',
+  'billing',
+  'security',
+  'delete',
+];
 
 type AccountPageProps = {
   searchParams: Promise<{ tab?: string }>;
@@ -15,7 +21,10 @@ type AccountPageProps = {
 
 const AccountPageFallback = () => (
   <div className="min-h-screen bg-light flex items-center justify-center">
-    <FontAwesomeIcon icon={faSpinnerThird} className="h-8 w-8 animate-spin text-teal" />
+    <FontAwesomeIcon
+      icon={faSpinnerThird}
+      className="h-8 w-8 animate-spin text-teal"
+    />
   </div>
 );
 
@@ -28,9 +37,8 @@ const AccountPage = async ({ searchParams }: AccountPageProps) => {
   }
 
   // Validate the tab parameter
-  const initialTab: Tab = tab && VALID_TABS.includes(tab as Tab)
-    ? (tab as Tab)
-    : 'profile';
+  const initialTab: Tab =
+    tab && VALID_TABS.includes(tab as Tab) ? (tab as Tab) : 'profile';
 
   return (
     <Suspense fallback={<AccountPageFallback />}>

@@ -4,7 +4,11 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faMobileAlt, faXmark, faArrowRight } from '@fortawesome/pro-solid-svg-icons';
+import {
+  faMobileAlt,
+  faXmark,
+  faArrowRight,
+} from '@fortawesome/pro-solid-svg-icons';
 import { Button } from '@/components/ui/button';
 
 type PhonePromptCardProps = {
@@ -40,9 +44,7 @@ const PhonePromptCard = ({ className = '' }: PhonePromptCardProps) => {
             <FontAwesomeIcon icon={faMobileAlt} className="text-teal" />
           </div>
           <div className="flex-1">
-            <h3 className="font-semibold text-dark">
-              Get SMS reminders
-            </h3>
+            <h3 className="font-semibold text-dark">Get SMS reminders</h3>
             <p className="mt-1 text-sm text-gray">
               Never miss a deadline. Add your phone number to receive text
               reminders before your tickets expire.

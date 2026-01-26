@@ -31,8 +31,9 @@ const BillingToggle = ({
   return (
     <div className="flex items-center justify-center gap-3 p-4">
       <span
-        className={`text-sm font-medium transition-colors ${!isYearly ? 'text-foreground' : 'text-muted-foreground'
-          }`}
+        className={`text-sm font-medium transition-colors ${
+          !isYearly ? 'text-foreground' : 'text-muted-foreground'
+        }`}
       >
         Monthly
       </span>
@@ -43,8 +44,9 @@ const BillingToggle = ({
       />
       <div className="flex items-center gap-2">
         <span
-          className={`text-sm font-medium transition-colors ${isYearly ? 'text-foreground' : 'text-muted-foreground'
-            }`}
+          className={`text-sm font-medium transition-colors ${
+            isYearly ? 'text-foreground' : 'text-muted-foreground'
+          }`}
         >
           Yearly
         </span>

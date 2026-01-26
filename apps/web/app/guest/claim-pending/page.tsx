@@ -49,7 +49,8 @@ const ClaimPendingContent = () => {
 
   const [step, setStep] = useState<Step>('loading');
   const [pendingTickets, setPendingTickets] = useState<PendingTicketData[]>([]);
-  const [selectedTicket, setSelectedTicket] = useState<PendingTicketDetails | null>(null);
+  const [selectedTicket, setSelectedTicket] =
+    useState<PendingTicketDetails | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [createdTicketId, setCreatedTicketId] = useState<string | null>(null);
 
@@ -239,7 +240,8 @@ const ClaimPendingContent = () => {
             <CardHeader className="text-center">
               <CardTitle>Claiming Your Ticket...</CardTitle>
               <CardDescription>
-                We&apos;re looking up your vehicle details and creating your ticket.
+                We&apos;re looking up your vehicle details and creating your
+                ticket.
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -250,7 +252,10 @@ const ClaimPendingContent = () => {
                 />
                 {selectedTicket && (
                   <p className="text-sm text-muted-foreground">
-                    Ticket: <span className="font-mono font-medium">{selectedTicket.pcnNumber}</span>
+                    Ticket:{' '}
+                    <span className="font-mono font-medium">
+                      {selectedTicket.pcnNumber}
+                    </span>
                   </p>
                 )}
               </div>
@@ -283,18 +288,11 @@ const ClaimPendingContent = () => {
                   className="w-full flex items-center gap-3 rounded-lg border border-border p-4 text-left transition-colors hover:border-teal hover:bg-teal/5"
                 >
                   <div className="flex h-10 w-10 items-center justify-center rounded-full bg-teal/10">
-                    <FontAwesomeIcon
-                      icon={faTicket}
-                      className="text-teal"
-                    />
+                    <FontAwesomeIcon icon={faTicket} className="text-teal" />
                   </div>
                   <div className="flex-1">
-                    <p className="font-medium text-dark">
-                      {ticket.pcnNumber}
-                    </p>
-                    <p className="text-sm text-gray">
-                      {ticket.vehicleReg}
-                    </p>
+                    <p className="font-medium text-dark">{ticket.pcnNumber}</p>
+                    <p className="text-sm text-gray">{ticket.vehicleReg}</p>
                   </div>
                   {ticket.tier === TicketTier.PREMIUM && (
                     <span className="flex items-center gap-1 rounded-full bg-amber/10 px-2 py-1 text-xs font-medium text-amber">

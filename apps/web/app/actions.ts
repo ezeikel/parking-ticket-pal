@@ -48,7 +48,7 @@ export const getEvidenceImages = async ({
 
   if (!ticketWithMedia) {
     logger.error('Ticket not found for evidence images', {
-      pcnNumber
+      pcnNumber,
     });
     return null;
   }

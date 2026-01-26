@@ -11,7 +11,12 @@ export type IssuerType = 'council' | 'private' | null;
 /**
  * Stage of the ticket in the appeals process.
  */
-export type TicketStage = 'initial' | 'nto' | 'rejection' | 'charge_cert' | null;
+export type TicketStage =
+  | 'initial'
+  | 'nto'
+  | 'rejection'
+  | 'charge_cert'
+  | null;
 
 /**
  * Challenge reason selection for guest wizard.

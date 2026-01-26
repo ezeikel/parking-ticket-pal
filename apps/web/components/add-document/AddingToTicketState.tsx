@@ -72,7 +72,10 @@ const AddingToTicketState = ({
       <div className="my-4 flex flex-col items-center gap-1">
         <div className="h-4 w-0.5 bg-border" />
         <div className="flex h-8 w-8 items-center justify-center rounded-full bg-light">
-          <FontAwesomeIcon icon={faEnvelopeOpenText} className="text-sm text-gray" />
+          <FontAwesomeIcon
+            icon={faEnvelopeOpenText}
+            className="text-sm text-gray"
+          />
         </div>
         <div className="h-4 w-0.5 bg-border" />
       </div>

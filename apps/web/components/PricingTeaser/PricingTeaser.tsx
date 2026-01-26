@@ -79,110 +79,113 @@ const PricingTeaser = () => {
           </p>
         </div>
 
-      <div className="grid gap-8 md:grid-cols-3 items-stretch">
-        {PRICING_TIERS.map((tier) => (
-          <div
-            key={tier.name}
-            className={cn(
-              'rounded-xl border flex flex-col shadow-lg hover:shadow-2xl transition-shadow duration-300',
-              tier.isPopular
-                ? 'border-primary ring-2 ring-primary dark:border-primary'
-                : 'border-slate-200 dark:border-slate-700',
-              tier.disabled
-                ? 'bg-slate-100 dark:bg-slate-800'
-                : 'bg-white dark:bg-slate-900',
-            )}
-          >
-            {tier.isPopular && (
-              <div className="bg-primary text-primary-foreground text-xs font-semibold uppercase tracking-wider py-1.5 px-4 rounded-t-lg text-center">
-                Most Popular
-              </div>
-            )}
-            <div className="p-6 md:p-8 flex flex-col flex-grow">
-              <div className="mb-6">
-                <h3
-                  className={cn(
-                    'text-2xl font-semibold mb-1',
-                    tier.isPopular
-                      ? 'text-primary'
-                      : 'text-slate-800 dark:text-slate-100',
-                  )}
-                >
-                  {tier.name}
-                </h3>
-                <p className="text-sm text-muted-foreground">
-                  {tier.highlight}
-                </p>
-              </div>
-              <div className="mb-6">
-                <span
-                  className={cn(
-                    'text-4xl md:text-5xl font-bold',
-                    tier.isPopular
-                      ? 'text-primary'
-                      : 'text-slate-900 dark:text-slate-50',
-                  )}
-                >
-                  {tier.price}
-                </span>
-                {tier.name !== 'Free' && (
-                  <span className="text-sm text-muted-foreground">
-                    {' '}
-                    / ticket issue
+        <div className="grid gap-8 md:grid-cols-3 items-stretch">
+          {PRICING_TIERS.map((tier) => (
+            <div
+              key={tier.name}
+              className={cn(
+                'rounded-xl border flex flex-col shadow-lg hover:shadow-2xl transition-shadow duration-300',
+                tier.isPopular
+                  ? 'border-primary ring-2 ring-primary dark:border-primary'
+                  : 'border-slate-200 dark:border-slate-700',
+                tier.disabled
+                  ? 'bg-slate-100 dark:bg-slate-800'
+                  : 'bg-white dark:bg-slate-900',
+              )}
+            >
+              {tier.isPopular && (
+                <div className="bg-primary text-primary-foreground text-xs font-semibold uppercase tracking-wider py-1.5 px-4 rounded-t-lg text-center">
+                  Most Popular
+                </div>
+              )}
+              <div className="p-6 md:p-8 flex flex-col flex-grow">
+                <div className="mb-6">
+                  <h3
+                    className={cn(
+                      'text-2xl font-semibold mb-1',
+                      tier.isPopular
+                        ? 'text-primary'
+                        : 'text-slate-800 dark:text-slate-100',
+                    )}
+                  >
+                    {tier.name}
+                  </h3>
+                  <p className="text-sm text-muted-foreground">
+                    {tier.highlight}
+                  </p>
+                </div>
+                <div className="mb-6">
+                  <span
+                    className={cn(
+                      'text-4xl md:text-5xl font-bold',
+                      tier.isPopular
+                        ? 'text-primary'
+                        : 'text-slate-900 dark:text-slate-50',
+                    )}
+                  >
+                    {tier.price}
                   </span>
-                )}
-              </div>
-              <ul className="space-y-3 text-sm flex-grow mb-8">
-                {tier.features.map((feature) => (
-                  <li key={feature} className="flex items-start gap-3">
-                    <FontAwesomeIcon
-                      icon={faCheck}
-                      size="lg"
-                      className="text-green-500"
-                    />
-                    <span className="text-muted-foreground">{feature}</span>
-                  </li>
-                ))}
-              </ul>
-              {tier.disabled ? (
-                <Button
-                  disabled
-                  variant="outline"
-                  size="lg"
-                  className="w-full mt-auto"
-                >
-                  {tier.cta}
-                </Button>
-              ) : (
-                <Button
-                  asChild
-                  size="lg"
-                  className={cn(
-                    'w-full mt-auto',
-                    !tier.isPopular && 'bg-primary hover:bg-primary/90',
+                  {tier.name !== 'Free' && (
+                    <span className="text-sm text-muted-foreground">
+                      {' '}
+                      / ticket issue
+                    </span>
                   )}
-                >
-                  <a
-                    href={tier.href}
-                    onClick={() => handlePlanClick(tier.name, tier.price)}
+                </div>
+                <ul className="space-y-3 text-sm flex-grow mb-8">
+                  {tier.features.map((feature) => (
+                    <li key={feature} className="flex items-start gap-3">
+                      <FontAwesomeIcon
+                        icon={faCheck}
+                        size="lg"
+                        className="text-green-500"
+                      />
+                      <span className="text-muted-foreground">{feature}</span>
+                    </li>
+                  ))}
+                </ul>
+                {tier.disabled ? (
+                  <Button
+                    disabled
+                    variant="outline"
+                    size="lg"
+                    className="w-full mt-auto"
                   >
                     {tier.cta}
-                  </a>
-                </Button>
-              )}
+                  </Button>
+                ) : (
+                  <Button
+                    asChild
+                    size="lg"
+                    className={cn(
+                      'w-full mt-auto',
+                      !tier.isPopular && 'bg-primary hover:bg-primary/90',
+                    )}
+                  >
+                    <a
+                      href={tier.href}
+                      onClick={() => handlePlanClick(tier.name, tier.price)}
+                    >
+                      {tier.cta}
+                    </a>
+                  </Button>
+                )}
+              </div>
             </div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
 
-      <p className="text-sm text-muted-foreground text-center mt-10 md:mt-12 italic">
-        Add your tickets for free. Upgrade only when you&apos;re ready.{' '}
-        <a href="/pricing" className="text-primary hover:underline font-medium">
-          View all pricing options →
-        </a>
-      </p>
-    </div>
-  </section>
+        <p className="text-sm text-muted-foreground text-center mt-10 md:mt-12 italic">
+          Add your tickets for free. Upgrade only when you&apos;re ready.{' '}
+          <a
+            href="/pricing"
+            className="text-primary hover:underline font-medium"
+          >
+            View all pricing options →
+          </a>
+        </p>
+      </div>
+    </section>
   );
 };
 

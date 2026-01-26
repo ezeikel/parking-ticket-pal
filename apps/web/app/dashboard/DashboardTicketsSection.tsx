@@ -1,4 +1,8 @@
-import { TicketTier, Prisma, SubscriptionType } from '@parking-ticket-pal/db/types';
+import {
+  TicketTier,
+  Prisma,
+  SubscriptionType,
+} from '@parking-ticket-pal/db/types';
 import { getTickets } from '@/app/actions/ticket';
 import { getUserSubscriptionStatus } from '@/app/actions/user';
 import { getUserId } from '@/utils/user';
@@ -68,7 +72,10 @@ const DashboardTicketsSection = async () => {
 
   const { hasSubscription, subscriptionType } = userId
     ? await getUserSubscriptionStatus(userId)
-    : { hasSubscription: false, subscriptionType: null as SubscriptionType | null };
+    : {
+        hasSubscription: false,
+        subscriptionType: null as SubscriptionType | null,
+      };
 
   const now = new Date();
 
@@ -98,7 +105,10 @@ const DashboardTicketsSection = async () => {
       vehicleReg: ticket.vehicle?.registrationNumber,
       tier: ticket.tier as TicketTier,
       coordinates: location?.coordinates
-        ? { lat: location.coordinates.latitude, lng: location.coordinates.longitude }
+        ? {
+            lat: location.coordinates.latitude,
+            lng: location.coordinates.longitude,
+          }
         : undefined,
     };
   });

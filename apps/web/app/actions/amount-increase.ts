@@ -67,11 +67,15 @@ export async function addAmountIncrease(
 
     return { success: true, data: amountIncrease };
   } catch (error) {
-    logger.error('Error adding amount increase', {
-      ticketId: data.ticketId,
-      amount: data.amount,
-      sourceType: data.sourceType
-    }, error instanceof Error ? error : new Error(String(error)));
+    logger.error(
+      'Error adding amount increase',
+      {
+        ticketId: data.ticketId,
+        amount: data.amount,
+        sourceType: data.sourceType,
+      },
+      error instanceof Error ? error : new Error(String(error)),
+    );
     return {
       success: false,
       data: [],
@@ -100,9 +104,13 @@ export async function getAmountIncreases(
 
     return { success: true, data: amountIncreases };
   } catch (error) {
-    logger.error('Error getting amount increases', {
-      ticketId
-    }, error instanceof Error ? error : new Error(String(error)));
+    logger.error(
+      'Error getting amount increases',
+      {
+        ticketId,
+      },
+      error instanceof Error ? error : new Error(String(error)),
+    );
     return {
       success: false,
       error: error instanceof Error ? error.message : 'Unknown error',
@@ -147,11 +155,15 @@ export async function createAmountIncreaseFromLetter(
 
     return { success: true, data: amountIncrease };
   } catch (error) {
-    logger.error('Error creating amount increase from letter', {
-      ticketId,
-      letterId,
-      amount
-    }, error instanceof Error ? error : new Error(String(error)));
+    logger.error(
+      'Error creating amount increase from letter',
+      {
+        ticketId,
+        letterId,
+        amount,
+      },
+      error instanceof Error ? error : new Error(String(error)),
+    );
     return {
       success: false,
       error: error instanceof Error ? error.message : 'Unknown error',
@@ -179,9 +191,13 @@ export async function getCurrentAmountIncrease(ticketId: string) {
 
     return { success: true, data: amountIncrease };
   } catch (error) {
-    logger.error('Error getting current amount increase', {
-      ticketId
-    }, error instanceof Error ? error : new Error(String(error)));
+    logger.error(
+      'Error getting current amount increase',
+      {
+        ticketId,
+      },
+      error instanceof Error ? error : new Error(String(error)),
+    );
     return {
       success: false,
       error: error instanceof Error ? error.message : 'Unknown error',
@@ -225,10 +241,14 @@ export async function deleteAmountIncrease(
 
     return { success: true };
   } catch (error) {
-    logger.error('Error deleting amount increase', {
-      amountIncreaseId,
-      ticketId
-    }, error instanceof Error ? error : new Error(String(error)));
+    logger.error(
+      'Error deleting amount increase',
+      {
+        amountIncreaseId,
+        ticketId,
+      },
+      error instanceof Error ? error : new Error(String(error)),
+    );
     return {
       success: false,
       error: error instanceof Error ? error.message : 'Unknown error',

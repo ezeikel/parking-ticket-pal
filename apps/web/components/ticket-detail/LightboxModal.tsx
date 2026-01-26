@@ -42,7 +42,10 @@ const LightboxModal = ({ imageUrl, onClose }: LightboxModalProps) => {
               />
             ) : (
               <div className="flex h-96 items-center justify-center">
-                <FontAwesomeIcon icon={faImage} className="text-4xl text-gray/40" />
+                <FontAwesomeIcon
+                  icon={faImage}
+                  className="text-4xl text-gray/40"
+                />
               </div>
             )}
           </motion.div>

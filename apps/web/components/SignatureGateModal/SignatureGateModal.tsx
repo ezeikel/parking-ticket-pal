@@ -73,9 +73,7 @@ const SignatureGateModal = ({
           <div className="mx-auto mb-2 flex h-12 w-12 items-center justify-center rounded-full bg-teal/10">
             <FontAwesomeIcon icon={faPen} className="h-5 w-5 text-teal" />
           </div>
-          <DialogTitle className="text-center">
-            Add Your Signature
-          </DialogTitle>
+          <DialogTitle className="text-center">Add Your Signature</DialogTitle>
           <DialogDescription className="text-center">
             Your signature will appear on your challenge letter. This makes your
             appeal look more professional and official.

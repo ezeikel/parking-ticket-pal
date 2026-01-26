@@ -6,7 +6,7 @@ import { getUserId } from '@/utils/user';
 
 export const GET = async (
   _request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) => {
   const { id } = await params;
 
@@ -74,7 +74,7 @@ export const GET = async (
 
 export const DELETE = async (
   _request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) => {
   const { id } = await params;
 
@@ -117,7 +117,9 @@ export const DELETE = async (
     let statusCode = 500;
     if (result.error === 'Ticket not found') {
       statusCode = 404;
-    } else if (result.error === 'You are not authorized to delete this ticket') {
+    } else if (
+      result.error === 'You are not authorized to delete this ticket'
+    ) {
       statusCode = 403;
     }
 

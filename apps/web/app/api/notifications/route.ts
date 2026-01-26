@@ -23,8 +23,12 @@ export const GET = async (req: Request) => {
 
   // Parse query params
   const { searchParams } = new URL(req.url);
-  const limit = searchParams.get('limit') ? parseInt(searchParams.get('limit')!, 10) : 50;
-  const offset = searchParams.get('offset') ? parseInt(searchParams.get('offset')!, 10) : 0;
+  const limit = searchParams.get('limit')
+    ? parseInt(searchParams.get('limit')!, 10)
+    : 50;
+  const offset = searchParams.get('offset')
+    ? parseInt(searchParams.get('offset')!, 10)
+    : 0;
   const unreadOnly = searchParams.get('unreadOnly') === 'true';
 
   const result = await getUserNotifications(authenticatedUserId, {

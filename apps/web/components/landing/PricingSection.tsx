@@ -194,7 +194,9 @@ const PricingSection = () => {
                 >
                   <Link href={tier.ctaHref}>{tier.cta}</Link>
                 </Button>
-                <p className="mt-3 text-center text-xs text-gray">{tier.note}</p>
+                <p className="mt-3 text-center text-xs text-gray">
+                  {tier.note}
+                </p>
               </div>
             </motion.div>
           ))}

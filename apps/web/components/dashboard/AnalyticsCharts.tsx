@@ -146,7 +146,9 @@ const AnalyticsCharts = ({
             </ResponsiveContainer>
           </div>
           <p className="mt-2 text-sm text-gray">
-            <span className="font-semibold text-dark">{totalTicketsThisYear}</span>{' '}
+            <span className="font-semibold text-dark">
+              {totalTicketsThisYear}
+            </span>{' '}
             tickets this year
           </p>
         </motion.div>
@@ -189,7 +191,9 @@ const AnalyticsCharts = ({
                 </PieChart>
               </ResponsiveContainer>
               <div className="absolute inset-0 flex flex-col items-center justify-center">
-                <span className="text-2xl font-bold text-dark">{totalTickets}</span>
+                <span className="text-2xl font-bold text-dark">
+                  {totalTickets}
+                </span>
                 <span className="text-xs text-gray">total</span>
               </div>
             </div>
@@ -239,7 +243,11 @@ const AnalyticsCharts = ({
                   }}
                   formatter={(value) => [`£${value}`, '']}
                 />
-                <Bar dataKey="value" radius={[0, 4, 4, 0]} animationDuration={1000}>
+                <Bar
+                  dataKey="value"
+                  radius={[0, 4, 4, 0]}
+                  animationDuration={1000}
+                >
                   {financialData.map((entry) => (
                     <Cell key={entry.name} fill={entry.color} />
                   ))}
@@ -250,8 +258,9 @@ const AnalyticsCharts = ({
           <div className="mt-4 rounded-lg bg-teal/10 px-3 py-2">
             <p className="text-sm text-teal">
               <FontAwesomeIcon icon={faTrophy} className="mr-2" />
-              You&apos;ve saved <span className="font-bold">£{savedAmount}</span> by
-              challenging tickets
+              You&apos;ve saved{' '}
+              <span className="font-bold">£{savedAmount}</span> by challenging
+              tickets
             </p>
           </div>
         </motion.div>
@@ -267,7 +276,9 @@ const AnalyticsCharts = ({
           <h3 className="font-semibold text-dark">Success Rate Trend</h3>
           <div className="mt-4 flex items-center gap-4">
             <div>
-              <span className="text-4xl font-bold text-dark">{currentSuccessRate}%</span>
+              <span className="text-4xl font-bold text-dark">
+                {currentSuccessRate}%
+              </span>
               <p className="mt-1 flex items-center gap-1 text-sm text-teal">
                 <FontAwesomeIcon icon={faArrowUp} className="text-xs" />
                 {successRateChange}% from last quarter
@@ -298,7 +309,10 @@ const AnalyticsCharts = ({
             </div>
           </div>
           <p className="mt-4 text-sm text-gray">
-            Based on <span className="font-medium text-dark">{appealsSubmitted} appeals</span>{' '}
+            Based on{' '}
+            <span className="font-medium text-dark">
+              {appealsSubmitted} appeals
+            </span>{' '}
             submitted
           </p>
         </motion.div>

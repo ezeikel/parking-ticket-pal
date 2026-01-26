@@ -51,7 +51,9 @@ const SubscribeContent = () => {
         // Validate tier
         if (tier !== 'standard' && tier !== 'premium') {
           logger.warn('Invalid subscription tier', { tier, plan });
-          setError('Invalid subscription tier. Please choose Standard or Premium.');
+          setError(
+            'Invalid subscription tier. Please choose Standard or Premium.',
+          );
           setIsLoading(false);
           return;
         }
@@ -71,10 +73,13 @@ const SubscribeContent = () => {
         );
 
         if (!session?.url) {
-          logger.error('Subscription checkout session created but no URL returned', {
-            tier,
-            period,
-          });
+          logger.error(
+            'Subscription checkout session created but no URL returned',
+            {
+              tier,
+              period,
+            },
+          );
           setError(
             'Unable to create subscription checkout. Please try again or contact support.',
           );
@@ -85,9 +90,13 @@ const SubscribeContent = () => {
         // Redirect to Stripe checkout
         window.location.href = session.url;
       } catch (err) {
-        logger.error('Subscription checkout error', {
-          plan: searchParams.get('plan'),
-        }, err instanceof Error ? err : undefined);
+        logger.error(
+          'Subscription checkout error',
+          {
+            plan: searchParams.get('plan'),
+          },
+          err instanceof Error ? err : undefined,
+        );
         setError(
           'An unexpected error occurred. Please try again or contact support.',
         );

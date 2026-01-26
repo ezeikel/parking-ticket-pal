@@ -1,5 +1,9 @@
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { TicketType, TicketStatus, IssuerType } from '@parking-ticket-pal/db/types';
+import {
+  TicketType,
+  TicketStatus,
+  IssuerType,
+} from '@parking-ticket-pal/db/types';
 import { IconProp } from '@fortawesome/fontawesome-svg-core';
 import { faCreditCard, faUser } from '@fortawesome/pro-duotone-svg-icons';
 import {

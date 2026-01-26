@@ -26,7 +26,8 @@ const SubscriptionSuccessPage = () => (
 
         {/* Description */}
         <p className="text-gray mb-8">
-          Thanks for subscribing to Parking Ticket Pal. Your account has been upgraded and you now have access to all premium features.
+          Thanks for subscribing to Parking Ticket Pal. Your account has been
+          upgraded and you now have access to all premium features.
         </p>
 
         {/* What's Next Section */}
@@ -35,7 +36,9 @@ const SubscriptionSuccessPage = () => (
           <ul className="space-y-2 text-sm text-gray">
             <li className="flex items-start gap-2">
               <span className="text-teal mt-0.5">•</span>
-              <span>Upload your parking tickets and get AI-powered challenge letters</span>
+              <span>
+                Upload your parking tickets and get AI-powered challenge letters
+              </span>
             </li>
             <li className="flex items-start gap-2">
               <span className="text-teal mt-0.5">•</span>

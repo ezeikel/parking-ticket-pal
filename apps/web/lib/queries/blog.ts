@@ -3,7 +3,11 @@
 import { cacheLife, cacheTag } from 'next/cache';
 import { createServerLogger } from '@/lib/logger';
 import { client } from '@/lib/sanity/client';
-import { postsQuery, postBySlugQuery, postSlugsQuery } from '@/lib/sanity/queries';
+import {
+  postsQuery,
+  postBySlugQuery,
+  postSlugsQuery,
+} from '@/lib/sanity/queries';
 import type { SanityPost, SanityPostSummary } from '@/lib/sanity/types';
 import {
   transformSanityPostToLegacy,

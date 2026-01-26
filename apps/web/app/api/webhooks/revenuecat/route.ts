@@ -38,7 +38,13 @@ interface RevenueCatWebhookEvent {
     expiration_at_ms: number | null;
     environment: 'SANDBOX' | 'PRODUCTION';
     presented_offering_id: string | null;
-    store: 'APP_STORE' | 'MAC_APP_STORE' | 'PLAY_STORE' | 'PROMOTIONAL' | 'STRIPE' | 'AMAZON';
+    store:
+      | 'APP_STORE'
+      | 'MAC_APP_STORE'
+      | 'PLAY_STORE'
+      | 'PROMOTIONAL'
+      | 'STRIPE'
+      | 'AMAZON';
     transaction_id: string;
     original_transaction_id: string;
     is_family_share: boolean;
@@ -46,7 +52,10 @@ interface RevenueCatWebhookEvent {
     price: number;
     currency: string;
     price_in_purchased_currency: number;
-    subscriber_attributes: Record<string, { value: string; updated_at_ms: number }>;
+    subscriber_attributes: Record<
+      string,
+      { value: string; updated_at_ms: number }
+    >;
     takehome_percentage: number;
     offer_code: string | null;
     tax_percentage: number;
@@ -60,7 +69,10 @@ interface RevenueCatWebhookEvent {
 /**
  * Verify RevenueCat webhook signature
  */
-function verifyWebhookSignature(body: string, signature: string | null): boolean {
+function verifyWebhookSignature(
+  body: string,
+  signature: string | null,
+): boolean {
   const webhookSecret = process.env.REVENUECAT_WEBHOOK_SECRET;
 
   if (!webhookSecret) {
@@ -83,7 +95,9 @@ function verifyWebhookSignature(body: string, signature: string | null): boolean
  * Map product ID to subscription type
  * Handles versioned product IDs with durations (e.g., standard_sub_monthly_v1, premium_sub_yearly_v2)
  */
-function getSubscriptionTypeFromProductId(productId: string): SubscriptionType | null {
+function getSubscriptionTypeFromProductId(
+  productId: string,
+): SubscriptionType | null {
   if (productId.startsWith('standard_sub')) {
     return SubscriptionType.STANDARD;
   }
@@ -107,17 +121,16 @@ export const POST = async (req: Request) => {
     // Verify webhook signature
     if (!verifyWebhookSignature(body, signature)) {
       console.error('Invalid RevenueCat webhook signature');
-      return Response.json(
-        { error: 'Invalid signature' },
-        { status: 400 }
-      );
+      return Response.json({ error: 'Invalid signature' }, { status: 400 });
     }
 
     // Parse the event
     const webhookEvent: RevenueCatWebhookEvent = JSON.parse(body);
     const { event } = webhookEvent;
 
-    console.log(`[RevenueCat Webhook] Event type: ${event.type}, User: ${event.app_user_id}, Product: ${event.product_id}`);
+    console.log(
+      `[RevenueCat Webhook] Event type: ${event.type}, User: ${event.app_user_id}, Product: ${event.product_id}`,
+    );
 
     // Get the user ID (this should match User.id in our database)
     const userId = event.app_user_id;
@@ -130,10 +143,7 @@ export const POST = async (req: Request) => {
 
     if (!user) {
       console.error(`User not found: ${userId}`);
-      return Response.json(
-        { error: 'User not found' },
-        { status: 404 }
-      );
+      return Response.json({ error: 'User not found' }, { status: 404 });
     }
 
     // Update RevenueCat customer ID if not set
@@ -150,7 +160,9 @@ export const POST = async (req: Request) => {
       case 'RENEWAL':
       case 'UNCANCELLATION':
       case 'PRODUCT_CHANGE': {
-        const subscriptionType = getSubscriptionTypeFromProductId(event.product_id);
+        const subscriptionType = getSubscriptionTypeFromProductId(
+          event.product_id,
+        );
 
         if (subscriptionType) {
           // This is a subscription purchase/renewal
@@ -169,7 +181,9 @@ export const POST = async (req: Request) => {
             },
           });
 
-          console.log(`[RevenueCat] Subscription updated: ${subscriptionType} for user ${userId}`);
+          console.log(
+            `[RevenueCat] Subscription updated: ${subscriptionType} for user ${userId}`,
+          );
 
           // Revalidate relevant paths
           revalidatePath('/dashboard');
@@ -182,7 +196,10 @@ export const POST = async (req: Request) => {
       case 'CANCELLATION':
       case 'EXPIRATION': {
         // Remove the subscription
-        if (user.subscription && user.subscription.source === SubscriptionSource.REVENUECAT) {
+        if (
+          user.subscription &&
+          user.subscription.source === SubscriptionSource.REVENUECAT
+        ) {
           await db.subscription.delete({
             where: { userId },
           });
@@ -201,7 +218,9 @@ export const POST = async (req: Request) => {
         // This is a consumable purchase (e.g., standard_ticket_v1 or premium_ticket_v1)
         // The mobile app should handle this via /api/iap/confirm-purchase
         // We just log it here for tracking
-        console.log(`[RevenueCat] Non-renewing purchase: ${event.product_id} for user ${userId}`);
+        console.log(
+          `[RevenueCat] Non-renewing purchase: ${event.product_id} for user ${userId}`,
+        );
         break;
       }
 
@@ -221,15 +240,9 @@ export const POST = async (req: Request) => {
         console.log(`[RevenueCat] Unhandled event type: ${event.type}`);
     }
 
-    return Response.json(
-      { received: true },
-      { status: 200 }
-    );
+    return Response.json({ received: true }, { status: 200 });
   } catch (error) {
     console.error('[RevenueCat Webhook] Error processing webhook:', error);
-    return Response.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
+    return Response.json({ error: 'Internal server error' }, { status: 500 });
   }
 };

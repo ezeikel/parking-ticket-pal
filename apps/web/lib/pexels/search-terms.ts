@@ -37,7 +37,13 @@ export const CATEGORY_SEARCH_TERMS: Record<string, string[]> = {
     'urban parking',
   ],
   // General topics
-  driving: ['car driving', 'urban driving', 'city traffic', 'road travel', 'motorway'],
+  driving: [
+    'car driving',
+    'urban driving',
+    'city traffic',
+    'road travel',
+    'motorway',
+  ],
   'car-park': [
     'car park',
     'parking lot',
@@ -59,7 +65,13 @@ export const CATEGORY_SEARCH_TERMS: Record<string, string[]> = {
     'justice scales',
     'lawyer office',
   ],
-  money: ['money finance', 'coins pounds', 'wallet payment', 'bills money', 'savings'],
+  money: [
+    'money finance',
+    'coins pounds',
+    'wallet payment',
+    'bills money',
+    'savings',
+  ],
   stress: [
     'stressed person',
     'frustrated driver',
@@ -94,19 +106,49 @@ export const CATEGORY_SEARCH_TERMS: Record<string, string[]> = {
 // Topic-specific search terms (for blog post titles/keywords)
 export const TOPIC_SEARCH_TERMS: Record<string, string[]> = {
   // Common blog topics
-  'how to appeal': ['writing letter', 'paperwork desk', 'formal document', 'pen paper'],
+  'how to appeal': [
+    'writing letter',
+    'paperwork desk',
+    'formal document',
+    'pen paper',
+  ],
   'parking ticket': [
     'parking ticket',
     'car windshield ticket',
     'parking fine',
     'parking violation',
   ],
-  challenge: ['legal challenge', 'writing appeal', 'document review', 'formal letter'],
-  evidence: ['collecting evidence', 'camera photo', 'documentation', 'proof gathering'],
-  deadline: ['calendar deadline', 'time pressure', 'clock urgency', 'schedule planning'],
+  challenge: [
+    'legal challenge',
+    'writing appeal',
+    'document review',
+    'formal letter',
+  ],
+  evidence: [
+    'collecting evidence',
+    'camera photo',
+    'documentation',
+    'proof gathering',
+  ],
+  deadline: [
+    'calendar deadline',
+    'time pressure',
+    'clock urgency',
+    'schedule planning',
+  ],
   payment: ['payment card', 'online payment', 'money transfer', 'paying bills'],
-  council: ['council office', 'government building', 'public service', 'civic centre'],
-  tribunal: ['tribunal hearing', 'courtroom', 'legal proceeding', 'formal hearing'],
+  council: [
+    'council office',
+    'government building',
+    'public service',
+    'civic centre',
+  ],
+  tribunal: [
+    'tribunal hearing',
+    'courtroom',
+    'legal proceeding',
+    'formal hearing',
+  ],
   // Vehicle types
   car: ['parked car', 'car street', 'automobile urban', 'vehicle parking'],
   motorcycle: ['motorcycle parking', 'motorbike street', 'scooter urban'],
@@ -160,7 +202,10 @@ export function getSearchTermsForTopic(text: string): string[] {
 /**
  * Combine category and topic search terms, deduplicating
  */
-export function getCombinedSearchTerms(category: string, title: string): string[] {
+export function getCombinedSearchTerms(
+  category: string,
+  title: string,
+): string[] {
   const categoryTerms = getSearchTermsForCategory(category);
   const topicTerms = getSearchTermsForTopic(title);
 

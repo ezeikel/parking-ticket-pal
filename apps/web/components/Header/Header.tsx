@@ -36,7 +36,11 @@ export type NavItem = {
   icon?: React.ReactNode;
   href?: string;
   liClass?: string;
-  component?: (user: Partial<User> | null, isScrolled: boolean, isHomePage: boolean) => React.ReactNode;
+  component?: (
+    user: Partial<User> | null,
+    isScrolled: boolean,
+    isHomePage: boolean,
+  ) => React.ReactNode;
   visibility: Visibility;
 };
 
@@ -69,7 +73,11 @@ const ITEMS: NavItem[] = [
   {
     label: 'Support',
     liClass: 'p-0 flex',
-    component: (user: Partial<User> | null, isScrolled: boolean, isHomePage: boolean) => (
+    component: (
+      user: Partial<User> | null,
+      isScrolled: boolean,
+      isHomePage: boolean,
+    ) => (
       <FeedbackDialog
         userEmail={user?.email ?? undefined}
         userName={user?.name ?? undefined}
@@ -79,7 +87,7 @@ const ITEMS: NavItem[] = [
             type="button"
             className={cn(
               'text-sm font-bold transition-colors hover:text-teal p-2',
-              !isScrolled && isHomePage ? 'text-white' : 'text-dark'
+              !isScrolled && isHomePage ? 'text-white' : 'text-dark',
             )}
           >
             Support
@@ -112,9 +120,18 @@ const ITEMS: NavItem[] = [
   {
     label: 'UserDropdown',
     liClass: 'p-0 flex',
-    component: (user: Partial<User> | null, isScrolled: boolean, isHomePage: boolean) => (
-      user ? <UserDropdown user={user} isScrolled={isScrolled} isHomePage={isHomePage} /> : null
-    ),
+    component: (
+      user: Partial<User> | null,
+      isScrolled: boolean,
+      isHomePage: boolean,
+    ) =>
+      user ? (
+        <UserDropdown
+          user={user}
+          isScrolled={isScrolled}
+          isHomePage={isHomePage}
+        />
+      ) : null,
     visibility: 'authenticated',
   },
 ];
@@ -151,9 +168,7 @@ const renderNavLink = (
 ) => {
   const textColorClass = cn(
     'text-sm font-bold transition-colors hover:text-teal',
-    !isScrolled && isHomePage
-      ? 'text-white'
-      : 'text-dark',
+    !isScrolled && isHomePage ? 'text-white' : 'text-dark',
   );
 
   if (item.component) {

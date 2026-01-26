@@ -1,16 +1,29 @@
 import Link from 'next/link';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faEnvelope, faTrash, faShieldAlt } from '@fortawesome/pro-regular-svg-icons';
+import {
+  faEnvelope,
+  faTrash,
+  faShieldAlt,
+} from '@fortawesome/pro-regular-svg-icons';
 
 const DeleteAccountPage = () => (
   <div className="container mx-auto max-w-4xl py-8 px-4">
     <div className="mb-8">
-      <h1 className="text-3xl font-bold mb-4">User Data Deletion Instructions</h1>
+      <h1 className="text-3xl font-bold mb-4">
+        User Data Deletion Instructions
+      </h1>
       <p className="text-muted-foreground text-lg">
-        If you&apos;ve logged into Parking Ticket Pal using your Facebook account and would like to delete your data, you can do so at any time.
+        If you&apos;ve logged into Parking Ticket Pal using your Facebook
+        account and would like to delete your data, you can do so at any time.
       </p>
     </div>
 
@@ -23,7 +36,8 @@ const DeleteAccountPage = () => (
             Delete Account In-App
           </CardTitle>
           <CardDescription>
-            If you have access to your account, you can delete it directly from within the app
+            If you have access to your account, you can delete it directly from
+            within the app
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -31,14 +45,19 @@ const DeleteAccountPage = () => (
             <p>To delete your account and all associated data:</p>
             <ol className="list-decimal list-inside space-y-2 ml-4">
               <li>Sign in to your Parking Ticket Pal account</li>
-              <li>Navigate to <strong>Settings → Account</strong></li>
-              <li>Click <strong>Delete Account</strong></li>
+              <li>
+                Navigate to <strong>Settings → Account</strong>
+              </li>
+              <li>
+                Click <strong>Delete Account</strong>
+              </li>
               <li>Confirm the deletion</li>
             </ol>
             <Alert>
               <FontAwesomeIcon icon={faShieldAlt} className="h-4 w-4" />
               <AlertDescription>
-                Your data will be permanently deleted from our systems immediately upon confirmation.
+                Your data will be permanently deleted from our systems
+                immediately upon confirmation.
               </AlertDescription>
             </Alert>
             <Link href="/account">
@@ -75,12 +94,16 @@ const DeleteAccountPage = () => (
                 </a>{' '}
                 with the subject line &quot;Delete My Account&quot;
               </li>
-              <li>Include the email address or Facebook ID associated with your account</li>
+              <li>
+                Include the email address or Facebook ID associated with your
+                account
+              </li>
               <li>We will confirm the deletion request via email</li>
             </ol>
             <Alert>
               <AlertDescription>
-                Your data will be permanently deleted from our systems within 7 business days of receiving your request.
+                Your data will be permanently deleted from our systems within 7
+                business days of receiving your request.
               </AlertDescription>
             </Alert>
             <a href="mailto:support@parkingticketpal.com?subject=Delete My Account">
@@ -98,7 +121,8 @@ const DeleteAccountPage = () => (
         <CardHeader>
           <CardTitle>What Data Gets Deleted</CardTitle>
           <CardDescription>
-            When you delete your account, the following data is permanently removed
+            When you delete your account, the following data is permanently
+            removed
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -122,7 +146,8 @@ const DeleteAccountPage = () => (
         <CardContent>
           <div className="space-y-3">
             <p>
-              We take your privacy seriously. Account deletion is irreversible and complies with:
+              We take your privacy seriously. Account deletion is irreversible
+              and complies with:
             </p>
             <ul className="list-disc list-inside space-y-1 ml-4">
               <li>General Data Protection Regulation (GDPR)</li>
@@ -148,7 +173,8 @@ const DeleteAccountPage = () => (
         </CardHeader>
         <CardContent>
           <p className="mb-4">
-            For any questions about data deletion or our privacy practices, contact us:
+            For any questions about data deletion or our privacy practices,
+            contact us:
           </p>
           <div className="space-y-2">
             <p>

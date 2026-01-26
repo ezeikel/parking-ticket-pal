@@ -12,7 +12,11 @@ import {
   faCircleCheck,
   faArrowUpRight,
 } from '@fortawesome/pro-solid-svg-icons';
-import { faCcVisa, faCcMastercard, faCcAmex } from '@fortawesome/free-brands-svg-icons';
+import {
+  faCcVisa,
+  faCcMastercard,
+  faCcAmex,
+} from '@fortawesome/free-brands-svg-icons';
 import { User } from '@parking-ticket-pal/db/types';
 import { Button } from '@/components/ui/button';
 import BillingToggle from '@/components/pricing/BillingToggle';
@@ -34,7 +38,9 @@ type BillingTabProps = {
 };
 
 const BillingTab = ({ user }: BillingTabProps) => {
-  const [billingPeriod, setBillingPeriod] = useState<'monthly' | 'yearly'>('monthly');
+  const [billingPeriod, setBillingPeriod] = useState<'monthly' | 'yearly'>(
+    'monthly',
+  );
   const [isUpgrading, setIsUpgrading] = useState<string | null>(null);
   const [isLoadingPortal, setIsLoadingPortal] = useState(false);
 
@@ -73,7 +79,8 @@ const BillingTab = ({ user }: BillingTabProps) => {
   }, [user.stripeCustomerId]);
 
   // Get the default payment method
-  const defaultPaymentMethod = paymentMethods.find((pm) => pm.isDefault) || paymentMethods[0];
+  const defaultPaymentMethod =
+    paymentMethods.find((pm) => pm.isDefault) || paymentMethods[0];
 
   // Determine current plan based on subscription
   const currentPlan = subscription
@@ -84,8 +91,18 @@ const BillingTab = ({ user }: BillingTabProps) => {
         renewalDate: subscription.currentPeriodEnd,
         cancelAtPeriodEnd: subscription.cancelAtPeriodEnd,
         features: subscription.plan.name.toLowerCase().includes('premium')
-          ? ['Up to 10 tickets per month', 'Everything in Standard', 'AI appeal letter generation', 'Success prediction score']
-          : ['Up to 5 tickets per month', 'Email + SMS reminders', 'Timeline tracking', 'Storage for letters and tickets'],
+          ? [
+              'Up to 10 tickets per month',
+              'Everything in Standard',
+              'AI appeal letter generation',
+              'Success prediction score',
+            ]
+          : [
+              'Up to 5 tickets per month',
+              'Email + SMS reminders',
+              'Timeline tracking',
+              'Storage for letters and tickets',
+            ],
       }
     : {
         name: 'Free',
@@ -99,7 +116,10 @@ const BillingTab = ({ user }: BillingTabProps) => {
   const handleUpgrade = async (tier: 'standard' | 'premium') => {
     setIsUpgrading(tier);
     try {
-      const session = await createSubscriptionCheckoutSession(tier, billingPeriod);
+      const session = await createSubscriptionCheckoutSession(
+        tier,
+        billingPeriod,
+      );
       if (session?.url) {
         window.location.href = session.url;
       } else {
@@ -142,7 +162,9 @@ const BillingTab = ({ user }: BillingTabProps) => {
   };
 
   const currentPlans =
-    billingPeriod === 'monthly' ? SUBSCRIPTION_PRICING.monthly : SUBSCRIPTION_PRICING.yearly;
+    billingPeriod === 'monthly'
+      ? SUBSCRIPTION_PRICING.monthly
+      : SUBSCRIPTION_PRICING.yearly;
 
   return (
     <div className="space-y-6">
@@ -159,14 +181,18 @@ const BillingTab = ({ user }: BillingTabProps) => {
                 {currentPlan.name}
                 {currentPlan.price > 0 && (
                   <span className="ml-2 text-base font-normal text-gray">
-                    {'\u00A3'}{(currentPlan.price / 100).toFixed(2)}/{currentPlan.interval === 'year' ? 'year' : 'month'}
+                    {'\u00A3'}
+                    {(currentPlan.price / 100).toFixed(2)}/
+                    {currentPlan.interval === 'year' ? 'year' : 'month'}
                   </span>
                 )}
               </p>
               {currentPlan.renewalDate && (
                 <p className="mt-1 text-sm text-gray">
                   {currentPlan.cancelAtPeriodEnd ? 'Cancels' : 'Renews'} on{' '}
-                  {new Date(currentPlan.renewalDate).toLocaleDateString('en-GB')}
+                  {new Date(currentPlan.renewalDate).toLocaleDateString(
+                    'en-GB',
+                  )}
                 </p>
               )}
             </div>
@@ -180,7 +206,10 @@ const BillingTab = ({ user }: BillingTabProps) => {
                 disabled={isLoadingPortal}
               >
                 {isLoadingPortal ? (
-                  <FontAwesomeIcon icon={faSpinnerThird} className="animate-spin" />
+                  <FontAwesomeIcon
+                    icon={faSpinnerThird}
+                    className="animate-spin"
+                  />
                 ) : (
                   'Manage Plan'
                 )}
@@ -191,10 +220,15 @@ const BillingTab = ({ user }: BillingTabProps) => {
 
         {/* Current Plan Features */}
         <div className="mt-6 border-t border-border pt-4">
-          <p className="mb-3 text-sm font-medium text-gray">Your plan includes:</p>
+          <p className="mb-3 text-sm font-medium text-gray">
+            Your plan includes:
+          </p>
           <ul className="space-y-2">
             {currentPlan.features.map((feature) => (
-              <li key={feature} className="flex items-center gap-2 text-sm text-dark">
+              <li
+                key={feature}
+                className="flex items-center gap-2 text-sm text-dark"
+              >
                 <FontAwesomeIcon icon={faCircleCheck} className="text-teal" />
                 {feature}
               </li>
@@ -212,7 +246,11 @@ const BillingTab = ({ user }: BillingTabProps) => {
           </p>
 
           <div className="mt-6 flex justify-center">
-            <BillingToggle value={billingPeriod} onChange={setBillingPeriod} tab="subscriptions" />
+            <BillingToggle
+              value={billingPeriod}
+              onChange={setBillingPeriod}
+              tab="subscriptions"
+            />
           </div>
 
           <div className="mt-6 grid gap-4 md:grid-cols-2">
@@ -236,19 +274,31 @@ const BillingTab = ({ user }: BillingTabProps) => {
                   <span className="text-3xl font-bold text-dark">
                     {plan.price}
                   </span>
-                  <span className="text-gray">/{billingPeriod === 'monthly' ? 'mo' : 'yr'}</span>
+                  <span className="text-gray">
+                    /{billingPeriod === 'monthly' ? 'mo' : 'yr'}
+                  </span>
                 </div>
                 <ul className="mt-4 space-y-2">
                   {plan.features.slice(0, 4).map((feature) => (
-                    <li key={feature} className="flex items-center gap-2 text-sm text-gray">
-                      <FontAwesomeIcon icon={faCircleCheck} className="text-teal" />
+                    <li
+                      key={feature}
+                      className="flex items-center gap-2 text-sm text-gray"
+                    >
+                      <FontAwesomeIcon
+                        icon={faCircleCheck}
+                        className="text-teal"
+                      />
                       {feature}
                     </li>
                   ))}
                 </ul>
                 <Button
                   onClick={() =>
-                    handleUpgrade(plan.title.toLowerCase().replace(' plan', '') as 'standard' | 'premium')
+                    handleUpgrade(
+                      plan.title.toLowerCase().replace(' plan', '') as
+                        | 'standard'
+                        | 'premium',
+                    )
                   }
                   disabled={isUpgrading !== null}
                   className={`mt-4 h-10 w-full ${
@@ -257,9 +307,13 @@ const BillingTab = ({ user }: BillingTabProps) => {
                       : 'bg-dark text-white hover:bg-dark/90'
                   }`}
                 >
-                  {isUpgrading === plan.title.toLowerCase().replace(' plan', '') ? (
+                  {isUpgrading ===
+                  plan.title.toLowerCase().replace(' plan', '') ? (
                     <>
-                      <FontAwesomeIcon icon={faSpinnerThird} className="mr-2 animate-spin" />
+                      <FontAwesomeIcon
+                        icon={faSpinnerThird}
+                        className="mr-2 animate-spin"
+                      />
                       Processing...
                     </>
                   ) : (
@@ -281,7 +335,10 @@ const BillingTab = ({ user }: BillingTabProps) => {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
               <div className="flex h-12 w-12 items-center justify-center rounded-full bg-light">
-                <FontAwesomeIcon icon={faCreditCard} className="text-xl text-gray" />
+                <FontAwesomeIcon
+                  icon={faCreditCard}
+                  className="text-xl text-gray"
+                />
               </div>
               <div>
                 <h3 className="font-semibold text-dark">Payment Method</h3>
@@ -294,7 +351,8 @@ const BillingTab = ({ user }: BillingTabProps) => {
                       className="text-2xl text-dark"
                     />
                     <span className="text-gray">
-                      ···· {defaultPaymentMethod.last4} · Expires {defaultPaymentMethod.expMonth}/
+                      ···· {defaultPaymentMethod.last4} · Expires{' '}
+                      {defaultPaymentMethod.expMonth}/
                       {defaultPaymentMethod.expYear}
                     </span>
                   </div>
@@ -310,7 +368,10 @@ const BillingTab = ({ user }: BillingTabProps) => {
               disabled={isLoadingPortal}
             >
               {isLoadingPortal ? (
-                <FontAwesomeIcon icon={faSpinnerThird} className="animate-spin" />
+                <FontAwesomeIcon
+                  icon={faSpinnerThird}
+                  className="animate-spin"
+                />
               ) : defaultPaymentMethod ? (
                 'Update'
               ) : (
@@ -330,13 +391,18 @@ const BillingTab = ({ user }: BillingTabProps) => {
             </div>
             <div>
               <h3 className="font-semibold text-dark">Billing History</h3>
-              <p className="text-sm text-gray">View past invoices and receipts.</p>
+              <p className="text-sm text-gray">
+                View past invoices and receipts.
+              </p>
             </div>
           </div>
 
           {isLoading ? (
             <div className="mt-6 flex justify-center py-8">
-              <FontAwesomeIcon icon={faSpinnerThird} className="animate-spin text-2xl text-gray" />
+              <FontAwesomeIcon
+                icon={faSpinnerThird}
+                className="animate-spin text-2xl text-gray"
+              />
             </div>
           ) : invoices.length > 0 ? (
             <div className="mt-6 overflow-hidden rounded-lg border border-border">
@@ -366,9 +432,12 @@ const BillingTab = ({ user }: BillingTabProps) => {
                       <td className="px-4 py-3 text-sm text-dark">
                         {new Date(invoice.date).toLocaleDateString('en-GB')}
                       </td>
-                      <td className="px-4 py-3 text-sm text-dark">{invoice.description}</td>
                       <td className="px-4 py-3 text-sm text-dark">
-                        {'\u00A3'}{(invoice.amount / 100).toFixed(2)}
+                        {invoice.description}
+                      </td>
+                      <td className="px-4 py-3 text-sm text-dark">
+                        {'\u00A3'}
+                        {(invoice.amount / 100).toFixed(2)}
                       </td>
                       <td className="px-4 py-3">
                         <span
@@ -389,9 +458,14 @@ const BillingTab = ({ user }: BillingTabProps) => {
                             variant="ghost"
                             size="sm"
                             className="h-8 text-teal"
-                            onClick={() => window.open(invoice.pdfUrl!, '_blank')}
+                            onClick={() =>
+                              window.open(invoice.pdfUrl!, '_blank')
+                            }
                           >
-                            <FontAwesomeIcon icon={faDownload} className="mr-1.5" />
+                            <FontAwesomeIcon
+                              icon={faDownload}
+                              className="mr-1.5"
+                            />
                             PDF
                           </Button>
                         )}

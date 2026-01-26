@@ -78,7 +78,9 @@ const PriceCard = ({
     e.preventDefault();
 
     // Determine tier from title (Standard or Premium)
-    const tier = title.toLowerCase().includes('premium') ? 'premium' : 'standard';
+    const tier = title.toLowerCase().includes('premium')
+      ? 'premium'
+      : 'standard';
 
     // Store the pending action
     if (planType === 'one-time') {

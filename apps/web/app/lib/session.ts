@@ -18,7 +18,10 @@ export async function encrypt(payload: { id: string; email: string }) {
     .sign(encodedKey);
 }
 
-export async function encryptMagicLink(payload: { email: string; expires?: number }) {
+export async function encryptMagicLink(payload: {
+  email: string;
+  expires?: number;
+}) {
   return new SignJWT(payload)
     .setProtectedHeader({ alg: 'HS256' })
     .setIssuedAt()
@@ -34,7 +37,11 @@ export async function decrypt(session: string | undefined = '') {
     });
     return payload;
   } catch (error) {
-    logger.error('Failed to verify session', {}, error instanceof Error ? error : new Error(String(error)));
+    logger.error(
+      'Failed to verify session',
+      {},
+      error instanceof Error ? error : new Error(String(error)),
+    );
     return null;
   }
 }

@@ -31,7 +31,10 @@ import {
 import cn from '@/utils/cn';
 import { format } from 'date-fns';
 import { CONTRAVENTION_CODES_OPTIONS } from '@parking-ticket-pal/constants';
-import { ticketFormSchema, type TicketFormData } from '@parking-ticket-pal/types';
+import {
+  ticketFormSchema,
+  type TicketFormData,
+} from '@parking-ticket-pal/types';
 import { createTicket } from '@/app/actions/ticket';
 import {
   faCalendar,
@@ -138,11 +141,15 @@ const CreateTicketForm = ({ tier, source }: CreateTicketFormProps) => {
         throw new Error('Failed to create ticket');
       }
     } catch (error) {
-      logger.error('Error creating ticket', {
-        tier,
-        source,
-        hasImage: !!tempImageUrl,
-      }, error instanceof Error ? error : undefined);
+      logger.error(
+        'Error creating ticket',
+        {
+          tier,
+          source,
+          hasImage: !!tempImageUrl,
+        },
+        error instanceof Error ? error : undefined,
+      );
       toast.error('Failed to create ticket. Please try again.');
     } finally {
       setIsLoading(false);
@@ -189,7 +196,11 @@ const CreateTicketForm = ({ tier, source }: CreateTicketFormProps) => {
 
       toast.success('Form prefilled with ticket details');
     } catch (error) {
-      logger.error('Error uploading image', {}, error instanceof Error ? error : undefined);
+      logger.error(
+        'Error uploading image',
+        {},
+        error instanceof Error ? error : undefined,
+      );
       toast.error('Failed to upload image. Please try again.');
     } finally {
       setIsLoading(false);

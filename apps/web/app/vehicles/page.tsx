@@ -124,9 +124,12 @@ const VehiclesPage = () => {
             <div className="flex h-16 w-16 items-center justify-center rounded-full bg-teal/10">
               <FontAwesomeIcon icon={faCar} className="text-2xl text-teal" />
             </div>
-            <h2 className="mt-4 text-xl font-semibold text-dark">No vehicles yet</h2>
+            <h2 className="mt-4 text-xl font-semibold text-dark">
+              No vehicles yet
+            </h2>
             <p className="mt-2 max-w-sm text-center text-gray">
-              Add your first vehicle to start tracking tickets and managing appeals.
+              Add your first vehicle to start tracking tickets and managing
+              appeals.
             </p>
             <AddVehicleDialog
               trigger={

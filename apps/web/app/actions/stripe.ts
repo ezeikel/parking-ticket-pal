@@ -140,7 +140,7 @@ export const createCustomerPortalSession = async () => {
 
   if (!user?.stripeCustomerId) {
     logger.error('No stripe customer id for this user', {
-      userId
+      userId,
     });
     return null;
   }
@@ -303,9 +303,10 @@ export const getActiveSubscription = async (): Promise<SubscriptionData> => {
     const subscription = subscriptions.data[0];
     const price = subscription.items.data[0]?.price;
     const product = price?.product;
-    const productName = typeof product === 'object' && product !== null && 'name' in product
-      ? product.name
-      : 'Subscription';
+    const productName =
+      typeof product === 'object' && product !== null && 'name' in product
+        ? product.name
+        : 'Subscription';
 
     // Access subscription properties - use type assertion for snake_case properties
     // that may not be in the TypeScript definitions for this API version
@@ -324,7 +325,7 @@ export const getActiveSubscription = async (): Promise<SubscriptionData> => {
       plan: {
         name: productName,
         amount: price?.unit_amount || 0,
-        interval: price?.recurring?.interval as 'month' | 'year' || 'month',
+        interval: (price?.recurring?.interval as 'month' | 'year') || 'month',
       },
     };
   } catch (error) {
@@ -432,7 +433,7 @@ export const createTicketCheckoutSession = async (
   if (!ticket) {
     logger.error('Ticket not found or does not belong to user', {
       ticketId,
-      userId
+      userId,
     });
     return null;
   }
@@ -447,7 +448,7 @@ export const createTicketCheckoutSession = async (
 
   if (!user) {
     logger.error('User not found', {
-      userId
+      userId,
     });
     return null;
   }
@@ -457,7 +458,7 @@ export const createTicketCheckoutSession = async (
   if (!priceId) {
     logger.error('No price ID configured for tier', {
       tier,
-      userId
+      userId,
     });
     return null;
   }
@@ -612,7 +613,7 @@ export const createSubscriptionCheckoutSession = async (
 
   if (!user) {
     logger.error('User not found', {
-      userId
+      userId,
     });
     return null;
   }
@@ -622,7 +623,7 @@ export const createSubscriptionCheckoutSession = async (
     logger.error('No price ID configured for subscription', {
       tier,
       period,
-      userId
+      userId,
     });
     return null;
   }

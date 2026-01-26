@@ -45,8 +45,7 @@ export const uploadEvidence = async (ticketId: string, formData: FormData) => {
     // Use proper storage path pattern: tickets/{ticketId}/evidence/{evidenceId}.{ext}
     const fileExtension = file.name.split('.').pop() || 'jpg';
     const evidenceId = crypto.randomUUID();
-    const storagePath = STORAGE_PATHS.TICKET_EVIDENCE
-      .replace('%s', ticketId)
+    const storagePath = STORAGE_PATHS.TICKET_EVIDENCE.replace('%s', ticketId)
       .replace('%s', evidenceId)
       .replace('%s', fileExtension);
 
@@ -70,13 +69,17 @@ export const uploadEvidence = async (ticketId: string, formData: FormData) => {
     revalidatePath(`/tickets/${ticketId}`);
     return { success: true, blob };
   } catch (error) {
-    logger.error('Error uploading evidence', {
-      ticketId,
-      evidenceType,
-      fileName: file.name,
-      fileSize: file.size,
-      userId
-    }, error instanceof Error ? error : new Error(String(error)));
+    logger.error(
+      'Error uploading evidence',
+      {
+        ticketId,
+        evidenceType,
+        fileName: file.name,
+        fileSize: file.size,
+        userId,
+      },
+      error instanceof Error ? error : new Error(String(error)),
+    );
     const message =
       error instanceof Error ? error.message : 'Unknown error occurred.';
     return { success: false, error: message };
@@ -107,12 +110,16 @@ export const deleteEvidence = async (
     revalidatePath(`/tickets/${ticketId}`);
     return { success: true };
   } catch (error) {
-    logger.error('Error deleting evidence', {
-      ticketId,
-      mediaId,
-      blobUrl,
-      userId
-    }, error instanceof Error ? error : new Error(String(error)));
+    logger.error(
+      'Error deleting evidence',
+      {
+        ticketId,
+        mediaId,
+        blobUrl,
+        userId,
+      },
+      error instanceof Error ? error : new Error(String(error)),
+    );
     const message =
       error instanceof Error ? error.message : 'Unknown error occurred.';
     return { success: false, error: message };

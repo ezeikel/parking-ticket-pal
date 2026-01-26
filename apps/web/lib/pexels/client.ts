@@ -104,7 +104,9 @@ export async function searchPhotos(
   });
 
   if (!response.ok) {
-    throw new Error(`Pexels API error: ${response.status} ${response.statusText}`);
+    throw new Error(
+      `Pexels API error: ${response.status} ${response.statusText}`,
+    );
   }
 
   return response.json();
@@ -123,7 +125,9 @@ export async function getPhoto(id: number): Promise<PexelsPhoto> {
   });
 
   if (!response.ok) {
-    throw new Error(`Pexels API error: ${response.status} ${response.statusText}`);
+    throw new Error(
+      `Pexels API error: ${response.status} ${response.statusText}`,
+    );
   }
 
   return response.json();
@@ -152,7 +156,9 @@ export async function getCuratedPhotos(
   });
 
   if (!response.ok) {
-    throw new Error(`Pexels API error: ${response.status} ${response.statusText}`);
+    throw new Error(
+      `Pexels API error: ${response.status} ${response.statusText}`,
+    );
   }
 
   return response.json();

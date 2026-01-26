@@ -241,13 +241,13 @@ const TicketDetailPage = ({ ticket }: TicketDetailPageProps) => {
               { id: toastId },
             );
             break;
-          case 'learning':
-            toast.success(result.message, { id: toastId });
-            break;
-          case 'pending_review':
+          case 'generating_automation':
             toast.info(result.message, { id: toastId });
             break;
-          case 'needs_human_help':
+          case 'automation_pending_review':
+            toast.info(result.message, { id: toastId });
+            break;
+          case 'unsupported':
             toast.info(result.message, { id: toastId });
             break;
           default:

@@ -101,7 +101,8 @@ export function transformSanityPostToLegacy(post: SanityPost): {
         name: post.author?.name ?? 'Parking Ticket Pal',
         title: post.author?.title ?? 'Team',
         avatar: post.author?.image
-          ? (post.author.image as { asset?: { url?: string } })?.asset?.url ?? ''
+          ? ((post.author.image as { asset?: { url?: string } })?.asset?.url ??
+            '')
           : '',
       },
       summary: post.excerpt ?? '',
@@ -148,8 +149,8 @@ export function transformSanityPostsToLegacy(
         name: post.author?.name ?? 'Parking Ticket Pal',
         title: post.author?.title ?? 'Team',
         avatar: post.author?.image
-          ? (post.author.image as { asset?: { url?: string } })?.asset?.url ??
-            ''
+          ? ((post.author.image as { asset?: { url?: string } })?.asset?.url ??
+            '')
           : '',
       },
       summary: post.excerpt ?? '',

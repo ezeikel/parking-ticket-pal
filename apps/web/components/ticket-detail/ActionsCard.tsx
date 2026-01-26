@@ -140,17 +140,19 @@ const ActionsCard = ({
         )}
 
         {/* Days Remaining Alert - shown prominently in actions */}
-        {deadlineDays !== undefined && deadlineDays > 0 && deadlineDays <= 14 && (
-          <div
-            className={`rounded-lg p-3 text-center text-sm font-medium ${
-              deadlineDays <= 3
-                ? 'bg-coral/10 text-coral'
-                : 'bg-amber/10 text-amber-600'
-            }`}
-          >
-            {deadlineDays} {deadlineDays === 1 ? 'day' : 'days'} remaining
-          </div>
-        )}
+        {deadlineDays !== undefined &&
+          deadlineDays > 0 &&
+          deadlineDays <= 14 && (
+            <div
+              className={`rounded-lg p-3 text-center text-sm font-medium ${
+                deadlineDays <= 3
+                  ? 'bg-coral/10 text-coral'
+                  : 'bg-amber/10 text-amber-600'
+              }`}
+            >
+              {deadlineDays} {deadlineDays === 1 ? 'day' : 'days'} remaining
+            </div>
+          )}
 
         {/* Secondary Actions */}
         <div className="border-t border-border pt-3">

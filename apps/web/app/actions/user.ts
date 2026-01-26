@@ -37,9 +37,13 @@ const deleteExistingSignature = async (userId: string): Promise<void> => {
 
     await Promise.all(signatureFiles.map((file) => del(file.url)));
   } catch (error) {
-    logger.error('Error deleting existing signature files', {
-      userId
-    }, error instanceof Error ? error : new Error(String(error)));
+    logger.error(
+      'Error deleting existing signature files',
+      {
+        userId,
+      },
+      error instanceof Error ? error : new Error(String(error)),
+    );
   }
 };
 
@@ -49,10 +53,14 @@ const deleteExistingSignature = async (userId: string): Promise<void> => {
  */
 const updateUserProfileInternal = async (
   userId: string,
-  data: UpdateUserData
+  data: UpdateUserData,
 ) => {
   if (!userId) {
-    return { success: false as const, error: 'User ID is required', user: null };
+    return {
+      success: false as const,
+      error: 'User ID is required',
+      user: null,
+    };
   }
 
   try {
@@ -91,9 +99,13 @@ const updateUserProfileInternal = async (
         // Get the URL from the newly created blob
         signatureUrl = signatureBlob.url;
       } catch (error) {
-        logger.error('Error processing signature', {
-          userId
-        }, error instanceof Error ? error : new Error(String(error)));
+        logger.error(
+          'Error processing signature',
+          {
+            userId,
+          },
+          error instanceof Error ? error : new Error(String(error)),
+        );
       }
     }
 
@@ -132,10 +144,18 @@ const updateUserProfileInternal = async (
 
     return { success: true as const, user: updatedUser };
   } catch (error) {
-    logger.error('Error updating profile', {
-      userId
-    }, error instanceof Error ? error : new Error(String(error)));
-    return { success: false as const, error: 'Failed to update profile', user: null };
+    logger.error(
+      'Error updating profile',
+      {
+        userId,
+      },
+      error instanceof Error ? error : new Error(String(error)),
+    );
+    return {
+      success: false as const,
+      error: 'Failed to update profile',
+      user: null,
+    };
   }
 };
 
@@ -145,13 +165,14 @@ const updateUserProfileInternal = async (
 export const updateUserProfile = async (userId: string, formData: FormData) => {
   const data: UpdateUserData = {
     name: formData.get('name') as string,
-    phoneNumber: formData.get('phoneNumber') as string | null || undefined,
-    addressLine1: formData.get('addressLine1') as string | null || undefined,
-    addressLine2: formData.get('addressLine2') as string | null || undefined,
-    city: formData.get('city') as string | null || undefined,
-    county: formData.get('county') as string | null || undefined,
-    postcode: formData.get('postcode') as string | null || undefined,
-    signatureDataUrl: formData.get('signatureDataUrl') as string | null || undefined,
+    phoneNumber: (formData.get('phoneNumber') as string | null) || undefined,
+    addressLine1: (formData.get('addressLine1') as string | null) || undefined,
+    addressLine2: (formData.get('addressLine2') as string | null) || undefined,
+    city: (formData.get('city') as string | null) || undefined,
+    county: (formData.get('county') as string | null) || undefined,
+    postcode: (formData.get('postcode') as string | null) || undefined,
+    signatureDataUrl:
+      (formData.get('signatureDataUrl') as string | null) || undefined,
   };
 
   return updateUserProfileInternal(userId, data);
@@ -164,15 +185,19 @@ export const updateUserProfile = async (userId: string, formData: FormData) => {
 export const updateUserById = async (
   requestedUserId: string,
   authenticatedUserId: string,
-  data: UpdateUserData
+  data: UpdateUserData,
 ) => {
   // Verify the authenticated user is updating their own profile
   if (requestedUserId !== authenticatedUserId) {
     logger.error('Unauthorized user profile update attempt', {
       requestedUserId,
-      authenticatedUserId
+      authenticatedUserId,
     });
-    return { success: false as const, error: 'Unauthorized - cannot update another user\'s profile', user: null };
+    return {
+      success: false as const,
+      error: "Unauthorized - cannot update another user's profile",
+      user: null,
+    };
   }
 
   return updateUserProfileInternal(requestedUserId, data);
@@ -184,15 +209,19 @@ export const updateUserById = async (
  */
 export const getUserById = async (
   requestedUserId: string,
-  authenticatedUserId: string
+  authenticatedUserId: string,
 ) => {
   // Verify the authenticated user is accessing their own profile
   if (requestedUserId !== authenticatedUserId) {
     logger.error('Unauthorized user profile access attempt', {
       requestedUserId,
-      authenticatedUserId
+      authenticatedUserId,
     });
-    return { success: false, error: 'Unauthorized - cannot access another user\'s profile', user: null };
+    return {
+      success: false,
+      error: "Unauthorized - cannot access another user's profile",
+      user: null,
+    };
   }
 
   try {
@@ -206,9 +235,13 @@ export const getUserById = async (
 
     return { success: true, user };
   } catch (error) {
-    logger.error('Error fetching user', {
-      userId: requestedUserId
-    }, error instanceof Error ? error : new Error(String(error)));
+    logger.error(
+      'Error fetching user',
+      {
+        userId: requestedUserId,
+      },
+      error instanceof Error ? error : new Error(String(error)),
+    );
     return { success: false, error: 'Failed to fetch user', user: null };
   }
 };
@@ -241,9 +274,13 @@ export const getUserSubscriptionStatus = async (userId: string) => {
       subscriptionType: user.subscription.type,
     };
   } catch (error) {
-    logger.error('Error fetching user subscription', {
-      userId
-    }, error instanceof Error ? error : new Error(String(error)));
+    logger.error(
+      'Error fetching user subscription',
+      {
+        userId,
+      },
+      error instanceof Error ? error : new Error(String(error)),
+    );
     return { hasSubscription: false, subscriptionType: null };
   }
 };

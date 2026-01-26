@@ -142,7 +142,10 @@ const BlogPageClient = ({ posts, tags }: BlogPageClientProps) => {
       {featuredPost && selectedTag === null && searchQuery === '' && (
         <section className="px-4 py-12">
           <div className="mx-auto max-w-5xl">
-            <Link href={`/blog/${featuredPost.meta.slug}`} className="group block">
+            <Link
+              href={`/blog/${featuredPost.meta.slug}`}
+              className="group block"
+            >
               <motion.article
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -234,7 +237,10 @@ const BlogPageClient = ({ posts, tags }: BlogPageClientProps) => {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: index * 0.05 }}
                 >
-                  <Link href={`/blog/${post.meta.slug}`} className="group block">
+                  <Link
+                    href={`/blog/${post.meta.slug}`}
+                    className="group block"
+                  >
                     {/* Image */}
                     <div className="relative mb-4 aspect-[16/10] overflow-hidden rounded-xl bg-light">
                       {post.meta.image ? (
@@ -301,7 +307,9 @@ const BlogPageClient = ({ posts, tags }: BlogPageClientProps) => {
               Subscribe
             </Button>
           </form>
-          <p className="mt-3 text-xs text-gray">No spam, unsubscribe anytime.</p>
+          <p className="mt-3 text-xs text-gray">
+            No spam, unsubscribe anytime.
+          </p>
         </div>
       </section>
     </div>

@@ -181,7 +181,13 @@ export type HistoryEvent =
 
 export type CurrentUser = Pick<
   User,
-  'id' | 'name' | 'email' | 'address' | 'phoneNumber' | 'signatureUrl' | 'stripeCustomerId'
+  | 'id'
+  | 'name'
+  | 'email'
+  | 'address'
+  | 'phoneNumber'
+  | 'signatureUrl'
+  | 'stripeCustomerId'
 >;
 
 export type TicketForChallengeLetter = {

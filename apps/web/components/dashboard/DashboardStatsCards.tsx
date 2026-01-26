@@ -98,7 +98,8 @@ const DashboardStatsCards = ({
       iconColor: 'text-dark',
       value: totalTickets,
       label: 'Total Tickets',
-      trend: ticketsThisMonth > 0 ? `+${ticketsThisMonth} this month` : undefined,
+      trend:
+        ticketsThisMonth > 0 ? `+${ticketsThisMonth} this month` : undefined,
       trendColor: 'text-gray',
     },
     {

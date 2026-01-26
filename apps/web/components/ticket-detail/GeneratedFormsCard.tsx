@@ -37,7 +37,10 @@ const GeneratedFormsCard = ({ forms }: GeneratedFormsCardProps) => {
   const latestFormsByType = forms.reduce(
     (acc, form) => {
       const existing = acc[form.formType];
-      if (!existing || new Date(form.createdAt) > new Date(existing.createdAt)) {
+      if (
+        !existing ||
+        new Date(form.createdAt) > new Date(existing.createdAt)
+      ) {
         acc[form.formType] = form;
       }
       return acc;

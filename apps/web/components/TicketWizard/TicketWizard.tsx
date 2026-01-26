@@ -128,7 +128,14 @@ const TicketWizard = ({
   };
 
   const [currentStep, setCurrentStep] = useState<
-    'issuer' | 'stage' | 'details' | 'confirm' | 'intent' | 'reason' | 'result' | 'signup'
+    | 'issuer'
+    | 'stage'
+    | 'details'
+    | 'confirm'
+    | 'intent'
+    | 'reason'
+    | 'result'
+    | 'signup'
   >(getInitialStep());
   const [direction, setDirection] = useState(0);
 
@@ -158,7 +165,15 @@ const TicketWizard = ({
   }, [isOpen]);
 
   const goToStep = (
-    step: 'issuer' | 'stage' | 'details' | 'confirm' | 'intent' | 'reason' | 'result' | 'signup',
+    step:
+      | 'issuer'
+      | 'stage'
+      | 'details'
+      | 'confirm'
+      | 'intent'
+      | 'reason'
+      | 'result'
+      | 'signup',
   ) => {
     const stepOrder = [
       'issuer',
@@ -188,10 +203,23 @@ const TicketWizard = ({
     }
     // Manual flow: issuer → stage → details → intent → (challenge: reason → result) or (track: signup)
     if (userIntent === 'track') {
-      const manualTrackSteps = ['issuer', 'stage', 'details', 'intent', 'signup'];
+      const manualTrackSteps = [
+        'issuer',
+        'stage',
+        'details',
+        'intent',
+        'signup',
+      ];
       return manualTrackSteps.indexOf(currentStep) + 1;
     }
-    const manualChallengeSteps = ['issuer', 'stage', 'details', 'intent', 'reason', 'result'];
+    const manualChallengeSteps = [
+      'issuer',
+      'stage',
+      'details',
+      'intent',
+      'reason',
+      'result',
+    ];
     return manualChallengeSteps.indexOf(currentStep) + 1;
   };
 
@@ -416,7 +444,8 @@ const TicketWizard = ({
                   >
                     <p className="font-semibold text-dark">Initial Ticket</p>
                     <p className="mt-0.5 text-sm text-gray">
-                      Just received - on windscreen or in the post. I haven&apos;t appealed yet.
+                      Just received - on windscreen or in the post. I
+                      haven&apos;t appealed yet.
                     </p>
                   </button>
 
@@ -774,8 +803,8 @@ const TicketWizard = ({
                       className="mt-0.5 text-teal"
                     />
                     <span>
-                      Not sure yet? Track your ticket now and decide later.
-                      You can always challenge from your dashboard.
+                      Not sure yet? Track your ticket now and decide later. You
+                      can always challenge from your dashboard.
                     </span>
                   </p>
                 </div>
@@ -890,10 +919,7 @@ const TicketWizard = ({
                       Challenge Letter Ready
                     </span>
                     <span className="flex items-center gap-1 rounded bg-amber/20 px-2 py-0.5 text-xs font-medium text-amber">
-                      <FontAwesomeIcon
-                        icon={faLock}
-                        className="text-[10px]"
-                      />
+                      <FontAwesomeIcon icon={faLock} className="text-[10px]" />
                       Locked
                     </span>
                   </div>
@@ -1008,7 +1034,9 @@ const TicketWizard = ({
                       />
                     </div>
                     <div>
-                      <p className="font-medium text-dark">What you&apos;ll get:</p>
+                      <p className="font-medium text-dark">
+                        What you&apos;ll get:
+                      </p>
                       <ul className="mt-2 space-y-1.5 text-sm text-gray">
                         <li className="flex items-center gap-2">
                           <FontAwesomeIcon

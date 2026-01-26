@@ -46,7 +46,9 @@ const SecurityTab = ({ user }: SecurityTabProps) => {
 
   // Mock data - in production this would come from the user's account
   // In production, this would come from the user's linked accounts
-  const [connectedAccounts, setConnectedAccounts] = useState<ConnectedAccount[]>([
+  const [connectedAccounts, setConnectedAccounts] = useState<
+    ConnectedAccount[]
+  >([
     {
       id: 'google',
       provider: 'google',
@@ -91,10 +93,12 @@ const SecurityTab = ({ user }: SecurityTabProps) => {
       await new Promise((resolve) => setTimeout(resolve, 1500));
       setConnectedAccounts((prev) =>
         prev.map((acc) =>
-          acc.provider === provider ? { ...acc, connected: true } : acc
-        )
+          acc.provider === provider ? { ...acc, connected: true } : acc,
+        ),
       );
-      toast.success(`${provider === 'google' ? 'Google' : 'Apple'} account connected`);
+      toast.success(
+        `${provider === 'google' ? 'Google' : 'Apple'} account connected`,
+      );
     } catch {
       toast.error('Failed to connect account');
     } finally {
@@ -109,10 +113,12 @@ const SecurityTab = ({ user }: SecurityTabProps) => {
       await new Promise((resolve) => setTimeout(resolve, 1500));
       setConnectedAccounts((prev) =>
         prev.map((acc) =>
-          acc.provider === provider ? { ...acc, connected: false } : acc
-        )
+          acc.provider === provider ? { ...acc, connected: false } : acc,
+        ),
       );
-      toast.success(`${provider === 'google' ? 'Google' : 'Apple'} account disconnected`);
+      toast.success(
+        `${provider === 'google' ? 'Google' : 'Apple'} account disconnected`,
+      );
     } catch {
       toast.error('Failed to disconnect account');
     } finally {
@@ -159,7 +165,9 @@ const SecurityTab = ({ user }: SecurityTabProps) => {
                   <FontAwesomeIcon
                     icon={account.icon}
                     className={`text-2xl ${
-                      account.provider === 'google' ? 'text-red-500' : 'text-dark'
+                      account.provider === 'google'
+                        ? 'text-red-500'
+                        : 'text-dark'
                     }`}
                   />
                 </div>
@@ -167,12 +175,20 @@ const SecurityTab = ({ user }: SecurityTabProps) => {
                   <p className="font-medium text-dark">{account.name}</p>
                   {account.connected ? (
                     <div className="flex items-center gap-1.5 text-sm text-teal">
-                      <FontAwesomeIcon icon={faCircleCheck} className="text-xs" />
-                      {account.email ? `Connected as ${account.email}` : 'Connected'}
+                      <FontAwesomeIcon
+                        icon={faCircleCheck}
+                        className="text-xs"
+                      />
+                      {account.email
+                        ? `Connected as ${account.email}`
+                        : 'Connected'}
                     </div>
                   ) : (
                     <div className="flex items-center gap-1.5 text-sm text-gray">
-                      <FontAwesomeIcon icon={faCircleXmark} className="text-xs" />
+                      <FontAwesomeIcon
+                        icon={faCircleXmark}
+                        className="text-xs"
+                      />
                       Not connected
                     </div>
                   )}
@@ -194,7 +210,10 @@ const SecurityTab = ({ user }: SecurityTabProps) => {
                 }
               >
                 {isConnecting === account.provider ? (
-                  <FontAwesomeIcon icon={faSpinnerThird} className="animate-spin" />
+                  <FontAwesomeIcon
+                    icon={faSpinnerThird}
+                    className="animate-spin"
+                  />
                 ) : account.connected ? (
                   <>
                     <FontAwesomeIcon icon={faLinkSlash} className="mr-1.5" />
@@ -225,7 +244,9 @@ const SecurityTab = ({ user }: SecurityTabProps) => {
             variant="outline"
             size="sm"
             onClick={handleSignOutAll}
-            disabled={isSigningOut || sessions.filter((s) => !s.isCurrent).length === 0}
+            disabled={
+              isSigningOut || sessions.filter((s) => !s.isCurrent).length === 0
+            }
             className="text-red-500 hover:bg-red-50 hover:text-red-600"
           >
             {isSigningOut ? (
@@ -254,7 +275,11 @@ const SecurityTab = ({ user }: SecurityTabProps) => {
                   }`}
                 >
                   <FontAwesomeIcon
-                    icon={session.deviceType === 'desktop' ? faDesktop : faMobileScreen}
+                    icon={
+                      session.deviceType === 'desktop'
+                        ? faDesktop
+                        : faMobileScreen
+                    }
                     className={session.isCurrent ? 'text-teal' : 'text-gray'}
                   />
                 </div>
@@ -292,15 +317,24 @@ const SecurityTab = ({ user }: SecurityTabProps) => {
         <h4 className="font-medium text-dark">Security Tips</h4>
         <ul className="mt-3 space-y-2 text-sm text-gray">
           <li className="flex items-start gap-2">
-            <FontAwesomeIcon icon={faCircleCheck} className="mt-0.5 text-teal" />
+            <FontAwesomeIcon
+              icon={faCircleCheck}
+              className="mt-0.5 text-teal"
+            />
             Connect multiple accounts for backup sign-in options
           </li>
           <li className="flex items-start gap-2">
-            <FontAwesomeIcon icon={faCircleCheck} className="mt-0.5 text-teal" />
+            <FontAwesomeIcon
+              icon={faCircleCheck}
+              className="mt-0.5 text-teal"
+            />
             Regularly review your active sessions and sign out unknown devices
           </li>
           <li className="flex items-start gap-2">
-            <FontAwesomeIcon icon={faCircleCheck} className="mt-0.5 text-teal" />
+            <FontAwesomeIcon
+              icon={faCircleCheck}
+              className="mt-0.5 text-teal"
+            />
             Use strong, unique passwords for your connected accounts
           </li>
         </ul>

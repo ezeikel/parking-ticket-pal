@@ -1,5 +1,9 @@
 import { notFound } from 'next/navigation';
-import { getAllPostSlugs, getPostBySlug, getAllPosts } from '@/lib/queries/blog';
+import {
+  getAllPostSlugs,
+  getPostBySlug,
+  getAllPosts,
+} from '@/lib/queries/blog';
 import BlogPostClient from '@/components/blog/BlogPostClient';
 
 // Pre-generate all published blog posts at build time

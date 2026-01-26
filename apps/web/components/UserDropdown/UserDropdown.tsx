@@ -57,7 +57,11 @@ type UserDropdownProps = {
   isHomePage?: boolean;
 };
 
-const UserDropdown = ({ user, isScrolled = true, isHomePage = false }: UserDropdownProps) => {
+const UserDropdown = ({
+  user,
+  isScrolled = true,
+  isHomePage = false,
+}: UserDropdownProps) => {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [feedbackOpen, setFeedbackOpen] = useState(false);
 
@@ -79,7 +83,7 @@ const UserDropdown = ({ user, isScrolled = true, isHomePage = false }: UserDropd
     'hover:shadow-md focus:outline-none focus:ring-2 focus:ring-teal/20',
     !isScrolled && isHomePage
       ? 'border-white/30 bg-white/10 hover:bg-white/20'
-      : 'border-border bg-white hover:bg-light'
+      : 'border-border bg-white hover:bg-light',
   );
 
   return (
@@ -91,11 +95,14 @@ const UserDropdown = ({ user, isScrolled = true, isHomePage = false }: UserDropd
               icon={faBars}
               className={cn(
                 'w-4 text-sm',
-                !isScrolled && isHomePage ? 'text-white' : 'text-gray'
+                !isScrolled && isHomePage ? 'text-white' : 'text-gray',
               )}
             />
             <Avatar className="h-7 w-7">
-              <AvatarImage src={user?.image || undefined} alt={user?.name || 'User'} />
+              <AvatarImage
+                src={user?.image || undefined}
+                alt={user?.name || 'User'}
+              />
               <AvatarFallback className="bg-teal text-xs font-semibold text-white">
                 {initials}
               </AvatarFallback>
@@ -111,13 +118,18 @@ const UserDropdown = ({ user, isScrolled = true, isHomePage = false }: UserDropd
           {/* User Info Header */}
           <div className="mb-2 flex items-center gap-3 rounded-lg bg-light/50 px-3 py-2.5">
             <Avatar className="h-10 w-10">
-              <AvatarImage src={user?.image || undefined} alt={user?.name || 'User'} />
+              <AvatarImage
+                src={user?.image || undefined}
+                alt={user?.name || 'User'}
+              />
               <AvatarFallback className="bg-teal font-semibold text-white">
                 {initials}
               </AvatarFallback>
             </Avatar>
             <div className="flex-1 overflow-hidden">
-              <p className="truncate font-medium text-dark">{user?.name || 'User'}</p>
+              <p className="truncate font-medium text-dark">
+                {user?.name || 'User'}
+              </p>
               <p className="truncate text-xs text-gray">{user?.email}</p>
             </div>
           </div>
@@ -136,7 +148,7 @@ const UserDropdown = ({ user, isScrolled = true, isHomePage = false }: UserDropd
             const itemClassName = cn(
               'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium cursor-pointer',
               'transition-colors hover:bg-light focus:bg-light',
-              item.label === 'Sign out' && 'text-red-500 hover:text-red-600'
+              item.label === 'Sign out' && 'text-red-500 hover:text-red-600',
             );
 
             if (item.specialAction === 'feedback') {
@@ -146,7 +158,10 @@ const UserDropdown = ({ user, isScrolled = true, isHomePage = false }: UserDropd
                   onClick={handleFeedbackClick}
                   className={itemClassName}
                 >
-                  <FontAwesomeIcon icon={item.icon!} className="w-4 text-gray" />
+                  <FontAwesomeIcon
+                    icon={item.icon!}
+                    className="w-4 text-gray"
+                  />
                   <span>{item.label}</span>
                 </DropdownMenuItem>
               );
@@ -157,12 +172,18 @@ const UserDropdown = ({ user, isScrolled = true, isHomePage = false }: UserDropd
                 <DropdownMenuItem key={key} asChild className={itemClassName}>
                   {item.external ? (
                     <a href={item.href} rel="noopener noreferrer">
-                      <FontAwesomeIcon icon={item.icon!} className="w-4 text-gray" />
+                      <FontAwesomeIcon
+                        icon={item.icon!}
+                        className="w-4 text-gray"
+                      />
                       <span>{item.label}</span>
                     </a>
                   ) : (
                     <Link href={item.href}>
-                      <FontAwesomeIcon icon={item.icon!} className="w-4 text-gray" />
+                      <FontAwesomeIcon
+                        icon={item.icon!}
+                        className="w-4 text-gray"
+                      />
                       <span>{item.label}</span>
                     </Link>
                   )}
@@ -179,7 +200,10 @@ const UserDropdown = ({ user, isScrolled = true, isHomePage = false }: UserDropd
                 >
                   <FontAwesomeIcon
                     icon={item.icon!}
-                    className={cn('w-4', item.label === 'Sign out' ? 'text-red-400' : 'text-gray')}
+                    className={cn(
+                      'w-4',
+                      item.label === 'Sign out' ? 'text-red-400' : 'text-gray',
+                    )}
                   />
                   <span>{item.label}</span>
                 </DropdownMenuItem>

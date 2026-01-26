@@ -69,7 +69,9 @@ const setupMetaTokens = async () => {
   const tempUserToken = process.env.TEMP_USER_TOKEN;
 
   if (!appId || !appSecret) {
-    console.log('⚠️  Missing FACEBOOK_BUSINESS_APP_ID or FACEBOOK_BUSINESS_APP_SECRET');
+    console.log(
+      '⚠️  Missing FACEBOOK_BUSINESS_APP_ID or FACEBOOK_BUSINESS_APP_SECRET',
+    );
     console.log('   Add these to your .env file and run again');
     return;
   }

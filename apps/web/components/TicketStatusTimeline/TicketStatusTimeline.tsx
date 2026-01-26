@@ -199,7 +199,8 @@ const TicketStatusTimeline = ({
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(false);
 
-  const stages = issuerType === 'PRIVATE_COMPANY' ? privateStages : councilStages;
+  const stages =
+    issuerType === 'PRIVATE_COMPANY' ? privateStages : councilStages;
   const branches = councilBranches;
 
   // Find current stage index based on status
@@ -215,7 +216,8 @@ const TicketStatusTimeline = ({
   // Check scroll position
   const checkScroll = () => {
     if (scrollContainerRef.current) {
-      const { scrollLeft, scrollWidth, clientWidth } = scrollContainerRef.current;
+      const { scrollLeft, scrollWidth, clientWidth } =
+        scrollContainerRef.current;
       setCanScrollLeft(scrollLeft > 0);
       setCanScrollRight(scrollLeft < scrollWidth - clientWidth - 10);
     }
@@ -451,10 +453,15 @@ const TicketStatusTimeline = ({
                   <div className="flex items-start justify-between">
                     <div className="flex items-center gap-3">
                       <div className="flex h-10 w-10 items-center justify-center rounded-full bg-dark/10">
-                        <FontAwesomeIcon icon={stage.icon} className="text-dark" />
+                        <FontAwesomeIcon
+                          icon={stage.icon}
+                          className="text-dark"
+                        />
                       </div>
                       <div>
-                        <h4 className="font-semibold text-dark">{stage.label}</h4>
+                        <h4 className="font-semibold text-dark">
+                          {stage.label}
+                        </h4>
                         <p className="text-sm text-gray">{stage.description}</p>
                       </div>
                     </div>
@@ -472,7 +479,10 @@ const TicketStatusTimeline = ({
                     <div className="mt-4 flex items-center justify-between border-t border-border pt-4">
                       <p className="text-sm text-gray">
                         Update status to{' '}
-                        <span className="font-semibold text-dark">{stage.label}</span>?
+                        <span className="font-semibold text-dark">
+                          {stage.label}
+                        </span>
+                        ?
                       </p>
                       <div className="flex gap-2">
                         <Button
@@ -499,11 +509,15 @@ const TicketStatusTimeline = ({
                   {selectedStage === 'DISCOUNT_WINDOW' && (
                     <div className="mt-4 rounded-lg bg-amber/10 p-3">
                       <p className="flex items-start gap-2 text-sm text-amber-600">
-                        <FontAwesomeIcon icon={faLightbulb} className="mt-0.5" />
+                        <FontAwesomeIcon
+                          icon={faLightbulb}
+                          className="mt-0.5"
+                        />
                         <span>
-                          <strong>Pro tip:</strong> Most councils will &quot;freeze&quot;
-                          the discount if you challenge within 14 days. If rejected, they
-                          usually re-offer the discount period.
+                          <strong>Pro tip:</strong> Most councils will
+                          &quot;freeze&quot; the discount if you challenge
+                          within 14 days. If rejected, they usually re-offer the
+                          discount period.
                         </span>
                       </p>
                     </div>
@@ -512,11 +526,14 @@ const TicketStatusTimeline = ({
                   {selectedStage === 'ORDER_FOR_RECOVERY' && (
                     <div className="mt-4 rounded-lg bg-teal/10 p-3">
                       <p className="flex items-start gap-2 text-sm text-teal">
-                        <FontAwesomeIcon icon={faInfoCircle} className="mt-0.5" />
+                        <FontAwesomeIcon
+                          icon={faInfoCircle}
+                          className="mt-0.5"
+                        />
                         <span>
-                          You can file a <strong>PE2/PE3</strong> (out of time witness
-                          statement) or <strong>TE7/TE9</strong> form to revert to an
-                          earlier stage.
+                          You can file a <strong>PE2/PE3</strong> (out of time
+                          witness statement) or <strong>TE7/TE9</strong> form to
+                          revert to an earlier stage.
                         </span>
                       </p>
                     </div>

@@ -271,7 +271,8 @@ const PricingPage = () => {
   };
 
   const getSavingsText = (tier: PricingTier) => {
-    if (!isYearly || !tier.originalYearlyPrice || !tier.yearlyPrice) return null;
+    if (!isYearly || !tier.originalYearlyPrice || !tier.yearlyPrice)
+      return null;
     const original = Number.parseFloat(
       tier.originalYearlyPrice.replace(/[£,]/g, ''),
     );
@@ -396,7 +397,9 @@ const PricingPage = () => {
                 {tier.popular && (
                   <div className="absolute -top-3 left-6">
                     <span className="inline-flex items-center rounded-full bg-dark px-3 py-1 text-xs font-semibold text-white">
-                      {activeTab === 'subscriptions' ? 'Best Value' : 'Most Popular'}
+                      {activeTab === 'subscriptions'
+                        ? 'Best Value'
+                        : 'Most Popular'}
                     </span>
                   </div>
                 )}
@@ -414,7 +417,9 @@ const PricingPage = () => {
                       {getDisplayPrice(tier)}
                     </span>
                     {tier.price !== 'Custom' && (
-                      <span className="text-gray">{getDisplayPeriod(tier)}</span>
+                      <span className="text-gray">
+                        {getDisplayPeriod(tier)}
+                      </span>
                     )}
                   </div>
                   {isYearly && tier.originalYearlyPrice && (
@@ -474,7 +479,9 @@ const PricingPage = () => {
         <a
           href="#compare"
           className="inline-flex items-center gap-2 text-sm font-medium text-dark hover:underline"
-          onClick={() => track(TRACKING_EVENTS.PRICING_COMPARE_PLANS_CLICKED, {})}
+          onClick={() =>
+            track(TRACKING_EVENTS.PRICING_COMPARE_PLANS_CLICKED, {})
+          }
         >
           Compare all plans
           <FontAwesomeIcon icon={faArrowRight} className="text-xs" />
@@ -511,11 +518,15 @@ const PricingPage = () => {
                     Free
                   </th>
                   <th className="pb-4 text-center">
-                    <div className="text-sm font-semibold text-dark">Standard</div>
+                    <div className="text-sm font-semibold text-dark">
+                      Standard
+                    </div>
                     <div className="text-xs text-gray">£2.99/ticket</div>
                   </th>
                   <th className="pb-4 text-center">
-                    <div className="text-sm font-semibold text-dark">Premium</div>
+                    <div className="text-sm font-semibold text-dark">
+                      Premium
+                    </div>
                     <div className="text-xs text-gray">£9.99/ticket</div>
                   </th>
                 </tr>
@@ -536,7 +547,9 @@ const PricingPage = () => {
                           className="text-gray/40"
                         />
                       ) : (
-                        <span className="text-sm text-gray">{feature.free}</span>
+                        <span className="text-sm text-gray">
+                          {feature.free}
+                        </span>
                       )}
                     </td>
                     <td className="py-4 text-center">

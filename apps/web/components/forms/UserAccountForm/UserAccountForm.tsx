@@ -82,7 +82,8 @@ const UserAccountForm = ({ user }: UserAccountFormProps) => {
 
   // Use `useActionState` to bind the form to the server action
   const [, formAction] = useActionState(
-    async (_: unknown, formData: FormData) => updateUserProfile(user.id!, formData),
+    async (_: unknown, formData: FormData) =>
+      updateUserProfile(user.id!, formData),
     null,
   );
 

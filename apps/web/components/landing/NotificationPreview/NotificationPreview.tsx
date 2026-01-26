@@ -4,11 +4,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import Image from 'next/image';
 import { motion, AnimatePresence, useInView } from 'framer-motion';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import {
-  faComment,
-  faPlay,
-  faPause,
-} from '@fortawesome/pro-solid-svg-icons';
+import { faComment, faPlay, faPause } from '@fortawesome/pro-solid-svg-icons';
 import { useAnalytics } from '@/utils/analytics-client';
 import { TRACKING_EVENTS } from '@/constants/events';
 
@@ -51,19 +47,23 @@ const notifications: NotificationData[] = [
   {
     type: 'sms',
     sender: 'PTPal',
-    message:
-      'Good news! Your Camden ticket has an 87% predicted success rate.',
+    message: 'Good news! Your Camden ticket has an 87% predicted success rate.',
   },
   {
     type: 'email',
     sender: 'Parking Ticket Pal',
     subject: 'Challenge successful - £120 saved!',
-    preview:
-      'Congratulations! Your Westminster ticket has been cancelled.',
+    preview: 'Congratulations! Your Westminster ticket has been cancelled.',
   },
 ];
 
-const NotificationCard = ({ notification, index }: { notification: NotificationData; index: number }) => {
+const NotificationCard = ({
+  notification,
+  index,
+}: {
+  notification: NotificationData;
+  index: number;
+}) => {
   const isEmail = notification.type === 'email';
 
   return (
@@ -86,12 +86,7 @@ const NotificationCard = ({ notification, index }: { notification: NotificationD
           }`}
         >
           {isEmail ? (
-            <Image
-              src="/icons/gmail.svg"
-              alt="Email"
-              width={18}
-              height={18}
-            />
+            <Image src="/icons/gmail.svg" alt="Email" width={18} height={18} />
           ) : (
             <FontAwesomeIcon icon={faComment} className="text-white text-sm" />
           )}
@@ -101,7 +96,9 @@ const NotificationCard = ({ notification, index }: { notification: NotificationD
         <div className="flex-1 min-w-0">
           <div className="flex items-center justify-between">
             <span className="text-xs font-semibold text-slate-900 truncate">
-              {isEmail ? (notification as EmailNotification).sender : (notification as SMSNotification).sender}
+              {isEmail
+                ? (notification as EmailNotification).sender
+                : (notification as SMSNotification).sender}
             </span>
             <span className="text-[10px] text-slate-500 ml-2">now</span>
           </div>
@@ -127,7 +124,9 @@ const NotificationCard = ({ notification, index }: { notification: NotificationD
 
 const NotificationPreview = () => {
   const [isPlaying, setIsPlaying] = useState(false);
-  const [currentNotifications, setCurrentNotifications] = useState<NotificationData[]>([]);
+  const [currentNotifications, setCurrentNotifications] = useState<
+    NotificationData[]
+  >([]);
   const [notificationIndex, setNotificationIndex] = useState(0);
   const containerRef = useRef(null);
   const isInView = useInView(containerRef, { once: false, margin: '-100px' });
@@ -135,7 +134,8 @@ const NotificationPreview = () => {
   const { track } = useAnalytics();
 
   const addNotification = useCallback(() => {
-    const newNotification = notifications[notificationIndex % notifications.length];
+    const newNotification =
+      notifications[notificationIndex % notifications.length];
 
     setCurrentNotifications((prev) => {
       // Keep only the last 2 notifications + new one

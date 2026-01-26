@@ -1,7 +1,11 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
-import { Prisma, VerificationStatus, VerificationType } from '@parking-ticket-pal/db';
+import {
+  Prisma,
+  VerificationStatus,
+  VerificationType,
+} from '@parking-ticket-pal/db';
 import getVehicleInfo from '@/utils/getVehicleInfo';
 import { track } from '@/utils/analytics-server';
 import { db } from '@parking-ticket-pal/db';
@@ -111,12 +115,16 @@ export const createVehicle = async (
     revalidatePath('/vehicles');
     return { success: true, data: vehicle };
   } catch (error) {
-    logger.error('Error creating vehicle', {
-      registrationNumber,
-      make,
-      model,
-      userId
-    }, error instanceof Error ? error : new Error(String(error)));
+    logger.error(
+      'Error creating vehicle',
+      {
+        registrationNumber,
+        make,
+        model,
+        userId,
+      },
+      error instanceof Error ? error : new Error(String(error)),
+    );
     return { success: false, error: 'Failed to create vehicle' };
   }
 };
@@ -193,11 +201,15 @@ export const updateVehicle = async (
     revalidatePath('/vehicles');
     return { success: true, data: vehicle };
   } catch (error) {
-    logger.error('Error updating vehicle', {
-      vehicleId: id,
-      registrationNumber,
-      userId
-    }, error instanceof Error ? error : new Error(String(error)));
+    logger.error(
+      'Error updating vehicle',
+      {
+        vehicleId: id,
+        registrationNumber,
+        userId,
+      },
+      error instanceof Error ? error : new Error(String(error)),
+    );
     return { success: false, error: 'Failed to update vehicle' };
   }
 };
@@ -248,10 +260,14 @@ export const deleteVehicle = async (
     revalidatePath('/vehicles');
     return { success: true, data: vehicle };
   } catch (error) {
-    logger.error('Error deleting vehicle', {
-      vehicleId: id,
-      userId
-    }, error instanceof Error ? error : new Error(String(error)));
+    logger.error(
+      'Error deleting vehicle',
+      {
+        vehicleId: id,
+        userId,
+      },
+      error instanceof Error ? error : new Error(String(error)),
+    );
     return { success: false, error: 'Failed to delete vehicle' };
   }
 };

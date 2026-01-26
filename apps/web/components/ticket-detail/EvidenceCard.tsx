@@ -144,7 +144,9 @@ const EvidenceCard = ({
       className="rounded-xl border border-border bg-white p-5 md:p-6"
     >
       <div className="flex items-center justify-between">
-        <h2 className="text-lg font-semibold text-dark">Evidence & Documents</h2>
+        <h2 className="text-lg font-semibold text-dark">
+          Evidence & Documents
+        </h2>
         <Button
           variant="outline"
           size="sm"
@@ -163,7 +165,9 @@ const EvidenceCard = ({
             <div
               className={cn(
                 'relative flex flex-col items-center justify-center w-full p-8 border-2 border-dashed rounded-lg transition-colors cursor-pointer',
-                isDragging ? 'border-teal bg-teal/10' : 'border-border hover:border-teal',
+                isDragging
+                  ? 'border-teal bg-teal/10'
+                  : 'border-border hover:border-teal',
               )}
               onDragEnter={(e) => {
                 e.preventDefault();
@@ -195,7 +199,9 @@ const EvidenceCard = ({
           ) : (
             <div className="space-y-4">
               <div className="flex items-center justify-between">
-                <h4 className="font-semibold text-dark">Prepare Your Evidence</h4>
+                <h4 className="font-semibold text-dark">
+                  Prepare Your Evidence
+                </h4>
                 <Button variant="ghost" size="icon" onClick={cancelUpload}>
                   <FontAwesomeIcon icon={faX} />
                 </Button>
@@ -210,7 +216,10 @@ const EvidenceCard = ({
                     />
                   ) : (
                     <div className="flex h-24 w-full items-center justify-center rounded-lg border bg-white md:h-32">
-                      <FontAwesomeIcon icon={faFile} className="text-2xl text-gray/40" />
+                      <FontAwesomeIcon
+                        icon={faFile}
+                        className="text-2xl text-gray/40"
+                      />
                     </div>
                   )}
                   <p className="mt-1 truncate text-xs text-gray">
@@ -219,14 +228,19 @@ const EvidenceCard = ({
                 </div>
                 <div className="flex-grow space-y-3">
                   <div>
-                    <Label htmlFor="doc-type" className="text-sm font-medium text-gray">
+                    <Label
+                      htmlFor="doc-type"
+                      className="text-sm font-medium text-gray"
+                    >
                       Document Type
                     </Label>
                     <Select
                       value={stagedFile.type || ''}
                       onValueChange={(value) =>
                         setStagedFile((prev) =>
-                          prev ? { ...prev, type: value as EvidenceType } : null,
+                          prev
+                            ? { ...prev, type: value as EvidenceType }
+                            : null,
                         )
                       }
                     >
@@ -243,7 +257,10 @@ const EvidenceCard = ({
                     </Select>
                   </div>
                   <div>
-                    <Label htmlFor="description" className="text-sm font-medium text-gray">
+                    <Label
+                      htmlFor="description"
+                      className="text-sm font-medium text-gray"
+                    >
                       Description
                     </Label>
                     <Textarea
@@ -253,7 +270,9 @@ const EvidenceCard = ({
                       value={stagedFile.description}
                       onChange={(e) =>
                         setStagedFile((prev) =>
-                          prev ? { ...prev, description: e.target.value } : null,
+                          prev
+                            ? { ...prev, description: e.target.value }
+                            : null,
                         )
                       }
                     />
@@ -261,7 +280,11 @@ const EvidenceCard = ({
                 </div>
               </div>
               <div className="flex justify-end gap-2">
-                <Button variant="outline" onClick={cancelUpload} className="bg-transparent">
+                <Button
+                  variant="outline"
+                  onClick={cancelUpload}
+                  className="bg-transparent"
+                >
                   Cancel
                 </Button>
                 <Button
@@ -301,7 +324,10 @@ const EvidenceCard = ({
                   />
                 ) : (
                   <div className="flex h-full items-center justify-center">
-                    <FontAwesomeIcon icon={faFile} className="text-2xl text-gray/40" />
+                    <FontAwesomeIcon
+                      icon={faFile}
+                      className="text-2xl text-gray/40"
+                    />
                   </div>
                 )}
                 <div className="absolute inset-0 flex items-center justify-center bg-dark/0 transition-colors group-hover:bg-dark/40">
@@ -341,7 +367,10 @@ const EvidenceCard = ({
           role="button"
           tabIndex={0}
         >
-          <FontAwesomeIcon icon={faCloudArrowUp} className="text-2xl text-gray/40" />
+          <FontAwesomeIcon
+            icon={faCloudArrowUp}
+            className="text-2xl text-gray/40"
+          />
           <p className="mt-2 text-sm text-gray">Add supporting evidence</p>
         </div>
       ) : null}

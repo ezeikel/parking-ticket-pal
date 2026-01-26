@@ -51,11 +51,13 @@ const TicketInfoCard = ({
 
   // Calculate discount deadline (14 days from issue)
   const computedDiscountDeadline =
-    discountDeadline || new Date(new Date(issuedAt).getTime() + 14 * 24 * 60 * 60 * 1000);
+    discountDeadline ||
+    new Date(new Date(issuedAt).getTime() + 14 * 24 * 60 * 60 * 1000);
 
   // Calculate final deadline (28 days from issue)
   const computedFinalDeadline =
-    finalDeadline || new Date(new Date(issuedAt).getTime() + 28 * 24 * 60 * 60 * 1000);
+    finalDeadline ||
+    new Date(new Date(issuedAt).getTime() + 28 * 24 * 60 * 60 * 1000);
 
   return (
     <motion.div
@@ -86,7 +88,9 @@ const TicketInfoCard = ({
         </div>
         <div>
           <p className="text-xs font-medium text-gray">Issue Date</p>
-          <p className="mt-0.5 font-semibold text-dark">{formatDate(issuedAt)}</p>
+          <p className="mt-0.5 font-semibold text-dark">
+            {formatDate(issuedAt)}
+          </p>
         </div>
 
         {contraventionCode && (

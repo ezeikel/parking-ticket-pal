@@ -76,11 +76,17 @@ const ProfileTab = ({ user }: ProfileTabProps) => {
     defaultValues: {
       name: user?.name || '',
       phoneNumber: user?.phoneNumber || '',
-      addressLine1: user?.address ? (user.address as UserAddress).line1 : undefined,
-      addressLine2: user?.address ? (user.address as UserAddress).line2 : undefined,
+      addressLine1: user?.address
+        ? (user.address as UserAddress).line1
+        : undefined,
+      addressLine2: user?.address
+        ? (user.address as UserAddress).line2
+        : undefined,
       city: user?.address ? (user.address as UserAddress).city : undefined,
       county: user?.address ? (user.address as UserAddress).county : undefined,
-      postcode: user?.address ? (user.address as UserAddress).postcode : undefined,
+      postcode: user?.address
+        ? (user.address as UserAddress).postcode
+        : undefined,
       signatureDataUrl: user?.signatureUrl || undefined,
     },
   });
@@ -100,7 +106,7 @@ const ProfileTab = ({ user }: ProfileTabProps) => {
         setIsSaving(false);
       }
     },
-    null
+    null,
   );
 
   const handleAddressSelect = (address: Address) => {
@@ -128,11 +134,12 @@ const ProfileTab = ({ user }: ProfileTabProps) => {
     }
   }, [user]);
 
-  const initials = user?.name
-    ?.split(' ')
-    .map((n) => n[0])
-    .join('')
-    .toUpperCase() || 'U';
+  const initials =
+    user?.name
+      ?.split(' ')
+      .map((n) => n[0])
+      .join('')
+      .toUpperCase() || 'U';
 
   return (
     <div className="space-y-6">
@@ -140,13 +147,18 @@ const ProfileTab = ({ user }: ProfileTabProps) => {
       <div className="rounded-2xl bg-white p-6 shadow-[0_2px_4px_rgba(0,0,0,0.06),0_4px_12px_rgba(0,0,0,0.06)]">
         <div className="flex items-center gap-6">
           <Avatar className="h-24 w-24 md:h-28 md:w-28">
-            <AvatarImage src={user?.image || undefined} alt={user?.name || 'User'} />
+            <AvatarImage
+              src={user?.image || undefined}
+              alt={user?.name || 'User'}
+            />
             <AvatarFallback className="bg-teal/10 text-2xl font-semibold text-teal">
               {initials}
             </AvatarFallback>
           </Avatar>
           <div>
-            <h3 className="text-lg font-semibold text-dark">{user?.name || 'Your Name'}</h3>
+            <h3 className="text-lg font-semibold text-dark">
+              {user?.name || 'Your Name'}
+            </h3>
             <p className="text-sm text-gray">{user?.email}</p>
           </div>
         </div>
@@ -154,19 +166,27 @@ const ProfileTab = ({ user }: ProfileTabProps) => {
 
       {/* Personal Information Card */}
       <div className="rounded-2xl bg-white p-6 shadow-[0_2px_4px_rgba(0,0,0,0.06),0_4px_12px_rgba(0,0,0,0.06)]">
-        <h3 className="text-lg font-semibold text-dark">Personal Information</h3>
+        <h3 className="text-lg font-semibold text-dark">
+          Personal Information
+        </h3>
         <p className="mt-1 text-sm text-gray">Update your personal details.</p>
 
         <Form {...form}>
           <form action={formAction} className="mt-6 space-y-5">
-            <input type="hidden" name="signatureDataUrl" value={signatureDataUrl || ''} />
+            <input
+              type="hidden"
+              name="signatureDataUrl"
+              value={signatureDataUrl || ''}
+            />
 
             <FormField
               control={form.control}
               name="name"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-sm font-medium text-dark">Full Name</FormLabel>
+                  <FormLabel className="text-sm font-medium text-dark">
+                    Full Name
+                  </FormLabel>
                   <FormControl>
                     <Input
                       placeholder="John Doe"
@@ -181,7 +201,9 @@ const ProfileTab = ({ user }: ProfileTabProps) => {
 
             {/* Email (read-only with verified badge) */}
             <div>
-              <label className="mb-1.5 block text-sm font-medium text-dark">Email</label>
+              <label className="mb-1.5 block text-sm font-medium text-dark">
+                Email
+              </label>
               <div className="relative">
                 <Input
                   value={user?.email || ''}
@@ -228,7 +250,10 @@ const ProfileTab = ({ user }: ProfileTabProps) => {
             >
               {isSaving ? (
                 <>
-                  <FontAwesomeIcon icon={faSpinnerThird} className="mr-2 animate-spin" />
+                  <FontAwesomeIcon
+                    icon={faSpinnerThird}
+                    className="mr-2 animate-spin"
+                  />
                   Saving...
                 </>
               ) : showSuccess ? (
@@ -247,14 +272,21 @@ const ProfileTab = ({ user }: ProfileTabProps) => {
       {/* Address Card */}
       <div className="rounded-2xl bg-white p-6 shadow-[0_2px_4px_rgba(0,0,0,0.06),0_4px_12px_rgba(0,0,0,0.06)]">
         <h3 className="text-lg font-semibold text-dark">Address</h3>
-        <p className="mt-1 text-sm text-gray">Your billing and correspondence address.</p>
+        <p className="mt-1 text-sm text-gray">
+          Your billing and correspondence address.
+        </p>
 
         <Form {...form}>
           <form action={formAction} className="mt-6 space-y-5">
             {showAddressInput && (
               <div>
-                <FormLabel className="text-sm font-medium text-dark">Find your address</FormLabel>
-                <AddressInput onSelect={handleAddressSelect} className="mt-1.5 w-full" />
+                <FormLabel className="text-sm font-medium text-dark">
+                  Find your address
+                </FormLabel>
+                <AddressInput
+                  onSelect={handleAddressSelect}
+                  className="mt-1.5 w-full"
+                />
                 <p className="mt-2 text-xs text-gray">
                   Start typing to search, or{' '}
                   <button
@@ -285,7 +317,9 @@ const ProfileTab = ({ user }: ProfileTabProps) => {
               name="addressLine1"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-sm font-medium text-dark">Address Line 1</FormLabel>
+                  <FormLabel className="text-sm font-medium text-dark">
+                    Address Line 1
+                  </FormLabel>
                   <FormControl>
                     <Input
                       placeholder="123 High Street"
@@ -324,7 +358,9 @@ const ProfileTab = ({ user }: ProfileTabProps) => {
                 name="city"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-sm font-medium text-dark">City / Town</FormLabel>
+                    <FormLabel className="text-sm font-medium text-dark">
+                      City / Town
+                    </FormLabel>
                     <FormControl>
                       <Input
                         placeholder="London"
@@ -342,7 +378,9 @@ const ProfileTab = ({ user }: ProfileTabProps) => {
                 name="postcode"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-sm font-medium text-dark">Postcode</FormLabel>
+                    <FormLabel className="text-sm font-medium text-dark">
+                      Postcode
+                    </FormLabel>
                     <FormControl>
                       <Input
                         placeholder="SW1A 1AA"
@@ -378,7 +416,9 @@ const ProfileTab = ({ user }: ProfileTabProps) => {
 
             {/* Country is fixed for UK */}
             <div>
-              <label className="mb-1.5 block text-sm font-medium text-dark">Country</label>
+              <label className="mb-1.5 block text-sm font-medium text-dark">
+                Country
+              </label>
               <Input
                 value="United Kingdom"
                 disabled
@@ -393,7 +433,10 @@ const ProfileTab = ({ user }: ProfileTabProps) => {
             >
               {isSaving ? (
                 <>
-                  <FontAwesomeIcon icon={faSpinnerThird} className="mr-2 animate-spin" />
+                  <FontAwesomeIcon
+                    icon={faSpinnerThird}
+                    className="mr-2 animate-spin"
+                  />
                   Saving...
                 </>
               ) : (
@@ -413,7 +456,9 @@ const ProfileTab = ({ user }: ProfileTabProps) => {
 
         <div className="mt-6">
           <SignatureInput
-            onSignatureChange={(newSignatureDataUrl) => setSignatureDataUrl(newSignatureDataUrl)}
+            onSignatureChange={(newSignatureDataUrl) =>
+              setSignatureDataUrl(newSignatureDataUrl)
+            }
             signatureUrl={user?.signatureUrl || null}
           />
         </div>

@@ -45,7 +45,7 @@ const features: Feature[] = [
     icon: faRobot,
     title: 'Auto-Submit to 40+ Councils',
     description:
-      "For supported councils like Lewisham and Horizon Parking authorities, we can submit your challenge directly - no manual form filling needed.",
+      'For supported councils like Lewisham and Horizon Parking authorities, we can submit your challenge directly - no manual form filling needed.',
     size: 'medium',
     badge: 'Lewisham, Westminster, TfL + more',
   },

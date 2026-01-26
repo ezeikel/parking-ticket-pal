@@ -22,7 +22,12 @@ export function urlFor(source: SanityImageSource) {
  * Get a URL for Open Graph images (1200x630)
  */
 export function getOgImageUrl(source: SanityImageSource): string {
-  return urlFor(source).width(1200).height(630).fit('crop').auto('format').url();
+  return urlFor(source)
+    .width(1200)
+    .height(630)
+    .fit('crop')
+    .auto('format')
+    .url();
 }
 
 /**
@@ -36,5 +41,10 @@ export function getThumbnailUrl(source: SanityImageSource): string {
  * Get a URL for featured images (1200x800)
  */
 export function getFeaturedImageUrl(source: SanityImageSource): string {
-  return urlFor(source).width(1200).height(800).fit('crop').auto('format').url();
+  return urlFor(source)
+    .width(1200)
+    .height(800)
+    .fit('crop')
+    .auto('format')
+    .url();
 }

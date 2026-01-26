@@ -86,7 +86,7 @@ const signature = {
 const FormEmail = ({
   formType = 'TE9 Appeal',
   userName = 'John Smith',
-  downloadUrl = 'https://parkingticketpal.com/download/form-123'
+  downloadUrl = 'https://parkingticketpal.com/download/form-123',
 }: FormEmailProps) => (
   <Html>
     <Head />
@@ -98,7 +98,8 @@ const FormEmail = ({
         <Text style={greeting}>Hello {userName},</Text>
 
         <Text style={text}>
-          Great news! Your {formType} form has been successfully generated and is ready for download.
+          Great news! Your {formType} form has been successfully generated and
+          is ready for download.
         </Text>
 
         <Section style={infoBox}>
@@ -106,15 +107,14 @@ const FormEmail = ({
           <Text style={infoValue}>{formType}</Text>
         </Section>
 
-        <EmailButton href={downloadUrl}>
-          Download Your Form
-        </EmailButton>
+        <EmailButton href={downloadUrl}>Download Your Form</EmailButton>
 
         <Text style={text}>
           You can also access this form anytime from your{' '}
           <Link href="https://parkingticketpal.com/dashboard" style={linkStyle}>
             account dashboard
-          </Link>.
+          </Link>
+          .
         </Text>
 
         <Text style={signature}>

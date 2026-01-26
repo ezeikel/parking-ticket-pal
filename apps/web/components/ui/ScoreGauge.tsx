@@ -185,16 +185,20 @@ const ScoreGauge = ({
         </span>
       )}
 
-      {showSavings && potentialSavings !== undefined && potentialSavings > 0 && (
-        <div className="mt-1 text-center">
-          <span className={`font-medium ${config.labelSize} text-gray`}>
-            Potential savings
-          </span>
-          <span className={`block font-bold ${config.labelSize} text-success`}>
-            {formatCurrency(potentialSavings)}
-          </span>
-        </div>
-      )}
+      {showSavings &&
+        potentialSavings !== undefined &&
+        potentialSavings > 0 && (
+          <div className="mt-1 text-center">
+            <span className={`font-medium ${config.labelSize} text-gray`}>
+              Potential savings
+            </span>
+            <span
+              className={`block font-bold ${config.labelSize} text-success`}
+            >
+              {formatCurrency(potentialSavings)}
+            </span>
+          </div>
+        )}
     </div>
   );
 };

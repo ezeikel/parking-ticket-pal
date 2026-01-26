@@ -69,8 +69,15 @@ const PendingTicketsBanner = ({
             <p className="mt-1 text-sm text-gray">
               {ticketCount === 1 ? (
                 <>
-                  Ticket <span className="font-mono font-medium text-dark">{firstTicket.pcnNumber}</span> for{' '}
-                  <span className="font-medium text-dark">{firstTicket.vehicleReg}</span> is ready.
+                  Ticket{' '}
+                  <span className="font-mono font-medium text-dark">
+                    {firstTicket.pcnNumber}
+                  </span>{' '}
+                  for{' '}
+                  <span className="font-medium text-dark">
+                    {firstTicket.vehicleReg}
+                  </span>{' '}
+                  is ready.
                   {firstTicket.tier === TicketTier.PREMIUM && (
                     <span className="ml-1 inline-flex items-center gap-1 text-amber">
                       <FontAwesomeIcon icon={faCrown} className="text-xs" />
@@ -80,12 +87,15 @@ const PendingTicketsBanner = ({
                 </>
               ) : (
                 <>
-                  You purchased {ticketCount} tickets before signing up. Claim them to add to your account.
+                  You purchased {ticketCount} tickets before signing up. Claim
+                  them to add to your account.
                 </>
               )}
             </p>
             <div className="mt-3">
-              <Link href={`/guest/claim-pending${ticketCount === 1 ? `?id=${firstTicket.id}` : ''}`}>
+              <Link
+                href={`/guest/claim-pending${ticketCount === 1 ? `?id=${firstTicket.id}` : ''}`}
+              >
                 <Button
                   size="sm"
                   className="gap-2 bg-amber text-white hover:bg-amber/90"

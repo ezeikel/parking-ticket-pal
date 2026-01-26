@@ -62,29 +62,46 @@ const DeleteAccountTab = ({ user: _user }: DeleteAccountTabProps) => {
       >
         <div className="flex gap-4">
           <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-red-100">
-            <FontAwesomeIcon icon={faTriangleExclamation} className="text-xl text-red-500" />
+            <FontAwesomeIcon
+              icon={faTriangleExclamation}
+              className="text-xl text-red-500"
+            />
           </div>
           <div>
-            <h3 className="text-lg font-semibold text-red-700">Delete Your Account</h3>
+            <h3 className="text-lg font-semibold text-red-700">
+              Delete Your Account
+            </h3>
             <p className="mt-2 text-sm text-red-600">
-              This action is <strong>permanent</strong> and cannot be undone. Once you delete
-              your account:
+              This action is <strong>permanent</strong> and cannot be undone.
+              Once you delete your account:
             </p>
             <ul className="mt-3 space-y-2">
               <li className="flex items-start gap-2 text-sm text-red-600">
-                <FontAwesomeIcon icon={faCircleXmark} className="mt-0.5 text-red-400" />
+                <FontAwesomeIcon
+                  icon={faCircleXmark}
+                  className="mt-0.5 text-red-400"
+                />
                 All your tickets and appeal letters will be permanently deleted
               </li>
               <li className="flex items-start gap-2 text-sm text-red-600">
-                <FontAwesomeIcon icon={faCircleXmark} className="mt-0.5 text-red-400" />
+                <FontAwesomeIcon
+                  icon={faCircleXmark}
+                  className="mt-0.5 text-red-400"
+                />
                 Your subscription will be cancelled immediately with no refund
               </li>
               <li className="flex items-start gap-2 text-sm text-red-600">
-                <FontAwesomeIcon icon={faCircleXmark} className="mt-0.5 text-red-400" />
+                <FontAwesomeIcon
+                  icon={faCircleXmark}
+                  className="mt-0.5 text-red-400"
+                />
                 All your vehicle and personal data will be erased
               </li>
               <li className="flex items-start gap-2 text-sm text-red-600">
-                <FontAwesomeIcon icon={faCircleXmark} className="mt-0.5 text-red-400" />
+                <FontAwesomeIcon
+                  icon={faCircleXmark}
+                  className="mt-0.5 text-red-400"
+                />
                 You will lose access to any ongoing appeals
               </li>
             </ul>
@@ -107,8 +124,8 @@ const DeleteAccountTab = ({ user: _user }: DeleteAccountTabProps) => {
       <div className="rounded-2xl bg-white p-6 shadow-[0_2px_4px_rgba(0,0,0,0.06),0_4px_12px_rgba(0,0,0,0.06)]">
         <h4 className="font-semibold text-dark">Before you go...</h4>
         <p className="mt-2 text-sm text-gray">
-          If you&apos;re having issues with Parking Ticket Pal, we&apos;d love to help. Consider
-          these alternatives:
+          If you&apos;re having issues with Parking Ticket Pal, we&apos;d love
+          to help. Consider these alternatives:
         </p>
         <ul className="mt-4 space-y-3">
           <li className="rounded-lg bg-light p-3">
@@ -126,8 +143,8 @@ const DeleteAccountTab = ({ user: _user }: DeleteAccountTabProps) => {
           <li className="rounded-lg bg-light p-3">
             <p className="font-medium text-dark">Pause Your Subscription</p>
             <p className="text-sm text-gray">
-              Taking a break? You can cancel your subscription without deleting your account
-              and data.
+              Taking a break? You can cancel your subscription without deleting
+              your account and data.
             </p>
           </li>
           <li className="rounded-lg bg-light p-3">
@@ -147,19 +164,27 @@ const DeleteAccountTab = ({ user: _user }: DeleteAccountTabProps) => {
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-red-100">
-              <FontAwesomeIcon icon={faTrashCan} className="text-2xl text-red-500" />
+              <FontAwesomeIcon
+                icon={faTrashCan}
+                className="text-2xl text-red-500"
+              />
             </div>
-            <DialogTitle className="text-center text-xl">Are you absolutely sure?</DialogTitle>
+            <DialogTitle className="text-center text-xl">
+              Are you absolutely sure?
+            </DialogTitle>
             <DialogDescription className="text-center">
-              This will permanently delete your account and all associated data. This action
-              cannot be undone.
+              This will permanently delete your account and all associated data.
+              This action cannot be undone.
             </DialogDescription>
           </DialogHeader>
 
           <div className="mt-4">
             <label className="mb-2 block text-sm font-medium text-dark">
-              Type <span className="font-mono font-bold text-red-600">{CONFIRM_PHRASE}</span> to
-              confirm
+              Type{' '}
+              <span className="font-mono font-bold text-red-600">
+                {CONFIRM_PHRASE}
+              </span>{' '}
+              to confirm
             </label>
             <Input
               value={confirmText}
@@ -188,7 +213,10 @@ const DeleteAccountTab = ({ user: _user }: DeleteAccountTabProps) => {
             >
               {isDeleting ? (
                 <>
-                  <FontAwesomeIcon icon={faSpinnerThird} className="mr-2 animate-spin" />
+                  <FontAwesomeIcon
+                    icon={faSpinnerThird}
+                    className="mr-2 animate-spin"
+                  />
                   Deleting...
                 </>
               ) : (

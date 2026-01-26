@@ -47,11 +47,15 @@ const handleFormGeneration = async (
         contentType: 'application/pdf',
       });
     } catch (error) {
-      logger.error('Error uploading form to blob', {
-        formType,
-        ticketId: formFields.ticketId,
-        userId: formFields.userId
-      }, error instanceof Error ? error : new Error(String(error)));
+      logger.error(
+        'Error uploading form to blob',
+        {
+          formType,
+          ticketId: formFields.ticketId,
+          userId: formFields.userId,
+        },
+        error instanceof Error ? error : new Error(String(error)),
+      );
       return {
         success: false,
         error: `Error uploading ${formType} form pdf to blob storage`,
@@ -95,11 +99,15 @@ const handleFormGeneration = async (
       formId: form.id,
     };
   } catch (error) {
-    logger.error('Error generating form', {
-      formType,
-      ticketId: formFields.ticketId,
-      userId: formFields.userId
-    }, error instanceof Error ? error : new Error(String(error)));
+    logger.error(
+      'Error generating form',
+      {
+        formType,
+        ticketId: formFields.ticketId,
+        userId: formFields.userId,
+      },
+      error instanceof Error ? error : new Error(String(error)),
+    );
     return { success: false, error: `Error generating ${formType} form` };
   }
 };
@@ -134,7 +142,7 @@ export const getFormFillDataFromTicket = async (
 
     if (!ticket) {
       logger.error('Ticket not found for form generation', {
-        pcnNumber
+        pcnNumber,
       });
       return null;
     }
@@ -207,9 +215,13 @@ export const getFormFillDataFromTicket = async (
       signatureUrl: user.signatureUrl || null,
     };
   } catch (error) {
-    logger.error('Error getting form data from ticket', {
-      pcnNumber
-    }, error instanceof Error ? error : new Error(String(error)));
+    logger.error(
+      'Error getting form data from ticket',
+      {
+        pcnNumber,
+      },
+      error instanceof Error ? error : new Error(String(error)),
+    );
     return null;
   }
 };
@@ -242,9 +254,13 @@ export const getForms = async (userId: string) => {
 
     return { success: true, forms };
   } catch (error) {
-    logger.error('Error getting forms', {
-      userId
-    }, error instanceof Error ? error : new Error(String(error)));
+    logger.error(
+      'Error getting forms',
+      {
+        userId,
+      },
+      error instanceof Error ? error : new Error(String(error)),
+    );
     return { success: false, error: 'Failed to get forms', forms: [] };
   }
 };

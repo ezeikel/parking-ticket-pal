@@ -11,16 +11,16 @@ import { models } from './models';
 
 // Schema for image evaluation response
 const ImageEvaluationSchema = z.object({
-  isRelevant: z.boolean().describe('Whether the image is relevant to the blog post'),
-  confidence: z
-    .number()
-    .min(0)
-    .max(100)
-    .describe('Confidence score 0-100'),
+  isRelevant: z
+    .boolean()
+    .describe('Whether the image is relevant to the blog post'),
+  confidence: z.number().min(0).max(100).describe('Confidence score 0-100'),
   reasoning: z.string().describe('Brief explanation of the evaluation'),
   concerns: z
     .array(z.string())
-    .describe('Any concerns about the image (e.g., too generic, wrong context, misleading)'),
+    .describe(
+      'Any concerns about the image (e.g., too generic, wrong context, misleading)',
+    ),
 });
 
 export type ImageEvaluation = z.infer<typeof ImageEvaluationSchema>;

@@ -14,7 +14,9 @@ import { Button } from '@/components/ui/button';
 const MagicLinkVerifyContent = () => {
   const searchParams = useSearchParams();
   const router = useRouter();
-  const [status, setStatus] = useState<'verifying' | 'success' | 'error'>('verifying');
+  const [status, setStatus] = useState<'verifying' | 'success' | 'error'>(
+    'verifying',
+  );
   const [message, setMessage] = useState('Verifying your magic link...');
 
   useEffect(() => {

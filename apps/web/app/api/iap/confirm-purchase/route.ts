@@ -16,20 +16,14 @@ export const POST = async (req: Request) => {
     // Authenticate the user
     const authHeader = req.headers.get('authorization');
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return Response.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      );
+      return Response.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     const token = authHeader.substring(7);
     const session = await decrypt(token);
 
     if (!session || !session.id) {
-      return Response.json(
-        { error: 'Invalid session' },
-        { status: 401 }
-      );
+      return Response.json({ error: 'Invalid session' }, { status: 401 });
     }
 
     const userId = session.id as string;
@@ -40,7 +34,7 @@ export const POST = async (req: Request) => {
     if (!ticketId || !productId) {
       return Response.json(
         { error: 'Missing ticketId or productId' },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -60,7 +54,7 @@ export const POST = async (req: Request) => {
     if (!ticket) {
       return Response.json(
         { error: 'Ticket not found or does not belong to user' },
-        { status: 404 }
+        { status: 404 },
       );
     }
 
@@ -73,8 +67,11 @@ export const POST = async (req: Request) => {
       targetTier = TicketTier.PREMIUM;
     } else {
       return Response.json(
-        { error: 'Invalid product ID. Expected standard_ticket_* or premium_ticket_*' },
-        { status: 400 }
+        {
+          error:
+            'Invalid product ID. Expected standard_ticket_* or premium_ticket_*',
+        },
+        { status: 400 },
       );
     }
 
@@ -95,7 +92,7 @@ export const POST = async (req: Request) => {
             tier: ticket.tier,
           },
         },
-        { status: 200 }
+        { status: 200 },
       );
     }
 
@@ -104,8 +101,11 @@ export const POST = async (req: Request) => {
 
     if (!isPurchaseValid) {
       return Response.json(
-        { error: 'Purchase verification failed. Please try again or contact support.' },
-        { status: 400 }
+        {
+          error:
+            'Purchase verification failed. Please try again or contact support.',
+        },
+        { status: 400 },
       );
     }
 
@@ -128,13 +128,10 @@ export const POST = async (req: Request) => {
           pcnNumber: updatedTicket.pcnNumber,
         },
       },
-      { status: 200 }
+      { status: 200 },
     );
   } catch (error) {
     console.error('Error confirming purchase:', error);
-    return Response.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
+    return Response.json({ error: 'Internal server error' }, { status: 500 });
   }
 };

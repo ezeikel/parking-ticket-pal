@@ -2,9 +2,18 @@
 
 import { useEffect, useState, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faSpinnerThird, faMobileAlt } from '@fortawesome/pro-regular-svg-icons';
+import {
+  faSpinnerThird,
+  faMobileAlt,
+} from '@fortawesome/pro-regular-svg-icons';
 
 const MagicLinkRedirectContent = () => {
   const searchParams = useSearchParams();
@@ -96,7 +105,10 @@ const MagicLinkRedirectContent = () => {
                   </a>{' '}
                   to open the app manually
                 </li>
-                <li>If that doesn&apos;t work, copy the link below and open it from your mobile device</li>
+                <li>
+                  If that doesn&apos;t work, copy the link below and open it
+                  from your mobile device
+                </li>
               </ol>
               <div className="p-3 bg-gray-100 rounded text-xs break-all font-mono">
                 parkingticketpal://auth/magic-link/verify?token={token}
@@ -107,21 +119,23 @@ const MagicLinkRedirectContent = () => {
       </Card>
     </div>
   );
-}
+};
 
 const MagicLinkRedirect = () => (
-  <Suspense fallback={
-    <div className="flex items-center justify-center min-h-screen bg-gray-50">
-      <Card className="w-[400px]">
-        <CardContent className="flex flex-col items-center gap-4 pt-6">
-          <FontAwesomeIcon
-            icon={faSpinnerThird}
-            className="h-12 w-12 animate-spin text-primary"
-          />
-        </CardContent>
-      </Card>
-    </div>
-  }>
+  <Suspense
+    fallback={
+      <div className="flex items-center justify-center min-h-screen bg-gray-50">
+        <Card className="w-[400px]">
+          <CardContent className="flex flex-col items-center gap-4 pt-6">
+            <FontAwesomeIcon
+              icon={faSpinnerThird}
+              className="h-12 w-12 animate-spin text-primary"
+            />
+          </CardContent>
+        </Card>
+      </div>
+    }
+  >
     <MagicLinkRedirectContent />
   </Suspense>
 );

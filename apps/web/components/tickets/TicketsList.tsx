@@ -25,7 +25,12 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import ScoreGauge from '@/components/ui/ScoreGauge';
-import type { Prisma, TicketStatus, TicketTier, SubscriptionType } from '@parking-ticket-pal/db/types';
+import type {
+  Prisma,
+  TicketStatus,
+  TicketTier,
+  SubscriptionType,
+} from '@parking-ticket-pal/db/types';
 
 type TicketWithRelations = Prisma.TicketGetPayload<{
   include: {
@@ -48,7 +53,10 @@ type TicketsListProps = {
  * - The ticket tier is STANDARD or PREMIUM, OR
  * - The user has an active subscription (STANDARD or PREMIUM)
  */
-const isScoreLocked = (ticketTier: TicketTier, hasSubscription: boolean): boolean => {
+const isScoreLocked = (
+  ticketTier: TicketTier,
+  hasSubscription: boolean,
+): boolean => {
   // Unlocked if ticket is STANDARD or PREMIUM tier
   if (ticketTier === 'STANDARD' || ticketTier === 'PREMIUM') {
     return false;
@@ -181,7 +189,9 @@ const getDeadlineDays = (issuedAt: Date | string): number => {
   const deadline = new Date(issued);
   deadline.setDate(deadline.getDate() + 14);
   const now = new Date();
-  return Math.ceil((deadline.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+  return Math.ceil(
+    (deadline.getTime() - now.getTime()) / (1000 * 60 * 60 * 24),
+  );
 };
 
 const needsAction = (status: TicketStatus): boolean => {
@@ -236,16 +246,16 @@ const TicketsList = ({
       const searchLower = search.toLowerCase();
       return (
         ticket.pcnNumber.toLowerCase().includes(searchLower) ||
-        ticket.vehicle?.registrationNumber?.toLowerCase().includes(searchLower) ||
+        ticket.vehicle?.registrationNumber
+          ?.toLowerCase()
+          .includes(searchLower) ||
         ticket.issuer?.toLowerCase().includes(searchLower)
       );
     });
 
   const sortedTickets = [...filteredTickets].sort((a, b) => {
     if (sort === 'newest')
-      return (
-        new Date(b.issuedAt).getTime() - new Date(a.issuedAt).getTime()
-      );
+      return new Date(b.issuedAt).getTime() - new Date(a.issuedAt).getTime();
     if (sort === 'deadline')
       return getDeadlineDays(a.issuedAt) - getDeadlineDays(b.issuedAt);
     if (sort === 'amount') return b.initialAmount - a.initialAmount;
@@ -319,7 +329,9 @@ const TicketsList = ({
             <div className="mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-teal/10">
               <FontAwesomeIcon icon={faCar} className="text-3xl text-teal" />
             </div>
-            <h3 className="text-lg font-semibold text-dark">No tickets found</h3>
+            <h3 className="text-lg font-semibold text-dark">
+              No tickets found
+            </h3>
             <p className="mt-1 max-w-xs text-sm text-gray">
               {search || filter !== 'all'
                 ? 'Try adjusting your search or filters'
@@ -454,7 +466,6 @@ const TicketsList = ({
                     </div>
                   )}
 
-
                   {/* Bottom Row - Score and Actions */}
                   <div className="mt-4 flex items-center justify-between border-t border-border pt-4">
                     <div className="flex items-center gap-2">
@@ -467,7 +478,9 @@ const TicketsList = ({
                         locked={scoreLocked}
                       />
                       {!scoreLocked ? (
-                        <span className="text-xs text-gray">Success chance</span>
+                        <span className="text-xs text-gray">
+                          Success chance
+                        </span>
                       ) : (
                         <button
                           type="button"
@@ -487,35 +500,42 @@ const TicketsList = ({
                       )}
                     </div>
 
-                    {needsAction(ticket.status) && (() => {
-                      const canChallengeTicket = canChallenge(ticket.tier, subscriptionType);
-                      return canChallengeTicket ? (
-                        <Button
-                          size="sm"
-                          className="bg-teal text-white hover:bg-teal-dark"
-                          onClick={(e) => {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            window.location.href = `/tickets/${ticket.id}/challenge`;
-                          }}
-                        >
-                          Challenge Now
-                        </Button>
-                      ) : (
-                        <Button
-                          size="sm"
-                          className="gap-2 bg-teal text-white hover:bg-teal-dark"
-                          onClick={(e) => {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            window.location.href = `/tickets/${ticket.id}`;
-                          }}
-                        >
-                          <FontAwesomeIcon icon={faLock} className="text-xs" />
-                          Upgrade to Challenge
-                        </Button>
-                      );
-                    })()}
+                    {needsAction(ticket.status) &&
+                      (() => {
+                        const canChallengeTicket = canChallenge(
+                          ticket.tier,
+                          subscriptionType,
+                        );
+                        return canChallengeTicket ? (
+                          <Button
+                            size="sm"
+                            className="bg-teal text-white hover:bg-teal-dark"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              window.location.href = `/tickets/${ticket.id}/challenge`;
+                            }}
+                          >
+                            Challenge Now
+                          </Button>
+                        ) : (
+                          <Button
+                            size="sm"
+                            className="gap-2 bg-teal text-white hover:bg-teal-dark"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              window.location.href = `/tickets/${ticket.id}`;
+                            }}
+                          >
+                            <FontAwesomeIcon
+                              icon={faLock}
+                              className="text-xs"
+                            />
+                            Upgrade to Challenge
+                          </Button>
+                        );
+                      })()}
                   </div>
                 </motion.a>
               );

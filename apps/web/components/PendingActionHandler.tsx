@@ -3,7 +3,10 @@
 import { useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
-import { getPendingPricingAction, clearPendingPricingAction } from '@/utils/pendingPricingAction';
+import {
+  getPendingPricingAction,
+  clearPendingPricingAction,
+} from '@/utils/pendingPricingAction';
 
 /**
  * Component that checks for pending pricing actions after authentication

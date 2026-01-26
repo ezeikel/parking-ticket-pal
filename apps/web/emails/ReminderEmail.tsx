@@ -113,9 +113,10 @@ const ReminderEmail = ({
   issueDate = '15th October 2025',
   issuer = 'Transport for London',
 }: ReminderEmailProps) => {
-  const deadlineText = reminderType === '14-day'
-    ? '14-Day Reduced Payment Deadline'
-    : '28-Day Final Payment Deadline';
+  const deadlineText =
+    reminderType === '14-day'
+      ? '14-Day Reduced Payment Deadline'
+      : '28-Day Final Payment Deadline';
 
   return (
     <Html>
@@ -133,8 +134,9 @@ const ReminderEmail = ({
           </Section>
 
           <Text style={text}>
-            This is a quick reminder that your parking ticket is approaching an important deadline.
-            Taking action now can help you avoid additional charges.
+            This is a quick reminder that your parking ticket is approaching an
+            important deadline. Taking action now can help you avoid additional
+            charges.
           </Text>
 
           <Section style={detailsBox}>
@@ -161,7 +163,8 @@ const ReminderEmail = ({
           </EmailButton>
 
           <Text style={text}>
-            Log in to review your options, check appeal eligibility, or manage your payment.
+            Log in to review your options, check appeal eligibility, or manage
+            your payment.
           </Text>
 
           <Text style={signature}>

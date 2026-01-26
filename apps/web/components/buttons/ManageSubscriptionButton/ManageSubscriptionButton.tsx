@@ -32,10 +32,7 @@ const ManageSubscriptionButton = (
   };
 
   return (
-    <Button
-      onClick={handleManageSubscriptionClick}
-      {...props}
-    >
+    <Button onClick={handleManageSubscriptionClick} {...props}>
       Manage subscription
     </Button>
   );

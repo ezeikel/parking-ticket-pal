@@ -1,40 +1,71 @@
-import { Section, Img, Heading } from '@react-email/components';
+import { Section, Img, Heading, Text } from '@react-email/components';
 
 type EmailHeaderProps = {
   title?: string;
+  subtitle?: string;
 };
 
 const header = {
-  padding: '24px 0',
-  borderBottom: '2px solid #e5e7eb',
-  marginBottom: '32px',
+  padding: '32px 0 24px 0',
+  textAlign: 'center' as const,
+};
+
+const logoContainer = {
+  marginBottom: '24px',
 };
 
 const logo = {
   display: 'block',
   margin: '0 auto',
-  width: '48px',
-  height: '48px',
+  width: '56px',
+  height: '56px',
 };
 
 const title = {
-  color: '#1f2937',
-  fontSize: '28px',
-  fontWeight: '700',
+  color: '#222222',
+  fontSize: '26px',
+  fontWeight: '600',
   textAlign: 'center' as const,
-  margin: '16px 0 0 0',
+  margin: '0 0 8px 0',
+  lineHeight: '32px',
+  letterSpacing: '-0.5px',
 };
 
-const EmailHeader = ({ title: titleText }: EmailHeaderProps) => (
+const subtitle = {
+  color: '#717171',
+  fontSize: '16px',
+  fontWeight: '400',
+  textAlign: 'center' as const,
+  margin: '0',
+  lineHeight: '24px',
+};
+
+const divider = {
+  width: '48px',
+  height: '4px',
+  backgroundColor: '#1ABC9C',
+  margin: '24px auto 0 auto',
+  borderRadius: '2px',
+};
+
+const EmailHeader = ({ title: titleText, subtitle: subtitleText }: EmailHeaderProps) => (
   <Section style={header}>
-    <Img
-      src="https://parkingticketpal.com/logos/ptp.svg"
-      alt="Parking Ticket Pal"
-      style={logo}
-      width={48}
-      height={48}
-    />
-    {titleText && <Heading style={title}>{titleText}</Heading>}
+    <div style={logoContainer}>
+      <Img
+        src="https://parkingticketpal.com/logos/ptp.svg"
+        alt="Parking Ticket Pal"
+        style={logo}
+        width={56}
+        height={56}
+      />
+    </div>
+    {titleText && (
+      <>
+        <Heading style={title}>{titleText}</Heading>
+        {subtitleText && <Text style={subtitle}>{subtitleText}</Text>}
+        <div style={divider} />
+      </>
+    )}
   </Section>
 );
 

@@ -58,7 +58,9 @@ const getDeadlineDays = (issuedAt: Date | string): number => {
   const deadline = new Date(issued);
   deadline.setDate(deadline.getDate() + 14);
   const now = new Date();
-  return Math.ceil((deadline.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+  return Math.ceil(
+    (deadline.getTime() - now.getTime()) / (1000 * 60 * 60 * 24),
+  );
 };
 
 const getStatusColor = (status: TicketStatus): string =>
@@ -72,9 +74,8 @@ const TicketsMapView = ({
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<mapboxgl.Map | null>(null);
   const markersRef = useRef<mapboxgl.Marker[]>([]);
-  const [selectedTicket, setSelectedTicket] = useState<TicketWithRelations | null>(
-    null,
-  );
+  const [selectedTicket, setSelectedTicket] =
+    useState<TicketWithRelations | null>(null);
   const [isMapLoaded, setIsMapLoaded] = useState(false);
 
   // Initialize map
@@ -119,7 +120,10 @@ const TicketsMapView = ({
         line1?: string;
       } | null;
 
-      if (!location?.coordinates?.latitude || !location?.coordinates?.longitude) {
+      if (
+        !location?.coordinates?.latitude ||
+        !location?.coordinates?.longitude
+      ) {
         return;
       }
 

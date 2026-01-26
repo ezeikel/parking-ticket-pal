@@ -72,7 +72,8 @@ const UploadSection = ({
         <div className="text-center">
           <h1 className="text-2xl font-bold text-dark">Add Your Document</h1>
           <p className="mt-2 text-gray">
-            Upload a parking ticket or letter - we&apos;ll extract the details automatically
+            Upload a parking ticket or letter - we&apos;ll extract the details
+            automatically
           </p>
         </div>
 

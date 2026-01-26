@@ -186,7 +186,8 @@ const GuestCreateTicketPage = () => {
           <CardHeader className="text-center">
             <CardTitle>Creating Your Ticket...</CardTitle>
             <CardDescription>
-              We&apos;re looking up your vehicle details and setting up your ticket.
+              We&apos;re looking up your vehicle details and setting up your
+              ticket.
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -197,7 +198,10 @@ const GuestCreateTicketPage = () => {
               />
               {guestData && (
                 <p className="text-sm text-muted-foreground">
-                  Ticket: <span className="font-mono font-medium">{guestData.pcnNumber}</span>
+                  Ticket:{' '}
+                  <span className="font-mono font-medium">
+                    {guestData.pcnNumber}
+                  </span>
                 </p>
               )}
             </div>

@@ -263,7 +263,11 @@ export default defineType({
     prepare(selection) {
       const { title, author, media, status } = selection;
       const statusEmoji =
-        status === 'published' ? '' : status === 'draft' ? '[DRAFT] ' : '[ARCHIVED] ';
+        status === 'published'
+          ? ''
+          : status === 'draft'
+            ? '[DRAFT] '
+            : '[ARCHIVED] ';
       return {
         title: `${statusEmoji}${title}`,
         subtitle: author ? `by ${author}` : 'No author',

@@ -2,11 +2,7 @@
 
 import { motion } from 'framer-motion';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import {
-  faEye,
-  faDownload,
-  faRotate,
-} from '@fortawesome/pro-solid-svg-icons';
+import { faEye, faDownload, faRotate } from '@fortawesome/pro-solid-svg-icons';
 import type { Letter, Media } from '@parking-ticket-pal/db/types';
 import { Button } from '@/components/ui/button';
 

@@ -70,10 +70,11 @@ const ProblemPain = () => {
           {painPoints.map((point, index) => (
             <div
               key={point.title}
-              className={`flex flex-col overflow-hidden rounded-2xl bg-white dark:bg-slate-900 shadow-sm hover:shadow-lg transition-all duration-500 hover:-translate-y-1 ${isVisible
+              className={`flex flex-col overflow-hidden rounded-2xl bg-white dark:bg-slate-900 shadow-sm hover:shadow-lg transition-all duration-500 hover:-translate-y-1 ${
+                isVisible
                   ? 'opacity-100 translate-y-0'
                   : 'opacity-0 translate-y-8'
-                }`}
+              }`}
               style={{
                 transitionDelay: isVisible ? `${index * 150}ms` : '0ms',
               }}

@@ -31,9 +31,11 @@ const parseMetadata = (metadata: unknown): ChallengeMetadata | null => {
   const m = metadata as Record<string, unknown>;
   return {
     pdfUrl: typeof m.pdfUrl === 'string' ? m.pdfUrl : undefined,
-    pdfGenerated: typeof m.pdfGenerated === 'boolean' ? m.pdfGenerated : undefined,
+    pdfGenerated:
+      typeof m.pdfGenerated === 'boolean' ? m.pdfGenerated : undefined,
     emailSent: typeof m.emailSent === 'boolean' ? m.emailSent : undefined,
-    letterContent: typeof m.letterContent === 'string' ? m.letterContent : undefined,
+    letterContent:
+      typeof m.letterContent === 'string' ? m.letterContent : undefined,
   };
 };
 
@@ -61,7 +63,10 @@ const formatReason = (reason: string): string => {
   return reasonLabels[reason] || reason.replace(/_/g, ' ').toLowerCase();
 };
 
-const ChallengeLettersCard = ({ challenges, onRegenerate }: ChallengeLettersCardProps) => {
+const ChallengeLettersCard = ({
+  challenges,
+  onRegenerate,
+}: ChallengeLettersCardProps) => {
   // Parse metadata and filter to only show challenges with PDFs
   const letterChallenges = challenges
     .map((c) => ({
@@ -79,7 +84,8 @@ const ChallengeLettersCard = ({ challenges, onRegenerate }: ChallengeLettersCard
   const reasonText = formatReason(latestLetter.reason);
 
   // Generate a preview of what the letter might say
-  const letterPreview = latestMetadata.letterContent ||
+  const letterPreview =
+    latestMetadata.letterContent ||
     `Dear Sir/Madam,\n\nI am writing to formally challenge the above Penalty Charge Notice on the grounds of ${reasonText}.\n\nI respectfully request that you cancel this PCN and I would be grateful for your consideration of the circumstances outlined...`;
 
   return (
@@ -114,11 +120,7 @@ const ChallengeLettersCard = ({ challenges, onRegenerate }: ChallengeLettersCard
               <FontAwesomeIcon icon={faEye} className="mr-2" />
               View Full Letter
             </Button>
-            <Button
-              variant="outline"
-              className="bg-transparent"
-              asChild
-            >
+            <Button variant="outline" className="bg-transparent" asChild>
               <a href={latestMetadata.pdfUrl} download>
                 <FontAwesomeIcon icon={faDownload} className="mr-2" />
                 Download PDF
@@ -142,13 +144,18 @@ const ChallengeLettersCard = ({ challenges, onRegenerate }: ChallengeLettersCard
       {/* Show history if multiple letters */}
       {letterChallenges.length > 1 && (
         <div className="mt-4 border-t border-border pt-4">
-          <p className="text-xs font-medium text-gray">Previous versions ({letterChallenges.length - 1})</p>
+          <p className="text-xs font-medium text-gray">
+            Previous versions ({letterChallenges.length - 1})
+          </p>
           <div className="mt-2 space-y-2">
             {letterChallenges.slice(1, 4).map((letter) => (
               <button
                 key={letter.id}
                 type="button"
-                onClick={() => letter.parsedMetadata?.pdfUrl && window.open(letter.parsedMetadata.pdfUrl, '_blank')}
+                onClick={() =>
+                  letter.parsedMetadata?.pdfUrl &&
+                  window.open(letter.parsedMetadata.pdfUrl, '_blank')
+                }
                 className="flex w-full items-center justify-between rounded-lg p-2 text-left text-sm transition-colors hover:bg-light"
               >
                 <span className="capitalize text-dark">

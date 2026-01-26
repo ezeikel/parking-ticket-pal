@@ -49,9 +49,8 @@ const AddDocumentPage = () => {
     undefined,
   );
   const [successData, setSuccessData] = useState<SuccessData | null>(null);
-  const [existingTicket, setExistingTicket] = useState<ExistingTicketData | null>(
-    null,
-  );
+  const [existingTicket, setExistingTicket] =
+    useState<ExistingTicketData | null>(null);
   const [isAddingToTicket, setIsAddingToTicket] = useState(false);
 
   const handleFileSelect = useCallback(
@@ -66,7 +65,8 @@ const AddDocumentPage = () => {
 
         if (result.success && result.data) {
           // Determine document type from OCR result
-          const detectedType = (result.data.documentType as DocumentType) || 'ticket';
+          const detectedType =
+            (result.data.documentType as DocumentType) || 'ticket';
 
           // Check if we have a PCN and if a ticket with this PCN already exists
           if (result.data.pcnNumber) {
@@ -142,7 +142,8 @@ const AddDocumentPage = () => {
             message: result.message,
           });
           toast.error(
-            result.message || 'Could not read document. Please enter details manually.',
+            result.message ||
+              'Could not read document. Please enter details manually.',
           );
           setExtractedData({
             imageUrl: result.imageUrl || undefined,

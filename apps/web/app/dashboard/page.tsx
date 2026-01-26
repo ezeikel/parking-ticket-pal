@@ -183,41 +183,39 @@ const ActivityTimelineWrapper = async () => {
   const tickets = (await getTickets()) ?? [];
 
   // Generate activities from recent ticket events
-  const activities = tickets
-    .slice(0, 5)
-    .map((ticket) => {
-      const createdAt = new Date(ticket.createdAt);
-      const now = new Date();
-      const diffMs = now.getTime() - createdAt.getTime();
-      const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+  const activities = tickets.slice(0, 5).map((ticket) => {
+    const createdAt = new Date(ticket.createdAt);
+    const now = new Date();
+    const diffMs = now.getTime() - createdAt.getTime();
+    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
 
-      let timestamp: string;
-      let group: string;
+    let timestamp: string;
+    let group: string;
 
-      if (diffDays === 0) {
-        timestamp = 'Today';
-        group = 'Today';
-      } else if (diffDays === 1) {
-        timestamp = 'Yesterday';
-        group = 'Yesterday';
-      } else if (diffDays < 7) {
-        timestamp = `${diffDays} days ago`;
-        group = 'This Week';
-      } else {
-        timestamp = `${diffDays} days ago`;
-        group = 'Earlier';
-      }
+    if (diffDays === 0) {
+      timestamp = 'Today';
+      group = 'Today';
+    } else if (diffDays === 1) {
+      timestamp = 'Yesterday';
+      group = 'Yesterday';
+    } else if (diffDays < 7) {
+      timestamp = `${diffDays} days ago`;
+      group = 'This Week';
+    } else {
+      timestamp = `${diffDays} days ago`;
+      group = 'Earlier';
+    }
 
-      return {
-        id: ticket.id,
-        type: 'ticket_uploaded' as const,
-        title: `Ticket Uploaded - ${ticket.pcnNumber}`,
-        description: `${ticket.issuer || 'Unknown issuer'}`,
-        metadata: `Vehicle: ${ticket.vehicle?.registrationNumber || 'Unknown'}`,
-        timestamp,
-        group,
-      };
-    });
+    return {
+      id: ticket.id,
+      type: 'ticket_uploaded' as const,
+      title: `Ticket Uploaded - ${ticket.pcnNumber}`,
+      description: `${ticket.issuer || 'Unknown issuer'}`,
+      metadata: `Vehicle: ${ticket.vehicle?.registrationNumber || 'Unknown'}`,
+      timestamp,
+      group,
+    };
+  });
 
   return <ActivityTimeline activities={activities} />;
 };
@@ -228,8 +226,18 @@ const AnalyticsChartsWrapper = async () => {
 
   // Calculate status breakdown
   const wonStatuses = ['REPRESENTATION_ACCEPTED', 'APPEAL_UPHELD'];
-  const lostStatuses = ['NOTICE_OF_REJECTION', 'APPEAL_REJECTED_BY_OPERATOR', 'APPEAL_REJECTED'];
-  const pendingStatuses = ['FORMAL_REPRESENTATION', 'APPEAL_TO_TRIBUNAL', 'APPEAL_SUBMITTED_TO_OPERATOR', 'POPLA_APPEAL', 'IAS_APPEAL'];
+  const lostStatuses = [
+    'NOTICE_OF_REJECTION',
+    'APPEAL_REJECTED_BY_OPERATOR',
+    'APPEAL_REJECTED',
+  ];
+  const pendingStatuses = [
+    'FORMAL_REPRESENTATION',
+    'APPEAL_TO_TRIBUNAL',
+    'APPEAL_SUBMITTED_TO_OPERATOR',
+    'POPLA_APPEAL',
+    'IAS_APPEAL',
+  ];
 
   const statusBreakdown = [
     {
@@ -255,12 +263,14 @@ const AnalyticsChartsWrapper = async () => {
   ];
 
   // Calculate financial impact
-  const savedAmount = tickets
-    .filter((t) => wonStatuses.includes(t.status))
-    .reduce((sum, t) => sum + t.initialAmount, 0) / 100;
-  const paidAmount = tickets
-    .filter((t) => t.status === 'PAID')
-    .reduce((sum, t) => sum + t.initialAmount, 0) / 100;
+  const savedAmount =
+    tickets
+      .filter((t) => wonStatuses.includes(t.status))
+      .reduce((sum, t) => sum + t.initialAmount, 0) / 100;
+  const paidAmount =
+    tickets
+      .filter((t) => t.status === 'PAID')
+      .reduce((sum, t) => sum + t.initialAmount, 0) / 100;
 
   const financialData = [
     { name: 'Saved', value: savedAmount, color: '#222222' },
@@ -271,8 +281,11 @@ const AnalyticsChartsWrapper = async () => {
   const appealsTotal = tickets.filter((t) =>
     [...wonStatuses, ...lostStatuses].includes(t.status),
   ).length;
-  const appealsWon = tickets.filter((t) => wonStatuses.includes(t.status)).length;
-  const currentSuccessRate = appealsTotal > 0 ? Math.round((appealsWon / appealsTotal) * 100) : 0;
+  const appealsWon = tickets.filter((t) =>
+    wonStatuses.includes(t.status),
+  ).length;
+  const currentSuccessRate =
+    appealsTotal > 0 ? Math.round((appealsWon / appealsTotal) * 100) : 0;
 
   return (
     <AnalyticsCharts
@@ -298,9 +311,12 @@ const DashboardPage = async () => {
         {/* Page Header */}
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-dark md:text-3xl">Dashboard</h1>
+            <h1 className="text-2xl font-bold text-dark md:text-3xl">
+              Dashboard
+            </h1>
             <p className="mt-1 text-gray">
-              Welcome back, <span className="font-medium text-dark">{firstName}</span>
+              Welcome back,{' '}
+              <span className="font-medium text-dark">{firstName}</span>
             </p>
             <p className="text-sm text-gray">
               Here&apos;s what&apos;s happening with your tickets
@@ -343,7 +359,10 @@ const DashboardPage = async () => {
             fallback={
               <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
                 {[1, 2, 3, 4].map((i) => (
-                  <div key={i} className="h-32 animate-pulse rounded-2xl bg-white" />
+                  <div
+                    key={i}
+                    className="h-32 animate-pulse rounded-2xl bg-white"
+                  />
                 ))}
               </div>
             }
@@ -372,7 +391,10 @@ const DashboardPage = async () => {
             fallback={
               <div className="grid gap-4 md:grid-cols-2">
                 {[1, 2, 3, 4].map((i) => (
-                  <div key={i} className="h-64 animate-pulse rounded-2xl bg-white" />
+                  <div
+                    key={i}
+                    className="h-64 animate-pulse rounded-2xl bg-white"
+                  />
                 ))}
               </div>
             }
@@ -384,7 +406,9 @@ const DashboardPage = async () => {
         {/* Quick Actions */}
         <div className="mt-10">
           <Suspense
-            fallback={<div className="h-24 animate-pulse rounded-xl bg-white" />}
+            fallback={
+              <div className="h-24 animate-pulse rounded-xl bg-white" />
+            }
           >
             <QuickActionsWrapper />
           </Suspense>
@@ -393,7 +417,9 @@ const DashboardPage = async () => {
         {/* Activity Timeline */}
         <div className="mt-10 pb-10">
           <Suspense
-            fallback={<div className="h-[400px] animate-pulse rounded-2xl bg-white" />}
+            fallback={
+              <div className="h-[400px] animate-pulse rounded-2xl bg-white" />
+            }
           >
             <ActivityTimelineWrapper />
           </Suspense>

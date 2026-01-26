@@ -49,10 +49,26 @@ type SocialLink = {
 };
 
 const socialLinks: SocialLink[] = [
-  { icon: faXTwitter, href: 'https://twitter.com/parkticketpal', label: 'Twitter' },
-  { icon: faInstagram, href: 'https://instagram.com/parkticketpal', label: 'Instagram' },
-  { icon: faTiktok, href: 'https://tiktok.com/@parkticketpal', label: 'TikTok' },
-  { icon: faLinkedinIn, href: 'https://linkedin.com/company/parkticketpal', label: 'LinkedIn' },
+  {
+    icon: faXTwitter,
+    href: 'https://twitter.com/parkticketpal',
+    label: 'Twitter',
+  },
+  {
+    icon: faInstagram,
+    href: 'https://instagram.com/parkticketpal',
+    label: 'Instagram',
+  },
+  {
+    icon: faTiktok,
+    href: 'https://tiktok.com/@parkticketpal',
+    label: 'TikTok',
+  },
+  {
+    icon: faLinkedinIn,
+    href: 'https://linkedin.com/company/parkticketpal',
+    label: 'LinkedIn',
+  },
 ];
 
 const Footer = ({ className }: FooterProps) => {
@@ -206,8 +222,8 @@ const Footer = ({ className }: FooterProps) => {
 
           {/* Made in text */}
           <p className="text-sm text-white/40">
-            Made with <span className="text-red-500 font-bold text-lg">♡</span> in{' '}
-            <span className="text-white font-bold">South London</span>
+            Made with <span className="text-red-500 font-bold text-lg">♡</span>{' '}
+            in <span className="text-white font-bold">South London</span>
           </p>
 
           {/* Legal Links */}

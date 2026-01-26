@@ -11,10 +11,7 @@ export const POST = async (req: Request) => {
 
   if (!email) {
     logger.warn('Magic link request missing email');
-    return Response.json(
-      { error: 'Email is required' },
-      { status: 400 }
-    );
+    return Response.json({ error: 'Email is required' }, { status: 400 });
   }
 
   try {
@@ -44,15 +41,17 @@ export const POST = async (req: Request) => {
           'Access-Control-Allow-Headers': 'Content-Type, Authorization',
           'Content-Type': 'application/json',
         },
-        status: 200
-      }
+        status: 200,
+      },
     );
   } catch (error) {
-    logger.error('Magic link error', { email }, error instanceof Error ? error : new Error(String(error)));
-    const errorMessage = error instanceof Error ? error.message : 'Failed to send magic link';
-    return Response.json(
-      { error: errorMessage },
-      { status: 500 }
+    logger.error(
+      'Magic link error',
+      { email },
+      error instanceof Error ? error : new Error(String(error)),
     );
+    const errorMessage =
+      error instanceof Error ? error.message : 'Failed to send magic link';
+    return Response.json({ error: errorMessage }, { status: 500 });
   }
 };

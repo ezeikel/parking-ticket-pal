@@ -10,12 +10,27 @@ type ActivityTimelineCardProps = {
   events: HistoryEvent[];
 };
 
-type TimelineEventType = 'upload' | 'letter' | 'submit' | 'response' | 'deadline' | 'payment' | 'form' | 'challenge';
+type TimelineEventType =
+  | 'upload'
+  | 'letter'
+  | 'submit'
+  | 'response'
+  | 'deadline'
+  | 'payment'
+  | 'form'
+  | 'challenge';
 
-const timelineTypeConfig: Record<TimelineEventType, { icon: string; color: string; bg: string }> = {
+const timelineTypeConfig: Record<
+  TimelineEventType,
+  { icon: string; color: string; bg: string }
+> = {
   upload: { icon: 'fa-cloud-arrow-up', color: 'text-teal', bg: 'bg-teal/10' },
   letter: { icon: 'fa-file-lines', color: 'text-teal', bg: 'bg-teal/10' },
-  submit: { icon: 'fa-paper-plane', color: 'text-success', bg: 'bg-success/10' },
+  submit: {
+    icon: 'fa-paper-plane',
+    color: 'text-success',
+    bg: 'bg-success/10',
+  },
   response: { icon: 'fa-envelope', color: 'text-teal', bg: 'bg-teal/10' },
   deadline: { icon: 'fa-clock', color: 'text-amber', bg: 'bg-amber/10' },
   payment: { icon: 'fa-credit-card', color: 'text-gray', bg: 'bg-light' },
@@ -92,45 +107,45 @@ const ActivityTimelineCard = ({ events }: ActivityTimelineCardProps) => {
         {events.length === 0 ? (
           <p className="text-sm text-gray">No activity yet</p>
         ) : (
-        <div className="relative space-y-4 pl-6">
-          {/* Timeline Line */}
-          <div className="absolute bottom-4 left-[7px] top-4 w-0.5 bg-border" />
+          <div className="relative space-y-4 pl-6">
+            {/* Timeline Line */}
+            <div className="absolute bottom-4 left-[7px] top-4 w-0.5 bg-border" />
 
-          {events.map((event, index) => {
-            const config = timelineTypeConfig[event.type];
-            const title = getEventTitle(event);
-            const description = getEventDescription(event);
+            {events.map((event, index) => {
+              const config = timelineTypeConfig[event.type];
+              const title = getEventTitle(event);
+              const description = getEventDescription(event);
 
-            return (
-              <motion.div
-                key={`${event.type}-${event.date.getTime()}-${index}`}
-                initial={{ opacity: 0, x: -10 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.3 + index * 0.1 }}
-                className="relative"
-              >
-                {/* Dot */}
-                <div
-                  className={`absolute -left-6 flex h-4 w-4 items-center justify-center rounded-full ${config.bg} ring-4 ring-white`}
+              return (
+                <motion.div
+                  key={`${event.type}-${event.date.getTime()}-${index}`}
+                  initial={{ opacity: 0, x: -10 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.3 + index * 0.1 }}
+                  className="relative"
                 >
+                  {/* Dot */}
                   <div
-                    className={`h-2 w-2 rounded-full ${config.color.replace('text-', 'bg-')}`}
-                  />
-                </div>
+                    className={`absolute -left-6 flex h-4 w-4 items-center justify-center rounded-full ${config.bg} ring-4 ring-white`}
+                  >
+                    <div
+                      className={`h-2 w-2 rounded-full ${config.color.replace('text-', 'bg-')}`}
+                    />
+                  </div>
 
-                <div>
-                  <p className="text-xs text-gray">
-                    {formatDate(event.date)} at {formatTime(event.date)}
-                  </p>
-                  <p className="mt-0.5 font-medium text-dark">{title}</p>
-                  {description && (
-                    <p className="mt-0.5 text-sm text-gray">{description}</p>
-                  )}
-                </div>
-              </motion.div>
-            );
-          })}
-        </div>
+                  <div>
+                    <p className="text-xs text-gray">
+                      {formatDate(event.date)} at {formatTime(event.date)}
+                    </p>
+                    <p className="mt-0.5 font-medium text-dark">{title}</p>
+                    {description && (
+                      <p className="mt-0.5 text-sm text-gray">{description}</p>
+                    )}
+                  </div>
+                </motion.div>
+              );
+            })}
+          </div>
         )}
       </div>
     </motion.div>

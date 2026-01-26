@@ -4,7 +4,11 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faLocationDot, faXmark, faArrowRight } from '@fortawesome/pro-solid-svg-icons';
+import {
+  faLocationDot,
+  faXmark,
+  faArrowRight,
+} from '@fortawesome/pro-solid-svg-icons';
 import { Button } from '@/components/ui/button';
 
 type AddressPromptBannerProps = {
@@ -35,8 +39,8 @@ const AddressPromptBanner = ({ className = '' }: AddressPromptBannerProps) => {
               Add your address for better letters
             </h3>
             <p className="mt-1 text-sm text-gray">
-              Your address will appear on challenge letters, making them look more
-              professional and official.
+              Your address will appear on challenge letters, making them look
+              more professional and official.
             </p>
             <div className="mt-3 flex flex-wrap items-center gap-2">
               <Link href="/account">

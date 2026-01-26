@@ -45,7 +45,9 @@ const AppealLetterSummaryCard = ({
   onDownload,
   onRegenerate,
 }: AppealLetterSummaryCardProps) => {
-  const letterPreview = letter.summary || 'Your appeal letter has been generated and is ready for review...';
+  const letterPreview =
+    letter.summary ||
+    'Your appeal letter has been generated and is ready for review...';
 
   return (
     <motion.div
@@ -59,7 +61,9 @@ const AppealLetterSummaryCard = ({
           <FontAwesomeIcon icon={faFileLines} className="text-teal" />
         </div>
         <div className="flex-1">
-          <h2 className="text-lg font-semibold text-dark">Your Appeal Letter</h2>
+          <h2 className="text-lg font-semibold text-dark">
+            Your Appeal Letter
+          </h2>
           <p className="text-xs text-gray">
             Generated {formatDate(letter.sentAt)} at {formatTime(letter.sentAt)}
           </p>
@@ -68,9 +72,7 @@ const AppealLetterSummaryCard = ({
 
       {/* Preview snippet */}
       <div className="relative mt-4 rounded-lg bg-light p-4">
-        <p className="line-clamp-3 text-sm text-dark">
-          {letterPreview}
-        </p>
+        <p className="line-clamp-3 text-sm text-dark">{letterPreview}</p>
         <div className="absolute inset-x-0 bottom-0 h-8 rounded-b-lg bg-gradient-to-t from-light to-transparent" />
       </div>
 

@@ -21,10 +21,12 @@ export const generateReminders = async (ticket: {
   issuedAt: Date;
   userId?: string; // for checking user preferences/subscription
 }) => {
-  const logger = createServerLogger({ action: 'generateReminders', ticketId: ticket.id });
+  const logger = createServerLogger({
+    action: 'generateReminders',
+    ticketId: ticket.id,
+  });
   const baseDate = new Date(ticket.issuedAt);
   const now = new Date();
-
 
   // check if reminder dates are in the future or today
   const is14DaysInFuture =
@@ -33,7 +35,6 @@ export const generateReminders = async (ticket: {
   const is28DaysInFuture =
     isAfter(addDays(baseDate, 28), now) ||
     isSameDay(addDays(baseDate, 28), now);
-
 
   const reminders: Prisma.ReminderCreateManyInput[] = [];
   const notificationTypes = Object.values(NotificationType);
@@ -68,12 +69,16 @@ export const generateReminders = async (ticket: {
       });
       logger.info('Reminders created successfully', {
         reminderCount: reminders.length,
-        ticketId: ticket.id
+        ticketId: ticket.id,
       });
     } catch (error) {
-      logger.error('Failed to create reminders', {
-        ticketId: ticket.id
-      }, error as Error);
+      logger.error(
+        'Failed to create reminders',
+        {
+          ticketId: ticket.id,
+        },
+        error as Error,
+      );
     }
   }
 };
@@ -98,7 +103,7 @@ export const sendReminder = async (reminderId: string) => {
 
   logger.debug('Retrieved reminder', {
     reminderId: reminder?.id,
-    ticketId: reminder?.ticketId
+    ticketId: reminder?.ticketId,
   });
 
   if (!reminder) {
@@ -166,7 +171,7 @@ export const sendReminder = async (reminderId: string) => {
       // TODO: skip SMS reminders if user has no phone number (don't treat as error)
       logger.warn('Skipping SMS reminder - user has no phone number', {
         reminderId,
-        userId: reminder.ticket.vehicle?.user.id
+        userId: reminder.ticket.vehicle?.user.id,
       });
     }
 

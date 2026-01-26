@@ -17,7 +17,12 @@ const slideFromRight: Variants = {
   visible: {
     opacity: 1,
     x: 0,
-    transition: { type: 'spring' as const, damping: 25, stiffness: 120, delay: 0.4 },
+    transition: {
+      type: 'spring' as const,
+      damping: 25,
+      stiffness: 120,
+      delay: 0.4,
+    },
   },
 };
 

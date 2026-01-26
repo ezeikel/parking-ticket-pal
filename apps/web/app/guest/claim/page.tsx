@@ -4,7 +4,10 @@ import { Suspense, useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { signIn, useSession } from 'next-auth/react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faCheckCircle, faSpinnerThird } from '@fortawesome/pro-solid-svg-icons';
+import {
+  faCheckCircle,
+  faSpinnerThird,
+} from '@fortawesome/pro-solid-svg-icons';
 import { faEnvelope } from '@fortawesome/pro-regular-svg-icons';
 import { faGoogle, faApple } from '@fortawesome/free-brands-svg-icons';
 import {
@@ -16,10 +19,7 @@ import {
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import {
-  getGuestTicketData,
-  updateGuestTicketData,
-} from '@/utils/guestTicket';
+import { getGuestTicketData, updateGuestTicketData } from '@/utils/guestTicket';
 
 const ClaimContent = () => {
   const router = useRouter();
@@ -101,7 +101,9 @@ const ClaimContent = () => {
         <div className="max-w-md mx-auto">
           <Card>
             <CardHeader>
-              <CardTitle className="text-center">Verifying Payment...</CardTitle>
+              <CardTitle className="text-center">
+                Verifying Payment...
+              </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="flex flex-col items-center gap-4 py-8">
@@ -125,13 +127,15 @@ const ClaimContent = () => {
             <CardHeader>
               <CardTitle className="text-center">Session Expired</CardTitle>
               <CardDescription className="text-center">
-                Your local session has expired. If you&apos;ve already paid, sign in
-                to claim your ticket.
+                Your local session has expired. If you&apos;ve already paid,
+                sign in to claim your ticket.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <Button
-                onClick={() => router.push('/signin?callbackUrl=/guest/claim-pending')}
+                onClick={() =>
+                  router.push('/signin?callbackUrl=/guest/claim-pending')
+                }
                 className="w-full bg-teal text-white hover:bg-teal-dark"
               >
                 Sign In to Claim Ticket

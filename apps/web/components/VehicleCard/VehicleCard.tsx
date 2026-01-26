@@ -36,15 +36,17 @@ const cardVariants = {
 };
 
 const VehicleCard = ({ vehicle }: VehicleCardProps) => {
-  const vehicleName = vehicle.make && vehicle.model
-    ? `${vehicle.make} ${vehicle.model}`
-    : 'Unknown Vehicle';
+  const vehicleName =
+    vehicle.make && vehicle.model
+      ? `${vehicle.make} ${vehicle.model}`
+      : 'Unknown Vehicle';
 
-  const ticketText = vehicle.activeTickets === 0
-    ? 'No active tickets'
-    : vehicle.activeTickets === 1
-      ? '1 active ticket'
-      : `${vehicle.activeTickets} active tickets`;
+  const ticketText =
+    vehicle.activeTickets === 0
+      ? 'No active tickets'
+      : vehicle.activeTickets === 1
+        ? '1 active ticket'
+        : `${vehicle.activeTickets} active tickets`;
 
   return (
     <motion.a

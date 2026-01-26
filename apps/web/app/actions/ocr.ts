@@ -170,7 +170,7 @@ export const extractOCRTextWithOpenAI = async (
   if (!parsed.success) {
     logger.error('OpenAI returned invalid document data', {
       userId: effectiveUserId,
-      parseError: parsed.error
+      parseError: parsed.error,
     });
     return { success: false, message: 'Invalid data returned from AI' };
   }
@@ -198,7 +198,7 @@ export const extractOCRTextWithOpenAI = async (
       if (!mapboxToken) {
         logger.error('Mapbox access token not found', {
           location,
-          userId: effectiveUserId
+          userId: effectiveUserId,
         });
         fullAddress = {
           line1: location,
@@ -223,7 +223,7 @@ export const extractOCRTextWithOpenAI = async (
             location,
             userId: effectiveUserId,
             status: mapboxResponse.status,
-            errorText
+            errorText,
           });
           fullAddress = {
             line1: location,
@@ -277,10 +277,14 @@ export const extractOCRTextWithOpenAI = async (
         }
       }
     } catch (error) {
-      logger.error('Error getting address from Mapbox', {
-        location,
-        userId: effectiveUserId
-      }, error instanceof Error ? error : new Error(String(error)));
+      logger.error(
+        'Error getting address from Mapbox',
+        {
+          location,
+          userId: effectiveUserId,
+        },
+        error instanceof Error ? error : new Error(String(error)),
+      );
       fullAddress = {
         line1: location,
         city: '',
@@ -428,10 +432,14 @@ export const extractOCRTextWithVision = async (
       return { success: false, message: 'No text detected in image' };
     }
   } catch (error) {
-    logger.error('Google Vision OCR failed', {
-      userId: effectiveUserId,
-      blobStorageUrl
-    }, error instanceof Error ? error : new Error(String(error)));
+    logger.error(
+      'Google Vision OCR failed',
+      {
+        userId: effectiveUserId,
+        blobStorageUrl,
+      },
+      error instanceof Error ? error : new Error(String(error)),
+    );
     return { success: false, message: 'OCR failed with Google Vision API' };
   }
 
@@ -460,7 +468,7 @@ export const extractOCRTextWithVision = async (
   if (!parsed.success) {
     logger.error('OpenAI returned invalid document data', {
       userId: effectiveUserId,
-      parseError: parsed.error
+      parseError: parsed.error,
     });
     return { success: false, message: 'Invalid data returned from AI' };
   }
@@ -488,7 +496,7 @@ export const extractOCRTextWithVision = async (
       if (!mapboxToken) {
         logger.error('Mapbox access token not found', {
           location,
-          userId: effectiveUserId
+          userId: effectiveUserId,
         });
         fullAddress = {
           line1: location,
@@ -513,7 +521,7 @@ export const extractOCRTextWithVision = async (
             location,
             userId: effectiveUserId,
             status: mapboxResponse.status,
-            errorText
+            errorText,
           });
           fullAddress = {
             line1: location,
@@ -567,10 +575,14 @@ export const extractOCRTextWithVision = async (
         }
       }
     } catch (error) {
-      logger.error('Error getting address from Mapbox', {
-        location,
-        userId: effectiveUserId
-      }, error instanceof Error ? error : new Error(String(error)));
+      logger.error(
+        'Error getting address from Mapbox',
+        {
+          location,
+          userId: effectiveUserId,
+        },
+        error instanceof Error ? error : new Error(String(error)),
+      );
       fullAddress = {
         line1: location,
         city: '',

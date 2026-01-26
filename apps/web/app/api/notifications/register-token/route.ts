@@ -39,7 +39,12 @@ export const POST = async (req: Request) => {
     );
   }
 
-  const result = await registerPushToken(authenticatedUserId, token, platform, deviceId);
+  const result = await registerPushToken(
+    authenticatedUserId,
+    token,
+    platform,
+    deviceId,
+  );
 
   if (!result.success) {
     return Response.json(

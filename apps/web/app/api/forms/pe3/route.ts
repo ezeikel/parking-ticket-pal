@@ -41,7 +41,7 @@ export const POST = async (req: NextRequest) => {
     // Pass userId to verify ownership
     const formFillData = await getFormFillDataFromTicket(
       requestData.pcnNumber,
-      userId
+      userId,
     );
 
     if (!formFillData) {

@@ -20,8 +20,12 @@ async function main() {
   console.log(`Duration: ${duration} minutes`);
 
   // Summary by image source
-  const pexelsCount = result.results.filter((r) => r.imageSource === 'pexels').length;
-  const geminiCount = result.results.filter((r) => r.imageSource === 'gemini').length;
+  const pexelsCount = result.results.filter(
+    (r) => r.imageSource === 'pexels',
+  ).length;
+  const geminiCount = result.results.filter(
+    (r) => r.imageSource === 'gemini',
+  ).length;
 
   console.log(`\nImage sources:`);
   console.log(`  Pexels: ${pexelsCount}`);

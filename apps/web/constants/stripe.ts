@@ -143,7 +143,9 @@ export const isConsumerSubscriptionPrice = (priceId: string): boolean =>
 /**
  * Get subscription tier (STANDARD or PREMIUM) from a Stripe price ID
  */
-export const getSubscriptionTierFromPriceId = (priceId: string): 'STANDARD' | 'PREMIUM' | null => {
+export const getSubscriptionTierFromPriceId = (
+  priceId: string,
+): 'STANDARD' | 'PREMIUM' | null => {
   // Check STANDARD prices
   if (
     priceId === STRIPE_PRICE_IDS.SUBSCRIPTION_STANDARD_MONTHLY ||

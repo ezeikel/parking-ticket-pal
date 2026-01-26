@@ -64,11 +64,15 @@ export const createChallenge = async (
 
     return { success: true, data: challenge };
   } catch (error) {
-    logger.error('Error creating challenge', {
-      ticketId: data.ticketId,
-      type: data.type,
-      userId
-    }, error instanceof Error ? error : new Error(String(error)));
+    logger.error(
+      'Error creating challenge',
+      {
+        ticketId: data.ticketId,
+        type: data.type,
+        userId,
+      },
+      error instanceof Error ? error : new Error(String(error)),
+    );
     return {
       success: false,
       error: error instanceof Error ? error.message : 'Unknown error',
@@ -111,11 +115,15 @@ export const updateChallengeStatus = async (
 
     return { success: true, data: challenge };
   } catch (error) {
-    logger.error('Error updating challenge status', {
-      challengeId,
-      status,
-      userId
-    }, error instanceof Error ? error : new Error(String(error)));
+    logger.error(
+      'Error updating challenge status',
+      {
+        challengeId,
+        status,
+        userId,
+      },
+      error instanceof Error ? error : new Error(String(error)),
+    );
     return {
       success: false,
       error: error instanceof Error ? error.message : 'Unknown error',
@@ -147,10 +155,14 @@ export const getChallengesForTicket = async (ticketId: string) => {
 
     return { success: true, data: challenges };
   } catch (error) {
-    logger.error('Error getting challenges', {
-      ticketId,
-      userId
-    }, error instanceof Error ? error : new Error(String(error)));
+    logger.error(
+      'Error getting challenges',
+      {
+        ticketId,
+        userId,
+      },
+      error instanceof Error ? error : new Error(String(error)),
+    );
     return {
       success: false,
       error: error instanceof Error ? error.message : 'Unknown error',

@@ -14,7 +14,12 @@ import {
 import Link from 'next/link';
 import mapboxgl from 'mapbox-gl';
 
-type TicketStatus = 'NEEDS_ACTION' | 'PENDING_APPEAL' | 'WON' | 'PAID' | 'OVERDUE';
+type TicketStatus =
+  | 'NEEDS_ACTION'
+  | 'PENDING_APPEAL'
+  | 'WON'
+  | 'PAID'
+  | 'OVERDUE';
 
 type MapTicket = {
   id: string;
@@ -40,7 +45,8 @@ const statusColors: Record<TicketStatus, string> = {
   OVERDUE: '#FF5A5F',
 };
 
-const formatAmount = (pence: number) => `£${(pence / 100).toLocaleString('en-GB')}`;
+const formatAmount = (pence: number) =>
+  `£${(pence / 100).toLocaleString('en-GB')}`;
 
 const DashboardTicketsMap = ({
   tickets,

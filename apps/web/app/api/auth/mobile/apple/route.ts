@@ -25,7 +25,7 @@ export const POST = async (req: Request) => {
     }
 
     const existingUser = await db.user.findUnique({
-      where: { email: decoded.email }
+      where: { email: decoded.email },
     });
 
     if (!existingUser) {

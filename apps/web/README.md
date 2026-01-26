@@ -140,10 +140,20 @@ Automated form filling for major UK parking authorities:
 
 ### 🤖 Auto-Challenge Automation System
 
-A self-learning automation system that discovers and records issuer challenge
-flows, enabling automatic challenge submission for any parking authority.
+An automation system that submits parking ticket challenges through issuer
+portals. Uses a **code generation via PR** approach for adding new issuers.
 
 #### How It Works
+
+**Built-in Issuers** (Lewisham, Horizon, Westminster):
+- Automation code runs directly in the Next.js app via Playwright
+- No external service needed for supported issuers
+
+**Unsupported Issuers** (Code Generation Flow):
+- Worker uses Stagehand + Claude to explore the issuer's website
+- Generates TypeScript automation code automatically
+- Creates a GitHub PR for human review
+- After merge, the issuer becomes a built-in automation
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────┐
@@ -153,47 +163,51 @@ flows, enabling automatic challenge submission for any parking authority.
 │  User clicks "Auto-Submit Challenge"                                     │
 │           │                                                              │
 │           ▼                                                              │
-│  ┌─────────────────┐                                                     │
-│  │ Issuer has      │──Yes──▶ Run existing automation ──▶ Submit         │
-│  │ verified recipe?│                                                     │
-│  └─────────────────┘                                                     │
+│  ┌─────────────────────┐                                                 │
+│  │ Issuer supported?   │──Yes──► Run built-in automation ──► Submit     │
+│  │ (isAutomationSupported)                                               │
+│  └─────────────────────┘                                                 │
 │           │ No                                                           │
 │           ▼                                                              │
-│  ┌─────────────────┐                                                     │
-│  │ Learn Flow      │ Playwright navigates issuer site                    │
-│  │ (background)    │ Takes screenshots at each step                      │
-│  └─────────────────┘                                                     │
+│  ┌─────────────────────┐                                                 │
+│  │ PendingIssuer       │ Check if code generation already in progress   │
+│  │ exists?             │                                                 │
+│  └─────────────────────┘                                                 │
+│           │ No                                                           │
+│           ▼                                                              │
+│  ┌─────────────────────┐     ┌─────────────────────────────────────────┐│
+│  │ Create PendingIssuer│     │           WORKER (Hetzner)              ││
+│  │ Call /generate      │────►│                                         ││
+│  └─────────────────────┘     │  1. Stagehand explores issuer website   ││
+│           │                  │  2. Claude extracts form fields/flow    ││
+│           ▼                  │  3. Generate TypeScript automation code ││
+│  ┌─────────────────────┐     │  4. Create GitHub PR via gh CLI         ││
+│  │ Offer letter        │     │  5. Webhook back with PR URL            ││
+│  │ fallback to user    │     └─────────────────────────────────────────┘│
+│  └─────────────────────┘                                                 │
 │           │                                                              │
 │           ▼                                                              │
-│  ┌─────────────────┐                                                     │
-│  │ Save Recipe     │ Store steps, selectors, screenshots                 │
-│  │ status: PENDING │ in IssuerAutomation table                           │
-│  └─────────────────┘                                                     │
-│           │                                                              │
-│           ▼                                                              │
-│  ┌─────────────────┐                                                     │
-│  │ Human Review    │ Admin verifies recipe is correct                    │
-│  │ (notification)  │ Can test without submitting                         │
-│  └─────────────────┘                                                     │
-│           │                                                              │
-│           ▼                                                              │
-│  ┌─────────────────┐                                                     │
-│  │ Recipe Approved │ status: VERIFIED                                    │
-│  │ Submit Challenge│ Run recipe for pending challenges                   │
-│  └─────────────────┘                                                     │
+│  Human reviews PR ──► Merge ──► Issuer now supported as built-in        │
 │                                                                          │
 └─────────────────────────────────────────────────────────────────────────┘
 ```
 
-#### Status Workflow
+#### Database Models
 
-| Status              | Description                                   |
-| ------------------- | --------------------------------------------- |
-| `LEARNING`          | Currently discovering the issuer's flow       |
-| `PENDING_REVIEW`    | Learned successfully, awaiting verification   |
-| `VERIFIED`          | Approved and ready for use                    |
-| `NEEDS_HUMAN_HELP`  | Requires manual intervention (e.g., account)  |
-| `FAILED`            | Learning or execution failed                  |
+| Model | Purpose |
+| --- | --- |
+| `PendingIssuer` | Tracks code generation requests for new issuers |
+| `PendingChallenge` | Queues challenges while waiting for automation |
+| `Challenge` | Actual challenge submissions and their status |
+
+**PendingIssuer Status Flow:**
+
+| Status | Description |
+| --- | --- |
+| `GENERATING` | Worker is analyzing website and generating code |
+| `PR_CREATED` | PR created, awaiting human review |
+| `PR_MERGED` | PR merged, automation now available |
+| `FAILED` | Generation failed |
 
 #### Key Files
 
@@ -201,7 +215,10 @@ flows, enabling automatic challenge submission for any parking authority.
 utils/automation/
 ├── workerClient.ts    # HTTP client for worker service API
 ├── shared.ts          # Shared Playwright setup (built-in issuers)
+├── challenge.ts       # Challenge function dispatcher
+├── verify.ts          # Verify function dispatcher
 └── issuers/           # Built-in automation for specific issuers
+    ├── index.ts       # Exports all issuers
     ├── lewisham.ts
     ├── horizon.ts
     └── westminster.ts
@@ -210,71 +227,54 @@ app/actions/
 └── autoChallenge.ts   # Server action for initiating auto-challenges
 
 app/api/webhooks/
-└── automation/route.ts # Webhook handler for worker callbacks
+└── automation/route.ts # Webhook handler for generation results
 
 components/ticket-detail/
 ├── ActionsCard.tsx           # Contains "Auto-Submit Challenge" button
 └── AutoChallengeDialog.tsx   # Challenge reason selection modal
 ```
 
-#### Recipe Step Structure
-
-Each learned recipe contains an array of steps:
-
-```typescript
-type RecipeStep = {
-  order: number;
-  action: 'navigate' | 'fill' | 'click' | 'select' | 'wait' | 'screenshot' | 'solve_captcha';
-  selector?: string;        // CSS selector
-  value?: string;           // Value with placeholders like {{pcnNumber}}
-  description: string;      // Human-readable description
-  screenshotUrl?: string;   // Screenshot after this step
-  waitFor?: string;         // Selector to wait for
-  optional?: boolean;       // Step may not always appear
-};
-```
-
-#### Available Placeholders
-
-The system supports dynamic value injection using placeholders:
-
-| Placeholder          | Description                    |
-| -------------------- | ------------------------------ |
-| `{{pcnNumber}}`      | Penalty Charge Notice number   |
-| `{{vehicleReg}}`     | Vehicle registration number    |
-| `{{firstName}}`      | User's first name              |
-| `{{lastName}}`       | User's last name               |
-| `{{fullName}}`       | User's full name               |
-| `{{email}}`          | User's email address           |
-| `{{phone}}`          | User's phone number            |
-| `{{addressLine1}}`   | Address line 1                 |
-| `{{addressLine2}}`   | Address line 2                 |
-| `{{city}}`           | City                           |
-| `{{postcode}}`       | Postcode                       |
-| `{{challengeReason}}`| Selected challenge reason      |
-| `{{challengeText}}`  | AI-generated challenge content |
-
 #### Adding Built-in Issuer Support
+
+New issuers can be added either:
+1. **Automatically** via the code generation system (creates PR)
+2. **Manually** by creating the issuer file
+
+For manual addition:
 
 1. Create issuer file in `utils/automation/issuers/`:
 
 ```typescript
 // utils/automation/issuers/example.ts
-export async function verify(pcnNumber: string, vehicleReg: string) {
-  // Verify ticket exists on issuer's website
-}
+import { ChallengeArgs, CommonPcnArgs, takeScreenShot } from '../shared';
+import generateChallengeContent from '@/utils/ai/generateChallengeContent';
 
-export async function challenge(
-  pcnNumber: string,
-  challengeReason: string,
-  customReason?: string
-) {
-  // Submit challenge via issuer's portal
-}
+export const access = async ({ page, pcnNumber, ticket }: CommonPcnArgs) => {
+  await page.goto('https://example.gov.uk/pcn-lookup');
+  await page.fill('#pcn', pcnNumber);
+  await page.fill('#vrm', ticket.vehicle.registrationNumber);
+  await page.click('#search');
+  await page.waitForLoadState('networkidle');
+};
+
+export const verify = async (args: CommonPcnArgs) => {
+  await access(args);
+  await takeScreenShot({ page: args.page, ticketId: args.ticket.id });
+  return true;
+};
+
+export const challenge = async (
+  args: ChallengeArgs,
+  options?: { dryRun?: boolean; challengeId?: string },
+): Promise<ChallengeResult> => {
+  // Implementation...
+};
 ```
 
-2. Add to function maps in `utils/automation/index.ts`
-3. Update `isAutomationSupported()` in constants
+2. Export from `utils/automation/issuers/index.ts`
+3. Add to `CHALLENGE_FUNCTIONS` in `utils/automation/challenge.ts`
+4. Add to `VERIFY_FUNCTIONS` in `utils/automation/verify.ts`
+5. Add to `AUTOMATIONS` array in `constants/index.tsx`
 
 #### Environment Variables
 
@@ -289,9 +289,7 @@ NEXT_PUBLIC_APP_URL="https://parkingticketpal.com"
 
 #### Production Architecture
 
-The automation system uses a dedicated **worker service** for browser
-automation. This is necessary because Vercel's serverless environment cannot run
-Playwright (memory limits, no Chromium binary, short timeouts).
+Built-in automations run directly in Next.js. Code generation uses a Hetzner worker.
 
 ```
 ┌─────────────────────────────────────────────────────────────────────┐
@@ -300,46 +298,38 @@ Playwright (memory limits, no Chromium binary, short timeouts).
 │  User clicks "Auto-Submit Challenge"                                 │
 │           │                                                          │
 │           ▼                                                          │
-│  ┌─────────────────┐                                                 │
-│  │ autoChallenge   │─── HTTP POST ──►┌─────────────────────────────┐│
-│  │ server action   │                 │                             ││
-│  └─────────────────┘                 │    HETZNER (CX23)           ││
-│           ▲                          │                             ││
-│           │                          │  ┌───────────────────────┐ ││
-│  ┌─────────────────┐                 │  │ Bun + Hono Server     │ ││
-│  │ Webhook handler │◄─── Callback ───│  │ Port 3002             │ ││
-│  │ /api/webhooks/  │                 │  │                       │ ││
-│  │ automation      │                 │  │ /automation/learn     │ ││
-│  └─────────────────┘                 │  │ /automation/run       │ ││
-│           │                          │  └───────────┬───────────┘ ││
-│           ▼                          │              │             ││
-│  ┌─────────────────┐                 │              ▼             ││
-│  │ Update DB       │                 │  ┌───────────────────────┐ ││
-│  │ Challenge status│                 │  │ Playwright + Chromium │ ││
-│  └─────────────────┘                 │  │ Browser automation    │ ││
-│                                      │  └───────────────────────┘ ││
-└──────────────────────────────────────└─────────────────────────────┘
+│  ┌─────────────────┐   Supported?   ┌────────────────────────────┐ │
+│  │ autoChallenge   │───────Yes─────►│ Run Playwright in Next.js │ │
+│  │ server action   │                └────────────────────────────┘ │
+│  └─────────────────┘                                                │
+│           │ No (unsupported issuer)                                 │
+│           ▼                                                         │
+│  ┌─────────────────┐                 ┌─────────────────────────────┐│
+│  │ Call /generate  │─── HTTP POST ──►│     HETZNER (Worker)       ││
+│  └─────────────────┘                 │                             ││
+│           ▲                          │  Stagehand + Claude API     ││
+│           │                          │  Explore website            ││
+│  ┌─────────────────┐                 │  Generate TypeScript code   ││
+│  │ Webhook handler │◄─── Callback ───│  Create PR via gh CLI       ││
+│  └─────────────────┘                 │                             ││
+│           │                          └─────────────────────────────┘│
+│           ▼                                                         │
+│  Update PendingIssuer with PR URL                                   │
+│                                                                      │
+└─────────────────────────────────────────────────────────────────────┘
 ```
 
-**How it works:**
-
-1. Web app receives challenge request from user
-2. Web app calls Hetzner `/automation/learn` or `/automation/run`
-3. Hetzner runs Playwright browser automation
-4. Hetzner sends results back via webhook to `/api/webhooks/automation`
-5. Web app updates challenge status in database
-
-**Hetzner API Endpoints:**
+**Worker API Endpoints:**
 
 | Endpoint | Method | Purpose |
-|----------|--------|---------|
-| `/automation/learn` | POST | Discover issuer's challenge flow |
-| `/automation/run` | POST | Execute a learned recipe |
+| --- | --- | --- |
+| `/automation/generate` | POST | Generate code for new issuer |
 | `/automation/status/:jobId` | GET | Check job status |
 | `/automation/cancel/:jobId` | POST | Cancel a running job |
 
-See the [parking-ticket-pal-worker](https://github.com/ezeikel/parking-ticket-pal-worker)
-repository for the Hetzner service implementation.
+See the
+[parking-ticket-pal-worker](https://github.com/ezeikel/parking-ticket-pal-worker)
+repository for the worker service implementation.
 
 ### 📊 Comprehensive Analytics
 

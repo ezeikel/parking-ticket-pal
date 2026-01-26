@@ -84,7 +84,7 @@ const signature = {
 };
 
 const MagicLinkEmail = ({
-  magicLink = 'https://parkingticketpal.com/auth/verify?token=abc123xyz'
+  magicLink = 'https://parkingticketpal.com/auth/verify?token=abc123xyz',
 }: MagicLinkEmailProps) => (
   <Html>
     <Head />
@@ -96,16 +96,16 @@ const MagicLinkEmail = ({
         <Text style={greeting}>Welcome back!</Text>
 
         <Text style={text}>
-          Click the button below to securely sign in to your Parking Ticket Pal account.
+          Click the button below to securely sign in to your Parking Ticket Pal
+          account.
         </Text>
 
-        <EmailButton href={magicLink}>
-          Sign In Now
-        </EmailButton>
+        <EmailButton href={magicLink}>Sign In Now</EmailButton>
 
         <Section style={securityBox}>
           <Text style={securityText}>
-            🔒 <strong>Security Notice:</strong> This link will expire in 15 minutes for your security.
+            🔒 <strong>Security Notice:</strong> This link will expire in 15
+            minutes for your security.
           </Text>
           <Text style={securityText}>
             If you didn&apos;t request this email, you can safely ignore it.
@@ -113,7 +113,8 @@ const MagicLinkEmail = ({
         </Section>
 
         <Text style={text}>
-          If the button doesn&apos;t work, copy and paste this link into your browser:
+          If the button doesn&apos;t work, copy and paste this link into your
+          browser:
         </Text>
 
         <Section style={linkBox}>

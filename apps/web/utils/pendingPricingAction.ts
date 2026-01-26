@@ -39,12 +39,18 @@ export const setPendingPricingAction = (
   try {
     sessionStorage.setItem(STORAGE_KEY, JSON.stringify(actionWithTimestamp));
   } catch (error) {
-    const logger = createClientLogger(undefined, { action: 'pricing_action_storage' });
-    logger.error('Failed to store pending pricing action', {
-      tier: action.tier,
-      type: action.type,
-      source: action.source,
-    }, error instanceof Error ? error : undefined);
+    const logger = createClientLogger(undefined, {
+      action: 'pricing_action_storage',
+    });
+    logger.error(
+      'Failed to store pending pricing action',
+      {
+        tier: action.tier,
+        type: action.type,
+        source: action.source,
+      },
+      error instanceof Error ? error : undefined,
+    );
   }
 };
 
@@ -57,8 +63,14 @@ export const clearPendingPricingAction = (): void => {
   try {
     sessionStorage.removeItem(STORAGE_KEY);
   } catch (error) {
-    const logger = createClientLogger(undefined, { action: 'pricing_action_storage' });
-    logger.error('Failed to clear pending pricing action', {}, error instanceof Error ? error : undefined);
+    const logger = createClientLogger(undefined, {
+      action: 'pricing_action_storage',
+    });
+    logger.error(
+      'Failed to clear pending pricing action',
+      {},
+      error instanceof Error ? error : undefined,
+    );
   }
 };
 
@@ -84,8 +96,14 @@ export const getPendingPricingAction = (): PendingPricingAction | null => {
 
     return action;
   } catch (error) {
-    const logger = createClientLogger(undefined, { action: 'pricing_action_storage' });
-    logger.error('Failed to retrieve pending pricing action', {}, error instanceof Error ? error : undefined);
+    const logger = createClientLogger(undefined, {
+      action: 'pricing_action_storage',
+    });
+    logger.error(
+      'Failed to retrieve pending pricing action',
+      {},
+      error instanceof Error ? error : undefined,
+    );
     return null;
   }
 };

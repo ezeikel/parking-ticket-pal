@@ -27,7 +27,15 @@ interface CreateAndSendNotificationOptions {
 export async function createAndSendNotification(
   options: CreateAndSendNotificationOptions,
 ): Promise<{ success: boolean; error?: string }> {
-  const { userId, ticketId = null, type, title, body, data, sendPush = true } = options;
+  const {
+    userId,
+    ticketId = null,
+    type,
+    title,
+    body,
+    data,
+    sendPush = true,
+  } = options;
 
   try {
     // Get user's notification preferences
@@ -43,12 +51,13 @@ export async function createAndSendNotification(
       };
     }
 
-    const preferences = (user.notificationPreferences as unknown as NotificationPreferences) || {
-      inApp: true,
-      email: true,
-      sms: true,
-      push: true,
-    };
+    const preferences =
+      (user.notificationPreferences as unknown as NotificationPreferences) || {
+        inApp: true,
+        email: true,
+        sms: true,
+        push: true,
+      };
 
     // Always create in-app notification if in-app notifications are enabled
     if (preferences.inApp) {
@@ -62,7 +71,10 @@ export async function createAndSendNotification(
       );
 
       if (!notificationResult.success) {
-        console.error('Failed to create in-app notification:', notificationResult.error);
+        console.error(
+          'Failed to create in-app notification:',
+          notificationResult.error,
+        );
       }
     }
 
@@ -73,7 +85,12 @@ export async function createAndSendNotification(
         ...(ticketId && { ticketId }),
       };
 
-      const pushResult = await sendPushNotification(userId, title, body, pushData);
+      const pushResult = await sendPushNotification(
+        userId,
+        title,
+        body,
+        pushData,
+      );
 
       if (!pushResult.success) {
         console.error('Failed to send push notification:', pushResult.error);

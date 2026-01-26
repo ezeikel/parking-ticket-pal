@@ -22,7 +22,7 @@ export const POST = async (req: NextRequest) => {
       if (!userId) {
         return Response.json(
           { success: false, error: 'Unauthorized' },
-          { status: 401 }
+          { status: 401 },
         );
       }
     }
@@ -41,7 +41,7 @@ export const POST = async (req: NextRequest) => {
     // Pass userId to verify ownership
     const formFillData = await getFormFillDataFromTicket(
       requestData.pcnNumber,
-      userId
+      userId,
     );
 
     if (!formFillData) {

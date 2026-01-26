@@ -241,18 +241,25 @@ const getFeaturedImage = async (
   try {
     // 1. Generate search terms
     logger.info('Generating image search terms', { title });
-    const searchTerms = await generateImageSearchTerms(title, excerpt, category);
+    const searchTerms = await generateImageSearchTerms(
+      title,
+      excerpt,
+      category,
+    );
 
     // 2. Fetch multiple candidate photos from Pexels (excluding already-used)
     logger.info('Searching Pexels for candidate images', {
       searchTerms: searchTerms.searchTerms,
       excludingCount: excludeIds.length,
     });
-    const pexelsResult = await fetchBlogPhotosForEvaluation(searchTerms.searchTerms, {
-      orientation: 'landscape',
-      size: 'large',
-      excludeIds,
-    });
+    const pexelsResult = await fetchBlogPhotosForEvaluation(
+      searchTerms.searchTerms,
+      {
+        orientation: 'landscape',
+        size: 'large',
+        excludeIds,
+      },
+    );
 
     let selectedPhoto: PexelsPhoto | null = null;
     let selectedSearchTerm = '';
@@ -303,7 +310,10 @@ const getFeaturedImage = async (
     // 4. Use selected Pexels photo if available
     if (selectedPhoto) {
       const buffer = await downloadPhoto(selectedPhoto, 'large2x');
-      const assetRef = await uploadImageToSanity(buffer, `${slug}-featured.jpg`);
+      const assetRef = await uploadImageToSanity(
+        buffer,
+        `${slug}-featured.jpg`,
+      );
       const credit = formatPhotoCredit(selectedPhoto);
 
       return {
@@ -316,9 +326,12 @@ const getFeaturedImage = async (
     }
 
     // 5. Fallback to Gemini image generation
-    logger.info('No suitable Pexels image found, falling back to Gemini generation', {
-      title,
-    });
+    logger.info(
+      'No suitable Pexels image found, falling back to Gemini generation',
+      {
+        title,
+      },
+    );
     const geminiResult = await generateImageWithGemini(title);
 
     if (geminiResult) {
@@ -370,7 +383,8 @@ const generateBlogContent = async (
 
   const { text: content } = await generateText({
     model: models.text,
-    system: 'You are a professional content writer specializing in UK parking and traffic law.',
+    system:
+      'You are a professional content writer specializing in UK parking and traffic law.',
     prompt: contentPrompt,
     temperature: 0.7,
   });
@@ -461,7 +475,9 @@ function markdownToPortableText(markdown: string): any[] {
         _key: `block-${blocks.length}`,
         style: `h${level}`,
         markDefs: [],
-        children: [{ _type: 'span', _key: 'span-0', text: headerMatch[2], marks: [] }],
+        children: [
+          { _type: 'span', _key: 'span-0', text: headerMatch[2], marks: [] },
+        ],
       });
       continue;
     }
@@ -482,7 +498,9 @@ function markdownToPortableText(markdown: string): any[] {
         listItem: 'bullet',
         level: 1,
         markDefs: [],
-        children: [{ _type: 'span', _key: 'span-0', text: bulletMatch[1], marks: [] }],
+        children: [
+          { _type: 'span', _key: 'span-0', text: bulletMatch[1], marks: [] },
+        ],
       });
       continue;
     }
@@ -503,7 +521,9 @@ function markdownToPortableText(markdown: string): any[] {
         listItem: 'number',
         level: 1,
         markDefs: [],
-        children: [{ _type: 'span', _key: 'span-0', text: numberMatch[1], marks: [] }],
+        children: [
+          { _type: 'span', _key: 'span-0', text: numberMatch[1], marks: [] },
+        ],
       });
       continue;
     }
@@ -517,7 +537,9 @@ function markdownToPortableText(markdown: string): any[] {
         _key: `block-${blocks.length}`,
         style: 'blockquote',
         markDefs: [],
-        children: [{ _type: 'span', _key: 'span-0', text: line.slice(2), marks: [] }],
+        children: [
+          { _type: 'span', _key: 'span-0', text: line.slice(2), marks: [] },
+        ],
       });
       continue;
     }
@@ -542,9 +564,7 @@ const createSanityPost = async (
   publishDate?: Date,
 ): Promise<string> => {
   // Get or create a default author
-  let authorRef = await writeClient.fetch(
-    `*[_type == "author"][0]._id`,
-  );
+  let authorRef = await writeClient.fetch(`*[_type == "author"][0]._id`);
 
   // If no author exists, skip author reference
   if (!authorRef) {
@@ -552,7 +572,11 @@ const createSanityPost = async (
   }
 
   // Get category references
-  const categoryRefs: Array<{ _type: 'reference'; _ref: string; _key: string }> = [];
+  const categoryRefs: Array<{
+    _type: 'reference';
+    _ref: string;
+    _key: string;
+  }> = [];
   for (const keyword of meta.keywords.slice(0, 3)) {
     const existingTag = BLOG_TAGS.find(
       (tag) => tag.toLowerCase() === keyword.toLowerCase(),
@@ -605,7 +629,9 @@ const createSanityPost = async (
       ...doc.generationMeta,
       imageSource,
       imageUpdatedAt: new Date().toISOString(),
-      ...(featuredImage.pexelsPhotoId && { pexelsPhotoId: featuredImage.pexelsPhotoId }),
+      ...(featuredImage.pexelsPhotoId && {
+        pexelsPhotoId: featuredImage.pexelsPhotoId,
+      }),
     };
   }
 
@@ -656,7 +682,9 @@ export const generateBlogPostForTopic = async (
     // 5. Get featured image (Pexels first, then Gemini)
     logger.info('Getting featured image', { title: meta.title });
     const usedPexelsIds = await getUsedPexelsIds();
-    logger.info('Excluding already-used Pexels photos', { count: usedPexelsIds.length });
+    logger.info('Excluding already-used Pexels photos', {
+      count: usedPexelsIds.length,
+    });
     const featuredImage = await getFeaturedImage(
       meta.title,
       meta.excerpt,
@@ -672,7 +700,10 @@ export const generateBlogPostForTopic = async (
     logger.info('Creating post in Sanity', { title: meta.title });
     await createSanityPost(meta, portableText, featuredImage, publishDate);
 
-    logger.info('Successfully generated blog post', { slug: meta.slug, title: meta.title });
+    logger.info('Successfully generated blog post', {
+      slug: meta.slug,
+      title: meta.title,
+    });
 
     return {
       slug: meta.slug,
@@ -680,9 +711,13 @@ export const generateBlogPostForTopic = async (
       success: true,
     };
   } catch (error) {
-    logger.error('Error generating blog post', {
-      topic,
-    }, error instanceof Error ? error : new Error(String(error)));
+    logger.error(
+      'Error generating blog post',
+      {
+        topic,
+      },
+      error instanceof Error ? error : new Error(String(error)),
+    );
 
     return {
       slug: '',
@@ -771,7 +806,8 @@ export const previewBlogImages = async (
     return {
       searchTerms: [],
       photos: [],
-      error: error instanceof Error ? error.message : 'Failed to preview images',
+      error:
+        error instanceof Error ? error.message : 'Failed to preview images',
     };
   }
 };
@@ -808,7 +844,9 @@ export const regeneratePostImage = async (
 
     // 2. Get used Pexels IDs (excluding this post's current ID)
     const usedPexelsIds = await getUsedPexelsIds(postId);
-    logger.info('Excluding already-used Pexels photos', { count: usedPexelsIds.length });
+    logger.info('Excluding already-used Pexels photos', {
+      count: usedPexelsIds.length,
+    });
 
     // 3. Get new featured image using AI Judge + Gemini fallback
     const featuredImage = await getFeaturedImage(
@@ -883,11 +921,13 @@ export const regenerateAllPostImages = async (): Promise<{
   }>;
 }> => {
   // Fetch all posts
-  const posts = await writeClient.fetch<
-    Array<{ _id: string; title: string }>
-  >(`*[_type == "post"] | order(publishedAt desc) { _id, title }`);
+  const posts = await writeClient.fetch<Array<{ _id: string; title: string }>>(
+    `*[_type == "post"] | order(publishedAt desc) { _id, title }`,
+  );
 
-  logger.info('Starting batch image regeneration', { totalPosts: posts.length });
+  logger.info('Starting batch image regeneration', {
+    totalPosts: posts.length,
+  });
   console.log(`Found ${posts.length} posts to process\n`);
 
   const results: Array<{
@@ -903,7 +943,9 @@ export const regenerateAllPostImages = async (): Promise<{
 
   for (const post of posts) {
     const progress = `[${results.length + 1}/${posts.length}]`;
-    logger.info(`Processing ${results.length + 1}/${posts.length}: ${post.title}`);
+    logger.info(
+      `Processing ${results.length + 1}/${posts.length}: ${post.title}`,
+    );
     console.log(`${progress} Processing: ${post.title}`);
 
     const result = await regeneratePostImage(post._id);

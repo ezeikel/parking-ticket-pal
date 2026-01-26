@@ -1,7 +1,11 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { ChallengeType, IssuerType, TicketTier } from '@parking-ticket-pal/db/types';
+import {
+  ChallengeType,
+  IssuerType,
+  TicketTier,
+} from '@parking-ticket-pal/db/types';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
   faFileLines,
@@ -136,9 +140,11 @@ const ChallengeTicket = ({ ticket, issuerType }: ChallengeTicketProps) => {
   >([]);
   const [isLoadingHistory, setIsLoadingHistory] = useState(true);
   const [showSignatureModal, setShowSignatureModal] = useState(false);
-  const [pendingAction, setPendingAction] = useState<'letter' | 'auto-challenge' | null>(null);
+  const [pendingAction, setPendingAction] = useState<
+    'letter' | 'auto-challenge' | null
+  >(null);
   const [userSignatureUrl, setUserSignatureUrl] = useState<string | null>(
-    ticket.vehicle.user.signatureUrl || null
+    ticket.vehicle.user.signatureUrl || null,
   );
   const { track } = useAnalytics();
 
@@ -325,7 +331,14 @@ const ChallengeTicket = ({ ticket, issuerType }: ChallengeTicketProps) => {
         challengeTicket(ticket.pcnNumber, challengeReasonLabel, customReason),
       setIsAutoChallenging,
     );
-  }, [challengeReasons, selectedReason, customReason, ticket.id, ticket.pcnNumber, track]);
+  }, [
+    challengeReasons,
+    selectedReason,
+    customReason,
+    ticket.id,
+    ticket.pcnNumber,
+    track,
+  ]);
 
   const handleAutoChallenge = async () => {
     // Check if user has signature - if not, show modal

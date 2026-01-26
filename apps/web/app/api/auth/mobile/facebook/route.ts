@@ -9,7 +9,9 @@ export const POST = async (req: Request) => {
 
   try {
     // Verify Facebook access token
-    const response = await fetch(`https://graph.facebook.com/v24.0/me?fields=id,name,email&access_token=${accessToken}`);
+    const response = await fetch(
+      `https://graph.facebook.com/v24.0/me?fields=id,name,email&access_token=${accessToken}`,
+    );
     const payload = await response.json();
 
     if (!response.ok || payload.error) {
@@ -35,7 +37,7 @@ export const POST = async (req: Request) => {
     }
 
     const existingUser = await db.user.findUnique({
-      where: { email: payload.email }
+      where: { email: payload.email },
     });
 
     if (!existingUser) {

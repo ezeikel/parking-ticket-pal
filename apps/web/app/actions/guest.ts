@@ -1,6 +1,12 @@
 'use server';
 
-import { db, TicketTier, TicketType, IssuerType, TicketStatus } from '@parking-ticket-pal/db';
+import {
+  db,
+  TicketTier,
+  TicketType,
+  IssuerType,
+  TicketStatus,
+} from '@parking-ticket-pal/db';
 import { getUserId, getCurrentUser } from '@/utils/user';
 import { createServerLogger } from '@/lib/logger';
 import createUTCDate from '@/utils/createUTCDate';
@@ -139,7 +145,10 @@ export const claimPendingTicket = async (
     });
 
     if (!pendingTicket) {
-      return { success: false, error: 'Pending ticket not found or already claimed' };
+      return {
+        success: false,
+        error: 'Pending ticket not found or already claimed',
+      };
     }
 
     // Lookup vehicle info from registration number
@@ -150,8 +159,18 @@ export const claimPendingTicket = async (
       pcnNumber: pendingTicket.pcnNumber,
       vehicleReg: pendingTicket.vehicleReg,
       issuerType: pendingTicket.issuerType as 'council' | 'private' | null,
-      ticketStage: pendingTicket.ticketStage as 'initial' | 'nto' | 'rejection' | 'charge_cert' | null,
-      tier: pendingTicket.tier === 'PREMIUM' ? 'premium' : pendingTicket.tier === 'STANDARD' ? 'standard' : null,
+      ticketStage: pendingTicket.ticketStage as
+        | 'initial'
+        | 'nto'
+        | 'rejection'
+        | 'charge_cert'
+        | null,
+      tier:
+        pendingTicket.tier === 'PREMIUM'
+          ? 'premium'
+          : pendingTicket.tier === 'STANDARD'
+            ? 'standard'
+            : null,
       tempImagePath: pendingTicket.tempImagePath || undefined,
       initialAmount: pendingTicket.initialAmount || undefined,
       issuer: pendingTicket.issuer || undefined,
@@ -222,7 +241,10 @@ export const createTicketFromGuestData = async (
   const userId = await getUserId('create ticket from guest data');
 
   if (!userId) {
-    return { success: false, error: 'You must be logged in to create a ticket' };
+    return {
+      success: false,
+      error: 'You must be logged in to create a ticket',
+    };
   }
 
   try {
@@ -237,7 +259,10 @@ export const createTicketFromGuestData = async (
     };
 
     // If auto-lookup is requested or no vehicle data provided, lookup from registration
-    if (input.autoLookupVehicle || (!input.vehicleMake && !input.vehicleModel)) {
+    if (
+      input.autoLookupVehicle ||
+      (!input.vehicleMake && !input.vehicleModel)
+    ) {
       const vehicleInfo = await getVehicleInfo(input.vehicleReg);
       vehicleData = {
         make: vehicleInfo.make,
