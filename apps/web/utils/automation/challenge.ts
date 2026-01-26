@@ -1,11 +1,12 @@
 import { findIssuer, isAutomationSupported } from '@/constants/index';
 import { db } from '@parking-ticket-pal/db';
-import { lewisham, horizon } from './issuers';
+import { lewisham, horizon, westminster_test2 } from './issuers';
 import { CommonPcnArgs, setupBrowser } from './shared';
 
 const CHALLENGE_FUNCTIONS = {
   lewisham: lewisham.challenge,
   horizon: horizon.challenge,
+  westminster_test2: westminster_test2.challenge,
 };
 
 type IssuerId = keyof typeof CHALLENGE_FUNCTIONS;
