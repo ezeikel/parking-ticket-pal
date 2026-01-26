@@ -8,6 +8,12 @@ import {
   uploadEvidence,
 } from '../shared';
 
+export type ChallengeResult = {
+  success: boolean;
+  challengeText?: string;
+  screenshotUrls: string[];
+};
+
 // TODO: Lewisham have updated their website - have started to update challenge but verify needs to be updated
 // TODO: evidence images are in a div with the id "imageListViewGridMain" - need to get the src of each image and upload to blob storage
 // TODO: div with text "Outstanding Charge"
@@ -173,10 +179,33 @@ export const verify = async (args: CommonPcnArgs) => {
 
 // Lewisham has simplified their challenge process - no need for specific reason mapping
 
-export const challenge = async (args: ChallengeArgs) => {
+export type ChallengeOptions = {
+  dryRun?: boolean;
+  challengeId?: string;
+};
+
+export const challenge = async (
+  args: ChallengeArgs,
+  options?: ChallengeOptions,
+): Promise<ChallengeResult> => {
+  const screenshotUrls: string[] = [];
+  const { dryRun = false, challengeId } = options || {};
+
   await access(args);
 
   const { page, challengeReason, additionalDetails } = args;
+
+  // Screenshot: PCN details page before clicking challenge
+  const detailsScreenshot = await takeScreenShot(
+    {
+      page,
+      ticketId: args.ticket.id,
+      challengeId,
+      stepName: '01-pcn-details',
+    },
+    { dryRun },
+  );
+  screenshotUrls.push(detailsScreenshot);
 
   await page.click('#btn_Challenge');
 
@@ -233,19 +262,42 @@ export const challenge = async (args: ChallengeArgs) => {
   // fill out textarea with challenge text
   await page.fill('#mtxt_Notes', challengeText ?? '');
 
-  await takeScreenShot({
-    page: args.page,
-    ticketId: args.ticket.id,
-    fullPage: true,
-  });
+  // Screenshot: Form filled before submission
+  const formFilledScreenshot = await takeScreenShot(
+    {
+      page,
+      ticketId: args.ticket.id,
+      challengeId,
+      stepName: '02-form-filled',
+      fullPage: true,
+    },
+    { dryRun },
+  );
+  screenshotUrls.push(formFilledScreenshot);
+
+  // If dry run, don't submit
+  if (dryRun) {
+    return {
+      success: true,
+      challengeText: challengeText ?? undefined,
+      screenshotUrls,
+    };
+  }
 
   // click the Submit button to submit the challenge
   await page.click('#Submit');
 
-  await takeScreenShot({
-    page: args.page,
-    ticketId: args.ticket.id,
-  });
+  // Screenshot: After submission
+  const submittedScreenshot = await takeScreenShot(
+    {
+      page,
+      ticketId: args.ticket.id,
+      challengeId,
+      stepName: '03-submitted',
+    },
+    { dryRun },
+  );
+  screenshotUrls.push(submittedScreenshot);
 
-  return { success: true, challengeText };
+  return { success: true, challengeText: challengeText ?? undefined, screenshotUrls };
 };

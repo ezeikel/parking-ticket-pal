@@ -1,20 +1,30 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
-import { db, ChallengeStatus, IssuerAutomationStatus } from '@parking-ticket-pal/db';
-import { Address } from '@parking-ticket-pal/types';
+import {
+  db,
+  ChallengeStatus,
+  PendingIssuerStatus,
+} from '@parking-ticket-pal/db';
 import { findIssuer, isAutomationSupported } from '@/constants/index';
 import { getUserId } from '@/utils/user';
 import { createServerLogger } from '@/lib/logger';
-import {
-  startLearnJob,
-  startRunJob,
-  type AutomationContext,
-  type RecipeStep,
-} from '@/utils/automation/workerClient';
-import generateChallengeContent from '@/utils/ai/generateChallengeContent';
+import { requestIssuerGeneration } from '@/utils/automation/workerClient';
 
 const logger = createServerLogger({ action: 'autoChallenge' });
+
+/**
+ * Check if dry-run mode is enabled via environment variable.
+ * When true, automations will fill forms but skip final submission.
+ */
+const isDryRunEnabled = () => process.env.AUTOMATION_DRY_RUN === 'true';
+
+/**
+ * Generate a temporary ID for dry runs (not stored in DB).
+ * Format: dry-run-{timestamp}-{random}
+ */
+const generateDryRunId = () =>
+  `dry-run-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
 
 // Dynamic import for built-in automation (Lewisham, Westminster, etc.)
 const getAutomation = () => import('@/utils/automation');
@@ -22,72 +32,40 @@ const getAutomation = () => import('@/utils/automation');
 export type AutoChallengeStatus =
   | 'submitted' // Challenge submitted successfully
   | 'submitting' // Currently being submitted
-  | 'learning' // Learning the issuer's flow
-  | 'pending_review' // Recipe learned, awaiting human verification
-  | 'needs_human_help' // Requires manual intervention
+  | 'dry_run_complete' // Dry run completed (form filled but not submitted)
+  | 'generating_automation' // Code generation in progress for this issuer
+  | 'automation_pending_review' // PR created, awaiting human review
+  | 'unsupported' // Issuer not supported, generation triggered
   | 'error'; // Error occurred
 
 export type AutoChallengeResult = {
   success: boolean;
   challengeId?: string;
+  pendingChallengeId?: string; // For queued challenges while waiting for automation
   status: AutoChallengeStatus;
   message: string;
-};
-
-/**
- * Build automation context from ticket data
- */
-function buildAutomationContext(
-  ticket: {
-    pcnNumber: string;
-    vehicle: {
-      registrationNumber: string;
-      user: {
-        name: string | null;
-        email: string;
-        phoneNumber: string | null;
-        address: unknown;
-      };
-    };
-  },
-  challengeReason: string,
-  customReason?: string
-): AutomationContext {
-  const user = ticket.vehicle.user;
-  const address = user.address as Address | null;
-  const nameParts = (user.name || '').split(' ');
-
-  return {
-    pcnNumber: ticket.pcnNumber,
-    vehicleReg: ticket.vehicle.registrationNumber,
-    firstName: nameParts[0] || '',
-    lastName: nameParts.slice(1).join(' ') || '',
-    fullName: user.name || '',
-    email: user.email,
-    phone: user.phoneNumber || undefined,
-    addressLine1: address?.line1 || '',
-    addressLine2: address?.line2 || undefined,
-    city: address?.city || '',
-    postcode: address?.postcode || '',
-    challengeReason,
-    challengeText: customReason,
+  prUrl?: string; // GitHub PR URL if automation is pending review
+  // Dry run results (not persisted to DB)
+  dryRunResults?: {
+    screenshotUrls: string[];
+    videoUrl?: string;
+    challengeText?: string;
   };
-}
+};
 
 /**
  * Initiates an auto-challenge for a parking ticket.
  *
- * Flow:
- * 1. Check if issuer has built-in support (Lewisham, etc.)
- * 2. Check if issuer has a verified automation recipe
- * 3. If yes: Send to Hetzner to run automation
- * 4. If no recipe exists: Send to Hetzner to learn the flow
- * 5. Results come back via webhook
+ * Simplified Flow:
+ * 1. Check if issuer has built-in support (Lewisham, Horizon, etc.) → Run locally
+ * 2. No built-in support → Check PendingIssuer status or trigger generation
+ *    - Queue the challenge request for later processing
+ *    - Offer challenge letter as fallback
  */
 export async function initiateAutoChallenge(
   ticketId: string,
   challengeReason: string,
-  customReason?: string
+  customReason?: string,
 ): Promise<AutoChallengeResult> {
   const userId = await getUserId('initiate auto-challenge');
 
@@ -131,195 +109,161 @@ export async function initiateAutoChallenge(
 
     // Find the issuer
     const issuer = findIssuer(ticket.issuer);
-    const issuerId = issuer?.id || ticket.issuer.toLowerCase().replace(/\s+/g, '-');
+    const issuerId =
+      issuer?.id || ticket.issuer.toLowerCase().replace(/\s+/g, '-');
     const issuerName = issuer?.name || ticket.issuer;
 
     // Check if we have built-in automation support
     const hasBuiltInSupport = issuer && isAutomationSupported(issuer.id);
 
-    // Check if we have a learned automation recipe
-    const automation = await db.issuerAutomation.findUnique({
-      where: { issuerId },
-    });
+    const dryRun = isDryRunEnabled();
 
-    // Create the challenge record first
-    const challenge = await db.challenge.create({
-      data: {
-        ticketId: ticket.id,
-        type: 'AUTO_CHALLENGE',
-        reason: challengeReason,
-        customReason: customReason || null,
-        status: ChallengeStatus.PENDING,
-      },
-    });
-
-    // Scenario 1: Built-in automation support (runs locally for now)
+    // ========================================
+    // Scenario 1: Built-in automation support
+    // ========================================
     if (hasBuiltInSupport) {
+      if (dryRun) {
+        // Dry run: no DB record needed
+        return await runBuiltInAutomation(
+          ticket.pcnNumber,
+          challengeReason,
+          customReason,
+          null, // No challenge ID - dry run
+        );
+      }
+
+      // Real run: create challenge record first
+      const challenge = await db.challenge.create({
+        data: {
+          ticketId: ticket.id,
+          type: 'AUTO_CHALLENGE',
+          reason: challengeReason,
+          customReason: customReason || null,
+          status: ChallengeStatus.PENDING,
+        },
+      });
+
       return await runBuiltInAutomation(
         ticket.pcnNumber,
         challengeReason,
         customReason,
-        challenge.id
+        challenge.id,
       );
     }
 
-    // Scenario 2: Verified learned recipe exists - send to Hetzner
-    if (automation?.status === IssuerAutomationStatus.VERIFIED) {
-      return await triggerLearnedAutomation(
-        automation,
-        ticket,
+    // ========================================
+    // Scenario 2: No built-in support
+    // Check PendingIssuer status or trigger generation
+    // ========================================
+
+    // Check if there's a pending issuer record
+    const pendingIssuer = await db.pendingIssuer.findUnique({
+      where: { issuerId },
+    });
+
+    // If a PR has already been merged, the automation should be available
+    // This shouldn't happen in normal flow (code would be deployed), but handle it
+    if (pendingIssuer?.status === PendingIssuerStatus.PR_MERGED) {
+      logger.warn('PR merged but automation not found in code', {
+        issuerId,
+        prUrl: pendingIssuer.prUrl,
+      });
+      return {
+        success: false,
+        status: 'error',
+        message:
+          'Automation was added but not yet deployed. Please try again in a few minutes.',
+      };
+    }
+
+    // If PR is created, inform user it's pending review
+    if (pendingIssuer?.status === PendingIssuerStatus.PR_CREATED) {
+      // Queue the challenge for later processing
+      const pendingChallenge = await db.pendingChallenge.create({
+        data: {
+          ticketId: ticket.id,
+          issuerId,
+          challengeReason,
+          customReason: customReason || null,
+        },
+      });
+
+      return {
+        success: true,
+        pendingChallengeId: pendingChallenge.id,
+        status: 'automation_pending_review',
+        message: `We're reviewing the automation for ${issuerName}. Your challenge has been queued and will be processed once approved. In the meantime, you can generate a challenge letter to submit manually.`,
+        prUrl: pendingIssuer.prUrl || undefined,
+      };
+    }
+
+    // If generation is in progress
+    if (pendingIssuer?.status === PendingIssuerStatus.GENERATING) {
+      // Queue the challenge for later processing
+      const pendingChallenge = await db.pendingChallenge.create({
+        data: {
+          ticketId: ticket.id,
+          issuerId,
+          challengeReason,
+          customReason: customReason || null,
+        },
+      });
+
+      return {
+        success: true,
+        pendingChallengeId: pendingChallenge.id,
+        status: 'generating_automation',
+        message: `We're adding support for ${issuerName}. Your challenge has been queued and will be processed once ready. In the meantime, you can generate a challenge letter to submit manually.`,
+      };
+    }
+
+    // If previous generation failed, try again
+    if (pendingIssuer?.status === PendingIssuerStatus.FAILED) {
+      // Update to retry
+      await db.pendingIssuer.update({
+        where: { id: pendingIssuer.id },
+        data: {
+          status: PendingIssuerStatus.GENERATING,
+          failureReason: null,
+          requestedBy: userId,
+          requestedAt: new Date(),
+        },
+      });
+
+      return await triggerIssuerGeneration(
+        pendingIssuer.id,
+        issuerId,
+        issuerName,
+        issuer && 'websiteUrl' in issuer ? issuer.websiteUrl : undefined,
+        ticket.id,
         challengeReason,
         customReason,
-        challenge.id
+        userId,
       );
     }
 
-    // Scenario 3: Recipe is currently being learned
-    if (automation?.status === IssuerAutomationStatus.LEARNING) {
-      await db.challenge.update({
-        where: { id: challenge.id },
-        data: {
-          status: ChallengeStatus.PENDING,
-          metadata: {
-            waitingForLearning: true,
-            automationId: automation.id,
-          },
-        },
-      });
-
-      return {
-        success: true,
-        challengeId: challenge.id,
-        status: 'learning',
-        message: `We're still learning how to submit challenges to ${issuerName}. We'll complete your submission once ready.`,
-      };
-    }
-
-    // Scenario 4: Recipe exists but needs review
-    if (automation?.status === IssuerAutomationStatus.PENDING_REVIEW) {
-      await db.challenge.update({
-        where: { id: challenge.id },
-        data: {
-          status: ChallengeStatus.PENDING,
-          metadata: {
-            waitingForReview: true,
-            automationId: automation.id,
-          },
-        },
-      });
-
-      return {
-        success: true,
-        challengeId: challenge.id,
-        status: 'pending_review',
-        message: `Our team is reviewing the ${issuerName} submission process. We'll complete your challenge once verified.`,
-      };
-    }
-
-    // Scenario 5: Recipe needs human intervention
-    if (automation?.status === IssuerAutomationStatus.NEEDS_HUMAN_HELP) {
-      await db.challenge.update({
-        where: { id: challenge.id },
-        data: {
-          status: ChallengeStatus.PENDING,
-          metadata: {
-            needsHumanHelp: true,
-            automationId: automation.id,
-            reason: automation.failureReason,
-          },
-        },
-      });
-
-      return {
-        success: true,
-        challengeId: challenge.id,
-        status: 'needs_human_help',
-        message: `${issuerName} requires manual setup. Our team will complete your submission shortly.`,
-      };
-    }
-
-    // Scenario 6: No automation exists - trigger learning on Hetzner
-    const newAutomation = await db.issuerAutomation.create({
+    // No pending issuer record - create one and trigger generation
+    const newPendingIssuer = await db.pendingIssuer.create({
       data: {
         issuerId,
         issuerName,
-        challengeUrl: '', // Will be discovered during learning
-        steps: [],
-        status: IssuerAutomationStatus.LEARNING,
+        issuerWebsite:
+          issuer && 'websiteUrl' in issuer ? issuer.websiteUrl : null,
+        status: PendingIssuerStatus.GENERATING,
+        requestedBy: userId,
       },
     });
 
-    await db.challenge.update({
-      where: { id: challenge.id },
-      data: {
-        status: ChallengeStatus.PENDING,
-        metadata: {
-          learningTriggered: true,
-          automationId: newAutomation.id,
-        },
-      },
-    });
-
-    // Trigger learning job on Hetzner
-    // Only LocalAuthority has websiteUrl
-    const issuerWebsite = issuer && 'websiteUrl' in issuer ? issuer.websiteUrl : undefined;
-    const learnResult = await startLearnJob({
-      automationId: newAutomation.id,
+    return await triggerIssuerGeneration(
+      newPendingIssuer.id,
+      issuerId,
       issuerName,
-      issuerWebsite,
-      pcnNumber: ticket.pcnNumber,
-      vehicleReg: ticket.vehicle.registrationNumber,
-    });
-
-    if (!learnResult.success) {
-      logger.error('Failed to start learning job', {
-        automationId: newAutomation.id,
-        error: learnResult.error,
-      });
-
-      // Update automation status to failed
-      await db.issuerAutomation.update({
-        where: { id: newAutomation.id },
-        data: {
-          status: IssuerAutomationStatus.FAILED,
-          failureReason: learnResult.error || 'Failed to start learning job',
-        },
-      });
-
-      return {
-        success: false,
-        challengeId: challenge.id,
-        status: 'error',
-        message: 'Failed to start learning the submission process. Please try again later.',
-      };
-    }
-
-    logger.info('Learning job started on Hetzner', {
-      ticketId,
-      challengeId: challenge.id,
-      automationId: newAutomation.id,
-      jobId: learnResult.jobId,
-      issuerName,
-    });
-
-    // Update challenge with job ID
-    await db.challenge.update({
-      where: { id: challenge.id },
-      data: {
-        metadata: {
-          learningTriggered: true,
-          automationId: newAutomation.id,
-          hetznerJobId: learnResult.jobId,
-        },
-      },
-    });
-
-    return {
-      success: true,
-      challengeId: challenge.id,
-      status: 'learning',
-      message: `We're learning how to submit challenges to ${issuerName}. This may take a few minutes. We'll notify you when complete.`,
-    };
+      issuer && 'websiteUrl' in issuer ? issuer.websiteUrl : undefined,
+      ticket.id,
+      challengeReason,
+      customReason,
+      userId,
+    );
   } catch (error) {
     logger.error(
       'Error initiating auto-challenge',
@@ -327,34 +271,64 @@ export async function initiateAutoChallenge(
         ticketId,
         challengeReason,
       },
-      error instanceof Error ? error : new Error(String(error))
+      error instanceof Error ? error : new Error(String(error)),
     );
 
     return {
       success: false,
       status: 'error',
-      message: error instanceof Error ? error.message : 'Failed to initiate challenge.',
+      message:
+        error instanceof Error
+          ? error.message
+          : 'Failed to initiate challenge.',
     };
   }
 }
 
 /**
  * Run the built-in automation for supported issuers (Lewisham, Westminster, etc.)
- * This still runs locally since these automations are hardcoded.
+ *
+ * For dry runs: No DB record is created. Results are returned directly.
+ * For real runs: Challenge record is created and updated with results.
  */
 async function runBuiltInAutomation(
   pcnNumber: string,
   challengeReason: string,
   customReason: string | undefined,
-  challengeId: string
+  challengeId: string | null, // null for dry runs
 ): Promise<AutoChallengeResult> {
+  const dryRun = isDryRunEnabled();
+
+  // For dry runs, generate a temporary ID for R2 storage paths
+  const storageId = dryRun ? generateDryRunId() : challengeId!;
+
   try {
     const { challenge } = await getAutomation();
-    const result = await challenge(pcnNumber, challengeReason, customReason);
+    const result = await challenge(pcnNumber, challengeReason, customReason, {
+      dryRun,
+      challengeId: storageId,
+      recordVideo: true, // Always record for audit trail
+    });
 
     if (result && result.success) {
+      // Dry run: Return results directly without DB update
+      if (dryRun) {
+        return {
+          success: true,
+          status: 'dry_run_complete',
+          message:
+            'Dry run completed. Form was filled but not submitted. Check screenshots for review.',
+          dryRunResults: {
+            screenshotUrls: result.screenshotUrls || [],
+            videoUrl: result.videoUrl,
+            challengeText: result.challengeText,
+          },
+        };
+      }
+
+      // Normal submission - update DB record
       await db.challenge.update({
-        where: { id: challengeId },
+        where: { id: challengeId! },
         data: {
           status: ChallengeStatus.SUCCESS,
           submittedAt: new Date(),
@@ -362,6 +336,8 @@ async function runBuiltInAutomation(
             challengeSubmitted: true,
             submittedAt: new Date().toISOString(),
             challengeText: result.challengeText,
+            screenshotUrls: result.screenshotUrls || [],
+            videoUrl: result.videoUrl,
           },
         },
       });
@@ -370,7 +346,7 @@ async function runBuiltInAutomation(
 
       return {
         success: true,
-        challengeId,
+        challengeId: challengeId!,
         status: 'submitted',
         message: 'Your challenge has been submitted successfully.',
       };
@@ -378,140 +354,96 @@ async function runBuiltInAutomation(
 
     throw new Error('Challenge submission failed');
   } catch (error) {
-    await db.challenge.update({
-      where: { id: challengeId },
-      data: {
-        status: ChallengeStatus.ERROR,
-        metadata: {
-          error: error instanceof Error ? error.message : 'Unknown error',
+    // Only update DB if this is a real run (not dry run)
+    if (!dryRun && challengeId) {
+      await db.challenge.update({
+        where: { id: challengeId },
+        data: {
+          status: ChallengeStatus.ERROR,
+          metadata: {
+            error: error instanceof Error ? error.message : 'Unknown error',
+          },
         },
-      },
-    });
+      });
+    }
 
     throw error;
   }
 }
 
 /**
- * Trigger a learned automation to run on Hetzner
+ * Trigger automation code generation for an unsupported issuer.
+ * Also creates a pending challenge record.
  */
-async function triggerLearnedAutomation(
-  automation: {
-    id: string;
-    steps: unknown;
-  },
-  ticket: {
-    id: string;
-    pcnNumber: string;
-    vehicle: {
-      registrationNumber: string;
-      user: {
-        name: string | null;
-        email: string;
-        phoneNumber: string | null;
-        address: unknown;
-      };
-    };
-  },
+async function triggerIssuerGeneration(
+  pendingIssuerId: string,
+  issuerId: string,
+  issuerName: string,
+  issuerWebsite: string | undefined,
+  ticketId: string,
   challengeReason: string,
   customReason: string | undefined,
-  challengeId: string
+  _userId: string, // For future use (notifications, tracking)
 ): Promise<AutoChallengeResult> {
-  // Build the automation context
-  const context = buildAutomationContext(ticket, challengeReason, customReason);
-
-  // Generate challenge text if not provided
-  if (!context.challengeText) {
-    const generatedText = await generateChallengeContent({
-      pcnNumber: context.pcnNumber,
-      challengeReason: context.challengeReason,
-      additionalDetails: undefined,
-      contentType: 'form-field',
-      formFieldPlaceholderText: '',
-      userEvidenceImageUrls: [],
-    });
-    context.challengeText = generatedText || '';
-  }
-
-  // Mark challenge as in-progress
-  await db.challenge.update({
-    where: { id: challengeId },
+  // Queue the challenge for later processing
+  const pendingChallenge = await db.pendingChallenge.create({
     data: {
-      status: ChallengeStatus.PENDING,
-      metadata: {
-        automationId: automation.id,
-        submissionStarted: true,
-        startedAt: new Date().toISOString(),
-      },
+      ticketId,
+      issuerId,
+      challengeReason,
+      customReason: customReason || null,
     },
   });
 
-  logger.info('Starting learned automation on Hetzner', {
-    automationId: automation.id,
-    ticketId: ticket.id,
-    challengeId,
+  // Trigger generation on worker
+  const result = await requestIssuerGeneration({
+    issuerId,
+    issuerName,
+    issuerWebsite,
   });
 
-  // Send to Hetzner for execution
-  const runResult = await startRunJob({
-    automationId: automation.id,
-    challengeId,
-    steps: automation.steps as RecipeStep[],
-    context,
-    dryRun: false,
-  });
-
-  if (!runResult.success) {
-    logger.error('Failed to start automation job', {
-      automationId: automation.id,
-      challengeId,
-      error: runResult.error,
+  if (!result.success) {
+    logger.error('Failed to start issuer generation', {
+      pendingIssuerId,
+      issuerId,
+      error: result.error,
     });
 
-    await db.challenge.update({
-      where: { id: challengeId },
+    // Update status to failed
+    await db.pendingIssuer.update({
+      where: { id: pendingIssuerId },
       data: {
-        status: ChallengeStatus.ERROR,
-        metadata: {
-          automationId: automation.id,
-          error: runResult.error || 'Failed to start automation',
-        },
+        status: PendingIssuerStatus.FAILED,
+        failureReason: result.error || 'Failed to start generation',
       },
+    });
+
+    // Update pending challenge status
+    await db.pendingChallenge.update({
+      where: { id: pendingChallenge.id },
+      data: { status: 'FAILED' },
     });
 
     return {
       success: false,
-      challengeId,
       status: 'error',
-      message: 'Failed to start the automation. Please try again later.',
+      message: `Failed to start automation generation for ${issuerName}. Please try again later or use the challenge letter option.`,
     };
   }
 
-  // Update challenge with job ID - results will come via webhook
-  await db.challenge.update({
-    where: { id: challengeId },
-    data: {
-      metadata: {
-        automationId: automation.id,
-        submissionStarted: true,
-        startedAt: new Date().toISOString(),
-        hetznerJobId: runResult.jobId,
-      },
-    },
+  logger.info('Issuer generation started', {
+    pendingIssuerId,
+    issuerId,
+    issuerName,
+    jobId: result.jobId,
+    pendingChallengeId: pendingChallenge.id,
   });
 
-  logger.info('Automation job started on Hetzner', {
-    automationId: automation.id,
-    challengeId,
-    jobId: runResult.jobId,
-  });
-
-  // Return submitting status - webhook will update when done
   return {
     success: true,
-    challengeId,
-    status: 'submitting',
-    message: 'Your challenge is being submitted. You will be notified when complete.',
+    pendingChallengeId: pendingChallenge.id,
+    status: 'unsupported',
+    message: `We're adding support for ${issuerName}. This typically takes 24-48 hours. Your challenge has been queued and you'll be notified when it's processed. In the meantime, you can generate a challenge letter to submit manually.`,
   };
 }
 
@@ -519,7 +451,7 @@ async function triggerLearnedAutomation(
  * Get the status of a challenge
  */
 export async function getChallengeStatus(
-  challengeId: string
+  challengeId: string,
 ): Promise<{ status: ChallengeStatus; metadata: unknown } | null> {
   const challenge = await db.challenge.findUnique({
     where: { id: challengeId },
@@ -530,4 +462,26 @@ export async function getChallengeStatus(
   });
 
   return challenge;
+}
+
+/**
+ * Get the status of a pending challenge (for unsupported issuers)
+ */
+export async function getPendingChallengeStatus(pendingChallengeId: string) {
+  const pendingChallenge = await db.pendingChallenge.findUnique({
+    where: { id: pendingChallengeId },
+  });
+
+  if (!pendingChallenge) {
+    return null;
+  }
+
+  const pendingIssuer = await db.pendingIssuer.findUnique({
+    where: { issuerId: pendingChallenge.issuerId },
+  });
+
+  return {
+    challenge: pendingChallenge,
+    issuer: pendingIssuer,
+  };
 }

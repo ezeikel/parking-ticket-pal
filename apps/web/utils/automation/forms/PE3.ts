@@ -43,7 +43,9 @@ const generatePE3Explanation = (formData: Record<string, any>): string => {
  * @param {Object} userData - User data to fill in the form
  * @returns {Promise<string>} - Path to the filled form
  */
-const fillPE3Form = async (userData: Record<string, any> = {}): Promise<Uint8Array> => {
+const fillPE3Form = async (
+  userData: Record<string, any> = {},
+): Promise<Uint8Array> => {
   console.log('🚀 Starting PE3 form fill process...');
 
   try {

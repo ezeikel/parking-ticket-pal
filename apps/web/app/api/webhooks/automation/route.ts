@@ -1,31 +1,72 @@
 /**
  * Webhook Handler for Worker Automation Results
  *
- * Receives callbacks from the worker service when
- * learn or run jobs complete.
+ * Receives callbacks from the worker service when:
+ * - Code generation jobs complete (new approach - creates PRs)
+ * - Legacy learn/run jobs complete (for backwards compatibility)
  */
 
 import { createHmac } from 'crypto';
 import { NextRequest, NextResponse } from 'next/server';
-import { db, ChallengeStatus, IssuerAutomationStatus } from '@parking-ticket-pal/db';
+import {
+  db,
+  ChallengeStatus,
+  PendingIssuerStatus,
+  PendingChallengeStatus,
+} from '@parking-ticket-pal/db';
 import { createServerLogger } from '@/lib/logger';
 
 const logger = createServerLogger({ action: 'automation-webhook' });
 
 /**
- * Webhook payload from worker
+ * Webhook payload types
  */
-type WebhookPayload = {
+type WebhookPayload =
+  | GenerationWebhookPayload
+  | LegacyLearnWebhookPayload
+  | LegacyRunWebhookPayload;
+
+// New: Code generation results
+type GenerationWebhookPayload = {
   jobId: string;
-  type: 'learn' | 'run';
+  type: 'generation';
+  issuerId: string;
   status: 'completed' | 'failed';
-  automationId: string;
-  challengeId?: string;
-  result: LearnResult | RunResult;
+  result: GenerationResult;
   timestamp: string;
 };
 
-type LearnResult = {
+type GenerationResult = {
+  success: boolean;
+  prUrl?: string;
+  prNumber?: number;
+  error?: string;
+  generatedCode?: string; // For debugging
+  analysis?: {
+    challengeUrl: string;
+    formFields: Array<{
+      selector: string;
+      label?: string;
+      name?: string;
+      type: string;
+    }>;
+    hasCaptcha: boolean;
+    captchaType?: string;
+    needsAccount: boolean;
+  };
+};
+
+// Legacy: Learn job results (kept for backwards compatibility)
+type LegacyLearnWebhookPayload = {
+  jobId: string;
+  type: 'learn';
+  status: 'completed' | 'failed';
+  automationId: string;
+  result: LegacyLearnResult;
+  timestamp: string;
+};
+
+type LegacyLearnResult = {
   success: boolean;
   steps?: Array<{
     order: number;
@@ -47,10 +88,23 @@ type LearnResult = {
   humanHelpReason?: string;
 };
 
-type RunResult = {
+// Legacy: Run job results (kept for backwards compatibility)
+type LegacyRunWebhookPayload = {
+  jobId: string;
+  type: 'run';
+  status: 'completed' | 'failed';
+  automationId: string;
+  challengeId: string;
+  result: LegacyRunResult;
+  timestamp: string;
+};
+
+type LegacyRunResult = {
   success: boolean;
   challengeSubmitted: boolean;
   screenshotUrls: string[];
+  videoUrl?: string;
+  dryRun?: boolean;
   error?: string;
   captchaEncountered?: boolean;
   challengeText?: string;
@@ -59,7 +113,11 @@ type RunResult = {
 /**
  * Verify webhook signature
  */
-function verifySignature(payload: string, signature: string, secret: string): boolean {
+function verifySignature(
+  payload: string,
+  signature: string,
+  secret: string,
+): boolean {
   const hmac = createHmac('sha256', secret);
   hmac.update(payload);
   const expectedSignature = hmac.digest('hex');
@@ -78,7 +136,10 @@ export async function POST(request: NextRequest) {
     const secret = process.env.WORKER_SECRET;
     if (!secret) {
       logger.error('Webhook secret not configured');
-      return NextResponse.json({ error: 'Server configuration error' }, { status: 500 });
+      return NextResponse.json(
+        { error: 'Server configuration error' },
+        { status: 500 },
+      );
     }
 
     // Verify signature
@@ -94,18 +155,26 @@ export async function POST(request: NextRequest) {
       jobId: payload.jobId,
       type: payload.type,
       status: payload.status,
-      automationId: payload.automationId,
-      challengeId: payload.challengeId,
     });
 
     // Handle based on job type
-    if (payload.type === 'learn') {
-      await handleLearnResult(payload.automationId, payload.result as LearnResult);
-    } else if (payload.type === 'run') {
-      await handleRunResult(
+    if (payload.type === 'generation') {
+      await handleGenerationResult(
+        payload.issuerId,
+        payload.result,
+      );
+    } else if (payload.type === 'learn') {
+      // Legacy handler
+      await handleLegacyLearnResult(
         payload.automationId,
-        payload.challengeId!,
-        payload.result as RunResult
+        payload.result,
+      );
+    } else if (payload.type === 'run') {
+      // Legacy handler
+      await handleLegacyRunResult(
+        payload.automationId,
+        payload.challengeId,
+        payload.result,
       );
     }
 
@@ -114,149 +183,171 @@ export async function POST(request: NextRequest) {
     logger.error(
       'Webhook processing error',
       {},
-      error instanceof Error ? error : new Error(String(error))
+      error instanceof Error ? error : new Error(String(error)),
     );
 
     return NextResponse.json(
       { error: 'Internal server error' },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
 
 /**
- * Handle learning result from Hetzner
+ * Handle code generation result from worker
+ * Updates PendingIssuer status and notifies queued challenges
  */
-async function handleLearnResult(automationId: string, result: LearnResult) {
-  logger.info('Processing learn result', {
+async function handleGenerationResult(
+  issuerId: string,
+  result: GenerationResult,
+) {
+  logger.info('Processing generation result', {
+    issuerId,
+    success: result.success,
+    prUrl: result.prUrl,
+  });
+
+  const pendingIssuer = await db.pendingIssuer.findUnique({
+    where: { issuerId },
+  });
+
+  if (!pendingIssuer) {
+    logger.error('PendingIssuer not found', { issuerId });
+    return;
+  }
+
+  if (result.success && result.prUrl) {
+    // PR created successfully
+    await db.pendingIssuer.update({
+      where: { id: pendingIssuer.id },
+      data: {
+        status: PendingIssuerStatus.PR_CREATED,
+        prUrl: result.prUrl,
+        prNumber: result.prNumber,
+        generatedAt: new Date(),
+      },
+    });
+
+    // Update all pending challenges for this issuer
+    await db.pendingChallenge.updateMany({
+      where: {
+        issuerId,
+        status: PendingChallengeStatus.WAITING,
+      },
+      data: {
+        // Keep as WAITING - will become READY when PR is merged
+      },
+    });
+
+    logger.info('Generation completed, PR created', {
+      issuerId,
+      prUrl: result.prUrl,
+      prNumber: result.prNumber,
+    });
+
+    // TODO: Send notification to admin about new PR
+    // TODO: Send notification to users who requested this issuer
+  } else {
+    // Generation failed
+    await db.pendingIssuer.update({
+      where: { id: pendingIssuer.id },
+      data: {
+        status: PendingIssuerStatus.FAILED,
+        failureReason: result.error || 'Generation failed',
+      },
+    });
+
+    // Update pending challenges to failed
+    await db.pendingChallenge.updateMany({
+      where: {
+        issuerId,
+        status: PendingChallengeStatus.WAITING,
+      },
+      data: {
+        status: PendingChallengeStatus.FAILED,
+      },
+    });
+
+    logger.error('Generation failed', {
+      issuerId,
+      error: result.error,
+    });
+
+    // TODO: Send notification to users about failure
+  }
+}
+
+// ============================================
+// LEGACY HANDLERS (for backwards compatibility)
+// These can be removed once all old jobs are processed
+// ============================================
+
+/**
+ * @deprecated Use handleGenerationResult instead
+ * Handle learning result from Hetzner (legacy)
+ */
+async function handleLegacyLearnResult(
+  automationId: string,
+  result: LegacyLearnResult,
+) {
+  logger.info('Processing legacy learn result', {
     automationId,
     success: result.success,
     needsHumanHelp: result.needsHumanHelp,
   });
 
-  if (result.needsHumanHelp) {
-    // Needs manual intervention
-    await db.issuerAutomation.update({
-      where: { id: automationId },
-      data: {
-        status: IssuerAutomationStatus.NEEDS_HUMAN_HELP,
-        failureReason: result.humanHelpReason || result.error,
-        needsAccount: result.needsAccount || false,
-        captchaType: result.captchaType,
-        challengeUrl: result.challengeUrl || '',
-      },
-    });
-
-    // Update any pending challenges for this automation
-    await db.challenge.updateMany({
-      where: {
-        metadata: {
-          path: ['automationId'],
-          equals: automationId,
-        },
-        status: ChallengeStatus.PENDING,
-      },
-      data: {
-        metadata: {
-          automationId,
-          needsHumanHelp: true,
-          humanHelpReason: result.humanHelpReason,
-        },
-      },
-    });
-
-    logger.info('Automation marked as needing human help', {
-      automationId,
-      reason: result.humanHelpReason,
-    });
-  } else if (result.success && result.steps && result.steps.length > 0) {
-    // Learning successful - pending review
-    await db.issuerAutomation.update({
-      where: { id: automationId },
-      data: {
-        status: IssuerAutomationStatus.PENDING_REVIEW,
-        challengeUrl: result.challengeUrl || '',
-        steps: result.steps,
-        needsAccount: result.needsAccount || false,
-        captchaType: result.captchaType,
-      },
-    });
-
-    // Update any pending challenges
-    await db.challenge.updateMany({
-      where: {
-        metadata: {
-          path: ['automationId'],
-          equals: automationId,
-        },
-        status: ChallengeStatus.PENDING,
-      },
-      data: {
-        metadata: {
-          automationId,
-          learningComplete: true,
-          pendingReview: true,
-        },
-      },
-    });
-
-    logger.info('Learning completed, pending review', {
-      automationId,
-      stepsCount: result.steps.length,
-      challengeUrl: result.challengeUrl,
-    });
-
-    // TODO: Send notification to admin for review
-  } else {
-    // Learning failed
-    await db.issuerAutomation.update({
-      where: { id: automationId },
-      data: {
-        status: IssuerAutomationStatus.FAILED,
-        failureReason: result.error || 'Learning failed',
-        lastFailed: new Date(),
-      },
-    });
-
-    // Update any pending challenges
-    await db.challenge.updateMany({
-      where: {
-        metadata: {
-          path: ['automationId'],
-          equals: automationId,
-        },
-        status: ChallengeStatus.PENDING,
-      },
-      data: {
-        status: ChallengeStatus.ERROR,
-        metadata: {
-          automationId,
-          error: result.error || 'Learning failed',
-        },
-      },
-    });
-
-    logger.error('Learning failed', {
-      automationId,
-      error: result.error,
-    });
-  }
+  // Legacy: This used IssuerAutomation table which we're deprecating
+  // Just log for now - these shouldn't happen with new code
+  logger.warn('Received legacy learn webhook - IssuerAutomation is deprecated', {
+    automationId,
+  });
 }
 
 /**
- * Handle run result from Hetzner
+ * @deprecated Remove after transition
+ * Handle run result from Hetzner (legacy)
  */
-async function handleRunResult(
+async function handleLegacyRunResult(
   automationId: string,
   challengeId: string,
-  result: RunResult
+  result: LegacyRunResult,
 ) {
-  logger.info('Processing run result', {
+  logger.info('Processing legacy run result', {
     automationId,
     challengeId,
     success: result.success,
     challengeSubmitted: result.challengeSubmitted,
+    dryRun: result.dryRun,
+    hasVideo: !!result.videoUrl,
   });
+
+  // Handle dry-run completion (form filled but not submitted)
+  if (result.success && result.dryRun && !result.challengeSubmitted) {
+    await db.challenge.update({
+      where: { id: challengeId },
+      data: {
+        status: ChallengeStatus.PENDING,
+        metadata: {
+          automationId,
+          dryRun: true,
+          dryRunComplete: true,
+          completedAt: new Date().toISOString(),
+          challengeText: result.challengeText,
+          screenshotUrls: result.screenshotUrls,
+          videoUrl: result.videoUrl,
+        },
+      },
+    });
+
+    logger.info('Dry run completed successfully', {
+      automationId,
+      challengeId,
+      screenshotCount: result.screenshotUrls?.length,
+      hasVideo: !!result.videoUrl,
+    });
+
+    return;
+  }
 
   if (result.success && result.challengeSubmitted) {
     // Challenge submitted successfully
@@ -271,24 +362,17 @@ async function handleRunResult(
           submittedAt: new Date().toISOString(),
           challengeText: result.challengeText,
           screenshotUrls: result.screenshotUrls,
+          videoUrl: result.videoUrl,
         },
-      },
-    });
-
-    // Update automation lastVerified timestamp
-    await db.issuerAutomation.update({
-      where: { id: automationId },
-      data: {
-        lastVerified: new Date(),
       },
     });
 
     logger.info('Challenge submitted successfully', {
       automationId,
       challengeId,
+      screenshotCount: result.screenshotUrls?.length,
+      hasVideo: !!result.videoUrl,
     });
-
-    // TODO: Send notification to user
   } else if (result.captchaEncountered && !result.success) {
     // CAPTCHA blocked the submission
     await db.challenge.update({
@@ -308,8 +392,6 @@ async function handleRunResult(
       automationId,
       challengeId,
     });
-
-    // TODO: Send notification to admin
   } else {
     // Submission failed
     await db.challenge.update({
@@ -320,16 +402,8 @@ async function handleRunResult(
           automationId,
           error: result.error || 'Submission failed',
           screenshotUrls: result.screenshotUrls,
+          videoUrl: result.videoUrl,
         },
-      },
-    });
-
-    // Update automation failure timestamp
-    await db.issuerAutomation.update({
-      where: { id: automationId },
-      data: {
-        lastFailed: new Date(),
-        failureReason: result.error,
       },
     });
 
@@ -337,8 +411,8 @@ async function handleRunResult(
       automationId,
       challengeId,
       error: result.error,
+      screenshotCount: result.screenshotUrls?.length,
+      hasVideo: !!result.videoUrl,
     });
-
-    // TODO: Send notification to user
   }
 }

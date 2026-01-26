@@ -434,7 +434,9 @@ const addSvgSignatureToField = async (
   }
 };
 
-const fillTE9Form = async (userData: Partial<TE9FormData> = {}): Promise<Uint8Array> => {
+const fillTE9Form = async (
+  userData: Partial<TE9FormData> = {},
+): Promise<Uint8Array> => {
   console.log('🚀 Starting TE9 form fill process...');
 
   try {

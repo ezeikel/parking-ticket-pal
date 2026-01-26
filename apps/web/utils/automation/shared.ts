@@ -65,25 +65,148 @@ export const setupBrowser = async () => {
 type TakeScreenShotArgs = {
   page: Page;
   ticketId: string;
+  challengeId?: string;
+  stepName?: string;
   fullPage?: boolean;
 };
 
-export const takeScreenShot = async ({
-  page,
-  ticketId,
-  fullPage = true,
-}: TakeScreenShotArgs) => {
+type TakeScreenShotOptions = {
+  dryRun?: boolean;
+};
+
+/**
+ * Take a screenshot and upload to R2 storage.
+ * Returns the URL of the uploaded screenshot.
+ *
+ * Storage paths:
+ * - Normal: automation/challenges/{challengeId}/screenshots/{stepName}-{timestamp}.png
+ * - Dry run: automation/dry-runs/{challengeId}/screenshots/{stepName}-{timestamp}.png
+ * - Legacy: automation/{ticketId}/screenshot-{timestamp}.png
+ */
+export const takeScreenShot = async (
+  { page, ticketId, challengeId, stepName, fullPage = true }: TakeScreenShotArgs,
+  options?: TakeScreenShotOptions,
+): Promise<string> => {
   const buffer = await page.screenshot({ fullPage });
   const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+  const { dryRun = false } = options || {};
 
-  // New path: automation/{ticketId}/screenshot-{timestamp}.png
-  const storagePath = STORAGE_PATHS.AUTOMATION_SCREENSHOT
-    .replace('%s', ticketId)
-    .replace('%s', timestamp);
+  let storagePath: string;
 
-  await put(storagePath, buffer, {
+  if (challengeId) {
+    const fileName = stepName
+      ? `${stepName}-${timestamp}.png`
+      : `screenshot-${timestamp}.png`;
+    // Use separate folder for dry runs (easy cleanup)
+    const baseFolder = dryRun ? 'automation/dry-runs' : 'automation/challenges';
+    storagePath = `${baseFolder}/${challengeId}/screenshots/${fileName}`;
+  } else {
+    // Legacy path for backward compatibility
+    storagePath = STORAGE_PATHS.AUTOMATION_SCREENSHOT.replace(
+      '%s',
+      ticketId,
+    ).replace('%s', timestamp);
+  }
+
+  const blob = await put(storagePath, buffer, {
     contentType: 'image/png',
   });
+
+  return blob.url;
+};
+
+/**
+ * Options for setting up browser with video recording
+ */
+export type SetupBrowserWithRecordingOptions = {
+  challengeId: string;
+  recordVideo?: boolean;
+};
+
+/**
+ * Setup browser with optional video recording.
+ * Video is saved to a temp directory and uploaded to R2 when stopRecordingAndUpload is called.
+ */
+export const setupBrowserWithRecording = async (
+  options?: SetupBrowserWithRecordingOptions,
+) => {
+  const recordVideo = options?.recordVideo ?? true;
+  const tempDir = `/tmp/automation-recordings/${options?.challengeId || 'temp'}`;
+
+  const browser = await chromium.launch({
+    headless: false,
+  });
+
+  const contextOptions: Parameters<typeof browser.newContext>[0] = {
+    viewport: { width: 1920, height: 1080 },
+  };
+
+  if (recordVideo) {
+    contextOptions.recordVideo = {
+      dir: tempDir,
+      size: { width: 1920, height: 1080 },
+    };
+  }
+
+  const context = await browser.newContext(contextOptions);
+  const page = await context.newPage();
+
+  return { browser, context, page, tempDir, recordVideo };
+};
+
+type StopRecordingOptions = {
+  dryRun?: boolean;
+};
+
+/**
+ * Stop recording and upload video to R2 storage.
+ * Returns the URL of the uploaded video.
+ *
+ * Storage paths:
+ * - Normal: automation/challenges/{challengeId}/video/recording-{timestamp}.webm
+ * - Dry run: automation/dry-runs/{challengeId}/video/recording-{timestamp}.webm
+ */
+export const stopRecordingAndUpload = async (
+  page: Page,
+  challengeId: string,
+  options?: StopRecordingOptions,
+): Promise<string | undefined> => {
+  const { dryRun = false } = options || {};
+
+  try {
+    // Close the page to finalize the video
+    const videoPath = await page.video()?.path();
+
+    if (!videoPath) {
+      console.warn('No video recording found');
+      return undefined;
+    }
+
+    // Read the video file
+    const fs = await import('fs/promises');
+    const videoBuffer = await fs.readFile(videoPath);
+
+    const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+    // Use separate folder for dry runs (easy cleanup)
+    const baseFolder = dryRun ? 'automation/dry-runs' : 'automation/challenges';
+    const storagePath = `${baseFolder}/${challengeId}/video/recording-${timestamp}.webm`;
+
+    const blob = await put(storagePath, videoBuffer, {
+      contentType: 'video/webm',
+    });
+
+    // Clean up temp file
+    try {
+      await fs.unlink(videoPath);
+    } catch {
+      // Ignore cleanup errors
+    }
+
+    return blob.url;
+  } catch (error) {
+    console.error('Failed to upload video recording:', error);
+    return undefined;
+  }
 };
 
 type UploadEvidenceArgs = {
@@ -116,8 +239,7 @@ export const uploadEvidence = async ({
 
       // New path: tickets/{ticketId}/evidence/{evidenceId}.jpg
       const evidenceId = crypto.randomUUID();
-      const storagePath = STORAGE_PATHS.TICKET_EVIDENCE
-        .replace('%s', ticketId)
+      const storagePath = STORAGE_PATHS.TICKET_EVIDENCE.replace('%s', ticketId)
         .replace('%s', evidenceId)
         .replace('%s', 'jpg');
 

@@ -7,7 +7,9 @@ import { headers } from 'next/headers';
  * @param {Object} userData - User data to fill in the form
  * @returns {Promise<string>} - Path to the filled form
  */
-const fillPE2Form = async (userData: Record<string, any> = {}): Promise<Uint8Array> => {
+const fillPE2Form = async (
+  userData: Record<string, any> = {},
+): Promise<Uint8Array> => {
   console.log('🚀 Starting PE2 form fill process...');
 
   try {
