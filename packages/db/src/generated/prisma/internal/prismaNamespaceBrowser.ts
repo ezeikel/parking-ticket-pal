@@ -70,6 +70,8 @@ export const ModelName = {
   VerificationToken: 'VerificationToken',
   LondonTribunalCase: 'LondonTribunalCase',
   IssuerAutomation: 'IssuerAutomation',
+  PendingIssuer: 'PendingIssuer',
+  PendingChallenge: 'PendingChallenge',
   PendingTicket: 'PendingTicket'
 } as const
 
@@ -403,6 +405,40 @@ export const IssuerAutomationScalarFieldEnum = {
 } as const
 
 export type IssuerAutomationScalarFieldEnum = (typeof IssuerAutomationScalarFieldEnum)[keyof typeof IssuerAutomationScalarFieldEnum]
+
+
+export const PendingIssuerScalarFieldEnum = {
+  id: 'id',
+  issuerId: 'issuerId',
+  issuerName: 'issuerName',
+  issuerWebsite: 'issuerWebsite',
+  prUrl: 'prUrl',
+  prNumber: 'prNumber',
+  status: 'status',
+  failureReason: 'failureReason',
+  requestedBy: 'requestedBy',
+  requestedAt: 'requestedAt',
+  generatedAt: 'generatedAt',
+  mergedAt: 'mergedAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type PendingIssuerScalarFieldEnum = (typeof PendingIssuerScalarFieldEnum)[keyof typeof PendingIssuerScalarFieldEnum]
+
+
+export const PendingChallengeScalarFieldEnum = {
+  id: 'id',
+  ticketId: 'ticketId',
+  issuerId: 'issuerId',
+  challengeReason: 'challengeReason',
+  customReason: 'customReason',
+  status: 'status',
+  processedAt: 'processedAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type PendingChallengeScalarFieldEnum = (typeof PendingChallengeScalarFieldEnum)[keyof typeof PendingChallengeScalarFieldEnum]
 
 
 export const PendingTicketScalarFieldEnum = {

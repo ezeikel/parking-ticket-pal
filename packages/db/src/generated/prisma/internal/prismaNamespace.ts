@@ -403,6 +403,8 @@ export const ModelName = {
   VerificationToken: 'VerificationToken',
   LondonTribunalCase: 'LondonTribunalCase',
   IssuerAutomation: 'IssuerAutomation',
+  PendingIssuer: 'PendingIssuer',
+  PendingChallenge: 'PendingChallenge',
   PendingTicket: 'PendingTicket'
 } as const
 
@@ -419,7 +421,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "vehicle" | "ticket" | "media" | "letter" | "subscription" | "reminder" | "form" | "prediction" | "amountIncrease" | "verification" | "challenge" | "notification" | "pushToken" | "account" | "session" | "verificationToken" | "londonTribunalCase" | "issuerAutomation" | "pendingTicket"
+    modelProps: "user" | "vehicle" | "ticket" | "media" | "letter" | "subscription" | "reminder" | "form" | "prediction" | "amountIncrease" | "verification" | "challenge" | "notification" | "pushToken" | "account" | "session" | "verificationToken" | "londonTribunalCase" | "issuerAutomation" | "pendingIssuer" | "pendingChallenge" | "pendingTicket"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -1829,6 +1831,154 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    PendingIssuer: {
+      payload: Prisma.$PendingIssuerPayload<ExtArgs>
+      fields: Prisma.PendingIssuerFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.PendingIssuerFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PendingIssuerPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.PendingIssuerFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PendingIssuerPayload>
+        }
+        findFirst: {
+          args: Prisma.PendingIssuerFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PendingIssuerPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.PendingIssuerFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PendingIssuerPayload>
+        }
+        findMany: {
+          args: Prisma.PendingIssuerFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PendingIssuerPayload>[]
+        }
+        create: {
+          args: Prisma.PendingIssuerCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PendingIssuerPayload>
+        }
+        createMany: {
+          args: Prisma.PendingIssuerCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.PendingIssuerCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PendingIssuerPayload>[]
+        }
+        delete: {
+          args: Prisma.PendingIssuerDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PendingIssuerPayload>
+        }
+        update: {
+          args: Prisma.PendingIssuerUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PendingIssuerPayload>
+        }
+        deleteMany: {
+          args: Prisma.PendingIssuerDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.PendingIssuerUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.PendingIssuerUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PendingIssuerPayload>[]
+        }
+        upsert: {
+          args: Prisma.PendingIssuerUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PendingIssuerPayload>
+        }
+        aggregate: {
+          args: Prisma.PendingIssuerAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregatePendingIssuer>
+        }
+        groupBy: {
+          args: Prisma.PendingIssuerGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.PendingIssuerGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.PendingIssuerCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.PendingIssuerCountAggregateOutputType> | number
+        }
+      }
+    }
+    PendingChallenge: {
+      payload: Prisma.$PendingChallengePayload<ExtArgs>
+      fields: Prisma.PendingChallengeFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.PendingChallengeFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PendingChallengePayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.PendingChallengeFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PendingChallengePayload>
+        }
+        findFirst: {
+          args: Prisma.PendingChallengeFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PendingChallengePayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.PendingChallengeFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PendingChallengePayload>
+        }
+        findMany: {
+          args: Prisma.PendingChallengeFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PendingChallengePayload>[]
+        }
+        create: {
+          args: Prisma.PendingChallengeCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PendingChallengePayload>
+        }
+        createMany: {
+          args: Prisma.PendingChallengeCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.PendingChallengeCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PendingChallengePayload>[]
+        }
+        delete: {
+          args: Prisma.PendingChallengeDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PendingChallengePayload>
+        }
+        update: {
+          args: Prisma.PendingChallengeUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PendingChallengePayload>
+        }
+        deleteMany: {
+          args: Prisma.PendingChallengeDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.PendingChallengeUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.PendingChallengeUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PendingChallengePayload>[]
+        }
+        upsert: {
+          args: Prisma.PendingChallengeUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PendingChallengePayload>
+        }
+        aggregate: {
+          args: Prisma.PendingChallengeAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregatePendingChallenge>
+        }
+        groupBy: {
+          args: Prisma.PendingChallengeGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.PendingChallengeGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.PendingChallengeCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.PendingChallengeCountAggregateOutputType> | number
+        }
+      }
+    }
     PendingTicket: {
       payload: Prisma.$PendingTicketPayload<ExtArgs>
       fields: Prisma.PendingTicketFieldRefs
@@ -2256,6 +2406,40 @@ export const IssuerAutomationScalarFieldEnum = {
 } as const
 
 export type IssuerAutomationScalarFieldEnum = (typeof IssuerAutomationScalarFieldEnum)[keyof typeof IssuerAutomationScalarFieldEnum]
+
+
+export const PendingIssuerScalarFieldEnum = {
+  id: 'id',
+  issuerId: 'issuerId',
+  issuerName: 'issuerName',
+  issuerWebsite: 'issuerWebsite',
+  prUrl: 'prUrl',
+  prNumber: 'prNumber',
+  status: 'status',
+  failureReason: 'failureReason',
+  requestedBy: 'requestedBy',
+  requestedAt: 'requestedAt',
+  generatedAt: 'generatedAt',
+  mergedAt: 'mergedAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type PendingIssuerScalarFieldEnum = (typeof PendingIssuerScalarFieldEnum)[keyof typeof PendingIssuerScalarFieldEnum]
+
+
+export const PendingChallengeScalarFieldEnum = {
+  id: 'id',
+  ticketId: 'ticketId',
+  issuerId: 'issuerId',
+  challengeReason: 'challengeReason',
+  customReason: 'customReason',
+  status: 'status',
+  processedAt: 'processedAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type PendingChallengeScalarFieldEnum = (typeof PendingChallengeScalarFieldEnum)[keyof typeof PendingChallengeScalarFieldEnum]
 
 
 export const PendingTicketScalarFieldEnum = {
@@ -2790,6 +2974,34 @@ export type EnumIssuerAutomationStatusFieldRefInput<$PrismaModel> = FieldRefInpu
 export type ListEnumIssuerAutomationStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'IssuerAutomationStatus[]'>
     
 
+
+/**
+ * Reference to a field of type 'PendingIssuerStatus'
+ */
+export type EnumPendingIssuerStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'PendingIssuerStatus'>
+    
+
+
+/**
+ * Reference to a field of type 'PendingIssuerStatus[]'
+ */
+export type ListEnumPendingIssuerStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'PendingIssuerStatus[]'>
+    
+
+
+/**
+ * Reference to a field of type 'PendingChallengeStatus'
+ */
+export type EnumPendingChallengeStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'PendingChallengeStatus'>
+    
+
+
+/**
+ * Reference to a field of type 'PendingChallengeStatus[]'
+ */
+export type ListEnumPendingChallengeStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'PendingChallengeStatus[]'>
+    
+
 /**
  * Batch Payload for updateMany & deleteMany & createMany
  */
@@ -2904,6 +3116,8 @@ export type GlobalOmitConfig = {
   verificationToken?: Prisma.VerificationTokenOmit
   londonTribunalCase?: Prisma.LondonTribunalCaseOmit
   issuerAutomation?: Prisma.IssuerAutomationOmit
+  pendingIssuer?: Prisma.PendingIssuerOmit
+  pendingChallenge?: Prisma.PendingChallengeOmit
   pendingTicket?: Prisma.PendingTicketOmit
 }
 

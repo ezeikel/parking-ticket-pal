@@ -113,6 +113,16 @@ export type LondonTribunalCase = Prisma.LondonTribunalCaseModel
  */
 export type IssuerAutomation = Prisma.IssuerAutomationModel
 /**
+ * Model PendingIssuer
+ * 
+ */
+export type PendingIssuer = Prisma.PendingIssuerModel
+/**
+ * Model PendingChallenge
+ * 
+ */
+export type PendingChallenge = Prisma.PendingChallengeModel
+/**
  * Model PendingTicket
  * 
  */

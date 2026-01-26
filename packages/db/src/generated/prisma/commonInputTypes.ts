@@ -800,6 +800,40 @@ export type EnumIssuerAutomationStatusWithAggregatesFilter<$PrismaModel = never>
   _max?: Prisma.NestedEnumIssuerAutomationStatusFilter<$PrismaModel>
 }
 
+export type EnumPendingIssuerStatusFilter<$PrismaModel = never> = {
+  equals?: $Enums.PendingIssuerStatus | Prisma.EnumPendingIssuerStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.PendingIssuerStatus[] | Prisma.ListEnumPendingIssuerStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.PendingIssuerStatus[] | Prisma.ListEnumPendingIssuerStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumPendingIssuerStatusFilter<$PrismaModel> | $Enums.PendingIssuerStatus
+}
+
+export type EnumPendingIssuerStatusWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.PendingIssuerStatus | Prisma.EnumPendingIssuerStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.PendingIssuerStatus[] | Prisma.ListEnumPendingIssuerStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.PendingIssuerStatus[] | Prisma.ListEnumPendingIssuerStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumPendingIssuerStatusWithAggregatesFilter<$PrismaModel> | $Enums.PendingIssuerStatus
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumPendingIssuerStatusFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumPendingIssuerStatusFilter<$PrismaModel>
+}
+
+export type EnumPendingChallengeStatusFilter<$PrismaModel = never> = {
+  equals?: $Enums.PendingChallengeStatus | Prisma.EnumPendingChallengeStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.PendingChallengeStatus[] | Prisma.ListEnumPendingChallengeStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.PendingChallengeStatus[] | Prisma.ListEnumPendingChallengeStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumPendingChallengeStatusFilter<$PrismaModel> | $Enums.PendingChallengeStatus
+}
+
+export type EnumPendingChallengeStatusWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.PendingChallengeStatus | Prisma.EnumPendingChallengeStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.PendingChallengeStatus[] | Prisma.ListEnumPendingChallengeStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.PendingChallengeStatus[] | Prisma.ListEnumPendingChallengeStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumPendingChallengeStatusWithAggregatesFilter<$PrismaModel> | $Enums.PendingChallengeStatus
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumPendingChallengeStatusFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumPendingChallengeStatusFilter<$PrismaModel>
+}
+
 export type NestedStringFilter<$PrismaModel = never> = {
   equals?: string | Prisma.StringFieldRefInput<$PrismaModel>
   in?: string[] | Prisma.ListStringFieldRefInput<$PrismaModel>
@@ -1532,6 +1566,40 @@ export type NestedEnumIssuerAutomationStatusWithAggregatesFilter<$PrismaModel = 
   _count?: Prisma.NestedIntFilter<$PrismaModel>
   _min?: Prisma.NestedEnumIssuerAutomationStatusFilter<$PrismaModel>
   _max?: Prisma.NestedEnumIssuerAutomationStatusFilter<$PrismaModel>
+}
+
+export type NestedEnumPendingIssuerStatusFilter<$PrismaModel = never> = {
+  equals?: $Enums.PendingIssuerStatus | Prisma.EnumPendingIssuerStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.PendingIssuerStatus[] | Prisma.ListEnumPendingIssuerStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.PendingIssuerStatus[] | Prisma.ListEnumPendingIssuerStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumPendingIssuerStatusFilter<$PrismaModel> | $Enums.PendingIssuerStatus
+}
+
+export type NestedEnumPendingIssuerStatusWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.PendingIssuerStatus | Prisma.EnumPendingIssuerStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.PendingIssuerStatus[] | Prisma.ListEnumPendingIssuerStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.PendingIssuerStatus[] | Prisma.ListEnumPendingIssuerStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumPendingIssuerStatusWithAggregatesFilter<$PrismaModel> | $Enums.PendingIssuerStatus
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumPendingIssuerStatusFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumPendingIssuerStatusFilter<$PrismaModel>
+}
+
+export type NestedEnumPendingChallengeStatusFilter<$PrismaModel = never> = {
+  equals?: $Enums.PendingChallengeStatus | Prisma.EnumPendingChallengeStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.PendingChallengeStatus[] | Prisma.ListEnumPendingChallengeStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.PendingChallengeStatus[] | Prisma.ListEnumPendingChallengeStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumPendingChallengeStatusFilter<$PrismaModel> | $Enums.PendingChallengeStatus
+}
+
+export type NestedEnumPendingChallengeStatusWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.PendingChallengeStatus | Prisma.EnumPendingChallengeStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.PendingChallengeStatus[] | Prisma.ListEnumPendingChallengeStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.PendingChallengeStatus[] | Prisma.ListEnumPendingChallengeStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumPendingChallengeStatusWithAggregatesFilter<$PrismaModel> | $Enums.PendingChallengeStatus
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumPendingChallengeStatusFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumPendingChallengeStatusFilter<$PrismaModel>
 }
 
 

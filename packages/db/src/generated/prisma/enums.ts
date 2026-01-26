@@ -305,3 +305,24 @@ export const IssuerAutomationStatus = {
 } as const
 
 export type IssuerAutomationStatus = (typeof IssuerAutomationStatus)[keyof typeof IssuerAutomationStatus]
+
+
+export const PendingIssuerStatus = {
+  GENERATING: 'GENERATING',
+  PR_CREATED: 'PR_CREATED',
+  PR_MERGED: 'PR_MERGED',
+  FAILED: 'FAILED'
+} as const
+
+export type PendingIssuerStatus = (typeof PendingIssuerStatus)[keyof typeof PendingIssuerStatus]
+
+
+export const PendingChallengeStatus = {
+  WAITING: 'WAITING',
+  READY: 'READY',
+  PROCESSED: 'PROCESSED',
+  EXPIRED: 'EXPIRED',
+  FAILED: 'FAILED'
+} as const
+
+export type PendingChallengeStatus = (typeof PendingChallengeStatus)[keyof typeof PendingChallengeStatus]
