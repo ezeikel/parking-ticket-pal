@@ -123,3 +123,64 @@ export async function requestIssuerGeneration(params: {
     };
   }
 }
+
+/**
+ * Health check result for a single issuer
+ */
+export type IssuerHealthResult = {
+  issuerId: string;
+  issuerName: string;
+  status: 'healthy' | 'degraded' | 'broken';
+  portalAccessible: boolean;
+  elementsFound: string[];
+  elementsMissing: string[];
+  captchaDetected: boolean;
+  errorMessage?: string;
+  responseTimeMs: number;
+  checkedAt: string;
+};
+
+/**
+ * Overall health check response from worker
+ */
+export type HealthCheckResponse = {
+  success: boolean;
+  totalIssuers: number;
+  healthyCount: number;
+  degradedCount: number;
+  brokenCount: number;
+  results: IssuerHealthResult[];
+  startedAt: string;
+  completedAt: string;
+  durationMs: number;
+};
+
+/**
+ * Run health check on issuer automations.
+ * Checks if issuer portals are accessible and expected elements are present.
+ */
+export async function runHealthCheck(
+  issuers?: string[],
+): Promise<HealthCheckResponse> {
+  const { baseUrl, secret } = getConfig();
+
+  logger.info('Running automation health check', { issuers });
+
+  const response = await fetch(`${baseUrl}/automation/health-check`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${secret}`,
+    },
+    body: JSON.stringify({ issuers }),
+  });
+
+  if (!response.ok) {
+    const error = await response
+      .json()
+      .catch(() => ({ error: 'Unknown error' }));
+    throw new Error(error.error || `HTTP ${response.status}`);
+  }
+
+  return response.json();
+}

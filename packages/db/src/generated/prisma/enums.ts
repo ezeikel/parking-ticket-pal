@@ -296,17 +296,6 @@ export const Platform = {
 export type Platform = (typeof Platform)[keyof typeof Platform]
 
 
-export const IssuerAutomationStatus = {
-  LEARNING: 'LEARNING',
-  PENDING_REVIEW: 'PENDING_REVIEW',
-  VERIFIED: 'VERIFIED',
-  NEEDS_HUMAN_HELP: 'NEEDS_HUMAN_HELP',
-  FAILED: 'FAILED'
-} as const
-
-export type IssuerAutomationStatus = (typeof IssuerAutomationStatus)[keyof typeof IssuerAutomationStatus]
-
-
 export const PendingIssuerStatus = {
   GENERATING: 'GENERATING',
   PR_CREATED: 'PR_CREATED',
@@ -326,3 +315,12 @@ export const PendingChallengeStatus = {
 } as const
 
 export type PendingChallengeStatus = (typeof PendingChallengeStatus)[keyof typeof PendingChallengeStatus]
+
+
+export const IssuerHealthStatus = {
+  HEALTHY: 'HEALTHY',
+  DEGRADED: 'DEGRADED',
+  BROKEN: 'BROKEN'
+} as const
+
+export type IssuerHealthStatus = (typeof IssuerHealthStatus)[keyof typeof IssuerHealthStatus]

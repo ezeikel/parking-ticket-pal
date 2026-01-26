@@ -69,10 +69,10 @@ export const ModelName = {
   Session: 'Session',
   VerificationToken: 'VerificationToken',
   LondonTribunalCase: 'LondonTribunalCase',
-  IssuerAutomation: 'IssuerAutomation',
   PendingIssuer: 'PendingIssuer',
   PendingChallenge: 'PendingChallenge',
-  PendingTicket: 'PendingTicket'
+  PendingTicket: 'PendingTicket',
+  IssuerHealthCheck: 'IssuerHealthCheck'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -387,26 +387,6 @@ export const LondonTribunalCaseScalarFieldEnum = {
 export type LondonTribunalCaseScalarFieldEnum = (typeof LondonTribunalCaseScalarFieldEnum)[keyof typeof LondonTribunalCaseScalarFieldEnum]
 
 
-export const IssuerAutomationScalarFieldEnum = {
-  id: 'id',
-  issuerId: 'issuerId',
-  issuerName: 'issuerName',
-  challengeUrl: 'challengeUrl',
-  steps: 'steps',
-  screenshots: 'screenshots',
-  status: 'status',
-  needsAccount: 'needsAccount',
-  captchaType: 'captchaType',
-  lastVerified: 'lastVerified',
-  lastFailed: 'lastFailed',
-  failureReason: 'failureReason',
-  createdAt: 'createdAt',
-  updatedAt: 'updatedAt'
-} as const
-
-export type IssuerAutomationScalarFieldEnum = (typeof IssuerAutomationScalarFieldEnum)[keyof typeof IssuerAutomationScalarFieldEnum]
-
-
 export const PendingIssuerScalarFieldEnum = {
   id: 'id',
   issuerId: 'issuerId',
@@ -463,6 +443,25 @@ export const PendingTicketScalarFieldEnum = {
 } as const
 
 export type PendingTicketScalarFieldEnum = (typeof PendingTicketScalarFieldEnum)[keyof typeof PendingTicketScalarFieldEnum]
+
+
+export const IssuerHealthCheckScalarFieldEnum = {
+  id: 'id',
+  issuerId: 'issuerId',
+  issuerName: 'issuerName',
+  status: 'status',
+  portalAccessible: 'portalAccessible',
+  elementsFound: 'elementsFound',
+  elementsMissing: 'elementsMissing',
+  captchaDetected: 'captchaDetected',
+  errorMessage: 'errorMessage',
+  responseTimeMs: 'responseTimeMs',
+  previousStatus: 'previousStatus',
+  statusChanged: 'statusChanged',
+  checkedAt: 'checkedAt'
+} as const
+
+export type IssuerHealthCheckScalarFieldEnum = (typeof IssuerHealthCheckScalarFieldEnum)[keyof typeof IssuerHealthCheckScalarFieldEnum]
 
 
 export const SortOrder = {

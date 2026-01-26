@@ -783,23 +783,6 @@ export type EnumAppealDecisionWithAggregatesFilter<$PrismaModel = never> = {
   _max?: Prisma.NestedEnumAppealDecisionFilter<$PrismaModel>
 }
 
-export type EnumIssuerAutomationStatusFilter<$PrismaModel = never> = {
-  equals?: $Enums.IssuerAutomationStatus | Prisma.EnumIssuerAutomationStatusFieldRefInput<$PrismaModel>
-  in?: $Enums.IssuerAutomationStatus[] | Prisma.ListEnumIssuerAutomationStatusFieldRefInput<$PrismaModel>
-  notIn?: $Enums.IssuerAutomationStatus[] | Prisma.ListEnumIssuerAutomationStatusFieldRefInput<$PrismaModel>
-  not?: Prisma.NestedEnumIssuerAutomationStatusFilter<$PrismaModel> | $Enums.IssuerAutomationStatus
-}
-
-export type EnumIssuerAutomationStatusWithAggregatesFilter<$PrismaModel = never> = {
-  equals?: $Enums.IssuerAutomationStatus | Prisma.EnumIssuerAutomationStatusFieldRefInput<$PrismaModel>
-  in?: $Enums.IssuerAutomationStatus[] | Prisma.ListEnumIssuerAutomationStatusFieldRefInput<$PrismaModel>
-  notIn?: $Enums.IssuerAutomationStatus[] | Prisma.ListEnumIssuerAutomationStatusFieldRefInput<$PrismaModel>
-  not?: Prisma.NestedEnumIssuerAutomationStatusWithAggregatesFilter<$PrismaModel> | $Enums.IssuerAutomationStatus
-  _count?: Prisma.NestedIntFilter<$PrismaModel>
-  _min?: Prisma.NestedEnumIssuerAutomationStatusFilter<$PrismaModel>
-  _max?: Prisma.NestedEnumIssuerAutomationStatusFilter<$PrismaModel>
-}
-
 export type EnumPendingIssuerStatusFilter<$PrismaModel = never> = {
   equals?: $Enums.PendingIssuerStatus | Prisma.EnumPendingIssuerStatusFieldRefInput<$PrismaModel>
   in?: $Enums.PendingIssuerStatus[] | Prisma.ListEnumPendingIssuerStatusFieldRefInput<$PrismaModel>
@@ -832,6 +815,40 @@ export type EnumPendingChallengeStatusWithAggregatesFilter<$PrismaModel = never>
   _count?: Prisma.NestedIntFilter<$PrismaModel>
   _min?: Prisma.NestedEnumPendingChallengeStatusFilter<$PrismaModel>
   _max?: Prisma.NestedEnumPendingChallengeStatusFilter<$PrismaModel>
+}
+
+export type EnumIssuerHealthStatusFilter<$PrismaModel = never> = {
+  equals?: $Enums.IssuerHealthStatus | Prisma.EnumIssuerHealthStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.IssuerHealthStatus[] | Prisma.ListEnumIssuerHealthStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.IssuerHealthStatus[] | Prisma.ListEnumIssuerHealthStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumIssuerHealthStatusFilter<$PrismaModel> | $Enums.IssuerHealthStatus
+}
+
+export type EnumIssuerHealthStatusNullableFilter<$PrismaModel = never> = {
+  equals?: $Enums.IssuerHealthStatus | Prisma.EnumIssuerHealthStatusFieldRefInput<$PrismaModel> | null
+  in?: $Enums.IssuerHealthStatus[] | Prisma.ListEnumIssuerHealthStatusFieldRefInput<$PrismaModel> | null
+  notIn?: $Enums.IssuerHealthStatus[] | Prisma.ListEnumIssuerHealthStatusFieldRefInput<$PrismaModel> | null
+  not?: Prisma.NestedEnumIssuerHealthStatusNullableFilter<$PrismaModel> | $Enums.IssuerHealthStatus | null
+}
+
+export type EnumIssuerHealthStatusWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.IssuerHealthStatus | Prisma.EnumIssuerHealthStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.IssuerHealthStatus[] | Prisma.ListEnumIssuerHealthStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.IssuerHealthStatus[] | Prisma.ListEnumIssuerHealthStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumIssuerHealthStatusWithAggregatesFilter<$PrismaModel> | $Enums.IssuerHealthStatus
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumIssuerHealthStatusFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumIssuerHealthStatusFilter<$PrismaModel>
+}
+
+export type EnumIssuerHealthStatusNullableWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.IssuerHealthStatus | Prisma.EnumIssuerHealthStatusFieldRefInput<$PrismaModel> | null
+  in?: $Enums.IssuerHealthStatus[] | Prisma.ListEnumIssuerHealthStatusFieldRefInput<$PrismaModel> | null
+  notIn?: $Enums.IssuerHealthStatus[] | Prisma.ListEnumIssuerHealthStatusFieldRefInput<$PrismaModel> | null
+  not?: Prisma.NestedEnumIssuerHealthStatusNullableWithAggregatesFilter<$PrismaModel> | $Enums.IssuerHealthStatus | null
+  _count?: Prisma.NestedIntNullableFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumIssuerHealthStatusNullableFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumIssuerHealthStatusNullableFilter<$PrismaModel>
 }
 
 export type NestedStringFilter<$PrismaModel = never> = {
@@ -1551,23 +1568,6 @@ export type NestedEnumAppealDecisionWithAggregatesFilter<$PrismaModel = never> =
   _max?: Prisma.NestedEnumAppealDecisionFilter<$PrismaModel>
 }
 
-export type NestedEnumIssuerAutomationStatusFilter<$PrismaModel = never> = {
-  equals?: $Enums.IssuerAutomationStatus | Prisma.EnumIssuerAutomationStatusFieldRefInput<$PrismaModel>
-  in?: $Enums.IssuerAutomationStatus[] | Prisma.ListEnumIssuerAutomationStatusFieldRefInput<$PrismaModel>
-  notIn?: $Enums.IssuerAutomationStatus[] | Prisma.ListEnumIssuerAutomationStatusFieldRefInput<$PrismaModel>
-  not?: Prisma.NestedEnumIssuerAutomationStatusFilter<$PrismaModel> | $Enums.IssuerAutomationStatus
-}
-
-export type NestedEnumIssuerAutomationStatusWithAggregatesFilter<$PrismaModel = never> = {
-  equals?: $Enums.IssuerAutomationStatus | Prisma.EnumIssuerAutomationStatusFieldRefInput<$PrismaModel>
-  in?: $Enums.IssuerAutomationStatus[] | Prisma.ListEnumIssuerAutomationStatusFieldRefInput<$PrismaModel>
-  notIn?: $Enums.IssuerAutomationStatus[] | Prisma.ListEnumIssuerAutomationStatusFieldRefInput<$PrismaModel>
-  not?: Prisma.NestedEnumIssuerAutomationStatusWithAggregatesFilter<$PrismaModel> | $Enums.IssuerAutomationStatus
-  _count?: Prisma.NestedIntFilter<$PrismaModel>
-  _min?: Prisma.NestedEnumIssuerAutomationStatusFilter<$PrismaModel>
-  _max?: Prisma.NestedEnumIssuerAutomationStatusFilter<$PrismaModel>
-}
-
 export type NestedEnumPendingIssuerStatusFilter<$PrismaModel = never> = {
   equals?: $Enums.PendingIssuerStatus | Prisma.EnumPendingIssuerStatusFieldRefInput<$PrismaModel>
   in?: $Enums.PendingIssuerStatus[] | Prisma.ListEnumPendingIssuerStatusFieldRefInput<$PrismaModel>
@@ -1600,6 +1600,40 @@ export type NestedEnumPendingChallengeStatusWithAggregatesFilter<$PrismaModel = 
   _count?: Prisma.NestedIntFilter<$PrismaModel>
   _min?: Prisma.NestedEnumPendingChallengeStatusFilter<$PrismaModel>
   _max?: Prisma.NestedEnumPendingChallengeStatusFilter<$PrismaModel>
+}
+
+export type NestedEnumIssuerHealthStatusFilter<$PrismaModel = never> = {
+  equals?: $Enums.IssuerHealthStatus | Prisma.EnumIssuerHealthStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.IssuerHealthStatus[] | Prisma.ListEnumIssuerHealthStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.IssuerHealthStatus[] | Prisma.ListEnumIssuerHealthStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumIssuerHealthStatusFilter<$PrismaModel> | $Enums.IssuerHealthStatus
+}
+
+export type NestedEnumIssuerHealthStatusNullableFilter<$PrismaModel = never> = {
+  equals?: $Enums.IssuerHealthStatus | Prisma.EnumIssuerHealthStatusFieldRefInput<$PrismaModel> | null
+  in?: $Enums.IssuerHealthStatus[] | Prisma.ListEnumIssuerHealthStatusFieldRefInput<$PrismaModel> | null
+  notIn?: $Enums.IssuerHealthStatus[] | Prisma.ListEnumIssuerHealthStatusFieldRefInput<$PrismaModel> | null
+  not?: Prisma.NestedEnumIssuerHealthStatusNullableFilter<$PrismaModel> | $Enums.IssuerHealthStatus | null
+}
+
+export type NestedEnumIssuerHealthStatusWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.IssuerHealthStatus | Prisma.EnumIssuerHealthStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.IssuerHealthStatus[] | Prisma.ListEnumIssuerHealthStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.IssuerHealthStatus[] | Prisma.ListEnumIssuerHealthStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumIssuerHealthStatusWithAggregatesFilter<$PrismaModel> | $Enums.IssuerHealthStatus
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumIssuerHealthStatusFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumIssuerHealthStatusFilter<$PrismaModel>
+}
+
+export type NestedEnumIssuerHealthStatusNullableWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.IssuerHealthStatus | Prisma.EnumIssuerHealthStatusFieldRefInput<$PrismaModel> | null
+  in?: $Enums.IssuerHealthStatus[] | Prisma.ListEnumIssuerHealthStatusFieldRefInput<$PrismaModel> | null
+  notIn?: $Enums.IssuerHealthStatus[] | Prisma.ListEnumIssuerHealthStatusFieldRefInput<$PrismaModel> | null
+  not?: Prisma.NestedEnumIssuerHealthStatusNullableWithAggregatesFilter<$PrismaModel> | $Enums.IssuerHealthStatus | null
+  _count?: Prisma.NestedIntNullableFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumIssuerHealthStatusNullableFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumIssuerHealthStatusNullableFilter<$PrismaModel>
 }
 
 

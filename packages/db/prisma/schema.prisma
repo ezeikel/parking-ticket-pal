@@ -672,3 +672,31 @@ model PendingTicket {
   @@index([claimed])
   @@map("pending_tickets")
 }
+
+// Health check status for issuer automation monitoring
+enum IssuerHealthStatus {
+  HEALTHY
+  DEGRADED
+  BROKEN
+}
+
+// Tracks health check results for issuer automation monitoring
+model IssuerHealthCheck {
+  id               String              @id @default(cuid())
+  issuerId         String // e.g., "lewisham", "westminster", "horizon"
+  issuerName       String
+  status           IssuerHealthStatus
+  portalAccessible Boolean
+  elementsFound    String[]
+  elementsMissing  String[]
+  captchaDetected  Boolean             @default(false)
+  errorMessage     String?
+  responseTimeMs   Int
+  previousStatus   IssuerHealthStatus? // Status from previous check for change detection
+  statusChanged    Boolean             @default(false)
+  checkedAt        DateTime            @default(now())
+
+  @@index([issuerId, checkedAt])
+  @@index([status])
+  @@map("issuer_health_checks")
+}
