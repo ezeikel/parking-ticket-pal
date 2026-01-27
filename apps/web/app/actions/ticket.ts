@@ -18,9 +18,7 @@ import {
 import getVehicleInfo from '@/utils/getVehicleInfo';
 import type { TicketFormData } from '@parking-ticket-pal/types';
 import { db } from '@parking-ticket-pal/db';
-// Dynamic imports for automation to avoid loading puppeteer plugins on every page
-// These are only loaded when verifyTicket or challengeTicket are actually called
-const getAutomation = () => import('@/utils/automation');
+import { runVerify, runChallenge } from '@/utils/automation/workerClient';
 import { generateReminders } from '@/app/actions/reminder';
 import { STORAGE_PATHS } from '@/constants';
 import { track } from '@/utils/analytics-server';
@@ -776,16 +774,38 @@ export const getTicketByPcnNumber = async (pcnNumber: string) => {
   return ticket;
 };
 
-export const verifyTicket = async (pcnNumber: string) => {
+export const verifyTicket = async (pcnNumber: string, ticketId?: string) => {
   try {
-    const { verify } = await getAutomation();
-    const result = await verify(pcnNumber);
-    return result;
+    // Get ticket details for verification
+    const ticket = await db.ticket.findFirst({
+      where: ticketId ? { id: ticketId } : { pcnNumber },
+      include: {
+        vehicle: true,
+      },
+    });
+
+    if (!ticket) {
+      logger.error('Ticket not found for verification', { pcnNumber, ticketId });
+      return false;
+    }
+
+    // Determine issuer ID from ticket
+    const issuerId = ticket.issuer.toLowerCase().replace(/\s+/g, '-');
+
+    const result = await runVerify({
+      issuerId,
+      pcnNumber: ticket.pcnNumber,
+      vehicleReg: ticket.vehicle.registrationNumber,
+      ticketId: ticket.id,
+    });
+
+    return result.success;
   } catch (error) {
     logger.error(
       'Error checking ticket',
       {
         pcnNumber,
+        ticketId,
       },
       error instanceof Error ? error : new Error(String(error)),
     );
@@ -800,9 +820,16 @@ export const challengeTicket = async (
 ) => {
   let ticket: any = null;
   try {
-    // Get the ticket first
+    // Get the ticket with user details
     ticket = await db.ticket.findUnique({
       where: { pcnNumber },
+      include: {
+        vehicle: {
+          include: {
+            user: true,
+          },
+        },
+      },
     });
 
     if (!ticket) {
@@ -822,19 +849,52 @@ export const challengeTicket = async (
     });
 
     try {
-      // Attempt the actual challenge
-      const { challenge } = await getAutomation();
-      const result = await challenge(
-        pcnNumber,
+      // Determine issuer ID from ticket
+      const issuerId = ticket.issuer.toLowerCase().replace(/\s+/g, '-');
+      const user = ticket.vehicle.user;
+      const userAddress = user.address as {
+        line1?: string;
+        line2?: string;
+        city?: string;
+        postcode?: string;
+        country?: string;
+      } | null;
+
+      // Attempt the actual challenge via worker
+      const result = await runChallenge({
+        issuerId,
+        pcnNumber: ticket.pcnNumber,
+        vehicleReg: ticket.vehicle.registrationNumber,
+        vehicleMake: ticket.vehicle.make || undefined,
+        vehicleModel: ticket.vehicle.model || undefined,
         challengeReason,
         additionalDetails,
-      );
+        ticketId: ticket.id,
+        challengeId: challengeRecord.id,
+        user: {
+          id: user.id,
+          name: user.name || 'Unknown',
+          email: user.email,
+          phoneNumber: user.phoneNumber || undefined,
+          address: {
+            line1: userAddress?.line1 || '',
+            line2: userAddress?.line2,
+            city: userAddress?.city,
+            postcode: userAddress?.postcode || '',
+            country: userAddress?.country || 'United Kingdom',
+          },
+        },
+        dryRun: process.env.AUTOMATION_DRY_RUN === 'true',
+      });
 
-      if (result && typeof result === 'object' && result.success) {
+      if (result && result.success) {
         // update challenge record with success and store the generated text
         const metadata: any = {
           challengeSubmitted: true,
           submittedAt: new Date().toISOString(),
+          screenshotUrls: result.screenshotUrls || [],
+          videoUrl: result.videoUrl,
+          referenceNumber: result.referenceNumber,
         };
 
         if (result.challengeText) {
@@ -856,7 +916,7 @@ export const challengeTicket = async (
         };
       }
 
-      throw new Error('Challenge submission failed');
+      throw new Error(result.error || 'Challenge submission failed');
     } catch (error) {
       // Update challenge record with error
       await db.challenge.update({

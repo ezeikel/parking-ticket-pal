@@ -2,6 +2,7 @@ import {
   TicketTier,
   Prisma,
   SubscriptionType,
+  IssuerType,
 } from '@parking-ticket-pal/db/types';
 import { getTickets } from '@/app/actions/ticket';
 import { getUserSubscriptionStatus } from '@/app/actions/user';
@@ -96,6 +97,7 @@ const DashboardTicketsSection = async () => {
       id: ticket.id,
       pcnNumber: ticket.pcnNumber,
       issuer: ticket.issuer || 'Unknown Issuer',
+      issuerType: ticket.issuerType as IssuerType,
       status: mapTicketStatus(ticket.status),
       amount: ticket.initialAmount,
       location: location?.line1 || 'Location not specified',

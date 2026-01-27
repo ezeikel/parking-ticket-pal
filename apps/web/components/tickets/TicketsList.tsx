@@ -25,11 +25,13 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import ScoreGauge from '@/components/ui/ScoreGauge';
+import ChallengeOptionsDialog from '@/components/ticket-detail/ChallengeOptionsDialog';
 import type {
   Prisma,
   TicketStatus,
   TicketTier,
   SubscriptionType,
+  IssuerType,
 } from '@parking-ticket-pal/db/types';
 
 type TicketWithRelations = Prisma.TicketGetPayload<{
@@ -215,6 +217,11 @@ const TicketsList = ({
   const [filter, setFilter] = useState('all');
   const [sort, setSort] = useState('newest');
   const [search, setSearch] = useState('');
+  const [challengeTicket, setChallengeTicket] = useState<{
+    id: string;
+    issuer: string;
+    issuerType: IssuerType;
+  } | null>(null);
 
   const filteredTickets = tickets
     .filter((ticket) => {
@@ -513,7 +520,11 @@ const TicketsList = ({
                             onClick={(e) => {
                               e.preventDefault();
                               e.stopPropagation();
-                              window.location.href = `/tickets/${ticket.id}/challenge`;
+                              setChallengeTicket({
+                                id: ticket.id,
+                                issuer: ticket.issuer,
+                                issuerType: ticket.issuerType,
+                              });
                             }}
                           >
                             Challenge Now
@@ -548,6 +559,17 @@ const TicketsList = ({
           </div>
         )}
       </div>
+
+      {/* Challenge Dialog */}
+      {challengeTicket && (
+        <ChallengeOptionsDialog
+          open={!!challengeTicket}
+          onOpenChange={(open) => !open && setChallengeTicket(null)}
+          ticketId={challengeTicket.id}
+          issuerName={challengeTicket.issuer}
+          issuerType={challengeTicket.issuerType}
+        />
+      )}
     </div>
   );
 };

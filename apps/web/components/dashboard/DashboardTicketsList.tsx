@@ -12,7 +12,7 @@ import {
   faUnlock,
   faLock,
 } from '@fortawesome/pro-solid-svg-icons';
-import { TicketTier, SubscriptionType } from '@parking-ticket-pal/db/types';
+import { TicketTier, SubscriptionType, IssuerType } from '@parking-ticket-pal/db/types';
 import { Button } from '@/components/ui/button';
 import {
   Select,
@@ -22,6 +22,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import ScoreGauge from '@/components/ui/ScoreGauge';
+import ChallengeOptionsDialog from '@/components/ticket-detail/ChallengeOptionsDialog';
 
 type TicketStatus =
   | 'NEEDS_ACTION'
@@ -35,6 +36,7 @@ type Ticket = {
   id: string;
   pcnNumber: string;
   issuer: string;
+  issuerType: IssuerType;
   status: TicketStatus;
   amount: number;
   location: string;
@@ -125,6 +127,11 @@ const DashboardTicketsList = ({
 }: DashboardTicketsListProps) => {
   const [filter, setFilter] = useState('all');
   const [sort, setSort] = useState('newest');
+  const [challengeTicket, setChallengeTicket] = useState<{
+    id: string;
+    issuer: string;
+    issuerType: IssuerType;
+  } | null>(null);
 
   const filteredTickets = tickets.filter((ticket) => {
     if (filter === 'all') return true;
@@ -330,17 +337,21 @@ const DashboardTicketsList = ({
                           subscriptionType,
                         );
                         return canChallengeTicket ? (
-                          <Link
-                            href={`/tickets/${ticket.id}/challenge`}
-                            className="flex-1"
+                          <Button
+                            size="sm"
+                            className="w-full flex-1 bg-teal text-white hover:bg-teal-dark"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              setChallengeTicket({
+                                id: ticket.id,
+                                issuer: ticket.issuer,
+                                issuerType: ticket.issuerType,
+                              });
+                            }}
                           >
-                            <Button
-                              size="sm"
-                              className="w-full bg-teal text-white hover:bg-teal-dark"
-                            >
-                              Challenge Now
-                            </Button>
-                          </Link>
+                            Challenge Now
+                          </Button>
                         ) : (
                           <Link
                             href={`/tickets/${ticket.id}`}
@@ -382,6 +393,17 @@ const DashboardTicketsList = ({
           </div>
         )}
       </div>
+
+      {/* Challenge Dialog */}
+      {challengeTicket && (
+        <ChallengeOptionsDialog
+          open={!!challengeTicket}
+          onOpenChange={(open) => !open && setChallengeTicket(null)}
+          ticketId={challengeTicket.id}
+          issuerName={challengeTicket.issuer}
+          issuerType={challengeTicket.issuerType}
+        />
+      )}
     </div>
   );
 };

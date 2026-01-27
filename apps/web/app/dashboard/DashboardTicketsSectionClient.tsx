@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faList, faMap } from '@fortawesome/pro-solid-svg-icons';
-import { TicketTier, SubscriptionType } from '@parking-ticket-pal/db/types';
+import { TicketTier, SubscriptionType, IssuerType } from '@parking-ticket-pal/db/types';
 import { Button } from '@/components/ui/button';
 import {
   DashboardTicketsList,
@@ -22,6 +22,7 @@ type Ticket = {
   id: string;
   pcnNumber: string;
   issuer: string;
+  issuerType: IssuerType;
   status: TicketStatus;
   amount: number;
   location: string;

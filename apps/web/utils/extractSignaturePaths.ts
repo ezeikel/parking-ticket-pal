@@ -69,11 +69,14 @@ export const downloadSvgFile = async (url: string): Promise<string | null> => {
   try {
     const response = await fetch(url);
     if (!response.ok) {
-      throw new Error(`Failed to fetch SVG: ${response.statusText}`);
+      // Signature file not found - this is not critical, just return null
+      // The letter can still be generated without a signature
+      return null;
     }
     return await response.text();
   } catch (error) {
-    console.error('Error downloading SVG:', error);
+    // Network or other fetch error - also not critical
+    console.warn('Could not download signature SVG:', error);
     return null;
   }
 };

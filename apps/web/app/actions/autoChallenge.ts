@@ -6,10 +6,15 @@ import {
   ChallengeStatus,
   PendingIssuerStatus,
 } from '@parking-ticket-pal/db';
-import { findIssuer, isAutomationSupported } from '@/constants/index';
+import { findIssuer } from '@/constants/index';
 import { getUserId } from '@/utils/user';
 import { createServerLogger } from '@/lib/logger';
-import { requestIssuerGeneration } from '@/utils/automation/workerClient';
+import {
+  requestIssuerGeneration,
+  runChallenge,
+  isIssuerSupported,
+  type Address,
+} from '@/utils/automation/workerClient';
 
 const logger = createServerLogger({ action: 'autoChallenge' });
 
@@ -25,9 +30,6 @@ const isDryRunEnabled = () => process.env.AUTOMATION_DRY_RUN === 'true';
  */
 const generateDryRunId = () =>
   `dry-run-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
-
-// Dynamic import for built-in automation (Lewisham, Westminster, etc.)
-const getAutomation = () => import('@/utils/automation');
 
 export type AutoChallengeStatus =
   | 'submitted' // Challenge submitted successfully
@@ -113,19 +115,46 @@ export async function initiateAutoChallenge(
       issuer?.id || ticket.issuer.toLowerCase().replace(/\s+/g, '-');
     const issuerName = issuer?.name || ticket.issuer;
 
-    // Check if we have built-in automation support
-    const hasBuiltInSupport = issuer && isAutomationSupported(issuer.id);
+    // Check if worker supports this issuer
+    const hasWorkerSupport = await isIssuerSupported(issuerId);
 
     const dryRun = isDryRunEnabled();
 
+    // Transform ticket to the format expected by runWorkerChallenge
+    const userAddress = ticket.vehicle.user.address as {
+      line1?: string | null;
+      line2?: string | null;
+      city?: string | null;
+      postcode?: string | null;
+      country?: string | null;
+    } | null;
+
+    const ticketForChallenge: TicketForChallenge = {
+      id: ticket.id,
+      pcnNumber: ticket.pcnNumber,
+      vehicle: {
+        registrationNumber: ticket.vehicle.registrationNumber,
+        make: ticket.vehicle.make,
+        model: ticket.vehicle.model,
+        user: {
+          id: ticket.vehicle.user.id,
+          name: ticket.vehicle.user.name,
+          email: ticket.vehicle.user.email,
+          phoneNumber: ticket.vehicle.user.phoneNumber,
+          address: userAddress,
+        },
+      },
+    };
+
     // ========================================
-    // Scenario 1: Built-in automation support
+    // Scenario 1: Worker-supported automation
     // ========================================
-    if (hasBuiltInSupport) {
+    if (hasWorkerSupport) {
       if (dryRun) {
         // Dry run: no DB record needed
-        return await runBuiltInAutomation(
-          ticket.pcnNumber,
+        return await runWorkerChallenge(
+          ticketForChallenge,
+          issuerId,
           challengeReason,
           customReason,
           null, // No challenge ID - dry run
@@ -143,8 +172,9 @@ export async function initiateAutoChallenge(
         },
       });
 
-      return await runBuiltInAutomation(
-        ticket.pcnNumber,
+      return await runWorkerChallenge(
+        ticketForChallenge,
+        issuerId,
         challengeReason,
         customReason,
         challenge.id,
@@ -286,13 +316,41 @@ export async function initiateAutoChallenge(
 }
 
 /**
- * Run the built-in automation for supported issuers (Lewisham, Westminster, etc.)
+ * Ticket type for worker challenge (minimal fields needed)
+ */
+type TicketForChallenge = {
+  id: string;
+  pcnNumber: string;
+  vehicle: {
+    registrationNumber: string;
+    make?: string | null;
+    model?: string | null;
+    user: {
+      id: string;
+      name: string | null;
+      email: string;
+      phoneNumber?: string | null;
+      address?: {
+        line1?: string | null;
+        line2?: string | null;
+        city?: string | null;
+        postcode?: string | null;
+        country?: string | null;
+      } | null;
+    };
+  };
+};
+
+/**
+ * Run automation via the worker service.
+ * The worker has Playwright and can access .gov.uk sites from its Hetzner server.
  *
  * For dry runs: No DB record is created. Results are returned directly.
  * For real runs: Challenge record is created and updated with results.
  */
-async function runBuiltInAutomation(
-  pcnNumber: string,
+async function runWorkerChallenge(
+  ticket: TicketForChallenge,
+  issuerId: string,
   challengeReason: string,
   customReason: string | undefined,
   challengeId: string | null, // null for dry runs
@@ -303,11 +361,33 @@ async function runBuiltInAutomation(
   const storageId = dryRun ? generateDryRunId() : challengeId!;
 
   try {
-    const { challenge } = await getAutomation();
-    const result = await challenge(pcnNumber, challengeReason, customReason, {
-      dryRun,
+    // Build user address with fallback defaults
+    const userAddress: Address = {
+      line1: ticket.vehicle.user.address?.line1 || '',
+      line2: ticket.vehicle.user.address?.line2 || undefined,
+      city: ticket.vehicle.user.address?.city || undefined,
+      postcode: ticket.vehicle.user.address?.postcode || '',
+      country: ticket.vehicle.user.address?.country || 'United Kingdom',
+    };
+
+    const result = await runChallenge({
+      issuerId,
+      pcnNumber: ticket.pcnNumber,
+      vehicleReg: ticket.vehicle.registrationNumber,
+      vehicleMake: ticket.vehicle.make || undefined,
+      vehicleModel: ticket.vehicle.model || undefined,
+      challengeReason,
+      additionalDetails: customReason,
+      ticketId: ticket.id,
       challengeId: storageId,
-      recordVideo: true, // Always record for audit trail
+      user: {
+        id: ticket.vehicle.user.id,
+        name: ticket.vehicle.user.name || 'Unknown',
+        email: ticket.vehicle.user.email,
+        phoneNumber: ticket.vehicle.user.phoneNumber || undefined,
+        address: userAddress,
+      },
+      dryRun,
     });
 
     if (result && result.success) {
@@ -338,6 +418,7 @@ async function runBuiltInAutomation(
             challengeText: result.challengeText,
             screenshotUrls: result.screenshotUrls || [],
             videoUrl: result.videoUrl,
+            referenceNumber: result.referenceNumber,
           },
         },
       });
@@ -352,7 +433,7 @@ async function runBuiltInAutomation(
       };
     }
 
-    throw new Error('Challenge submission failed');
+    throw new Error(result.error || 'Challenge submission failed');
   } catch (error) {
     // Only update DB if this is a real run (not dry run)
     if (!dryRun && challengeId) {
