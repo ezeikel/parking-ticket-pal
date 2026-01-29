@@ -57,11 +57,13 @@ const getDeadlineDays = (issuedAt: Date): number => {
  * IMPORTANT: initialAmount is stored as the DISCOUNTED (50%) amount from the ticket.
  * - Within 14 days: user pays the discounted amount (initialAmount)
  * - After 14 days: user pays the full amount (initialAmount * 2)
- * - Enforcement stages: user pays 150% of full amount (initialAmount * 3)
+ *
+ * For amounts beyond full charge (enforcement, etc.), we rely on AmountIncrease
+ * records from user input or live portal checks.
  */
 const getCurrentAmount = (
   initialAmount: number,
-  status: TicketStatus,
+  _status: TicketStatus,
   issuedAt: Date,
 ): number => {
   const deadlineDays = getDeadlineDays(issuedAt);
@@ -69,15 +71,6 @@ const getCurrentAmount = (
   // If within discount period, return discounted amount as-is
   if (deadlineDays > 0) {
     return initialAmount;
-  }
-
-  // If past discount period, check status for enforcement stages
-  if (
-    status === TicketStatus.ORDER_FOR_RECOVERY ||
-    status === TicketStatus.ENFORCEMENT_BAILIFF_STAGE ||
-    status === TicketStatus.CCJ_ISSUED
-  ) {
-    return Math.round(initialAmount * 3); // 150% of full = 3x discounted
   }
 
   // Past discount period - return full amount (2x discounted)
