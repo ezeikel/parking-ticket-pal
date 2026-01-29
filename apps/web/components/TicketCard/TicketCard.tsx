@@ -20,7 +20,8 @@ import {
   faMapMarkerAlt,
 } from '@fortawesome/pro-regular-svg-icons';
 import { Prisma, TicketStatus } from '@parking-ticket-pal/db/types';
-import { formatDateWithDueStatus, calculateAmountDue } from '@/utils/dates';
+import { formatDateWithDueStatus, getAmountStatus } from '@/utils/dates';
+import { getDisplayAmount } from '@/utils/getCurrentAmountDue';
 import AmountDue from '@/components/AmountDue/AmountDue';
 import DueDate from '@/components/DueDate/DueDate';
 import getIssuerInitials from '@/utils/getIssuerInitials';
@@ -32,6 +33,12 @@ type TicketCardProps = {
     include: {
       vehicle: true;
       prediction: true;
+      amountIncreases: {
+        select: {
+          amount: true;
+          effectiveAt: true;
+        };
+      };
     };
   }>;
 };
@@ -74,17 +81,16 @@ const TicketCard = ({ ticket }: TicketCardProps) => {
   };
 
   // Get formatted date and due date info
-  const issuedDateInfo = formatDateWithDueStatus(
+  const issuedAtString =
     typeof ticket.issuedAt === 'string'
       ? ticket.issuedAt
-      : ticket.issuedAt.toISOString(),
-  );
-  const amountInfo = calculateAmountDue(
-    ticket.initialAmount,
-    typeof ticket.issuedAt === 'string'
-      ? ticket.issuedAt
-      : ticket.issuedAt.toISOString(),
-  );
+      : ticket.issuedAt.toISOString();
+  const issuedDateInfo = formatDateWithDueStatus(issuedAtString);
+
+  // Get the current amount due (uses AmountIncrease if available, falls back to calculation)
+  const currentAmount = getDisplayAmount(ticket);
+  const amountStatus = getAmountStatus(issuedAtString);
+
   const statusInfo = getStatusInfo(ticket.status as TicketStatus);
 
   return (
@@ -153,9 +159,9 @@ const TicketCard = ({ ticket }: TicketCardProps) => {
               className="h-4 w-4 text-muted-foreground"
             />
             <AmountDue
-              amount={amountInfo.amount}
+              amount={currentAmount}
               showMessage={false}
-              status={amountInfo.status as 'discount' | 'standard' | 'overdue'}
+              status={amountStatus.status}
               compact
             />
           </div>

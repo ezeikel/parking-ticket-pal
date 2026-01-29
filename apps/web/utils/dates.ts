@@ -151,3 +151,40 @@ export const calculateAmountDue = (
     status: 'overdue',
   };
 };
+
+/**
+ * Get just the amount status based on days since issue date.
+ * Use this when you already have the amount calculated elsewhere (e.g., from AmountIncrease records).
+ * @param issuedAtString ISO date string when the ticket was issued
+ * @returns { status: 'discount' | 'standard' | 'overdue', message: string }
+ */
+export const getAmountStatus = (issuedAtString: string) => {
+  const issuedAt = parseISO(issuedAtString);
+  const today = new Date();
+  const daysSinceIssue = differenceInDays(today, issuedAt);
+
+  // Discount period: First 14 days
+  const discountPeriodDays = 14;
+  const standardPeriodDays = 28;
+
+  if (daysSinceIssue <= discountPeriodDays) {
+    const daysRemaining = discountPeriodDays - daysSinceIssue;
+    return {
+      status: 'discount' as const,
+      message:
+        daysRemaining > 0
+          ? `Discount price for ${daysRemaining} more ${daysRemaining === 1 ? 'day' : 'days'}`
+          : 'Last day for discount price',
+    };
+  }
+  if (daysSinceIssue <= standardPeriodDays) {
+    return {
+      status: 'standard' as const,
+      message: 'Standard charge (discount expired)',
+    };
+  }
+  return {
+    status: 'overdue' as const,
+    message: 'May be subject to further penalties',
+  };
+};

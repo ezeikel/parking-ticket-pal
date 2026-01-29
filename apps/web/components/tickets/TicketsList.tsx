@@ -33,11 +33,18 @@ import type {
   SubscriptionType,
   IssuerType,
 } from '@parking-ticket-pal/db/types';
+import { getDisplayAmount } from '@/utils/getCurrentAmountDue';
 
 type TicketWithRelations = Prisma.TicketGetPayload<{
   include: {
     vehicle: true;
     prediction: true;
+    amountIncreases: {
+      select: {
+        amount: true;
+        effectiveAt: true;
+      };
+    };
   };
 }>;
 
@@ -423,7 +430,7 @@ const TicketsList = ({
                         className="w-4 text-center text-xs text-gray"
                       />
                       <span className="font-semibold text-dark">
-                        {formatAmount(ticket.initialAmount)}
+                        {formatAmount(getDisplayAmount(ticket))}
                       </span>
                     </div>
                     <div className="flex items-center gap-2 text-gray">

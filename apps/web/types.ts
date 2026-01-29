@@ -169,6 +169,12 @@ export type TicketWithRelations = Prisma.TicketGetPayload<{
         metadata: true;
       };
     };
+    amountIncreases: {
+      select: {
+        amount: true;
+        effectiveAt: true;
+      };
+    };
   };
 }>;
 

@@ -18,6 +18,12 @@ type TicketsContainerProps = {
     include: {
       vehicle: true;
       prediction: true;
+      amountIncreases: {
+        select: {
+          amount: true;
+          effectiveAt: true;
+        };
+      };
     };
   }>[];
 };

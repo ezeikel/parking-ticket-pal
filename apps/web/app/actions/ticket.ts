@@ -635,6 +635,14 @@ export const getTickets = async (params?: {
         },
       },
       prediction: true,
+      amountIncreases: {
+        orderBy: { effectiveAt: 'desc' },
+        take: 1,
+        select: {
+          amount: true,
+          effectiveAt: true,
+        },
+      },
     },
     orderBy,
   });
@@ -738,6 +746,14 @@ export const getTicket = async (id: string) => {
           status: true,
           verifiedAt: true,
           metadata: true,
+        },
+      },
+      amountIncreases: {
+        orderBy: { effectiveAt: 'desc' },
+        take: 1,
+        select: {
+          amount: true,
+          effectiveAt: true,
         },
       },
     },

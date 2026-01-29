@@ -19,6 +19,12 @@ type TicketWithRelations = Prisma.TicketGetPayload<{
   include: {
     vehicle: true;
     prediction: true;
+    amountIncreases: {
+      select: {
+        amount: true;
+        effectiveAt: true;
+      };
+    };
   };
 }>;
 

@@ -36,6 +36,7 @@ import AddressPromptBanner from '@/components/AddressPromptBanner/AddressPromptB
 import AutoChallengeStatusCard from './AutoChallengeStatusCard';
 import LiveStatusCard from './LiveStatusCard';
 import { ChallengeStatus } from '@parking-ticket-pal/db';
+import { getDisplayAmount } from '@/utils/getCurrentAmountDue';
 
 type TicketDetailPageProps = {
   ticket: TicketWithRelations;
@@ -51,31 +52,6 @@ const getDeadlineDays = (issuedAt: Date): number => {
   );
 };
 
-/**
- * Calculate current amount due
- *
- * IMPORTANT: initialAmount is stored as the DISCOUNTED (50%) amount from the ticket.
- * - Within 14 days: user pays the discounted amount (initialAmount)
- * - After 14 days: user pays the full amount (initialAmount * 2)
- *
- * For amounts beyond full charge (enforcement, etc.), we rely on AmountIncrease
- * records from user input or live portal checks.
- */
-const getCurrentAmount = (
-  initialAmount: number,
-  _status: TicketStatus,
-  issuedAt: Date,
-): number => {
-  const deadlineDays = getDeadlineDays(issuedAt);
-
-  // If within discount period, return discounted amount as-is
-  if (deadlineDays > 0) {
-    return initialAmount;
-  }
-
-  // Past discount period - return full amount (2x discounted)
-  return Math.round(initialAmount * 2);
-};
 
 const TicketDetailPage = ({ ticket }: TicketDetailPageProps) => {
   const router = useRouter();
@@ -146,11 +122,8 @@ const TicketDetailPage = ({ ticket }: TicketDetailPageProps) => {
   ].sort((a, b) => b.date.getTime() - a.date.getTime());
 
   // Calculate amounts and deadlines
-  const currentAmount = getCurrentAmount(
-    ticket.initialAmount,
-    ticket.status,
-    ticket.issuedAt,
-  );
+  // Uses AmountIncrease records if available, otherwise falls back to standard calculation
+  const currentAmount = getDisplayAmount(ticket);
   const deadlineDays = getDeadlineDays(ticket.issuedAt);
   const discountDeadline = new Date(ticket.issuedAt);
   discountDeadline.setDate(discountDeadline.getDate() + 14);

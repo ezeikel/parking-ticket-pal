@@ -7,6 +7,7 @@ import {
 import { getTickets } from '@/app/actions/ticket';
 import { getUserSubscriptionStatus } from '@/app/actions/user';
 import { getUserId } from '@/utils/user';
+import { getDisplayAmount } from '@/utils/getCurrentAmountDue';
 import DashboardTicketsSectionClient from './DashboardTicketsSectionClient';
 
 type TicketWithRelations = Prisma.TicketGetPayload<{
@@ -14,6 +15,12 @@ type TicketWithRelations = Prisma.TicketGetPayload<{
     vehicle: true;
     media: { select: { url: true } };
     prediction: true;
+    amountIncreases: {
+      select: {
+        amount: true;
+        effectiveAt: true;
+      };
+    };
   };
 }>;
 
@@ -99,7 +106,7 @@ const DashboardTicketsSection = async () => {
       issuer: ticket.issuer || 'Unknown Issuer',
       issuerType: ticket.issuerType as IssuerType,
       status: mapTicketStatus(ticket.status),
-      amount: ticket.initialAmount,
+      amount: getDisplayAmount(ticket),
       location: location?.line1 || 'Location not specified',
       issuedAt: ticket.issuedAt.toISOString(),
       deadlineDays,
