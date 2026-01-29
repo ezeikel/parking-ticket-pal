@@ -806,22 +806,114 @@ export type CheckStatusParams = {
 };
 
 /**
+ * Response when starting an async status check
+ */
+export type StatusJobResponse = {
+  jobId: string;
+  status: 'running';
+  message: string;
+};
+
+/**
+ * Response when polling for status check result
+ */
+export type StatusJobPollResponse = {
+  jobId: string;
+  status: 'running' | 'completed' | 'failed';
+  progress?: {
+    step: string;
+    stepNumber: number;
+    totalSteps: number;
+    message: string;
+  };
+  result?: LiveStatusResult;
+};
+
+/**
+ * Start a live status check job (async).
+ * Returns immediately with a jobId that can be polled.
+ */
+export async function startStatusCheck(
+  params: CheckStatusParams,
+): Promise<StatusJobResponse> {
+  const { baseUrl, secret } = getConfig();
+
+  logger.info('Starting live status check job', {
+    ticketId: params.ticketId,
+    pcnNumber: params.pcnNumber,
+    issuerId: params.issuerId,
+  });
+
+  const response = await fetch(`${baseUrl}/automation/status`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${secret}`,
+    },
+    body: JSON.stringify({
+      pcnNumber: params.pcnNumber,
+      vehicleReg: params.vehicleReg,
+      ticketId: params.ticketId,
+      issuerId: params.issuerId,
+      portalUrl: params.portalUrl,
+    }),
+  });
+
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({ error: 'Unknown error' }));
+    throw new Error(error.error || `HTTP ${response.status}`);
+  }
+
+  return response.json();
+}
+
+/**
+ * Poll for status check job result
+ */
+export async function pollStatusCheck(
+  jobId: string,
+): Promise<StatusJobPollResponse> {
+  const { baseUrl, secret } = getConfig();
+
+  const response = await fetch(`${baseUrl}/automation/status/job/${jobId}`, {
+    method: 'GET',
+    headers: {
+      Authorization: `Bearer ${secret}`,
+    },
+  });
+
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({ error: 'Unknown error' }));
+    throw new Error(error.error || `HTTP ${response.status}`);
+  }
+
+  return response.json();
+}
+
+/**
  * Check the live status of a ticket on the council portal.
- * Uses agentic browser automation to navigate and extract status.
+ * Uses async polling to avoid Vercel timeout.
+ *
+ * @param params - Check parameters
+ * @param pollIntervalMs - How often to poll (default 3000ms)
+ * @param maxWaitMs - Maximum time to wait (default 180000ms = 3 minutes)
  */
 export async function checkLiveStatus(
   params: CheckStatusParams,
+  pollIntervalMs = 3000,
+  maxWaitMs = 180000,
 ): Promise<LiveStatusResult> {
   try {
     const { baseUrl, secret } = getConfig();
 
-    logger.info('Checking live ticket status', {
+    logger.info('Checking live ticket status (async)', {
       ticketId: params.ticketId,
       pcnNumber: params.pcnNumber,
       issuerId: params.issuerId,
     });
 
-    const response = await fetch(`${baseUrl}/automation/status`, {
+    // Start the job
+    const startResponse = await fetch(`${baseUrl}/automation/status`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -836,13 +928,13 @@ export async function checkLiveStatus(
       }),
     });
 
-    if (!response.ok) {
-      const error = await response
+    if (!startResponse.ok) {
+      const error = await startResponse
         .json()
         .catch(() => ({ error: 'Unknown error' }));
-      logger.error('Live status check failed', {
+      logger.error('Failed to start status check job', {
         ticketId: params.ticketId,
-        status: response.status,
+        status: startResponse.status,
         error,
       });
 
@@ -855,19 +947,88 @@ export async function checkLiveStatus(
         canPay: false,
         screenshotUrl: '',
         checkedAt: new Date().toISOString(),
-        error: error.error || error.message || `HTTP ${response.status}`,
+        error: error.error || error.message || `HTTP ${startResponse.status}`,
       };
     }
 
-    const result: LiveStatusResult = await response.json();
-    logger.info('Live status check completed', {
+    const { jobId } = (await startResponse.json()) as StatusJobResponse;
+    logger.info('Status check job started', { ticketId: params.ticketId, jobId });
+
+    // Poll for result
+    const startTime = Date.now();
+    while (Date.now() - startTime < maxWaitMs) {
+      await new Promise((resolve) => setTimeout(resolve, pollIntervalMs));
+
+      const pollResponse = await fetch(
+        `${baseUrl}/automation/status/job/${jobId}`,
+        {
+          method: 'GET',
+          headers: {
+            Authorization: `Bearer ${secret}`,
+          },
+        },
+      );
+
+      if (!pollResponse.ok) {
+        logger.warn('Poll request failed', {
+          jobId,
+          status: pollResponse.status,
+        });
+        continue; // Retry
+      }
+
+      const pollResult = (await pollResponse.json()) as StatusJobPollResponse;
+
+      if (pollResult.status === 'completed' || pollResult.status === 'failed') {
+        logger.info('Status check job completed', {
+          ticketId: params.ticketId,
+          jobId,
+          status: pollResult.status,
+        });
+
+        if (pollResult.result) {
+          return pollResult.result;
+        }
+
+        // No result but job completed - treat as failure
+        return {
+          success: false,
+          portalStatus: '',
+          mappedStatus: null,
+          outstandingAmount: 0,
+          canChallenge: false,
+          canPay: false,
+          screenshotUrl: '',
+          checkedAt: new Date().toISOString(),
+          error: 'Job completed but no result returned',
+        };
+      }
+
+      // Still running, continue polling
+      logger.debug('Status check still running', {
+        jobId,
+        progress: pollResult.progress,
+      });
+    }
+
+    // Timeout
+    logger.error('Status check timed out', {
       ticketId: params.ticketId,
-      success: result.success,
-      mappedStatus: result.mappedStatus,
-      canChallenge: result.canChallenge,
+      jobId,
+      maxWaitMs,
     });
 
-    return result;
+    return {
+      success: false,
+      portalStatus: '',
+      mappedStatus: null,
+      outstandingAmount: 0,
+      canChallenge: false,
+      canPay: false,
+      screenshotUrl: '',
+      checkedAt: new Date().toISOString(),
+      error: 'Status check timed out',
+    };
   } catch (error) {
     logger.error(
       'Failed to check live status',

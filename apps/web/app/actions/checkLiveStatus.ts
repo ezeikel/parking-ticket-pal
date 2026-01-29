@@ -3,14 +3,13 @@
 import { revalidatePath } from 'next/cache';
 import {
   db,
-  TicketStatus,
   TicketTier,
   VerificationStatus,
 } from '@parking-ticket-pal/db';
 import { getUserId } from '@/utils/user';
 import { createServerLogger } from '@/lib/logger';
 import {
-  checkLiveStatus as checkLiveStatusWorker,
+  startStatusCheck,
   type TicketStatusValue,
 } from '@/utils/automation/workerClient';
 import { findIssuer } from '@/constants/index';
@@ -19,6 +18,7 @@ const logger = createServerLogger({ action: 'checkLiveStatus' });
 
 export type LiveStatusCheckResult = {
   success: boolean;
+  jobId?: string; // Job ID for polling
   status?: {
     portalStatus: string;
     mappedStatus: TicketStatusValue | null;
@@ -103,167 +103,57 @@ export async function checkLiveStatus(
     const issuerId =
       issuer?.id || ticket.issuer.toLowerCase().replace(/\s+/g, '-');
 
-    logger.info('Checking live status', {
+    logger.info('Starting live status check', {
       ticketId,
       pcnNumber: ticket.pcnNumber,
       issuerId,
     });
 
-    // Call the worker to check live status
+    // Start the job - returns immediately with jobId
     // Note: Don't pass portalUrl here - the worker has the correct portal URLs
     // configured for each issuer. The websiteUrl in constants is the general
     // council website, not the PCN portal URL.
-    const result = await checkLiveStatusWorker({
+    const { jobId } = await startStatusCheck({
       ticketId,
       pcnNumber: ticket.pcnNumber,
       vehicleReg: ticket.vehicle.registrationNumber,
       issuerId,
     });
 
-    if (!result.success) {
-      logger.error('Live status check failed', {
-        ticketId,
-        error: result.error,
-        errorMessage: result.errorMessage,
-        screenshotUrl: result.screenshotUrl,
-      });
+    logger.info('Status check job started', { ticketId, jobId });
 
-      // Store the failed verification result so UI can show it on page refresh
-      await db.verification.upsert({
-        where: { ticketId },
-        create: {
-          type: 'TICKET',
-          ticketId,
-          status: VerificationStatus.FAILED,
-          verifiedAt: new Date(),
-          metadata: {
-            error: result.error,
-            errorMessage: result.errorMessage,
-            screenshotUrl: result.screenshotUrl,
-            checkedAt: result.checkedAt || new Date().toISOString(),
-            // Include any partial data we got
-            portalStatus: result.portalStatus || '',
-            outstandingAmount: result.outstandingAmount || 0,
-            canChallenge: false,
-            canPay: false,
-          },
-        },
-        update: {
-          status: VerificationStatus.FAILED,
-          verifiedAt: new Date(),
-          metadata: {
-            error: result.error,
-            errorMessage: result.errorMessage,
-            screenshotUrl: result.screenshotUrl,
-            checkedAt: result.checkedAt || new Date().toISOString(),
-            portalStatus: result.portalStatus || '',
-            outstandingAmount: result.outstandingAmount || 0,
-            canChallenge: false,
-            canPay: false,
-          },
-        },
-      });
-
-      revalidatePath('/tickets/[id]', 'page');
-
-      return {
-        success: false,
-        statusUpdated: false,
-        error: result.error || 'Failed to check status on council portal.',
-        errorCode: result.error, // e.g., 'PCN_NOT_FOUND'
-        errorMessage: result.errorMessage, // e.g., 'We cannot match a case...'
-        // Include screenshot even on failure for debugging
-        errorScreenshotUrl: result.screenshotUrl || undefined,
-      };
-    }
-
-    // Store verification result
+    // Store the pending verification with jobId so we can poll later
     await db.verification.upsert({
       where: { ticketId },
       create: {
         type: 'TICKET',
         ticketId,
-        status: VerificationStatus.VERIFIED,
+        status: VerificationStatus.UNVERIFIED, // UNVERIFIED = pending job
         verifiedAt: new Date(),
         metadata: {
-          portalStatus: result.portalStatus,
-          mappedStatus: result.mappedStatus,
-          outstandingAmount: result.outstandingAmount,
-          canChallenge: result.canChallenge,
-          canPay: result.canPay,
-          paymentDeadline: result.paymentDeadline,
-          screenshotUrl: result.screenshotUrl,
-          checkedAt: result.checkedAt,
+          jobId,
+          checkedAt: new Date().toISOString(),
+          issuerId,
         },
       },
       update: {
-        status: VerificationStatus.VERIFIED,
+        status: VerificationStatus.UNVERIFIED, // UNVERIFIED = pending job
         verifiedAt: new Date(),
         metadata: {
-          portalStatus: result.portalStatus,
-          mappedStatus: result.mappedStatus,
-          outstandingAmount: result.outstandingAmount,
-          canChallenge: result.canChallenge,
-          canPay: result.canPay,
-          paymentDeadline: result.paymentDeadline,
-          screenshotUrl: result.screenshotUrl,
-          checkedAt: result.checkedAt,
+          jobId,
+          checkedAt: new Date().toISOString(),
+          issuerId,
         },
       },
     });
 
-    // Check if we should update the ticket status
-    let statusUpdated = false;
-    const previousStatus = ticket.status;
-
-    if (result.mappedStatus && result.mappedStatus !== ticket.status) {
-      // Map the string status to the enum
-      const newStatus = result.mappedStatus as TicketStatus;
-
-      // Only update if the new status is a "terminal" status or indicates progression
-      const terminalStatuses: TicketStatus[] = [
-        TicketStatus.PAID,
-        TicketStatus.CANCELLED,
-        TicketStatus.REPRESENTATION_ACCEPTED,
-        TicketStatus.CHARGE_CERTIFICATE,
-        TicketStatus.ENFORCEMENT_BAILIFF_STAGE,
-      ];
-
-      if (terminalStatuses.includes(newStatus)) {
-        await db.ticket.update({
-          where: { id: ticketId },
-          data: {
-            status: newStatus,
-            statusUpdatedAt: new Date(),
-            statusUpdatedBy: 'LIVE_STATUS_CHECK',
-          },
-        });
-        statusUpdated = true;
-
-        logger.info('Ticket status updated from live check', {
-          ticketId,
-          previousStatus,
-          newStatus,
-        });
-      }
-    }
-
     revalidatePath('/tickets/[id]', 'page');
 
+    // Return immediately - frontend will poll for result
     return {
       success: true,
-      status: {
-        portalStatus: result.portalStatus,
-        mappedStatus: result.mappedStatus,
-        outstandingAmount: result.outstandingAmount,
-        canChallenge: result.canChallenge,
-        canPay: result.canPay,
-        screenshotUrl: result.screenshotUrl,
-        checkedAt: result.checkedAt,
-      },
-      statusUpdated,
-      previousStatus: statusUpdated ? previousStatus : undefined,
-      newStatus: statusUpdated ? result.mappedStatus ?? undefined : undefined,
+      jobId,
+      statusUpdated: false,
     };
   } catch (error) {
     logger.error(

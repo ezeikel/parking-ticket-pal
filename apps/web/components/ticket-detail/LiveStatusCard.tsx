@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useTransition } from 'react';
+import { useState, useTransition, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
@@ -19,6 +19,28 @@ import { checkLiveStatus } from '@/app/actions/checkLiveStatus';
 // Use string literal type instead of importing from db package (Prisma can't run in browser)
 type TicketTier = 'FREE' | 'STANDARD' | 'PREMIUM';
 import { toast } from 'sonner';
+
+type PollResponse = {
+  status: 'running' | 'completed' | 'failed' | 'no_job' | 'unknown';
+  progress?: {
+    step: string;
+    stepNumber: number;
+    totalSteps: number;
+    message: string;
+  };
+  result?: {
+    portalStatus?: string;
+    mappedStatus?: string | null;
+    outstandingAmount?: number;
+    canChallenge?: boolean;
+    canPay?: boolean;
+    screenshotUrl?: string;
+    checkedAt?: string;
+    error?: string;
+    errorMessage?: string;
+  };
+  error?: string;
+};
 
 type LiveStatusCardProps = {
   ticketId: string;
@@ -155,60 +177,144 @@ export default function LiveStatusCard({
   tier,
   issuer,
   lastCheck,
-  onStatusChange,
+  onStatusChange: _onStatusChange,
   onViewScreenshot,
 }: LiveStatusCardProps) {
   const [isPending, startTransition] = useTransition();
+  const [isPolling, setIsPolling] = useState(false);
   const [currentStatus, setCurrentStatus] = useState(lastCheck);
+  const [progressMessage, setProgressMessage] = useState<string | null>(null);
 
   const isPremium = tier === 'PREMIUM';
+
+  // Poll for status check result
+  const pollForResult = useCallback(async () => {
+    const pollInterval = 3000; // 3 seconds
+    const maxAttempts = 60; // 3 minutes max
+    let attempts = 0;
+
+    setIsPolling(true);
+    setProgressMessage('Starting status check...');
+
+    while (attempts < maxAttempts) {
+      try {
+        const response = await fetch(`/api/tickets/${ticketId}/live-status`);
+        const data: PollResponse = await response.json();
+
+        if (data.status === 'running') {
+          setProgressMessage(data.progress?.message || 'Checking portal...');
+          attempts++;
+          await new Promise((resolve) => setTimeout(resolve, pollInterval));
+          continue;
+        }
+
+        if (data.status === 'completed' && data.result) {
+          setCurrentStatus({
+            portalStatus: data.result.portalStatus || '',
+            mappedStatus: data.result.mappedStatus || null,
+            outstandingAmount: data.result.outstandingAmount || 0,
+            canChallenge: data.result.canChallenge || false,
+            canPay: data.result.canPay || false,
+            screenshotUrl: data.result.screenshotUrl,
+            checkedAt: data.result.checkedAt || new Date().toISOString(),
+          });
+          toast.success('Status checked', {
+            description: data.result.portalStatus || 'Status retrieved successfully',
+          });
+          break;
+        }
+
+        if (data.status === 'failed') {
+          const errorMessage = data.result?.error === 'PCN_NOT_FOUND'
+            ? 'PCN not found on portal - it may have been removed from the system'
+            : data.result?.errorMessage || data.error || 'Could not check status on portal';
+
+          toast.error('Status check failed', {
+            description: errorMessage,
+          });
+
+          if (data.result?.screenshotUrl) {
+            setCurrentStatus({
+              portalStatus: data.result.errorMessage || 'Check failed - see screenshot',
+              mappedStatus: null,
+              outstandingAmount: 0,
+              canChallenge: false,
+              canPay: false,
+              screenshotUrl: data.result.screenshotUrl,
+              checkedAt: new Date().toISOString(),
+            });
+          }
+          break;
+        }
+
+        // Unknown status - try again
+        attempts++;
+        await new Promise((resolve) => setTimeout(resolve, pollInterval));
+      } catch (error) {
+        console.error('Poll error:', error);
+        attempts++;
+        await new Promise((resolve) => setTimeout(resolve, pollInterval));
+      }
+    }
+
+    if (attempts >= maxAttempts) {
+      toast.error('Status check timed out', {
+        description: 'The check is taking longer than expected. Please try again.',
+      });
+    }
+
+    setIsPolling(false);
+    setProgressMessage(null);
+  }, [ticketId]);
 
   const handleCheckStatus = () => {
     startTransition(async () => {
       const result = await checkLiveStatus(ticketId);
 
-      if (result.success && result.status) {
+      if (result.success && result.jobId) {
+        // Job started - poll for result
+        pollForResult();
+      } else if (result.success && result.status) {
+        // Sync result (shouldn't happen with new async flow, but handle it)
         setCurrentStatus(result.status);
-
-        if (result.statusUpdated && result.newStatus) {
-          toast.success('Ticket status updated', {
-            description: `Status changed from ${result.previousStatus} to ${result.newStatus}`,
-          });
-          onStatusChange?.(result.newStatus);
-        } else {
-          toast.success('Status checked', {
-            description: result.status.portalStatus || 'No changes detected',
-          });
-        }
+        toast.success('Status checked', {
+          description: result.status.portalStatus || 'No changes detected',
+        });
       } else {
-        // Determine error message based on error type
+        // Error starting job
         const errorMessage = result.errorCode === 'PCN_NOT_FOUND'
           ? 'PCN not found on portal - it may have been removed from the system'
-          : result.error || 'Could not check status on portal';
+          : result.error || 'Could not start status check';
 
         toast.error('Status check failed', {
           description: errorMessage,
         });
-
-        // Still show the error screenshot if captured (useful for debugging)
-        if (result.errorScreenshotUrl) {
-          setCurrentStatus((prev) =>
-            prev
-              ? { ...prev, screenshotUrl: result.errorScreenshotUrl!, checkedAt: new Date().toISOString(), portalStatus: result.errorMessage || 'Check failed - see screenshot' }
-              : {
-                  portalStatus: result.errorMessage || 'Check failed - see screenshot',
-                  mappedStatus: null,
-                  outstandingAmount: 0,
-                  canChallenge: false,
-                  canPay: false,
-                  screenshotUrl: result.errorScreenshotUrl!,
-                  checkedAt: new Date().toISOString(),
-                }
-          );
-        }
       }
     });
   };
+
+  // Check if there's a pending job on mount
+  useEffect(() => {
+    const checkPendingJob = async () => {
+      try {
+        const response = await fetch(`/api/tickets/${ticketId}/live-status`);
+        const data: PollResponse = await response.json();
+
+        if (data.status === 'running') {
+          // There's a job in progress - start polling
+          pollForResult();
+        }
+      } catch (error) {
+        console.error('Error checking pending job:', error);
+      }
+    };
+
+    if (isPremium) {
+      checkPendingJob();
+    }
+  }, [ticketId, isPremium, pollForResult]);
+
+  const isLoading = isPending || isPolling;
 
   // Not premium - show locked state
   if (!isPremium) {
@@ -320,15 +426,15 @@ export default function LiveStatusCard({
               variant="outline"
               size="sm"
               onClick={handleCheckStatus}
-              disabled={isPending}
+              disabled={isLoading}
             >
-              {isPending ? (
+              {isLoading ? (
                 <>
                   <FontAwesomeIcon
                     icon={faSpinnerThird}
                     className="mr-1.5 h-3 w-3 animate-spin"
                   />
-                  Checking...
+                  {progressMessage || 'Checking...'}
                 </>
               ) : (
                 <>
@@ -354,16 +460,16 @@ export default function LiveStatusCard({
             variant="default"
             size="sm"
             onClick={handleCheckStatus}
-            disabled={isPending}
+            disabled={isLoading}
             className="w-full"
           >
-            {isPending ? (
+            {isLoading ? (
               <>
                 <FontAwesomeIcon
                   icon={faSpinnerThird}
                   className="mr-2 h-4 w-4 animate-spin"
                 />
-                Checking Portal...
+                {progressMessage || 'Checking Portal...'}
               </>
             ) : (
               <>
