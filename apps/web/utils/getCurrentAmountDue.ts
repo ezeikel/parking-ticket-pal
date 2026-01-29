@@ -23,6 +23,12 @@ type Ticket = {
 
 /**
  * Calculate the standard amount due based on ticket status and days since issued
+ *
+ * IMPORTANT: initialAmount is stored as the DISCOUNTED (50%) amount from the ticket.
+ * - Within 14 days: user pays the discounted amount (initialAmount)
+ * - After 14 days: user pays the full amount (initialAmount * 2)
+ * - Enforcement stages: user pays 150% of full amount (initialAmount * 3)
+ *
  * @param ticket The ticket object
  * @returns The standard amount due in pence
  */
@@ -35,22 +41,23 @@ const calculateStandardAmount = (ticket: Ticket): number => {
   // During discount period (first 14 days from issue date)
   // Use date as source of truth, not status - status might not be updated
   if (daysSinceIssued <= 14) {
-    return Math.floor(initialAmount * 0.5); // 50% of full amount
+    return initialAmount; // Return discounted amount as-is
   }
 
-  // For more advanced stages, apply standard multipliers
+  // After discount period, calculate based on status
+  // Base multiplier is 2x (full amount = 2x discounted amount)
   const stageMultipliers: Partial<Record<TicketStatus, number>> = {
-    [TicketStatus.ISSUED_FULL_CHARGE]: 1.0,
-    [TicketStatus.NOTICE_TO_OWNER]: 1.0,
-    [TicketStatus.FORMAL_REPRESENTATION]: 1.0,
-    [TicketStatus.NOTICE_OF_REJECTION]: 1.0,
-    [TicketStatus.CHARGE_CERTIFICATE]: 1.0,
-    [TicketStatus.ORDER_FOR_RECOVERY]: 1.5, // Usually 50% more than full amount
-    [TicketStatus.ENFORCEMENT_BAILIFF_STAGE]: 1.5,
-    [TicketStatus.CCJ_ISSUED]: 1.5,
+    [TicketStatus.ISSUED_FULL_CHARGE]: 2.0, // Full amount
+    [TicketStatus.NOTICE_TO_OWNER]: 2.0,
+    [TicketStatus.FORMAL_REPRESENTATION]: 2.0,
+    [TicketStatus.NOTICE_OF_REJECTION]: 2.0,
+    [TicketStatus.CHARGE_CERTIFICATE]: 2.0,
+    [TicketStatus.ORDER_FOR_RECOVERY]: 3.0, // 150% of full = 3x discounted
+    [TicketStatus.ENFORCEMENT_BAILIFF_STAGE]: 3.0,
+    [TicketStatus.CCJ_ISSUED]: 3.0,
   };
 
-  const multiplier = stageMultipliers[status] ?? 1.0;
+  const multiplier = stageMultipliers[status] ?? 2.0; // Default to full amount after discount
   return Math.floor(initialAmount * multiplier);
 };
 
