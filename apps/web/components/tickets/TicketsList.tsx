@@ -490,86 +490,89 @@ const TicketsList = ({
                       </div>
                     )}
 
-                  {/* Bottom Row - Score and Actions */}
-                  <div className="mt-4 flex items-center justify-between border-t border-border pt-4">
-                    {/* Score - hidden for terminal statuses */}
-                    {!isTerminalStatus(ticket.status) ? (
-                      <div className="flex items-center gap-2">
-                        <ScoreGauge
-                          score={ticket.prediction?.percentage ?? 50}
-                          size="sm"
-                          showLabel={false}
-                          animated
-                          delay={index * 0.03 + 0.1}
-                          locked={scoreLocked}
-                        />
-                        {!scoreLocked ? (
-                          <span className="text-xs text-gray">
-                            Success chance
-                          </span>
-                        ) : (
-                          <button
-                            type="button"
-                            onClick={(e) => {
-                              e.preventDefault();
-                              e.stopPropagation();
-                              // TODO: Open upgrade modal
-                            }}
-                            className="flex items-center gap-1.5 rounded-full bg-teal/10 px-2.5 py-1 text-xs font-medium text-teal transition-colors hover:bg-teal/20"
-                          >
-                            <FontAwesomeIcon
-                              icon={faUnlock}
-                              className="text-[10px]"
-                            />
-                            Unlock score
-                          </button>
-                        )}
-                      </div>
-                    ) : (
-                      <div />
-                    )}
+                  {/* Bottom Row - Score and Actions - hide for terminal statuses with no action needed */}
+                  {(!isTerminalStatus(ticket.status) ||
+                    needsAction(ticket.status)) && (
+                    <div className="mt-4 flex items-center justify-between border-t border-border pt-4">
+                      {/* Score - hidden for terminal statuses */}
+                      {!isTerminalStatus(ticket.status) ? (
+                        <div className="flex items-center gap-2">
+                          <ScoreGauge
+                            score={ticket.prediction?.percentage ?? 50}
+                            size="sm"
+                            showLabel={false}
+                            animated
+                            delay={index * 0.03 + 0.1}
+                            locked={scoreLocked}
+                          />
+                          {!scoreLocked ? (
+                            <span className="text-xs text-gray">
+                              Success chance
+                            </span>
+                          ) : (
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                // TODO: Open upgrade modal
+                              }}
+                              className="flex items-center gap-1.5 rounded-full bg-teal/10 px-2.5 py-1 text-xs font-medium text-teal transition-colors hover:bg-teal/20"
+                            >
+                              <FontAwesomeIcon
+                                icon={faUnlock}
+                                className="text-[10px]"
+                              />
+                              Unlock score
+                            </button>
+                          )}
+                        </div>
+                      ) : (
+                        <div />
+                      )}
 
-                    {needsAction(ticket.status) &&
-                      (() => {
-                        const canChallengeTicket = canChallenge(
-                          ticket.tier,
-                          subscriptionType,
-                        );
-                        return canChallengeTicket ? (
-                          <Button
-                            size="sm"
-                            className="bg-teal text-white hover:bg-teal-dark"
-                            onClick={(e) => {
-                              e.preventDefault();
-                              e.stopPropagation();
-                              setChallengeTicket({
-                                id: ticket.id,
-                                issuer: ticket.issuer,
-                                issuerType: ticket.issuerType,
-                              });
-                            }}
-                          >
-                            Challenge Now
-                          </Button>
-                        ) : (
-                          <Button
-                            size="sm"
-                            className="gap-2 bg-teal text-white hover:bg-teal-dark"
-                            onClick={(e) => {
-                              e.preventDefault();
-                              e.stopPropagation();
-                              window.location.href = `/tickets/${ticket.id}`;
-                            }}
-                          >
-                            <FontAwesomeIcon
-                              icon={faLock}
-                              className="text-xs"
-                            />
-                            Upgrade to Challenge
-                          </Button>
-                        );
-                      })()}
-                  </div>
+                      {needsAction(ticket.status) &&
+                        (() => {
+                          const canChallengeTicket = canChallenge(
+                            ticket.tier,
+                            subscriptionType,
+                          );
+                          return canChallengeTicket ? (
+                            <Button
+                              size="sm"
+                              className="bg-teal text-white hover:bg-teal-dark"
+                              onClick={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                setChallengeTicket({
+                                  id: ticket.id,
+                                  issuer: ticket.issuer,
+                                  issuerType: ticket.issuerType,
+                                });
+                              }}
+                            >
+                              Challenge Now
+                            </Button>
+                          ) : (
+                            <Button
+                              size="sm"
+                              className="gap-2 bg-teal text-white hover:bg-teal-dark"
+                              onClick={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                window.location.href = `/tickets/${ticket.id}`;
+                              }}
+                            >
+                              <FontAwesomeIcon
+                                icon={faLock}
+                                className="text-xs"
+                              />
+                              Upgrade to Challenge
+                            </Button>
+                          );
+                        })()}
+                    </div>
+                  )}
                 </motion.a>
               );
             })}

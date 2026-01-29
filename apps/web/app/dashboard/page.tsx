@@ -17,6 +17,7 @@ import {
 } from '@/components/dashboard';
 import { getPendingTickets } from '@/app/actions/guest';
 import DashboardTicketsSection from './DashboardTicketsSection';
+import { getDisplayAmount } from '@/utils/getCurrentAmountDue';
 
 // Wrapper component for stats cards with data fetching
 const StatsCardsWrapper = async () => {
@@ -24,23 +25,25 @@ const StatsCardsWrapper = async () => {
 
   const totalTickets = tickets.length;
 
-  // Calculate outstanding fines (non-won, non-paid tickets)
+  // Calculate outstanding fines using current amount (accounts for price increases and time elapsed)
   const wonStatuses = ['REPRESENTATION_ACCEPTED', 'APPEAL_UPHELD'];
   const outstandingTickets = tickets.filter(
     (ticket) =>
-      !wonStatuses.includes(ticket.status) && ticket.status !== 'PAID',
+      !wonStatuses.includes(ticket.status) &&
+      ticket.status !== 'PAID' &&
+      ticket.status !== 'CANCELLED',
   );
   const outstandingFines = outstandingTickets.reduce(
-    (acc, ticket) => acc + ticket.initialAmount,
+    (acc, ticket) => acc + getDisplayAmount(ticket),
     0,
   );
 
-  // Calculate discount period amount
+  // Calculate discount period amount using current amount
   const discountPeriodTickets = tickets.filter(
     (ticket) => ticket.status === 'ISSUED_DISCOUNT_PERIOD',
   );
   const discountPeriodAmount = discountPeriodTickets.reduce(
-    (acc, ticket) => acc + ticket.initialAmount,
+    (acc, ticket) => acc + getDisplayAmount(ticket),
     0,
   );
 
