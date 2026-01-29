@@ -1,9 +1,19 @@
+/* eslint-disable import-x/prefer-default-export */
+
 import { NextResponse } from 'next/server';
-import { db, TicketStatus, VerificationStatus } from '@parking-ticket-pal/db';
+import {
+  db,
+  TicketStatus,
+  VerificationStatus,
+  AmountIncreaseSourceType,
+  NotificationEventType,
+} from '@parking-ticket-pal/db';
 import { auth } from '@/auth';
 import { createServerLogger } from '@/lib/logger';
-import { pollStatusCheck, type LiveStatusResult } from '@/utils/automation/workerClient';
+import { pollStatusCheck } from '@/utils/automation/workerClient';
 import { revalidatePath } from 'next/cache';
+import { getCurrentAmountDue } from '@/utils/getCurrentAmountDue';
+import { createAndSendNotification } from '@/lib/notifications/create';
 
 const logger = createServerLogger({ action: 'live-status-poll' });
 
@@ -37,6 +47,7 @@ export async function GET(
           },
         },
         verification: true,
+        amountIncreases: true,
       },
     });
 
@@ -50,7 +61,7 @@ export async function GET(
     }
 
     // Check if there's a pending verification with a jobId
-    const verification = ticket.verification;
+    const { verification } = ticket;
     if (!verification) {
       return NextResponse.json({
         status: 'no_job',
@@ -88,7 +99,10 @@ export async function GET(
 
     // If pending, poll the worker
     // UNVERIFIED with a jobId means we have a pending job
-    if (verification.status === VerificationStatus.UNVERIFIED && metadata?.jobId) {
+    if (
+      verification.status === VerificationStatus.UNVERIFIED &&
+      metadata?.jobId
+    ) {
       try {
         const pollResult = await pollStatusCheck(metadata.jobId);
 
@@ -100,7 +114,7 @@ export async function GET(
         }
 
         // Job completed - update verification record
-        const result = pollResult.result as LiveStatusResult | undefined;
+        const { result } = pollResult;
 
         if (pollResult.status === 'completed' && result?.success) {
           // Update verification with result
@@ -121,6 +135,61 @@ export async function GET(
               },
             },
           });
+
+          // Check if portal amount is higher than current calculated amount
+          // If so, create an AmountIncrease record to update the "current amount"
+          const portalAmount = result.outstandingAmount || 0;
+          const currentCalculated = getCurrentAmountDue({
+            id: ticket.id,
+            initialAmount: ticket.initialAmount,
+            status: ticket.status,
+            issuedAt: ticket.issuedAt,
+            priceIncreases: ticket.amountIncreases.map((ai) => ({
+              ...ai,
+              letterId: ai.letterId ?? undefined,
+              reason: ai.reason ?? undefined,
+            })),
+          });
+
+          // Only create AmountIncrease if portal amount is higher (by more than £1)
+          if (
+            portalAmount > currentCalculated &&
+            portalAmount - currentCalculated > 100
+          ) {
+            await db.amountIncrease.create({
+              data: {
+                ticketId,
+                amount: portalAmount,
+                reason: `Portal verification: ${result.portalStatus}`,
+                sourceType: AmountIncreaseSourceType.SYSTEM,
+                effectiveAt: new Date(),
+              },
+            });
+
+            logger.info('Amount increase created from portal check', {
+              ticketId,
+              portalAmount,
+              previousCalculated: currentCalculated,
+              difference: portalAmount - currentCalculated,
+            });
+
+            // Send notification to user about amount change
+            const portalAmountFormatted = `£${(portalAmount / 100).toFixed(2)}`;
+            const previousAmountFormatted = `£${(currentCalculated / 100).toFixed(2)}`;
+
+            await createAndSendNotification({
+              userId: ticket.vehicle.user.id,
+              ticketId,
+              type: NotificationEventType.TICKET_STATUS_UPDATE,
+              title: 'Ticket Amount Updated',
+              body: `Your ticket amount has increased from ${previousAmountFormatted} to ${portalAmountFormatted} based on portal verification.`,
+              data: {
+                previousAmount: currentCalculated,
+                newAmount: portalAmount,
+                source: 'portal_verification',
+              },
+            });
+          }
 
           // Check if we should update the ticket status
           if (result.mappedStatus && result.mappedStatus !== ticket.status) {

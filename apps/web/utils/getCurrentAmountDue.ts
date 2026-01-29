@@ -32,8 +32,9 @@ const calculateStandardAmount = (ticket: Ticket): number => {
   // Calculate days since the ticket was issued using date-fns
   const daysSinceIssued = differenceInDays(new Date(), issuedAt);
 
-  // During discount period (usually first 14 days)
-  if (status === TicketStatus.ISSUED_DISCOUNT_PERIOD || daysSinceIssued <= 14) {
+  // During discount period (first 14 days from issue date)
+  // Use date as source of truth, not status - status might not be updated
+  if (daysSinceIssued <= 14) {
     return Math.floor(initialAmount * 0.5); // 50% of full amount
   }
 
