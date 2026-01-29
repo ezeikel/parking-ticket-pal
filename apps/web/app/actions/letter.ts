@@ -29,6 +29,10 @@ import { Address } from '@parking-ticket-pal/types';
 import { getUserId } from '@/utils/user';
 import { CONTRAVENTION_CODES, STORAGE_PATHS } from '@/constants';
 import { sendEmail } from '@/lib/email';
+import {
+  getMappedStatus,
+  shouldUpdateStatus,
+} from '@/utils/letterStatusMapping';
 import ChallengeLetterEmail from '@/components/emails/ChallengeLetterEmail';
 import { render } from '@react-email/render';
 import generatePDF from '@/utils/generatePDF';
@@ -124,6 +128,11 @@ export const createLetter = async (
       },
     },
     update: {},
+    select: {
+      id: true,
+      issuedAt: true,
+      statusUpdatedAt: true,
+    },
   });
 
   let letter: Letter;
@@ -208,6 +217,39 @@ export const createLetter = async (
         sentAt: validatedData.sentAt,
       },
     });
+
+    // Check if letter should trigger a status update
+    // Uses "last updated wins" logic - letter.sentAt must be newer than current status
+    const mappedStatus = getMappedStatus(validatedData.type);
+    if (
+      mappedStatus &&
+      shouldUpdateStatus(
+        validatedData.type,
+        validatedData.sentAt,
+        ticket.statusUpdatedAt,
+        ticket.issuedAt,
+      )
+    ) {
+      await db.ticket.update({
+        where: { id: ticket.id },
+        data: {
+          status: mappedStatus,
+          statusUpdatedAt: validatedData.sentAt, // Use letter date, not now()
+          statusUpdatedBy: 'LETTER_UPLOAD',
+        },
+      });
+
+      logger.info('Ticket status updated from letter upload', {
+        ticketId: ticket.id,
+        letterId: letter.id,
+        letterType: validatedData.type,
+        newStatus: mappedStatus,
+        letterSentAt: validatedData.sentAt,
+      });
+    }
+
+    // Revalidate ticket page to show updated status
+    revalidatePath(`/tickets/${ticket.id}`);
 
     return letter;
   } catch (error) {
