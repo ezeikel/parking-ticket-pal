@@ -3,7 +3,7 @@
 import { useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
-import { LetterType } from '@parking-ticket-pal/db';
+import { LetterType } from '@parking-ticket-pal/db/types';
 import { extractOCRTextWithVision } from '@/app/actions/ocr';
 import { createTicket, getTicketByPcnNumber } from '@/app/actions/ticket';
 import { createLetter } from '@/app/actions/letter';
