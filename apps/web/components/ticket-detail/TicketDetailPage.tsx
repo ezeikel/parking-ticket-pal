@@ -19,6 +19,7 @@ import TicketPhotoCard from './TicketPhotoCard';
 import TicketInfoCard from './TicketInfoCard';
 import LocationCard from './LocationCard';
 import EvidenceCard from './EvidenceCard';
+import UploadedLettersCard from './UploadedLettersCard';
 import PCNJourneyTimeline from './PCNJourneyTimeline';
 import AppealLetterCard from './AppealLetterCard';
 import AppealLetterSummaryCard from './AppealLetterSummaryCard';
@@ -30,6 +31,7 @@ import DeadlineAlertCard from './DeadlineAlertCard';
 import ActivityTimelineCard from './ActivityTimelineCard';
 import MobileStickyFooter from './MobileStickyFooter';
 import LightboxModal from './LightboxModal';
+import LetterContentModal from './LetterContentModal';
 import AutoChallengeDialog from './AutoChallengeDialog';
 import GenerateLetterDialog from './GenerateLetterDialog';
 import AddressPromptBanner from '@/components/AddressPromptBanner/AddressPromptBanner';
@@ -53,10 +55,21 @@ const getDeadlineDays = (issuedAt: Date): number => {
 };
 
 
+// Type for letters with media (used for letter content modal)
+type LetterWithMedia = {
+  id: string;
+  type: TicketWithRelations['letters'][0]['type'];
+  sentAt: Date;
+  summary: string | null;
+  extractedText: string | null;
+  media: Pick<TicketWithRelations['letters'][0]['media'][0], 'id' | 'url'>[];
+};
+
 const TicketDetailPage = ({ ticket }: TicketDetailPageProps) => {
   const router = useRouter();
   const [, startTransition] = useTransition();
   const [lightboxImage, setLightboxImage] = useState<string | null>(null);
+  const [selectedLetter, setSelectedLetter] = useState<LetterWithMedia | null>(null);
   const [isAutoChallengeDialogOpen, setIsAutoChallengeDialogOpen] =
     useState(false);
   const [isGenerateLetterDialogOpen, setIsGenerateLetterDialogOpen] =
@@ -361,6 +374,14 @@ const TicketDetailPage = ({ ticket }: TicketDetailPageProps) => {
               onImageClick={setLightboxImage}
             />
 
+            {/* Uploaded Letters Card (letters received from council) */}
+            <UploadedLettersCard
+              ticketId={ticket.id}
+              letters={ticket.letters}
+              onViewLetter={setSelectedLetter}
+              onImageClick={setLightboxImage}
+            />
+
             {/* PCN Journey Timeline */}
             <PCNJourneyTimeline
               currentStatus={ticket.status}
@@ -520,6 +541,16 @@ const TicketDetailPage = ({ ticket }: TicketDetailPageProps) => {
       <LightboxModal
         imageUrl={lightboxImage}
         onClose={() => setLightboxImage(null)}
+      />
+
+      {/* Letter Content Modal */}
+      <LetterContentModal
+        letter={selectedLetter}
+        onClose={() => setSelectedLetter(null)}
+        onViewImage={(url) => {
+          setSelectedLetter(null);
+          setLightboxImage(url);
+        }}
       />
 
       {/* Auto Challenge Dialog */}

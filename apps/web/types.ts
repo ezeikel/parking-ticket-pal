@@ -136,6 +136,7 @@ export type TicketWithRelations = Prisma.TicketGetPayload<{
         sentAt: true;
         summary: true;
         type: true;
+        extractedText: true;
       };
     };
     forms: {

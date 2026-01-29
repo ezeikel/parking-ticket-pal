@@ -706,6 +706,7 @@ export const getTicket = async (id: string) => {
           sentAt: true,
           type: true,
           summary: true,
+          extractedText: true,
         },
         orderBy: {
           createdAt: 'desc',

@@ -3,8 +3,10 @@
 import { useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
+import { LetterType } from '@parking-ticket-pal/db';
 import { extractOCRTextWithVision } from '@/app/actions/ocr';
 import { createTicket, getTicketByPcnNumber } from '@/app/actions/ticket';
+import { createLetter } from '@/app/actions/letter';
 import { useAnalytics } from '@/utils/analytics-client';
 import { TRACKING_EVENTS } from '@/constants/events';
 import useLogger from '@/lib/use-logger';
@@ -16,7 +18,6 @@ import AddDocumentWizard, {
 } from './AddDocumentWizard';
 import SuccessState from './SuccessState';
 import DuplicateTicketState from './DuplicateTicketState';
-import AddingToTicketState from './AddingToTicketState';
 
 type DocumentType = 'ticket' | 'letter' | 'unknown';
 
@@ -25,8 +26,7 @@ type PageState =
   | 'processing'
   | 'wizard'
   | 'success'
-  | 'duplicate'
-  | 'adding-to-ticket';
+  | 'duplicate';
 
 type SuccessData = {
   ticketId: string;
@@ -51,7 +51,6 @@ const AddDocumentPage = () => {
   const [successData, setSuccessData] = useState<SuccessData | null>(null);
   const [existingTicket, setExistingTicket] =
     useState<ExistingTicketData | null>(null);
-  const [isAddingToTicket, setIsAddingToTicket] = useState(false);
 
   const handleFileSelect = useCallback(
     async (file: File) => {
@@ -101,9 +100,47 @@ const AddDocumentPage = () => {
               });
 
               if (detectedType === 'letter') {
-                // It's a letter - offer to add it to the existing ticket
-                setPageState('adding-to-ticket');
-                toast.info('Found a matching ticket for this letter');
+                // It's a letter - automatically add it to the existing ticket
+                try {
+                  const letter = await createLetter({
+                    pcnNumber: existingTicketData.pcnNumber,
+                    vehicleReg: result.data.vehicleReg || '',
+                    type: LetterType.GENERIC, // TODO: Add letter type detection to OCR
+                    summary: result.data.summary || 'Letter from council',
+                    sentAt: result.data.sentAt
+                      ? new Date(result.data.sentAt)
+                      : new Date(),
+                    tempImageUrl: result.imageUrl || undefined,
+                    tempImagePath: result.tempImagePath || undefined,
+                    extractedText: result.data.extractedText || undefined,
+                  });
+
+                  if (letter) {
+                    await track(TRACKING_EVENTS.LETTER_UPLOADED, {
+                      ticketId: existingTicketData.id,
+                      letterType: letter.type,
+                    });
+
+                    toast.success('Letter added to ticket');
+                    setSuccessData({
+                      ticketId: existingTicketData.id,
+                      pcnNumber: existingTicketData.pcnNumber,
+                      documentType: 'letter',
+                    });
+                    setPageState('success');
+                  } else {
+                    throw new Error('Failed to create letter');
+                  }
+                } catch (error) {
+                  logger.error(
+                    'Error adding letter to ticket',
+                    { pcnNumber: existingTicketData.pcnNumber },
+                    error instanceof Error ? error : undefined,
+                  );
+                  toast.error('Failed to add letter. Please try again.');
+                  setPageState('upload');
+                }
+                return;
               } else {
                 // It's a ticket - show duplicate warning
                 setPageState('duplicate');
@@ -161,7 +198,7 @@ const AddDocumentPage = () => {
         setPageState('upload');
       }
     },
-    [logger],
+    [logger, track],
   );
 
   const handleManualEntry = useCallback(() => {
@@ -235,42 +272,7 @@ const AddDocumentPage = () => {
     setExtractedData(undefined);
     setSuccessData(null);
     setExistingTicket(null);
-    setIsAddingToTicket(false);
   }, []);
-
-  const handleConfirmAddToTicket = useCallback(async () => {
-    if (!existingTicket || !extractedData) return;
-
-    setIsAddingToTicket(true);
-
-    try {
-      // TODO: Implement letter creation and attachment to ticket
-      // For now, we'll just show success and redirect to the ticket
-      // await createLetter({
-      //   ticketId: existingTicket.ticketId,
-      //   imageUrl: extractedData.imageUrl,
-      //   tempImagePath: extractedData.tempImagePath,
-      //   extractedText: extractedData.extractedText,
-      // });
-
-      toast.success('Letter added to ticket');
-      setSuccessData({
-        ticketId: existingTicket.ticketId,
-        pcnNumber: existingTicket.pcnNumber,
-        documentType: 'letter',
-      });
-      setPageState('success');
-    } catch (error) {
-      logger.error(
-        'Error adding letter to ticket',
-        {},
-        error instanceof Error ? error : undefined,
-      );
-      toast.error('Failed to add letter. Please try again.');
-    } finally {
-      setIsAddingToTicket(false);
-    }
-  }, [existingTicket, extractedData, logger]);
 
   return (
     <div className="min-h-screen bg-light">
@@ -336,24 +338,6 @@ const AddDocumentPage = () => {
             </motion.div>
           )}
 
-          {pageState === 'adding-to-ticket' && existingTicket && (
-            <motion.div
-              key="adding-to-ticket"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="rounded-2xl bg-white p-8 shadow-[0_2px_4px_rgba(0,0,0,0.06),0_4px_12px_rgba(0,0,0,0.06)]"
-            >
-              <AddingToTicketState
-                ticketId={existingTicket.ticketId}
-                pcnNumber={existingTicket.pcnNumber}
-                issuer={existingTicket.issuer}
-                onConfirm={handleConfirmAddToTicket}
-                onUploadDifferent={handleAddAnother}
-                isProcessing={isAddingToTicket}
-              />
-            </motion.div>
-          )}
         </AnimatePresence>
 
         {/* Wizard Modal */}
