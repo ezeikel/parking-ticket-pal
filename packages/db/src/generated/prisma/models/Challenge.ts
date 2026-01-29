@@ -34,6 +34,7 @@ export type ChallengeMinAggregateOutputType = {
   submittedAt: Date | null
   responseReceivedAt: Date | null
   responseStatus: $Enums.ChallengeResponseStatus | null
+  workerJobId: string | null
   createdAt: Date | null
   updatedAt: Date | null
 }
@@ -48,6 +49,7 @@ export type ChallengeMaxAggregateOutputType = {
   submittedAt: Date | null
   responseReceivedAt: Date | null
   responseStatus: $Enums.ChallengeResponseStatus | null
+  workerJobId: string | null
   createdAt: Date | null
   updatedAt: Date | null
 }
@@ -64,6 +66,7 @@ export type ChallengeCountAggregateOutputType = {
   responseReceivedAt: number
   responseStatus: number
   responseDetails: number
+  workerJobId: number
   createdAt: number
   updatedAt: number
   _all: number
@@ -80,6 +83,7 @@ export type ChallengeMinAggregateInputType = {
   submittedAt?: true
   responseReceivedAt?: true
   responseStatus?: true
+  workerJobId?: true
   createdAt?: true
   updatedAt?: true
 }
@@ -94,6 +98,7 @@ export type ChallengeMaxAggregateInputType = {
   submittedAt?: true
   responseReceivedAt?: true
   responseStatus?: true
+  workerJobId?: true
   createdAt?: true
   updatedAt?: true
 }
@@ -110,6 +115,7 @@ export type ChallengeCountAggregateInputType = {
   responseReceivedAt?: true
   responseStatus?: true
   responseDetails?: true
+  workerJobId?: true
   createdAt?: true
   updatedAt?: true
   _all?: true
@@ -199,6 +205,7 @@ export type ChallengeGroupByOutputType = {
   responseReceivedAt: Date | null
   responseStatus: $Enums.ChallengeResponseStatus | null
   responseDetails: runtime.JsonValue | null
+  workerJobId: string | null
   createdAt: Date
   updatedAt: Date
   _count: ChallengeCountAggregateOutputType | null
@@ -236,6 +243,7 @@ export type ChallengeWhereInput = {
   responseReceivedAt?: Prisma.DateTimeNullableFilter<"Challenge"> | Date | string | null
   responseStatus?: Prisma.EnumChallengeResponseStatusNullableFilter<"Challenge"> | $Enums.ChallengeResponseStatus | null
   responseDetails?: Prisma.JsonNullableFilter<"Challenge">
+  workerJobId?: Prisma.StringNullableFilter<"Challenge"> | string | null
   createdAt?: Prisma.DateTimeFilter<"Challenge"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Challenge"> | Date | string
   ticket?: Prisma.XOR<Prisma.TicketScalarRelationFilter, Prisma.TicketWhereInput>
@@ -253,6 +261,7 @@ export type ChallengeOrderByWithRelationInput = {
   responseReceivedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   responseStatus?: Prisma.SortOrderInput | Prisma.SortOrder
   responseDetails?: Prisma.SortOrderInput | Prisma.SortOrder
+  workerJobId?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   ticket?: Prisma.TicketOrderByWithRelationInput
@@ -273,6 +282,7 @@ export type ChallengeWhereUniqueInput = Prisma.AtLeast<{
   responseReceivedAt?: Prisma.DateTimeNullableFilter<"Challenge"> | Date | string | null
   responseStatus?: Prisma.EnumChallengeResponseStatusNullableFilter<"Challenge"> | $Enums.ChallengeResponseStatus | null
   responseDetails?: Prisma.JsonNullableFilter<"Challenge">
+  workerJobId?: Prisma.StringNullableFilter<"Challenge"> | string | null
   createdAt?: Prisma.DateTimeFilter<"Challenge"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Challenge"> | Date | string
   ticket?: Prisma.XOR<Prisma.TicketScalarRelationFilter, Prisma.TicketWhereInput>
@@ -290,6 +300,7 @@ export type ChallengeOrderByWithAggregationInput = {
   responseReceivedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   responseStatus?: Prisma.SortOrderInput | Prisma.SortOrder
   responseDetails?: Prisma.SortOrderInput | Prisma.SortOrder
+  workerJobId?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   _count?: Prisma.ChallengeCountOrderByAggregateInput
@@ -312,6 +323,7 @@ export type ChallengeScalarWhereWithAggregatesInput = {
   responseReceivedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"Challenge"> | Date | string | null
   responseStatus?: Prisma.EnumChallengeResponseStatusNullableWithAggregatesFilter<"Challenge"> | $Enums.ChallengeResponseStatus | null
   responseDetails?: Prisma.JsonNullableWithAggregatesFilter<"Challenge">
+  workerJobId?: Prisma.StringNullableWithAggregatesFilter<"Challenge"> | string | null
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"Challenge"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"Challenge"> | Date | string
 }
@@ -327,6 +339,7 @@ export type ChallengeCreateInput = {
   responseReceivedAt?: Date | string | null
   responseStatus?: $Enums.ChallengeResponseStatus | null
   responseDetails?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  workerJobId?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   ticket: Prisma.TicketCreateNestedOneWithoutChallengesInput
@@ -344,6 +357,7 @@ export type ChallengeUncheckedCreateInput = {
   responseReceivedAt?: Date | string | null
   responseStatus?: $Enums.ChallengeResponseStatus | null
   responseDetails?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  workerJobId?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -359,6 +373,7 @@ export type ChallengeUpdateInput = {
   responseReceivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   responseStatus?: Prisma.NullableEnumChallengeResponseStatusFieldUpdateOperationsInput | $Enums.ChallengeResponseStatus | null
   responseDetails?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  workerJobId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   ticket?: Prisma.TicketUpdateOneRequiredWithoutChallengesNestedInput
@@ -376,6 +391,7 @@ export type ChallengeUncheckedUpdateInput = {
   responseReceivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   responseStatus?: Prisma.NullableEnumChallengeResponseStatusFieldUpdateOperationsInput | $Enums.ChallengeResponseStatus | null
   responseDetails?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  workerJobId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -392,6 +408,7 @@ export type ChallengeCreateManyInput = {
   responseReceivedAt?: Date | string | null
   responseStatus?: $Enums.ChallengeResponseStatus | null
   responseDetails?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  workerJobId?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -407,6 +424,7 @@ export type ChallengeUpdateManyMutationInput = {
   responseReceivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   responseStatus?: Prisma.NullableEnumChallengeResponseStatusFieldUpdateOperationsInput | $Enums.ChallengeResponseStatus | null
   responseDetails?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  workerJobId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -423,6 +441,7 @@ export type ChallengeUncheckedUpdateManyInput = {
   responseReceivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   responseStatus?: Prisma.NullableEnumChallengeResponseStatusFieldUpdateOperationsInput | $Enums.ChallengeResponseStatus | null
   responseDetails?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  workerJobId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -449,6 +468,7 @@ export type ChallengeCountOrderByAggregateInput = {
   responseReceivedAt?: Prisma.SortOrder
   responseStatus?: Prisma.SortOrder
   responseDetails?: Prisma.SortOrder
+  workerJobId?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -463,6 +483,7 @@ export type ChallengeMaxOrderByAggregateInput = {
   submittedAt?: Prisma.SortOrder
   responseReceivedAt?: Prisma.SortOrder
   responseStatus?: Prisma.SortOrder
+  workerJobId?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -477,6 +498,7 @@ export type ChallengeMinOrderByAggregateInput = {
   submittedAt?: Prisma.SortOrder
   responseReceivedAt?: Prisma.SortOrder
   responseStatus?: Prisma.SortOrder
+  workerJobId?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -546,6 +568,7 @@ export type ChallengeCreateWithoutTicketInput = {
   responseReceivedAt?: Date | string | null
   responseStatus?: $Enums.ChallengeResponseStatus | null
   responseDetails?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  workerJobId?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -561,6 +584,7 @@ export type ChallengeUncheckedCreateWithoutTicketInput = {
   responseReceivedAt?: Date | string | null
   responseStatus?: $Enums.ChallengeResponseStatus | null
   responseDetails?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  workerJobId?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -606,6 +630,7 @@ export type ChallengeScalarWhereInput = {
   responseReceivedAt?: Prisma.DateTimeNullableFilter<"Challenge"> | Date | string | null
   responseStatus?: Prisma.EnumChallengeResponseStatusNullableFilter<"Challenge"> | $Enums.ChallengeResponseStatus | null
   responseDetails?: Prisma.JsonNullableFilter<"Challenge">
+  workerJobId?: Prisma.StringNullableFilter<"Challenge"> | string | null
   createdAt?: Prisma.DateTimeFilter<"Challenge"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Challenge"> | Date | string
 }
@@ -621,6 +646,7 @@ export type ChallengeCreateManyTicketInput = {
   responseReceivedAt?: Date | string | null
   responseStatus?: $Enums.ChallengeResponseStatus | null
   responseDetails?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  workerJobId?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -636,6 +662,7 @@ export type ChallengeUpdateWithoutTicketInput = {
   responseReceivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   responseStatus?: Prisma.NullableEnumChallengeResponseStatusFieldUpdateOperationsInput | $Enums.ChallengeResponseStatus | null
   responseDetails?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  workerJobId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -651,6 +678,7 @@ export type ChallengeUncheckedUpdateWithoutTicketInput = {
   responseReceivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   responseStatus?: Prisma.NullableEnumChallengeResponseStatusFieldUpdateOperationsInput | $Enums.ChallengeResponseStatus | null
   responseDetails?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  workerJobId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -666,6 +694,7 @@ export type ChallengeUncheckedUpdateManyWithoutTicketInput = {
   responseReceivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   responseStatus?: Prisma.NullableEnumChallengeResponseStatusFieldUpdateOperationsInput | $Enums.ChallengeResponseStatus | null
   responseDetails?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  workerJobId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -684,6 +713,7 @@ export type ChallengeSelect<ExtArgs extends runtime.Types.Extensions.InternalArg
   responseReceivedAt?: boolean
   responseStatus?: boolean
   responseDetails?: boolean
+  workerJobId?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   ticket?: boolean | Prisma.TicketDefaultArgs<ExtArgs>
@@ -701,6 +731,7 @@ export type ChallengeSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Ext
   responseReceivedAt?: boolean
   responseStatus?: boolean
   responseDetails?: boolean
+  workerJobId?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   ticket?: boolean | Prisma.TicketDefaultArgs<ExtArgs>
@@ -718,6 +749,7 @@ export type ChallengeSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Ext
   responseReceivedAt?: boolean
   responseStatus?: boolean
   responseDetails?: boolean
+  workerJobId?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   ticket?: boolean | Prisma.TicketDefaultArgs<ExtArgs>
@@ -735,11 +767,12 @@ export type ChallengeSelectScalar = {
   responseReceivedAt?: boolean
   responseStatus?: boolean
   responseDetails?: boolean
+  workerJobId?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }
 
-export type ChallengeOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "ticketId" | "type" | "reason" | "customReason" | "status" | "metadata" | "submittedAt" | "responseReceivedAt" | "responseStatus" | "responseDetails" | "createdAt" | "updatedAt", ExtArgs["result"]["challenge"]>
+export type ChallengeOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "ticketId" | "type" | "reason" | "customReason" | "status" | "metadata" | "submittedAt" | "responseReceivedAt" | "responseStatus" | "responseDetails" | "workerJobId" | "createdAt" | "updatedAt", ExtArgs["result"]["challenge"]>
 export type ChallengeInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   ticket?: boolean | Prisma.TicketDefaultArgs<ExtArgs>
 }
@@ -767,6 +800,7 @@ export type $ChallengePayload<ExtArgs extends runtime.Types.Extensions.InternalA
     responseReceivedAt: Date | null
     responseStatus: $Enums.ChallengeResponseStatus | null
     responseDetails: runtime.JsonValue | null
+    workerJobId: string | null
     createdAt: Date
     updatedAt: Date
   }, ExtArgs["result"]["challenge"]>
@@ -1204,6 +1238,7 @@ export interface ChallengeFieldRefs {
   readonly responseReceivedAt: Prisma.FieldRef<"Challenge", 'DateTime'>
   readonly responseStatus: Prisma.FieldRef<"Challenge", 'ChallengeResponseStatus'>
   readonly responseDetails: Prisma.FieldRef<"Challenge", 'Json'>
+  readonly workerJobId: Prisma.FieldRef<"Challenge", 'String'>
   readonly createdAt: Prisma.FieldRef<"Challenge", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"Challenge", 'DateTime'>
 }

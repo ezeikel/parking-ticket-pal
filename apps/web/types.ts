@@ -152,6 +152,7 @@ export type TicketWithRelations = Prisma.TicketGetPayload<{
         id: true;
         type: true;
         reason: true;
+        customReason: true;
         status: true;
         metadata: true;
         createdAt: true;
@@ -159,6 +160,15 @@ export type TicketWithRelations = Prisma.TicketGetPayload<{
       };
     };
     reminders: true;
+    verification: {
+      select: {
+        id: true;
+        type: true;
+        status: true;
+        verifiedAt: true;
+        metadata: true;
+      };
+    };
   };
 }>;
 

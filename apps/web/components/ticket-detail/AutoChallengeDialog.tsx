@@ -29,7 +29,11 @@ type AutoChallengeDialogProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   issuerName: string;
-  onSubmit: (reason: string, customReason?: string) => Promise<void>;
+  onSubmit: (reason: string, customReason?: string, existingChallengeId?: string) => Promise<void>;
+  // For retry: pre-fill with existing challenge info
+  existingChallengeId?: string;
+  initialReason?: string;
+  initialCustomReason?: string;
 };
 
 const CHALLENGE_REASONS = [
@@ -85,17 +89,27 @@ const AutoChallengeDialog = ({
   onOpenChange,
   issuerName,
   onSubmit,
+  existingChallengeId,
+  initialReason,
+  initialCustomReason,
 }: AutoChallengeDialogProps) => {
-  const [reason, setReason] = useState<string>('');
-  const [customReason, setCustomReason] = useState('');
+  const [reason, setReason] = useState<string>(initialReason || '');
+  const [customReason, setCustomReason] = useState(initialCustomReason || '');
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Reset form when dialog opens/closes or initial values change
+  const isRetry = !!existingChallengeId;
 
   const handleSubmit = async () => {
     if (!reason) return;
 
     setIsSubmitting(true);
     try {
-      await onSubmit(reason, reason === 'OTHER' ? customReason : undefined);
+      await onSubmit(
+        reason,
+        reason === 'OTHER' ? customReason : undefined,
+        existingChallengeId,
+      );
       onOpenChange(false);
       setReason('');
       setCustomReason('');
@@ -112,11 +126,12 @@ const AutoChallengeDialog = ({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <FontAwesomeIcon icon={faRobot} className="text-teal" />
-            Auto-Submit Challenge
+            {isRetry ? 'Retry Challenge' : 'Auto-Submit Challenge'}
           </DialogTitle>
           <DialogDescription>
-            We&apos;ll automatically submit your challenge to {issuerName} using
-            browser automation.
+            {isRetry
+              ? `Retry your challenge to ${issuerName}. You can update the reason before resubmitting.`
+              : `We'll automatically submit your challenge to ${issuerName} using browser automation.`}
           </DialogDescription>
         </DialogHeader>
 

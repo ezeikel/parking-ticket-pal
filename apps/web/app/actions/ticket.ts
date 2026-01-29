@@ -720,6 +720,7 @@ export const getTicket = async (id: string) => {
           id: true,
           type: true,
           reason: true,
+          customReason: true,
           status: true,
           metadata: true,
           createdAt: true,
@@ -730,6 +731,15 @@ export const getTicket = async (id: string) => {
         },
       },
       reminders: true,
+      verification: {
+        select: {
+          id: true,
+          type: true,
+          status: true,
+          verifiedAt: true,
+          metadata: true,
+        },
+      },
     },
   });
 

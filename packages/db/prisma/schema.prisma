@@ -269,6 +269,9 @@ model Challenge {
   responseStatus     ChallengeResponseStatus? // status of authority response
   responseDetails    Json? // store response details, appeal rights, etc.
 
+  // async job tracking for auto-challenges
+  workerJobId String? // worker job ID for polling status during automation
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 

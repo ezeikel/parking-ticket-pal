@@ -241,7 +241,7 @@ export type ChallengeParams = {
 };
 
 /**
- * Result from a challenge automation
+ * Result from a challenge automation (sync mode - deprecated)
  */
 export type ChallengeResult = {
   success: boolean;
@@ -253,6 +253,54 @@ export type ChallengeResult = {
   issuerId: string;
   challengeId: string;
   dryRun: boolean;
+};
+
+/**
+ * Response from starting an async challenge job
+ */
+export type StartChallengeResponse = {
+  success: boolean;
+  jobId?: string;
+  challengeId?: string;
+  status?: 'running' | 'error';
+  message?: string;
+  error?: string;
+};
+
+/**
+ * Progress info for challenge jobs
+ */
+export type ChallengeProgress = {
+  step: string;
+  stepNumber: number;
+  totalSteps: number;
+  message: string;
+};
+
+/**
+ * Status response from polling a challenge job
+ */
+export type ChallengeJobStatus = {
+  jobId: string;
+  status: 'pending' | 'running' | 'completed' | 'failed' | 'cancelled';
+  progress?: ChallengeProgress;
+  result?: {
+    success: boolean;
+    challengeText?: string;
+    screenshotUrls?: string[];
+    videoUrl?: string;
+    referenceNumber?: string;
+    executionMode?: 'typescript' | 'agentic';
+    fallbackUsed?: boolean;
+    fallbackReason?: string;
+    error?: string;
+  };
+  error?: string;
+  issuerId?: string;
+  challengeId?: string;
+  ticketId?: string;
+  startedAt: string;
+  completedAt?: string;
 };
 
 /**
@@ -485,6 +533,361 @@ export async function runVerify(params: VerifyParams): Promise<VerifyResult> {
           : 'Failed to connect to automation service',
       screenshotUrls: [],
       issuerId: params.issuerId,
+    };
+  }
+}
+
+// ============================================
+// ASYNC CHALLENGE FUNCTIONS
+// ============================================
+
+/**
+ * Get the webhook URL for challenge completion callbacks
+ */
+function getChallengeWebhookUrl(): string {
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.VERCEL_URL;
+  if (!baseUrl) {
+    throw new Error('App URL not configured. Set NEXT_PUBLIC_APP_URL.');
+  }
+
+  // Ensure https for production
+  const url = baseUrl.startsWith('http') ? baseUrl : `https://${baseUrl}`;
+  return `${url}/api/webhooks/automation/challenge`;
+}
+
+/**
+ * Start an async challenge job on the worker.
+ * Returns immediately with a jobId. Use getChallengeJobStatus to poll for progress.
+ */
+export async function startChallenge(
+  params: ChallengeParams,
+): Promise<StartChallengeResponse> {
+  try {
+    const { baseUrl, secret } = getConfig();
+    const webhookUrl = getChallengeWebhookUrl();
+    const webhookSecret = process.env.WORKER_SECRET!;
+
+    logger.info('Starting async challenge automation', {
+      issuerId: params.issuerId,
+      pcnNumber: params.pcnNumber,
+      ticketId: params.ticketId,
+      dryRun: params.dryRun,
+    });
+
+    const response = await fetch(`${baseUrl}/automation/challenge`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${secret}`,
+      },
+      body: JSON.stringify({
+        issuerId: params.issuerId,
+        pcnNumber: params.pcnNumber,
+        vehicleReg: params.vehicleReg,
+        vehicleMake: params.vehicleMake,
+        vehicleModel: params.vehicleModel,
+        challengeReason: params.challengeReason,
+        additionalDetails: params.additionalDetails,
+        ticketId: params.ticketId,
+        challengeId: params.challengeId,
+        user: params.user,
+        dryRun: params.dryRun ?? false,
+        webhookUrl,
+        webhookSecret,
+      }),
+    });
+
+    if (!response.ok) {
+      const error = await response
+        .json()
+        .catch(() => ({ error: 'Unknown error' }));
+      logger.error('Failed to start challenge job', {
+        issuerId: params.issuerId,
+        status: response.status,
+        error,
+      });
+
+      return {
+        success: false,
+        error: error.error || error.message || `HTTP ${response.status}`,
+      };
+    }
+
+    const result = await response.json();
+    logger.info('Challenge job started', {
+      issuerId: params.issuerId,
+      jobId: result.jobId,
+      challengeId: result.challengeId,
+    });
+
+    return {
+      success: true,
+      jobId: result.jobId,
+      challengeId: result.challengeId,
+      status: 'running',
+      message: result.message,
+    };
+  } catch (error) {
+    logger.error(
+      'Failed to start challenge job',
+      { issuerId: params.issuerId, ticketId: params.ticketId },
+      error instanceof Error ? error : new Error(String(error)),
+    );
+
+    return {
+      success: false,
+      error:
+        error instanceof Error
+          ? error.message
+          : 'Failed to connect to automation service',
+    };
+  }
+}
+
+/**
+ * Get the status of a challenge job from the worker.
+ * Use this to poll for progress and completion.
+ */
+export async function getChallengeJobStatus(
+  jobId: string,
+): Promise<ChallengeJobStatus | null> {
+  try {
+    const { baseUrl, secret } = getConfig();
+
+    const response = await fetch(
+      `${baseUrl}/automation/challenge/status/${jobId}`,
+      {
+        method: 'GET',
+        headers: {
+          Authorization: `Bearer ${secret}`,
+        },
+      },
+    );
+
+    if (!response.ok) {
+      if (response.status === 404) {
+        return null;
+      }
+      const error = await response
+        .json()
+        .catch(() => ({ error: 'Unknown error' }));
+      logger.error('Failed to get challenge job status', {
+        jobId,
+        status: response.status,
+        error,
+      });
+      return null;
+    }
+
+    return response.json();
+  } catch (error) {
+    logger.error(
+      'Failed to get challenge job status',
+      { jobId },
+      error instanceof Error ? error : new Error(String(error)),
+    );
+    return null;
+  }
+}
+
+/**
+ * Cancel a running challenge job on the worker.
+ */
+export async function cancelChallengeJob(
+  jobId: string,
+): Promise<{ success: boolean; message?: string; error?: string }> {
+  try {
+    const { baseUrl, secret } = getConfig();
+
+    const response = await fetch(
+      `${baseUrl}/automation/challenge/cancel/${jobId}`,
+      {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${secret}`,
+        },
+      },
+    );
+
+    if (!response.ok) {
+      const error = await response
+        .json()
+        .catch(() => ({ error: 'Unknown error' }));
+      logger.error('Failed to cancel challenge job', {
+        jobId,
+        status: response.status,
+        error,
+      });
+      return {
+        success: false,
+        error: error.error || `HTTP ${response.status}`,
+      };
+    }
+
+    const result = await response.json();
+    logger.info('Challenge job cancelled', { jobId });
+    return result;
+  } catch (error) {
+    logger.error(
+      'Failed to cancel challenge job',
+      { jobId },
+      error instanceof Error ? error : new Error(String(error)),
+    );
+    return {
+      success: false,
+      error:
+        error instanceof Error
+          ? error.message
+          : 'Failed to connect to automation service',
+    };
+  }
+}
+
+// ============================================
+// LIVE STATUS CHECK FUNCTIONS
+// ============================================
+
+/**
+ * TicketStatus enum values (should match Prisma enum)
+ */
+export type TicketStatusValue =
+  | 'ISSUED_DISCOUNT_PERIOD'
+  | 'ISSUED_FULL_CHARGE'
+  | 'NOTICE_TO_OWNER'
+  | 'FORMAL_REPRESENTATION'
+  | 'NOTICE_OF_REJECTION'
+  | 'REPRESENTATION_ACCEPTED'
+  | 'CHARGE_CERTIFICATE'
+  | 'ORDER_FOR_RECOVERY'
+  | 'TEC_OUT_OF_TIME_APPLICATION'
+  | 'PE2_PE3_APPLICATION'
+  | 'APPEAL_TO_TRIBUNAL'
+  | 'ENFORCEMENT_BAILIFF_STAGE'
+  | 'NOTICE_TO_KEEPER'
+  | 'APPEAL_SUBMITTED_TO_OPERATOR'
+  | 'APPEAL_REJECTED_BY_OPERATOR'
+  | 'POPLA_APPEAL'
+  | 'IAS_APPEAL'
+  | 'APPEAL_UPHELD'
+  | 'APPEAL_REJECTED'
+  | 'DEBT_COLLECTION'
+  | 'COURT_PROCEEDINGS'
+  | 'CCJ_ISSUED'
+  | 'PAID'
+  | 'CANCELLED';
+
+/**
+ * Result of a live status check from the worker
+ */
+export type LiveStatusResult = {
+  success: boolean;
+  portalStatus: string; // Raw text from portal
+  mappedStatus: TicketStatusValue | null; // Our enum value
+  outstandingAmount: number; // Amount in pence (0 = paid/closed)
+  canChallenge: boolean; // Is challenge button enabled?
+  canPay: boolean; // Is pay button enabled?
+  paymentDeadline?: string; // If available
+  screenshotUrl: string; // Proof screenshot
+  checkedAt: string; // ISO timestamp
+  error?: string; // Error code: 'PCN_NOT_FOUND', 'BOT_DETECTION', etc.
+  errorMessage?: string; // Human-readable error message from portal
+  sessionUrl?: string; // Browserbase session URL for debugging
+};
+
+/**
+ * Parameters for checking live status
+ */
+export type CheckStatusParams = {
+  ticketId: string;
+  pcnNumber: string;
+  vehicleReg: string;
+  issuerId?: string;
+  portalUrl?: string;
+};
+
+/**
+ * Check the live status of a ticket on the council portal.
+ * Uses agentic browser automation to navigate and extract status.
+ */
+export async function checkLiveStatus(
+  params: CheckStatusParams,
+): Promise<LiveStatusResult> {
+  try {
+    const { baseUrl, secret } = getConfig();
+
+    logger.info('Checking live ticket status', {
+      ticketId: params.ticketId,
+      pcnNumber: params.pcnNumber,
+      issuerId: params.issuerId,
+    });
+
+    const response = await fetch(`${baseUrl}/automation/status`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${secret}`,
+      },
+      body: JSON.stringify({
+        pcnNumber: params.pcnNumber,
+        vehicleReg: params.vehicleReg,
+        ticketId: params.ticketId,
+        issuerId: params.issuerId,
+        portalUrl: params.portalUrl,
+      }),
+    });
+
+    if (!response.ok) {
+      const error = await response
+        .json()
+        .catch(() => ({ error: 'Unknown error' }));
+      logger.error('Live status check failed', {
+        ticketId: params.ticketId,
+        status: response.status,
+        error,
+      });
+
+      return {
+        success: false,
+        portalStatus: '',
+        mappedStatus: null,
+        outstandingAmount: 0,
+        canChallenge: false,
+        canPay: false,
+        screenshotUrl: '',
+        checkedAt: new Date().toISOString(),
+        error: error.error || error.message || `HTTP ${response.status}`,
+      };
+    }
+
+    const result: LiveStatusResult = await response.json();
+    logger.info('Live status check completed', {
+      ticketId: params.ticketId,
+      success: result.success,
+      mappedStatus: result.mappedStatus,
+      canChallenge: result.canChallenge,
+    });
+
+    return result;
+  } catch (error) {
+    logger.error(
+      'Failed to check live status',
+      { ticketId: params.ticketId },
+      error instanceof Error ? error : new Error(String(error)),
+    );
+
+    return {
+      success: false,
+      portalStatus: '',
+      mappedStatus: null,
+      outstandingAmount: 0,
+      canChallenge: false,
+      canPay: false,
+      screenshotUrl: '',
+      checkedAt: new Date().toISOString(),
+      error:
+        error instanceof Error
+          ? error.message
+          : 'Failed to connect to automation service',
     };
   }
 }

@@ -33,6 +33,9 @@ import LightboxModal from './LightboxModal';
 import AutoChallengeDialog from './AutoChallengeDialog';
 import GenerateLetterDialog from './GenerateLetterDialog';
 import AddressPromptBanner from '@/components/AddressPromptBanner/AddressPromptBanner';
+import AutoChallengeStatusCard from './AutoChallengeStatusCard';
+import LiveStatusCard from './LiveStatusCard';
+import { ChallengeStatus } from '@parking-ticket-pal/db';
 
 type TicketDetailPageProps = {
   ticket: TicketWithRelations;
@@ -80,6 +83,32 @@ const TicketDetailPage = ({ ticket }: TicketDetailPageProps) => {
     useState(false);
   const [isGenerateLetterDialogOpen, setIsGenerateLetterDialogOpen] =
     useState(false);
+  // For retry functionality
+  const [retryChallengeId, setRetryChallengeId] = useState<string | null>(null);
+  const [retryReason, setRetryReason] = useState<string | undefined>();
+  const [retryCustomReason, setRetryCustomReason] = useState<string | undefined>();
+
+  // Helper to open dialog for retry
+  const openAutoChallengeDialogForRetry = (
+    challengeId: string,
+    reason?: string,
+    customReason?: string,
+  ) => {
+    setRetryChallengeId(challengeId);
+    setRetryReason(reason);
+    setRetryCustomReason(customReason);
+    setIsAutoChallengeDialogOpen(true);
+  };
+
+  // Helper to reset retry state when dialog closes
+  const handleAutoChallengeDialogChange = (open: boolean) => {
+    setIsAutoChallengeDialogOpen(open);
+    if (!open) {
+      setRetryChallengeId(null);
+      setRetryReason(undefined);
+      setRetryCustomReason(undefined);
+    }
+  };
 
   // Parse location
   const location = ticket.location as Address | null;
@@ -220,18 +249,25 @@ const TicketDetailPage = ({ ticket }: TicketDetailPageProps) => {
     toast.info('Delete functionality available via existing UI');
   };
 
-  const handleAutoChallenge = async (reason: string, customReason?: string) => {
-    const toastId = toast.loading('Submitting challenge...');
+  const handleAutoChallenge = async (reason: string, customReason?: string, existingChallengeId?: string) => {
+    const toastId = toast.loading('Starting challenge...');
 
     try {
       const result = await initiateAutoChallenge(
         ticket.id,
         reason,
         customReason,
+        existingChallengeId,
       );
 
       if (result.success) {
         switch (result.status) {
+          case 'started':
+            toast.success(
+              'Challenge automation started! Tracking progress...',
+              { id: toastId },
+            );
+            break;
           case 'submitted':
             toast.success('Challenge submitted successfully!', { id: toastId });
             break;
@@ -258,7 +294,7 @@ const TicketDetailPage = ({ ticket }: TicketDetailPageProps) => {
         toast.error(result.message, { id: toastId });
       }
     } catch (error) {
-      toast.error('Failed to submit challenge. Please try again.', {
+      toast.error('Failed to start challenge. Please try again.', {
         id: toastId,
       });
     }
@@ -308,6 +344,30 @@ const TicketDetailPage = ({ ticket }: TicketDetailPageProps) => {
               />
             </div>
 
+            {/* Live Portal Status Card - PREMIUM only */}
+            <LiveStatusCard
+              ticketId={ticket.id}
+              tier={ticket.tier}
+              issuer={ticket.issuer}
+              lastCheck={
+                ticket.verification?.type === 'TICKET' && ticket.verification.metadata
+                  ? {
+                      portalStatus: (ticket.verification.metadata as Record<string, unknown>).portalStatus as string || '',
+                      mappedStatus: (ticket.verification.metadata as Record<string, unknown>).mappedStatus as string | null,
+                      outstandingAmount: (ticket.verification.metadata as Record<string, unknown>).outstandingAmount as number || 0,
+                      canChallenge: (ticket.verification.metadata as Record<string, unknown>).canChallenge as boolean || false,
+                      canPay: (ticket.verification.metadata as Record<string, unknown>).canPay as boolean || false,
+                      screenshotUrl: (ticket.verification.metadata as Record<string, unknown>).screenshotUrl as string || '',
+                      checkedAt: (ticket.verification.metadata as Record<string, unknown>).checkedAt as string || ticket.verification.verifiedAt?.toISOString() || '',
+                    }
+                  : null
+              }
+              onViewScreenshot={setLightboxImage}
+              onStatusChange={() => {
+                // Page will revalidate automatically after status update
+              }}
+            />
+
             {/* Ticket Photo Card */}
             <TicketPhotoCard
               images={ticketImages}
@@ -340,6 +400,41 @@ const TicketDetailPage = ({ ticket }: TicketDetailPageProps) => {
                 onRegenerate={handleOpenGenerateLetterDialog}
               />
             )}
+
+            {/* Auto Challenge Status Card - show latest AUTO_CHALLENGE */}
+            {(() => {
+              const latestAutoChallenge = ticket.challenges
+                .filter((c) => c.type === 'AUTO_CHALLENGE')
+                .sort(
+                  (a, b) =>
+                    new Date(b.createdAt).getTime() -
+                    new Date(a.createdAt).getTime(),
+                )[0];
+
+              if (!latestAutoChallenge) return null;
+
+              return (
+                <AutoChallengeStatusCard
+                  challengeId={latestAutoChallenge.id}
+                  initialStatus={latestAutoChallenge.status as ChallengeStatus}
+                  reason={latestAutoChallenge.reason}
+                  createdAt={latestAutoChallenge.createdAt}
+                  onRetry={() => {
+                    // Open dialog with pre-filled reason for retry
+                    openAutoChallengeDialogForRetry(
+                      latestAutoChallenge.id,
+                      latestAutoChallenge.reason,
+                      latestAutoChallenge.customReason || undefined,
+                    );
+                  }}
+                  onViewScreenshots={(urls) => {
+                    if (urls.length > 0) {
+                      setLightboxImage(urls[0]);
+                    }
+                  }}
+                />
+              );
+            })()}
 
             {/* Appeal Letter Card (incoming council letters) */}
             {ticket.letters.length > 0 && (
@@ -455,9 +550,12 @@ const TicketDetailPage = ({ ticket }: TicketDetailPageProps) => {
       {/* Auto Challenge Dialog */}
       <AutoChallengeDialog
         open={isAutoChallengeDialogOpen}
-        onOpenChange={setIsAutoChallengeDialogOpen}
+        onOpenChange={handleAutoChallengeDialogChange}
         issuerName={ticket.issuer}
         onSubmit={handleAutoChallenge}
+        existingChallengeId={retryChallengeId || undefined}
+        initialReason={retryReason}
+        initialCustomReason={retryCustomReason}
       />
 
       {/* Generate Letter Dialog */}

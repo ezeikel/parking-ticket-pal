@@ -3,14 +3,17 @@
 import { revalidatePath } from 'next/cache';
 import {
   db,
+  Prisma,
   ChallengeStatus,
   PendingIssuerStatus,
+  TicketStatus,
 } from '@parking-ticket-pal/db';
 import { findIssuer } from '@/constants/index';
 import { getUserId } from '@/utils/user';
 import { createServerLogger } from '@/lib/logger';
 import {
   requestIssuerGeneration,
+  startChallenge,
   runChallenge,
   isIssuerSupported,
   type Address,
@@ -32,8 +35,9 @@ const generateDryRunId = () =>
   `dry-run-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
 
 export type AutoChallengeStatus =
+  | 'started' // Challenge job started (async - poll for progress)
   | 'submitted' // Challenge submitted successfully
-  | 'submitting' // Currently being submitted
+  | 'submitting' // Currently being submitted (legacy sync mode)
   | 'dry_run_complete' // Dry run completed (form filled but not submitted)
   | 'generating_automation' // Code generation in progress for this issuer
   | 'automation_pending_review' // PR created, awaiting human review
@@ -43,6 +47,7 @@ export type AutoChallengeStatus =
 export type AutoChallengeResult = {
   success: boolean;
   challengeId?: string;
+  jobId?: string; // Worker job ID for polling
   pendingChallengeId?: string; // For queued challenges while waiting for automation
   status: AutoChallengeStatus;
   message: string;
@@ -58,16 +63,23 @@ export type AutoChallengeResult = {
 /**
  * Initiates an auto-challenge for a parking ticket.
  *
- * Simplified Flow:
- * 1. Check if issuer has built-in support (Lewisham, Horizon, etc.) → Run locally
- * 2. No built-in support → Check PendingIssuer status or trigger generation
- *    - Queue the challenge request for later processing
- *    - Offer challenge letter as fallback
+ * Async Flow (new):
+ * 1. Creates/updates Challenge record with status IN_PROGRESS
+ * 2. Calls worker which returns jobId immediately
+ * 3. Updates Challenge with workerJobId for polling
+ * 4. Returns jobId and challengeId for frontend polling
+ *
+ * Retry Support:
+ * Pass existingChallengeId to retry a failed challenge with updated reason.
+ *
+ * Legacy Fallback:
+ * For unsupported issuers, triggers code generation and queues challenge.
  */
 export async function initiateAutoChallenge(
   ticketId: string,
   challengeReason: string,
   customReason?: string,
+  existingChallengeId?: string, // For retry - reuse existing challenge record
 ): Promise<AutoChallengeResult> {
   const userId = await getUserId('initiate auto-challenge');
 
@@ -109,6 +121,55 @@ export async function initiateAutoChallenge(
       };
     }
 
+    // Pre-flight check: Ensure ticket is in a challengeable state
+    const nonChallengeableStatuses: TicketStatus[] = [
+      TicketStatus.PAID,
+      TicketStatus.CANCELLED,
+      TicketStatus.REPRESENTATION_ACCEPTED,
+      TicketStatus.APPEAL_UPHELD,
+      TicketStatus.CHARGE_CERTIFICATE,
+      TicketStatus.ORDER_FOR_RECOVERY,
+      TicketStatus.ENFORCEMENT_BAILIFF_STAGE,
+      TicketStatus.COURT_PROCEEDINGS,
+      TicketStatus.CCJ_ISSUED,
+    ];
+
+    if (nonChallengeableStatuses.includes(ticket.status)) {
+      const statusMessages: Record<TicketStatus, string> = {
+        [TicketStatus.PAID]: 'This ticket has been paid.',
+        [TicketStatus.CANCELLED]: 'This ticket has been cancelled.',
+        [TicketStatus.REPRESENTATION_ACCEPTED]: 'Your challenge has already been accepted.',
+        [TicketStatus.APPEAL_UPHELD]: 'Your appeal has already been upheld.',
+        [TicketStatus.CHARGE_CERTIFICATE]: 'This ticket has progressed to a charge certificate. Challenge is no longer available.',
+        [TicketStatus.ORDER_FOR_RECOVERY]: 'This ticket is in debt recovery. Challenge is no longer available.',
+        [TicketStatus.ENFORCEMENT_BAILIFF_STAGE]: 'This ticket is at enforcement stage. Challenge is no longer available.',
+        [TicketStatus.COURT_PROCEEDINGS]: 'This ticket is in court proceedings. Challenge is no longer available.',
+        [TicketStatus.CCJ_ISSUED]: 'A CCJ has been issued. Challenge is no longer available.',
+        // Default for any other status (shouldn't reach here)
+        [TicketStatus.ISSUED_DISCOUNT_PERIOD]: '',
+        [TicketStatus.ISSUED_FULL_CHARGE]: '',
+        [TicketStatus.NOTICE_TO_OWNER]: '',
+        [TicketStatus.FORMAL_REPRESENTATION]: '',
+        [TicketStatus.NOTICE_OF_REJECTION]: '',
+        [TicketStatus.TEC_OUT_OF_TIME_APPLICATION]: '',
+        [TicketStatus.PE2_PE3_APPLICATION]: '',
+        [TicketStatus.APPEAL_TO_TRIBUNAL]: '',
+        [TicketStatus.NOTICE_TO_KEEPER]: '',
+        [TicketStatus.APPEAL_SUBMITTED_TO_OPERATOR]: '',
+        [TicketStatus.APPEAL_REJECTED_BY_OPERATOR]: '',
+        [TicketStatus.POPLA_APPEAL]: '',
+        [TicketStatus.IAS_APPEAL]: '',
+        [TicketStatus.APPEAL_REJECTED]: '',
+        [TicketStatus.DEBT_COLLECTION]: '',
+      };
+
+      return {
+        success: false,
+        status: 'error',
+        message: statusMessages[ticket.status] || 'This ticket cannot be challenged in its current state.',
+      };
+    }
+
     // Find the issuer
     const issuer = findIssuer(ticket.issuer);
     const issuerId =
@@ -147,12 +208,13 @@ export async function initiateAutoChallenge(
     };
 
     // ========================================
-    // Scenario 1: Worker-supported automation
+    // Scenario 1: Worker-supported automation (async)
     // ========================================
     if (hasWorkerSupport) {
       if (dryRun) {
-        // Dry run: no DB record needed
-        return await runWorkerChallenge(
+        // Dry run: no DB record needed - use legacy sync mode
+        // TODO: Consider supporting async dry runs in the future
+        return await runWorkerChallengeLegacy(
           ticketForChallenge,
           issuerId,
           challengeReason,
@@ -161,18 +223,34 @@ export async function initiateAutoChallenge(
         );
       }
 
-      // Real run: create challenge record first
-      const challenge = await db.challenge.create({
-        data: {
-          ticketId: ticket.id,
-          type: 'AUTO_CHALLENGE',
-          reason: challengeReason,
-          customReason: customReason || null,
-          status: ChallengeStatus.PENDING,
-        },
-      });
+      // Real run: create or update challenge record
+      let challenge;
+      if (existingChallengeId) {
+        // Retry: update existing challenge record
+        challenge = await db.challenge.update({
+          where: { id: existingChallengeId },
+          data: {
+            reason: challengeReason,
+            customReason: customReason || null,
+            status: ChallengeStatus.IN_PROGRESS,
+            workerJobId: null, // Clear old job ID
+            metadata: Prisma.DbNull, // Clear old results
+          },
+        });
+      } else {
+        // New challenge: create record
+        challenge = await db.challenge.create({
+          data: {
+            ticketId: ticket.id,
+            type: 'AUTO_CHALLENGE',
+            reason: challengeReason,
+            customReason: customReason || null,
+            status: ChallengeStatus.IN_PROGRESS,
+          },
+        });
+      }
 
-      return await runWorkerChallenge(
+      return await runWorkerChallengeAsync(
         ticketForChallenge,
         issuerId,
         challengeReason,
@@ -342,13 +420,112 @@ type TicketForChallenge = {
 };
 
 /**
- * Run automation via the worker service.
+ * Run automation via the worker service (ASYNC mode).
+ * Returns immediately with jobId for polling.
+ *
+ * The worker runs the automation in the background and sends a webhook on completion.
+ * Frontend polls /api/challenges/[id]/status for progress updates.
+ */
+async function runWorkerChallengeAsync(
+  ticket: TicketForChallenge,
+  issuerId: string,
+  challengeReason: string,
+  customReason: string | undefined,
+  challengeId: string,
+): Promise<AutoChallengeResult> {
+  try {
+    // Build user address with fallback defaults
+    const userAddress: Address = {
+      line1: ticket.vehicle.user.address?.line1 || '',
+      line2: ticket.vehicle.user.address?.line2 || undefined,
+      city: ticket.vehicle.user.address?.city || undefined,
+      postcode: ticket.vehicle.user.address?.postcode || '',
+      country: ticket.vehicle.user.address?.country || 'United Kingdom',
+    };
+
+    const result = await startChallenge({
+      issuerId,
+      pcnNumber: ticket.pcnNumber,
+      vehicleReg: ticket.vehicle.registrationNumber,
+      vehicleMake: ticket.vehicle.make || undefined,
+      vehicleModel: ticket.vehicle.model || undefined,
+      challengeReason,
+      additionalDetails: customReason,
+      ticketId: ticket.id,
+      challengeId,
+      user: {
+        id: ticket.vehicle.user.id,
+        name: ticket.vehicle.user.name || 'Unknown',
+        email: ticket.vehicle.user.email,
+        phoneNumber: ticket.vehicle.user.phoneNumber || undefined,
+        address: userAddress,
+      },
+      dryRun: false,
+    });
+
+    if (result.success && result.jobId) {
+      // Update challenge with worker job ID for polling
+      await db.challenge.update({
+        where: { id: challengeId },
+        data: {
+          workerJobId: result.jobId,
+        },
+      });
+
+      revalidatePath('/tickets/[id]', 'page');
+
+      return {
+        success: true,
+        challengeId,
+        jobId: result.jobId,
+        status: 'started',
+        message: 'Challenge automation started. Tracking progress...',
+      };
+    }
+
+    // Failed to start job
+    await db.challenge.update({
+      where: { id: challengeId },
+      data: {
+        status: ChallengeStatus.ERROR,
+        metadata: {
+          error: result.error || 'Failed to start challenge job',
+        },
+      },
+    });
+
+    return {
+      success: false,
+      challengeId,
+      status: 'error',
+      message: result.error || 'Failed to start challenge automation.',
+    };
+  } catch (error) {
+    // Update challenge with error
+    await db.challenge.update({
+      where: { id: challengeId },
+      data: {
+        status: ChallengeStatus.ERROR,
+        metadata: {
+          error: error instanceof Error ? error.message : 'Unknown error',
+        },
+      },
+    });
+
+    throw error;
+  }
+}
+
+/**
+ * Run automation via the worker service (LEGACY sync mode).
  * The worker has Playwright and can access .gov.uk sites from its Hetzner server.
  *
  * For dry runs: No DB record is created. Results are returned directly.
  * For real runs: Challenge record is created and updated with results.
+ *
+ * @deprecated Use runWorkerChallengeAsync for real runs. This is kept for dry runs only.
  */
-async function runWorkerChallenge(
+async function runWorkerChallengeLegacy(
   ticket: TicketForChallenge,
   issuerId: string,
   challengeReason: string,

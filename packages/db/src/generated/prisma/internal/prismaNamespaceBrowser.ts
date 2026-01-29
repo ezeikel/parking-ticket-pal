@@ -289,6 +289,7 @@ export const ChallengeScalarFieldEnum = {
   responseReceivedAt: 'responseReceivedAt',
   responseStatus: 'responseStatus',
   responseDetails: 'responseDetails',
+  workerJobId: 'workerJobId',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const
