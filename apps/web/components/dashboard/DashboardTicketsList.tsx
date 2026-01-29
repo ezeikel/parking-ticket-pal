@@ -30,7 +30,14 @@ type TicketStatus =
   | 'WON'
   | 'LOST'
   | 'PAID'
+  | 'CANCELLED'
   | 'OVERDUE';
+
+/**
+ * Terminal statuses where success score and deadline are not relevant
+ */
+const isTerminalStatus = (status: TicketStatus) =>
+  ['CANCELLED', 'PAID', 'WON'].includes(status);
 
 type Ticket = {
   id: string;
@@ -112,6 +119,7 @@ const statusConfig: Record<
   WON: { label: 'Won', bg: 'bg-teal/10', text: 'text-teal' },
   LOST: { label: 'Lost', bg: 'bg-coral/10', text: 'text-coral' },
   PAID: { label: 'Paid', bg: 'bg-light', text: 'text-gray' },
+  CANCELLED: { label: 'Cancelled', bg: 'bg-light', text: 'text-gray' },
   OVERDUE: { label: 'Overdue', bg: 'bg-coral/10', text: 'text-coral' },
 };
 
@@ -263,35 +271,38 @@ const DashboardTicketsList = ({
                         })}
                       </span>
                     </div>
-                    <div className="flex items-center gap-1.5">
-                      <FontAwesomeIcon
-                        icon={faClock}
-                        className={`text-xs ${
-                          ticket.deadlineDays <= 0
-                            ? 'text-coral'
-                            : ticket.deadlineDays <= 7
-                              ? 'text-amber'
-                              : 'text-gray'
-                        }`}
-                      />
-                      <span
-                        className={
-                          ticket.deadlineDays <= 0
-                            ? 'font-medium text-coral'
-                            : ticket.deadlineDays <= 7
-                              ? 'font-medium text-amber'
-                              : 'text-gray'
-                        }
-                      >
-                        {ticket.deadlineDays <= 0
-                          ? 'Overdue'
-                          : `Due in ${ticket.deadlineDays} days`}
-                      </span>
-                    </div>
+                    {!isTerminalStatus(ticket.status) && (
+                      <div className="flex items-center gap-1.5">
+                        <FontAwesomeIcon
+                          icon={faClock}
+                          className={`text-xs ${
+                            ticket.deadlineDays <= 0
+                              ? 'text-coral'
+                              : ticket.deadlineDays <= 7
+                                ? 'text-amber'
+                                : 'text-gray'
+                          }`}
+                        />
+                        <span
+                          className={
+                            ticket.deadlineDays <= 0
+                              ? 'font-medium text-coral'
+                              : ticket.deadlineDays <= 7
+                                ? 'font-medium text-amber'
+                                : 'text-gray'
+                          }
+                        >
+                          {ticket.deadlineDays <= 0
+                            ? 'Overdue'
+                            : `Due in ${ticket.deadlineDays} days`}
+                        </span>
+                      </div>
+                    )}
                   </div>
 
-                  {/* Success Prediction */}
+                  {/* Success Prediction - hidden for terminal statuses */}
                   {ticket.successPrediction !== undefined &&
+                    !isTerminalStatus(ticket.status) &&
                     (() => {
                       const scoreLocked = isScoreLocked(
                         ticket.tier,

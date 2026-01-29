@@ -30,6 +30,7 @@ type TicketStatus =
   | 'WON'
   | 'LOST'
   | 'PAID'
+  | 'CANCELLED'
   | 'OVERDUE';
 
 const mapTicketStatus = (status: string): TicketStatus => {
@@ -69,6 +70,7 @@ const mapTicketStatus = (status: string): TicketStatus => {
   if (lostStatuses.includes(status)) return 'LOST';
   if (overdueStatuses.includes(status)) return 'OVERDUE';
   if (status === 'PAID') return 'PAID';
+  if (status === 'CANCELLED') return 'CANCELLED';
   return 'NEEDS_ACTION';
 };
 

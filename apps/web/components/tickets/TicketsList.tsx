@@ -179,6 +179,7 @@ const statusConfig: Record<
     text: 'text-coral',
   },
   PAID: { label: 'Paid', bg: 'bg-light', text: 'text-gray' },
+  CANCELLED: { label: 'Cancelled', bg: 'bg-light', text: 'text-gray' },
 };
 
 const formatAmount = (pence: number) =>
@@ -213,6 +214,14 @@ const needsAction = (status: TicketStatus): boolean => {
   ];
   return actionStatuses.includes(status);
 };
+
+/**
+ * Terminal statuses where success score and deadline are not relevant
+ */
+const isTerminalStatus = (status: TicketStatus) =>
+  ['CANCELLED', 'PAID', 'REPRESENTATION_ACCEPTED', 'APPEAL_UPHELD'].includes(
+    status,
+  );
 
 const TicketsList = ({
   tickets,
@@ -451,68 +460,74 @@ const TicketsList = ({
                     </div>
                   </div>
 
-                  {/* Deadline Warning */}
-                  {deadlineDays <= 14 && (
-                    <div className="mt-3 flex items-center gap-2">
-                      <FontAwesomeIcon
-                        icon={faClock}
-                        className={`text-xs ${
-                          deadlineDays <= 0
-                            ? 'text-coral'
-                            : deadlineDays <= 7
-                              ? 'text-amber'
-                              : 'text-gray'
-                        }`}
-                      />
-                      <span
-                        className={`text-sm ${
-                          deadlineDays <= 0
-                            ? 'font-semibold text-coral'
-                            : deadlineDays <= 7
-                              ? 'font-semibold text-amber'
-                              : 'text-gray'
-                        }`}
-                      >
-                        {deadlineDays <= 0
-                          ? 'Overdue'
-                          : `Due in ${deadlineDays} days`}
-                      </span>
-                    </div>
-                  )}
+                  {/* Deadline Warning - hidden for terminal statuses */}
+                  {deadlineDays <= 14 &&
+                    !isTerminalStatus(ticket.status) && (
+                      <div className="mt-3 flex items-center gap-2">
+                        <FontAwesomeIcon
+                          icon={faClock}
+                          className={`text-xs ${
+                            deadlineDays <= 0
+                              ? 'text-coral'
+                              : deadlineDays <= 7
+                                ? 'text-amber'
+                                : 'text-gray'
+                          }`}
+                        />
+                        <span
+                          className={`text-sm ${
+                            deadlineDays <= 0
+                              ? 'font-semibold text-coral'
+                              : deadlineDays <= 7
+                                ? 'font-semibold text-amber'
+                                : 'text-gray'
+                          }`}
+                        >
+                          {deadlineDays <= 0
+                            ? 'Overdue'
+                            : `Due in ${deadlineDays} days`}
+                        </span>
+                      </div>
+                    )}
 
                   {/* Bottom Row - Score and Actions */}
                   <div className="mt-4 flex items-center justify-between border-t border-border pt-4">
-                    <div className="flex items-center gap-2">
-                      <ScoreGauge
-                        score={ticket.prediction?.percentage ?? 50}
-                        size="sm"
-                        showLabel={false}
-                        animated
-                        delay={index * 0.03 + 0.1}
-                        locked={scoreLocked}
-                      />
-                      {!scoreLocked ? (
-                        <span className="text-xs text-gray">
-                          Success chance
-                        </span>
-                      ) : (
-                        <button
-                          type="button"
-                          onClick={(e) => {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            // TODO: Open upgrade modal
-                          }}
-                          className="flex items-center gap-1.5 rounded-full bg-teal/10 px-2.5 py-1 text-xs font-medium text-teal transition-colors hover:bg-teal/20"
-                        >
-                          <FontAwesomeIcon
-                            icon={faUnlock}
-                            className="text-[10px]"
-                          />
-                          Unlock score
-                        </button>
-                      )}
-                    </div>
+                    {/* Score - hidden for terminal statuses */}
+                    {!isTerminalStatus(ticket.status) ? (
+                      <div className="flex items-center gap-2">
+                        <ScoreGauge
+                          score={ticket.prediction?.percentage ?? 50}
+                          size="sm"
+                          showLabel={false}
+                          animated
+                          delay={index * 0.03 + 0.1}
+                          locked={scoreLocked}
+                        />
+                        {!scoreLocked ? (
+                          <span className="text-xs text-gray">
+                            Success chance
+                          </span>
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              // TODO: Open upgrade modal
+                            }}
+                            className="flex items-center gap-1.5 rounded-full bg-teal/10 px-2.5 py-1 text-xs font-medium text-teal transition-colors hover:bg-teal/20"
+                          >
+                            <FontAwesomeIcon
+                              icon={faUnlock}
+                              className="text-[10px]"
+                            />
+                            Unlock score
+                          </button>
+                        )}
+                      </div>
+                    ) : (
+                      <div />
+                    )}
 
                     {needsAction(ticket.status) &&
                       (() => {

@@ -93,6 +93,14 @@ const TicketCard = ({ ticket }: TicketCardProps) => {
 
   const statusInfo = getStatusInfo(ticket.status as TicketStatus);
 
+  // Terminal statuses where success score and deadline are not relevant
+  const isTerminalStatus = [
+    'CANCELLED',
+    'PAID',
+    'REPRESENTATION_ACCEPTED',
+    'APPEAL_UPHELD',
+  ].includes(ticket.status);
+
   return (
     <Card className="flex flex-col justify-between transition-all hover:shadow-lg">
       <CardHeader>
@@ -109,11 +117,13 @@ const TicketCard = ({ ticket }: TicketCardProps) => {
             </div>
           </div>
           <div className="flex items-center gap-2 flex-shrink-0">
-            <PercentageIndicator
-              percentage={ticket.prediction?.percentage ?? 75}
-              size={64}
-              showLabel={false}
-            />
+            {!isTerminalStatus && (
+              <PercentageIndicator
+                percentage={ticket.prediction?.percentage ?? 75}
+                size={64}
+                showLabel={false}
+              />
+            )}
             <TicketCardControls ticket={ticket} />
           </div>
         </div>
@@ -140,19 +150,21 @@ const TicketCard = ({ ticket }: TicketCardProps) => {
             />
             <span>{issuedDateInfo.formattedDate}</span>
           </div>
-          <div className="flex items-center gap-2">
-            <FontAwesomeIcon
-              icon={faClock}
-              className="h-4 w-4 text-muted-foreground"
-            />
-            <div className="flex flex-col">
-              <DueDate
-                date={issuedDateInfo.dueDateFormatted}
-                showMessage={false}
-                colorClass={issuedDateInfo.status.color}
+          {!isTerminalStatus && (
+            <div className="flex items-center gap-2">
+              <FontAwesomeIcon
+                icon={faClock}
+                className="h-4 w-4 text-muted-foreground"
               />
+              <div className="flex flex-col">
+                <DueDate
+                  date={issuedDateInfo.dueDateFormatted}
+                  showMessage={false}
+                  colorClass={issuedDateInfo.status.color}
+                />
+              </div>
             </div>
-          </div>
+          )}
           <div className="flex items-center gap-2">
             <FontAwesomeIcon
               icon={faMoneyBill}

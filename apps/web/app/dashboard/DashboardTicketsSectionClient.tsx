@@ -16,6 +16,7 @@ type TicketStatus =
   | 'WON'
   | 'LOST'
   | 'PAID'
+  | 'CANCELLED'
   | 'OVERDUE';
 
 type Ticket = {
@@ -48,9 +49,11 @@ const DashboardTicketsSectionClient = ({
   const [hoveredTicketId, setHoveredTicketId] = useState<string | null>(null);
   const [showMap, setShowMap] = useState(false);
 
-  // Transform tickets for the map component (filter out LOST status as it's not in map's type)
+  // Transform tickets for the map component (filter out LOST and CANCELLED statuses as they're not in map's type)
   const mapTickets = tickets
-    .filter((ticket) => ticket.status !== 'LOST')
+    .filter(
+      (ticket) => ticket.status !== 'LOST' && ticket.status !== 'CANCELLED',
+    )
     .map((ticket) => ({
       id: ticket.id,
       pcnNumber: ticket.pcnNumber,
