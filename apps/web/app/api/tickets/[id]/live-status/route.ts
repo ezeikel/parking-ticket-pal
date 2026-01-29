@@ -191,34 +191,25 @@ export async function GET(
             });
           }
 
-          // Check if we should update the ticket status
+          // Update ticket status if portal returns a different status
+          // We trust the portal as the source of truth for current status
           if (result.mappedStatus && result.mappedStatus !== ticket.status) {
             const newStatus = result.mappedStatus as TicketStatus;
 
-            const terminalStatuses: TicketStatus[] = [
-              TicketStatus.PAID,
-              TicketStatus.CANCELLED,
-              TicketStatus.REPRESENTATION_ACCEPTED,
-              TicketStatus.CHARGE_CERTIFICATE,
-              TicketStatus.ENFORCEMENT_BAILIFF_STAGE,
-            ];
+            await db.ticket.update({
+              where: { id: ticketId },
+              data: {
+                status: newStatus,
+                statusUpdatedAt: new Date(),
+                statusUpdatedBy: 'LIVE_STATUS_CHECK',
+              },
+            });
 
-            if (terminalStatuses.includes(newStatus)) {
-              await db.ticket.update({
-                where: { id: ticketId },
-                data: {
-                  status: newStatus,
-                  statusUpdatedAt: new Date(),
-                  statusUpdatedBy: 'LIVE_STATUS_CHECK',
-                },
-              });
-
-              logger.info('Ticket status updated from live check', {
-                ticketId,
-                previousStatus: ticket.status,
-                newStatus,
-              });
-            }
+            logger.info('Ticket status updated from live check', {
+              ticketId,
+              previousStatus: ticket.status,
+              newStatus,
+            });
           }
 
           revalidatePath('/tickets/[id]', 'page');
