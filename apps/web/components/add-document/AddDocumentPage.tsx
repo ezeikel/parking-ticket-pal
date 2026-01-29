@@ -101,11 +101,18 @@ const AddDocumentPage = () => {
 
               if (detectedType === 'letter') {
                 // It's a letter - automatically add it to the existing ticket
+                // Map OCR letterType string to LetterType enum, fallback to GENERIC
+                const detectedLetterType =
+                  (result.data.letterType as keyof typeof LetterType) &&
+                  LetterType[result.data.letterType as keyof typeof LetterType]
+                    ? LetterType[result.data.letterType as keyof typeof LetterType]
+                    : LetterType.GENERIC;
+
                 try {
                   const letter = await createLetter({
                     pcnNumber: existingTicketData.pcnNumber,
                     vehicleReg: result.data.vehicleReg || '',
-                    type: LetterType.GENERIC, // TODO: Add letter type detection to OCR
+                    type: detectedLetterType,
                     summary: result.data.summary || 'Letter from council',
                     sentAt: result.data.sentAt
                       ? new Date(result.data.sentAt)
@@ -113,6 +120,7 @@ const AddDocumentPage = () => {
                     tempImageUrl: result.imageUrl || undefined,
                     tempImagePath: result.tempImagePath || undefined,
                     extractedText: result.data.extractedText || undefined,
+                    currentAmount: result.data.currentAmount || undefined,
                   });
 
                   if (letter) {

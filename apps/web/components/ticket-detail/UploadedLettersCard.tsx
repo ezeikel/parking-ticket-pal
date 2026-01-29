@@ -136,7 +136,11 @@ const UploadedLettersCard = ({
     startTransition(async () => {
       const result = await uploadLetterToTicket(ticketId, formData);
       if (result.success) {
-        toast.success('Letter uploaded successfully.');
+        if (result.warning) {
+          toast.warning(result.warning);
+        } else {
+          toast.success('Letter uploaded successfully.');
+        }
         setStagedFile(null);
         setShowUploadForm(false);
         if (fileInputRef.current) fileInputRef.current.value = '';

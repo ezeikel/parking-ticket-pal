@@ -45,4 +45,22 @@ export const DocumentSchema = z.object({
   extractedText: z.string().nullable(), // Full text extracted from the letter (only applicable for LETTER)
   summary: z.string().nullable(), // Summary of key points from the letter (only applicable for LETTER)
   sentAt: z.string().nullable(), // Date letter was sent (only applicable for LETTER)
+
+  // Letter type detection (only applicable for LETTER)
+  letterType: z
+    .enum([
+      'INITIAL_NOTICE',
+      'NOTICE_TO_OWNER',
+      'CHARGE_CERTIFICATE',
+      'ORDER_FOR_RECOVERY',
+      'CCJ_NOTICE',
+      'FINAL_DEMAND',
+      'BAILIFF_NOTICE',
+      'APPEAL_RESPONSE',
+      'GENERIC',
+    ])
+    .nullable(), // Type of letter based on content
+
+  // Current amount mentioned in the letter (may be higher than initial amount)
+  currentAmount: z.number().int().nullable(), // Amount currently due in pounds (for letters that show increased amounts)
 });

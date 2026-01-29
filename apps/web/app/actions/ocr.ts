@@ -187,6 +187,8 @@ export const extractOCRTextWithOpenAI = async (
     sentAt,
     summary,
     extractedText,
+    letterType,
+    currentAmount,
   } = parsed.data;
 
   // get full address from Mapbox if we have a line1
@@ -325,6 +327,8 @@ export const extractOCRTextWithOpenAI = async (
       summary,
       sentAt: sentAt ? createUTCDate(new Date(sentAt)) : null,
       extractedText,
+      letterType: letterType || null,
+      currentAmount: currentAmount ? Math.round(Number(currentAmount) * 100) : null,
     },
     image: base64Image,
     imageUrl: blobStorageUrl,
@@ -485,6 +489,8 @@ export const extractOCRTextWithVision = async (
     sentAt,
     summary,
     extractedText,
+    letterType,
+    currentAmount,
   } = parsed.data;
 
   // get full address from Mapbox if we have a line1
@@ -623,6 +629,8 @@ export const extractOCRTextWithVision = async (
       summary,
       sentAt: sentAt ? createUTCDate(new Date(sentAt)) : null,
       extractedText,
+      letterType: letterType || null,
+      currentAmount: currentAmount ? Math.round(Number(currentAmount) * 100) : null,
     },
     image: base64Image,
     imageUrl: blobStorageUrl,

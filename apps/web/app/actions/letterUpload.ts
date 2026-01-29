@@ -7,6 +7,7 @@ import {
   LetterType,
   MediaSource,
   MediaType,
+  AmountIncreaseSourceType,
 } from '@parking-ticket-pal/db';
 import { getUserId } from '@/utils/user';
 import { createServerLogger } from '@/lib/logger';
@@ -16,6 +17,7 @@ import {
   getMappedStatus,
   shouldUpdateStatus,
 } from '@/utils/letterStatusMapping';
+import { validateLetterType } from '@/utils/letterTypeValidation';
 
 const logger = createServerLogger({ action: 'letterUpload' });
 
@@ -26,7 +28,7 @@ const logger = createServerLogger({ action: 'letterUpload' });
 export async function uploadLetterToTicket(
   ticketId: string,
   formData: FormData,
-): Promise<{ success: boolean; error?: string; letterId?: string }> {
+): Promise<{ success: boolean; error?: string; letterId?: string; warning?: string }> {
   const userId = await getUserId('upload a letter');
 
   if (!userId) {
@@ -55,7 +57,9 @@ export async function uploadLetterToTicket(
         id: true,
         pcnNumber: true,
         issuedAt: true,
+        status: true,
         statusUpdatedAt: true,
+        initialAmount: true,
         vehicle: {
           select: {
             userId: true,
@@ -73,6 +77,15 @@ export async function uploadLetterToTicket(
       return { success: false, error: 'Not authorized to modify this ticket' };
     }
 
+    // Validate letter type against current ticket status
+    const validation = validateLetterType(letterType, ticket.status);
+    if (!validation.isValid) {
+      return { success: false, error: validation.warning };
+    }
+
+    // Store warning if there is one
+    const validationWarning = validation.warning;
+
     // Extract text from image using OCR
     const ocrFormData = new FormData();
     ocrFormData.append('image', file);
@@ -80,6 +93,7 @@ export async function uploadLetterToTicket(
 
     const extractedText = ocrResult.data?.extractedText || '';
     const summary = ocrResult.data?.summary || '';
+    const currentAmount = ocrResult.data?.currentAmount || null;
 
     // Create the letter
     const letter = await db.letter.create({
@@ -155,6 +169,29 @@ export async function uploadLetterToTicket(
       });
     }
 
+    // Create AmountIncrease if OCR detected a higher amount
+    if (currentAmount && currentAmount > ticket.initialAmount) {
+      await db.amountIncrease.create({
+        data: {
+          ticketId: ticket.id,
+          letterId: letter.id,
+          amount: currentAmount,
+          reason: `${letterType.replace(/_/g, ' ')} letter`,
+          sourceType: AmountIncreaseSourceType.LETTER,
+          sourceId: letter.id,
+          effectiveAt: sentAt,
+        },
+      });
+
+      logger.info('Amount increase created from letter upload', {
+        ticketId: ticket.id,
+        letterId: letter.id,
+        letterType,
+        previousAmount: ticket.initialAmount,
+        newAmount: currentAmount,
+      });
+    }
+
     revalidatePath(`/tickets/${ticketId}`);
 
     logger.info('Letter uploaded to ticket', {
@@ -164,7 +201,7 @@ export async function uploadLetterToTicket(
       userId,
     });
 
-    return { success: true, letterId: letter.id };
+    return { success: true, letterId: letter.id, warning: validationWarning };
   } catch (error) {
     logger.error(
       'Error uploading letter to ticket',

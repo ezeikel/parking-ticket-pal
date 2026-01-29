@@ -16,6 +16,7 @@ import {
   Letter,
   ChallengeType,
   ChallengeStatus,
+  AmountIncreaseSourceType,
 } from '@parking-ticket-pal/db';
 import { Readable } from 'stream';
 import { db } from '@parking-ticket-pal/db';
@@ -47,6 +48,7 @@ export const createLetter = async (
     tempImageUrl?: string;
     tempImagePath?: string;
     extractedText?: string;
+    currentAmount?: number | null; // Amount in pence from OCR
   },
 ): Promise<Letter | null> => {
   const validatedData = letterFormSchema.parse(values) as z.infer<
@@ -55,6 +57,7 @@ export const createLetter = async (
     tempImageUrl?: string;
     tempImagePath?: string;
     extractedText?: string;
+    currentAmount?: number | null;
   };
 
   const userId = await getUserId('create a letter');
@@ -132,6 +135,7 @@ export const createLetter = async (
       id: true,
       issuedAt: true,
       statusUpdatedAt: true,
+      initialAmount: true,
     },
   });
 
@@ -245,6 +249,32 @@ export const createLetter = async (
         letterType: validatedData.type,
         newStatus: mappedStatus,
         letterSentAt: validatedData.sentAt,
+      });
+    }
+
+    // Create AmountIncrease if letter has a higher amount than ticket's initial amount
+    if (
+      validatedData.currentAmount &&
+      validatedData.currentAmount > ticket.initialAmount
+    ) {
+      await db.amountIncrease.create({
+        data: {
+          ticketId: ticket.id,
+          letterId: letter.id,
+          amount: validatedData.currentAmount,
+          reason: `${validatedData.type.replace(/_/g, ' ')} letter`,
+          sourceType: AmountIncreaseSourceType.LETTER,
+          sourceId: letter.id,
+          effectiveAt: validatedData.sentAt,
+        },
+      });
+
+      logger.info('Amount increase created from letter', {
+        ticketId: ticket.id,
+        letterId: letter.id,
+        letterType: validatedData.type,
+        previousAmount: ticket.initialAmount,
+        newAmount: validatedData.currentAmount,
       });
     }
 

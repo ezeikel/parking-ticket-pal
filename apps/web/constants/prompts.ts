@@ -86,10 +86,12 @@ Your task is to analyze the provided sources and return a JSON object matching t
   "discountedPaymentDeadline": "ISO 8601 string with the following format: YYYY-MM-DDTHH:MM:SSZ",
   "fullPaymentDeadline": "ISO 8601 string with the following format: YYYY-MM-DDTHH:MM:SSZ",
   "extractedText": "string",  // full text extracted from the document (both tickets and letters)
-  "summary": "string"         // summary of the key points from the document (both tickets and letters)
+  "summary": "string",        // summary of the key points from the document (both tickets and letters)
 
-  // If the documentType is "LETTER", extract the following additional fields
-  "sentAt": "ISO 8601 string with the following format: YYYY-MM-DDTHH:MM:SSZ, required for LETTER type only. Look for phrases like 'Date of this Notice', 'Date sent', 'Date posted', or similar patterns indicating when the letter was actually sent/posted. Do not use the date of issue or contravention date. If no sent date is found, use today's date."
+  // If the documentType is "LETTER", extract the following additional fields:
+  "sentAt": "ISO 8601 string with the following format: YYYY-MM-DDTHH:MM:SSZ, required for LETTER type only. Look for phrases like 'Date of this Notice', 'Date sent', 'Date posted', or similar patterns indicating when the letter was actually sent/posted. Do not use the date of issue or contravention date. If no sent date is found, use today's date.",
+  "letterType": "One of: INITIAL_NOTICE, NOTICE_TO_OWNER, CHARGE_CERTIFICATE, ORDER_FOR_RECOVERY, CCJ_NOTICE, FINAL_DEMAND, BAILIFF_NOTICE, APPEAL_RESPONSE, GENERIC. Set to null for TICKET documents.",
+  "currentAmount": "integer (in pounds) - The amount currently due as shown on the letter. This may be higher than the original amount due to late payment surcharges. Set to null if not a letter or no amount is shown."
 }
 
 When determining whether the document is a "TICKET" or a "LETTER", please consider the following:
@@ -97,6 +99,35 @@ When determining whether the document is a "TICKET" or a "LETTER", please consid
 - A "LETTER" is usually an A4-sized document, more formally structured, sent through the post. It might include salutation text (e.g., 'Dear Sir/Madam') and more detailed legal information related to the penalty charge, and may also include images of the contravention.
 
 Both types of documents will contain similar fields such as PCN number, contravention date, and amount due, but the documentType must be distinguished by the layout, size, and presentation style.
+
+LETTER TYPE DETECTION (for documentType "LETTER" only):
+Analyze the letter content to determine the type based on these UK PCN stages:
+
+1. "INITIAL_NOTICE" - First notification of a PCN, typically sent within 14 days if ticket wasn't served in person.
+   Keywords: "Notice of Penalty Charge", "Initial Notice", "First Notice"
+
+2. "NOTICE_TO_OWNER" (NTO) - Sent to registered keeper, usually 28 days after PCN. Formal notice with appeal rights.
+   Keywords: "Notice to Owner", "NTO", "Notice of Rejection", "Section 81", "appeal within 28 days"
+
+3. "CHARGE_CERTIFICATE" - Sent after NTO period expires without payment/appeal. Adds 50% surcharge.
+   Keywords: "Charge Certificate", "increased by 50%", "Section 82", "increased to"
+
+4. "ORDER_FOR_RECOVERY" - Court order for debt recovery. Amount may include court costs.
+   Keywords: "Order for Recovery", "Traffic Enforcement Centre", "TEC", "warrant", "county court"
+
+5. "CCJ_NOTICE" - County Court Judgment notice. Serious credit implications.
+   Keywords: "County Court Judgment", "CCJ", "judgment has been registered"
+
+6. "FINAL_DEMAND" - Last warning before enforcement action.
+   Keywords: "Final Demand", "Final Notice", "last opportunity", "enforcement action"
+
+7. "BAILIFF_NOTICE" - Notice from enforcement agents/bailiffs.
+   Keywords: "Enforcement Agent", "Bailiff", "Notice of Enforcement", "visit your property"
+
+8. "APPEAL_RESPONSE" - Response to a challenge/appeal (accepted or rejected).
+   Keywords: "appeal", "representation", "your challenge", "decision", "accepted", "rejected"
+
+9. "GENERIC" - Use if the letter type cannot be determined from the content.
 
 For amount extraction:
 1. Look for two amounts on the ticket:
@@ -106,6 +137,14 @@ For amount extraction:
 3. For example:
    - If ticket shows £70 (discounted) and £140 (full), use 70 as initialAmount
    - If ticket shows £60 (discounted) and £120 (full), use 60 as initialAmount
+
+For LETTER currentAmount extraction:
+1. Look for the current amount due shown on the letter
+2. This may be the original amount, or increased due to:
+   - Charge Certificate (50% increase)
+   - Court costs
+   - Enforcement fees
+3. Extract as integer in pounds. For example: £195 -> 195
 
 Ensure ISO 8601 format for all dates, and calculate the discountedPaymentDeadline as 14 days and fullPaymentDeadline as 28 days after the issuedAt.`;
 
