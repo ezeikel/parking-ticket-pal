@@ -50,6 +50,8 @@ const PATTERN_LABELS: Record<string, string> = {
   EXCEEDED_TIME_LIMIT: 'Exceeded the time limit',
 };
 
+const MAX_PATTERNS = 3;
+
 const RecommendedReasons = ({
   winningPatterns,
   losingPatterns,
@@ -61,10 +63,14 @@ const RecommendedReasons = ({
     return null;
   }
 
+  // Limit to top patterns to keep UI compact
+  const topWinning = winningPatterns.slice(0, MAX_PATTERNS);
+  const topLosing = losingPatterns.slice(0, MAX_PATTERNS);
+
   return (
     <div
       className={cn(
-        'rounded-lg border border-border bg-muted/30 p-4 space-y-4',
+        'rounded-lg border border-border bg-muted/30 p-3 space-y-3',
         className
       )}
     >
@@ -79,14 +85,14 @@ const RecommendedReasons = ({
         </span>
       </div>
 
-      {winningPatterns.length > 0 && (
+      {topWinning.length > 0 && (
         <div>
           <div className="flex items-center gap-1.5 text-sm font-medium text-emerald-600 dark:text-emerald-500 mb-2">
             <FontAwesomeIcon icon={faCircleCheck} className="text-xs" />
             <span>Reasons that succeeded</span>
           </div>
-          <ul className="space-y-1.5 ml-5">
-            {winningPatterns.map((p) => (
+          <ul className="space-y-1 ml-5">
+            {topWinning.map((p) => (
               <li
                 key={p.pattern}
                 className="text-sm text-foreground flex items-start gap-2"
@@ -99,14 +105,14 @@ const RecommendedReasons = ({
         </div>
       )}
 
-      {losingPatterns.length > 0 && (
+      {topLosing.length > 0 && (
         <div>
           <div className="flex items-center gap-1.5 text-sm font-medium text-red-600 dark:text-red-500 mb-2">
             <FontAwesomeIcon icon={faCircleXmark} className="text-xs" />
             <span>Reasons to avoid</span>
           </div>
-          <ul className="space-y-1.5 ml-5">
-            {losingPatterns.map((p) => (
+          <ul className="space-y-1 ml-5">
+            {topLosing.map((p) => (
               <li
                 key={p.pattern}
                 className="text-sm text-muted-foreground flex items-start gap-2"

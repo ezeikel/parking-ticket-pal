@@ -14,32 +14,50 @@
 | 8. ticket-service update | ✅ DONE | Updated to use `calculatePrediction()` |
 | 9. RecommendedReasons UI | ✅ DONE | Created `apps/web/components/RecommendedReasons/` |
 | 10. Integration into dialogs | ✅ DONE | Added to GenerateLetterDialog and AutoChallengeDialog |
-| 11. Delete legacy ChallengeStats | ⏳ PENDING | ChallengeStats.tsx, TicketDetail.tsx, TicketUpsellCTA.tsx appear unused |
+| 11. **Data import to dev** | ✅ DONE | Imported 29,946 tribunal cases from CSV |
+| 12. **Aggregation run** | ✅ DONE | Created 42 contravention stats + 742 issuer+contravention stats |
+| 13. **Pattern extraction run** | ✅ DONE | GPT-5.2 extracted 7,799 patterns from 22,210 cases (97.5% success, ~$40 cost) |
+| 14. **Production data seed** | ✅ DONE | Created `seed-tribunal-data.ts`, seeded prod with all tribunal data |
+| 15. Backfill existing tickets | ✅ DONE | Created `backfill-predictions.ts` with `--refresh-all` flag, ran on dev + prod |
+| 16. Add prediction explanation UI | ✅ DONE | Shows explanation based on statsLevel in SuccessPredictionCard |
+| 17. Delete legacy ChallengeStats | ⏳ PENDING | ChallengeStats.tsx, TicketDetail.tsx, TicketUpsellCTA.tsx appear unused |
 
 **Note**: Scripts are in `packages/db/scripts/` for now (not worker) since worker lacks Prisma.
 
+### Data Summary (Production)
+- **LondonTribunalCase**: 29,946 cases
+- **ContraventionStats**: 42 contravention codes
+- **IssuerContraventionStats**: 742 issuer+contravention combinations
+- **AppealPattern**: 7,799 extracted patterns (winning + losing)
+
+### Scripts Summary
+| Script | Purpose | Flags |
+|--------|---------|-------|
+| `import-tribunal-cases.ts` | Import CSV to LondonTribunalCase | `<path-to-csv>` |
+| `aggregate-stats.ts` | Create ContraventionStats + IssuerContraventionStats | - |
+| `extract-patterns.ts` | GPT-5.2 pattern extraction to AppealPattern | `--limit N`, `--dry-run` |
+| `seed-tribunal-data.ts` | Export/import tribunal data between envs | `export` or `import` |
+| `backfill-predictions.ts` | Create/update predictions for tickets | `--dry-run`, `--limit N`, `--refresh-all` |
+
 ## Next Steps to Complete
 
-1. **Run the data import** (one-time):
+1. ~~**Run the data import** (one-time)~~ ✅ DONE
+
+2. ~~**Run aggregation** (after import)~~ ✅ DONE
+
+3. ~~**Run pattern extraction** (optional, costs money)~~ ✅ DONE (~$40)
+
+4. ~~**Seed production database**~~ ✅ DONE
+
+5. ~~**Backfill existing tickets**~~ ✅ DONE
    ```bash
    cd packages/db
-   pnpm tsx scripts/import-tribunal-cases.ts /path/to/raw-appeals.csv.gz
+   pnpm tsx scripts/backfill-predictions.ts --refresh-all
    ```
 
-2. **Run aggregation** (after import):
-   ```bash
-   cd packages/db
-   pnpm tsx scripts/aggregate-stats.ts
-   ```
+6. ~~**Add prediction explanation UI**~~ ✅ DONE
 
-3. **Run pattern extraction** (optional, costs money):
-   ```bash
-   cd packages/db
-   pnpm tsx scripts/extract-patterns.ts --limit 100 --dry-run  # Test first
-   pnpm tsx scripts/extract-patterns.ts  # Full run
-   ```
-
-4. **Delete legacy components** (after verifying they're unused):
+7. **Delete legacy components** (after verifying they're unused):
    - `apps/web/components/ChallengeStats/`
    - `apps/web/components/TicketDetail/`
    - `apps/web/components/TicketUpsellCTA/`
@@ -1053,6 +1071,54 @@ export default function RecommendedReasons({
 | File | Reason |
 |------|--------|
 | `apps/web/components/ChallengeStats/ChallengeStats.tsx` | Legacy code |
+
+---
+
+## Phase 7: Prediction Explanation UI
+
+**Goal**: Show users a short explanation of how their prediction score was calculated, directly in the Success Prediction card on the ticket detail page.
+
+### Requirements
+
+1. **Explain the score basis** - Tell the user what data the score is based on:
+   - `issuer_contravention` level: "Based on X similar cases with [Issuer] for this contravention"
+   - `contravention` level: "Based on X similar cases for this contravention type"
+   - `baseline` level: "Based on overall appeal success rates"
+
+2. **Handle low-data scenarios gracefully** - When we fall back to baseline (46%):
+   - Show a message like: "We don't have enough data for this specific contravention yet. This is based on overall appeal success rates. Check back as we continue to add more data."
+
+3. **Keep it short** - The UI is compact, so explanations should be 1-2 lines max
+
+4. **Location**: Inside the Success Prediction card on the ticket detail page (not on dashboard/list)
+
+### Example Copy
+
+**High confidence (issuer + contravention):**
+> "Based on 156 similar cases with Westminster for Code 12"
+
+**Medium confidence (contravention only):**
+> "Based on 2,942 cases for Code 12 across all councils"
+
+**Low confidence (baseline):**
+> "Limited data for this contravention. Score based on overall appeal trends."
+
+### Implementation
+
+**File**: `apps/web/components/tickets/SuccessPrediction.tsx` (or similar)
+
+The prediction metadata already contains:
+- `numberOfCases`: count of cases used
+- `metadata.statsLevel`: 'issuer_contravention' | 'contravention' | 'baseline'
+- `metadata.dataSource`: 'london_tribunal'
+
+Use these to generate the explanation text dynamically.
+
+### Design Considerations
+
+- Text should be muted/secondary color
+- Consider an info icon with tooltip for longer explanation
+- For baseline, could link to a "How we calculate scores" help page (future)
 
 ---
 

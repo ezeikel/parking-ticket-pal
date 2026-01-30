@@ -470,6 +470,10 @@ const TicketDetailPage = ({ ticket }: TicketDetailPageProps) => {
                 successPrediction={successPrediction}
                 potentialSavings={ticket.initialAmount / 2}
                 onUpgrade={handleUpgrade}
+                numberOfCases={ticket.prediction?.numberOfCases ?? undefined}
+                metadata={ticket.prediction?.metadata as { dataSource: string; statsLevel: 'issuer_contravention' | 'contravention' | 'baseline'; numberOfCases?: number } | null}
+                issuerName={ticket.issuer}
+                contraventionCode={ticket.contraventionCode}
               />
 
               {/* Actions Card */}
