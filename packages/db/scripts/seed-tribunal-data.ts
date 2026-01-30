@@ -125,14 +125,38 @@ async function importData() {
   // Clear existing data
   await prisma.londonTribunalCase.deleteMany();
 
-  // Insert in batches
+  // Helper to safely parse dates
+  const safeDate = (dateStr: string | null | undefined): Date | null => {
+    if (!dateStr) return null;
+    const date = new Date(dateStr);
+    return isNaN(date.getTime()) ? null : date;
+  };
+
+  // Insert in batches - only include fields that exist in production schema
   const BATCH_SIZE = 1000;
   for (let i = 0; i < tribunalCases.length; i += BATCH_SIZE) {
     const batch = tribunalCases.slice(i, i + BATCH_SIZE).map((c: any) => ({
-      ...c,
-      appealDate: c.appealDate ? new Date(c.appealDate) : null,
-      createdAt: new Date(c.createdAt),
-      updatedAt: new Date(c.updatedAt),
+      id: c.id,
+      caseReference: c.caseReference,
+      declarant: c.declarant,
+      authority: c.authority,
+      normalizedIssuerId: c.normalizedIssuerId,
+      vrm: c.vrm,
+      pcn: c.pcn,
+      contraventionDate: c.contraventionDate,
+      contraventionTime: c.contraventionTime,
+      contraventionLocation: c.contraventionLocation,
+      penaltyAmount: c.penaltyAmount ? parseFloat(c.penaltyAmount) : null,
+      contravention: c.contravention,
+      normalizedContraventionCode: c.normalizedContraventionCode,
+      referralDate: c.referralDate,
+      decisionDate: c.decisionDate,
+      adjudicator: c.adjudicator,
+      appealDecision: c.appealDecision,
+      direction: c.direction,
+      reasons: c.reasons,
+      scrapedAt: safeDate(c.scrapedAt) || new Date(),
+      updatedAt: safeDate(c.updatedAt) || new Date(),
     }));
     await prisma.londonTribunalCase.createMany({ data: batch });
     console.log(`  Imported ${Math.min(i + BATCH_SIZE, tribunalCases.length)}/${tribunalCases.length} tribunal cases`);
