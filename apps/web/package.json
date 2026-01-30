@@ -45,6 +45,9 @@
     "**/*.+(js|jsx|json|ts|tsx|html|md)": [
       "prettier --ignore-path .gitignore --write",
       "jest --findRelatedTests --passWithNoTests"
+    ],
+    "../../packages/db/prisma/schema.prisma": [
+      "pnpm --filter @parking-ticket-pal/db prisma format"
     ]
   },
   "dependencies": {

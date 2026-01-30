@@ -541,27 +541,27 @@ enum UserTitle {
 
 // London Tribunal Cases - scraped historical data for ML predictions
 model LondonTribunalCase {
-  id                         String         @id @default(cuid())
-  caseReference              String         @unique
-  declarant                  String?
-  authority                  String
-  normalizedIssuerId         String? // Normalized issuer ID (e.g., "tfl", "lewisham")
-  vrm                        String?
-  pcn                        String?
-  contraventionDate          DateTime?
-  contraventionTime          String?
-  contraventionLocation      String?
-  penaltyAmount              Decimal?       @db.Decimal(10, 2)
-  contravention              String?
+  id                          String         @id @default(cuid())
+  caseReference               String         @unique
+  declarant                   String?
+  authority                   String
+  normalizedIssuerId          String? // Normalized issuer ID (e.g., "tfl", "lewisham")
+  vrm                         String?
+  pcn                         String?
+  contraventionDate           DateTime?
+  contraventionTime           String?
+  contraventionLocation       String?
+  penaltyAmount               Decimal?       @db.Decimal(10, 2)
+  contravention               String?
   normalizedContraventionCode String? // Normalized contravention code (e.g., "46", "12")
-  referralDate               DateTime?
-  decisionDate               DateTime?
-  adjudicator                String?
-  appealDecision             AppealDecision
-  direction                  String?
-  reasons                    String         @db.Text
-  scrapedAt                  DateTime       @default(now())
-  updatedAt                  DateTime       @updatedAt
+  referralDate                DateTime?
+  decisionDate                DateTime?
+  adjudicator                 String?
+  appealDecision              AppealDecision
+  direction                   String?
+  reasons                     String         @db.Text
+  scrapedAt                   DateTime       @default(now())
+  updatedAt                   DateTime       @updatedAt
 
   @@index([authority, contravention])
   @@index([normalizedIssuerId, normalizedContraventionCode])
