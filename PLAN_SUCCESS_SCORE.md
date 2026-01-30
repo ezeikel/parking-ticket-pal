@@ -20,7 +20,7 @@
 | 14. **Production data seed** | ✅ DONE | Created `seed-tribunal-data.ts`, seeded prod with all tribunal data |
 | 15. Backfill existing tickets | ✅ DONE | Created `backfill-predictions.ts` with `--refresh-all` flag, ran on dev + prod |
 | 16. Add prediction explanation UI | ✅ DONE | Shows explanation based on statsLevel in SuccessPredictionCard |
-| 17. Delete legacy ChallengeStats | ⏳ PENDING | ChallengeStats.tsx, TicketDetail.tsx, TicketUpsellCTA.tsx appear unused |
+| 17. Delete legacy ChallengeStats | ✅ DONE | Removed ChallengeStats/, TicketDetail/, TicketUpsellCTA/ (all unused) |
 
 **Note**: Scripts are in `packages/db/scripts/` for now (not worker) since worker lacks Prisma.
 
@@ -57,10 +57,10 @@
 
 6. ~~**Add prediction explanation UI**~~ ✅ DONE
 
-7. **Delete legacy components** (after verifying they're unused):
-   - `apps/web/components/ChallengeStats/`
-   - `apps/web/components/TicketDetail/`
-   - `apps/web/components/TicketUpsellCTA/`
+7. ~~**Delete legacy components**~~ ✅ DONE
+   - ~~`apps/web/components/ChallengeStats/`~~
+   - ~~`apps/web/components/TicketDetail/`~~
+   - ~~`apps/web/components/TicketUpsellCTA/`~~
 
 ---
 
