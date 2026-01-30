@@ -2,29 +2,50 @@
 
 import { PredictionType, Ticket } from '@parking-ticket-pal/db';
 import { db } from '@parking-ticket-pal/db';
+import { calculatePrediction } from './prediction-service';
 
 /**
- * Updates or creates a prediction for a ticket
+ * Updates or creates a prediction for a ticket using historical tribunal data
  */
 const updateTicketPrediction = async (ticketId: string) => {
   try {
-    // TODO: Implement ML-based prediction using historical appeals data
-    // For now, just update the lastUpdated timestamp
+    // Fetch ticket data for prediction calculation
+    const ticket = await db.ticket.findUnique({
+      where: { id: ticketId },
+      select: {
+        contraventionCode: true,
+        issuer: true,
+      },
+    });
+
+    if (!ticket) {
+      console.error(`Ticket ${ticketId} not found for prediction update`);
+      return;
+    }
+
+    // Calculate prediction based on historical data
+    const prediction = await calculatePrediction({
+      contraventionCode: ticket.contraventionCode,
+      issuer: ticket.issuer,
+    });
+
     await db.prediction.upsert({
       where: { ticketId },
       update: {
+        percentage: prediction.percentage,
+        numberOfCases: prediction.numberOfCases,
+        confidence: prediction.confidence,
+        metadata: prediction.metadata,
         lastUpdated: new Date(),
-        // In the future, we'll update percentage, numberOfCases, confidence, and metadata here
-        // We can fetch ticket data here when needed: const ticket = await db.ticket.findUnique({...})
       },
       create: {
         ticketId,
         type: PredictionType.CHALLENGE_SUCCESS,
+        percentage: prediction.percentage,
+        numberOfCases: prediction.numberOfCases,
+        confidence: prediction.confidence,
+        metadata: prediction.metadata,
         lastUpdated: new Date(),
-        // Default values - in future these would be calculated
-        percentage: 50,
-        numberOfCases: 0,
-        confidence: 0.8,
       },
     });
   } catch (error) {
@@ -34,24 +55,29 @@ const updateTicketPrediction = async (ticketId: string) => {
 };
 
 /**
- * Creates an initial prediction for a new ticket
+ * Creates an initial prediction for a new ticket using historical tribunal data
  */
-const createTicketPrediction = async (ticketId: string) => {
+const createTicketPrediction = async (ticket: Ticket) => {
   try {
-    // TODO: Implement ML-based prediction using historical appeals data
+    // Calculate prediction based on historical data
+    const prediction = await calculatePrediction({
+      contraventionCode: ticket.contraventionCode,
+      issuer: ticket.issuer,
+    });
+
     await db.prediction.create({
       data: {
-        ticketId,
+        ticketId: ticket.id,
         type: PredictionType.CHALLENGE_SUCCESS,
-        // Default values - in future these would be calculated based on:
-        // ticket.contraventionCode, ticket.issuer, historical data, etc.
-        percentage: 50,
-        numberOfCases: 0,
-        confidence: 0.8,
+        percentage: prediction.percentage,
+        numberOfCases: prediction.numberOfCases,
+        confidence: prediction.confidence,
+        metadata: prediction.metadata,
+        lastUpdated: new Date(),
       },
     });
   } catch (error) {
-    console.error(`Failed to create prediction for ticket ${ticketId}:`, error);
+    console.error(`Failed to create prediction for ticket ${ticket.id}:`, error);
     // Don't throw - prediction creation shouldn't break ticket creation
   }
 };
@@ -60,7 +86,7 @@ const createTicketPrediction = async (ticketId: string) => {
  * Handles post-creation tasks for a new ticket (creates prediction)
  */
 export const afterTicketCreation = async (ticket: Ticket) => {
-  await createTicketPrediction(ticket.id);
+  await createTicketPrediction(ticket);
   return ticket;
 };
 

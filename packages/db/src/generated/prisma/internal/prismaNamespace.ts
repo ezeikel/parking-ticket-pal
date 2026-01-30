@@ -402,6 +402,10 @@ export const ModelName = {
   Session: 'Session',
   VerificationToken: 'VerificationToken',
   LondonTribunalCase: 'LondonTribunalCase',
+  AppealDataSource: 'AppealDataSource',
+  ContraventionStats: 'ContraventionStats',
+  IssuerContraventionStats: 'IssuerContraventionStats',
+  AppealPattern: 'AppealPattern',
   PendingIssuer: 'PendingIssuer',
   PendingChallenge: 'PendingChallenge',
   PendingTicket: 'PendingTicket',
@@ -421,7 +425,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "vehicle" | "ticket" | "media" | "letter" | "subscription" | "reminder" | "form" | "prediction" | "amountIncrease" | "verification" | "challenge" | "notification" | "pushToken" | "account" | "session" | "verificationToken" | "londonTribunalCase" | "pendingIssuer" | "pendingChallenge" | "pendingTicket" | "issuerHealthCheck"
+    modelProps: "user" | "vehicle" | "ticket" | "media" | "letter" | "subscription" | "reminder" | "form" | "prediction" | "amountIncrease" | "verification" | "challenge" | "notification" | "pushToken" | "account" | "session" | "verificationToken" | "londonTribunalCase" | "appealDataSource" | "contraventionStats" | "issuerContraventionStats" | "appealPattern" | "pendingIssuer" | "pendingChallenge" | "pendingTicket" | "issuerHealthCheck"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -1757,6 +1761,302 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    AppealDataSource: {
+      payload: Prisma.$AppealDataSourcePayload<ExtArgs>
+      fields: Prisma.AppealDataSourceFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.AppealDataSourceFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AppealDataSourcePayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.AppealDataSourceFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AppealDataSourcePayload>
+        }
+        findFirst: {
+          args: Prisma.AppealDataSourceFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AppealDataSourcePayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.AppealDataSourceFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AppealDataSourcePayload>
+        }
+        findMany: {
+          args: Prisma.AppealDataSourceFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AppealDataSourcePayload>[]
+        }
+        create: {
+          args: Prisma.AppealDataSourceCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AppealDataSourcePayload>
+        }
+        createMany: {
+          args: Prisma.AppealDataSourceCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.AppealDataSourceCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AppealDataSourcePayload>[]
+        }
+        delete: {
+          args: Prisma.AppealDataSourceDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AppealDataSourcePayload>
+        }
+        update: {
+          args: Prisma.AppealDataSourceUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AppealDataSourcePayload>
+        }
+        deleteMany: {
+          args: Prisma.AppealDataSourceDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.AppealDataSourceUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.AppealDataSourceUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AppealDataSourcePayload>[]
+        }
+        upsert: {
+          args: Prisma.AppealDataSourceUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AppealDataSourcePayload>
+        }
+        aggregate: {
+          args: Prisma.AppealDataSourceAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateAppealDataSource>
+        }
+        groupBy: {
+          args: Prisma.AppealDataSourceGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AppealDataSourceGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.AppealDataSourceCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AppealDataSourceCountAggregateOutputType> | number
+        }
+      }
+    }
+    ContraventionStats: {
+      payload: Prisma.$ContraventionStatsPayload<ExtArgs>
+      fields: Prisma.ContraventionStatsFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.ContraventionStatsFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ContraventionStatsPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.ContraventionStatsFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ContraventionStatsPayload>
+        }
+        findFirst: {
+          args: Prisma.ContraventionStatsFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ContraventionStatsPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.ContraventionStatsFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ContraventionStatsPayload>
+        }
+        findMany: {
+          args: Prisma.ContraventionStatsFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ContraventionStatsPayload>[]
+        }
+        create: {
+          args: Prisma.ContraventionStatsCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ContraventionStatsPayload>
+        }
+        createMany: {
+          args: Prisma.ContraventionStatsCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.ContraventionStatsCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ContraventionStatsPayload>[]
+        }
+        delete: {
+          args: Prisma.ContraventionStatsDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ContraventionStatsPayload>
+        }
+        update: {
+          args: Prisma.ContraventionStatsUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ContraventionStatsPayload>
+        }
+        deleteMany: {
+          args: Prisma.ContraventionStatsDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.ContraventionStatsUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.ContraventionStatsUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ContraventionStatsPayload>[]
+        }
+        upsert: {
+          args: Prisma.ContraventionStatsUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ContraventionStatsPayload>
+        }
+        aggregate: {
+          args: Prisma.ContraventionStatsAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateContraventionStats>
+        }
+        groupBy: {
+          args: Prisma.ContraventionStatsGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ContraventionStatsGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.ContraventionStatsCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ContraventionStatsCountAggregateOutputType> | number
+        }
+      }
+    }
+    IssuerContraventionStats: {
+      payload: Prisma.$IssuerContraventionStatsPayload<ExtArgs>
+      fields: Prisma.IssuerContraventionStatsFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.IssuerContraventionStatsFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$IssuerContraventionStatsPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.IssuerContraventionStatsFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$IssuerContraventionStatsPayload>
+        }
+        findFirst: {
+          args: Prisma.IssuerContraventionStatsFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$IssuerContraventionStatsPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.IssuerContraventionStatsFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$IssuerContraventionStatsPayload>
+        }
+        findMany: {
+          args: Prisma.IssuerContraventionStatsFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$IssuerContraventionStatsPayload>[]
+        }
+        create: {
+          args: Prisma.IssuerContraventionStatsCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$IssuerContraventionStatsPayload>
+        }
+        createMany: {
+          args: Prisma.IssuerContraventionStatsCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.IssuerContraventionStatsCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$IssuerContraventionStatsPayload>[]
+        }
+        delete: {
+          args: Prisma.IssuerContraventionStatsDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$IssuerContraventionStatsPayload>
+        }
+        update: {
+          args: Prisma.IssuerContraventionStatsUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$IssuerContraventionStatsPayload>
+        }
+        deleteMany: {
+          args: Prisma.IssuerContraventionStatsDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.IssuerContraventionStatsUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.IssuerContraventionStatsUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$IssuerContraventionStatsPayload>[]
+        }
+        upsert: {
+          args: Prisma.IssuerContraventionStatsUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$IssuerContraventionStatsPayload>
+        }
+        aggregate: {
+          args: Prisma.IssuerContraventionStatsAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateIssuerContraventionStats>
+        }
+        groupBy: {
+          args: Prisma.IssuerContraventionStatsGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.IssuerContraventionStatsGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.IssuerContraventionStatsCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.IssuerContraventionStatsCountAggregateOutputType> | number
+        }
+      }
+    }
+    AppealPattern: {
+      payload: Prisma.$AppealPatternPayload<ExtArgs>
+      fields: Prisma.AppealPatternFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.AppealPatternFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AppealPatternPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.AppealPatternFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AppealPatternPayload>
+        }
+        findFirst: {
+          args: Prisma.AppealPatternFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AppealPatternPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.AppealPatternFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AppealPatternPayload>
+        }
+        findMany: {
+          args: Prisma.AppealPatternFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AppealPatternPayload>[]
+        }
+        create: {
+          args: Prisma.AppealPatternCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AppealPatternPayload>
+        }
+        createMany: {
+          args: Prisma.AppealPatternCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.AppealPatternCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AppealPatternPayload>[]
+        }
+        delete: {
+          args: Prisma.AppealPatternDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AppealPatternPayload>
+        }
+        update: {
+          args: Prisma.AppealPatternUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AppealPatternPayload>
+        }
+        deleteMany: {
+          args: Prisma.AppealPatternDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.AppealPatternUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.AppealPatternUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AppealPatternPayload>[]
+        }
+        upsert: {
+          args: Prisma.AppealPatternUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AppealPatternPayload>
+        }
+        aggregate: {
+          args: Prisma.AppealPatternAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateAppealPattern>
+        }
+        groupBy: {
+          args: Prisma.AppealPatternGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AppealPatternGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.AppealPatternCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AppealPatternCountAggregateOutputType> | number
+        }
+      }
+    }
     PendingIssuer: {
       payload: Prisma.$PendingIssuerPayload<ExtArgs>
       fields: Prisma.PendingIssuerFieldRefs
@@ -2369,6 +2669,7 @@ export const LondonTribunalCaseScalarFieldEnum = {
   caseReference: 'caseReference',
   declarant: 'declarant',
   authority: 'authority',
+  normalizedIssuerId: 'normalizedIssuerId',
   vrm: 'vrm',
   pcn: 'pcn',
   contraventionDate: 'contraventionDate',
@@ -2376,6 +2677,7 @@ export const LondonTribunalCaseScalarFieldEnum = {
   contraventionLocation: 'contraventionLocation',
   penaltyAmount: 'penaltyAmount',
   contravention: 'contravention',
+  normalizedContraventionCode: 'normalizedContraventionCode',
   referralDate: 'referralDate',
   decisionDate: 'decisionDate',
   adjudicator: 'adjudicator',
@@ -2387,6 +2689,67 @@ export const LondonTribunalCaseScalarFieldEnum = {
 } as const
 
 export type LondonTribunalCaseScalarFieldEnum = (typeof LondonTribunalCaseScalarFieldEnum)[keyof typeof LondonTribunalCaseScalarFieldEnum]
+
+
+export const AppealDataSourceScalarFieldEnum = {
+  id: 'id',
+  name: 'name',
+  description: 'description',
+  weight: 'weight',
+  totalCases: 'totalCases',
+  isActive: 'isActive',
+  lastImport: 'lastImport',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type AppealDataSourceScalarFieldEnum = (typeof AppealDataSourceScalarFieldEnum)[keyof typeof AppealDataSourceScalarFieldEnum]
+
+
+export const ContraventionStatsScalarFieldEnum = {
+  id: 'id',
+  contraventionCode: 'contraventionCode',
+  totalCases: 'totalCases',
+  allowedCount: 'allowedCount',
+  refusedCount: 'refusedCount',
+  partiallyAllowedCount: 'partiallyAllowedCount',
+  successRate: 'successRate',
+  lastUpdated: 'lastUpdated',
+  updatedAt: 'updatedAt'
+} as const
+
+export type ContraventionStatsScalarFieldEnum = (typeof ContraventionStatsScalarFieldEnum)[keyof typeof ContraventionStatsScalarFieldEnum]
+
+
+export const IssuerContraventionStatsScalarFieldEnum = {
+  id: 'id',
+  issuerId: 'issuerId',
+  contraventionCode: 'contraventionCode',
+  totalCases: 'totalCases',
+  allowedCount: 'allowedCount',
+  refusedCount: 'refusedCount',
+  partiallyAllowedCount: 'partiallyAllowedCount',
+  successRate: 'successRate',
+  lastUpdated: 'lastUpdated',
+  updatedAt: 'updatedAt'
+} as const
+
+export type IssuerContraventionStatsScalarFieldEnum = (typeof IssuerContraventionStatsScalarFieldEnum)[keyof typeof IssuerContraventionStatsScalarFieldEnum]
+
+
+export const AppealPatternScalarFieldEnum = {
+  id: 'id',
+  contraventionCode: 'contraventionCode',
+  issuerId: 'issuerId',
+  pattern: 'pattern',
+  outcome: 'outcome',
+  frequency: 'frequency',
+  exampleCaseRefs: 'exampleCaseRefs',
+  lastUpdated: 'lastUpdated',
+  updatedAt: 'updatedAt'
+} as const
+
+export type AppealPatternScalarFieldEnum = (typeof AppealPatternScalarFieldEnum)[keyof typeof AppealPatternScalarFieldEnum]
 
 
 export const PendingIssuerScalarFieldEnum = {
@@ -2962,6 +3325,20 @@ export type ListEnumAppealDecisionFieldRefInput<$PrismaModel> = FieldRefInputTyp
 
 
 /**
+ * Reference to a field of type 'PatternOutcome'
+ */
+export type EnumPatternOutcomeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'PatternOutcome'>
+    
+
+
+/**
+ * Reference to a field of type 'PatternOutcome[]'
+ */
+export type ListEnumPatternOutcomeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'PatternOutcome[]'>
+    
+
+
+/**
  * Reference to a field of type 'PendingIssuerStatus'
  */
 export type EnumPendingIssuerStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'PendingIssuerStatus'>
@@ -3115,6 +3492,10 @@ export type GlobalOmitConfig = {
   session?: Prisma.SessionOmit
   verificationToken?: Prisma.VerificationTokenOmit
   londonTribunalCase?: Prisma.LondonTribunalCaseOmit
+  appealDataSource?: Prisma.AppealDataSourceOmit
+  contraventionStats?: Prisma.ContraventionStatsOmit
+  issuerContraventionStats?: Prisma.IssuerContraventionStatsOmit
+  appealPattern?: Prisma.AppealPatternOmit
   pendingIssuer?: Prisma.PendingIssuerOmit
   pendingChallenge?: Prisma.PendingChallengeOmit
   pendingTicket?: Prisma.PendingTicketOmit

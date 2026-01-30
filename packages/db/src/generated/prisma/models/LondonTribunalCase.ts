@@ -39,6 +39,7 @@ export type LondonTribunalCaseMinAggregateOutputType = {
   caseReference: string | null
   declarant: string | null
   authority: string | null
+  normalizedIssuerId: string | null
   vrm: string | null
   pcn: string | null
   contraventionDate: Date | null
@@ -46,6 +47,7 @@ export type LondonTribunalCaseMinAggregateOutputType = {
   contraventionLocation: string | null
   penaltyAmount: runtime.Decimal | null
   contravention: string | null
+  normalizedContraventionCode: string | null
   referralDate: Date | null
   decisionDate: Date | null
   adjudicator: string | null
@@ -61,6 +63,7 @@ export type LondonTribunalCaseMaxAggregateOutputType = {
   caseReference: string | null
   declarant: string | null
   authority: string | null
+  normalizedIssuerId: string | null
   vrm: string | null
   pcn: string | null
   contraventionDate: Date | null
@@ -68,6 +71,7 @@ export type LondonTribunalCaseMaxAggregateOutputType = {
   contraventionLocation: string | null
   penaltyAmount: runtime.Decimal | null
   contravention: string | null
+  normalizedContraventionCode: string | null
   referralDate: Date | null
   decisionDate: Date | null
   adjudicator: string | null
@@ -83,6 +87,7 @@ export type LondonTribunalCaseCountAggregateOutputType = {
   caseReference: number
   declarant: number
   authority: number
+  normalizedIssuerId: number
   vrm: number
   pcn: number
   contraventionDate: number
@@ -90,6 +95,7 @@ export type LondonTribunalCaseCountAggregateOutputType = {
   contraventionLocation: number
   penaltyAmount: number
   contravention: number
+  normalizedContraventionCode: number
   referralDate: number
   decisionDate: number
   adjudicator: number
@@ -115,6 +121,7 @@ export type LondonTribunalCaseMinAggregateInputType = {
   caseReference?: true
   declarant?: true
   authority?: true
+  normalizedIssuerId?: true
   vrm?: true
   pcn?: true
   contraventionDate?: true
@@ -122,6 +129,7 @@ export type LondonTribunalCaseMinAggregateInputType = {
   contraventionLocation?: true
   penaltyAmount?: true
   contravention?: true
+  normalizedContraventionCode?: true
   referralDate?: true
   decisionDate?: true
   adjudicator?: true
@@ -137,6 +145,7 @@ export type LondonTribunalCaseMaxAggregateInputType = {
   caseReference?: true
   declarant?: true
   authority?: true
+  normalizedIssuerId?: true
   vrm?: true
   pcn?: true
   contraventionDate?: true
@@ -144,6 +153,7 @@ export type LondonTribunalCaseMaxAggregateInputType = {
   contraventionLocation?: true
   penaltyAmount?: true
   contravention?: true
+  normalizedContraventionCode?: true
   referralDate?: true
   decisionDate?: true
   adjudicator?: true
@@ -159,6 +169,7 @@ export type LondonTribunalCaseCountAggregateInputType = {
   caseReference?: true
   declarant?: true
   authority?: true
+  normalizedIssuerId?: true
   vrm?: true
   pcn?: true
   contraventionDate?: true
@@ -166,6 +177,7 @@ export type LondonTribunalCaseCountAggregateInputType = {
   contraventionLocation?: true
   penaltyAmount?: true
   contravention?: true
+  normalizedContraventionCode?: true
   referralDate?: true
   decisionDate?: true
   adjudicator?: true
@@ -268,6 +280,7 @@ export type LondonTribunalCaseGroupByOutputType = {
   caseReference: string
   declarant: string | null
   authority: string
+  normalizedIssuerId: string | null
   vrm: string | null
   pcn: string | null
   contraventionDate: Date | null
@@ -275,6 +288,7 @@ export type LondonTribunalCaseGroupByOutputType = {
   contraventionLocation: string | null
   penaltyAmount: runtime.Decimal | null
   contravention: string | null
+  normalizedContraventionCode: string | null
   referralDate: Date | null
   decisionDate: Date | null
   adjudicator: string | null
@@ -313,6 +327,7 @@ export type LondonTribunalCaseWhereInput = {
   caseReference?: Prisma.StringFilter<"LondonTribunalCase"> | string
   declarant?: Prisma.StringNullableFilter<"LondonTribunalCase"> | string | null
   authority?: Prisma.StringFilter<"LondonTribunalCase"> | string
+  normalizedIssuerId?: Prisma.StringNullableFilter<"LondonTribunalCase"> | string | null
   vrm?: Prisma.StringNullableFilter<"LondonTribunalCase"> | string | null
   pcn?: Prisma.StringNullableFilter<"LondonTribunalCase"> | string | null
   contraventionDate?: Prisma.DateTimeNullableFilter<"LondonTribunalCase"> | Date | string | null
@@ -320,6 +335,7 @@ export type LondonTribunalCaseWhereInput = {
   contraventionLocation?: Prisma.StringNullableFilter<"LondonTribunalCase"> | string | null
   penaltyAmount?: Prisma.DecimalNullableFilter<"LondonTribunalCase"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   contravention?: Prisma.StringNullableFilter<"LondonTribunalCase"> | string | null
+  normalizedContraventionCode?: Prisma.StringNullableFilter<"LondonTribunalCase"> | string | null
   referralDate?: Prisma.DateTimeNullableFilter<"LondonTribunalCase"> | Date | string | null
   decisionDate?: Prisma.DateTimeNullableFilter<"LondonTribunalCase"> | Date | string | null
   adjudicator?: Prisma.StringNullableFilter<"LondonTribunalCase"> | string | null
@@ -335,6 +351,7 @@ export type LondonTribunalCaseOrderByWithRelationInput = {
   caseReference?: Prisma.SortOrder
   declarant?: Prisma.SortOrderInput | Prisma.SortOrder
   authority?: Prisma.SortOrder
+  normalizedIssuerId?: Prisma.SortOrderInput | Prisma.SortOrder
   vrm?: Prisma.SortOrderInput | Prisma.SortOrder
   pcn?: Prisma.SortOrderInput | Prisma.SortOrder
   contraventionDate?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -342,6 +359,7 @@ export type LondonTribunalCaseOrderByWithRelationInput = {
   contraventionLocation?: Prisma.SortOrderInput | Prisma.SortOrder
   penaltyAmount?: Prisma.SortOrderInput | Prisma.SortOrder
   contravention?: Prisma.SortOrderInput | Prisma.SortOrder
+  normalizedContraventionCode?: Prisma.SortOrderInput | Prisma.SortOrder
   referralDate?: Prisma.SortOrderInput | Prisma.SortOrder
   decisionDate?: Prisma.SortOrderInput | Prisma.SortOrder
   adjudicator?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -360,6 +378,7 @@ export type LondonTribunalCaseWhereUniqueInput = Prisma.AtLeast<{
   NOT?: Prisma.LondonTribunalCaseWhereInput | Prisma.LondonTribunalCaseWhereInput[]
   declarant?: Prisma.StringNullableFilter<"LondonTribunalCase"> | string | null
   authority?: Prisma.StringFilter<"LondonTribunalCase"> | string
+  normalizedIssuerId?: Prisma.StringNullableFilter<"LondonTribunalCase"> | string | null
   vrm?: Prisma.StringNullableFilter<"LondonTribunalCase"> | string | null
   pcn?: Prisma.StringNullableFilter<"LondonTribunalCase"> | string | null
   contraventionDate?: Prisma.DateTimeNullableFilter<"LondonTribunalCase"> | Date | string | null
@@ -367,6 +386,7 @@ export type LondonTribunalCaseWhereUniqueInput = Prisma.AtLeast<{
   contraventionLocation?: Prisma.StringNullableFilter<"LondonTribunalCase"> | string | null
   penaltyAmount?: Prisma.DecimalNullableFilter<"LondonTribunalCase"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   contravention?: Prisma.StringNullableFilter<"LondonTribunalCase"> | string | null
+  normalizedContraventionCode?: Prisma.StringNullableFilter<"LondonTribunalCase"> | string | null
   referralDate?: Prisma.DateTimeNullableFilter<"LondonTribunalCase"> | Date | string | null
   decisionDate?: Prisma.DateTimeNullableFilter<"LondonTribunalCase"> | Date | string | null
   adjudicator?: Prisma.StringNullableFilter<"LondonTribunalCase"> | string | null
@@ -382,6 +402,7 @@ export type LondonTribunalCaseOrderByWithAggregationInput = {
   caseReference?: Prisma.SortOrder
   declarant?: Prisma.SortOrderInput | Prisma.SortOrder
   authority?: Prisma.SortOrder
+  normalizedIssuerId?: Prisma.SortOrderInput | Prisma.SortOrder
   vrm?: Prisma.SortOrderInput | Prisma.SortOrder
   pcn?: Prisma.SortOrderInput | Prisma.SortOrder
   contraventionDate?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -389,6 +410,7 @@ export type LondonTribunalCaseOrderByWithAggregationInput = {
   contraventionLocation?: Prisma.SortOrderInput | Prisma.SortOrder
   penaltyAmount?: Prisma.SortOrderInput | Prisma.SortOrder
   contravention?: Prisma.SortOrderInput | Prisma.SortOrder
+  normalizedContraventionCode?: Prisma.SortOrderInput | Prisma.SortOrder
   referralDate?: Prisma.SortOrderInput | Prisma.SortOrder
   decisionDate?: Prisma.SortOrderInput | Prisma.SortOrder
   adjudicator?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -412,6 +434,7 @@ export type LondonTribunalCaseScalarWhereWithAggregatesInput = {
   caseReference?: Prisma.StringWithAggregatesFilter<"LondonTribunalCase"> | string
   declarant?: Prisma.StringNullableWithAggregatesFilter<"LondonTribunalCase"> | string | null
   authority?: Prisma.StringWithAggregatesFilter<"LondonTribunalCase"> | string
+  normalizedIssuerId?: Prisma.StringNullableWithAggregatesFilter<"LondonTribunalCase"> | string | null
   vrm?: Prisma.StringNullableWithAggregatesFilter<"LondonTribunalCase"> | string | null
   pcn?: Prisma.StringNullableWithAggregatesFilter<"LondonTribunalCase"> | string | null
   contraventionDate?: Prisma.DateTimeNullableWithAggregatesFilter<"LondonTribunalCase"> | Date | string | null
@@ -419,6 +442,7 @@ export type LondonTribunalCaseScalarWhereWithAggregatesInput = {
   contraventionLocation?: Prisma.StringNullableWithAggregatesFilter<"LondonTribunalCase"> | string | null
   penaltyAmount?: Prisma.DecimalNullableWithAggregatesFilter<"LondonTribunalCase"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   contravention?: Prisma.StringNullableWithAggregatesFilter<"LondonTribunalCase"> | string | null
+  normalizedContraventionCode?: Prisma.StringNullableWithAggregatesFilter<"LondonTribunalCase"> | string | null
   referralDate?: Prisma.DateTimeNullableWithAggregatesFilter<"LondonTribunalCase"> | Date | string | null
   decisionDate?: Prisma.DateTimeNullableWithAggregatesFilter<"LondonTribunalCase"> | Date | string | null
   adjudicator?: Prisma.StringNullableWithAggregatesFilter<"LondonTribunalCase"> | string | null
@@ -434,6 +458,7 @@ export type LondonTribunalCaseCreateInput = {
   caseReference: string
   declarant?: string | null
   authority: string
+  normalizedIssuerId?: string | null
   vrm?: string | null
   pcn?: string | null
   contraventionDate?: Date | string | null
@@ -441,6 +466,7 @@ export type LondonTribunalCaseCreateInput = {
   contraventionLocation?: string | null
   penaltyAmount?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   contravention?: string | null
+  normalizedContraventionCode?: string | null
   referralDate?: Date | string | null
   decisionDate?: Date | string | null
   adjudicator?: string | null
@@ -456,6 +482,7 @@ export type LondonTribunalCaseUncheckedCreateInput = {
   caseReference: string
   declarant?: string | null
   authority: string
+  normalizedIssuerId?: string | null
   vrm?: string | null
   pcn?: string | null
   contraventionDate?: Date | string | null
@@ -463,6 +490,7 @@ export type LondonTribunalCaseUncheckedCreateInput = {
   contraventionLocation?: string | null
   penaltyAmount?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   contravention?: string | null
+  normalizedContraventionCode?: string | null
   referralDate?: Date | string | null
   decisionDate?: Date | string | null
   adjudicator?: string | null
@@ -478,6 +506,7 @@ export type LondonTribunalCaseUpdateInput = {
   caseReference?: Prisma.StringFieldUpdateOperationsInput | string
   declarant?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   authority?: Prisma.StringFieldUpdateOperationsInput | string
+  normalizedIssuerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   vrm?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   pcn?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   contraventionDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -485,6 +514,7 @@ export type LondonTribunalCaseUpdateInput = {
   contraventionLocation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   penaltyAmount?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   contravention?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  normalizedContraventionCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   referralDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   decisionDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   adjudicator?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -500,6 +530,7 @@ export type LondonTribunalCaseUncheckedUpdateInput = {
   caseReference?: Prisma.StringFieldUpdateOperationsInput | string
   declarant?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   authority?: Prisma.StringFieldUpdateOperationsInput | string
+  normalizedIssuerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   vrm?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   pcn?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   contraventionDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -507,6 +538,7 @@ export type LondonTribunalCaseUncheckedUpdateInput = {
   contraventionLocation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   penaltyAmount?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   contravention?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  normalizedContraventionCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   referralDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   decisionDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   adjudicator?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -522,6 +554,7 @@ export type LondonTribunalCaseCreateManyInput = {
   caseReference: string
   declarant?: string | null
   authority: string
+  normalizedIssuerId?: string | null
   vrm?: string | null
   pcn?: string | null
   contraventionDate?: Date | string | null
@@ -529,6 +562,7 @@ export type LondonTribunalCaseCreateManyInput = {
   contraventionLocation?: string | null
   penaltyAmount?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   contravention?: string | null
+  normalizedContraventionCode?: string | null
   referralDate?: Date | string | null
   decisionDate?: Date | string | null
   adjudicator?: string | null
@@ -544,6 +578,7 @@ export type LondonTribunalCaseUpdateManyMutationInput = {
   caseReference?: Prisma.StringFieldUpdateOperationsInput | string
   declarant?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   authority?: Prisma.StringFieldUpdateOperationsInput | string
+  normalizedIssuerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   vrm?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   pcn?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   contraventionDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -551,6 +586,7 @@ export type LondonTribunalCaseUpdateManyMutationInput = {
   contraventionLocation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   penaltyAmount?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   contravention?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  normalizedContraventionCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   referralDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   decisionDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   adjudicator?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -566,6 +602,7 @@ export type LondonTribunalCaseUncheckedUpdateManyInput = {
   caseReference?: Prisma.StringFieldUpdateOperationsInput | string
   declarant?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   authority?: Prisma.StringFieldUpdateOperationsInput | string
+  normalizedIssuerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   vrm?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   pcn?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   contraventionDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -573,6 +610,7 @@ export type LondonTribunalCaseUncheckedUpdateManyInput = {
   contraventionLocation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   penaltyAmount?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   contravention?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  normalizedContraventionCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   referralDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   decisionDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   adjudicator?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -588,6 +626,7 @@ export type LondonTribunalCaseCountOrderByAggregateInput = {
   caseReference?: Prisma.SortOrder
   declarant?: Prisma.SortOrder
   authority?: Prisma.SortOrder
+  normalizedIssuerId?: Prisma.SortOrder
   vrm?: Prisma.SortOrder
   pcn?: Prisma.SortOrder
   contraventionDate?: Prisma.SortOrder
@@ -595,6 +634,7 @@ export type LondonTribunalCaseCountOrderByAggregateInput = {
   contraventionLocation?: Prisma.SortOrder
   penaltyAmount?: Prisma.SortOrder
   contravention?: Prisma.SortOrder
+  normalizedContraventionCode?: Prisma.SortOrder
   referralDate?: Prisma.SortOrder
   decisionDate?: Prisma.SortOrder
   adjudicator?: Prisma.SortOrder
@@ -614,6 +654,7 @@ export type LondonTribunalCaseMaxOrderByAggregateInput = {
   caseReference?: Prisma.SortOrder
   declarant?: Prisma.SortOrder
   authority?: Prisma.SortOrder
+  normalizedIssuerId?: Prisma.SortOrder
   vrm?: Prisma.SortOrder
   pcn?: Prisma.SortOrder
   contraventionDate?: Prisma.SortOrder
@@ -621,6 +662,7 @@ export type LondonTribunalCaseMaxOrderByAggregateInput = {
   contraventionLocation?: Prisma.SortOrder
   penaltyAmount?: Prisma.SortOrder
   contravention?: Prisma.SortOrder
+  normalizedContraventionCode?: Prisma.SortOrder
   referralDate?: Prisma.SortOrder
   decisionDate?: Prisma.SortOrder
   adjudicator?: Prisma.SortOrder
@@ -636,6 +678,7 @@ export type LondonTribunalCaseMinOrderByAggregateInput = {
   caseReference?: Prisma.SortOrder
   declarant?: Prisma.SortOrder
   authority?: Prisma.SortOrder
+  normalizedIssuerId?: Prisma.SortOrder
   vrm?: Prisma.SortOrder
   pcn?: Prisma.SortOrder
   contraventionDate?: Prisma.SortOrder
@@ -643,6 +686,7 @@ export type LondonTribunalCaseMinOrderByAggregateInput = {
   contraventionLocation?: Prisma.SortOrder
   penaltyAmount?: Prisma.SortOrder
   contravention?: Prisma.SortOrder
+  normalizedContraventionCode?: Prisma.SortOrder
   referralDate?: Prisma.SortOrder
   decisionDate?: Prisma.SortOrder
   adjudicator?: Prisma.SortOrder
@@ -676,6 +720,7 @@ export type LondonTribunalCaseSelect<ExtArgs extends runtime.Types.Extensions.In
   caseReference?: boolean
   declarant?: boolean
   authority?: boolean
+  normalizedIssuerId?: boolean
   vrm?: boolean
   pcn?: boolean
   contraventionDate?: boolean
@@ -683,6 +728,7 @@ export type LondonTribunalCaseSelect<ExtArgs extends runtime.Types.Extensions.In
   contraventionLocation?: boolean
   penaltyAmount?: boolean
   contravention?: boolean
+  normalizedContraventionCode?: boolean
   referralDate?: boolean
   decisionDate?: boolean
   adjudicator?: boolean
@@ -698,6 +744,7 @@ export type LondonTribunalCaseSelectCreateManyAndReturn<ExtArgs extends runtime.
   caseReference?: boolean
   declarant?: boolean
   authority?: boolean
+  normalizedIssuerId?: boolean
   vrm?: boolean
   pcn?: boolean
   contraventionDate?: boolean
@@ -705,6 +752,7 @@ export type LondonTribunalCaseSelectCreateManyAndReturn<ExtArgs extends runtime.
   contraventionLocation?: boolean
   penaltyAmount?: boolean
   contravention?: boolean
+  normalizedContraventionCode?: boolean
   referralDate?: boolean
   decisionDate?: boolean
   adjudicator?: boolean
@@ -720,6 +768,7 @@ export type LondonTribunalCaseSelectUpdateManyAndReturn<ExtArgs extends runtime.
   caseReference?: boolean
   declarant?: boolean
   authority?: boolean
+  normalizedIssuerId?: boolean
   vrm?: boolean
   pcn?: boolean
   contraventionDate?: boolean
@@ -727,6 +776,7 @@ export type LondonTribunalCaseSelectUpdateManyAndReturn<ExtArgs extends runtime.
   contraventionLocation?: boolean
   penaltyAmount?: boolean
   contravention?: boolean
+  normalizedContraventionCode?: boolean
   referralDate?: boolean
   decisionDate?: boolean
   adjudicator?: boolean
@@ -742,6 +792,7 @@ export type LondonTribunalCaseSelectScalar = {
   caseReference?: boolean
   declarant?: boolean
   authority?: boolean
+  normalizedIssuerId?: boolean
   vrm?: boolean
   pcn?: boolean
   contraventionDate?: boolean
@@ -749,6 +800,7 @@ export type LondonTribunalCaseSelectScalar = {
   contraventionLocation?: boolean
   penaltyAmount?: boolean
   contravention?: boolean
+  normalizedContraventionCode?: boolean
   referralDate?: boolean
   decisionDate?: boolean
   adjudicator?: boolean
@@ -759,7 +811,7 @@ export type LondonTribunalCaseSelectScalar = {
   updatedAt?: boolean
 }
 
-export type LondonTribunalCaseOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "caseReference" | "declarant" | "authority" | "vrm" | "pcn" | "contraventionDate" | "contraventionTime" | "contraventionLocation" | "penaltyAmount" | "contravention" | "referralDate" | "decisionDate" | "adjudicator" | "appealDecision" | "direction" | "reasons" | "scrapedAt" | "updatedAt", ExtArgs["result"]["londonTribunalCase"]>
+export type LondonTribunalCaseOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "caseReference" | "declarant" | "authority" | "normalizedIssuerId" | "vrm" | "pcn" | "contraventionDate" | "contraventionTime" | "contraventionLocation" | "penaltyAmount" | "contravention" | "normalizedContraventionCode" | "referralDate" | "decisionDate" | "adjudicator" | "appealDecision" | "direction" | "reasons" | "scrapedAt" | "updatedAt", ExtArgs["result"]["londonTribunalCase"]>
 
 export type $LondonTribunalCasePayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "LondonTribunalCase"
@@ -769,6 +821,7 @@ export type $LondonTribunalCasePayload<ExtArgs extends runtime.Types.Extensions.
     caseReference: string
     declarant: string | null
     authority: string
+    normalizedIssuerId: string | null
     vrm: string | null
     pcn: string | null
     contraventionDate: Date | null
@@ -776,6 +829,7 @@ export type $LondonTribunalCasePayload<ExtArgs extends runtime.Types.Extensions.
     contraventionLocation: string | null
     penaltyAmount: runtime.Decimal | null
     contravention: string | null
+    normalizedContraventionCode: string | null
     referralDate: Date | null
     decisionDate: Date | null
     adjudicator: string | null
@@ -1211,6 +1265,7 @@ export interface LondonTribunalCaseFieldRefs {
   readonly caseReference: Prisma.FieldRef<"LondonTribunalCase", 'String'>
   readonly declarant: Prisma.FieldRef<"LondonTribunalCase", 'String'>
   readonly authority: Prisma.FieldRef<"LondonTribunalCase", 'String'>
+  readonly normalizedIssuerId: Prisma.FieldRef<"LondonTribunalCase", 'String'>
   readonly vrm: Prisma.FieldRef<"LondonTribunalCase", 'String'>
   readonly pcn: Prisma.FieldRef<"LondonTribunalCase", 'String'>
   readonly contraventionDate: Prisma.FieldRef<"LondonTribunalCase", 'DateTime'>
@@ -1218,6 +1273,7 @@ export interface LondonTribunalCaseFieldRefs {
   readonly contraventionLocation: Prisma.FieldRef<"LondonTribunalCase", 'String'>
   readonly penaltyAmount: Prisma.FieldRef<"LondonTribunalCase", 'Decimal'>
   readonly contravention: Prisma.FieldRef<"LondonTribunalCase", 'String'>
+  readonly normalizedContraventionCode: Prisma.FieldRef<"LondonTribunalCase", 'String'>
   readonly referralDate: Prisma.FieldRef<"LondonTribunalCase", 'DateTime'>
   readonly decisionDate: Prisma.FieldRef<"LondonTribunalCase", 'DateTime'>
   readonly adjudicator: Prisma.FieldRef<"LondonTribunalCase", 'String'>

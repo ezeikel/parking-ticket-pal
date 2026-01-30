@@ -108,6 +108,26 @@ export type VerificationToken = Prisma.VerificationTokenModel
  */
 export type LondonTribunalCase = Prisma.LondonTribunalCaseModel
 /**
+ * Model AppealDataSource
+ * 
+ */
+export type AppealDataSource = Prisma.AppealDataSourceModel
+/**
+ * Model ContraventionStats
+ * 
+ */
+export type ContraventionStats = Prisma.ContraventionStatsModel
+/**
+ * Model IssuerContraventionStats
+ * 
+ */
+export type IssuerContraventionStats = Prisma.IssuerContraventionStatsModel
+/**
+ * Model AppealPattern
+ * 
+ */
+export type AppealPattern = Prisma.AppealPatternModel
+/**
  * Model PendingIssuer
  * 
  */

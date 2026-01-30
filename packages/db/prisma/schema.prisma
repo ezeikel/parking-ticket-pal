@@ -541,31 +541,110 @@ enum UserTitle {
 
 // London Tribunal Cases - scraped historical data for ML predictions
 model LondonTribunalCase {
-  id                    String         @id @default(cuid())
-  caseReference         String         @unique
-  declarant             String?
-  authority             String
-  vrm                   String?
-  pcn                   String?
-  contraventionDate     DateTime?
-  contraventionTime     String?
-  contraventionLocation String?
-  penaltyAmount         Decimal?       @db.Decimal(10, 2)
-  contravention         String?
-  referralDate          DateTime?
-  decisionDate          DateTime?
-  adjudicator           String?
-  appealDecision        AppealDecision
-  direction             String?
-  reasons               String         @db.Text
-  scrapedAt             DateTime       @default(now())
-  updatedAt             DateTime       @updatedAt
+  id                         String         @id @default(cuid())
+  caseReference              String         @unique
+  declarant                  String?
+  authority                  String
+  normalizedIssuerId         String? // Normalized issuer ID (e.g., "tfl", "lewisham")
+  vrm                        String?
+  pcn                        String?
+  contraventionDate          DateTime?
+  contraventionTime          String?
+  contraventionLocation      String?
+  penaltyAmount              Decimal?       @db.Decimal(10, 2)
+  contravention              String?
+  normalizedContraventionCode String? // Normalized contravention code (e.g., "46", "12")
+  referralDate               DateTime?
+  decisionDate               DateTime?
+  adjudicator                String?
+  appealDecision             AppealDecision
+  direction                  String?
+  reasons                    String         @db.Text
+  scrapedAt                  DateTime       @default(now())
+  updatedAt                  DateTime       @updatedAt
 
   @@index([authority, contravention])
+  @@index([normalizedIssuerId, normalizedContraventionCode])
   @@index([appealDecision])
   @@index([contraventionDate])
   @@index([caseReference])
   @@map("london_tribunal_cases")
+}
+
+// ============================================================================
+// Success Score Prediction Models
+// ============================================================================
+
+// Track data sources for appeal statistics (extensible for future sources)
+model AppealDataSource {
+  id          String    @id @default(cuid())
+  name        String    @unique // "london_tribunal", "popla", "ias", "user_outcomes"
+  description String?
+  weight      Float     @default(1.0) // For weighted averaging across sources
+  totalCases  Int       @default(0)
+  isActive    Boolean   @default(true)
+  lastImport  DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@map("appeal_data_sources")
+}
+
+// Aggregated appeal stats by contravention code only
+model ContraventionStats {
+  id                    String   @id @default(cuid())
+  contraventionCode     String   @unique // e.g., "46", "12", "MT_BUS_LANE"
+  totalCases            Int
+  allowedCount          Int
+  refusedCount          Int
+  partiallyAllowedCount Int
+  successRate           Float // (allowed + partiallyAllowed) / total
+  lastUpdated           DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+
+  @@map("contravention_stats")
+}
+
+// Aggregated appeal stats by issuer + contravention (more specific)
+model IssuerContraventionStats {
+  id                    String   @id @default(cuid())
+  issuerId              String // Normalized: "tfl", "lewisham", etc.
+  contraventionCode     String
+  totalCases            Int
+  allowedCount          Int
+  refusedCount          Int
+  partiallyAllowedCount Int
+  successRate           Float
+  lastUpdated           DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+
+  @@unique([issuerId, contraventionCode])
+  @@index([issuerId])
+  @@index([contraventionCode])
+  @@map("issuer_contravention_stats")
+}
+
+// Extracted patterns from adjudicator reasoning (winning AND losing)
+model AppealPattern {
+  id                String         @id @default(cuid())
+  contraventionCode String
+  issuerId          String? // null = applies to all issuers for this contravention
+  pattern           String // e.g., "SIGNAGE_INADEQUATE", "LOADING_EXEMPTION"
+  outcome           PatternOutcome
+  frequency         Int // Count of cases with this pattern
+  exampleCaseRefs   String[] // Sample case references for evidence
+  lastUpdated       DateTime       @default(now())
+  updatedAt         DateTime       @updatedAt
+
+  @@unique([contraventionCode, issuerId, pattern, outcome])
+  @@index([contraventionCode])
+  @@index([outcome])
+  @@map("appeal_patterns")
+}
+
+enum PatternOutcome {
+  WINNING
+  LOSING
 }
 
 enum AppealDecision {

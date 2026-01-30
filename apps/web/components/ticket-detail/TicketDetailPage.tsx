@@ -558,6 +558,7 @@ const TicketDetailPage = ({ ticket }: TicketDetailPageProps) => {
         open={isAutoChallengeDialogOpen}
         onOpenChange={handleAutoChallengeDialogChange}
         issuerName={ticket.issuer}
+        predictionMetadata={ticket.prediction?.metadata as import('@/services/prediction-service').PredictionMetadata | null}
         onSubmit={handleAutoChallenge}
         existingChallengeId={retryChallengeId || undefined}
         initialReason={retryReason}
@@ -569,6 +570,7 @@ const TicketDetailPage = ({ ticket }: TicketDetailPageProps) => {
         open={isGenerateLetterDialogOpen}
         onOpenChange={setIsGenerateLetterDialogOpen}
         issuerType={ticket.issuerType}
+        predictionMetadata={ticket.prediction?.metadata as import('@/services/prediction-service').PredictionMetadata | null}
         onSubmit={handleGenerateLetter}
       />
     </div>

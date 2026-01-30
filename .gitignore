@@ -55,3 +55,7 @@ android/.gradle/
 
 # Cursor IDE
 .cursor/
+
+# Large uncompressed data files (use .gz versions)
+packages/db/data/tribunal-seed/*.json
+!packages/db/data/tribunal-seed/*.json.gz

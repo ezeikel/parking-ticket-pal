@@ -69,6 +69,10 @@ export const ModelName = {
   Session: 'Session',
   VerificationToken: 'VerificationToken',
   LondonTribunalCase: 'LondonTribunalCase',
+  AppealDataSource: 'AppealDataSource',
+  ContraventionStats: 'ContraventionStats',
+  IssuerContraventionStats: 'IssuerContraventionStats',
+  AppealPattern: 'AppealPattern',
   PendingIssuer: 'PendingIssuer',
   PendingChallenge: 'PendingChallenge',
   PendingTicket: 'PendingTicket',
@@ -368,6 +372,7 @@ export const LondonTribunalCaseScalarFieldEnum = {
   caseReference: 'caseReference',
   declarant: 'declarant',
   authority: 'authority',
+  normalizedIssuerId: 'normalizedIssuerId',
   vrm: 'vrm',
   pcn: 'pcn',
   contraventionDate: 'contraventionDate',
@@ -375,6 +380,7 @@ export const LondonTribunalCaseScalarFieldEnum = {
   contraventionLocation: 'contraventionLocation',
   penaltyAmount: 'penaltyAmount',
   contravention: 'contravention',
+  normalizedContraventionCode: 'normalizedContraventionCode',
   referralDate: 'referralDate',
   decisionDate: 'decisionDate',
   adjudicator: 'adjudicator',
@@ -386,6 +392,67 @@ export const LondonTribunalCaseScalarFieldEnum = {
 } as const
 
 export type LondonTribunalCaseScalarFieldEnum = (typeof LondonTribunalCaseScalarFieldEnum)[keyof typeof LondonTribunalCaseScalarFieldEnum]
+
+
+export const AppealDataSourceScalarFieldEnum = {
+  id: 'id',
+  name: 'name',
+  description: 'description',
+  weight: 'weight',
+  totalCases: 'totalCases',
+  isActive: 'isActive',
+  lastImport: 'lastImport',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type AppealDataSourceScalarFieldEnum = (typeof AppealDataSourceScalarFieldEnum)[keyof typeof AppealDataSourceScalarFieldEnum]
+
+
+export const ContraventionStatsScalarFieldEnum = {
+  id: 'id',
+  contraventionCode: 'contraventionCode',
+  totalCases: 'totalCases',
+  allowedCount: 'allowedCount',
+  refusedCount: 'refusedCount',
+  partiallyAllowedCount: 'partiallyAllowedCount',
+  successRate: 'successRate',
+  lastUpdated: 'lastUpdated',
+  updatedAt: 'updatedAt'
+} as const
+
+export type ContraventionStatsScalarFieldEnum = (typeof ContraventionStatsScalarFieldEnum)[keyof typeof ContraventionStatsScalarFieldEnum]
+
+
+export const IssuerContraventionStatsScalarFieldEnum = {
+  id: 'id',
+  issuerId: 'issuerId',
+  contraventionCode: 'contraventionCode',
+  totalCases: 'totalCases',
+  allowedCount: 'allowedCount',
+  refusedCount: 'refusedCount',
+  partiallyAllowedCount: 'partiallyAllowedCount',
+  successRate: 'successRate',
+  lastUpdated: 'lastUpdated',
+  updatedAt: 'updatedAt'
+} as const
+
+export type IssuerContraventionStatsScalarFieldEnum = (typeof IssuerContraventionStatsScalarFieldEnum)[keyof typeof IssuerContraventionStatsScalarFieldEnum]
+
+
+export const AppealPatternScalarFieldEnum = {
+  id: 'id',
+  contraventionCode: 'contraventionCode',
+  issuerId: 'issuerId',
+  pattern: 'pattern',
+  outcome: 'outcome',
+  frequency: 'frequency',
+  exampleCaseRefs: 'exampleCaseRefs',
+  lastUpdated: 'lastUpdated',
+  updatedAt: 'updatedAt'
+} as const
+
+export type AppealPatternScalarFieldEnum = (typeof AppealPatternScalarFieldEnum)[keyof typeof AppealPatternScalarFieldEnum]
 
 
 export const PendingIssuerScalarFieldEnum = {

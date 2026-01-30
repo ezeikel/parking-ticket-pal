@@ -24,11 +24,14 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
+import RecommendedReasons from '@/components/RecommendedReasons';
+import type { PredictionMetadata } from '@/services/prediction-service';
 
 type AutoChallengeDialogProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   issuerName: string;
+  predictionMetadata?: PredictionMetadata | null;
   onSubmit: (reason: string, customReason?: string, existingChallengeId?: string) => Promise<void>;
   // For retry: pre-fill with existing challenge info
   existingChallengeId?: string;
@@ -88,6 +91,7 @@ const AutoChallengeDialog = ({
   open,
   onOpenChange,
   issuerName,
+  predictionMetadata,
   onSubmit,
   existingChallengeId,
   initialReason,
@@ -136,6 +140,18 @@ const AutoChallengeDialog = ({
         </DialogHeader>
 
         <div className="space-y-4 py-4">
+          {/* Recommendations from historical data */}
+          {predictionMetadata && (
+            <RecommendedReasons
+              winningPatterns={predictionMetadata.winningPatterns}
+              losingPatterns={predictionMetadata.losingPatterns}
+              totalCases={
+                predictionMetadata.winningPatterns.reduce((sum, p) => sum + p.frequency, 0) +
+                predictionMetadata.losingPatterns.reduce((sum, p) => sum + p.frequency, 0)
+              }
+            />
+          )}
+
           {/* Reason Select */}
           <div className="space-y-2">
             <label htmlFor="reason" className="text-sm font-medium text-dark">

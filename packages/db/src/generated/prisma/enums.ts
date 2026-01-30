@@ -264,6 +264,14 @@ export const UserTitle = {
 export type UserTitle = (typeof UserTitle)[keyof typeof UserTitle]
 
 
+export const PatternOutcome = {
+  WINNING: 'WINNING',
+  LOSING: 'LOSING'
+} as const
+
+export type PatternOutcome = (typeof PatternOutcome)[keyof typeof PatternOutcome]
+
+
 export const AppealDecision = {
   ALLOWED: 'ALLOWED',
   REFUSED: 'REFUSED',

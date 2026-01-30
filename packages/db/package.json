@@ -31,6 +31,8 @@
     "@neondatabase/serverless": "^1.0.1",
     "@prisma/adapter-neon": "^6.9.0",
     "@prisma/client": "^7.2.0",
+    "csv-parse": "^6.1.0",
+    "openai": "^6.15.0",
     "ws": "^8.18.2"
   },
   "devDependencies": {
