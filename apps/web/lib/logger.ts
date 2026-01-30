@@ -106,58 +106,29 @@ class Logger {
     }
   }
 
-  private logToSentry(entry: LogEntry) {
+  /**
+   * Send error to Sentry as an issue.
+   * Only errors go to Sentry - debug/info/warn go to console only
+   * (Vercel Logs capture server console output)
+   */
+  private logToSentry(message: string, context?: LogContext, error?: Error) {
     try {
-      // Set context for Sentry
-      if (entry.context) {
-        Sentry.setContext('log_context', entry.context);
-
-        if (entry.context.page) {
-          Sentry.setTag('page', entry.context.page);
-        }
-
-        if (entry.context.action) {
-          Sentry.setTag('action', entry.context.action);
-        }
-
-        if (entry.context.userId) {
-          Sentry.setUser({ id: entry.context.userId });
-        }
+      if (context) {
+        Sentry.setContext('error_context', context);
+        if (context.page) Sentry.setTag('page', context.page);
+        if (context.action) Sentry.setTag('action', context.action);
+        if (context.userId) Sentry.setUser({ id: context.userId });
       }
 
-      switch (entry.level) {
-        case 'debug':
-        case 'info':
-          // Only add as breadcrumbs for context, don't spam Sentry with debug/info
-          Sentry.addBreadcrumb({
-            message: entry.message,
-            level: entry.level,
-            data: {
-              page: entry.context?.page,
-              action: entry.context?.action,
-              // Only essential context to avoid bloat
-            },
-          });
-          break;
-        case 'warn':
-          // Warnings are worth reporting to Sentry
-          Sentry.captureMessage(entry.message, 'warning');
-          break;
-        case 'error':
-          // Errors and crashes definitely go to Sentry
-          if (entry.error) {
-            Sentry.captureException(entry.error);
-          } else {
-            Sentry.captureMessage(entry.message, 'error');
-          }
-          break;
-        default:
-          break;
+      if (error) {
+        Sentry.captureException(error);
+      } else {
+        Sentry.captureMessage(message, 'error');
       }
-    } catch (error) {
+    } catch (err) {
       if (process.env.NODE_ENV === 'development') {
         // eslint-disable-next-line no-console
-        console.error('Failed to log to Sentry:', error);
+        console.error('Failed to log to Sentry:', err);
       }
     }
   }
@@ -195,37 +166,34 @@ class Logger {
     }
   }
 
-  // Logging strategy:
-  // - Console: All levels in dev, none in production
-  // - Sentry: Breadcrumbs for debug/info, reports for warn/error
+  // Logging strategy (aligned with chunky-crayon):
+  // - Console: All levels (captured by Vercel Logs on server)
+  // - Sentry: Errors only (creates issues for investigation)
   // - PostHog: All levels for analytics and behavior tracking
 
   debug(message: string, context?: LogContext) {
     const entry = this.createLogEntry('debug', message, context);
     this.logToConsole(entry);
-    this.logToSentry(entry); // Breadcrumb only
-    this.logToPostHog(entry); // Full analytics
+    this.logToPostHog(entry);
   }
 
   info(message: string, context?: LogContext) {
     const entry = this.createLogEntry('info', message, context);
     this.logToConsole(entry);
-    this.logToSentry(entry); // Breadcrumb only
-    this.logToPostHog(entry); // Full analytics
+    this.logToPostHog(entry);
   }
 
   warn(message: string, context?: LogContext, error?: Error) {
     const entry = this.createLogEntry('warn', message, context, error);
     this.logToConsole(entry);
-    this.logToSentry(entry); // Reported as warning
-    this.logToPostHog(entry); // Full analytics
+    this.logToPostHog(entry);
   }
 
   error(message: string, context?: LogContext, error?: Error) {
     const entry = this.createLogEntry('error', message, context, error);
     this.logToConsole(entry);
-    this.logToSentry(entry); // Reported as error/exception
-    this.logToPostHog(entry); // Full analytics
+    this.logToSentry(entry.message, entry.context, entry.error);
+    this.logToPostHog(entry);
   }
 
   // Specialized methods for common scenarios

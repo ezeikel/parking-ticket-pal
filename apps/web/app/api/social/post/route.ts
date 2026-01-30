@@ -4,6 +4,8 @@ import { postToSocialMedia } from '@/app/actions/social';
 import { getPostBySlug, getAllPosts } from '@/lib/queries/blog';
 import { PostPlatform } from '@/types';
 
+const LOG_PREFIX = '[social/post]';
+
 export const maxDuration = 180;
 
 const handleRequest = async (request: NextRequest) => {
@@ -13,7 +15,8 @@ const handleRequest = async (request: NextRequest) => {
     const cronSecret = process.env.CRON_SECRET;
 
     if (cronSecret && authHeader !== `Bearer ${cronSecret}`) {
-      Sentry.captureMessage('social/post: Unauthorized request');
+      // eslint-disable-next-line no-console
+      console.log(`${LOG_PREFIX} Unauthorized request`);
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
@@ -38,9 +41,8 @@ const handleRequest = async (request: NextRequest) => {
     let post;
     if (!slug) {
       // If no slug provided, get the most recent blog post
-      Sentry.captureMessage(
-        'social/post: No slug provided, getting most recent blog post',
-      );
+      // eslint-disable-next-line no-console
+      console.log(`${LOG_PREFIX} No slug provided, getting most recent blog post`);
       const allPosts = await getAllPosts();
 
       if (allPosts.length === 0) {
@@ -51,9 +53,8 @@ const handleRequest = async (request: NextRequest) => {
       }
 
       [post] = allPosts; // most recent post
-      Sentry.captureMessage(
-        `social/post: Using most recent post: ${post.meta.slug}`,
-      );
+      // eslint-disable-next-line no-console
+      console.log(`${LOG_PREFIX} Using most recent post: ${post.meta.slug}`);
     } else {
       // Get specific blog post by slug
       post = await getPostBySlug(slug);
@@ -65,9 +66,8 @@ const handleRequest = async (request: NextRequest) => {
       }
     }
 
-    Sentry.captureMessage(
-      `social/post: Calling postToSocialMedia with slug: ${post.meta.slug}`,
-    );
+    // eslint-disable-next-line no-console
+    console.log(`${LOG_PREFIX} Calling postToSocialMedia with slug: ${post.meta.slug}`);
 
     // Call the server action
     const result = await postToSocialMedia({
@@ -101,10 +101,13 @@ const handleRequest = async (request: NextRequest) => {
       },
     );
   } catch (error) {
-    console.error('Error in social media posting route:', error);
-    Sentry.captureMessage(
-      `social/post route: Error: ${error instanceof Error ? error.message : 'Unknown error'}`,
-    );
+    // eslint-disable-next-line no-console
+    console.error(`${LOG_PREFIX} Error:`, error);
+
+    // Only send actual errors to Sentry
+    if (error instanceof Error) {
+      Sentry.captureException(error);
+    }
 
     return NextResponse.json(
       {
