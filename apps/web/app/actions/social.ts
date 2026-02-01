@@ -380,6 +380,52 @@ Include the blog URL at the end of the post.`,
 };
 
 /**
+ * Generate Facebook Reel/video caption
+ */
+const generateFacebookReelCaption = async (
+  post: Post,
+  blogUrl: string,
+): Promise<string> => {
+  const prompt = `You are creating a Facebook video/Reel caption for a UK parking/traffic law website called "Parking Ticket Pal".
+
+Create a caption that:
+- Starts with a hook that references watching the video
+- Is concise (under 150 words)
+- Uses relevant emojis
+- Includes the blog URL for more info
+- Uses UK terminology
+- Uses PLAIN TEXT ONLY - NO markdown formatting
+
+Title: ${post.meta.title}
+Summary: ${post.meta.summary}
+Blog URL: ${blogUrl}`;
+
+  try {
+    const response = await openai.chat.completions.create({
+      model: OPENAI_MODEL_GPT_4O,
+      messages: [
+        { role: 'system', content: prompt },
+        { role: 'user', content: 'Generate the Facebook video caption.' },
+      ],
+      temperature: 0.7,
+      max_tokens: 250,
+    });
+
+    return response.choices[0].message.content || '';
+  } catch (error) {
+    logger.error(
+      'Error generating Facebook Reel caption',
+      {
+        slug: post.meta.slug,
+        title: post.meta.title,
+      },
+      error instanceof Error ? error : new Error(String(error)),
+    );
+    throw error;
+  }
+};
+
+/**
  * Generate engaging hook for Reel using Gemini 3 Flash (Vercel AI SDK)
  */
 const generateReelHook = async (
@@ -871,6 +917,37 @@ const postToFacebookPage = async (message: string, imageUrl: string) => {
 };
 
 /**
+ * Post video/Reel to Facebook Page
+ */
+const postVideoToFacebookPage = async (
+  videoUrl: string,
+  description: string,
+  title: string,
+) => {
+  const response = await fetch(
+    `https://graph.facebook.com/v24.0/${process.env.FACEBOOK_PAGE_ID}/videos`,
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        file_url: videoUrl,
+        description,
+        title,
+        access_token: process.env.FACEBOOK_PAGE_ACCESS_TOKEN,
+      }),
+    },
+  );
+
+  const data = await response.json();
+  if (!data.id) {
+    throw new Error(`Failed to post video to Facebook: ${JSON.stringify(data)}`);
+  }
+  return data.id;
+};
+
+/**
  * Post blog content to social media platforms
  */
 export const postToSocialMedia = async (params: {
@@ -1102,6 +1179,65 @@ export const postToSocialMedia = async (params: {
           success: false,
           error: errorInstance.message,
         };
+      }
+
+      // Post Facebook Reel/Video (reuse the Instagram Reel video if available)
+      if (params.blogContent) {
+        try {
+          // Generate video (or reuse if already generated for Instagram)
+          logger.info('Generating Facebook Reel video', {
+            slug: post.meta.slug,
+          });
+          const reelVideoUrl = await generateInstagramReelVideo(
+            post,
+            params.blogContent,
+          );
+
+          logger.info('Generating Facebook Reel caption', {
+            slug: post.meta.slug,
+          });
+          const facebookReelCaption = await generateFacebookReelCaption(
+            post,
+            blogUrl,
+          );
+
+          logger.info('Posting video to Facebook', { slug: post.meta.slug });
+          const videoPostId = await postVideoToFacebookPage(
+            reelVideoUrl,
+            facebookReelCaption,
+            post.meta.title,
+          );
+
+          results.facebookReel = {
+            success: true,
+            postId: videoPostId,
+            caption: facebookReelCaption,
+          };
+
+          logger.info('Successfully posted Facebook Reel', {
+            slug: post.meta.slug,
+            postId: videoPostId,
+          });
+        } catch (error) {
+          const errorInstance =
+            error instanceof Error ? error : new Error(String(error));
+          logger.error(
+            'Facebook Reel posting failed',
+            {
+              slug: post.meta.slug,
+              title: post.meta.title,
+            },
+            errorInstance,
+          );
+          results.facebookReel = {
+            success: false,
+            error: errorInstance.message,
+          };
+        }
+      } else {
+        logger.info('Skipping Facebook Reel - no blog content provided', {
+          slug: post.meta.slug,
+        });
       }
     }
 
