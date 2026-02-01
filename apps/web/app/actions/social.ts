@@ -34,7 +34,7 @@ const generateInstagramImage = async (post: Post): Promise<Buffer> => {
     // convert to Instagram format (1080x1080) using Sharp
     const instagramBuffer = await sharp(imageBuffer)
       .resize(1080, 1080, {
-        fit: 'outside',
+        fit: 'cover',
         position: 'center',
       })
       .flatten({ background: '#ffffff' })
@@ -395,7 +395,58 @@ const createInstagramMediaContainer = async (
   return data.id;
 };
 
+/**
+ * Check Instagram media container status
+ * Returns status_code: 'FINISHED', 'IN_PROGRESS', or 'ERROR'
+ */
+const checkInstagramMediaStatus = async (
+  creationId: string,
+): Promise<{ status: string; error?: string }> => {
+  const response = await fetch(
+    `https://graph.facebook.com/v24.0/${creationId}?fields=status_code,status&access_token=${process.env.FACEBOOK_PAGE_ACCESS_TOKEN}`,
+  );
+  const data = await response.json();
+  return {
+    status: data.status_code || 'UNKNOWN',
+    error: data.status,
+  };
+};
+
+/**
+ * Wait for Instagram media container to be ready
+ * Polls every 2 seconds for up to 30 seconds
+ */
+const waitForInstagramMediaReady = async (creationId: string): Promise<void> => {
+  const maxAttempts = 15;
+  const delayMs = 2000;
+
+  for (let i = 0; i < maxAttempts; i++) {
+    const { status, error } = await checkInstagramMediaStatus(creationId);
+
+    if (status === 'FINISHED') {
+      return;
+    }
+
+    if (status === 'ERROR') {
+      throw new Error(`Instagram media processing failed: ${error}`);
+    }
+
+    logger.info('Waiting for Instagram media to be ready', {
+      attempt: i + 1,
+      maxAttempts,
+      status,
+    });
+
+    await new Promise((resolve) => setTimeout(resolve, delayMs));
+  }
+
+  throw new Error('Instagram media processing timed out');
+};
+
 const publishInstagramMedia = async (creationId: string) => {
+  // Wait for media container to be ready before publishing
+  await waitForInstagramMediaReady(creationId);
+
   const response = await fetch(
     `https://graph.facebook.com/v24.0/${process.env.INSTAGRAM_ACCOUNT_ID}/media_publish`,
     {

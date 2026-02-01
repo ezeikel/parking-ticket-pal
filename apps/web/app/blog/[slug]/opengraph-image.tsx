@@ -1,9 +1,9 @@
 import { ImageResponse } from 'next/og';
 import { getPostBySlug } from '@/lib/queries/blog';
 
-// load fonts from Google Fonts
-const getInterRegularFont = fetch(
-  'https://fonts.googleapis.com/css2?family=Inter:wght@400&display=swap',
+// load Plus Jakarta Sans fonts from Google Fonts
+const getPlusJakartaSansRegular = fetch(
+  'https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400&display=swap',
 ).then(async (res) => {
   const css = await res.text();
   const fontUrl = css.match(/url\(([^)]+)\)/)?.[1]?.replace(/["']/g, '');
@@ -11,8 +11,8 @@ const getInterRegularFont = fetch(
   return fetch(fontUrl).then((fontRes) => fontRes.arrayBuffer());
 });
 
-const getInterSemiBoldFont = fetch(
-  'https://fonts.googleapis.com/css2?family=Inter:wght@600&display=swap',
+const getPlusJakartaSansSemiBold = fetch(
+  'https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@600&display=swap',
 ).then(async (res) => {
   const css = await res.text();
   const fontUrl = css.match(/url\(([^)]+)\)/)?.[1]?.replace(/["']/g, '');
@@ -20,8 +20,8 @@ const getInterSemiBoldFont = fetch(
   return fetch(fontUrl).then((fontRes) => fontRes.arrayBuffer());
 });
 
-const getLatoBoldFont = fetch(
-  'https://fonts.googleapis.com/css2?family=Lato:wght@700&display=swap',
+const getPlusJakartaSansBold = fetch(
+  'https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@700&display=swap',
 ).then(async (res) => {
   const css = await res.text();
   const fontUrl = css.match(/url\(([^)]+)\)/)?.[1]?.replace(/["']/g, '');
@@ -45,12 +45,11 @@ export default async function Image({
   const { slug } = await params;
 
   // load fonts
-  const [interRegularFontData, interSemiBoldFontData, latoBoldFontData] =
-    await Promise.all([
-      getInterRegularFont,
-      getInterSemiBoldFont,
-      getLatoBoldFont,
-    ]);
+  const [jakartaRegular, jakartaSemiBold, jakartaBold] = await Promise.all([
+    getPlusJakartaSansRegular,
+    getPlusJakartaSansSemiBold,
+    getPlusJakartaSansBold,
+  ]);
 
   try {
     const post = await getPostBySlug(slug);
@@ -68,7 +67,7 @@ export default async function Image({
             alignItems: 'center',
             justifyContent: 'center',
             color: 'white',
-            fontFamily: 'Inter, system-ui, sans-serif',
+            fontFamily: 'Plus Jakarta Sans, system-ui, sans-serif',
           }}
         >
           Parking Ticket Pal
@@ -77,20 +76,20 @@ export default async function Image({
           ...size,
           fonts: [
             {
-              name: 'Inter',
-              data: interRegularFontData,
+              name: 'Plus Jakarta Sans',
+              data: jakartaRegular,
               style: 'normal',
               weight: 400,
             },
             {
-              name: 'Inter',
-              data: interSemiBoldFontData,
+              name: 'Plus Jakarta Sans',
+              data: jakartaSemiBold,
               style: 'normal',
               weight: 600,
             },
             {
-              name: 'Lato',
-              data: latoBoldFontData,
+              name: 'Plus Jakarta Sans',
+              data: jakartaBold,
               style: 'normal',
               weight: 700,
             },
@@ -102,12 +101,7 @@ export default async function Image({
     return new ImageResponse(
       <div
         style={{
-          background: post.meta.image
-            ? `url(${post.meta.image})`
-            : 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-          backgroundRepeat: 'no-repeat',
+          background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
           width: '100%',
           height: '100%',
           display: 'flex',
@@ -115,10 +109,28 @@ export default async function Image({
           alignItems: 'center',
           justifyContent: 'center',
           padding: '60px',
-          fontFamily: 'Inter, system-ui, sans-serif',
+          fontFamily: 'Plus Jakarta Sans, system-ui, sans-serif',
           position: 'relative',
         }}
       >
+        {/* Featured image - use explicit dimensions for Satori/ImageResponse compatibility */}
+        {post.meta.image ? (
+          <img
+            src={post.meta.image}
+            alt=""
+            width={1200}
+            height={630}
+            style={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              width: 1200,
+              height: 630,
+              objectFit: 'cover',
+            }}
+          />
+        ) : null}
+
         {/* Background overlay - darker when using image for better text readability */}
         <div
           style={{
@@ -134,7 +146,7 @@ export default async function Image({
           }}
         />
 
-        {/* Content */}
+        {/* Content - constrained to square-safe zone for Instagram cropping (1200x630 -> 1080x1080) */}
         <div
           style={{
             display: 'flex',
@@ -144,7 +156,7 @@ export default async function Image({
             zIndex: 1,
             textAlign: 'center',
             color: 'white',
-            maxWidth: '1000px',
+            maxWidth: '600px',
           }}
         >
           {/* Brand */}
@@ -159,15 +171,15 @@ export default async function Image({
             Parking Ticket Pal
           </div>
 
-          {/* Title */}
+          {/* Title - sized to fit within square-safe zone */}
           <div
             style={{
-              fontSize: post.meta.title.length > 60 ? 44 : 52,
+              fontSize: post.meta.title.length > 50 ? 36 : 42,
               fontWeight: 700,
               lineHeight: 1.2,
-              marginBottom: '24px',
+              marginBottom: '20px',
               textAlign: 'center',
-              fontFamily: 'Lato, sans-serif',
+              fontFamily: 'Plus Jakarta Sans, sans-serif',
             }}
           >
             {post.meta.title}
@@ -176,11 +188,11 @@ export default async function Image({
           {/* Summary */}
           <div
             style={{
-              fontSize: 24,
+              fontSize: 22,
               lineHeight: 1.4,
               opacity: 0.9,
               textAlign: 'center',
-              maxWidth: '900px',
+              maxWidth: '550px',
             }}
           >
             {post.meta.summary.length > 120
@@ -243,20 +255,20 @@ export default async function Image({
         ...size,
         fonts: [
           {
-            name: 'Inter',
-            data: interRegularFontData,
+            name: 'Plus Jakarta Sans',
+            data: jakartaRegular,
             style: 'normal',
             weight: 400,
           },
           {
-            name: 'Inter',
-            data: interSemiBoldFontData,
+            name: 'Plus Jakarta Sans',
+            data: jakartaSemiBold,
             style: 'normal',
             weight: 600,
           },
           {
-            name: 'Lato',
-            data: latoBoldFontData,
+            name: 'Plus Jakarta Sans',
+            data: jakartaBold,
             style: 'normal',
             weight: 700,
           },
@@ -278,7 +290,7 @@ export default async function Image({
           alignItems: 'center',
           justifyContent: 'center',
           color: 'white',
-          fontFamily: 'Inter, system-ui, sans-serif',
+          fontFamily: 'Plus Jakarta Sans, system-ui, sans-serif',
         }}
       >
         Parking Ticket Pal
@@ -287,8 +299,8 @@ export default async function Image({
         ...size,
         fonts: [
           {
-            name: 'Inter',
-            data: interRegularFontData,
+            name: 'Plus Jakarta Sans',
+            data: jakartaRegular,
             style: 'normal',
             weight: 400,
           },
