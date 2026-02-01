@@ -1587,17 +1587,27 @@ export const postToSocialMedia = async (params: {
         : '';
 
       try {
-        await sendSocialDigest(digestEmail, {
+        const emailResult = await sendSocialDigest(digestEmail, {
           blogTitle: post.meta.title,
           blogUrl,
           imageUrl: imageAssetUrl,
           videoUrl: videoAssetUrl,
           captions: digestCaptions,
         });
-        logger.info('Social digest email sent successfully', {
-          slug: post.meta.slug,
-          to: digestEmail,
-        });
+
+        if (emailResult.success) {
+          logger.info('Social digest email sent successfully', {
+            slug: post.meta.slug,
+            to: digestEmail,
+            messageId: emailResult.messageId,
+          });
+        } else {
+          logger.error(
+            'Social digest email failed to send',
+            { slug: post.meta.slug, to: digestEmail },
+            new Error(emailResult.error || 'Unknown email error'),
+          );
+        }
       } catch (error) {
         logger.error(
           'Failed to send social digest email',
