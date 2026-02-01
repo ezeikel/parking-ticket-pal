@@ -389,22 +389,33 @@ const generateReelHook = async (
   try {
     const { text } = await generateText({
       model: models.analytics, // Gemini 3 Flash - fast and cost-effective
-      prompt: `You are writing a short, engaging hook for an Instagram Reel about this blog post.
+      prompt: `You are writing a short, engaging hook for an Instagram Reel voiceover.
+
+CRITICAL: The hook must be spoken in under 4 seconds. This means:
+- MAXIMUM 50 characters (strict limit)
+- One short sentence only
+- No filler words
 
 The hook should:
-- Be 1-2 sentences max (under 100 characters ideal)
 - Create curiosity or urgency
 - NOT use "..." at the end
 - NOT be clickbait, but genuinely interesting
-- Sound natural, not salesy
+- Sound natural when spoken aloud
 
 Blog title: ${post.meta.title}
 Blog content excerpt: ${blogContent.slice(0, 1500)}
 
-Return ONLY the hook text, nothing else.`,
+Return ONLY the hook text, nothing else. Remember: 50 characters MAX.`,
     });
 
-    return text.trim();
+    // Enforce character limit as safety net
+    const trimmed = text.trim();
+    if (trimmed.length > 60) {
+      // Truncate at last complete word within limit
+      const truncated = trimmed.substring(0, 60).replace(/\s+\S*$/, '');
+      return truncated;
+    }
+    return trimmed;
   } catch (error) {
     logger.error(
       'Error generating Reel hook',
@@ -437,7 +448,7 @@ const generateVoiceover = async (text: string): Promise<string | null> => {
       ELEVENLABS_VOICE_ID,
       {
         text,
-        model_id: 'eleven_turbo_v2_5', // Fast, high quality
+        model_id: 'eleven_turbo_v2_5', // Latest and fastest model
         output_format: 'mp3_44100_128',
       },
     );
