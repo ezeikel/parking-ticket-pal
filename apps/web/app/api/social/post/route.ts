@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import * as Sentry from '@sentry/nextjs';
+import { toPlainText } from '@portabletext/toolkit';
 import { postToSocialMedia } from '@/app/actions/social';
 import { getPostBySlug, getAllPosts } from '@/lib/queries/blog';
 import { PostPlatform } from '@/types';
@@ -37,9 +38,9 @@ const handleRequest = async (request: NextRequest) => {
       platforms = body.platforms || ['instagram', 'facebook'];
     }
 
-    // Get the blog post
-    let post;
-    if (!slug) {
+    // Get the blog post slug
+    let postSlug = slug;
+    if (!postSlug) {
       // If no slug provided, get the most recent blog post
       // eslint-disable-next-line no-console
       console.log(`${LOG_PREFIX} No slug provided, getting most recent blog post`);
@@ -52,27 +53,31 @@ const handleRequest = async (request: NextRequest) => {
         );
       }
 
-      [post] = allPosts; // most recent post
+      postSlug = allPosts[0].meta.slug; // most recent post slug
       // eslint-disable-next-line no-console
-      console.log(`${LOG_PREFIX} Using most recent post: ${post.meta.slug}`);
-    } else {
-      // Get specific blog post by slug
-      post = await getPostBySlug(slug);
-      if (!post) {
-        return NextResponse.json(
-          { error: 'Blog post not found' },
-          { status: 404 },
-        );
-      }
+      console.log(`${LOG_PREFIX} Using most recent post: ${postSlug}`);
     }
 
+    // Get full blog post by slug (includes bodyBlocks for content)
+    const post = await getPostBySlug(postSlug);
+    if (!post) {
+      return NextResponse.json(
+        { error: 'Blog post not found' },
+        { status: 404 },
+      );
+    }
+
+    // Convert Portable Text body to plain text for Reel hook generation
+    const blogContent = post.bodyBlocks ? toPlainText(post.bodyBlocks) : '';
+
     // eslint-disable-next-line no-console
-    console.log(`${LOG_PREFIX} Calling postToSocialMedia with slug: ${post.meta.slug}`);
+    console.log(`${LOG_PREFIX} Calling postToSocialMedia with slug: ${post.meta.slug}, blogContent length: ${blogContent.length}`);
 
     // Call the server action
     const result = await postToSocialMedia({
       post,
       platforms,
+      blogContent, // Required for Instagram Reel generation
     });
 
     if (!result.success) {

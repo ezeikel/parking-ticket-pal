@@ -3,13 +3,19 @@
 'use server';
 
 import sharp from 'sharp';
+import { generateText } from 'ai';
 import { PostPlatform, type Post } from '@/types';
 import openai from '@/lib/openai';
 import { OPENAI_MODEL_GPT_4O } from '@/constants';
 import { createServerLogger } from '@/lib/logger';
 import { put, del } from '@/lib/storage';
+import { models } from '@/lib/ai/models';
 
 const logger = createServerLogger({ action: 'social' });
+
+// Worker API configuration
+const WORKER_URL = process.env.WORKER_URL;
+const WORKER_SECRET = process.env.WORKER_SECRET;
 
 /**
  * Generate Instagram image by calling the OG image endpoint
@@ -366,6 +372,131 @@ Include the blog URL at the end of the post.`,
   }
 };
 
+/**
+ * Generate engaging hook for Reel using Gemini 3 Flash (Vercel AI SDK)
+ */
+const generateReelHook = async (
+  post: Post,
+  blogContent: string,
+): Promise<string> => {
+  try {
+    const { text } = await generateText({
+      model: models.analytics, // Gemini 3 Flash - fast and cost-effective
+      prompt: `You are writing a short, engaging hook for an Instagram Reel about this blog post.
+
+The hook should:
+- Be 1-2 sentences max (under 100 characters ideal)
+- Create curiosity or urgency
+- NOT use "..." at the end
+- NOT be clickbait, but genuinely interesting
+- Sound natural, not salesy
+
+Blog title: ${post.meta.title}
+Blog content excerpt: ${blogContent.slice(0, 1500)}
+
+Return ONLY the hook text, nothing else.`,
+    });
+
+    return text.trim();
+  } catch (error) {
+    logger.error(
+      'Error generating Reel hook',
+      {
+        slug: post.meta.slug,
+        title: post.meta.title,
+      },
+      error instanceof Error ? error : new Error(String(error)),
+    );
+    throw error;
+  }
+};
+
+/**
+ * Generate Instagram Reel caption (different tone than static post)
+ */
+const generateInstagramReelCaption = async (post: Post): Promise<string> => {
+  const prompt = `You are creating an Instagram Reel caption for a UK parking/traffic law website called "Parking Ticket Pal".
+
+Create a caption that:
+- Starts with a hook that references the video (e.g., "Watch this before you...")
+- Is shorter than a regular post (under 100 words)
+- Uses relevant emojis
+- Includes 5-8 hashtags
+- Ends with "Link in bio for the full guide 📖"
+- Uses UK terminology
+
+Title: ${post.meta.title}
+Summary: ${post.meta.summary}`;
+
+  try {
+    const response = await openai.chat.completions.create({
+      model: OPENAI_MODEL_GPT_4O,
+      messages: [
+        { role: 'system', content: prompt },
+        { role: 'user', content: 'Generate the Reel caption.' },
+      ],
+      temperature: 0.7,
+      max_tokens: 200,
+    });
+
+    return response.choices[0].message.content || '';
+  } catch (error) {
+    logger.error(
+      'Error generating Instagram Reel caption',
+      {
+        slug: post.meta.slug,
+        title: post.meta.title,
+      },
+      error instanceof Error ? error : new Error(String(error)),
+    );
+    throw error;
+  }
+};
+
+/**
+ * Generate Instagram Reel video via Remotion worker
+ */
+const generateInstagramReelVideo = async (
+  post: Post,
+  blogContent: string,
+): Promise<string> => {
+  if (!WORKER_URL || !WORKER_SECRET) {
+    throw new Error('Worker URL or secret not configured');
+  }
+
+  // 1. Generate engaging hook from blog content using Gemini Flash
+  const hook = await generateReelHook(post, blogContent);
+
+  logger.info('Generated Reel hook', {
+    slug: post.meta.slug,
+    hook,
+  });
+
+  // 2. Call worker to render video
+  const response = await fetch(`${WORKER_URL}/video/render/blog-reel`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${WORKER_SECRET}`,
+    },
+    body: JSON.stringify({
+      title: post.meta.title,
+      excerpt: hook,
+      featuredImageUrl: post.meta.image,
+    }),
+  });
+
+  const data = await response.json();
+
+  if (!response.ok || !data.success) {
+    throw new Error(
+      `Worker render failed: ${data.error || response.statusText}`,
+    );
+  }
+
+  return data.url; // R2 URL of rendered video
+};
+
 // Instagram API functions
 const createInstagramMediaContainer = async (
   imageUrl: string,
@@ -441,6 +572,36 @@ const waitForInstagramMediaReady = async (creationId: string): Promise<void> => 
   }
 
   throw new Error('Instagram media processing timed out');
+};
+
+/**
+ * Create Instagram Reel media container
+ */
+const createInstagramReelContainer = async (
+  videoUrl: string,
+  caption: string,
+): Promise<string> => {
+  const response = await fetch(
+    `https://graph.facebook.com/v24.0/${process.env.INSTAGRAM_ACCOUNT_ID}/media`,
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        video_url: videoUrl,
+        caption,
+        media_type: 'REELS',
+        share_to_feed: true, // Also show in main feed
+        access_token: process.env.FACEBOOK_PAGE_ACCESS_TOKEN,
+      }),
+    },
+  );
+  const data = await response.json();
+  if (!data.id) {
+    throw new Error(
+      `Failed to create Instagram Reel container: ${JSON.stringify(data)}`,
+    );
+  }
+  return data.id;
 };
 
 const publishInstagramMedia = async (creationId: string) => {
@@ -586,6 +747,7 @@ const postToFacebookPage = async (message: string, imageUrl: string) => {
 export const postToSocialMedia = async (params: {
   post: Post;
   platforms?: PostPlatform[];
+  blogContent?: string; // Required for Reel generation
 }): Promise<{
   success: boolean;
   results: Record<
@@ -695,6 +857,61 @@ export const postToSocialMedia = async (params: {
           success: false,
           error: errorInstance.message,
         };
+      }
+
+      // Post Instagram Reel (separate from static image)
+      if (params.blogContent) {
+        try {
+          logger.info('Generating Instagram Reel video', {
+            slug: post.meta.slug,
+          });
+          const reelVideoUrl = await generateInstagramReelVideo(
+            post,
+            params.blogContent,
+          );
+
+          logger.info('Generating Reel caption', { slug: post.meta.slug });
+          const reelCaption = await generateInstagramReelCaption(post);
+
+          logger.info('Creating Reel container', { slug: post.meta.slug });
+          const reelCreationId = await createInstagramReelContainer(
+            reelVideoUrl,
+            reelCaption,
+          );
+
+          logger.info('Publishing Reel', { slug: post.meta.slug });
+          const reelMediaId = await publishInstagramMedia(reelCreationId);
+
+          results.instagramReel = {
+            success: true,
+            mediaId: reelMediaId,
+            caption: reelCaption,
+          };
+
+          logger.info('Successfully posted Instagram Reel', {
+            slug: post.meta.slug,
+            mediaId: reelMediaId,
+          });
+        } catch (error) {
+          const errorInstance =
+            error instanceof Error ? error : new Error(String(error));
+          logger.error(
+            'Instagram Reel posting failed',
+            {
+              slug: post.meta.slug,
+              title: post.meta.title,
+            },
+            errorInstance,
+          );
+          results.instagramReel = {
+            success: false,
+            error: errorInstance.message,
+          };
+        }
+      } else {
+        logger.info('Skipping Instagram Reel - no blog content provided', {
+          slug: post.meta.slug,
+        });
       }
     }
 
