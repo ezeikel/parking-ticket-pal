@@ -11,6 +11,7 @@ import { OPENAI_MODEL_GPT_4O } from '@/constants';
 import { createServerLogger } from '@/lib/logger';
 import { put, del } from '@/lib/storage';
 import { models } from '@/lib/ai/models';
+import { sendSocialDigest, type SocialDigestCaption } from '@/lib/email';
 
 const logger = createServerLogger({ action: 'social' });
 
@@ -415,6 +416,152 @@ Blog URL: ${blogUrl}`;
   } catch (error) {
     logger.error(
       'Error generating Facebook Reel caption',
+      {
+        slug: post.meta.slug,
+        title: post.meta.title,
+      },
+      error instanceof Error ? error : new Error(String(error)),
+    );
+    throw error;
+  }
+};
+
+/**
+ * Generate TikTok caption
+ * Short, hashtag-heavy, trend-focused for younger audience
+ */
+const generateTikTokCaption = async (post: Post): Promise<string> => {
+  const prompt = `You are creating a TikTok caption for a UK parking/traffic law website called "Parking Ticket Pal".
+
+Create a caption that:
+- Is SHORT (under 150 characters visible without tapping "more")
+- Starts with a strong hook/question
+- Uses casual, Gen-Z friendly tone
+- Includes 8-10 relevant hashtags
+- NO links (not clickable on TikTok)
+- Uses UK terminology
+
+Title: ${post.meta.title}
+Summary: ${post.meta.summary}`;
+
+  try {
+    const response = await openai.chat.completions.create({
+      model: OPENAI_MODEL_GPT_4O,
+      messages: [
+        { role: 'system', content: prompt },
+        { role: 'user', content: 'Generate the TikTok caption.' },
+      ],
+      temperature: 0.7,
+      max_tokens: 200,
+    });
+
+    return response.choices[0].message.content || '';
+  } catch (error) {
+    logger.error(
+      'Error generating TikTok caption',
+      {
+        slug: post.meta.slug,
+        title: post.meta.title,
+      },
+      error instanceof Error ? error : new Error(String(error)),
+    );
+    throw error;
+  }
+};
+
+/**
+ * Generate YouTube Shorts caption
+ * SEO-focused with title and description
+ */
+const generateYouTubeShortsCaption = async (
+  post: Post,
+  blogUrl: string,
+): Promise<{ title: string; description: string }> => {
+  const prompt = `You are creating a YouTube Shorts title and description for a UK parking/traffic law website called "Parking Ticket Pal".
+
+Create content that:
+- Title: Under 100 characters, SEO-optimized, attention-grabbing
+- Description: Include the blog URL, relevant keywords, and hashtags
+- Include #Shorts hashtag (required for Shorts)
+- Uses UK terminology
+- Focus on search discoverability
+
+Title: ${post.meta.title}
+Summary: ${post.meta.summary}
+Blog URL: ${blogUrl}
+
+Return in JSON format: {"title": "...", "description": "..."}`;
+
+  try {
+    const response = await openai.chat.completions.create({
+      model: OPENAI_MODEL_GPT_4O,
+      messages: [
+        { role: 'system', content: prompt },
+        { role: 'user', content: 'Generate the YouTube Shorts title and description.' },
+      ],
+      temperature: 0.7,
+      max_tokens: 400,
+      response_format: { type: 'json_object' },
+    });
+
+    const content = response.choices[0].message.content || '{}';
+    const parsed = JSON.parse(content);
+    return {
+      title: parsed.title || post.meta.title,
+      description: parsed.description || post.meta.summary,
+    };
+  } catch (error) {
+    logger.error(
+      'Error generating YouTube Shorts caption',
+      {
+        slug: post.meta.slug,
+        title: post.meta.title,
+      },
+      error instanceof Error ? error : new Error(String(error)),
+    );
+    throw error;
+  }
+};
+
+/**
+ * Generate Threads caption
+ * Conversational, Instagram-adjacent, opinion-driven
+ */
+const generateThreadsCaption = async (
+  post: Post,
+  blogUrl: string,
+): Promise<string> => {
+  const prompt = `You are creating a Threads caption for a UK parking/traffic law website called "Parking Ticket Pal".
+
+Create a caption that:
+- Is conversational and opinion-driven
+- Can be longer form (200-300 words is fine)
+- NO hashtags (not widely used on Threads)
+- Mentions "also posted on Instagram" or cross-promotes
+- Includes the blog URL
+- Starts with a thought-provoking statement or question
+- Uses UK terminology
+- Feels personal and engaging
+
+Title: ${post.meta.title}
+Summary: ${post.meta.summary}
+Blog URL: ${blogUrl}`;
+
+  try {
+    const response = await openai.chat.completions.create({
+      model: OPENAI_MODEL_GPT_4O,
+      messages: [
+        { role: 'system', content: prompt },
+        { role: 'user', content: 'Generate the Threads caption.' },
+      ],
+      temperature: 0.7,
+      max_tokens: 500,
+    });
+
+    return response.choices[0].message.content || '';
+  } catch (error) {
+    logger.error(
+      'Error generating Threads caption',
       {
         slug: post.meta.slug,
         title: post.meta.title,
@@ -1300,6 +1447,163 @@ export const postToSocialMedia = async (params: {
           success: false,
           error: errorInstance.message,
         };
+      }
+    }
+
+    // Generate captions for manual platforms (TikTok, YouTube Shorts, Threads)
+    // These are not auto-posted but included in the digest email
+    const manualCaptions: Record<string, string | { title: string; description: string }> = {};
+
+    logger.info('Generating captions for manual platforms', {
+      slug: post.meta.slug,
+    });
+
+    // Generate all manual captions in parallel
+    const [tiktokCaption, youtubeShortsCaption, threadsCaption] = await Promise.all([
+      generateTikTokCaption(post).catch((error) => {
+        logger.error('Error generating TikTok caption', { slug: post.meta.slug }, error);
+        return null;
+      }),
+      generateYouTubeShortsCaption(post, blogUrl).catch((error) => {
+        logger.error('Error generating YouTube Shorts caption', { slug: post.meta.slug }, error);
+        return null;
+      }),
+      generateThreadsCaption(post, blogUrl).catch((error) => {
+        logger.error('Error generating Threads caption', { slug: post.meta.slug }, error);
+        return null;
+      }),
+    ]);
+
+    if (tiktokCaption) manualCaptions.tiktok = tiktokCaption;
+    if (youtubeShortsCaption) manualCaptions.youtubeShorts = youtubeShortsCaption;
+    if (threadsCaption) manualCaptions.threads = threadsCaption;
+
+    // Get LinkedIn caption if we didn't auto-post (for digest)
+    if (!results.linkedin?.caption) {
+      try {
+        const linkedinCaptionForDigest = await generateLinkedInCaption(post, blogUrl);
+        manualCaptions.linkedin = linkedinCaptionForDigest;
+      } catch (error) {
+        logger.error(
+          'Error generating LinkedIn caption for digest',
+          { slug: post.meta.slug },
+          error instanceof Error ? error : new Error(String(error)),
+        );
+      }
+    }
+
+    // Send email digest if configured
+    const digestEmail = process.env.SOCIAL_DIGEST_EMAIL;
+    if (digestEmail) {
+      logger.info('Sending social digest email', {
+        slug: post.meta.slug,
+        to: digestEmail,
+      });
+
+      // Build captions list for email
+      const digestCaptions: SocialDigestCaption[] = [];
+
+      // Add auto-posted platforms
+      if (results.instagram?.caption) {
+        digestCaptions.push({
+          platform: 'instagram',
+          caption: results.instagram.caption,
+          autoPosted: results.instagram.success,
+          assetType: 'image',
+        });
+      }
+      if (results.instagramReel?.caption) {
+        digestCaptions.push({
+          platform: 'instagramReel',
+          caption: results.instagramReel.caption,
+          autoPosted: results.instagramReel.success,
+          assetType: 'video',
+        });
+      }
+      if (results.facebook?.caption) {
+        digestCaptions.push({
+          platform: 'facebook',
+          caption: results.facebook.caption,
+          autoPosted: results.facebook.success,
+          assetType: 'image',
+        });
+      }
+      if (results.facebookReel?.caption) {
+        digestCaptions.push({
+          platform: 'facebookReel',
+          caption: results.facebookReel.caption,
+          autoPosted: results.facebookReel.success,
+          assetType: 'video',
+        });
+      }
+      if (results.linkedin?.caption) {
+        digestCaptions.push({
+          platform: 'linkedin',
+          caption: results.linkedin.caption,
+          autoPosted: results.linkedin.success,
+          assetType: 'image',
+        });
+      } else if (typeof manualCaptions.linkedin === 'string') {
+        digestCaptions.push({
+          platform: 'linkedin',
+          caption: manualCaptions.linkedin,
+          autoPosted: false,
+          assetType: 'image',
+        });
+      }
+
+      // Add manual platforms
+      if (typeof manualCaptions.tiktok === 'string') {
+        digestCaptions.push({
+          platform: 'tiktok',
+          caption: manualCaptions.tiktok,
+          autoPosted: false,
+          assetType: 'video',
+        });
+      }
+      if (manualCaptions.youtubeShorts && typeof manualCaptions.youtubeShorts === 'object') {
+        digestCaptions.push({
+          platform: 'youtubeShorts',
+          caption: '',
+          title: manualCaptions.youtubeShorts.title,
+          description: manualCaptions.youtubeShorts.description,
+          autoPosted: false,
+          assetType: 'video',
+        });
+      }
+      if (typeof manualCaptions.threads === 'string') {
+        digestCaptions.push({
+          platform: 'threads',
+          caption: manualCaptions.threads,
+          autoPosted: false,
+          assetType: 'both',
+        });
+      }
+
+      // Get asset URLs (use Instagram image as the main image, video URL from results)
+      const imageAssetUrl = instagramImageUrl || facebookImageUrl || linkedinImageUrl || '';
+      const videoAssetUrl = results.instagramReel?.mediaId
+        ? `https://www.instagram.com/reel/${results.instagramReel.mediaId}/`
+        : '';
+
+      try {
+        await sendSocialDigest(digestEmail, {
+          blogTitle: post.meta.title,
+          blogUrl,
+          imageUrl: imageAssetUrl,
+          videoUrl: videoAssetUrl,
+          captions: digestCaptions,
+        });
+        logger.info('Social digest email sent successfully', {
+          slug: post.meta.slug,
+          to: digestEmail,
+        });
+      } catch (error) {
+        logger.error(
+          'Failed to send social digest email',
+          { slug: post.meta.slug, to: digestEmail },
+          error instanceof Error ? error : new Error(String(error)),
+        );
       }
     }
 

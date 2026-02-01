@@ -7,6 +7,7 @@ import * as Sentry from '@sentry/nextjs';
 import { render } from '@react-email/render';
 import MagicLinkEmail from '@/components/emails/MagicLinkEmail';
 import TicketReminderEmail from '@/components/emails/TicketReminderEmail';
+import SocialDigestEmail from '@/emails/SocialDigestEmail';
 
 const AttachmentSchema = z.object({
   filename: z.string(),
@@ -269,5 +270,54 @@ export const sendTicketReminder = async (
     subject: `Reminder: Parking Ticket ${ticketData.pcnNumber} Due Soon`,
     html: emailHtml,
     text: `Parking Ticket Reminder\n\nYour parking ticket ${ticketData.pcnNumber} is due on ${ticketData.dueDate} for £${ticketData.amount}.\n\nView in dashboard: ${process.env.NEXT_PUBLIC_APP_URL}/dashboard`,
+  });
+};
+
+export type SocialDigestCaption = {
+  platform: string;
+  caption: string;
+  autoPosted: boolean;
+  assetType: 'image' | 'video' | 'both';
+  title?: string;
+  description?: string;
+};
+
+export const sendSocialDigest = async (
+  to: string,
+  digestData: {
+    blogTitle: string;
+    blogUrl: string;
+    imageUrl: string;
+    videoUrl: string;
+    captions: SocialDigestCaption[];
+  },
+): Promise<{
+  success: boolean;
+  messageId?: string;
+  error?: string;
+}> => {
+  const emailHtml = await render(
+    SocialDigestEmail({
+      blogTitle: digestData.blogTitle,
+      blogUrl: digestData.blogUrl,
+      imageUrl: digestData.imageUrl,
+      videoUrl: digestData.videoUrl,
+      captions: digestData.captions,
+    }),
+  );
+
+  // Generate plain text version
+  const captionsText = digestData.captions
+    .map(
+      (c) =>
+        `${c.platform.toUpperCase()} ${c.autoPosted ? '(Auto-posted)' : '(Manual)'}:\n${c.title ? `Title: ${c.title}\n` : ''}${c.description || c.caption}`,
+    )
+    .join('\n\n---\n\n');
+
+  return sendEmail({
+    to,
+    subject: `Social Media Assets Ready: ${digestData.blogTitle}`,
+    html: emailHtml,
+    text: `Social Media Assets Ready: ${digestData.blogTitle}\n\nAssets:\n- Image: ${digestData.imageUrl}\n- Video: ${digestData.videoUrl}\n\nCaptions:\n\n${captionsText}\n\nView blog post: ${digestData.blogUrl}`,
   });
 };
