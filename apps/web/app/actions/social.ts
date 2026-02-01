@@ -4,6 +4,7 @@
 
 import sharp from 'sharp';
 import { generateText } from 'ai';
+import { ElevenLabsClient } from 'elevenlabs';
 import { PostPlatform, type Post } from '@/types';
 import openai from '@/lib/openai';
 import { OPENAI_MODEL_GPT_4O } from '@/constants';
@@ -16,6 +17,12 @@ const logger = createServerLogger({ action: 'social' });
 // Worker API configuration
 const WORKER_URL = process.env.WORKER_URL;
 const WORKER_SECRET = process.env.WORKER_SECRET;
+
+// ElevenLabs configuration
+const elevenlabs = process.env.ELEVENLABS_API_KEY
+  ? new ElevenLabsClient({ apiKey: process.env.ELEVENLABS_API_KEY })
+  : null;
+const ELEVENLABS_VOICE_ID = process.env.ELEVENLABS_VOICE_ID || 'P6bTNc9ZMZitpFPNJFbo'; // Default: Custom voice
 
 /**
  * Generate Instagram image by calling the OG image endpoint
@@ -412,6 +419,102 @@ Return ONLY the hook text, nothing else.`,
 };
 
 /**
+ * Generate voiceover audio from text using ElevenLabs TTS
+ * Returns URL of uploaded audio file, or null if ElevenLabs not configured
+ */
+const generateVoiceover = async (text: string): Promise<string | null> => {
+  if (!elevenlabs) {
+    logger.info('ElevenLabs not configured, skipping voiceover generation');
+    return null;
+  }
+
+  try {
+    logger.info('Generating voiceover with ElevenLabs', {
+      textLength: text.length,
+    });
+
+    const audioStream = await elevenlabs.textToSpeech.convert(
+      ELEVENLABS_VOICE_ID,
+      {
+        text,
+        model_id: 'eleven_turbo_v2_5', // Fast, high quality
+        output_format: 'mp3_44100_128',
+      },
+    );
+
+    // Collect stream chunks into buffer
+    const chunks: Buffer[] = [];
+    for await (const chunk of audioStream) {
+      chunks.push(Buffer.from(chunk));
+    }
+    const buffer = Buffer.concat(chunks);
+
+    // Upload to temp storage
+    const fileName = `temp/audio/voiceover-${Date.now()}-${Math.random().toString(36).substring(2)}.mp3`;
+    const { url } = await put(fileName, buffer, {
+      contentType: 'audio/mpeg',
+    });
+
+    logger.info('Voiceover generated and uploaded', { url });
+    return url;
+  } catch (error) {
+    logger.error(
+      'Error generating voiceover',
+      { textLength: text.length },
+      error instanceof Error ? error : new Error(String(error)),
+    );
+    return null; // Non-fatal, continue without voiceover
+  }
+};
+
+/**
+ * Generate loopable ambient background music using ElevenLabs Sound Effects
+ * Returns URL of uploaded audio file, or null if ElevenLabs not configured
+ */
+const generateBackgroundMusic = async (
+  durationSeconds: number,
+): Promise<string | null> => {
+  if (!elevenlabs) {
+    logger.info('ElevenLabs not configured, skipping background music');
+    return null;
+  }
+
+  try {
+    logger.info('Generating background music with ElevenLabs', {
+      durationSeconds,
+    });
+
+    const audioStream = await elevenlabs.textToSoundEffects.convert({
+      text: 'calm ambient corporate background music, subtle, professional, modern',
+      duration_seconds: durationSeconds,
+    });
+
+    // Collect stream chunks into buffer
+    const chunks: Buffer[] = [];
+    for await (const chunk of audioStream) {
+      chunks.push(Buffer.from(chunk));
+    }
+    const buffer = Buffer.concat(chunks);
+
+    // Upload to temp storage
+    const fileName = `temp/audio/bgmusic-${Date.now()}-${Math.random().toString(36).substring(2)}.mp3`;
+    const { url } = await put(fileName, buffer, {
+      contentType: 'audio/mpeg',
+    });
+
+    logger.info('Background music generated and uploaded', { url });
+    return url;
+  } catch (error) {
+    logger.error(
+      'Error generating background music',
+      { durationSeconds },
+      error instanceof Error ? error : new Error(String(error)),
+    );
+    return null; // Non-fatal, continue without music
+  }
+};
+
+/**
  * Generate Instagram Reel caption (different tone than static post)
  */
 const generateInstagramReelCaption = async (post: Post): Promise<string> => {
@@ -472,7 +575,20 @@ const generateInstagramReelVideo = async (
     hook,
   });
 
-  // 2. Call worker to render video
+  // 2. Generate audio in parallel (non-blocking, returns null if fails)
+  const VIDEO_DURATION_SECONDS = 6;
+  const [voiceoverUrl, backgroundMusicUrl] = await Promise.all([
+    generateVoiceover(hook),
+    generateBackgroundMusic(VIDEO_DURATION_SECONDS),
+  ]);
+
+  logger.info('Audio generation complete', {
+    slug: post.meta.slug,
+    hasVoiceover: !!voiceoverUrl,
+    hasBackgroundMusic: !!backgroundMusicUrl,
+  });
+
+  // 3. Call worker to render video with optional audio
   const response = await fetch(`${WORKER_URL}/video/render/blog-reel`, {
     method: 'POST',
     headers: {
@@ -483,6 +599,8 @@ const generateInstagramReelVideo = async (
       title: post.meta.title,
       excerpt: hook,
       featuredImageUrl: post.meta.image,
+      voiceoverUrl,
+      backgroundMusicUrl,
     }),
   });
 

@@ -105,6 +105,7 @@
     "date-fns": "^4.1.0",
     "decimal.js": "10.6.0",
     "docxtemplater": "^3.67.6",
+    "elevenlabs": "^1.59.0",
     "embla-carousel-autoplay": "^8.6.0",
     "embla-carousel-react": "^8.6.0",
     "expo-server-sdk": "^4.0.0",
