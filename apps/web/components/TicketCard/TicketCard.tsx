@@ -141,7 +141,9 @@ const TicketCard = ({ ticket }: TicketCardProps) => {
               icon={faCarSide}
               className="h-4 w-4 text-muted-foreground"
             />
-            <span>{ticket.vehicle.registrationNumber}</span>
+            <span className="inline-flex items-center rounded bg-yellow px-1.5 py-0.5 font-plate text-xs font-bold tracking-wide text-dark">
+              {ticket.vehicle.registrationNumber}
+            </span>
           </div>
           <div className="flex items-center gap-2">
             <FontAwesomeIcon

@@ -109,7 +109,11 @@ const TicketInfoCard = ({
 
         <div>
           <p className="text-xs font-medium text-gray">Vehicle Registration</p>
-          <p className="mt-0.5 font-plate font-bold text-dark">{vehicleReg}</p>
+          <div className="mt-0.5 inline-flex items-center rounded bg-yellow px-2 py-0.5">
+            <span className="font-plate text-sm font-bold tracking-wide text-dark">
+              {vehicleReg}
+            </span>
+          </div>
         </div>
         <div>
           <p className="text-xs font-medium text-gray">Issuer</p>

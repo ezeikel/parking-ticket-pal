@@ -447,7 +447,7 @@ const TicketsList = ({
                         icon={faCar}
                         className="w-4 text-center text-xs"
                       />
-                      <span className="font-plate">
+                      <span className="inline-flex items-center rounded bg-yellow px-1.5 py-0.5 font-plate text-xs font-bold tracking-wide text-dark">
                         {ticket.vehicle?.registrationNumber || 'Unknown'}
                       </span>
                     </div>
