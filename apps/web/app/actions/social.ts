@@ -628,13 +628,16 @@ Return ONLY the hook text, nothing else. Remember: 50 characters MAX.`,
  */
 const generateVoiceover = async (text: string): Promise<string | null> => {
   if (!elevenlabs) {
-    logger.info('ElevenLabs not configured, skipping voiceover generation');
+    logger.info('ElevenLabs not configured, skipping voiceover generation', {
+      hasApiKey: !!process.env.ELEVENLABS_API_KEY,
+    });
     return null;
   }
 
   try {
     logger.info('Generating voiceover with ElevenLabs', {
       textLength: text.length,
+      voiceId: ELEVENLABS_VOICE_ID,
     });
 
     const audioStream = await elevenlabs.textToSpeech.convert(
@@ -662,10 +665,15 @@ const generateVoiceover = async (text: string): Promise<string | null> => {
     logger.info('Voiceover generated and uploaded', { url });
     return url;
   } catch (error) {
+    const errorInstance = error instanceof Error ? error : new Error(String(error));
     logger.error(
       'Error generating voiceover',
-      { textLength: text.length },
-      error instanceof Error ? error : new Error(String(error)),
+      {
+        textLength: text.length,
+        errorMessage: errorInstance.message,
+        errorName: errorInstance.name,
+      },
+      errorInstance,
     );
     return null; // Non-fatal, continue without voiceover
   }
