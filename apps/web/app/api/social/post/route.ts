@@ -7,7 +7,7 @@ import { PostPlatform } from '@/types';
 
 const LOG_PREFIX = '[social/post]';
 
-export const maxDuration = 180;
+export const maxDuration = 300; // 5 minutes - video rendering can take a while
 
 const handleRequest = async (request: NextRequest) => {
   try {
