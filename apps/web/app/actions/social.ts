@@ -898,23 +898,34 @@ const waitForInstagramMediaReady = async (creationId: string): Promise<void> => 
 
 /**
  * Create Instagram Reel media container
+ * @param videoUrl - URL of the video file
+ * @param caption - Caption for the Reel
+ * @param coverUrl - Optional URL for cover image (must be from same domain as video)
  */
 const createInstagramReelContainer = async (
   videoUrl: string,
   caption: string,
+  coverUrl?: string,
 ): Promise<string> => {
+  const payload: Record<string, unknown> = {
+    video_url: videoUrl,
+    caption,
+    media_type: 'REELS',
+    share_to_feed: true, // Also show in main feed
+    access_token: process.env.FACEBOOK_PAGE_ACCESS_TOKEN,
+  };
+
+  // Add cover image if provided
+  if (coverUrl) {
+    payload.cover_url = coverUrl;
+  }
+
   const response = await fetch(
     `https://graph.facebook.com/v24.0/${process.env.INSTAGRAM_ACCOUNT_ID}/media`,
     {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        video_url: videoUrl,
-        caption,
-        media_type: 'REELS',
-        share_to_feed: true, // Also show in main feed
-        access_token: process.env.FACEBOOK_PAGE_ACCESS_TOKEN,
-      }),
+      body: JSON.stringify(payload),
     },
   );
   const data = await response.json();
@@ -1227,9 +1238,11 @@ export const postToSocialMedia = async (params: {
           const reelCaption = await generateInstagramReelCaption(post);
 
           logger.info('Creating Reel container', { slug: post.meta.slug });
+          // Use the Instagram image as the Reel cover if available
           const reelCreationId = await createInstagramReelContainer(
             reelVideoUrl,
             reelCaption,
+            instagramImageUrl || undefined,
           );
 
           logger.info('Publishing Reel', { slug: post.meta.slug });
