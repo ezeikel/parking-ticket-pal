@@ -29,7 +29,7 @@ const SOCIAL_PREFIXES = [
   'social/images/',
   'social/audio/',
   'social/videos/',
-];
+]; // Note: social/videos/ contains all video formats (reels, shorts, etc.)
 
 async function cleanup() {
   console.log('='.repeat(60));
