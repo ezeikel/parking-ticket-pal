@@ -1,0 +1,67 @@
+name: R2 Storage Cleanup
+
+on:
+  workflow_dispatch:
+    inputs:
+      prefix:
+        description: 'R2 prefix to clean (e.g., temp/social, temp/audio, videos/reels)'
+        required: false
+        default: 'temp/'
+        type: choice
+        options:
+          - 'temp/'
+          - 'temp/social/'
+          - 'temp/audio/'
+          - 'videos/reels/'
+          - 'all-social-assets'
+      keep_latest:
+        description: 'Number of most recent items to keep (0 = delete all matching)'
+        required: false
+        default: '1'
+        type: string
+      older_than_hours:
+        description: 'Only delete items older than X hours (0 = ignore age)'
+        required: false
+        default: '24'
+        type: string
+      dry_run:
+        description: 'Dry run (list files without deleting)'
+        required: false
+        default: true
+        type: boolean
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 9
+
+      - name: Install dependencies
+        run: pnpm install --filter=web
+        working-directory: ./
+
+      - name: Run R2 Cleanup
+        env:
+          R2_ENDPOINT: ${{ secrets.R2_ENDPOINT }}
+          R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+          R2_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+          R2_BUCKET: ${{ secrets.R2_BUCKET }}
+          R2_PUBLIC_URL: ${{ secrets.R2_PUBLIC_URL }}
+        run: |
+          cd apps/web
+          npx tsx scripts/r2-cleanup.ts \
+            --prefix="${{ inputs.prefix }}" \
+            --keep-latest="${{ inputs.keep_latest }}" \
+            --older-than-hours="${{ inputs.older_than_hours }}" \
+            ${{ inputs.dry_run && '--dry-run' || '' }}
