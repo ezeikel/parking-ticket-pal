@@ -1141,6 +1141,7 @@ export const postToSocialMedia = async (params: {
   let instagramImageUrl: string | null = null;
   let facebookImageUrl: string | null = null;
   let linkedinImageUrl: string | null = null;
+  let reelVideoR2Url: string | null = null; // R2 URL for the rendered video (for email digest)
 
   try {
     const { post, platforms = ['instagram', 'facebook', 'linkedin'] } = params;
@@ -1241,6 +1242,8 @@ export const postToSocialMedia = async (params: {
             post,
             params.blogContent,
           );
+          // Store R2 URL for email digest
+          reelVideoR2Url = reelVideoUrl;
 
           logger.info('Generating Reel caption', { slug: post.meta.slug });
           const reelCaption = await generateInstagramReelCaption(post);
@@ -1601,11 +1604,9 @@ export const postToSocialMedia = async (params: {
         });
       }
 
-      // Get asset URLs (use Instagram image as the main image, video URL from results)
+      // Get asset URLs (use Instagram image as the main image, R2 video URL for download)
       const imageAssetUrl = instagramImageUrl || facebookImageUrl || linkedinImageUrl || '';
-      const videoAssetUrl = results.instagramReel?.mediaId
-        ? `https://www.instagram.com/reel/${results.instagramReel.mediaId}/`
-        : '';
+      const videoAssetUrl = reelVideoR2Url || '';
 
       try {
         const emailResult = await sendSocialDigest(digestEmail, {
