@@ -1142,6 +1142,7 @@ export const postToSocialMedia = async (params: {
   let facebookImageUrl: string | null = null;
   let linkedinImageUrl: string | null = null;
   let reelVideoR2Url: string | null = null; // R2 URL for the rendered video (for email digest)
+  let digestEmailSent = false; // Track if digest email was sent - skip cleanup if true
 
   try {
     const { post, platforms = ['instagram', 'facebook', 'linkedin'] } = params;
@@ -1618,6 +1619,7 @@ export const postToSocialMedia = async (params: {
         });
 
         if (emailResult.success) {
+          digestEmailSent = true; // Mark that digest was sent - skip image cleanup
           logger.info('Social digest email sent successfully', {
             slug: post.meta.slug,
             to: digestEmail,
@@ -1671,44 +1673,54 @@ export const postToSocialMedia = async (params: {
       error: errorInstance.message,
     };
   } finally {
-    // Clean up temporary images
-    if (instagramImageUrl) {
-      try {
-        await cleanupTempImage(instagramImageUrl);
-      } catch (error) {
-        logger.error(
-          'Error cleaning up Instagram image',
-          {
-            instagramImageUrl,
-          },
-          error instanceof Error ? error : new Error(String(error)),
-        );
+    // Skip image cleanup if digest email was sent - keep R2 URLs valid for manual download
+    if (digestEmailSent) {
+      logger.info('Skipping image cleanup - digest email sent, keeping R2 assets for download', {
+        instagramImageUrl,
+        facebookImageUrl,
+        linkedinImageUrl,
+        reelVideoR2Url,
+      });
+    } else {
+      // Clean up temporary images only if digest email was not sent
+      if (instagramImageUrl) {
+        try {
+          await cleanupTempImage(instagramImageUrl);
+        } catch (error) {
+          logger.error(
+            'Error cleaning up Instagram image',
+            {
+              instagramImageUrl,
+            },
+            error instanceof Error ? error : new Error(String(error)),
+          );
+        }
       }
-    }
-    if (facebookImageUrl) {
-      try {
-        await cleanupTempImage(facebookImageUrl);
-      } catch (error) {
-        logger.error(
-          'Error cleaning up Facebook image',
-          {
-            facebookImageUrl,
-          },
-          error instanceof Error ? error : new Error(String(error)),
-        );
+      if (facebookImageUrl) {
+        try {
+          await cleanupTempImage(facebookImageUrl);
+        } catch (error) {
+          logger.error(
+            'Error cleaning up Facebook image',
+            {
+              facebookImageUrl,
+            },
+            error instanceof Error ? error : new Error(String(error)),
+          );
+        }
       }
-    }
-    if (linkedinImageUrl) {
-      try {
-        await cleanupTempImage(linkedinImageUrl);
-      } catch (error) {
-        logger.error(
-          'Error cleaning up LinkedIn image',
-          {
-            linkedinImageUrl,
-          },
-          error instanceof Error ? error : new Error(String(error)),
-        );
+      if (linkedinImageUrl) {
+        try {
+          await cleanupTempImage(linkedinImageUrl);
+        } catch (error) {
+          logger.error(
+            'Error cleaning up LinkedIn image',
+            {
+              linkedinImageUrl,
+            },
+            error instanceof Error ? error : new Error(String(error)),
+          );
+        }
       }
     }
   }
