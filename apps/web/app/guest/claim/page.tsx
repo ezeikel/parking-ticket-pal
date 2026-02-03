@@ -1,6 +1,6 @@
 'use client';
 
-import { Suspense, useEffect, useState } from 'react';
+import { Suspense, useEffect, useState, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { signIn, useSession } from 'next-auth/react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -20,11 +20,15 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { getGuestTicketData, updateGuestTicketData } from '@/utils/guestTicket';
+import { useAnalytics } from '@/utils/analytics-client';
+import { TRACKING_EVENTS } from '@/constants/events';
 
 const ClaimContent = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { data: session, status } = useSession();
+  const { track } = useAnalytics();
+  const hasTrackedPageView = useRef(false);
   const [isLoading, setIsLoading] = useState(true);
   const [paymentVerified, setPaymentVerified] = useState(false);
   const [email, setEmail] = useState('');
@@ -61,10 +65,19 @@ const ClaimContent = () => {
       }
 
       setIsLoading(false);
+
+      // Track page view after verification
+      if (!hasTrackedPageView.current) {
+        hasTrackedPageView.current = true;
+        track(TRACKING_EVENTS.GUEST_CLAIM_PAGE_VIEWED, {
+          hasSessionId: !!sessionId,
+          tier: guestData?.tier,
+        });
+      }
     };
 
     verifyPayment();
-  }, [sessionId]);
+  }, [sessionId, track]);
 
   // If user is already logged in, redirect to create ticket
   useEffect(() => {

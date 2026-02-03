@@ -261,6 +261,92 @@ export type EventProperties = {
   };
   [TRACKING_EVENTS.USER_SIGNATURE_ADDED]: Record<string, never>;
 
+  // Hero (Web Homepage)
+  [TRACKING_EVENTS.HERO_VIEWED]: { source: string };
+  [TRACKING_EVENTS.HERO_UPLOAD_STARTED]: {
+    fileType: string;
+    fileSize: number;
+  };
+  [TRACKING_EVENTS.HERO_UPLOAD_COMPLETED]: {
+    fileType: string;
+    fileSize: number;
+    durationMs: number;
+    ocrSuccess: boolean;
+    fieldsExtracted?: (string | null)[];
+    ocrError?: string;
+  };
+  [TRACKING_EVENTS.HERO_UPLOAD_FAILED]: {
+    fileType: string;
+    error: string;
+  };
+  [TRACKING_EVENTS.HERO_MANUAL_ENTRY_CLICKED]: Record<string, never>;
+
+  // OCR Processing
+  [TRACKING_EVENTS.OCR_PROCESSING_STARTED]: { source: 'web' | 'mobile' };
+  [TRACKING_EVENTS.OCR_PROCESSING_SUCCESS]: {
+    source: 'web' | 'mobile';
+    fieldsExtracted: string[];
+  };
+  [TRACKING_EVENTS.OCR_PROCESSING_FAILED]: {
+    source: 'web' | 'mobile';
+    error: string;
+    reason?: string;
+  };
+
+  // Ticket Wizard
+  [TRACKING_EVENTS.WIZARD_OPENED]: {
+    source: 'ocr' | 'manual';
+    hasImage: boolean;
+    path: string;
+  };
+  [TRACKING_EVENTS.WIZARD_STEP_VIEWED]: {
+    stepName: string;
+    stepNumber: number;
+    totalSteps: number;
+    path: string;
+  };
+  [TRACKING_EVENTS.WIZARD_STEP_COMPLETED]: {
+    stepName: string;
+    selection: string | null;
+  };
+  [TRACKING_EVENTS.WIZARD_INTENT_SELECTED]: {
+    intent: 'track' | 'challenge';
+  };
+  [TRACKING_EVENTS.WIZARD_CHALLENGE_REASON_SELECTED]: {
+    reason: string;
+  };
+  [TRACKING_EVENTS.WIZARD_COMPLETED]: {
+    intent: 'track' | 'challenge';
+    tier: 'standard' | 'premium' | 'subscription' | null;
+    totalSteps: number;
+    path: string;
+    challengeReason: string | null;
+  };
+  [TRACKING_EVENTS.WIZARD_ABANDONED]: {
+    lastStep: string;
+    stepNumber: number;
+    intent: 'track' | 'challenge' | null;
+  };
+
+  // Guest Flow
+  [TRACKING_EVENTS.GUEST_SIGNUP_PAGE_VIEWED]: {
+    intent?: 'track' | 'challenge';
+    hasPcn: boolean;
+    source?: string;
+  };
+  [TRACKING_EVENTS.GUEST_SIGNUP_STARTED]: {
+    method: SignInMethod;
+    intent?: 'track' | 'challenge';
+  };
+  [TRACKING_EVENTS.GUEST_SIGNUP_COMPLETED]: {
+    method: SignInMethod;
+    intent?: 'track' | 'challenge';
+  };
+  [TRACKING_EVENTS.GUEST_CLAIM_PAGE_VIEWED]: {
+    hasSessionId: boolean;
+    tier?: 'standard' | 'premium' | 'subscription' | null;
+  };
+
   // Ticket Management
   [TRACKING_EVENTS.TICKET_CREATED]: {
     ticketId: string;

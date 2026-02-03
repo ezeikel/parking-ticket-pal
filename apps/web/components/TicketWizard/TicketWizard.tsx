@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence, type Variants } from 'framer-motion';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
@@ -20,6 +20,8 @@ import { faP } from '@fortawesome/pro-solid-svg-icons';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import ScoreGauge from '@/components/ui/ScoreGauge';
+import { useAnalytics } from '@/utils/analytics-client';
+import { TRACKING_EVENTS } from '@/constants/events';
 
 type IssuerType = 'council' | 'private' | null;
 type TicketStage = 'initial' | 'nto' | 'rejection' | 'charge_cert' | null;
@@ -118,6 +120,9 @@ const TicketWizard = ({
   extractedData,
   onComplete,
 }: TicketWizardProps) => {
+  const { track } = useAnalytics();
+  const hasTrackedOpen = useRef(false);
+  const lastTrackedStep = useRef<string | null>(null);
   const hasExtractedData =
     extractedData && Object.keys(extractedData).length > 0;
 
@@ -164,6 +169,35 @@ const TicketWizard = ({
     };
   }, [isOpen]);
 
+  // Track wizard opened
+  useEffect(() => {
+    if (isOpen && !hasTrackedOpen.current) {
+      hasTrackedOpen.current = true;
+      track(TRACKING_EVENTS.WIZARD_OPENED, {
+        source: hasExtractedData ? 'ocr' : 'manual',
+        hasImage: !!extractedData?.imageUrl,
+        path: typeof window !== 'undefined' ? window.location.pathname : '',
+      });
+    }
+    if (!isOpen) {
+      hasTrackedOpen.current = false;
+      lastTrackedStep.current = null;
+    }
+  }, [isOpen, hasExtractedData, extractedData?.imageUrl, track]);
+
+  // Track step views
+  useEffect(() => {
+    if (isOpen && currentStep !== lastTrackedStep.current) {
+      lastTrackedStep.current = currentStep;
+      track(TRACKING_EVENTS.WIZARD_STEP_VIEWED, {
+        stepName: currentStep,
+        stepNumber: getStepNumber(),
+        totalSteps: getTotalSteps(),
+        path: typeof window !== 'undefined' ? window.location.pathname : '',
+      });
+    }
+  }, [isOpen, currentStep, track]);
+
   const goToStep = (
     step:
       | 'issuer'
@@ -174,6 +208,7 @@ const TicketWizard = ({
       | 'reason'
       | 'result'
       | 'signup',
+    selection?: string,
   ) => {
     const stepOrder = [
       'issuer',
@@ -187,7 +222,17 @@ const TicketWizard = ({
     ];
     const currentIndex = stepOrder.indexOf(currentStep);
     const nextIndex = stepOrder.indexOf(step);
-    setDirection(nextIndex > currentIndex ? 1 : -1);
+    const isForward = nextIndex > currentIndex;
+
+    // Track step completion when moving forward
+    if (isForward) {
+      track(TRACKING_EVENTS.WIZARD_STEP_COMPLETED, {
+        stepName: currentStep,
+        selection: selection || null,
+      });
+    }
+
+    setDirection(isForward ? 1 : -1);
     setCurrentStep(step);
   };
 
@@ -231,6 +276,14 @@ const TicketWizard = ({
   };
 
   const handleTierSelect = (tier: 'standard' | 'premium' | 'subscription') => {
+    track(TRACKING_EVENTS.WIZARD_COMPLETED, {
+      intent: 'challenge',
+      tier,
+      totalSteps: getTotalSteps(),
+      path: typeof window !== 'undefined' ? window.location.pathname : '',
+      challengeReason,
+    });
+
     if (onComplete) {
       onComplete({
         issuerType,
@@ -246,6 +299,14 @@ const TicketWizard = ({
   };
 
   const handleTrackSignup = () => {
+    track(TRACKING_EVENTS.WIZARD_COMPLETED, {
+      intent: 'track',
+      tier: null,
+      totalSteps: getTotalSteps(),
+      path: typeof window !== 'undefined' ? window.location.pathname : '',
+      challengeReason: null,
+    });
+
     if (onComplete) {
       onComplete({
         issuerType,
@@ -260,6 +321,16 @@ const TicketWizard = ({
     }
   };
 
+  const handleClose = () => {
+    // Track abandonment if wizard wasn't completed
+    track(TRACKING_EVENTS.WIZARD_ABANDONED, {
+      lastStep: currentStep,
+      intent: userIntent,
+      stepNumber: getStepNumber(),
+    });
+    onClose();
+  };
+
   if (!isOpen) return null;
 
   return (
@@ -268,7 +339,7 @@ const TicketWizard = ({
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
-      onClick={onClose}
+      onClick={handleClose}
     >
       <motion.div
         initial={{ opacity: 0, scale: 0.95, y: 20 }}
@@ -282,7 +353,7 @@ const TicketWizard = ({
         <div className="flex items-center justify-between border-b border-border px-6 py-4">
           <button
             type="button"
-            onClick={onClose}
+            onClick={handleClose}
             className="flex items-center gap-2 text-sm font-medium text-gray hover:text-dark"
           >
             <FontAwesomeIcon icon={faArrowLeft} />
@@ -309,7 +380,7 @@ const TicketWizard = ({
               >
                 <button
                   type="button"
-                  onClick={onClose}
+                  onClick={handleClose}
                   className="mb-4 flex items-center gap-2 rounded-full border border-border px-3 py-1.5 text-sm text-gray hover:bg-light"
                 >
                   <FontAwesomeIcon icon={faArrowLeft} className="text-xs" />
@@ -747,7 +818,10 @@ const TicketWizard = ({
                     type="button"
                     onClick={() => {
                       setUserIntent('track');
-                      goToStep('signup');
+                      track(TRACKING_EVENTS.WIZARD_INTENT_SELECTED, {
+                        intent: 'track',
+                      });
+                      goToStep('signup', 'track');
                     }}
                     className={`flex items-start gap-4 rounded-xl border-2 p-4 text-left transition-all hover:border-teal ${
                       userIntent === 'track'
@@ -773,7 +847,10 @@ const TicketWizard = ({
                     type="button"
                     onClick={() => {
                       setUserIntent('challenge');
-                      goToStep('reason');
+                      track(TRACKING_EVENTS.WIZARD_INTENT_SELECTED, {
+                        intent: 'challenge',
+                      });
+                      goToStep('reason', 'challenge');
                     }}
                     className={`flex items-start gap-4 rounded-xl border-2 p-4 text-left transition-all hover:border-teal ${
                       userIntent === 'challenge'
@@ -846,7 +923,10 @@ const TicketWizard = ({
                       type="button"
                       onClick={() => {
                         setChallengeReason(reason.id as ChallengeReason);
-                        goToStep('result');
+                        track(TRACKING_EVENTS.WIZARD_CHALLENGE_REASON_SELECTED, {
+                          reason: reason.id,
+                        });
+                        goToStep('result', reason.id);
                       }}
                       className={`rounded-lg border-2 p-3 text-left transition-all hover:border-teal ${
                         challengeReason === reason.id

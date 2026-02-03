@@ -1,6 +1,6 @@
 'use client';
 
-import { Suspense, useEffect, useState } from 'react';
+import { Suspense, useEffect, useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { signIn, useSession } from 'next-auth/react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -22,14 +22,20 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { getGuestTicketData, updateGuestTicketData } from '@/utils/guestTicket';
+import { useAnalytics } from '@/utils/analytics-client';
+import { TRACKING_EVENTS } from '@/constants/events';
+import type { SignInMethod } from '@/types';
 
 const SignupContent = () => {
   const router = useRouter();
   const { data: session, status } = useSession();
+  const { track } = useAnalytics();
+  const hasTrackedPageView = useRef(false);
   const [isLoading, setIsLoading] = useState(true);
   const [hasTicketData, setHasTicketData] = useState(false);
   const [email, setEmail] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [guestIntent, setGuestIntent] = useState<'track' | 'challenge' | undefined>(undefined);
   const [ticketInfo, setTicketInfo] = useState<{
     pcnNumber: string;
     vehicleReg: string;
@@ -50,6 +56,10 @@ const SignupContent = () => {
         return;
       }
 
+      // Capture intent from guest data
+      const intent = guestData.intent as 'track' | 'challenge' | undefined;
+      setGuestIntent(intent);
+
       // Mark as track flow (no payment needed)
       updateGuestTicketData({
         intent: 'track',
@@ -64,10 +74,20 @@ const SignupContent = () => {
       });
       setHasTicketData(true);
       setIsLoading(false);
+
+      // Track page view
+      if (!hasTrackedPageView.current) {
+        hasTrackedPageView.current = true;
+        track(TRACKING_EVENTS.GUEST_SIGNUP_PAGE_VIEWED, {
+          intent,
+          hasPcn: !!guestData.pcnNumber,
+          source: 'wizard',
+        });
+      }
     };
 
     checkGuestData();
-  }, []);
+  }, [track]);
 
   // If user is already logged in, redirect to create ticket
   useEffect(() => {
@@ -81,6 +101,10 @@ const SignupContent = () => {
     if (!email) return;
 
     setIsSubmitting(true);
+    track(TRACKING_EVENTS.GUEST_SIGNUP_STARTED, {
+      method: 'magic_link' as SignInMethod,
+      intent: guestIntent,
+    });
     try {
       await signIn('resend', {
         email,
@@ -92,6 +116,10 @@ const SignupContent = () => {
   };
 
   const handleOAuthSignIn = (provider: 'google' | 'apple') => {
+    track(TRACKING_EVENTS.GUEST_SIGNUP_STARTED, {
+      method: provider as SignInMethod,
+      intent: guestIntent,
+    });
     signIn(provider, {
       callbackUrl: '/guest/create-ticket',
     });

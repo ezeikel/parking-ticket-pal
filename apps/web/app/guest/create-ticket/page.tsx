@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -23,12 +23,24 @@ import {
   type GuestTicketData,
 } from '@/utils/guestTicket';
 import { createTicketFromGuestData } from '@/app/actions/guest';
+import { linkAnonymousUser, useAnalytics } from '@/utils/analytics-client';
+import { TRACKING_EVENTS } from '@/constants/events';
+import { SignInMethod } from '@/types';
 
 type Step = 'loading' | 'creating' | 'success' | 'error';
 
+type SessionUser = {
+  dbId?: string;
+  name?: string | null;
+  email?: string | null;
+};
+
 const GuestCreateTicketPage = () => {
   const router = useRouter();
-  const { status } = useSession();
+  const { data: session, status } = useSession();
+  const { track } = useAnalytics();
+  const hasLinkedUser = useRef(false);
+  const hasTrackedSignupComplete = useRef(false);
   const [step, setStep] = useState<Step>('loading');
   const [guestData, setGuestData] = useState<GuestTicketData | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -45,12 +57,29 @@ const GuestCreateTicketPage = () => {
         return;
       }
 
+      // Link anonymous user to authenticated user (only once)
+      const sessionUser = session?.user as SessionUser | undefined;
+      if (sessionUser?.dbId && !hasLinkedUser.current) {
+        hasLinkedUser.current = true;
+        linkAnonymousUser(sessionUser.dbId);
+      }
+
       // Check for guest data
       const data = getGuestTicketData();
       if (!data || !data.paymentCompleted) {
         setError('No pending ticket found. Your session may have expired.');
         setStep('error');
         return;
+      }
+
+      // Track signup completed (user came from guest flow and is now authenticated)
+      if (!hasTrackedSignupComplete.current) {
+        hasTrackedSignupComplete.current = true;
+        const intent = data.intent as 'track' | 'challenge' | undefined;
+        track(TRACKING_EVENTS.GUEST_SIGNUP_COMPLETED, {
+          method: SignInMethod.GOOGLE, // Default - we can't determine exact method here
+          intent,
+        });
       }
 
       setGuestData(data);
@@ -95,7 +124,7 @@ const GuestCreateTicketPage = () => {
     };
 
     createTicket();
-  }, [status, router]);
+  }, [status, session, router, track]);
 
   if (step === 'loading' || status === 'loading') {
     return (

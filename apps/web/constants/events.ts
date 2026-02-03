@@ -8,6 +8,33 @@ export const TRACKING_EVENTS = {
   USER_PROFILE_UPDATED: 'user_profile_updated',
   USER_SIGNATURE_ADDED: 'user_signature_added',
 
+  // Hero (Web Homepage)
+  HERO_VIEWED: 'hero_viewed',
+  HERO_UPLOAD_STARTED: 'hero_upload_started',
+  HERO_UPLOAD_COMPLETED: 'hero_upload_completed',
+  HERO_UPLOAD_FAILED: 'hero_upload_failed',
+  HERO_MANUAL_ENTRY_CLICKED: 'hero_manual_entry_clicked',
+
+  // OCR Processing
+  OCR_PROCESSING_STARTED: 'ocr_processing_started',
+  OCR_PROCESSING_SUCCESS: 'ocr_processing_success',
+  OCR_PROCESSING_FAILED: 'ocr_processing_failed',
+
+  // Ticket Wizard
+  WIZARD_OPENED: 'wizard_opened',
+  WIZARD_STEP_VIEWED: 'wizard_step_viewed',
+  WIZARD_STEP_COMPLETED: 'wizard_step_completed',
+  WIZARD_INTENT_SELECTED: 'wizard_intent_selected',
+  WIZARD_CHALLENGE_REASON_SELECTED: 'wizard_challenge_reason_selected',
+  WIZARD_COMPLETED: 'wizard_completed',
+  WIZARD_ABANDONED: 'wizard_abandoned',
+
+  // Guest Flow
+  GUEST_SIGNUP_PAGE_VIEWED: 'guest_signup_page_viewed',
+  GUEST_SIGNUP_STARTED: 'guest_signup_started',
+  GUEST_SIGNUP_COMPLETED: 'guest_signup_completed',
+  GUEST_CLAIM_PAGE_VIEWED: 'guest_claim_page_viewed',
+
   // Ticket Management
   TICKET_CREATED: 'ticket_created',
   TICKET_UPDATED: 'ticket_updated',

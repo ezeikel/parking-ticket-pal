@@ -13,6 +13,8 @@ import TicketWizard, {
   type WizardCompleteData,
 } from '@/components/TicketWizard/TicketWizard';
 import { extractOCRTextWithVision } from '@/app/actions/ocr';
+import { useAnalytics } from '@/utils/analytics-client';
+import { TRACKING_EVENTS } from '@/constants/events';
 
 const HERO_VIDEOS = [
   '/videos/hero-london-01-box-junction.mp4',
@@ -71,8 +73,18 @@ const Hero = () => {
   );
   const [isUploading, setIsUploading] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
+  const [hasTrackedView, setHasTrackedView] = useState(false);
   const videoRefs = useRef<(HTMLVideoElement | null)[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const { track } = useAnalytics();
+
+  // Track hero view on mount (only once)
+  useEffect(() => {
+    if (!hasTrackedView) {
+      track(TRACKING_EVENTS.HERO_VIEWED, { source: 'homepage' });
+      setHasTrackedView(true);
+    }
+  }, [hasTrackedView, track]);
 
   const handleVideoEnded = (index: number) => {
     if (index !== activeVideoIndex) return;
@@ -108,7 +120,14 @@ const Hero = () => {
   }, []);
 
   const handlePhotoUpload = useCallback(async (file: File) => {
+    const startTime = Date.now();
     setIsUploading(true);
+
+    // Track upload started
+    track(TRACKING_EVENTS.HERO_UPLOAD_STARTED, {
+      fileType: file.type,
+      fileSize: file.size,
+    });
 
     try {
       const formData = new FormData();
@@ -117,6 +136,20 @@ const Hero = () => {
       const result = await extractOCRTextWithVision(formData);
 
       if (result.success && result.data) {
+        // Track upload completed with OCR success
+        track(TRACKING_EVENTS.HERO_UPLOAD_COMPLETED, {
+          fileType: file.type,
+          fileSize: file.size,
+          durationMs: Date.now() - startTime,
+          ocrSuccess: true,
+          fieldsExtracted: [
+            result.data.pcnNumber ? 'pcnNumber' : null,
+            result.data.vehicleReg ? 'vehicleReg' : null,
+            result.data.issuer ? 'issuer' : null,
+            result.data.initialAmount ? 'initialAmount' : null,
+          ].filter(Boolean),
+        });
+
         setExtractedData({
           pcnNumber: result.data.pcnNumber || '',
           vehicleReg: result.data.vehicleReg || '',
@@ -129,21 +162,37 @@ const Hero = () => {
         });
         setIsWizardOpen(true);
       } else {
+        // Track upload completed but OCR failed
+        track(TRACKING_EVENTS.HERO_UPLOAD_COMPLETED, {
+          fileType: file.type,
+          fileSize: file.size,
+          durationMs: Date.now() - startTime,
+          ocrSuccess: false,
+          ocrError: result.message || 'Unknown OCR error',
+        });
+
         toast.error(result.message || 'Failed to extract ticket details');
         // Still open wizard for manual entry
         setExtractedData(undefined);
         setIsWizardOpen(true);
       }
-    } catch {
+    } catch (error) {
+      // Track upload failed
+      track(TRACKING_EVENTS.HERO_UPLOAD_FAILED, {
+        fileType: file.type,
+        error: error instanceof Error ? error.message : 'Unknown error',
+      });
+
       toast.error('Something went wrong. Please try again.');
       setExtractedData(undefined);
       setIsWizardOpen(true);
     } finally {
       setIsUploading(false);
     }
-  }, []);
+  }, [track]);
 
   const handleManualEntry = () => {
+    track(TRACKING_EVENTS.HERO_MANUAL_ENTRY_CLICKED, {});
     setExtractedData(undefined);
     setIsWizardOpen(true);
   };
