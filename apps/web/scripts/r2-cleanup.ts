@@ -5,7 +5,7 @@
  * Can be run manually via GitHub Action or locally.
  *
  * Usage:
- *   npx tsx scripts/r2-cleanup.ts --prefix="temp/social/" --keep-latest=1 --older-than-hours=24
+ *   npx tsx scripts/r2-cleanup.ts --prefix="social/images/" --keep-latest=1 --older-than-hours=24
  *   npx tsx scripts/r2-cleanup.ts --prefix="all-social-assets" --keep-latest=5 --dry-run
  */
 
@@ -19,16 +19,16 @@ const getArg = (name: string, defaultValue: string): string => {
 };
 const hasFlag = (name: string): boolean => args.includes(`--${name}`);
 
-const prefix = getArg('prefix', 'temp/');
+const prefix = getArg('prefix', 'social/');
 const keepLatest = parseInt(getArg('keep-latest', '1'), 10);
 const olderThanHours = parseInt(getArg('older-than-hours', '24'), 10);
 const dryRun = hasFlag('dry-run');
 
 // Social asset prefixes
 const SOCIAL_PREFIXES = [
-  'temp/social/',
-  'temp/audio/',
-  'videos/reels/',
+  'social/images/',
+  'social/audio/',
+  'social/videos/',
 ];
 
 async function cleanup() {

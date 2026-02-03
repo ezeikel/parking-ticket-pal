@@ -4,15 +4,15 @@ on:
   workflow_dispatch:
     inputs:
       prefix:
-        description: 'R2 prefix to clean (e.g., temp/social, temp/audio, videos/reels)'
+        description: 'R2 prefix to clean (e.g., social/images, social/audio, social/videos)'
         required: false
-        default: 'temp/'
+        default: 'social/'
         type: choice
         options:
-          - 'temp/'
-          - 'temp/social/'
-          - 'temp/audio/'
-          - 'videos/reels/'
+          - 'social/'
+          - 'social/images/'
+          - 'social/audio/'
+          - 'social/videos/'
           - 'all-social-assets'
       keep_latest:
         description: 'Number of most recent items to keep (0 = delete all matching)'

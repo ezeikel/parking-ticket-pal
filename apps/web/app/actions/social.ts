@@ -169,7 +169,7 @@ const uploadToTempStorage = async (
   imageBuffer: Buffer,
   platform: PostPlatform,
 ): Promise<string> => {
-  const tempFileName = `temp/social/${platform}/${Date.now()}-${Math.random().toString(36).substring(2)}.jpg`;
+  const tempFileName = `social/images/${platform}/${Date.now()}-${Math.random().toString(36).substring(2)}.jpg`;
 
   try {
     const { url } = await put(tempFileName, imageBuffer, {
@@ -639,7 +639,7 @@ const generateVoiceover = async (text: string): Promise<string | null> => {
     const buffer = Buffer.concat(chunks);
 
     // Upload to temp storage
-    const fileName = `temp/audio/voiceover-${Date.now()}-${Math.random().toString(36).substring(2)}.mp3`;
+    const fileName = `social/audio/voiceover/${Date.now()}-${Math.random().toString(36).substring(2)}.mp3`;
     const { url } = await put(fileName, buffer, {
       contentType: 'audio/mpeg',
     });
@@ -691,7 +691,7 @@ const generateBackgroundMusic = async (
     const buffer = Buffer.concat(chunks);
 
     // Upload to temp storage
-    const fileName = `temp/audio/bgmusic-${Date.now()}-${Math.random().toString(36).substring(2)}.mp3`;
+    const fileName = `social/audio/music/${Date.now()}-${Math.random().toString(36).substring(2)}.mp3`;
     const { url } = await put(fileName, buffer, {
       contentType: 'audio/mpeg',
     });
