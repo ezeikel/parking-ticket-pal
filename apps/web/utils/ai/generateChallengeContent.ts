@@ -22,6 +22,8 @@ type GenerateChallengeContentParams = {
   ticket?: any;
   user?: any;
   contraventionCodes?: Record<string, { description: string }>;
+  // for PostHog LLM analytics
+  userId?: string;
 };
 
 // helper function to generate challenge letter prompt (moved from promptGenerators.ts)
@@ -93,6 +95,7 @@ const generateChallengeContent = async ({
   ticket,
   user,
   contraventionCodes,
+  userId,
 }: GenerateChallengeContentParams) => {
   // Build the combined challenge reason text
   let combinedReasonText = challengeReason;
@@ -137,6 +140,9 @@ const generateChallengeContent = async ({
         messages,
         temperature: 0.7,
         max_tokens: 1000,
+        // PostHog LLM analytics tracking
+        posthogDistinctId: userId || 'system',
+        posthogProperties: { feature: 'challenge_form_field', pcnNumber },
       });
 
       return completion.choices[0].message.content;
@@ -168,6 +174,9 @@ const generateChallengeContent = async ({
         },
       ],
       response_format: zodResponseFormat(ChallengeLetterSchema, 'letter'),
+      // PostHog LLM analytics tracking
+      posthogDistinctId: userId || 'system',
+      posthogProperties: { feature: 'challenge_letter', pcnNumber },
     });
 
     return JSON.parse(letterResponse.choices[0].message.content as string);

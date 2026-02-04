@@ -1,5 +1,12 @@
 import { openai } from '@ai-sdk/openai';
 import { google } from '@ai-sdk/google';
+import type { LanguageModelV2, LanguageModelV3 } from '@ai-sdk/provider';
+import { withTracing } from '@posthog/ai';
+import { posthogServer } from '@/lib/posthog-server';
+
+// PostHog withTracing accepts LanguageModelV2 | LanguageModelV3
+// Vercel AI SDK latest models implement LanguageModelV3
+type TracedLanguageModel = LanguageModelV2 | LanguageModelV3;
 
 /**
  * AI Model Configuration
@@ -63,3 +70,45 @@ export const IMAGE_DEFAULTS = {
 
 // Type exports
 export type ModelId = (typeof MODEL_IDS)[keyof typeof MODEL_IDS];
+
+/**
+ * Options for PostHog LLM tracing
+ */
+export type TracingOptions = {
+  /** User ID for attribution in PostHog */
+  userId?: string;
+  /** Unique trace ID to group related LLM calls */
+  traceId?: string;
+  /** Custom properties to attach to the generation event */
+  properties?: Record<string, unknown>;
+};
+
+/**
+ * Wrap a Vercel AI SDK model with PostHog tracing for LLM analytics.
+ * Automatically captures token usage, costs, latency, and more.
+ *
+ * @param model - The Vercel AI SDK model to wrap
+ * @param options - Tracing options including userId, traceId, and custom properties
+ * @returns The wrapped model with PostHog tracing enabled
+ *
+ * @example
+ * const tracedModel = getTracedModel(models.text, {
+ *   userId: 'user_123',
+ *   properties: { feature: 'challenge_letter' }
+ * });
+ */
+export const getTracedModel = <T extends TracedLanguageModel>(
+  model: T,
+  options: TracingOptions = {},
+): T => {
+  // Return unwrapped model if PostHog is not configured
+  if (!posthogServer) {
+    return model;
+  }
+
+  return withTracing(model, posthogServer, {
+    posthogDistinctId: options.userId || 'system',
+    posthogTraceId: options.traceId,
+    posthogProperties: options.properties,
+  }) as T;
+};

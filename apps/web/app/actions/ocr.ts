@@ -162,6 +162,9 @@ export const extractOCRTextWithOpenAI = async (
     ],
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     response_format: zodResponseFormat(DocumentSchema as any, 'document'),
+    // PostHog LLM analytics tracking
+    posthogDistinctId: effectiveUserId,
+    posthogProperties: { feature: 'ocr_openai_direct' },
   });
 
   const imageInfo = response.choices[0].message.content;
@@ -477,6 +480,9 @@ export const extractOCRTextWithVision = async (
     ],
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     response_format: zodResponseFormat(DocumentSchema as any, 'document'),
+    // PostHog LLM analytics tracking
+    posthogDistinctId: effectiveUserId,
+    posthogProperties: { feature: 'ocr_vision_analysis' },
   });
 
   const imageInfo = response.choices[0].message.content;

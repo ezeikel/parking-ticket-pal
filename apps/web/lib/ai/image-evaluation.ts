@@ -7,7 +7,7 @@
 
 import { generateObject } from 'ai';
 import { z } from 'zod';
-import { models } from './models';
+import { models, getTracedModel } from './models';
 
 // Schema for image evaluation response
 const ImageEvaluationSchema = z.object({
@@ -85,7 +85,9 @@ Analyze the attached image and determine if it's a good match for this blog post
 
   try {
     const { object: evaluation } = await generateObject({
-      model: models.vision,
+      model: getTracedModel(models.vision, {
+        properties: { feature: 'image_evaluation', title, searchTerm },
+      }),
       schema: ImageEvaluationSchema,
       messages: [
         {

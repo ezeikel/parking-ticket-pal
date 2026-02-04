@@ -2,7 +2,7 @@
 
 import { generateText, generateObject } from 'ai';
 import { z } from 'zod';
-import { models } from '@/lib/ai/models';
+import { models, getTracedModel } from '@/lib/ai/models';
 import {
   BLOG_META_PROMPT,
   BLOG_CONTENT_PROMPT,
@@ -99,7 +99,9 @@ const generateBlogMeta = async (topic: string): Promise<BlogPostMeta> => {
   const prompt = BLOG_META_PROMPT.replace('{{TOPIC}}', topic);
 
   const { object: meta } = await generateObject({
-    model: models.text,
+    model: getTracedModel(models.text, {
+      properties: { feature: 'blog_meta_generation', topic },
+    }),
     schema: BlogMetaSchema,
     prompt,
     temperature: 0.7,
@@ -124,7 +126,9 @@ const generateImageSearchTerms = async (
     .replace('{{CATEGORY}}', category);
 
   const { object: searchTerms } = await generateObject({
-    model: models.textFast,
+    model: getTracedModel(models.textFast, {
+      properties: { feature: 'blog_image_search', title },
+    }),
     schema: ImageSearchSchema,
     prompt,
     temperature: 0.7,
@@ -167,7 +171,9 @@ const generateImageWithGemini = async (
 
     // Use Gemini 3 Pro Image via Vercel AI SDK
     const result = await generateText({
-      model: models.geminiImage,
+      model: getTracedModel(models.geminiImage, {
+        properties: { feature: 'blog_image_generation', title },
+      }),
       prompt: `Generate a high-quality professional photograph for this blog post. Do not include any text in the image. ${prompt}`,
     });
 
@@ -382,7 +388,9 @@ const generateBlogContent = async (
   const contentPrompt = createContentPrompt(meta, existingPosts);
 
   const { text: content } = await generateText({
-    model: models.text,
+    model: getTracedModel(models.text, {
+      properties: { feature: 'blog_content_generation', title: meta.title },
+    }),
     system:
       'You are a professional content writer specializing in UK parking and traffic law.',
     prompt: contentPrompt,

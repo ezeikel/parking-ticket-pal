@@ -10,7 +10,7 @@ import openai from '@/lib/openai';
 import { OPENAI_MODEL_GPT_4O } from '@/constants';
 import { createServerLogger } from '@/lib/logger';
 import { put } from '@/lib/storage';
-import { models } from '@/lib/ai/models';
+import { models, getTracedModel } from '@/lib/ai/models';
 import { sendSocialDigest, type SocialDigestCaption } from '@/lib/email';
 
 const logger = createServerLogger({ action: 'social' });
@@ -225,6 +225,9 @@ Tags: ${post.meta.tags.join(', ')}`,
       ],
       temperature: 0.7,
       max_tokens: 300,
+      // PostHog LLM analytics tracking
+      posthogDistinctId: 'system',
+      posthogProperties: { feature: 'social_instagram_caption', slug: post.meta.slug },
     });
 
     return response.choices[0].message.content || '';
@@ -284,6 +287,9 @@ Include the blog URL at the end of the post.`,
       ],
       temperature: 0.7,
       max_tokens: 400,
+      // PostHog LLM analytics tracking
+      posthogDistinctId: 'system',
+      posthogProperties: { feature: 'social_linkedin_caption', slug: post.meta.slug },
     });
 
     return response.choices[0].message.content || '';
@@ -345,6 +351,9 @@ Include the blog URL at the end of the post.`,
       ],
       temperature: 0.7,
       max_tokens: 500,
+      // PostHog LLM analytics tracking
+      posthogDistinctId: 'system',
+      posthogProperties: { feature: 'social_facebook_caption', slug: post.meta.slug },
     });
 
     return response.choices[0].message.content || '';
@@ -392,6 +401,9 @@ Blog URL: ${blogUrl}`;
       ],
       temperature: 0.7,
       max_tokens: 250,
+      // PostHog LLM analytics tracking
+      posthogDistinctId: 'system',
+      posthogProperties: { feature: 'social_facebook_reel_caption', slug: post.meta.slug },
     });
 
     return response.choices[0].message.content || '';
@@ -435,6 +447,9 @@ Summary: ${post.meta.summary}`;
       ],
       temperature: 0.7,
       max_tokens: 200,
+      // PostHog LLM analytics tracking
+      posthogDistinctId: 'system',
+      posthogProperties: { feature: 'social_tiktok_caption', slug: post.meta.slug },
     });
 
     return response.choices[0].message.content || '';
@@ -484,6 +499,9 @@ Return in JSON format: {"title": "...", "description": "..."}`;
       temperature: 0.7,
       max_tokens: 400,
       response_format: { type: 'json_object' },
+      // PostHog LLM analytics tracking
+      posthogDistinctId: 'system',
+      posthogProperties: { feature: 'social_youtube_shorts_caption', slug: post.meta.slug },
     });
 
     const content = response.choices[0].message.content || '{}';
@@ -538,6 +556,9 @@ Blog URL: ${blogUrl}`;
       ],
       temperature: 0.7,
       max_tokens: 500,
+      // PostHog LLM analytics tracking
+      posthogDistinctId: 'system',
+      posthogProperties: { feature: 'social_threads_caption', slug: post.meta.slug },
     });
 
     return response.choices[0].message.content || '';
@@ -563,7 +584,9 @@ const generateReelHook = async (
 ): Promise<string> => {
   try {
     const { text } = await generateText({
-      model: models.analytics, // Gemini 3 Flash - fast and cost-effective
+      model: getTracedModel(models.analytics, {
+        properties: { feature: 'social_reel_hook', slug: post.meta.slug },
+      }), // Gemini 3 Flash - fast and cost-effective
       prompt: `You are writing a short, engaging hook for an Instagram Reel voiceover.
 
 CRITICAL: The hook must be spoken in under 4 seconds. This means:
@@ -734,6 +757,9 @@ Summary: ${post.meta.summary}`;
       ],
       temperature: 0.7,
       max_tokens: 200,
+      // PostHog LLM analytics tracking
+      posthogDistinctId: 'system',
+      posthogProperties: { feature: 'social_instagram_reel_caption', slug: post.meta.slug },
     });
 
     return response.choices[0].message.content || '';
