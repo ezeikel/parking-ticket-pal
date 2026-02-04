@@ -32,12 +32,15 @@ import {
   type SubscriptionData,
 } from '@/app/actions/stripe';
 import { toast } from 'sonner';
+import { useAnalytics } from '@/utils/analytics-client';
+import { TRACKING_EVENTS } from '@/constants/events';
 
 type BillingTabProps = {
   user: Partial<User>;
 };
 
 const BillingTab = ({ user }: BillingTabProps) => {
+  const { track } = useAnalytics();
   const [billingPeriod, setBillingPeriod] = useState<'monthly' | 'yearly'>(
     'monthly',
   );
@@ -49,6 +52,13 @@ const BillingTab = ({ user }: BillingTabProps) => {
   const [invoices, setInvoices] = useState<InvoiceData[]>([]);
   const [subscription, setSubscription] = useState<SubscriptionData>(null);
   const [isLoading, setIsLoading] = useState(true);
+
+  // Track billing page view on mount
+  useEffect(() => {
+    track(TRACKING_EVENTS.BILLING_PAGE_VISITED, {
+      hasSubscription: !!user.stripeCustomerId,
+    });
+  }, [track, user.stripeCustomerId]);
 
   // Fetch Stripe data on mount
   useEffect(() => {

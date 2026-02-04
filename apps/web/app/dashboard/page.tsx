@@ -18,6 +18,8 @@ import {
 import { getPendingTickets } from '@/app/actions/guest';
 import DashboardTicketsSection from './DashboardTicketsSection';
 import { getDisplayAmount } from '@/utils/getCurrentAmountDue';
+import { PageViewTracker } from '@/components/analytics/PageViewTracker';
+import { TRACKING_EVENTS } from '@/constants/events';
 
 // Wrapper component for stats cards with data fetching
 const StatsCardsWrapper = async () => {
@@ -310,6 +312,7 @@ const DashboardPage = async () => {
 
   return (
     <div className="min-h-screen bg-light">
+      <PageViewTracker eventName={TRACKING_EVENTS.DASHBOARD_VIEWED} />
       <div className="mx-auto max-w-[1400px] px-4 py-6 md:px-6">
         {/* Page Header */}
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
