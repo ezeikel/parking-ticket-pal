@@ -2,8 +2,12 @@ import Link from 'next/link';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCircleCheck, faArrowRight } from '@fortawesome/pro-solid-svg-icons';
 import { Button } from '@/components/ui/button';
+import { PurchaseTracker } from '@/components/analytics/PurchaseTracker';
 
 const SubscriptionSuccessPage = () => (
+  <>
+    {/* Track Facebook Pixel Purchase event - using approximate value since we don't have access to actual amount here */}
+    <PurchaseTracker value={9.99} contentName="subscription" />
   <div className="min-h-screen bg-light flex items-center justify-center px-4">
     <div className="max-w-md w-full">
       {/* Success Card */}
@@ -73,6 +77,7 @@ const SubscriptionSuccessPage = () => (
       </div>
     </div>
   </div>
+  </>
 );
 
 export default SubscriptionSuccessPage;

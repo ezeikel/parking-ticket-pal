@@ -12,6 +12,7 @@ import Footer from '@/components/Footer/Footer';
 import PendingActionHandler from '@/components/PendingActionHandler';
 import Providers from './providers';
 import { plusJakartaSans, robotoSlab, ukNumberPlate } from './fonts';
+import { FacebookPixel } from '@/components/analytics/FacebookPixel';
 import '@/global.css';
 
 config.autoAddCss = false;
@@ -73,6 +74,7 @@ const RootLayout = ({
         }}
       />
       <Analytics />
+      <FacebookPixel />
     </body>
   </html>
 );

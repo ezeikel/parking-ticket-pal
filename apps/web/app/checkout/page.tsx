@@ -18,6 +18,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faSpinnerThird } from '@fortawesome/pro-regular-svg-icons';
 import { useAnalytics } from '@/utils/analytics-client';
 import { TRACKING_EVENTS } from '@/constants/events';
+import { trackInitiateCheckout } from '@/lib/facebook-pixel';
 import useLogger from '@/lib/use-logger';
 import {
   getGuestTicketData,
@@ -86,6 +87,10 @@ const CheckoutContent = () => {
             productType: 'PAY_PER_TICKET' as any,
             tier: guestTier.toUpperCase() as TicketTier,
           });
+          trackInitiateCheckout({
+            content_name: 'ticket_tier_upgrade',
+            content_category: guestTier,
+          });
 
           // Create guest Stripe checkout session
           // Ensure tier is set (we've already validated it above)
@@ -135,6 +140,10 @@ const CheckoutContent = () => {
           productType: 'PAY_PER_TICKET' as any,
           ticketId,
           tier: ticketTier as TicketTier,
+        });
+        trackInitiateCheckout({
+          content_name: 'ticket_tier_upgrade',
+          content_category: tier,
         });
 
         // Create Stripe checkout session

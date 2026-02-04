@@ -24,6 +24,7 @@ import { Input } from '@/components/ui/input';
 import { getGuestTicketData, updateGuestTicketData } from '@/utils/guestTicket';
 import { useAnalytics } from '@/utils/analytics-client';
 import { TRACKING_EVENTS } from '@/constants/events';
+import { trackLead } from '@/lib/facebook-pixel';
 import type { SignInMethod } from '@/types';
 
 const SignupContent = () => {
@@ -105,6 +106,11 @@ const SignupContent = () => {
       method: 'magic_link' as SignInMethod,
       intent: guestIntent,
     });
+    // Track Facebook Lead event on signup attempt
+    trackLead({
+      content_name: 'guest_signup',
+      content_category: guestIntent || 'unknown',
+    });
     try {
       await signIn('resend', {
         email,
@@ -119,6 +125,11 @@ const SignupContent = () => {
     track(TRACKING_EVENTS.GUEST_SIGNUP_STARTED, {
       method: provider as SignInMethod,
       intent: guestIntent,
+    });
+    // Track Facebook Lead event on signup attempt
+    trackLead({
+      content_name: 'guest_signup',
+      content_category: guestIntent || 'unknown',
     });
     signIn(provider, {
       callbackUrl: '/guest/create-ticket',
