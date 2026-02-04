@@ -3,11 +3,10 @@
 'use server';
 
 import sharp from 'sharp';
-import { generateText } from 'ai';
+import { generateText, generateObject } from 'ai';
+import { z } from 'zod';
 import { ElevenLabsClient } from 'elevenlabs';
 import { PostPlatform, type Post } from '@/types';
-import openai from '@/lib/openai';
-import { OPENAI_MODEL_GPT_4O } from '@/constants';
 import { createServerLogger } from '@/lib/logger';
 import { put } from '@/lib/storage';
 import { models, getTracedModel } from '@/lib/ai/models';
@@ -194,7 +193,7 @@ const uploadToTempStorage = async (
  * Generate Instagram caption
  */
 const generateInstagramCaption = async (post: Post): Promise<string> => {
-  const prompt = `You are a social media expert creating Instagram captions for a UK parking and traffic law website called "Parking Ticket Pal".
+  const systemPrompt = `You are a social media expert creating Instagram captions for a UK parking and traffic law website called "Parking Ticket Pal".
 
 Create an engaging Instagram caption that:
 - Starts with an attention-grabbing hook
@@ -208,29 +207,20 @@ Create an engaging Instagram caption that:
 The caption should be informative but accessible, helping people understand their parking rights and responsibilities.`;
 
   try {
-    const response = await openai.chat.completions.create({
-      model: OPENAI_MODEL_GPT_4O,
-      messages: [
-        {
-          role: 'system',
-          content: prompt,
-        },
-        {
-          role: 'user',
-          content: `Generate an Instagram caption for this blog post:
+    const tracedModel = getTracedModel(models.text, {
+      properties: { feature: 'social_instagram_caption', slug: post.meta.slug },
+    });
+
+    const { text } = await generateText({
+      model: tracedModel,
+      system: systemPrompt,
+      prompt: `Generate an Instagram caption for this blog post:
 Title: ${post.meta.title}
 Summary: ${post.meta.summary}
 Tags: ${post.meta.tags.join(', ')}`,
-        },
-      ],
-      temperature: 0.7,
-      max_tokens: 300,
-      // PostHog LLM analytics tracking
-      posthogDistinctId: 'system',
-      posthogProperties: { feature: 'social_instagram_caption', slug: post.meta.slug },
     });
 
-    return response.choices[0].message.content || '';
+    return text;
   } catch (error) {
     logger.error(
       'Error generating Instagram caption',
@@ -251,7 +241,7 @@ const generateLinkedInCaption = async (
   post: Post,
   blogUrl: string,
 ): Promise<string> => {
-  const prompt = `You are a social media expert creating LinkedIn posts for a UK parking and traffic law website called "Parking Ticket Pal".
+  const systemPrompt = `You are a social media expert creating LinkedIn posts for a UK parking and traffic law website called "Parking Ticket Pal".
 
 Create a professional LinkedIn post that:
 - Starts with a professional hook relevant to business owners/HR professionals
@@ -267,32 +257,23 @@ Create a professional LinkedIn post that:
 The post should position you as a thought leader in UK parking/traffic law.`;
 
   try {
-    const response = await openai.chat.completions.create({
-      model: OPENAI_MODEL_GPT_4O,
-      messages: [
-        {
-          role: 'system',
-          content: prompt,
-        },
-        {
-          role: 'user',
-          content: `Generate a LinkedIn post for this blog article:
+    const tracedModel = getTracedModel(models.text, {
+      properties: { feature: 'social_linkedin_caption', slug: post.meta.slug },
+    });
+
+    const { text } = await generateText({
+      model: tracedModel,
+      system: systemPrompt,
+      prompt: `Generate a LinkedIn post for this blog article:
 Title: ${post.meta.title}
 Summary: ${post.meta.summary}
 Tags: ${post.meta.tags.join(', ')}
 Blog URL: ${blogUrl}
 
 Include the blog URL at the end of the post.`,
-        },
-      ],
-      temperature: 0.7,
-      max_tokens: 400,
-      // PostHog LLM analytics tracking
-      posthogDistinctId: 'system',
-      posthogProperties: { feature: 'social_linkedin_caption', slug: post.meta.slug },
     });
 
-    return response.choices[0].message.content || '';
+    return text;
   } catch (error) {
     logger.error(
       'Error generating LinkedIn caption',
@@ -314,7 +295,7 @@ const generateFacebookCaption = async (
   post: Post,
   blogUrl: string,
 ): Promise<string> => {
-  const prompt = `You are a social media expert creating Facebook posts for a UK parking and traffic law website called "Parking Ticket Pal".
+  const systemPrompt = `You are a social media expert creating Facebook posts for a UK parking and traffic law website called "Parking Ticket Pal".
 
 Create an engaging Facebook post that:
 - Starts with an attention-grabbing question or statement
@@ -331,32 +312,23 @@ Create an engaging Facebook post that:
 The post should provide real value while encouraging clicks to read more.`;
 
   try {
-    const response = await openai.chat.completions.create({
-      model: OPENAI_MODEL_GPT_4O,
-      messages: [
-        {
-          role: 'system',
-          content: prompt,
-        },
-        {
-          role: 'user',
-          content: `Generate a Facebook post for this blog article:
+    const tracedModel = getTracedModel(models.text, {
+      properties: { feature: 'social_facebook_caption', slug: post.meta.slug },
+    });
+
+    const { text } = await generateText({
+      model: tracedModel,
+      system: systemPrompt,
+      prompt: `Generate a Facebook post for this blog article:
 Title: ${post.meta.title}
 Summary: ${post.meta.summary}
 Tags: ${post.meta.tags.join(', ')}
 Blog URL: ${blogUrl}
 
 Include the blog URL at the end of the post.`,
-        },
-      ],
-      temperature: 0.7,
-      max_tokens: 500,
-      // PostHog LLM analytics tracking
-      posthogDistinctId: 'system',
-      posthogProperties: { feature: 'social_facebook_caption', slug: post.meta.slug },
     });
 
-    return response.choices[0].message.content || '';
+    return text;
   } catch (error) {
     logger.error(
       'Error generating Facebook caption',
@@ -378,7 +350,7 @@ const generateFacebookReelCaption = async (
   post: Post,
   blogUrl: string,
 ): Promise<string> => {
-  const prompt = `You are creating a Facebook video/Reel caption for a UK parking/traffic law website called "Parking Ticket Pal".
+  const systemPrompt = `You are creating a Facebook video/Reel caption for a UK parking/traffic law website called "Parking Ticket Pal".
 
 Create a caption that:
 - Starts with a hook that references watching the video
@@ -393,20 +365,17 @@ Summary: ${post.meta.summary}
 Blog URL: ${blogUrl}`;
 
   try {
-    const response = await openai.chat.completions.create({
-      model: OPENAI_MODEL_GPT_4O,
-      messages: [
-        { role: 'system', content: prompt },
-        { role: 'user', content: 'Generate the Facebook video caption.' },
-      ],
-      temperature: 0.7,
-      max_tokens: 250,
-      // PostHog LLM analytics tracking
-      posthogDistinctId: 'system',
-      posthogProperties: { feature: 'social_facebook_reel_caption', slug: post.meta.slug },
+    const tracedModel = getTracedModel(models.text, {
+      properties: { feature: 'social_facebook_reel_caption', slug: post.meta.slug },
     });
 
-    return response.choices[0].message.content || '';
+    const { text } = await generateText({
+      model: tracedModel,
+      system: systemPrompt,
+      prompt: 'Generate the Facebook video caption.',
+    });
+
+    return text;
   } catch (error) {
     logger.error(
       'Error generating Facebook Reel caption',
@@ -425,7 +394,7 @@ Blog URL: ${blogUrl}`;
  * Short, hashtag-heavy, trend-focused for younger audience
  */
 const generateTikTokCaption = async (post: Post): Promise<string> => {
-  const prompt = `You are creating a TikTok caption for a UK parking/traffic law website called "Parking Ticket Pal".
+  const systemPrompt = `You are creating a TikTok caption for a UK parking/traffic law website called "Parking Ticket Pal".
 
 Create a caption that:
 - Is SHORT (under 150 characters visible without tapping "more")
@@ -439,20 +408,17 @@ Title: ${post.meta.title}
 Summary: ${post.meta.summary}`;
 
   try {
-    const response = await openai.chat.completions.create({
-      model: OPENAI_MODEL_GPT_4O,
-      messages: [
-        { role: 'system', content: prompt },
-        { role: 'user', content: 'Generate the TikTok caption.' },
-      ],
-      temperature: 0.7,
-      max_tokens: 200,
-      // PostHog LLM analytics tracking
-      posthogDistinctId: 'system',
-      posthogProperties: { feature: 'social_tiktok_caption', slug: post.meta.slug },
+    const tracedModel = getTracedModel(models.text, {
+      properties: { feature: 'social_tiktok_caption', slug: post.meta.slug },
     });
 
-    return response.choices[0].message.content || '';
+    const { text } = await generateText({
+      model: tracedModel,
+      system: systemPrompt,
+      prompt: 'Generate the TikTok caption.',
+    });
+
+    return text;
   } catch (error) {
     logger.error(
       'Error generating TikTok caption',
@@ -466,6 +432,12 @@ Summary: ${post.meta.summary}`;
   }
 };
 
+// Schema for YouTube Shorts caption
+const YouTubeShortsSchema = z.object({
+  title: z.string().describe('SEO-optimized title under 100 characters'),
+  description: z.string().describe('Description with blog URL, keywords, and hashtags'),
+});
+
 /**
  * Generate YouTube Shorts caption
  * SEO-focused with title and description
@@ -474,7 +446,7 @@ const generateYouTubeShortsCaption = async (
   post: Post,
   blogUrl: string,
 ): Promise<{ title: string; description: string }> => {
-  const prompt = `You are creating a YouTube Shorts title and description for a UK parking/traffic law website called "Parking Ticket Pal".
+  const systemPrompt = `You are creating a YouTube Shorts title and description for a UK parking/traffic law website called "Parking Ticket Pal".
 
 Create content that:
 - Title: Under 100 characters, SEO-optimized, attention-grabbing
@@ -485,30 +457,25 @@ Create content that:
 
 Title: ${post.meta.title}
 Summary: ${post.meta.summary}
-Blog URL: ${blogUrl}
-
-Return in JSON format: {"title": "...", "description": "..."}`;
+Blog URL: ${blogUrl}`;
 
   try {
-    const response = await openai.chat.completions.create({
-      model: OPENAI_MODEL_GPT_4O,
-      messages: [
-        { role: 'system', content: prompt },
-        { role: 'user', content: 'Generate the YouTube Shorts title and description.' },
-      ],
-      temperature: 0.7,
-      max_tokens: 400,
-      response_format: { type: 'json_object' },
-      // PostHog LLM analytics tracking
-      posthogDistinctId: 'system',
-      posthogProperties: { feature: 'social_youtube_shorts_caption', slug: post.meta.slug },
+    const tracedModel = getTracedModel(models.text, {
+      properties: { feature: 'social_youtube_shorts_caption', slug: post.meta.slug },
     });
 
-    const content = response.choices[0].message.content || '{}';
-    const parsed = JSON.parse(content);
+    const { object } = await generateObject({
+      model: tracedModel,
+      schema: YouTubeShortsSchema,
+      schemaName: 'youtube_shorts',
+      schemaDescription: 'YouTube Shorts title and description',
+      system: systemPrompt,
+      prompt: 'Generate the YouTube Shorts title and description.',
+    });
+
     return {
-      title: parsed.title || post.meta.title,
-      description: parsed.description || post.meta.summary,
+      title: object.title || post.meta.title,
+      description: object.description || post.meta.summary,
     };
   } catch (error) {
     logger.error(
@@ -531,7 +498,7 @@ const generateThreadsCaption = async (
   post: Post,
   blogUrl: string,
 ): Promise<string> => {
-  const prompt = `You are creating a Threads caption for a UK parking/traffic law website called "Parking Ticket Pal".
+  const systemPrompt = `You are creating a Threads caption for a UK parking/traffic law website called "Parking Ticket Pal".
 
 Create a caption that:
 - Is conversational and opinion-driven
@@ -548,20 +515,17 @@ Summary: ${post.meta.summary}
 Blog URL: ${blogUrl}`;
 
   try {
-    const response = await openai.chat.completions.create({
-      model: OPENAI_MODEL_GPT_4O,
-      messages: [
-        { role: 'system', content: prompt },
-        { role: 'user', content: 'Generate the Threads caption.' },
-      ],
-      temperature: 0.7,
-      max_tokens: 500,
-      // PostHog LLM analytics tracking
-      posthogDistinctId: 'system',
-      posthogProperties: { feature: 'social_threads_caption', slug: post.meta.slug },
+    const tracedModel = getTracedModel(models.text, {
+      properties: { feature: 'social_threads_caption', slug: post.meta.slug },
     });
 
-    return response.choices[0].message.content || '';
+    const { text } = await generateText({
+      model: tracedModel,
+      system: systemPrompt,
+      prompt: 'Generate the Threads caption.',
+    });
+
+    return text;
   } catch (error) {
     logger.error(
       'Error generating Threads caption',
@@ -735,7 +699,7 @@ const generateBackgroundMusic = async (
  * Generate Instagram Reel caption (different tone than static post)
  */
 const generateInstagramReelCaption = async (post: Post): Promise<string> => {
-  const prompt = `You are creating an Instagram Reel caption for a UK parking/traffic law website called "Parking Ticket Pal".
+  const systemPrompt = `You are creating an Instagram Reel caption for a UK parking/traffic law website called "Parking Ticket Pal".
 
 Create a caption that:
 - Starts with a hook that references the video (e.g., "Watch this before you...")
@@ -749,20 +713,17 @@ Title: ${post.meta.title}
 Summary: ${post.meta.summary}`;
 
   try {
-    const response = await openai.chat.completions.create({
-      model: OPENAI_MODEL_GPT_4O,
-      messages: [
-        { role: 'system', content: prompt },
-        { role: 'user', content: 'Generate the Reel caption.' },
-      ],
-      temperature: 0.7,
-      max_tokens: 200,
-      // PostHog LLM analytics tracking
-      posthogDistinctId: 'system',
-      posthogProperties: { feature: 'social_instagram_reel_caption', slug: post.meta.slug },
+    const tracedModel = getTracedModel(models.text, {
+      properties: { feature: 'social_instagram_reel_caption', slug: post.meta.slug },
     });
 
-    return response.choices[0].message.content || '';
+    const { text } = await generateText({
+      model: tracedModel,
+      system: systemPrompt,
+      prompt: 'Generate the Reel caption.',
+    });
+
+    return text;
   } catch (error) {
     logger.error(
       'Error generating Instagram Reel caption',

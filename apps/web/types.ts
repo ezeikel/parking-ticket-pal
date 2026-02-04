@@ -64,6 +64,8 @@ export const ChallengeLetterSchema = z.object({
   signatureName: z.string(),
 });
 
+export type ChallengeLetter = z.infer<typeof ChallengeLetterSchema>;
+
 export const ChallengeEmailSchema = z.object({
   subject: z.string(),
   htmlContent: z.string(),
@@ -470,7 +472,9 @@ export type EventProperties = {
     fromTier: 'FREE';
     toTier: 'BASIC' | 'PRO';
   };
-  [TRACKING_EVENTS.BILLING_PAGE_VISITED]: Record<string, never>;
+  [TRACKING_EVENTS.BILLING_PAGE_VISITED]: {
+    hasSubscription?: boolean;
+  };
 
   // Navigation & Engagement
   [TRACKING_EVENTS.CTA_CLICKED]: { ctaName: string; location: string };
@@ -479,6 +483,16 @@ export type EventProperties = {
     destination: string;
   };
   [TRACKING_EVENTS.FEATURE_LOCKED_VIEWED]: { featureName: string };
+  [TRACKING_EVENTS.APP_STORE_BUTTON_CLICKED]: {
+    platform: 'ios' | 'android';
+    location: string;
+  };
+  [TRACKING_EVENTS.DASHBOARD_VIEWED]: Record<string, never>;
+  [TRACKING_EVENTS.SCROLL_DEPTH_REACHED]: {
+    page: string;
+    depth: 25 | 50 | 75 | 100;
+    depthLabel: string;
+  };
 
   // Pricing & Plans
   [TRACKING_EVENTS.PRICING_PAGE_VIEWED]: Record<string, never>;

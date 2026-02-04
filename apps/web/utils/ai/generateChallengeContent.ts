@@ -1,30 +1,36 @@
-import openai from '@/lib/openai';
-import {
-  CHALLENGE_WRITER_PROMPT,
-  CHALLENGE_LETTER_PROMPT,
-  OPENAI_MODEL_GPT_4O,
-} from '@/constants';
-import { zodResponseFormat } from 'openai/helpers/zod';
-import { ChallengeLetterSchema } from '@/types';
+import { generateText, generateObject } from 'ai';
+import { CHALLENGE_WRITER_PROMPT, CHALLENGE_LETTER_PROMPT } from '@/constants';
+import { ChallengeLetterSchema, ChallengeLetter } from '@/types';
+import { models, getTracedModel } from '@/lib/ai/models';
 
-type ChallengeContentType = 'form-field' | 'letter';
-
-type GenerateChallengeContentParams = {
+type BaseParams = {
   pcnNumber: string;
   challengeReason: string;
   additionalDetails?: string;
-  contentType: ChallengeContentType;
-  // for form field generation
+  userId?: string;
+};
+
+type FormFieldParams = BaseParams & {
+  contentType: 'form-field';
   formFieldPlaceholderText?: string;
   userEvidenceImageUrls?: string[];
   issuerEvidenceImageUrls?: string[];
-  // for letter generation
-  ticket?: any;
-  user?: any;
-  contraventionCodes?: Record<string, { description: string }>;
-  // for PostHog LLM analytics
-  userId?: string;
+  ticket?: never;
+  user?: never;
+  contraventionCodes?: never;
 };
+
+type LetterParams = BaseParams & {
+  contentType: 'letter';
+  ticket: any;
+  user: any;
+  contraventionCodes: Record<string, { description: string }>;
+  formFieldPlaceholderText?: never;
+  userEvidenceImageUrls?: never;
+  issuerEvidenceImageUrls?: never;
+};
+
+type GenerateChallengeContentParams = FormFieldParams | LetterParams;
 
 // helper function to generate challenge letter prompt (moved from promptGenerators.ts)
 const generateChallengeLetterPrompt = (
@@ -84,19 +90,22 @@ Please generate a professional challenge letter from the perspective of the vehi
  * Shared utility for generating challenge content for both form fields and letters
  * Handles the common logic of processing challenge reasons and additional details
  */
-const generateChallengeContent = async ({
-  pcnNumber,
-  challengeReason,
-  additionalDetails,
-  contentType,
-  formFieldPlaceholderText,
-  userEvidenceImageUrls = [],
-  issuerEvidenceImageUrls = [],
-  ticket,
-  user,
-  contraventionCodes,
-  userId,
-}: GenerateChallengeContentParams) => {
+async function generateChallengeContent(
+  params: FormFieldParams,
+): Promise<string | null>;
+async function generateChallengeContent(
+  params: LetterParams,
+): Promise<ChallengeLetter>;
+async function generateChallengeContent(
+  params: GenerateChallengeContentParams,
+): Promise<string | null | ChallengeLetter> {
+  const {
+    pcnNumber,
+    challengeReason,
+    additionalDetails,
+    contentType,
+    userId,
+  } = params;
   // Build the combined challenge reason text
   let combinedReasonText = challengeReason;
 
@@ -105,81 +114,82 @@ const generateChallengeContent = async ({
   }
 
   if (contentType === 'form-field') {
-    // Generate text for form field input
-    const messages = [
-      {
-        role: 'system' as const,
-        content: CHALLENGE_WRITER_PROMPT,
-      },
-      {
-        role: 'user' as const,
-        content: [
-          {
-            type: 'text' as const,
-            text: `Analyze these images and write a challenge for PCN ${pcnNumber}.
-            
-            Reason for challenge: ${combinedReasonText}
-            
-            The response should fit this form field hint: "${formFieldPlaceholderText}"`,
-          },
-          ...issuerEvidenceImageUrls.map((url) => ({
-            type: 'image_url' as const,
-            image_url: { url },
-          })),
-          ...userEvidenceImageUrls.map((url) => ({
-            type: 'image_url' as const,
-            image_url: { url },
-          })),
-        ],
-      },
-    ];
+    const {
+      formFieldPlaceholderText,
+      userEvidenceImageUrls = [],
+      issuerEvidenceImageUrls = [],
+    } = params as FormFieldParams;
+
+    // Generate text for form field input using Vercel AI SDK
+    const tracedModel = getTracedModel(models.text, {
+      userId: userId || 'system',
+      properties: { feature: 'challenge_form_field', pcnNumber },
+    });
 
     try {
-      const completion = await openai.chat.completions.create({
-        model: OPENAI_MODEL_GPT_4O,
-        messages,
-        temperature: 0.7,
-        max_tokens: 1000,
-        // PostHog LLM analytics tracking
-        posthogDistinctId: userId || 'system',
-        posthogProperties: { feature: 'challenge_form_field', pcnNumber },
+      // Build user content with text and images
+      const userContent: Array<
+        | { type: 'text'; text: string }
+        | { type: 'image'; image: URL }
+      > = [
+        {
+          type: 'text',
+          text: `Analyze these images and write a challenge for PCN ${pcnNumber}.
+
+            Reason for challenge: ${combinedReasonText}
+
+            The response should fit this form field hint: "${formFieldPlaceholderText}"`,
+        },
+        ...issuerEvidenceImageUrls.map((url) => ({
+          type: 'image' as const,
+          image: new URL(url),
+        })),
+        ...userEvidenceImageUrls.map((url) => ({
+          type: 'image' as const,
+          image: new URL(url),
+        })),
+      ];
+
+      const { text } = await generateText({
+        model: tracedModel,
+        system: CHALLENGE_WRITER_PROMPT,
+        messages: [
+          {
+            role: 'user',
+            content: userContent,
+          },
+        ],
       });
 
-      return completion.choices[0].message.content;
+      return text;
     } catch (error) {
       console.error('Error generating challenge text for form field:', error);
       return null;
     }
   } else if (contentType === 'letter') {
-    // Generate structured letter content
-    if (!ticket || !user || !contraventionCodes) {
-      throw new Error('Missing required data for letter generation');
-    }
+    const { ticket, user, contraventionCodes } = params as LetterParams;
 
-    const letterResponse = await openai.chat.completions.create({
-      model: OPENAI_MODEL_GPT_4O,
-      messages: [
-        {
-          role: 'system',
-          content: CHALLENGE_LETTER_PROMPT,
-        },
-        {
-          role: 'user',
-          content: generateChallengeLetterPrompt(
-            ticket,
-            user,
-            contraventionCodes,
-            combinedReasonText,
-          ),
-        },
-      ],
-      response_format: zodResponseFormat(ChallengeLetterSchema, 'letter'),
-      // PostHog LLM analytics tracking
-      posthogDistinctId: userId || 'system',
-      posthogProperties: { feature: 'challenge_letter', pcnNumber },
+    // Generate structured letter content using Vercel AI SDK
+    const tracedModel = getTracedModel(models.text, {
+      userId: userId || 'system',
+      properties: { feature: 'challenge_letter', pcnNumber },
     });
 
-    return JSON.parse(letterResponse.choices[0].message.content as string);
+    const { object: letter } = await generateObject({
+      model: tracedModel,
+      schema: ChallengeLetterSchema,
+      schemaName: 'letter',
+      schemaDescription: 'A formal challenge letter for a parking penalty notice',
+      system: CHALLENGE_LETTER_PROMPT,
+      prompt: generateChallengeLetterPrompt(
+        ticket,
+        user,
+        contraventionCodes,
+        combinedReasonText,
+      ),
+    });
+
+    return letter;
   }
 
   throw new Error(`Unsupported content type: ${contentType}`);
