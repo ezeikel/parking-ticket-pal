@@ -1,21 +1,17 @@
 'use server';
 
-import { zodResponseFormat } from 'openai/helpers/zod';
-import openai from '@/lib/openai';
+import { generateObject } from 'ai';
 import vision from '@google-cloud/vision';
 import { getUserId } from '@/utils/user';
 import createUTCDate from '@/utils/createUTCDate';
-import {
-  OPENAI_MODEL_GPT_4O,
-  IMAGE_ANALYSIS_PROMPT,
-  STORAGE_PATHS,
-} from '@/constants';
+import { IMAGE_ANALYSIS_PROMPT, STORAGE_PATHS } from '@/constants';
 import { generateOcrAnalysisPrompt } from '@/utils/promptGenerators';
 import { Address, DocumentSchema } from '@parking-ticket-pal/types';
 import { createServerLogger } from '@/lib/logger';
 import { put } from '@/lib/storage';
 import { track } from '@/utils/analytics-server';
 import { TRACKING_EVENTS } from '@/constants/events';
+import { models, getTracedModel } from '@/lib/ai/models';
 
 const logger = createServerLogger({ action: 'ocr' });
 
@@ -130,14 +126,20 @@ export const extractOCRTextWithOpenAI = async (
     };
   }
 
-  // send the image URL and OCR text to OpenAI for analysis
-  const response = await openai.chat.completions.create({
-    model: OPENAI_MODEL_GPT_4O,
+  // send the image URL and OCR text to OpenAI for analysis using Vercel AI SDK
+  const tracedModel = getTracedModel(models.text, {
+    userId: effectiveUserId,
+    properties: { feature: 'ocr_openai_direct' },
+  });
+
+  // @ts-expect-error - Type instantiation is excessively deep with complex Zod schemas + generateObject
+  const { object: parsed } = await generateObject({
+    model: tracedModel,
+    schema: DocumentSchema,
+    schemaName: 'document',
+    schemaDescription: 'Structured parking ticket or letter document',
+    system: IMAGE_ANALYSIS_PROMPT,
     messages: [
-      {
-        role: 'system',
-        content: IMAGE_ANALYSIS_PROMPT,
-      },
       {
         role: 'user',
         content: [
@@ -152,30 +154,17 @@ export const extractOCRTextWithOpenAI = async (
             }`,
           },
           {
-            type: 'image_url',
-            image_url: {
-              url: blobStorageUrl,
-            },
+            type: 'image',
+            image: new URL(blobStorageUrl),
           },
         ],
       },
     ],
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    response_format: zodResponseFormat(DocumentSchema as any, 'document'),
-    // PostHog LLM analytics tracking
-    posthogDistinctId: effectiveUserId,
-    posthogProperties: { feature: 'ocr_openai_direct' },
   });
 
-  const imageInfo = response.choices[0].message.content;
-
-  // strict Zod validation after parsing
-  const parsed = DocumentSchema.safeParse(JSON.parse(imageInfo as string));
-
-  if (!parsed.success) {
+  if (!parsed) {
     logger.error('OpenAI returned invalid document data', {
       userId: effectiveUserId,
-      parseError: parsed.error,
     });
     return { success: false, message: 'Invalid data returned from AI' };
   }
@@ -194,7 +183,7 @@ export const extractOCRTextWithOpenAI = async (
     extractedText,
     letterType,
     currentAmount,
-  } = parsed.data;
+  } = parsed;
 
   // get full address from Mapbox if we have a line1
   let fullAddress: Address;
@@ -465,35 +454,28 @@ export const extractOCRTextWithVision = async (
     return { success: false, message: 'OCR failed with Google Vision API' };
   }
 
-  // send the Google Vision OCR text to OpenAI for structured analysis
-  const response = await openai.chat.completions.create({
-    model: OPENAI_MODEL_GPT_4O,
-    messages: [
-      {
-        role: 'system',
-        content: IMAGE_ANALYSIS_PROMPT,
-      },
-      {
-        role: 'user',
-        content: generateOcrAnalysisPrompt(googleOcrText),
-      },
-    ],
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    response_format: zodResponseFormat(DocumentSchema as any, 'document'),
-    // PostHog LLM analytics tracking
-    posthogDistinctId: effectiveUserId,
-    posthogProperties: { feature: 'ocr_vision_analysis' },
+  // send the Google Vision OCR text to OpenAI for structured analysis using Vercel AI SDK
+  const tracedModel = getTracedModel(models.text, {
+    userId: effectiveUserId,
+    properties: { feature: 'ocr_vision_analysis' },
   });
 
-  const imageInfo = response.choices[0].message.content;
-
-  // strict Zod validation after parsing
-  const parsed = DocumentSchema.safeParse(JSON.parse(imageInfo as string));
-
-  if (!parsed.success) {
+  let parsed;
+  try {
+    // @ts-expect-error - Type instantiation is excessively deep with complex Zod schemas + generateObject
+    const result = await generateObject({
+      model: tracedModel,
+      schema: DocumentSchema,
+      schemaName: 'document',
+      schemaDescription: 'Structured parking ticket or letter document',
+      system: IMAGE_ANALYSIS_PROMPT,
+      prompt: generateOcrAnalysisPrompt(googleOcrText),
+    });
+    parsed = result.object;
+  } catch (error) {
     logger.error('OpenAI returned invalid document data', {
       userId: effectiveUserId,
-      parseError: parsed.error,
+      error: error instanceof Error ? error.message : 'Unknown error',
     });
     await track(TRACKING_EVENTS.OCR_PROCESSING_FAILED, {
       source: 'web',
@@ -517,7 +499,7 @@ export const extractOCRTextWithVision = async (
     extractedText,
     letterType,
     currentAmount,
-  } = parsed.data;
+  } = parsed;
 
   // get full address from Mapbox if we have a line1
   let fullAddress: Address;
