@@ -15,6 +15,7 @@ import TicketWizard, {
 import { extractOCRTextWithVision } from '@/app/actions/ocr';
 import { useAnalytics } from '@/utils/analytics-client';
 import { TRACKING_EVENTS } from '@/constants/events';
+import { useScrollDepthTracking } from '@/hooks/useScrollDepthTracking';
 
 const HERO_VIDEOS = [
   '/videos/hero-london-01-box-junction.mp4',
@@ -85,6 +86,9 @@ const Hero = () => {
       setHasTrackedView(true);
     }
   }, [hasTrackedView, track]);
+
+  // Track scroll depth on landing page
+  useScrollDepthTracking({ pageName: 'homepage' });
 
   const handleVideoEnded = (index: number) => {
     if (index !== activeVideoIndex) return;
@@ -369,8 +373,16 @@ const Hero = () => {
               variants={fadeUpVariants}
               className="mt-6 flex flex-wrap justify-center gap-3 lg:justify-start"
             >
-              <a
-                href="#"
+              <button
+                type="button"
+                onClick={() => {
+                  track(TRACKING_EVENTS.APP_STORE_BUTTON_CLICKED, {
+                    platform: 'ios',
+                    location: 'hero',
+                  });
+                  // TODO: Replace with actual App Store URL when available
+                  toast.info('iOS app coming soon!');
+                }}
                 className="opacity-90 transition-opacity hover:opacity-100"
               >
                 <div className="flex h-11 items-center gap-2 rounded-lg border border-white/30 bg-white/10 px-4">
@@ -387,9 +399,17 @@ const Hero = () => {
                     </span>
                   </div>
                 </div>
-              </a>
-              <a
-                href="#"
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  track(TRACKING_EVENTS.APP_STORE_BUTTON_CLICKED, {
+                    platform: 'android',
+                    location: 'hero',
+                  });
+                  // TODO: Replace with actual Play Store URL when available
+                  toast.info('Android app coming soon!');
+                }}
                 className="opacity-90 transition-opacity hover:opacity-100"
               >
                 <div className="flex h-11 items-center gap-2 rounded-lg border border-white/30 bg-white/10 px-4">
@@ -406,7 +426,7 @@ const Hero = () => {
                     </span>
                   </div>
                 </div>
-              </a>
+              </button>
             </motion.div>
           </motion.div>
 
