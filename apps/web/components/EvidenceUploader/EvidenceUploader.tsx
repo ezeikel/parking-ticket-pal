@@ -30,6 +30,7 @@ import {
 } from '@fortawesome/pro-solid-svg-icons';
 import { uploadEvidence, deleteEvidence } from '@/app/actions/evidence';
 import { evidenceTypeOptions } from '@/constants/evidence';
+import { compressImage } from '@/utils/compressImage';
 import { cn } from '@/lib/utils';
 import { Media, EvidenceType } from '@parking-ticket-pal/db/types';
 import { faCloudArrowUp } from '@fortawesome/pro-regular-svg-icons';
@@ -166,12 +167,21 @@ const EvidenceUploader = ({
       return;
     }
 
-    const formData = new FormData();
-    formData.append('file', file);
-    formData.append('documentType', type);
-    formData.append('description', description);
-
     startTransition(async () => {
+      // Compress image before upload
+      let uploadFile: File = file;
+      try {
+        const compressed = await compressImage(file);
+        uploadFile = compressed.file;
+      } catch {
+        // Compression failed — use original file
+      }
+
+      const formData = new FormData();
+      formData.append('file', uploadFile);
+      formData.append('documentType', type);
+      formData.append('description', description);
+
       const result = await uploadEvidence(ticketId, formData);
       if (result.success) {
         toast.success('Evidence uploaded successfully.');

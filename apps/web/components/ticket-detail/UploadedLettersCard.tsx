@@ -28,6 +28,7 @@ import {
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import { uploadLetterToTicket, deleteLetter } from '@/app/actions/letterUpload';
+import { compressImage } from '@/utils/compressImage';
 
 type StagedFile = {
   file: File;
@@ -128,12 +129,21 @@ const UploadedLettersCard = ({
       return;
     }
 
-    const formData = new FormData();
-    formData.append('file', file);
-    formData.append('letterType', type);
-    formData.append('sentAt', sentAt);
-
     startTransition(async () => {
+      // Compress image before upload
+      let uploadFile: File = file;
+      try {
+        const compressed = await compressImage(file);
+        uploadFile = compressed.file;
+      } catch {
+        // Compression failed — use original file
+      }
+
+      const formData = new FormData();
+      formData.append('file', uploadFile);
+      formData.append('letterType', type);
+      formData.append('sentAt', sentAt);
+
       const result = await uploadLetterToTicket(ticketId, formData);
       if (result.success) {
         if (result.warning) {

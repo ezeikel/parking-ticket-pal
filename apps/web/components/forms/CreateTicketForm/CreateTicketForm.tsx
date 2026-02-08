@@ -39,6 +39,7 @@ import { toast } from 'sonner';
 import { extractOCRTextWithVision } from '@/app/actions/ocr';
 import { useAnalytics } from '@/utils/analytics-client';
 import { TRACKING_EVENTS } from '@/constants/events';
+import { compressImage } from '@/utils/compressImage';
 import createUTCDate from '@/utils/createUTCDate';
 import useLogger from '@/lib/use-logger';
 
@@ -148,9 +149,18 @@ const CreateTicketForm = ({ tier, source }: CreateTicketFormProps) => {
 
     setIsLoading(true);
 
+    // Compress image before upload
+    let uploadFile: File = file;
+    try {
+      const compressed = await compressImage(file);
+      uploadFile = compressed.file;
+    } catch {
+      // Compression failed — use original file
+    }
+
     try {
       const formData = new FormData();
-      formData.append('image', file);
+      formData.append('image', uploadFile);
 
       const result = await extractOCRTextWithVision(formData);
 
