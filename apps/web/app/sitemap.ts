@@ -8,10 +8,22 @@ import {
   PRIVATE_COMPANY_IDS,
   TRANSPORT_AUTHORITY_IDS,
 } from '@/constants';
+import { client } from '@/lib/sanity/client';
+import { sitemapPostsQuery } from '@/lib/sanity/queries';
 
 const BASE_URL = 'https://www.parkingticketpal.com';
 
-export default function sitemap(): MetadataRoute.Sitemap {
+async function getAllBlogPosts() {
+  try {
+    return await client.fetch<
+      Array<{ slug: { current: string }; publishedAt: string; _updatedAt: string }>
+    >(sitemapPostsQuery);
+  } catch {
+    return [];
+  }
+}
+
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const now = new Date();
 
   // Static pages
@@ -20,6 +32,8 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${BASE_URL}`, lastModified: now, changeFrequency: 'weekly', priority: 1 },
     { url: `${BASE_URL}/pricing`, lastModified: now, changeFrequency: 'monthly', priority: 0.8 },
     { url: `${BASE_URL}/blog`, lastModified: now, changeFrequency: 'weekly', priority: 0.8 },
+    { url: `${BASE_URL}/terms`, lastModified: now, changeFrequency: 'yearly', priority: 0.3 },
+    { url: `${BASE_URL}/privacy`, lastModified: now, changeFrequency: 'yearly', priority: 0.3 },
 
     // Tools index pages
     { url: `${BASE_URL}/tools`, lastModified: now, changeFrequency: 'weekly', priority: 0.9 },
@@ -82,6 +96,15 @@ export default function sitemap(): MetadataRoute.Sitemap {
     priority: 0.6,
   }));
 
+  // Dynamic blog post pages
+  const blogPosts = await getAllBlogPosts();
+  const blogPostPages: MetadataRoute.Sitemap = blogPosts.map((post) => ({
+    url: `${BASE_URL}/blog/${post.slug.current}`,
+    lastModified: new Date(post._updatedAt || post.publishedAt),
+    changeFrequency: 'monthly' as const,
+    priority: 0.6,
+  }));
+
   return [
     ...staticPages,
     ...parkingTemplatePages,
@@ -89,5 +112,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
     ...motoringTemplatePages,
     ...contraventionCodePages,
     ...issuerPages,
+    ...blogPostPages,
   ];
 }
