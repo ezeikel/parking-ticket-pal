@@ -9,7 +9,7 @@ import {
   TRANSPORT_AUTHORITY_IDS,
 } from '@/constants';
 
-const BASE_URL = 'https://parkingticketpal.co.uk';
+const BASE_URL = 'https://www.parkingticketpal.com';
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const now = new Date();
