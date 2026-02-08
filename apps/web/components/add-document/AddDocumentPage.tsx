@@ -7,6 +7,7 @@ import { LetterType } from '@parking-ticket-pal/db/types';
 import { extractOCRTextWithVision } from '@/app/actions/ocr';
 import { createTicket, getTicketByPcnNumber } from '@/app/actions/ticket';
 import { createLetter } from '@/app/actions/letter';
+import { compressImage } from '@/utils/compressImage';
 import { useAnalytics } from '@/utils/analytics-client';
 import { TRACKING_EVENTS } from '@/constants/events';
 import useLogger from '@/lib/use-logger';
@@ -56,9 +57,18 @@ const AddDocumentPage = () => {
     async (file: File) => {
       setPageState('processing');
 
+      // Compress image before upload
+      let uploadFile = file;
+      try {
+        const compressed = await compressImage(file);
+        uploadFile = compressed.file;
+      } catch {
+        // Compression failed — use original file
+      }
+
       try {
         const formData = new FormData();
-        formData.append('image', file);
+        formData.append('image', uploadFile);
 
         const result = await extractOCRTextWithVision(formData);
 

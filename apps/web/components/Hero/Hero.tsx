@@ -12,9 +12,11 @@ import TicketWizard, {
   type ExtractedData,
   type WizardCompleteData,
 } from '@/components/TicketWizard/TicketWizard';
+import * as Sentry from '@sentry/nextjs';
 import { extractOCRTextWithVision } from '@/app/actions/ocr';
 import { useAnalytics } from '@/utils/analytics-client';
 import { TRACKING_EVENTS } from '@/constants/events';
+import { compressImage } from '@/utils/compressImage';
 import { useScrollDepthTracking } from '@/hooks/useScrollDepthTracking';
 
 const HERO_VIDEOS = [
@@ -127,15 +129,44 @@ const Hero = () => {
     const startTime = Date.now();
     setIsUploading(true);
 
+    // Compress image before upload (skip PDFs, small files)
+    let uploadFile = file;
+    let wasCompressed = false;
+    let compressedFileSize: number | undefined;
+    let compressionRatio: number | undefined;
+
+    try {
+      const result = await compressImage(file);
+      uploadFile = result.file;
+      wasCompressed = result.wasCompressed;
+      if (wasCompressed) {
+        compressedFileSize = result.compressedSize;
+        compressionRatio = Math.round((1 - result.compressedSize / result.originalSize) * 100);
+      }
+    } catch {
+      // Compression failed (e.g. HEIC on Chrome) — use original file
+    }
+
+    // Hard limit: reject files still over 4MB after compression
+    const MAX_UPLOAD_SIZE = 4 * 1024 * 1024;
+    if (uploadFile.size > MAX_UPLOAD_SIZE) {
+      toast.error('File is too large. Please upload an image under 4MB.');
+      setIsUploading(false);
+      return;
+    }
+
     // Track upload started
     track(TRACKING_EVENTS.HERO_UPLOAD_STARTED, {
       fileType: file.type,
       fileSize: file.size,
+      compressedFileSize,
+      wasCompressed,
+      compressionRatio,
     });
 
     try {
       const formData = new FormData();
-      formData.append('image', file);
+      formData.append('image', uploadFile);
 
       const result = await extractOCRTextWithVision(formData);
 
@@ -185,6 +216,16 @@ const Hero = () => {
       track(TRACKING_EVENTS.HERO_UPLOAD_FAILED, {
         fileType: file.type,
         error: error instanceof Error ? error.message : 'Unknown error',
+      });
+
+      Sentry.captureException(error, {
+        tags: { feature: 'hero_upload' },
+        extra: {
+          fileType: file.type,
+          fileSize: file.size,
+          compressedFileSize,
+          wasCompressed,
+        },
       });
 
       toast.error('Something went wrong. Please try again.');
