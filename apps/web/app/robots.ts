@@ -21,7 +21,12 @@ export default function robots(): MetadataRoute.Robots {
           '/subscribe/',
         ],
       },
+      { userAgent: 'GPTBot', disallow: '/' },
+      { userAgent: 'ChatGPT-User', disallow: '/' },
+      { userAgent: 'CCBot', disallow: '/' },
+      { userAgent: 'anthropic-ai', disallow: '/' },
     ],
-    sitemap: 'https://parkingticketpal.co.uk/sitemap.xml',
+    sitemap: 'https://www.parkingticketpal.com/sitemap.xml',
+    host: 'www.parkingticketpal.com',
   };
 }
