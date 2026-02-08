@@ -20,16 +20,8 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 import cn from '@/utils/cn';
 import { format } from 'date-fns';
-import { CONTRAVENTION_CODES_OPTIONS } from '@/constants';
 import { TicketWithRelations } from '@/types';
 import {
   Address,
@@ -44,6 +36,7 @@ import {
 import { faCalendar, faSpinnerThird } from '@fortawesome/pro-regular-svg-icons';
 import { toast } from 'sonner';
 import AddressInput from '@/components/forms/inputs/AddressInput/AddressInput';
+import ContraventionCodeSelect from '@/components/forms/inputs/ContraventionCodeSelect';
 import { useRouter } from 'next/navigation';
 import createUTCDate from '@/utils/createUTCDate';
 
@@ -215,23 +208,12 @@ const EditTicketForm = ({ ticket }: EditTicketFormProps) => {
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Contravention Code</FormLabel>
-                <Select
-                  onValueChange={field.onChange}
-                  defaultValue={field.value}
-                >
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select contravention code" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    {CONTRAVENTION_CODES_OPTIONS.map((option) => (
-                      <SelectItem key={option.value} value={option.value}>
-                        {option.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <FormControl>
+                  <ContraventionCodeSelect
+                    value={field.value}
+                    onChange={field.onChange}
+                  />
+                </FormControl>
                 <FormMessage />
               </FormItem>
             )}

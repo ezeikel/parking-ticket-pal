@@ -21,16 +21,8 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 import cn from '@/utils/cn';
 import { format } from 'date-fns';
-import { CONTRAVENTION_CODES_OPTIONS } from '@parking-ticket-pal/constants';
 import {
   ticketFormSchema,
   type TicketFormData,
@@ -42,6 +34,7 @@ import {
   faSpinnerThird,
 } from '@fortawesome/pro-regular-svg-icons';
 import AddressInput from '@/components/forms/inputs/AddressInput/AddressInput';
+import ContraventionCodeSelect from '@/components/forms/inputs/ContraventionCodeSelect';
 import { toast } from 'sonner';
 import { extractOCRTextWithVision } from '@/app/actions/ocr';
 import { useAnalytics } from '@/utils/analytics-client';
@@ -63,8 +56,6 @@ const CreateTicketForm = ({ tier, source }: CreateTicketFormProps) => {
   const { track } = useAnalytics();
   const logger = useLogger({ page: 'create-ticket' });
 
-  const [contraventionSearch, setContraventionSearch] = useState('');
-
   // Track when user lands on this page with a tier selected from pricing
   useEffect(() => {
     if (tier && source) {
@@ -74,11 +65,6 @@ const CreateTicketForm = ({ tier, source }: CreateTicketFormProps) => {
       });
     }
   }, [tier, source, track]);
-
-  const filteredContraventionCodes = CONTRAVENTION_CODES_OPTIONS.filter(
-    (code) =>
-      code.label.toLowerCase().includes(contraventionSearch.toLowerCase()),
-  );
 
   const form = useForm<TicketFormData>({
     resolver: zodResolver(ticketFormSchema),
@@ -337,31 +323,14 @@ const CreateTicketForm = ({ tier, source }: CreateTicketFormProps) => {
               control={form.control}
               name="contraventionCode"
               render={({ field }) => (
-                <FormItem className="col-span-2">
+                <FormItem className="col-span-1 md:col-span-2">
                   <FormLabel>Contravention</FormLabel>
-                  <Select
-                    onValueChange={field.onChange}
-                    defaultValue={field.value}
-                  >
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select a contravention code" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <input
-                        className="px-2 py-1 mb-2 border rounded"
-                        placeholder="Search contraventions..."
-                        value={contraventionSearch}
-                        onChange={(e) => setContraventionSearch(e.target.value)}
-                      />
-                      {filteredContraventionCodes.map((code) => (
-                        <SelectItem key={code.value} value={code.value}>
-                          {code.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <FormControl>
+                    <ContraventionCodeSelect
+                      value={field.value}
+                      onChange={field.onChange}
+                    />
+                  </FormControl>
                   <FormMessage />
                 </FormItem>
               )}

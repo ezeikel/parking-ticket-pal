@@ -103,4 +103,18 @@ export const TRACKING_EVENTS = {
   // Demo Features
   NOTIFICATION_DEMO_STARTED: 'notification_demo_started',
   NOTIFICATION_DEMO_STOPPED: 'notification_demo_stopped',
+
+  // Free Tools
+  TOOLS_PAGE_VIEWED: 'tools_page_viewed',
+  MOT_CHECK_SEARCHED: 'mot_check_searched',
+  MOT_CHECK_RESULT_VIEWED: 'mot_check_result_viewed',
+  VEHICLE_LOOKUP_SEARCHED: 'vehicle_lookup_searched',
+  VEHICLE_LOOKUP_RESULT_VIEWED: 'vehicle_lookup_result_viewed',
+  LETTER_TEMPLATE_VIEWED: 'letter_template_viewed',
+  LETTER_TEMPLATE_FILLED: 'letter_template_filled',
+  LETTER_TEMPLATE_EMAIL_SUBMITTED: 'letter_template_email_submitted',
+  CONTRAVENTION_CODE_SEARCHED: 'contravention_code_searched',
+  CONTRAVENTION_CODE_VIEWED: 'contravention_code_viewed',
+  ISSUER_SEARCHED: 'issuer_searched',
+  ISSUER_VIEWED: 'issuer_viewed',
 } as const;

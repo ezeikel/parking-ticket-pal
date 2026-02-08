@@ -538,6 +538,47 @@ export type EventProperties = {
   // Demo Features
   [TRACKING_EVENTS.NOTIFICATION_DEMO_STARTED]: Record<string, never>;
   [TRACKING_EVENTS.NOTIFICATION_DEMO_STOPPED]: Record<string, never>;
+
+  // Free Tools
+  [TRACKING_EVENTS.TOOLS_PAGE_VIEWED]: Record<string, never>;
+  [TRACKING_EVENTS.MOT_CHECK_SEARCHED]: { registration: string };
+  [TRACKING_EVENTS.MOT_CHECK_RESULT_VIEWED]: {
+    registration: string;
+    hasHistory: boolean;
+    testCount: number;
+  };
+  [TRACKING_EVENTS.VEHICLE_LOOKUP_SEARCHED]: { registration: string };
+  [TRACKING_EVENTS.VEHICLE_LOOKUP_RESULT_VIEWED]: {
+    registration: string;
+    make: string | null;
+    taxStatus: string | null;
+    motStatus: string | null;
+  };
+  [TRACKING_EVENTS.LETTER_TEMPLATE_VIEWED]: {
+    templateId: string;
+    templateCategory: 'parking' | 'bailiff' | 'motoring';
+  };
+  [TRACKING_EVENTS.LETTER_TEMPLATE_FILLED]: {
+    templateId: string;
+    templateCategory: 'parking' | 'bailiff' | 'motoring';
+    fieldsCompleted: number;
+    totalFields: number;
+  };
+  [TRACKING_EVENTS.LETTER_TEMPLATE_EMAIL_SUBMITTED]: {
+    templateId: string;
+    templateCategory: 'parking' | 'bailiff' | 'motoring';
+  };
+  [TRACKING_EVENTS.CONTRAVENTION_CODE_SEARCHED]: { query: string };
+  [TRACKING_EVENTS.CONTRAVENTION_CODE_VIEWED]: {
+    code: string;
+    category: 'on-street' | 'off-street' | 'moving-traffic';
+    penaltyLevel: 'higher' | 'lower' | 'n/a';
+  };
+  [TRACKING_EVENTS.ISSUER_SEARCHED]: { query: string };
+  [TRACKING_EVENTS.ISSUER_VIEWED]: {
+    issuerId: string;
+    issuerType: 'council' | 'private' | 'tfl';
+  };
 };
 
 export type PostAuthor = {

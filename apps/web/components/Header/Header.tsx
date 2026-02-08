@@ -16,6 +16,7 @@ import {
   faTag,
   faCommentDots,
   faNewspaper,
+  faWrench,
 } from '@fortawesome/pro-regular-svg-icons';
 import type { IconDefinition } from '@fortawesome/fontawesome-svg-core';
 import cn from '@/utils/cn';
@@ -118,6 +119,11 @@ const ITEMS: NavItem[] = [
     visibility: 'always',
   },
   {
+    label: 'Tools',
+    href: '/tools',
+    visibility: 'always',
+  },
+  {
     label: 'UserDropdown',
     liClass: 'p-0 flex',
     component: (
@@ -142,6 +148,7 @@ const getMobileNav = (user: Partial<User> | null): MobileNavItem[] => {
       { label: 'Home', iconName: faHome, href: '/' },
       { label: 'Pricing', iconName: faTag, href: '/pricing' },
       { label: 'Blog', iconName: faNewspaper, href: '/blog' },
+      { label: 'Tools', iconName: faWrench, href: '/tools' },
       { label: 'Help & Feedback', iconName: faCommentDots, isFeedback: true },
       { label: 'Sign in', iconName: faRightToBracket, href: '/signin' },
     ];
@@ -152,6 +159,7 @@ const getMobileNav = (user: Partial<User> | null): MobileNavItem[] => {
     { label: 'Add Document', iconName: faUpload, href: '/new' },
     { label: 'Tickets', iconName: faTicketPerforated, href: '/tickets' },
     { label: 'Vehicles', iconName: faCarSide, href: '/vehicles' },
+    { label: 'Tools', iconName: faWrench, href: '/tools' },
     { label: 'Account', iconName: faUser, href: '/account' },
     { label: 'Billing', iconName: faCreditCard, href: '/account?tab=billing' },
     { label: 'Blog', iconName: faNewspaper, href: '/blog' },
