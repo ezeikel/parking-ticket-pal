@@ -39,8 +39,9 @@ next-env.d.ts
 # Sentry Config File
 .sentryclirc
 
-# data
-/data
+# data (except templates which are source code)
+/data/*
+!/data/templates
 
 # Sentry Config File
 .env.sentry-build-plugin
