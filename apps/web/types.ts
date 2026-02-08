@@ -268,6 +268,9 @@ export type EventProperties = {
   [TRACKING_EVENTS.HERO_UPLOAD_STARTED]: {
     fileType: string;
     fileSize: number;
+    compressedFileSize?: number;
+    wasCompressed?: boolean;
+    compressionRatio?: number;
   };
   [TRACKING_EVENTS.HERO_UPLOAD_COMPLETED]: {
     fileType: string;
