@@ -283,6 +283,10 @@ function inferContentType(pathname: string): string {
     heic: 'image/heic',
     heif: 'image/heif',
 
+    // Video
+    mp4: 'video/mp4',
+    webm: 'video/webm',
+
     // Documents
     pdf: 'application/pdf',
     json: 'application/json',

@@ -19,11 +19,13 @@ import { TRACKING_EVENTS } from '@/constants/events';
 import { compressImage } from '@/utils/compressImage';
 import { useScrollDepthTracking } from '@/hooks/useScrollDepthTracking';
 
+const R2_ASSETS_URL = 'https://assets.parkingticketpal.com';
+
 const HERO_VIDEOS = [
-  '/videos/hero-london-01-box-junction.mp4',
-  '/videos/hero-london-02-double-yellow-warden.mp4',
-  '/videos/hero-london-03-bus-lane.mp4',
-  '/videos/hero-london-04-resident-bay-permit.mp4',
+  `${R2_ASSETS_URL}/static/videos/hero/hero-london-01-box-junction.mp4`,
+  `${R2_ASSETS_URL}/static/videos/hero/hero-london-02-double-yellow-warden.mp4`,
+  `${R2_ASSETS_URL}/static/videos/hero/hero-london-03-bus-lane.mp4`,
+  `${R2_ASSETS_URL}/static/videos/hero/hero-london-04-resident-bay-permit.mp4`,
 ];
 
 const HERO_IMAGES = [

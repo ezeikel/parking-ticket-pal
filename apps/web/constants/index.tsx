@@ -1156,6 +1156,11 @@ export const STORAGE_PATHS = {
   AUTOMATION_SCREENSHOT: 'automation/%s/screenshot-%s.png', // automation/{ticketId}/screenshot-{timestamp}.png
 
   // ============================================================================
+  // Static marketing assets
+  // ============================================================================
+  HERO_VIDEO: 'static/videos/hero/%s', // static/videos/hero/{filename}
+
+  // ============================================================================
   // Temporary uploads (auto-cleanup)
   // ============================================================================
   TEMP_UPLOAD: 'temp/%s/%s.%s', // temp/{userId}/{timestamp}.{ext}
