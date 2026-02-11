@@ -344,6 +344,7 @@ export type LondonTribunalCaseWhereInput = {
   reasons?: Prisma.StringFilter<"LondonTribunalCase"> | string
   scrapedAt?: Prisma.DateTimeFilter<"LondonTribunalCase"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"LondonTribunalCase"> | Date | string
+  videos?: Prisma.TribunalCaseVideoListRelationFilter
 }
 
 export type LondonTribunalCaseOrderByWithRelationInput = {
@@ -368,6 +369,7 @@ export type LondonTribunalCaseOrderByWithRelationInput = {
   reasons?: Prisma.SortOrder
   scrapedAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
+  videos?: Prisma.TribunalCaseVideoOrderByRelationAggregateInput
 }
 
 export type LondonTribunalCaseWhereUniqueInput = Prisma.AtLeast<{
@@ -395,6 +397,7 @@ export type LondonTribunalCaseWhereUniqueInput = Prisma.AtLeast<{
   reasons?: Prisma.StringFilter<"LondonTribunalCase"> | string
   scrapedAt?: Prisma.DateTimeFilter<"LondonTribunalCase"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"LondonTribunalCase"> | Date | string
+  videos?: Prisma.TribunalCaseVideoListRelationFilter
 }, "id" | "caseReference">
 
 export type LondonTribunalCaseOrderByWithAggregationInput = {
@@ -475,6 +478,7 @@ export type LondonTribunalCaseCreateInput = {
   reasons: string
   scrapedAt?: Date | string
   updatedAt?: Date | string
+  videos?: Prisma.TribunalCaseVideoCreateNestedManyWithoutCaseInput
 }
 
 export type LondonTribunalCaseUncheckedCreateInput = {
@@ -499,6 +503,7 @@ export type LondonTribunalCaseUncheckedCreateInput = {
   reasons: string
   scrapedAt?: Date | string
   updatedAt?: Date | string
+  videos?: Prisma.TribunalCaseVideoUncheckedCreateNestedManyWithoutCaseInput
 }
 
 export type LondonTribunalCaseUpdateInput = {
@@ -523,6 +528,7 @@ export type LondonTribunalCaseUpdateInput = {
   reasons?: Prisma.StringFieldUpdateOperationsInput | string
   scrapedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  videos?: Prisma.TribunalCaseVideoUpdateManyWithoutCaseNestedInput
 }
 
 export type LondonTribunalCaseUncheckedUpdateInput = {
@@ -547,6 +553,7 @@ export type LondonTribunalCaseUncheckedUpdateInput = {
   reasons?: Prisma.StringFieldUpdateOperationsInput | string
   scrapedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  videos?: Prisma.TribunalCaseVideoUncheckedUpdateManyWithoutCaseNestedInput
 }
 
 export type LondonTribunalCaseCreateManyInput = {
@@ -701,6 +708,11 @@ export type LondonTribunalCaseSumOrderByAggregateInput = {
   penaltyAmount?: Prisma.SortOrder
 }
 
+export type LondonTribunalCaseScalarRelationFilter = {
+  is?: Prisma.LondonTribunalCaseWhereInput
+  isNot?: Prisma.LondonTribunalCaseWhereInput
+}
+
 export type NullableDecimalFieldUpdateOperationsInput = {
   set?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   increment?: runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -713,6 +725,161 @@ export type EnumAppealDecisionFieldUpdateOperationsInput = {
   set?: $Enums.AppealDecision
 }
 
+export type LondonTribunalCaseCreateNestedOneWithoutVideosInput = {
+  create?: Prisma.XOR<Prisma.LondonTribunalCaseCreateWithoutVideosInput, Prisma.LondonTribunalCaseUncheckedCreateWithoutVideosInput>
+  connectOrCreate?: Prisma.LondonTribunalCaseCreateOrConnectWithoutVideosInput
+  connect?: Prisma.LondonTribunalCaseWhereUniqueInput
+}
+
+export type LondonTribunalCaseUpdateOneRequiredWithoutVideosNestedInput = {
+  create?: Prisma.XOR<Prisma.LondonTribunalCaseCreateWithoutVideosInput, Prisma.LondonTribunalCaseUncheckedCreateWithoutVideosInput>
+  connectOrCreate?: Prisma.LondonTribunalCaseCreateOrConnectWithoutVideosInput
+  upsert?: Prisma.LondonTribunalCaseUpsertWithoutVideosInput
+  connect?: Prisma.LondonTribunalCaseWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.LondonTribunalCaseUpdateToOneWithWhereWithoutVideosInput, Prisma.LondonTribunalCaseUpdateWithoutVideosInput>, Prisma.LondonTribunalCaseUncheckedUpdateWithoutVideosInput>
+}
+
+export type LondonTribunalCaseCreateWithoutVideosInput = {
+  id?: string
+  caseReference: string
+  declarant?: string | null
+  authority: string
+  normalizedIssuerId?: string | null
+  vrm?: string | null
+  pcn?: string | null
+  contraventionDate?: Date | string | null
+  contraventionTime?: string | null
+  contraventionLocation?: string | null
+  penaltyAmount?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  contravention?: string | null
+  normalizedContraventionCode?: string | null
+  referralDate?: Date | string | null
+  decisionDate?: Date | string | null
+  adjudicator?: string | null
+  appealDecision: $Enums.AppealDecision
+  direction?: string | null
+  reasons: string
+  scrapedAt?: Date | string
+  updatedAt?: Date | string
+}
+
+export type LondonTribunalCaseUncheckedCreateWithoutVideosInput = {
+  id?: string
+  caseReference: string
+  declarant?: string | null
+  authority: string
+  normalizedIssuerId?: string | null
+  vrm?: string | null
+  pcn?: string | null
+  contraventionDate?: Date | string | null
+  contraventionTime?: string | null
+  contraventionLocation?: string | null
+  penaltyAmount?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  contravention?: string | null
+  normalizedContraventionCode?: string | null
+  referralDate?: Date | string | null
+  decisionDate?: Date | string | null
+  adjudicator?: string | null
+  appealDecision: $Enums.AppealDecision
+  direction?: string | null
+  reasons: string
+  scrapedAt?: Date | string
+  updatedAt?: Date | string
+}
+
+export type LondonTribunalCaseCreateOrConnectWithoutVideosInput = {
+  where: Prisma.LondonTribunalCaseWhereUniqueInput
+  create: Prisma.XOR<Prisma.LondonTribunalCaseCreateWithoutVideosInput, Prisma.LondonTribunalCaseUncheckedCreateWithoutVideosInput>
+}
+
+export type LondonTribunalCaseUpsertWithoutVideosInput = {
+  update: Prisma.XOR<Prisma.LondonTribunalCaseUpdateWithoutVideosInput, Prisma.LondonTribunalCaseUncheckedUpdateWithoutVideosInput>
+  create: Prisma.XOR<Prisma.LondonTribunalCaseCreateWithoutVideosInput, Prisma.LondonTribunalCaseUncheckedCreateWithoutVideosInput>
+  where?: Prisma.LondonTribunalCaseWhereInput
+}
+
+export type LondonTribunalCaseUpdateToOneWithWhereWithoutVideosInput = {
+  where?: Prisma.LondonTribunalCaseWhereInput
+  data: Prisma.XOR<Prisma.LondonTribunalCaseUpdateWithoutVideosInput, Prisma.LondonTribunalCaseUncheckedUpdateWithoutVideosInput>
+}
+
+export type LondonTribunalCaseUpdateWithoutVideosInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  caseReference?: Prisma.StringFieldUpdateOperationsInput | string
+  declarant?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  authority?: Prisma.StringFieldUpdateOperationsInput | string
+  normalizedIssuerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  vrm?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pcn?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  contraventionDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  contraventionTime?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  contraventionLocation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  penaltyAmount?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  contravention?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  normalizedContraventionCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  referralDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  decisionDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  adjudicator?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  appealDecision?: Prisma.EnumAppealDecisionFieldUpdateOperationsInput | $Enums.AppealDecision
+  direction?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  reasons?: Prisma.StringFieldUpdateOperationsInput | string
+  scrapedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+}
+
+export type LondonTribunalCaseUncheckedUpdateWithoutVideosInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  caseReference?: Prisma.StringFieldUpdateOperationsInput | string
+  declarant?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  authority?: Prisma.StringFieldUpdateOperationsInput | string
+  normalizedIssuerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  vrm?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pcn?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  contraventionDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  contraventionTime?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  contraventionLocation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  penaltyAmount?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  contravention?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  normalizedContraventionCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  referralDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  decisionDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  adjudicator?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  appealDecision?: Prisma.EnumAppealDecisionFieldUpdateOperationsInput | $Enums.AppealDecision
+  direction?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  reasons?: Prisma.StringFieldUpdateOperationsInput | string
+  scrapedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+}
+
+
+/**
+ * Count Type LondonTribunalCaseCountOutputType
+ */
+
+export type LondonTribunalCaseCountOutputType = {
+  videos: number
+}
+
+export type LondonTribunalCaseCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  videos?: boolean | LondonTribunalCaseCountOutputTypeCountVideosArgs
+}
+
+/**
+ * LondonTribunalCaseCountOutputType without action
+ */
+export type LondonTribunalCaseCountOutputTypeDefaultArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the LondonTribunalCaseCountOutputType
+   */
+  select?: Prisma.LondonTribunalCaseCountOutputTypeSelect<ExtArgs> | null
+}
+
+/**
+ * LondonTribunalCaseCountOutputType without action
+ */
+export type LondonTribunalCaseCountOutputTypeCountVideosArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.TribunalCaseVideoWhereInput
+}
 
 
 export type LondonTribunalCaseSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -737,6 +904,8 @@ export type LondonTribunalCaseSelect<ExtArgs extends runtime.Types.Extensions.In
   reasons?: boolean
   scrapedAt?: boolean
   updatedAt?: boolean
+  videos?: boolean | Prisma.LondonTribunalCase$videosArgs<ExtArgs>
+  _count?: boolean | Prisma.LondonTribunalCaseCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["londonTribunalCase"]>
 
 export type LondonTribunalCaseSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -812,10 +981,18 @@ export type LondonTribunalCaseSelectScalar = {
 }
 
 export type LondonTribunalCaseOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "caseReference" | "declarant" | "authority" | "normalizedIssuerId" | "vrm" | "pcn" | "contraventionDate" | "contraventionTime" | "contraventionLocation" | "penaltyAmount" | "contravention" | "normalizedContraventionCode" | "referralDate" | "decisionDate" | "adjudicator" | "appealDecision" | "direction" | "reasons" | "scrapedAt" | "updatedAt", ExtArgs["result"]["londonTribunalCase"]>
+export type LondonTribunalCaseInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  videos?: boolean | Prisma.LondonTribunalCase$videosArgs<ExtArgs>
+  _count?: boolean | Prisma.LondonTribunalCaseCountOutputTypeDefaultArgs<ExtArgs>
+}
+export type LondonTribunalCaseIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {}
+export type LondonTribunalCaseIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {}
 
 export type $LondonTribunalCasePayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "LondonTribunalCase"
-  objects: {}
+  objects: {
+    videos: Prisma.$TribunalCaseVideoPayload<ExtArgs>[]
+  }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
     caseReference: string
@@ -1232,6 +1409,7 @@ readonly fields: LondonTribunalCaseFieldRefs;
  */
 export interface Prisma__LondonTribunalCaseClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
+  videos<T extends Prisma.LondonTribunalCase$videosArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.LondonTribunalCase$videosArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$TribunalCaseVideoPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1299,6 +1477,10 @@ export type LondonTribunalCaseFindUniqueArgs<ExtArgs extends runtime.Types.Exten
    */
   omit?: Prisma.LondonTribunalCaseOmit<ExtArgs> | null
   /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.LondonTribunalCaseInclude<ExtArgs> | null
+  /**
    * Filter, which LondonTribunalCase to fetch.
    */
   where: Prisma.LondonTribunalCaseWhereUniqueInput
@@ -1317,6 +1499,10 @@ export type LondonTribunalCaseFindUniqueOrThrowArgs<ExtArgs extends runtime.Type
    */
   omit?: Prisma.LondonTribunalCaseOmit<ExtArgs> | null
   /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.LondonTribunalCaseInclude<ExtArgs> | null
+  /**
    * Filter, which LondonTribunalCase to fetch.
    */
   where: Prisma.LondonTribunalCaseWhereUniqueInput
@@ -1334,6 +1520,10 @@ export type LondonTribunalCaseFindFirstArgs<ExtArgs extends runtime.Types.Extens
    * Omit specific fields from the LondonTribunalCase
    */
   omit?: Prisma.LondonTribunalCaseOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.LondonTribunalCaseInclude<ExtArgs> | null
   /**
    * Filter, which LondonTribunalCase to fetch.
    */
@@ -1383,6 +1573,10 @@ export type LondonTribunalCaseFindFirstOrThrowArgs<ExtArgs extends runtime.Types
    */
   omit?: Prisma.LondonTribunalCaseOmit<ExtArgs> | null
   /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.LondonTribunalCaseInclude<ExtArgs> | null
+  /**
    * Filter, which LondonTribunalCase to fetch.
    */
   where?: Prisma.LondonTribunalCaseWhereInput
@@ -1431,6 +1625,10 @@ export type LondonTribunalCaseFindManyArgs<ExtArgs extends runtime.Types.Extensi
    */
   omit?: Prisma.LondonTribunalCaseOmit<ExtArgs> | null
   /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.LondonTribunalCaseInclude<ExtArgs> | null
+  /**
    * Filter, which LondonTribunalCases to fetch.
    */
   where?: Prisma.LondonTribunalCaseWhereInput
@@ -1473,6 +1671,10 @@ export type LondonTribunalCaseCreateArgs<ExtArgs extends runtime.Types.Extension
    * Omit specific fields from the LondonTribunalCase
    */
   omit?: Prisma.LondonTribunalCaseOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.LondonTribunalCaseInclude<ExtArgs> | null
   /**
    * The data needed to create a LondonTribunalCase.
    */
@@ -1521,6 +1723,10 @@ export type LondonTribunalCaseUpdateArgs<ExtArgs extends runtime.Types.Extension
    * Omit specific fields from the LondonTribunalCase
    */
   omit?: Prisma.LondonTribunalCaseOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.LondonTribunalCaseInclude<ExtArgs> | null
   /**
    * The data needed to update a LondonTribunalCase.
    */
@@ -1588,6 +1794,10 @@ export type LondonTribunalCaseUpsertArgs<ExtArgs extends runtime.Types.Extension
    */
   omit?: Prisma.LondonTribunalCaseOmit<ExtArgs> | null
   /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.LondonTribunalCaseInclude<ExtArgs> | null
+  /**
    * The filter to search for the LondonTribunalCase to update in case it exists.
    */
   where: Prisma.LondonTribunalCaseWhereUniqueInput
@@ -1614,6 +1824,10 @@ export type LondonTribunalCaseDeleteArgs<ExtArgs extends runtime.Types.Extension
    */
   omit?: Prisma.LondonTribunalCaseOmit<ExtArgs> | null
   /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.LondonTribunalCaseInclude<ExtArgs> | null
+  /**
    * Filter which LondonTribunalCase to delete.
    */
   where: Prisma.LondonTribunalCaseWhereUniqueInput
@@ -1634,6 +1848,30 @@ export type LondonTribunalCaseDeleteManyArgs<ExtArgs extends runtime.Types.Exten
 }
 
 /**
+ * LondonTribunalCase.videos
+ */
+export type LondonTribunalCase$videosArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the TribunalCaseVideo
+   */
+  select?: Prisma.TribunalCaseVideoSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the TribunalCaseVideo
+   */
+  omit?: Prisma.TribunalCaseVideoOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.TribunalCaseVideoInclude<ExtArgs> | null
+  where?: Prisma.TribunalCaseVideoWhereInput
+  orderBy?: Prisma.TribunalCaseVideoOrderByWithRelationInput | Prisma.TribunalCaseVideoOrderByWithRelationInput[]
+  cursor?: Prisma.TribunalCaseVideoWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.TribunalCaseVideoScalarFieldEnum | Prisma.TribunalCaseVideoScalarFieldEnum[]
+}
+
+/**
  * LondonTribunalCase without action
  */
 export type LondonTribunalCaseDefaultArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -1645,4 +1883,8 @@ export type LondonTribunalCaseDefaultArgs<ExtArgs extends runtime.Types.Extensio
    * Omit specific fields from the LondonTribunalCase
    */
   omit?: Prisma.LondonTribunalCaseOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.LondonTribunalCaseInclude<ExtArgs> | null
 }

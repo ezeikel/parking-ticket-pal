@@ -562,6 +562,7 @@ model LondonTribunalCase {
   reasons                     String         @db.Text
   scrapedAt                   DateTime       @default(now())
   updatedAt                   DateTime       @updatedAt
+  videos                      TribunalCaseVideo[]
 
   @@index([authority, contravention])
   @@index([normalizedIssuerId, normalizedContraventionCode])
@@ -781,4 +782,45 @@ model IssuerHealthCheck {
   @@index([issuerId, checkedAt])
   @@index([status])
   @@map("issuer_health_checks")
+}
+
+// ============================================================================
+// Tribunal Case Video Pipeline
+// ============================================================================
+
+enum VideoStatus {
+  PENDING
+  SCRIPTING
+  VOICEOVER
+  RENDERING
+  POSTING
+  COMPLETED
+  FAILED
+}
+
+model TribunalCaseVideo {
+  id                 String             @id @default(cuid())
+  caseId             String
+  case               LondonTribunalCase @relation(fields: [caseId], references: [id])
+  interestScore      Float
+  script             String             @db.Text
+  scriptSegments     Json?
+  voiceoverUrl       String?
+  voiceoverDuration  Float?
+  wordTimestamps     Json?
+  backgroundMusicUrl String?
+  verdictSfxUrl      String?
+  transitionSfxUrl   String?
+  sceneImages        Json?
+  videoUrl           String?
+  coverImageUrl      String?
+  status             VideoStatus        @default(PENDING)
+  postingResults     Json?
+  errorMessage       String?
+  createdAt          DateTime           @default(now())
+  updatedAt          DateTime           @updatedAt
+
+  @@index([caseId])
+  @@index([status])
+  @@map("tribunal_case_videos")
 }

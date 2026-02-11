@@ -409,7 +409,8 @@ export const ModelName = {
   PendingIssuer: 'PendingIssuer',
   PendingChallenge: 'PendingChallenge',
   PendingTicket: 'PendingTicket',
-  IssuerHealthCheck: 'IssuerHealthCheck'
+  IssuerHealthCheck: 'IssuerHealthCheck',
+  TribunalCaseVideo: 'TribunalCaseVideo'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -425,7 +426,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "vehicle" | "ticket" | "media" | "letter" | "subscription" | "reminder" | "form" | "prediction" | "amountIncrease" | "verification" | "challenge" | "notification" | "pushToken" | "account" | "session" | "verificationToken" | "londonTribunalCase" | "appealDataSource" | "contraventionStats" | "issuerContraventionStats" | "appealPattern" | "pendingIssuer" | "pendingChallenge" | "pendingTicket" | "issuerHealthCheck"
+    modelProps: "user" | "vehicle" | "ticket" | "media" | "letter" | "subscription" | "reminder" | "form" | "prediction" | "amountIncrease" | "verification" | "challenge" | "notification" | "pushToken" | "account" | "session" | "verificationToken" | "londonTribunalCase" | "appealDataSource" | "contraventionStats" | "issuerContraventionStats" | "appealPattern" | "pendingIssuer" | "pendingChallenge" | "pendingTicket" | "issuerHealthCheck" | "tribunalCaseVideo"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -2353,6 +2354,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    TribunalCaseVideo: {
+      payload: Prisma.$TribunalCaseVideoPayload<ExtArgs>
+      fields: Prisma.TribunalCaseVideoFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.TribunalCaseVideoFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TribunalCaseVideoPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.TribunalCaseVideoFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TribunalCaseVideoPayload>
+        }
+        findFirst: {
+          args: Prisma.TribunalCaseVideoFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TribunalCaseVideoPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.TribunalCaseVideoFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TribunalCaseVideoPayload>
+        }
+        findMany: {
+          args: Prisma.TribunalCaseVideoFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TribunalCaseVideoPayload>[]
+        }
+        create: {
+          args: Prisma.TribunalCaseVideoCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TribunalCaseVideoPayload>
+        }
+        createMany: {
+          args: Prisma.TribunalCaseVideoCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.TribunalCaseVideoCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TribunalCaseVideoPayload>[]
+        }
+        delete: {
+          args: Prisma.TribunalCaseVideoDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TribunalCaseVideoPayload>
+        }
+        update: {
+          args: Prisma.TribunalCaseVideoUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TribunalCaseVideoPayload>
+        }
+        deleteMany: {
+          args: Prisma.TribunalCaseVideoDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.TribunalCaseVideoUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.TribunalCaseVideoUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TribunalCaseVideoPayload>[]
+        }
+        upsert: {
+          args: Prisma.TribunalCaseVideoUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TribunalCaseVideoPayload>
+        }
+        aggregate: {
+          args: Prisma.TribunalCaseVideoAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateTribunalCaseVideo>
+        }
+        groupBy: {
+          args: Prisma.TribunalCaseVideoGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.TribunalCaseVideoGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.TribunalCaseVideoCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.TribunalCaseVideoCountAggregateOutputType> | number
+        }
+      }
+    }
   }
 } & {
   other: {
@@ -2827,6 +2902,31 @@ export const IssuerHealthCheckScalarFieldEnum = {
 } as const
 
 export type IssuerHealthCheckScalarFieldEnum = (typeof IssuerHealthCheckScalarFieldEnum)[keyof typeof IssuerHealthCheckScalarFieldEnum]
+
+
+export const TribunalCaseVideoScalarFieldEnum = {
+  id: 'id',
+  caseId: 'caseId',
+  interestScore: 'interestScore',
+  script: 'script',
+  scriptSegments: 'scriptSegments',
+  voiceoverUrl: 'voiceoverUrl',
+  voiceoverDuration: 'voiceoverDuration',
+  wordTimestamps: 'wordTimestamps',
+  backgroundMusicUrl: 'backgroundMusicUrl',
+  verdictSfxUrl: 'verdictSfxUrl',
+  transitionSfxUrl: 'transitionSfxUrl',
+  sceneImages: 'sceneImages',
+  videoUrl: 'videoUrl',
+  coverImageUrl: 'coverImageUrl',
+  status: 'status',
+  postingResults: 'postingResults',
+  errorMessage: 'errorMessage',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type TribunalCaseVideoScalarFieldEnum = (typeof TribunalCaseVideoScalarFieldEnum)[keyof typeof TribunalCaseVideoScalarFieldEnum]
 
 
 export const SortOrder = {
@@ -3379,6 +3479,20 @@ export type EnumIssuerHealthStatusFieldRefInput<$PrismaModel> = FieldRefInputTyp
 export type ListEnumIssuerHealthStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'IssuerHealthStatus[]'>
     
 
+
+/**
+ * Reference to a field of type 'VideoStatus'
+ */
+export type EnumVideoStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'VideoStatus'>
+    
+
+
+/**
+ * Reference to a field of type 'VideoStatus[]'
+ */
+export type ListEnumVideoStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'VideoStatus[]'>
+    
+
 /**
  * Batch Payload for updateMany & deleteMany & createMany
  */
@@ -3500,6 +3614,7 @@ export type GlobalOmitConfig = {
   pendingChallenge?: Prisma.PendingChallengeOmit
   pendingTicket?: Prisma.PendingTicketOmit
   issuerHealthCheck?: Prisma.IssuerHealthCheckOmit
+  tribunalCaseVideo?: Prisma.TribunalCaseVideoOmit
 }
 
 /* Types for Logging */

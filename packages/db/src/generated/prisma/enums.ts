@@ -332,3 +332,16 @@ export const IssuerHealthStatus = {
 } as const
 
 export type IssuerHealthStatus = (typeof IssuerHealthStatus)[keyof typeof IssuerHealthStatus]
+
+
+export const VideoStatus = {
+  PENDING: 'PENDING',
+  SCRIPTING: 'SCRIPTING',
+  VOICEOVER: 'VOICEOVER',
+  RENDERING: 'RENDERING',
+  POSTING: 'POSTING',
+  COMPLETED: 'COMPLETED',
+  FAILED: 'FAILED'
+} as const
+
+export type VideoStatus = (typeof VideoStatus)[keyof typeof VideoStatus]
