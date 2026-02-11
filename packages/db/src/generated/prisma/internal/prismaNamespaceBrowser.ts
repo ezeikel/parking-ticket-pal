@@ -76,7 +76,8 @@ export const ModelName = {
   PendingIssuer: 'PendingIssuer',
   PendingChallenge: 'PendingChallenge',
   PendingTicket: 'PendingTicket',
-  IssuerHealthCheck: 'IssuerHealthCheck'
+  IssuerHealthCheck: 'IssuerHealthCheck',
+  TribunalCaseVideo: 'TribunalCaseVideo'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -530,6 +531,31 @@ export const IssuerHealthCheckScalarFieldEnum = {
 } as const
 
 export type IssuerHealthCheckScalarFieldEnum = (typeof IssuerHealthCheckScalarFieldEnum)[keyof typeof IssuerHealthCheckScalarFieldEnum]
+
+
+export const TribunalCaseVideoScalarFieldEnum = {
+  id: 'id',
+  caseId: 'caseId',
+  interestScore: 'interestScore',
+  script: 'script',
+  scriptSegments: 'scriptSegments',
+  voiceoverUrl: 'voiceoverUrl',
+  voiceoverDuration: 'voiceoverDuration',
+  wordTimestamps: 'wordTimestamps',
+  backgroundMusicUrl: 'backgroundMusicUrl',
+  verdictSfxUrl: 'verdictSfxUrl',
+  transitionSfxUrl: 'transitionSfxUrl',
+  sceneImages: 'sceneImages',
+  videoUrl: 'videoUrl',
+  coverImageUrl: 'coverImageUrl',
+  status: 'status',
+  postingResults: 'postingResults',
+  errorMessage: 'errorMessage',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type TribunalCaseVideoScalarFieldEnum = (typeof TribunalCaseVideoScalarFieldEnum)[keyof typeof TribunalCaseVideoScalarFieldEnum]
 
 
 export const SortOrder = {

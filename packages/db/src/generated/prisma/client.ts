@@ -169,3 +169,8 @@ export type PendingTicket = Prisma.PendingTicketModel
  * 
  */
 export type IssuerHealthCheck = Prisma.IssuerHealthCheckModel
+/**
+ * Model TribunalCaseVideo
+ * 
+ */
+export type TribunalCaseVideo = Prisma.TribunalCaseVideoModel

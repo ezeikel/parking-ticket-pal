@@ -1,5 +1,6 @@
 import { openai } from '@ai-sdk/openai';
 import { google } from '@ai-sdk/google';
+import { anthropic } from '@ai-sdk/anthropic';
 import type { LanguageModelV2, LanguageModelV3 } from '@ai-sdk/provider';
 import { withTracing } from '@posthog/ai';
 import { posthogServer } from '@/lib/posthog-server';
@@ -32,6 +33,9 @@ export const MODEL_IDS = {
   GEMINI_3_PRO: 'gemini-3-pro-preview',
   // Image generation model (use with generateText, not generateImage)
   GEMINI_3_PRO_IMAGE: 'gemini-3-pro-image-preview',
+
+  // Anthropic Claude models
+  CLAUDE_SONNET_4_5: 'claude-sonnet-4-5-20250929',
 } as const;
 
 // Pre-configured model instances
@@ -60,6 +64,10 @@ export const models = {
 
   // Legacy image model - for backwards compatibility
   imageLegacy: openai.image(MODEL_IDS.DALL_E_3),
+
+  // Creative writing model (Claude Sonnet 4.5)
+  // Best for: engaging scripts, storytelling, creative content generation
+  creative: anthropic(MODEL_IDS.CLAUDE_SONNET_4_5),
 };
 
 // Image generation defaults
