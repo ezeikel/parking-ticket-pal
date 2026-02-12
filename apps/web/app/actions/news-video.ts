@@ -9,6 +9,7 @@ import { createServerLogger } from '@/lib/logger';
 import { put } from '@/lib/storage';
 import { models, getTracedModel } from '@/lib/ai/models';
 import { sendSocialDigest, type SocialDigestCaption } from '@/lib/email';
+import { getRandomMusicTrack } from '@/lib/music';
 
 const logger = createServerLogger({ action: 'news-video' });
 
@@ -223,7 +224,7 @@ const newsScriptSchema = z.object({
     .describe('Call to action — ask a question, spark debate, invite comments (1-2 sentences)'),
   fullScript: z
     .string()
-    .describe('The complete script as one continuous piece, combining all segments. 180-230 words.'),
+    .describe('The complete script as one continuous piece, combining all segments. 200-250 words.'),
   sceneImagePrompts: z
     .object({
       hook: z.string().describe('Image prompt for the hook scene'),
@@ -253,9 +254,9 @@ const generateNewsScript = async (article: {
       properties: { feature: 'news_video_script' },
     }),
     schema: newsScriptSchema,
-    prompt: `You are writing a script for a 50-70 second social media video (Instagram Reel / TikTok / YouTube Short) about a real UK motorist news story.
+    prompt: `You are writing a script for a 60-90 second social media video (Instagram Reel / TikTok / YouTube Short) about a real UK motorist news story.
 
-The video tells the story in an educational, engaging way — like a knowledgeable friend explaining what's happening and what it means for drivers.
+The video tells the story in an educational, engaging way — like a knowledgeable friend explaining what happened and what we can learn from it.
 
 ARTICLE:
 - Headline: ${article.headline}
@@ -265,22 +266,22 @@ ARTICLE:
 
 WRITING GUIDELINES:
 - Conversational but informative British English
-- Third person perspective — "drivers could face...", "councils are now..."
-- Start with a question or surprising statement that makes people stop scrolling
-- Build suspense before revealing the key detail
+- Third person ("drivers could face...", "councils are now...", "a motorist was fined...")
 - Reference specific facts, numbers, dates, and locations from the article
-- Frame as educational: "here's what's changing and what it means for you"
-- End with actionable advice or a thought-provoking question
-- Target 180-230 words total (~50-70 seconds at natural speech pace)
+- Frame as educational: "here's what's happening and what we can learn from it"
+- Build suspense before revealing the key detail
+- End with actionable advice viewers can use
+- Target 200-250 words total (~70-90 seconds at natural speech pace)
 - Keep sentences short and punchy — this is spoken, not written
 - Simplify any legal or technical language for a general audience
+- Cite real facts from the article to add credibility
 
 SEGMENT GUIDELINES:
 - hook: Start with a question or surprising statement that makes people stop scrolling. Reference a specific detail from the story.
 - context: The core facts — what's happening, who's involved, where. Use real details from the article.
-- keyDetail: The twist or detail that makes this story interesting — the surprising statistic, the hidden catch, or the unexpected consequence.
+- keyDetail: The twist or detail that makes this story interesting — the surprising statistic, the hidden catch, or the unexpected consequence. Cite actual facts.
 - impact: What this means for everyday drivers — make it practical and relatable.
-- cta: One clear takeaway or a thought-provoking question. What should drivers know or do?
+- cta: One clear, practical piece of advice based on this story. What can other drivers learn or do?
 
 The fullScript should flow naturally when read aloud — it's the voiceover script.
 
@@ -413,47 +414,6 @@ const generateVoiceoverWithTimestamps = async (
 // ============================================================================
 
 /**
- * Generate news-style background music.
- */
-const generateBackgroundMusic = async (): Promise<string | null> => {
-  if (!elevenlabs) {
-    logger.info('ElevenLabs not configured, skipping background music');
-    return null;
-  }
-
-  try {
-    logger.info('Generating news background music');
-
-    const audioStream = await elevenlabs.textToSoundEffects.convert({
-      text: 'subtle tense suspenseful background music, dramatic, news broadcast feel, modern electronic, steady pulse, seamless loop',
-      duration_seconds: 20,
-    });
-
-    const chunks: Buffer[] = [];
-    for await (const chunk of audioStream) {
-      chunks.push(Buffer.from(chunk));
-    }
-    const buffer = Buffer.concat(chunks);
-
-    const timestamp = Date.now();
-    const r2Path = `social/music/news-${timestamp}.mp3`;
-    const { url } = await put(r2Path, buffer, {
-      contentType: 'audio/mpeg',
-    });
-
-    logger.info('Background music generated', { url });
-    return url;
-  } catch (error) {
-    logger.error(
-      'Background music generation failed',
-      {},
-      error instanceof Error ? error : new Error(String(error))
-    );
-    return null;
-  }
-};
-
-/**
  * Generate sound effects for news reel (transition whoosh + news alert).
  */
 const generateSoundEffects = async (): Promise<{
@@ -501,7 +461,7 @@ const generateSoundEffects = async (): Promise<{
   };
 
   const [transitionSfxUrl, newsSfxUrl] = await Promise.all([
-    generateSfx('soft whoosh, gentle air movement, clean minimal cinematic transition swoosh', 1, 'transition'),
+    generateSfx('crisp paper page turn flip sound, single clean page flip, short snappy', 1, 'transition'),
     generateSfx('short bright digital chime, then a subtle low braam, modern news broadcast alert sting', 2, 'news-alert'),
   ]);
 
@@ -815,10 +775,11 @@ export const generateAndPostNewsVideo = async () => {
 
     logger.info('Script generated, generating audio + images');
 
-    // 4. Generate voiceover + music + SFX + scene images in parallel
-    const [voiceover, backgroundMusicUrl, sfx, sceneImages] = await Promise.all([
+    // 4. Generate voiceover + SFX + scene images in parallel; pick curated music track
+    const backgroundMusicUrl = getRandomMusicTrack('news');
+
+    const [voiceover, sfx, sceneImages] = await Promise.all([
       generateVoiceoverWithTimestamps(script.fullScript),
-      generateBackgroundMusic(),
       generateSoundEffects(),
       generateSceneImages(script.sceneImagePrompts),
     ]);

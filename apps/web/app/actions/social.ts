@@ -11,6 +11,7 @@ import { createServerLogger } from '@/lib/logger';
 import { put } from '@/lib/storage';
 import { models, getTracedModel } from '@/lib/ai/models';
 import { sendSocialDigest, type SocialDigestCaption } from '@/lib/email';
+import { getRandomMusicTrack } from '@/lib/music';
 
 const logger = createServerLogger({ action: 'social' });
 
@@ -649,53 +650,6 @@ const generateVoiceover = async (text: string): Promise<string | null> => {
 };
 
 /**
- * Generate loopable ambient background music using ElevenLabs Sound Effects
- * Returns URL of uploaded audio file, or null if ElevenLabs not configured
- */
-const generateBackgroundMusic = async (
-  durationSeconds: number,
-): Promise<string | null> => {
-  if (!elevenlabs) {
-    logger.info('ElevenLabs not configured, skipping background music');
-    return null;
-  }
-
-  try {
-    logger.info('Generating background music with ElevenLabs', {
-      durationSeconds,
-    });
-
-    const audioStream = await elevenlabs.textToSoundEffects.convert({
-      text: 'calm ambient corporate background music, subtle, professional, modern',
-      duration_seconds: durationSeconds,
-    });
-
-    // Collect stream chunks into buffer
-    const chunks: Buffer[] = [];
-    for await (const chunk of audioStream) {
-      chunks.push(Buffer.from(chunk));
-    }
-    const buffer = Buffer.concat(chunks);
-
-    // Upload to temp storage
-    const fileName = `social/audio/music/${Date.now()}-${Math.random().toString(36).substring(2)}.mp3`;
-    const { url } = await put(fileName, buffer, {
-      contentType: 'audio/mpeg',
-    });
-
-    logger.info('Background music generated and uploaded', { url });
-    return url;
-  } catch (error) {
-    logger.error(
-      'Error generating background music',
-      { durationSeconds },
-      error instanceof Error ? error : new Error(String(error)),
-    );
-    return null; // Non-fatal, continue without music
-  }
-};
-
-/**
  * Generate Instagram Reel caption (different tone than static post)
  */
 const generateInstagramReelCaption = async (post: Post): Promise<string> => {
@@ -756,12 +710,9 @@ const generateInstagramReelVideo = async (
     hook,
   });
 
-  // 2. Generate audio in parallel (non-blocking, returns null if fails)
-  const VIDEO_DURATION_SECONDS = 6;
-  const [voiceoverUrl, backgroundMusicUrl] = await Promise.all([
-    generateVoiceover(hook),
-    generateBackgroundMusic(VIDEO_DURATION_SECONDS),
-  ]);
+  // 2. Generate voiceover + pick curated music track
+  const backgroundMusicUrl = getRandomMusicTrack('blog');
+  const voiceoverUrl = await generateVoiceover(hook);
 
   logger.info('Audio generation complete', {
     slug: post.meta.slug,

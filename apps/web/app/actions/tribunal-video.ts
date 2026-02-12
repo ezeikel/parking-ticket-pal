@@ -8,6 +8,7 @@ import { createServerLogger } from '@/lib/logger';
 import { put } from '@/lib/storage';
 import { models, getTracedModel } from '@/lib/ai/models';
 import { sendSocialDigest, type SocialDigestCaption } from '@/lib/email';
+import { getRandomMusicTrack } from '@/lib/music';
 
 const logger = createServerLogger({ action: 'tribunal-video' });
 
@@ -365,57 +366,7 @@ const generateVoiceoverWithTimestamps = async (
 };
 
 // ============================================================================
-// Step 4: Generate background music
-// ============================================================================
-
-/**
- * Generate ambient background music for the video.
- */
-const generateBackgroundMusic = async (
-  durationSeconds: number
-): Promise<string | null> => {
-  if (!elevenlabs) {
-    logger.info('ElevenLabs not configured, skipping background music');
-    return null;
-  }
-
-  // ElevenLabs SFX API max is 22s, so cap at 20s and loop in the composition
-  const cappedDuration = Math.min(durationSeconds, 20);
-
-  try {
-    logger.info('Generating background music', { durationSeconds: cappedDuration });
-
-    const audioStream = await elevenlabs.textToSoundEffects.convert({
-      text: 'subtle tense suspenseful background music, dramatic, courtroom drama feel, modern, seamless loop',
-      duration_seconds: cappedDuration,
-    });
-
-    const chunks: Buffer[] = [];
-    for await (const chunk of audioStream) {
-      chunks.push(Buffer.from(chunk));
-    }
-    const buffer = Buffer.concat(chunks);
-
-    const timestamp = Date.now();
-    const r2Path = `social/music/tribunal-${timestamp}.mp3`;
-    const { url } = await put(r2Path, buffer, {
-      contentType: 'audio/mpeg',
-    });
-
-    logger.info('Background music generated', { url });
-    return url;
-  } catch (error) {
-    logger.error(
-      'Background music generation failed',
-      {},
-      error instanceof Error ? error : new Error(String(error))
-    );
-    return null; // Non-fatal
-  }
-};
-
-// ============================================================================
-// Step 4b: Generate sound effects
+// Step 4: Generate sound effects
 // ============================================================================
 
 /**
@@ -475,7 +426,7 @@ const generateSoundEffects = async (
 
   const [verdictSfxUrl, transitionSfxUrl] = await Promise.all([
     generateSfx(verdictText, 2, 'verdict'),
-    generateSfx('soft subtle page turn swoosh, gentle paper movement, clean minimal transition sound', 1, 'transition'),
+    generateSfx('crisp paper page turn flip sound, single clean page flip, short snappy', 1, 'transition'),
   ]);
 
   return { verdictSfxUrl, transitionSfxUrl };
@@ -777,10 +728,11 @@ export const generateAndPostTribunalVideo = async () => {
 
     logger.info('Script generated, generating voiceover');
 
-    // 4. Generate voiceover + background music + sound effects + scene images in parallel
-    const [voiceover, backgroundMusicUrl, sfx, sceneImages] = await Promise.all([
+    // 4. Generate voiceover + sound effects + scene images in parallel; pick curated music track
+    const backgroundMusicUrl = getRandomMusicTrack('tribunal');
+
+    const [voiceover, sfx, sceneImages] = await Promise.all([
       generateVoiceoverWithTimestamps(script.fullScript),
-      generateBackgroundMusic(20), // 20s loop — composition loops it
       generateSoundEffects(selectedCase.appealDecision),
       generateSceneImages(script.sceneImagePrompts),
     ]);

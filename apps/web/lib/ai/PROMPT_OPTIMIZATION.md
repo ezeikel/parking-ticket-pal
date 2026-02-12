@@ -123,9 +123,13 @@ model/service in the PTP pipeline.
 
 ---
 
-## ElevenLabs — Sound Effects API (Music + SFX)
+## ElevenLabs — Sound Effects API (SFX only)
 
-**Used for**: Background music, transition SFX, verdict SFX, news alert SFX
+**Used for**: Transition SFX, verdict SFX, news alert SFX
+
+> **Note**: Background music is now curated from Epidemic Sound and served from
+> R2 (`social/music/{category}/track-0N.mp3`). See `lib/music.ts` for the track
+> selection utility. ElevenLabs is no longer used for music generation.
 
 ### What works best
 
@@ -147,24 +151,6 @@ model/service in the PTP pipeline.
 - **Too many adjectives** (>5-6) — prompt gets diluted
 - **Asking for full songs** — the API is for sound design, not music production
 
-### Music-specific notes
-
-The SFX API is designed for sound design, not music production. It can generate
-"instrumental musical clips of up to 22 seconds" but there is no dedicated music
-prompting guide from ElevenLabs. What works:
-
-- **Mood + genre + instrument anchors**: "subtle tense suspenseful background
-  music, dramatic, news broadcast feel, modern electronic, steady pulse"
-- **"seamless loop"** at the end — enables the looping feature for continuous
-  playback
-- **Keep it ambient/textural** — the model handles background textures and loops
-  better than melodic compositions
-- **Iterate empirically** — music results are more variable than SFX; re-generate
-  if quality is poor
-
-If consistent high-quality music is needed, consider a dedicated AI music API
-(Suno, Udio) or curated royalty-free tracks.
-
 ### Technical constraints
 
 - **Max 22 seconds** for music, **30 seconds** for SFX — use `loop` in Remotion
@@ -174,12 +160,8 @@ If consistent high-quality music is needed, consider a dedicated AI music API
 ### Working prompts (PTP)
 
 ```
-# Background music (tribunal + news — both work well)
-subtle tense suspenseful background music, dramatic, courtroom drama feel, modern, seamless loop
-subtle tense suspenseful background music, dramatic, news broadcast feel, modern electronic, steady pulse, seamless loop
-
-# Transition SFX
-soft whoosh, gentle air movement, clean minimal cinematic transition swoosh
+# Transition SFX (page-turn style — used across news + tribunal reels)
+crisp paper page turn flip sound, single clean page flip, short snappy
 
 # Verdict SFX (allowed)
 single clean wooden gavel tap on sounding block, bright positive resolution chime, warm reverb, professional courtroom audio
@@ -229,5 +211,5 @@ short bright digital chime, then a subtle low braam, modern news broadcast alert
 | Google           | Gemini 3 Flash    | `models.analytics`| Scoring, analysis       | N/A                               |
 | Google           | Gemini 3 Pro Img  | `models.geminiImage`| Scene images          | Generic prompts = generic images  |
 | Perplexity       | Sonar             | `models.search`  | News discovery           | Returns YouTube without whitelist |
-| ElevenLabs       | SFX API           | —                | Music, SFX               | Vague prompts = bad audio         |
+| ElevenLabs       | SFX API           | —                | SFX only (music via R2)  | Vague prompts = bad audio         |
 | ElevenLabs       | TTS v3            | —                | Voiceover                | N/A                               |
