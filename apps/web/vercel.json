@@ -31,6 +31,22 @@
     {
       "path": "/api/tribunal-video/generate",
       "schedule": "0 10 * * 1,5"
+    },
+    {
+      "path": "/api/news-video/generate",
+      "schedule": "0 8 * * *"
+    },
+    {
+      "path": "/api/news-video/generate",
+      "schedule": "0 11 * * *"
+    },
+    {
+      "path": "/api/news-video/generate",
+      "schedule": "0 14 * * *"
+    },
+    {
+      "path": "/api/news-video/generate",
+      "schedule": "0 17 * * *"
     }
   ]
 }

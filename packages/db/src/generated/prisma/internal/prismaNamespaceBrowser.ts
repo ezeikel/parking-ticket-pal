@@ -77,7 +77,8 @@ export const ModelName = {
   PendingChallenge: 'PendingChallenge',
   PendingTicket: 'PendingTicket',
   IssuerHealthCheck: 'IssuerHealthCheck',
-  TribunalCaseVideo: 'TribunalCaseVideo'
+  TribunalCaseVideo: 'TribunalCaseVideo',
+  NewsVideo: 'NewsVideo'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -556,6 +557,37 @@ export const TribunalCaseVideoScalarFieldEnum = {
 } as const
 
 export type TribunalCaseVideoScalarFieldEnum = (typeof TribunalCaseVideoScalarFieldEnum)[keyof typeof TribunalCaseVideoScalarFieldEnum]
+
+
+export const NewsVideoScalarFieldEnum = {
+  id: 'id',
+  articleUrl: 'articleUrl',
+  articleUrlHash: 'articleUrlHash',
+  source: 'source',
+  headline: 'headline',
+  category: 'category',
+  summary: 'summary',
+  interestScore: 'interestScore',
+  script: 'script',
+  scriptSegments: 'scriptSegments',
+  sceneImagePrompts: 'sceneImagePrompts',
+  voiceoverUrl: 'voiceoverUrl',
+  voiceoverDuration: 'voiceoverDuration',
+  wordTimestamps: 'wordTimestamps',
+  backgroundMusicUrl: 'backgroundMusicUrl',
+  transitionSfxUrl: 'transitionSfxUrl',
+  newsSfxUrl: 'newsSfxUrl',
+  sceneImages: 'sceneImages',
+  videoUrl: 'videoUrl',
+  coverImageUrl: 'coverImageUrl',
+  status: 'status',
+  postingResults: 'postingResults',
+  errorMessage: 'errorMessage',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type NewsVideoScalarFieldEnum = (typeof NewsVideoScalarFieldEnum)[keyof typeof NewsVideoScalarFieldEnum]
 
 
 export const SortOrder = {

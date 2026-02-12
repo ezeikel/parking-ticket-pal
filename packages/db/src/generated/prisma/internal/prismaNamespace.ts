@@ -410,7 +410,8 @@ export const ModelName = {
   PendingChallenge: 'PendingChallenge',
   PendingTicket: 'PendingTicket',
   IssuerHealthCheck: 'IssuerHealthCheck',
-  TribunalCaseVideo: 'TribunalCaseVideo'
+  TribunalCaseVideo: 'TribunalCaseVideo',
+  NewsVideo: 'NewsVideo'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -426,7 +427,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "vehicle" | "ticket" | "media" | "letter" | "subscription" | "reminder" | "form" | "prediction" | "amountIncrease" | "verification" | "challenge" | "notification" | "pushToken" | "account" | "session" | "verificationToken" | "londonTribunalCase" | "appealDataSource" | "contraventionStats" | "issuerContraventionStats" | "appealPattern" | "pendingIssuer" | "pendingChallenge" | "pendingTicket" | "issuerHealthCheck" | "tribunalCaseVideo"
+    modelProps: "user" | "vehicle" | "ticket" | "media" | "letter" | "subscription" | "reminder" | "form" | "prediction" | "amountIncrease" | "verification" | "challenge" | "notification" | "pushToken" | "account" | "session" | "verificationToken" | "londonTribunalCase" | "appealDataSource" | "contraventionStats" | "issuerContraventionStats" | "appealPattern" | "pendingIssuer" | "pendingChallenge" | "pendingTicket" | "issuerHealthCheck" | "tribunalCaseVideo" | "newsVideo"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -2428,6 +2429,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    NewsVideo: {
+      payload: Prisma.$NewsVideoPayload<ExtArgs>
+      fields: Prisma.NewsVideoFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.NewsVideoFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$NewsVideoPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.NewsVideoFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$NewsVideoPayload>
+        }
+        findFirst: {
+          args: Prisma.NewsVideoFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$NewsVideoPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.NewsVideoFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$NewsVideoPayload>
+        }
+        findMany: {
+          args: Prisma.NewsVideoFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$NewsVideoPayload>[]
+        }
+        create: {
+          args: Prisma.NewsVideoCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$NewsVideoPayload>
+        }
+        createMany: {
+          args: Prisma.NewsVideoCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.NewsVideoCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$NewsVideoPayload>[]
+        }
+        delete: {
+          args: Prisma.NewsVideoDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$NewsVideoPayload>
+        }
+        update: {
+          args: Prisma.NewsVideoUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$NewsVideoPayload>
+        }
+        deleteMany: {
+          args: Prisma.NewsVideoDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.NewsVideoUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.NewsVideoUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$NewsVideoPayload>[]
+        }
+        upsert: {
+          args: Prisma.NewsVideoUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$NewsVideoPayload>
+        }
+        aggregate: {
+          args: Prisma.NewsVideoAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateNewsVideo>
+        }
+        groupBy: {
+          args: Prisma.NewsVideoGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.NewsVideoGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.NewsVideoCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.NewsVideoCountAggregateOutputType> | number
+        }
+      }
+    }
   }
 } & {
   other: {
@@ -2927,6 +3002,37 @@ export const TribunalCaseVideoScalarFieldEnum = {
 } as const
 
 export type TribunalCaseVideoScalarFieldEnum = (typeof TribunalCaseVideoScalarFieldEnum)[keyof typeof TribunalCaseVideoScalarFieldEnum]
+
+
+export const NewsVideoScalarFieldEnum = {
+  id: 'id',
+  articleUrl: 'articleUrl',
+  articleUrlHash: 'articleUrlHash',
+  source: 'source',
+  headline: 'headline',
+  category: 'category',
+  summary: 'summary',
+  interestScore: 'interestScore',
+  script: 'script',
+  scriptSegments: 'scriptSegments',
+  sceneImagePrompts: 'sceneImagePrompts',
+  voiceoverUrl: 'voiceoverUrl',
+  voiceoverDuration: 'voiceoverDuration',
+  wordTimestamps: 'wordTimestamps',
+  backgroundMusicUrl: 'backgroundMusicUrl',
+  transitionSfxUrl: 'transitionSfxUrl',
+  newsSfxUrl: 'newsSfxUrl',
+  sceneImages: 'sceneImages',
+  videoUrl: 'videoUrl',
+  coverImageUrl: 'coverImageUrl',
+  status: 'status',
+  postingResults: 'postingResults',
+  errorMessage: 'errorMessage',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type NewsVideoScalarFieldEnum = (typeof NewsVideoScalarFieldEnum)[keyof typeof NewsVideoScalarFieldEnum]
 
 
 export const SortOrder = {
@@ -3615,6 +3721,7 @@ export type GlobalOmitConfig = {
   pendingTicket?: Prisma.PendingTicketOmit
   issuerHealthCheck?: Prisma.IssuerHealthCheckOmit
   tribunalCaseVideo?: Prisma.TribunalCaseVideoOmit
+  newsVideo?: Prisma.NewsVideoOmit
 }
 
 /* Types for Logging */

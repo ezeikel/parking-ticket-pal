@@ -152,3 +152,8 @@ export type IssuerHealthCheck = Prisma.IssuerHealthCheckModel
  * 
  */
 export type TribunalCaseVideo = Prisma.TribunalCaseVideoModel
+/**
+ * Model NewsVideo
+ * 
+ */
+export type NewsVideo = Prisma.NewsVideoModel

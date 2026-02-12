@@ -824,3 +824,36 @@ model TribunalCaseVideo {
   @@index([status])
   @@map("tribunal_case_videos")
 }
+
+model NewsVideo {
+  id                 String      @id @default(cuid())
+  articleUrl         String
+  articleUrlHash     String      @unique
+  source             String
+  headline           String
+  category           String
+  summary            String      @db.Text
+  interestScore      Float
+  script             String      @db.Text
+  scriptSegments     Json?
+  sceneImagePrompts  Json?
+  voiceoverUrl       String?
+  voiceoverDuration  Float?
+  wordTimestamps     Json?
+  backgroundMusicUrl String?
+  transitionSfxUrl   String?
+  newsSfxUrl         String?
+  sceneImages        Json?
+  videoUrl           String?
+  coverImageUrl      String?
+  status             VideoStatus @default(PENDING)
+  postingResults     Json?
+  errorMessage       String?
+  createdAt          DateTime    @default(now())
+  updatedAt          DateTime    @updatedAt
+
+  @@index([articleUrlHash])
+  @@index([status])
+  @@index([createdAt])
+  @@map("news_videos")
+}
