@@ -25,7 +25,6 @@
     "db:deploy": "cd ../../packages/db && pnpm db:deploy",
     "db:push": "cd ../../packages/db && pnpm db:push",
     "db:seed": "cd ../../packages/db && pnpm db:seed",
-    "prepare": "husky",
     "scrape:contravention-codes": "tsx utils/scraping/getContraventionCodes.ts",
     "generate:te9": "tsx utils/automation/forms/TE9.ts",
     "generate:te7": "tsx utils/automation/forms/TE7.ts",

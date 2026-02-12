@@ -8,7 +8,8 @@
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",
     "check-types": "turbo run check-types",
     "clean": "rm -rf apps/*/node_modules packages/*/node_modules",
-    "clean:deep": "rm -rf apps/*/node_modules packages/*/node_modules pnpm-lock.yaml && pnpm install"
+    "clean:deep": "rm -rf apps/*/node_modules packages/*/node_modules pnpm-lock.yaml && pnpm install",
+    "prepare": "husky"
   },
   "devDependencies": {
     "husky": "^9.1.7",
