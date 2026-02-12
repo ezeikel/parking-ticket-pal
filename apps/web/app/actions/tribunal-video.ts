@@ -637,9 +637,15 @@ export const generateAndPostTribunalVideo = async () => {
     const durationInFrames = Math.ceil((voiceover.durationSeconds + 3) * 30);
 
     // Build the callback URL for the worker to call when rendering is done
-    const appUrl = process.env.NEXT_PUBLIC_URL || process.env.VERCEL_URL;
+    // Prefer VERCEL_PROJECT_PRODUCTION_URL to avoid preview deployment auth issues
+    const appUrl =
+      process.env.NEXT_PUBLIC_URL ||
+      process.env.VERCEL_PROJECT_PRODUCTION_URL ||
+      process.env.VERCEL_URL;
     if (!appUrl) {
-      throw new Error('NEXT_PUBLIC_URL or VERCEL_URL not configured');
+      throw new Error(
+        'NEXT_PUBLIC_URL, VERCEL_PROJECT_PRODUCTION_URL, or VERCEL_URL not configured',
+      );
     }
     const callbackUrl = `${appUrl.startsWith('http') ? appUrl : `https://${appUrl}`}/api/tribunal-video/complete`;
 
