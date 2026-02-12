@@ -38,7 +38,7 @@
   },
   "lint-staged": {
     "*.{ts,tsx}": [
-      "tsc-files --noEmit ./next-env.d.ts ./next-auth.d.ts ./oslllo-potrace.d.ts",
+      "tsc-files --noEmit ./next-env.d.ts ./next-auth.d.ts",
       "eslint --fix"
     ],
     "**/*.+(js|jsx|json|ts|tsx|html|md)": [

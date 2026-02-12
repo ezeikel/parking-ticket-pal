@@ -1,8 +1,8 @@
 import { type NextRequest, NextResponse } from 'next/server';
 import { generateAndPostNewsVideo } from '@/app/actions/news-video';
 
-// 5 minutes max for video rendering pipeline
-export const maxDuration = 300;
+// Pipeline now returns after dispatching async render (~90s)
+export const maxDuration = 120;
 
 const handleRequest = async (request: NextRequest) => {
   try {
@@ -33,20 +33,20 @@ const handleRequest = async (request: NextRequest) => {
       console.error('News video generation failed:', result.error);
       return NextResponse.json(
         { error: result.error, videoId: result.videoId },
-        { status: 500 }
+        { status: 500 },
       );
     }
 
     console.log(
-      `Successfully generated news video: ${result.videoId}`
+      `News video pipeline dispatched: ${result.videoId} (status: ${'status' in result ? result.status : 'unknown'})`,
     );
 
     return NextResponse.json({
       success: true,
-      message: 'News video generated and posted',
+      message: 'News video rendering dispatched',
       videoId: result.videoId,
-      videoUrl: result.videoUrl,
-      headline: result.headline,
+      status: 'status' in result ? result.status : 'RENDERING',
+      headline: 'headline' in result ? result.headline : undefined,
       timestamp: new Date().toISOString(),
     });
   } catch (error) {
@@ -58,7 +58,7 @@ const handleRequest = async (request: NextRequest) => {
         details: error instanceof Error ? error.message : 'Unknown error',
         timestamp: new Date().toISOString(),
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 };

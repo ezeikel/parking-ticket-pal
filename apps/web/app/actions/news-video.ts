@@ -1,3 +1,4 @@
+/* eslint-disable no-plusplus, no-restricted-syntax, import-x/prefer-default-export */
 'use server';
 
 import { generateObject, generateText } from 'ai';
@@ -8,14 +9,13 @@ import { db } from '@parking-ticket-pal/db';
 import { createServerLogger } from '@/lib/logger';
 import { put } from '@/lib/storage';
 import { models, getTracedModel } from '@/lib/ai/models';
-import { sendSocialDigest, type SocialDigestCaption } from '@/lib/email';
 import { getRandomMusicTrack } from '@/lib/music';
 
 const logger = createServerLogger({ action: 'news-video' });
 
 // Worker API configuration
-const WORKER_URL = process.env.WORKER_URL;
-const WORKER_SECRET = process.env.WORKER_SECRET;
+const { WORKER_URL } = process.env;
+const { WORKER_SECRET } = process.env;
 
 // ElevenLabs configuration
 const elevenlabs = process.env.ELEVENLABS_API_KEY
@@ -104,7 +104,7 @@ Return at least 5 stories if available.`,
             'TRAFFIC',
           ]),
           summary: z.string(),
-        })
+        }),
       ),
     }),
     prompt: `Extract structured article data from the following search results. Return each distinct article with its URL, source, headline, category, and summary.
@@ -118,7 +118,9 @@ ${searchResults}`,
     return null;
   }
 
-  logger.info(`Found ${parsed.articles.length} articles, checking for duplicates`);
+  logger.info(
+    `Found ${parsed.articles.length} articles, checking for duplicates`,
+  );
 
   // 3. Deduplicate against existing records
   const urlHashes = parsed.articles.map((a) => ({
@@ -153,7 +155,7 @@ ${searchResults}`,
         z.object({
           url: z.string(),
           score: z.number().min(0).max(1),
-        })
+        }),
       ),
     }),
     prompt: `Score each news article for how engaging it would be as a short social media video for UK motorists.
@@ -209,22 +211,32 @@ Return scores for all articles.`,
 const newsScriptSchema = z.object({
   hook: z
     .string()
-    .describe('Opening hook — grabs attention, makes people stop scrolling (1-2 sentences)'),
+    .describe(
+      'Opening hook — grabs attention, makes people stop scrolling (1-2 sentences)',
+    ),
   context: z
     .string()
     .describe('What happened — the key facts of the story (2-3 sentences)'),
   keyDetail: z
     .string()
-    .describe('The surprising or infuriating detail that makes this story stand out (2-3 sentences)'),
+    .describe(
+      'The surprising or infuriating detail that makes this story stand out (2-3 sentences)',
+    ),
   impact: z
     .string()
-    .describe('How this affects everyday drivers — make it personal (1-2 sentences)'),
+    .describe(
+      'How this affects everyday drivers — make it personal (1-2 sentences)',
+    ),
   cta: z
     .string()
-    .describe('Call to action — ask a question, spark debate, invite comments (1-2 sentences)'),
+    .describe(
+      'Call to action — ask a question, spark debate, invite comments (1-2 sentences)',
+    ),
   fullScript: z
     .string()
-    .describe('The complete script as one continuous piece, combining all segments. 200-250 words.'),
+    .describe(
+      'The complete script as one continuous piece, combining all segments. 200-250 words.',
+    ),
   sceneImagePrompts: z
     .object({
       hook: z.string().describe('Image prompt for the hook scene'),
@@ -233,7 +245,9 @@ const newsScriptSchema = z.object({
       impact: z.string().describe('Image prompt for the impact scene'),
       cta: z.string().describe('Image prompt for the CTA scene'),
     })
-    .describe('Short image prompts (1-2 sentences each) for clay diorama style scenes'),
+    .describe(
+      'Short image prompts (1-2 sentences each) for clay diorama style scenes',
+    ),
 });
 
 type NewsScriptSegments = z.infer<typeof newsScriptSchema>;
@@ -313,7 +327,7 @@ type WordTimestamp = {
  * Generate voiceover audio with word-level timestamps using ElevenLabs.
  */
 const generateVoiceoverWithTimestamps = async (
-  script: string
+  script: string,
 ): Promise<{
   url: string;
   durationSeconds: number;
@@ -340,7 +354,7 @@ const generateVoiceoverWithTimestamps = async (
         use_speaker_boost: true,
         speed: 0.95,
       },
-    }
+    },
   );
 
   const audioBase64 = result.audio_base64;
@@ -356,8 +370,13 @@ const generateVoiceoverWithTimestamps = async (
   });
 
   // Derive word-level timestamps from character alignment
-  const alignment = result.alignment;
-  if (!alignment || !alignment.characters || !alignment.character_start_times_seconds || !alignment.character_end_times_seconds) {
+  const { alignment } = result;
+  if (
+    !alignment ||
+    !alignment.characters ||
+    !alignment.character_start_times_seconds ||
+    !alignment.character_end_times_seconds
+  ) {
     throw new Error('No alignment data returned from ElevenLabs');
   }
 
@@ -428,7 +447,7 @@ const generateSoundEffects = async (): Promise<{
   const generateSfx = async (
     text: string,
     durationSeconds: number,
-    label: string
+    label: string,
   ): Promise<string | null> => {
     try {
       const audioStream = await elevenlabs.textToSoundEffects.convert({
@@ -454,15 +473,23 @@ const generateSoundEffects = async (): Promise<{
       logger.error(
         `SFX generation failed: ${label}`,
         {},
-        error instanceof Error ? error : new Error(String(error))
+        error instanceof Error ? error : new Error(String(error)),
       );
       return null;
     }
   };
 
   const [transitionSfxUrl, newsSfxUrl] = await Promise.all([
-    generateSfx('crisp paper page turn flip sound, single clean page flip, short snappy', 1, 'transition'),
-    generateSfx('short bright digital chime, then a subtle low braam, modern news broadcast alert sting', 2, 'news-alert'),
+    generateSfx(
+      'crisp paper page turn flip sound, single clean page flip, short snappy',
+      1,
+      'transition',
+    ),
+    generateSfx(
+      'short bright digital chime, then a subtle low braam, modern news broadcast alert sting',
+      2,
+      'news-alert',
+    ),
   ]);
 
   return { transitionSfxUrl, newsSfxUrl };
@@ -483,18 +510,16 @@ type NewsSceneImages = {
 /**
  * Generate AI images for each scene section using Gemini 3 Pro Image.
  */
-const generateSceneImages = async (
-  sceneImagePrompts: {
-    hook: string;
-    context: string;
-    keyDetail: string;
-    impact: string;
-    cta: string;
-  }
-): Promise<NewsSceneImages> => {
+const generateSceneImages = async (sceneImagePrompts: {
+  hook: string;
+  context: string;
+  keyDetail: string;
+  impact: string;
+  cta: string;
+}): Promise<NewsSceneImages> => {
   const generateSingleImage = async (
     prompt: string,
-    label: string
+    label: string,
   ): Promise<string | null> => {
     try {
       const result = await generateText({
@@ -505,7 +530,7 @@ const generateSceneImages = async (
       });
 
       const imageFile = result.files?.find((f) =>
-        f.mediaType?.startsWith('image/')
+        f.mediaType?.startsWith('image/'),
       );
 
       if (!imageFile) {
@@ -527,191 +552,33 @@ const generateSceneImages = async (
       logger.error(
         `Scene image generation failed: ${label}`,
         {},
-        error instanceof Error ? error : new Error(String(error))
+        error instanceof Error ? error : new Error(String(error)),
       );
       return null;
     }
   };
 
-  const [hookImageUrl, contextImageUrl, keyDetailImageUrl, impactImageUrl, ctaImageUrl] =
-    await Promise.all([
-      generateSingleImage(sceneImagePrompts.hook, 'hook'),
-      generateSingleImage(sceneImagePrompts.context, 'context'),
-      generateSingleImage(sceneImagePrompts.keyDetail, 'keyDetail'),
-      generateSingleImage(sceneImagePrompts.impact, 'impact'),
-      generateSingleImage(sceneImagePrompts.cta, 'cta'),
-    ]);
+  const [
+    hookImageUrl,
+    contextImageUrl,
+    keyDetailImageUrl,
+    impactImageUrl,
+    ctaImageUrl,
+  ] = await Promise.all([
+    generateSingleImage(sceneImagePrompts.hook, 'hook'),
+    generateSingleImage(sceneImagePrompts.context, 'context'),
+    generateSingleImage(sceneImagePrompts.keyDetail, 'keyDetail'),
+    generateSingleImage(sceneImagePrompts.impact, 'impact'),
+    generateSingleImage(sceneImagePrompts.cta, 'cta'),
+  ]);
 
-  return { hookImageUrl, contextImageUrl, keyDetailImageUrl, impactImageUrl, ctaImageUrl };
-};
-
-// ============================================================================
-// Step 5: Social media caption generation
-// ============================================================================
-
-const generateNewsCaption = async (
-  platform: string,
-  article: {
-    headline: string;
-    source: string;
-    category: string;
-    hook: string;
-  }
-): Promise<string> => {
-  const { text } = await generateText({
-    model: getTracedModel(models.textFast, {
-      properties: { feature: `news_video_caption_${platform}` },
-    }),
-    prompt: `Write a ${platform} caption for a short video about a UK motorist news story.
-
-Story: ${article.headline}
-Source: ${article.source}
-Category: ${article.category}
-Hook: ${article.hook}
-
-Guidelines:
-- Keep it short and engaging
-- Include relevant hashtags for UK motoring content
-- British English
-- Include a CTA to follow for more motoring news
-- ${platform === 'tiktok' ? 'Max 150 characters before hashtags' : ''}
-- ${platform === 'youtube' ? 'Return as JSON with "title" and "description" fields' : ''}
-
-Hashtags to consider: #uknews #drivingnews #parkingticket #ukdrivers #motoringnews #parkingfine #drivinglaw #carsnews #parkingticketpal`,
-  });
-
-  return text;
-};
-
-// ============================================================================
-// Step 6: Social media posting
-// ============================================================================
-
-/**
- * Post the news reel to Instagram as a Reel.
- */
-const postNewsReelToInstagram = async (
-  videoUrl: string,
-  caption: string,
-  coverUrl?: string | null
-): Promise<{ success: boolean; mediaId?: string; error?: string }> => {
-  try {
-    if (
-      !process.env.INSTAGRAM_ACCOUNT_ID ||
-      !process.env.FACEBOOK_PAGE_ACCESS_TOKEN
-    ) {
-      throw new Error('Instagram credentials not configured');
-    }
-
-    const createResponse = await fetch(
-      `https://graph.facebook.com/v24.0/${process.env.INSTAGRAM_ACCOUNT_ID}/media`,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          video_url: videoUrl,
-          caption,
-          media_type: 'REELS',
-          share_to_feed: true,
-          ...(coverUrl ? { cover_url: coverUrl } : {}),
-          access_token: process.env.FACEBOOK_PAGE_ACCESS_TOKEN,
-        }),
-      }
-    );
-    const createData = await createResponse.json();
-    if (!createResponse.ok) {
-      throw new Error(
-        `Instagram create failed: ${JSON.stringify(createData)}`
-      );
-    }
-    const creationId = createData.id;
-
-    // Wait for media to be ready
-    let ready = false;
-    for (let i = 0; i < 30; i++) {
-      await new Promise((r) => setTimeout(r, 5000));
-      const statusResponse = await fetch(
-        `https://graph.facebook.com/v24.0/${creationId}?fields=status_code&access_token=${process.env.FACEBOOK_PAGE_ACCESS_TOKEN}`
-      );
-      const statusData = await statusResponse.json();
-      if (statusData.status_code === 'FINISHED') {
-        ready = true;
-        break;
-      }
-      if (statusData.status_code === 'ERROR') {
-        throw new Error('Instagram media processing failed');
-      }
-    }
-    if (!ready) {
-      throw new Error('Instagram media processing timed out');
-    }
-
-    const publishResponse = await fetch(
-      `https://graph.facebook.com/v24.0/${process.env.INSTAGRAM_ACCOUNT_ID}/media_publish`,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          creation_id: creationId,
-          access_token: process.env.FACEBOOK_PAGE_ACCESS_TOKEN,
-        }),
-      }
-    );
-    const publishData = await publishResponse.json();
-    if (!publishResponse.ok) {
-      throw new Error(
-        `Instagram publish failed: ${JSON.stringify(publishData)}`
-      );
-    }
-
-    return { success: true, mediaId: publishData.id };
-  } catch (error) {
-    const err = error instanceof Error ? error : new Error(String(error));
-    logger.error('Instagram Reel posting failed', {}, err);
-    return { success: false, error: err.message };
-  }
-};
-
-/**
- * Post the news reel to Facebook as a Reel.
- */
-const postNewsReelToFacebook = async (
-  videoUrl: string,
-  caption: string,
-  title: string
-): Promise<{ success: boolean; postId?: string; error?: string }> => {
-  try {
-    if (
-      !process.env.FACEBOOK_PAGE_ID ||
-      !process.env.FACEBOOK_PAGE_ACCESS_TOKEN
-    ) {
-      throw new Error('Facebook credentials not configured');
-    }
-
-    const response = await fetch(
-      `https://graph.facebook.com/v24.0/${process.env.FACEBOOK_PAGE_ID}/videos`,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          file_url: videoUrl,
-          description: caption,
-          title,
-          access_token: process.env.FACEBOOK_PAGE_ACCESS_TOKEN,
-        }),
-      }
-    );
-    const data = await response.json();
-    if (!response.ok) {
-      throw new Error(`Facebook post failed: ${JSON.stringify(data)}`);
-    }
-
-    return { success: true, postId: data.id };
-  } catch (error) {
-    const err = error instanceof Error ? error : new Error(String(error));
-    logger.error('Facebook Reel posting failed', {}, err);
-    return { success: false, error: err.message };
-  }
+  return {
+    hookImageUrl,
+    contextImageUrl,
+    keyDetailImageUrl,
+    impactImageUrl,
+    ctaImageUrl,
+  };
 };
 
 // ============================================================================
@@ -735,7 +602,9 @@ export const generateAndPostNewsVideo = async () => {
     }
 
     // 2. Create tracking record
-    const articleUrlHash = createHash('sha256').update(article.url).digest('hex');
+    const articleUrlHash = createHash('sha256')
+      .update(article.url)
+      .digest('hex');
 
     const videoRecord = await db.newsVideo.create({
       data: {
@@ -809,12 +678,18 @@ export const generateAndPostNewsVideo = async () => {
     }
 
     // Add 3 second buffer for outro
-    const durationInFrames = Math.ceil(
-      (voiceover.durationSeconds + 3) * 30
-    );
+    const durationInFrames = Math.ceil((voiceover.durationSeconds + 3) * 30);
 
+    // Build the callback URL for the worker to call when rendering is done
+    const appUrl = process.env.NEXT_PUBLIC_URL || process.env.VERCEL_URL;
+    if (!appUrl) {
+      throw new Error('NEXT_PUBLIC_URL or VERCEL_URL not configured');
+    }
+    const callbackUrl = `${appUrl.startsWith('http') ? appUrl : `https://${appUrl}`}/api/news-video/complete`;
+
+    // 5. Fire-and-forget async render to worker
     const renderResponse = await fetch(
-      `${WORKER_URL}/video/render/news-reel`,
+      `${WORKER_URL}/video/render-async/news-reel`,
       {
         method: 'POST',
         headers: {
@@ -822,6 +697,8 @@ export const generateAndPostNewsVideo = async () => {
           Authorization: `Bearer ${WORKER_SECRET}`,
         },
         body: JSON.stringify({
+          videoId: videoRecord.id,
+          callbackUrl,
           headline: article.headline,
           source: article.source,
           category: article.category,
@@ -840,189 +717,36 @@ export const generateAndPostNewsVideo = async () => {
           newsSfxUrl: sfx.newsSfxUrl,
           sceneImages,
           durationInFrames,
+          coverProps: {
+            headline: article.headline,
+            source: article.source,
+            category: article.category,
+            hookText: script.hook,
+            coverImageUrl: sceneImages.hookImageUrl,
+          },
         }),
-      }
+      },
     );
 
     const renderData = await renderResponse.json();
 
     if (!renderResponse.ok || !renderData.success) {
       throw new Error(
-        `Worker render failed: ${renderData.error || renderResponse.statusText}`
+        `Worker async render failed: ${renderData.error || renderResponse.statusText}`,
       );
     }
 
-    const videoUrl = renderData.url;
-
-    // 5b. Render cover image
-    let coverImageUrl: string | null = null;
-    try {
-      logger.info('Rendering cover image');
-      const coverResponse = await fetch(
-        `${WORKER_URL}/video/render/news-reel-cover`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${WORKER_SECRET}`,
-          },
-          body: JSON.stringify({
-            headline: article.headline,
-            source: article.source,
-            category: article.category,
-            hookText: script.hook,
-            coverImageUrl: sceneImages.hookImageUrl,
-          }),
-        }
-      );
-      const coverData = await coverResponse.json();
-      if (coverResponse.ok && coverData.success) {
-        coverImageUrl = coverData.url;
-        logger.info('Cover image rendered', { coverImageUrl });
-      } else {
-        logger.error('Cover image render failed', { error: coverData.error });
-      }
-    } catch (error) {
-      logger.error(
-        'Cover image render failed',
-        {},
-        error instanceof Error ? error : new Error(String(error))
-      );
-    }
-
-    await db.newsVideo.update({
-      where: { id: videoRecord.id },
-      data: {
-        videoUrl,
-        coverImageUrl,
-        status: 'POSTING',
-      },
-    });
-
-    logger.info('Video rendered, posting to social media', { videoUrl, coverImageUrl });
-
-    // 6. Post to social media
-    const captionData = {
-      headline: article.headline,
-      source: article.source,
-      category: article.category,
-      hook: script.hook,
-    };
-
-    const [instagramCaption, facebookCaption, tiktokCaption, youtubeCaption, threadsCaption] =
-      await Promise.all([
-        generateNewsCaption('instagram', captionData).catch(() => null),
-        generateNewsCaption('facebook', captionData).catch(() => null),
-        generateNewsCaption('tiktok', captionData).catch(() => null),
-        generateNewsCaption('youtube', captionData).catch(() => null),
-        generateNewsCaption('threads', captionData).catch(() => null),
-      ]);
-
-    const postingResults: Record<string, { success: boolean; mediaId?: string; postId?: string; error?: string }> = {};
-
-    if (instagramCaption) {
-      const igResult = await postNewsReelToInstagram(
-        videoUrl,
-        instagramCaption,
-        coverImageUrl
-      );
-      postingResults.instagram = igResult;
-    }
-
-    if (facebookCaption) {
-      const fbResult = await postNewsReelToFacebook(
-        videoUrl,
-        facebookCaption,
-        `UK News: ${article.headline}`
-      );
-      postingResults.facebook = fbResult;
-    }
-
-    // Send email digest for manual platforms
-    const digestEmail = process.env.SOCIAL_DIGEST_EMAIL;
-    if (digestEmail) {
-      const digestCaptions: SocialDigestCaption[] = [];
-
-      if (instagramCaption) {
-        digestCaptions.push({
-          platform: 'instagramReel',
-          caption: instagramCaption,
-          autoPosted: postingResults.instagram?.success ?? false,
-          assetType: 'video',
-        });
-      }
-      if (facebookCaption) {
-        digestCaptions.push({
-          platform: 'facebookReel',
-          caption: facebookCaption,
-          autoPosted: postingResults.facebook?.success ?? false,
-          assetType: 'video',
-        });
-      }
-      if (tiktokCaption) {
-        digestCaptions.push({
-          platform: 'tiktok',
-          caption: tiktokCaption,
-          autoPosted: false,
-          assetType: 'video',
-        });
-      }
-      if (youtubeCaption) {
-        digestCaptions.push({
-          platform: 'youtubeShorts',
-          caption: youtubeCaption,
-          autoPosted: false,
-          assetType: 'video',
-        });
-      }
-      if (threadsCaption) {
-        digestCaptions.push({
-          platform: 'threads',
-          caption: threadsCaption,
-          autoPosted: false,
-          assetType: 'video',
-        });
-      }
-
-      try {
-        await sendSocialDigest(digestEmail, {
-          blogTitle: `UK News: ${article.headline}`,
-          blogUrl: article.url,
-          imageUrl: '',
-          videoUrl,
-          captions: digestCaptions,
-        });
-        logger.info('Social digest email sent');
-      } catch (error) {
-        logger.error(
-          'Failed to send digest email',
-          {},
-          error instanceof Error ? error : new Error(String(error))
-        );
-      }
-    }
-
-    // 7. Mark completed
-    await db.newsVideo.update({
-      where: { id: videoRecord.id },
-      data: {
-        postingResults,
-        status: 'COMPLETED',
-      },
-    });
-
-    logger.info('News video pipeline complete', {
+    logger.info('Async render dispatched to worker', {
       videoId: videoRecord.id,
-      headline: article.headline,
-      videoUrl,
+      callbackUrl,
     });
 
+    // Return immediately — the worker will call the webhook when done
     return {
       success: true,
       videoId: videoRecord.id,
-      videoUrl,
+      status: 'RENDERING',
       headline: article.headline,
-      postingResults,
     };
   } catch (error) {
     const err = error instanceof Error ? error : new Error(String(error));

@@ -1,8 +1,8 @@
 import { type NextRequest, NextResponse } from 'next/server';
 import { generateAndPostTribunalVideo } from '@/app/actions/tribunal-video';
 
-// 5 minutes max for video rendering pipeline
-export const maxDuration = 300;
+// Pipeline now returns after dispatching async render (~90s)
+export const maxDuration = 120;
 
 const handleRequest = async (request: NextRequest) => {
   try {
@@ -23,20 +23,21 @@ const handleRequest = async (request: NextRequest) => {
       console.error('Tribunal video generation failed:', result.error);
       return NextResponse.json(
         { error: result.error, videoId: result.videoId },
-        { status: 500 }
+        { status: 500 },
       );
     }
 
     console.log(
-      `Successfully generated tribunal video: ${result.videoId}`
+      `Tribunal video pipeline dispatched: ${result.videoId} (status: ${'status' in result ? result.status : 'unknown'})`,
     );
 
     return NextResponse.json({
       success: true,
-      message: 'Tribunal case video generated and posted',
+      message: 'Tribunal case video rendering dispatched',
       videoId: result.videoId,
-      videoUrl: result.videoUrl,
-      caseReference: result.caseReference,
+      status: 'status' in result ? result.status : 'RENDERING',
+      caseReference:
+        'caseReference' in result ? result.caseReference : undefined,
       timestamp: new Date().toISOString(),
     });
   } catch (error) {
@@ -48,7 +49,7 @@ const handleRequest = async (request: NextRequest) => {
         details: error instanceof Error ? error.message : 'Unknown error',
         timestamp: new Date().toISOString(),
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 };

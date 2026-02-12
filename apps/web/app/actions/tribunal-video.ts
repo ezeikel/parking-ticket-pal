@@ -1,3 +1,4 @@
+/* eslint-disable no-plusplus, no-restricted-syntax, import-x/prefer-default-export */
 'use server';
 
 import { generateObject, generateText } from 'ai';
@@ -7,14 +8,13 @@ import { db } from '@parking-ticket-pal/db';
 import { createServerLogger } from '@/lib/logger';
 import { put } from '@/lib/storage';
 import { models, getTracedModel } from '@/lib/ai/models';
-import { sendSocialDigest, type SocialDigestCaption } from '@/lib/email';
 import { getRandomMusicTrack } from '@/lib/music';
 
 const logger = createServerLogger({ action: 'tribunal-video' });
 
 // Worker API configuration
-const WORKER_URL = process.env.WORKER_URL;
-const WORKER_SECRET = process.env.WORKER_SECRET;
+const { WORKER_URL } = process.env;
+const { WORKER_SECRET } = process.env;
 
 // ElevenLabs configuration
 const elevenlabs = process.env.ELEVENLABS_API_KEY
@@ -43,7 +43,7 @@ const selectInterestingCase = async () => {
 
   // Get 50 random cases that haven't been used and have sufficient data
   const candidates = await db.$queryRaw<
-    Array<{
+    {
       id: string;
       caseReference: string;
       authority: string;
@@ -53,7 +53,7 @@ const selectInterestingCase = async () => {
       penaltyAmount: number | null;
       appealDecision: string;
       reasons: string;
-    }>
+    }[]
   >`
     SELECT ltc.id, ltc."caseReference", ltc.authority, ltc.contravention,
            ltc."contraventionLocation", ltc."contraventionDate",
@@ -85,7 +85,7 @@ const selectInterestingCase = async () => {
         z.object({
           id: z.string(),
           score: z.number().min(0).max(1),
-        })
+        }),
       ),
     }),
     prompt: `You are scoring parking tribunal cases for how interesting they would be as short social media videos.
@@ -99,13 +99,17 @@ Score each case from 0 (boring) to 1 (very engaging) based on:
 - Dramatic facts or circumstances
 
 Cases:
-${candidates.map((c) => `ID: ${c.id}
+${candidates
+  .map(
+    (c) => `ID: ${c.id}
 Authority: ${c.authority}
 Contravention: ${c.contravention}
 Location: ${c.contraventionLocation}
 Decision: ${c.appealDecision}
 Reasons (excerpt): ${c.reasons.slice(0, 500)}
----`).join('\n')}
+---`,
+  )
+  .join('\n')}
 
 Return scores for all cases.`,
   });
@@ -113,7 +117,7 @@ Return scores for all cases.`,
   // Find highest scoring case
   const best = scored.scores.reduce<ScoredCase>(
     (max, current) => (current.score > max.score ? current : max),
-    { id: '', score: -1 }
+    { id: '', score: -1 },
   );
 
   const selectedCase = candidates.find((c) => c.id === best.id);
@@ -140,42 +144,62 @@ const scriptSchema = z.object({
   hook: z
     .string()
     .describe(
-      'Opening hook question or statement (1-2 sentences, grabs attention)'
+      'Opening hook question or statement (1-2 sentences, grabs attention)',
     ),
   setup: z
     .string()
     .describe(
-      'Sets up the situation — what happened, where, what the penalty was (2-3 sentences)'
+      'Sets up the situation — what happened, where, what the penalty was (2-3 sentences)',
     ),
   keyDetail: z
     .string()
     .describe(
-      'The twist or interesting detail — what made this case unusual (2-3 sentences)'
+      'The twist or interesting detail — what made this case unusual (2-3 sentences)',
     ),
   verdict: z
     .string()
-    .describe(
-      'The adjudicator\'s decision and brief reasoning (1-2 sentences)'
-    ),
+    .describe("The adjudicator's decision and brief reasoning (1-2 sentences)"),
   takeaway: z
     .string()
     .describe(
-      'Practical advice for viewers based on this case (1-2 sentences)'
+      'Practical advice for viewers based on this case (1-2 sentences)',
     ),
   fullScript: z
     .string()
     .describe(
-      'The complete script as one continuous piece, combining all segments. 200-250 words.'
+      'The complete script as one continuous piece, combining all segments. 200-250 words.',
     ),
   sceneImagePrompts: z
     .object({
-      hook: z.string().describe('Image prompt for the hook scene — describe a specific visual related to THIS case'),
-      setup: z.string().describe('Image prompt for the setup scene — the location/situation of THIS case'),
-      keyDetail: z.string().describe('Image prompt for the key detail scene — the specific evidence or argument'),
-      verdict: z.string().describe('Image prompt for the verdict scene — the tribunal outcome mood'),
-      takeaway: z.string().describe('Image prompt for the takeaway scene — the lesson/advice visual'),
+      hook: z
+        .string()
+        .describe(
+          'Image prompt for the hook scene — describe a specific visual related to THIS case',
+        ),
+      setup: z
+        .string()
+        .describe(
+          'Image prompt for the setup scene — the location/situation of THIS case',
+        ),
+      keyDetail: z
+        .string()
+        .describe(
+          'Image prompt for the key detail scene — the specific evidence or argument',
+        ),
+      verdict: z
+        .string()
+        .describe(
+          'Image prompt for the verdict scene — the tribunal outcome mood',
+        ),
+      takeaway: z
+        .string()
+        .describe(
+          'Image prompt for the takeaway scene — the lesson/advice visual',
+        ),
     })
-    .describe('Short image prompts (1-2 sentences each) describing a specific scene to illustrate each segment. Reference actual case details like the location, contravention type, and specific circumstances. These will be rendered as soft 3D clay miniature diorama style.'),
+    .describe(
+      'Short image prompts (1-2 sentences each) describing a specific scene to illustrate each segment. Reference actual case details like the location, contravention type, and specific circumstances. These will be rendered as soft 3D clay miniature diorama style.',
+    ),
 });
 
 type ScriptSegments = z.infer<typeof scriptSchema>;
@@ -265,7 +289,7 @@ type WordTimestamp = {
  * Returns URL, duration, and word timestamps for subtitle sync.
  */
 const generateVoiceoverWithTimestamps = async (
-  script: string
+  script: string,
 ): Promise<{
   url: string;
   durationSeconds: number;
@@ -292,7 +316,7 @@ const generateVoiceoverWithTimestamps = async (
         use_speaker_boost: true,
         speed: 0.95,
       },
-    }
+    },
   );
 
   // Extract audio bytes
@@ -310,8 +334,13 @@ const generateVoiceoverWithTimestamps = async (
   });
 
   // Derive word-level timestamps from character alignment
-  const alignment = result.alignment;
-  if (!alignment || !alignment.characters || !alignment.character_start_times_seconds || !alignment.character_end_times_seconds) {
+  const { alignment } = result;
+  if (
+    !alignment ||
+    !alignment.characters ||
+    !alignment.character_start_times_seconds ||
+    !alignment.character_end_times_seconds
+  ) {
     throw new Error('No alignment data returned from ElevenLabs');
   }
 
@@ -374,7 +403,7 @@ const generateVoiceoverWithTimestamps = async (
  * Non-fatal — returns nulls on failure.
  */
 const generateSoundEffects = async (
-  appealDecision: string
+  appealDecision: string,
 ): Promise<{
   verdictSfxUrl: string | null;
   transitionSfxUrl: string | null;
@@ -387,7 +416,7 @@ const generateSoundEffects = async (
   const generateSfx = async (
     text: string,
     durationSeconds: number,
-    label: string
+    label: string,
   ): Promise<string | null> => {
     try {
       const audioStream = await elevenlabs.textToSoundEffects.convert({
@@ -413,7 +442,7 @@ const generateSoundEffects = async (
       logger.error(
         `SFX generation failed: ${label}`,
         {},
-        error instanceof Error ? error : new Error(String(error))
+        error instanceof Error ? error : new Error(String(error)),
       );
       return null;
     }
@@ -426,7 +455,11 @@ const generateSoundEffects = async (
 
   const [verdictSfxUrl, transitionSfxUrl] = await Promise.all([
     generateSfx(verdictText, 2, 'verdict'),
-    generateSfx('crisp paper page turn flip sound, single clean page flip, short snappy', 1, 'transition'),
+    generateSfx(
+      'crisp paper page turn flip sound, single clean page flip, short snappy',
+      1,
+      'transition',
+    ),
   ]);
 
   return { verdictSfxUrl, transitionSfxUrl };
@@ -448,18 +481,16 @@ type SceneImages = {
  * Generate AI images for each scene section using Gemini 3 Pro Image.
  * Non-fatal per image — null on failure, AnimatedBackground remains as fallback.
  */
-const generateSceneImages = async (
-  sceneImagePrompts: {
-    hook: string;
-    setup: string;
-    keyDetail: string;
-    verdict: string;
-    takeaway: string;
-  }
-): Promise<SceneImages> => {
+const generateSceneImages = async (sceneImagePrompts: {
+  hook: string;
+  setup: string;
+  keyDetail: string;
+  verdict: string;
+  takeaway: string;
+}): Promise<SceneImages> => {
   const generateSingleImage = async (
     prompt: string,
-    label: string
+    label: string,
   ): Promise<string | null> => {
     try {
       const result = await generateText({
@@ -470,7 +501,7 @@ const generateSceneImages = async (
       });
 
       const imageFile = result.files?.find((f) =>
-        f.mediaType?.startsWith('image/')
+        f.mediaType?.startsWith('image/'),
       );
 
       if (!imageFile) {
@@ -492,192 +523,33 @@ const generateSceneImages = async (
       logger.error(
         `Scene image generation failed: ${label}`,
         {},
-        error instanceof Error ? error : new Error(String(error))
+        error instanceof Error ? error : new Error(String(error)),
       );
       return null;
     }
   };
 
-  const [hookImageUrl, setupImageUrl, keyDetailImageUrl, verdictImageUrl, takeawayImageUrl] =
-    await Promise.all([
-      generateSingleImage(sceneImagePrompts.hook, 'hook'),
-      generateSingleImage(sceneImagePrompts.setup, 'setup'),
-      generateSingleImage(sceneImagePrompts.keyDetail, 'keyDetail'),
-      generateSingleImage(sceneImagePrompts.verdict, 'verdict'),
-      generateSingleImage(sceneImagePrompts.takeaway, 'takeaway'),
-    ]);
+  const [
+    hookImageUrl,
+    setupImageUrl,
+    keyDetailImageUrl,
+    verdictImageUrl,
+    takeawayImageUrl,
+  ] = await Promise.all([
+    generateSingleImage(sceneImagePrompts.hook, 'hook'),
+    generateSingleImage(sceneImagePrompts.setup, 'setup'),
+    generateSingleImage(sceneImagePrompts.keyDetail, 'keyDetail'),
+    generateSingleImage(sceneImagePrompts.verdict, 'verdict'),
+    generateSingleImage(sceneImagePrompts.takeaway, 'takeaway'),
+  ]);
 
-  return { hookImageUrl, setupImageUrl, keyDetailImageUrl, verdictImageUrl, takeawayImageUrl };
-};
-
-// ============================================================================
-// Step 5: Social media caption generation
-// ============================================================================
-
-const generateTribunalCaption = async (
-  platform: string,
-  caseData: {
-    authority: string;
-    contravention: string;
-    appealDecision: string;
-    hook: string;
-  }
-): Promise<string> => {
-  const { text } = await generateText({
-    model: getTracedModel(models.textFast, {
-      properties: { feature: `tribunal_video_caption_${platform}` },
-    }),
-    prompt: `Write a ${platform} caption for a short video about a parking tribunal case.
-
-Case: ${caseData.authority} - ${caseData.contravention}
-Decision: ${caseData.appealDecision === 'ALLOWED' ? 'Appeal won' : 'Appeal lost'}
-Hook: ${caseData.hook}
-
-Guidelines:
-- Keep it short and engaging
-- Include relevant hashtags for parking/driving content
-- British English
-- Include a CTA to follow for more
-- ${platform === 'tiktok' ? 'Max 150 characters before hashtags' : ''}
-- ${platform === 'youtube' ? 'Return as JSON with "title" and "description" fields' : ''}
-
-Hashtags to consider: #parkingticket #parkingfine #pcn #drivingtips #parkingappeals #ukdriving #parkingticketpal`,
-  });
-
-  return text;
-};
-
-// ============================================================================
-// Step 6: Social media posting
-// ============================================================================
-
-/**
- * Post the tribunal video to Instagram as a Reel.
- */
-const postTribunalReelToInstagram = async (
-  videoUrl: string,
-  caption: string,
-  coverUrl?: string | null
-): Promise<{ success: boolean; mediaId?: string; error?: string }> => {
-  try {
-    if (
-      !process.env.INSTAGRAM_ACCOUNT_ID ||
-      !process.env.FACEBOOK_PAGE_ACCESS_TOKEN
-    ) {
-      throw new Error('Instagram credentials not configured');
-    }
-
-    // Create reel container
-    const createResponse = await fetch(
-      `https://graph.facebook.com/v24.0/${process.env.INSTAGRAM_ACCOUNT_ID}/media`,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          video_url: videoUrl,
-          caption,
-          media_type: 'REELS',
-          share_to_feed: true,
-          ...(coverUrl ? { cover_url: coverUrl } : {}),
-          access_token: process.env.FACEBOOK_PAGE_ACCESS_TOKEN,
-        }),
-      }
-    );
-    const createData = await createResponse.json();
-    if (!createResponse.ok) {
-      throw new Error(
-        `Instagram create failed: ${JSON.stringify(createData)}`
-      );
-    }
-    const creationId = createData.id;
-
-    // Wait for media to be ready
-    let ready = false;
-    for (let i = 0; i < 30; i++) {
-      await new Promise((r) => setTimeout(r, 5000));
-      const statusResponse = await fetch(
-        `https://graph.facebook.com/v24.0/${creationId}?fields=status_code&access_token=${process.env.FACEBOOK_PAGE_ACCESS_TOKEN}`
-      );
-      const statusData = await statusResponse.json();
-      if (statusData.status_code === 'FINISHED') {
-        ready = true;
-        break;
-      }
-      if (statusData.status_code === 'ERROR') {
-        throw new Error('Instagram media processing failed');
-      }
-    }
-    if (!ready) {
-      throw new Error('Instagram media processing timed out');
-    }
-
-    // Publish
-    const publishResponse = await fetch(
-      `https://graph.facebook.com/v24.0/${process.env.INSTAGRAM_ACCOUNT_ID}/media_publish`,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          creation_id: creationId,
-          access_token: process.env.FACEBOOK_PAGE_ACCESS_TOKEN,
-        }),
-      }
-    );
-    const publishData = await publishResponse.json();
-    if (!publishResponse.ok) {
-      throw new Error(
-        `Instagram publish failed: ${JSON.stringify(publishData)}`
-      );
-    }
-
-    return { success: true, mediaId: publishData.id };
-  } catch (error) {
-    const err = error instanceof Error ? error : new Error(String(error));
-    logger.error('Instagram Reel posting failed', {}, err);
-    return { success: false, error: err.message };
-  }
-};
-
-/**
- * Post the tribunal video to Facebook as a Reel.
- */
-const postTribunalReelToFacebook = async (
-  videoUrl: string,
-  caption: string,
-  title: string
-): Promise<{ success: boolean; postId?: string; error?: string }> => {
-  try {
-    if (
-      !process.env.FACEBOOK_PAGE_ID ||
-      !process.env.FACEBOOK_PAGE_ACCESS_TOKEN
-    ) {
-      throw new Error('Facebook credentials not configured');
-    }
-
-    const response = await fetch(
-      `https://graph.facebook.com/v24.0/${process.env.FACEBOOK_PAGE_ID}/videos`,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          file_url: videoUrl,
-          description: caption,
-          title,
-          access_token: process.env.FACEBOOK_PAGE_ACCESS_TOKEN,
-        }),
-      }
-    );
-    const data = await response.json();
-    if (!response.ok) {
-      throw new Error(`Facebook post failed: ${JSON.stringify(data)}`);
-    }
-
-    return { success: true, postId: data.id };
-  } catch (error) {
-    const err = error instanceof Error ? error : new Error(String(error));
-    logger.error('Facebook Reel posting failed', {}, err);
-    return { success: false, error: err.message };
-  }
+  return {
+    hookImageUrl,
+    setupImageUrl,
+    keyDetailImageUrl,
+    verdictImageUrl,
+    takeawayImageUrl,
+  };
 };
 
 // ============================================================================
@@ -762,12 +634,18 @@ export const generateAndPostTribunalVideo = async () => {
     }
 
     // Add 3 second buffer for outro
-    const durationInFrames = Math.ceil(
-      (voiceover.durationSeconds + 3) * 30
-    );
+    const durationInFrames = Math.ceil((voiceover.durationSeconds + 3) * 30);
 
+    // Build the callback URL for the worker to call when rendering is done
+    const appUrl = process.env.NEXT_PUBLIC_URL || process.env.VERCEL_URL;
+    if (!appUrl) {
+      throw new Error('NEXT_PUBLIC_URL or VERCEL_URL not configured');
+    }
+    const callbackUrl = `${appUrl.startsWith('http') ? appUrl : `https://${appUrl}`}/api/tribunal-video/complete`;
+
+    // 5. Fire-and-forget async render to worker
     const renderResponse = await fetch(
-      `${WORKER_URL}/video/render/tribunal-case-reel`,
+      `${WORKER_URL}/video/render-async/tribunal-case-reel`,
       {
         method: 'POST',
         headers: {
@@ -775,14 +653,15 @@ export const generateAndPostTribunalVideo = async () => {
           Authorization: `Bearer ${WORKER_SECRET}`,
         },
         body: JSON.stringify({
+          videoId: videoRecord.id,
+          callbackUrl,
           authority: selectedCase.authority,
           contravention: selectedCase.contravention || 'Parking contravention',
-          contraventionLocation:
-            selectedCase.contraventionLocation || 'London',
+          contraventionLocation: selectedCase.contraventionLocation || 'London',
           contraventionDate: selectedCase.contraventionDate
             ? new Date(selectedCase.contraventionDate).toLocaleDateString(
                 'en-GB',
-                { day: 'numeric', month: 'long', year: 'numeric' }
+                { day: 'numeric', month: 'long', year: 'numeric' },
               )
             : 'Date not specified',
           penaltyAmount: selectedCase.penaltyAmount
@@ -804,191 +683,37 @@ export const generateAndPostTribunalVideo = async () => {
           transitionSfxUrl: sfx.transitionSfxUrl,
           sceneImages,
           durationInFrames,
+          coverProps: {
+            authority: selectedCase.authority,
+            contravention:
+              selectedCase.contravention || 'Parking contravention',
+            appealDecision: selectedCase.appealDecision,
+            hookText: script.hook,
+            coverImageUrl: sceneImages.hookImageUrl,
+          },
         }),
-      }
+      },
     );
 
     const renderData = await renderResponse.json();
 
     if (!renderResponse.ok || !renderData.success) {
       throw new Error(
-        `Worker render failed: ${renderData.error || renderResponse.statusText}`
+        `Worker async render failed: ${renderData.error || renderResponse.statusText}`,
       );
     }
 
-    const videoUrl = renderData.url;
-
-    // 5b. Render cover image for reel thumbnail
-    let coverImageUrl: string | null = null;
-    try {
-      logger.info('Rendering cover image');
-      const coverResponse = await fetch(
-        `${WORKER_URL}/video/render/tribunal-case-cover`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${WORKER_SECRET}`,
-          },
-          body: JSON.stringify({
-            authority: selectedCase.authority,
-            contravention: selectedCase.contravention || 'Parking contravention',
-            appealDecision: selectedCase.appealDecision,
-            hookText: script.hook,
-            coverImageUrl: sceneImages.hookImageUrl,
-          }),
-        }
-      );
-      const coverData = await coverResponse.json();
-      if (coverResponse.ok && coverData.success) {
-        coverImageUrl = coverData.url;
-        logger.info('Cover image rendered', { coverImageUrl });
-      } else {
-        logger.error('Cover image render failed', { error: coverData.error });
-      }
-    } catch (error) {
-      logger.error(
-        'Cover image render failed',
-        {},
-        error instanceof Error ? error : new Error(String(error))
-      );
-    }
-
-    await db.tribunalCaseVideo.update({
-      where: { id: videoRecord.id },
-      data: {
-        videoUrl,
-        coverImageUrl,
-        status: 'POSTING',
-      },
-    });
-
-    logger.info('Video rendered, posting to social media', { videoUrl, coverImageUrl });
-
-    // 6. Post to social media
-    const caseData = {
-      authority: selectedCase.authority,
-      contravention: selectedCase.contravention || 'Parking contravention',
-      appealDecision: selectedCase.appealDecision,
-      hook: script.hook,
-    };
-
-    // Generate captions in parallel
-    const [instagramCaption, facebookCaption, tiktokCaption, youtubeCaption, threadsCaption] =
-      await Promise.all([
-        generateTribunalCaption('instagram', caseData).catch(() => null),
-        generateTribunalCaption('facebook', caseData).catch(() => null),
-        generateTribunalCaption('tiktok', caseData).catch(() => null),
-        generateTribunalCaption('youtube', caseData).catch(() => null),
-        generateTribunalCaption('threads', caseData).catch(() => null),
-      ]);
-
-    // Post to platforms
-    const postingResults: Record<string, { success: boolean; mediaId?: string; postId?: string; error?: string }> = {};
-
-    if (instagramCaption) {
-      const igResult = await postTribunalReelToInstagram(
-        videoUrl,
-        instagramCaption,
-        coverImageUrl
-      );
-      postingResults.instagram = igResult;
-    }
-
-    if (facebookCaption) {
-      const fbResult = await postTribunalReelToFacebook(
-        videoUrl,
-        facebookCaption,
-        `Tribunal Case: ${caseData.authority} - ${caseData.contravention}`
-      );
-      postingResults.facebook = fbResult;
-    }
-
-    // Send email digest for manual platforms
-    const digestEmail = process.env.SOCIAL_DIGEST_EMAIL;
-    if (digestEmail) {
-      const digestCaptions: SocialDigestCaption[] = [];
-
-      if (instagramCaption) {
-        digestCaptions.push({
-          platform: 'instagramReel',
-          caption: instagramCaption,
-          autoPosted: postingResults.instagram?.success ?? false,
-          assetType: 'video',
-        });
-      }
-      if (facebookCaption) {
-        digestCaptions.push({
-          platform: 'facebookReel',
-          caption: facebookCaption,
-          autoPosted: postingResults.facebook?.success ?? false,
-          assetType: 'video',
-        });
-      }
-      if (tiktokCaption) {
-        digestCaptions.push({
-          platform: 'tiktok',
-          caption: tiktokCaption,
-          autoPosted: false,
-          assetType: 'video',
-        });
-      }
-      if (youtubeCaption) {
-        digestCaptions.push({
-          platform: 'youtubeShorts',
-          caption: youtubeCaption,
-          autoPosted: false,
-          assetType: 'video',
-        });
-      }
-      if (threadsCaption) {
-        digestCaptions.push({
-          platform: 'threads',
-          caption: threadsCaption,
-          autoPosted: false,
-          assetType: 'video',
-        });
-      }
-
-      try {
-        await sendSocialDigest(digestEmail, {
-          blogTitle: `Tribunal Case: ${caseData.authority} - ${caseData.contravention}`,
-          blogUrl: '', // No blog URL for tribunal videos
-          imageUrl: '',
-          videoUrl,
-          captions: digestCaptions,
-        });
-        logger.info('Social digest email sent');
-      } catch (error) {
-        logger.error(
-          'Failed to send digest email',
-          {},
-          error instanceof Error ? error : new Error(String(error))
-        );
-      }
-    }
-
-    // 7. Mark completed
-    await db.tribunalCaseVideo.update({
-      where: { id: videoRecord.id },
-      data: {
-        postingResults,
-        status: 'COMPLETED',
-      },
-    });
-
-    logger.info('Tribunal video pipeline complete', {
+    logger.info('Async render dispatched to worker', {
       videoId: videoRecord.id,
-      caseReference: selectedCase.caseReference,
-      videoUrl,
+      callbackUrl,
     });
 
+    // Return immediately — the worker will call the webhook when done
     return {
       success: true,
       videoId: videoRecord.id,
-      videoUrl,
+      status: 'RENDERING',
       caseReference: selectedCase.caseReference,
-      postingResults,
     };
   } catch (error) {
     const err = error instanceof Error ? error : new Error(String(error));
