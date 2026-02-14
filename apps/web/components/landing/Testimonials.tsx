@@ -89,7 +89,7 @@ const Testimonials = () => {
   const isInView = useInView(ref, { once: true, margin: '-100px' });
 
   return (
-    <section ref={ref} className="bg-white py-20 md:py-28">
+    <section id="testimonials" ref={ref} className="bg-white py-20 md:py-28">
       <div className="mx-auto max-w-[1280px] px-6">
         {/* Header with Rating */}
         <motion.div

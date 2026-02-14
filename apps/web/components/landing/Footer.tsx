@@ -30,12 +30,13 @@ const resourceLinks: FooterLink[] = [
   { label: 'Blog', href: '/blog' },
   { label: 'FAQ', href: '/#faq' },
   { label: 'Success Stories', href: '/#testimonials' },
-  { label: 'UK Parking Laws Guide', href: '/blog' },
-  { label: 'Contravention Codes', href: '/blog' },
+  {
+    label: 'Contravention Codes',
+    href: '/tools/reference/contravention-codes',
+  },
 ];
 
 const companyLinks: FooterLink[] = [
-  { label: 'About Us', href: '/about' },
   { label: 'Contact', href: 'mailto:hello@parkingticketpal.co.uk' },
 ];
 
