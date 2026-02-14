@@ -1,3 +1,5 @@
+import { isHeic, heicTo } from 'heic-to';
+
 type CompressionResult = {
   file: File;
   originalSize: number;
@@ -21,21 +23,51 @@ const SKIP_THRESHOLD = 1_000_000; // 1MB — don't compress files already under 
  * - Iteratively reduces JPEG quality (0.8 → 0.4) until under 1MB
  * - Always outputs JPEG
  */
+// eslint-disable-next-line import-x/prefer-default-export
 export async function compressImage(file: File): Promise<CompressionResult> {
   const originalSize = file.size;
 
   // Pass through non-image files (PDFs, etc.)
-  if (!file.type.startsWith("image/")) {
-    return { file, originalSize, compressedSize: originalSize, wasCompressed: false };
+  if (!file.type.startsWith('image/')) {
+    return {
+      file,
+      originalSize,
+      compressedSize: originalSize,
+      wasCompressed: false,
+    };
+  }
+
+  // Convert HEIC to JPEG before compression (browsers can't decode HEIC natively)
+  let input = file;
+  try {
+    if (await isHeic(file)) {
+      const jpegBlob = await heicTo({
+        blob: file,
+        type: 'image/jpeg',
+        quality: 0.9,
+      });
+
+      input = new File([jpegBlob], file.name.replace(/\.[^.]+$/, '.jpg'), {
+        type: 'image/jpeg',
+      });
+    }
+  } catch {
+    // HEIC conversion failed — continue with original file
+    // (will likely fail at createImageBitmap below and return original)
   }
 
   // Skip files already under threshold
-  if (file.size <= SKIP_THRESHOLD) {
-    return { file, originalSize, compressedSize: originalSize, wasCompressed: false };
+  if (input.size <= SKIP_THRESHOLD) {
+    return {
+      file: input,
+      originalSize,
+      compressedSize: originalSize,
+      wasCompressed: false,
+    };
   }
 
   // Load the image as a bitmap (promise-based, memory-efficient)
-  const bitmap = await createImageBitmap(file);
+  const bitmap = await createImageBitmap(input);
   const { width, height } = bitmap;
 
   // Calculate scaled dimensions (max 2048px on longest edge)
@@ -51,12 +83,17 @@ export async function compressImage(file: File): Promise<CompressionResult> {
 
   // Draw to canvas
   const canvas = new OffscreenCanvas(targetWidth, targetHeight);
-  const ctx = canvas.getContext("2d");
+  const ctx = canvas.getContext('2d');
 
   if (!ctx) {
     // Canvas context unavailable — return original
     bitmap.close();
-    return { file, originalSize, compressedSize: originalSize, wasCompressed: false };
+    return {
+      file: input,
+      originalSize,
+      compressedSize: originalSize,
+      wasCompressed: false,
+    };
   }
 
   ctx.drawImage(bitmap, 0, 0, targetWidth, targetHeight);
@@ -67,7 +104,8 @@ export async function compressImage(file: File): Promise<CompressionResult> {
   let blob: Blob | null = null;
 
   while (quality >= MIN_QUALITY) {
-    blob = await canvas.convertToBlob({ type: "image/jpeg", quality });
+    // eslint-disable-next-line no-await-in-loop
+    blob = await canvas.convertToBlob({ type: 'image/jpeg', quality });
 
     if (blob.size <= TARGET_SIZE) {
       break;
@@ -78,14 +116,19 @@ export async function compressImage(file: File): Promise<CompressionResult> {
 
   // If we still don't have a blob (shouldn't happen), fall back
   if (!blob) {
-    return { file, originalSize, compressedSize: originalSize, wasCompressed: false };
+    return {
+      file: input,
+      originalSize,
+      compressedSize: originalSize,
+      wasCompressed: false,
+    };
   }
 
   // Build a new File from the compressed blob
   const compressedFile = new File(
     [blob],
-    file.name.replace(/\.[^.]+$/, ".jpg"),
-    { type: "image/jpeg" },
+    input.name.replace(/\.[^.]+$/, '.jpg'),
+    { type: 'image/jpeg' },
   );
 
   return {
