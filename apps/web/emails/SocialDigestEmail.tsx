@@ -31,6 +31,7 @@ type SocialDigestEmailProps = {
   captions: PlatformCaption[];
   sourceArticleUrl?: string;
   sourceArticleName?: string;
+  voiceoverTranscript?: string;
 };
 
 // Styles
@@ -89,6 +90,31 @@ const assetLink = {
   color: '#1ABC9C',
   fontSize: '14px',
   textDecoration: 'underline',
+};
+
+const transcriptSection = {
+  backgroundColor: '#faf5ff',
+  border: '1px solid #c4b5fd',
+  borderRadius: '8px',
+  padding: '20px',
+  margin: '24px 0',
+};
+
+const transcriptTitle = {
+  color: '#5b21b6',
+  fontSize: '14px',
+  fontWeight: '700',
+  margin: '0 0 12px 0',
+  textTransform: 'uppercase' as const,
+  letterSpacing: '0.5px',
+};
+
+const transcriptText = {
+  color: '#374151',
+  fontSize: '14px',
+  lineHeight: '22px',
+  margin: '0',
+  whiteSpace: 'pre-wrap' as const,
 };
 
 const sourceSection = {
@@ -269,6 +295,7 @@ const SocialDigestEmail = ({
   ],
   sourceArticleUrl,
   sourceArticleName,
+  voiceoverTranscript,
 }: SocialDigestEmailProps) => (
   <Html>
     <Head />
@@ -291,6 +318,13 @@ const SocialDigestEmail = ({
                 {sourceArticleUrl}
               </Link>
             </Text>
+          </Section>
+        )}
+
+        {voiceoverTranscript && (
+          <Section style={transcriptSection}>
+            <Text style={transcriptTitle}>🎙️ Voiceover Transcript</Text>
+            <Text style={transcriptText}>{voiceoverTranscript}</Text>
           </Section>
         )}
 

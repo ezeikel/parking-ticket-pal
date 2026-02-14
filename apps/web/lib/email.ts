@@ -294,6 +294,7 @@ export const sendSocialDigest = async (
     captions: SocialDigestCaption[];
     sourceArticleUrl?: string;
     sourceArticleName?: string;
+    voiceoverTranscript?: string;
   },
 ): Promise<{
   success: boolean;
@@ -309,6 +310,7 @@ export const sendSocialDigest = async (
       captions: digestData.captions,
       sourceArticleUrl: digestData.sourceArticleUrl,
       sourceArticleName: digestData.sourceArticleName,
+      voiceoverTranscript: digestData.voiceoverTranscript,
     }),
   );
 
@@ -324,11 +326,15 @@ export const sendSocialDigest = async (
     ? `\n\nSource article: ${digestData.sourceArticleName ? `${digestData.sourceArticleName} - ` : ''}${digestData.sourceArticleUrl}`
     : '';
 
+  const transcriptText = digestData.voiceoverTranscript
+    ? `\n\nVoiceover Transcript:\n${digestData.voiceoverTranscript}`
+    : '';
+
   return sendEmail({
     to,
     subject: `Social Media Assets Ready: ${digestData.blogTitle}`,
     html: emailHtml,
-    text: `Social Media Assets Ready: ${digestData.blogTitle}${sourceText}\n\nAssets:\n- Image: ${digestData.imageUrl}\n- Video: ${digestData.videoUrl}\n\nCaptions:\n\n${captionsText}\n\nView blog post: ${digestData.blogUrl}`,
+    text: `Social Media Assets Ready: ${digestData.blogTitle}${sourceText}${transcriptText}\n\nAssets:\n- Image: ${digestData.imageUrl}\n- Video: ${digestData.videoUrl}\n\nCaptions:\n\n${captionsText}\n\nView blog post: ${digestData.blogUrl}`,
   });
 };
 

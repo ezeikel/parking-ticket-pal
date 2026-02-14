@@ -348,6 +348,7 @@ export async function completeTribunalVideo(
         imageUrl: '',
         videoUrl,
         captions: digestCaptions,
+        voiceoverTranscript: videoRecord.script || undefined,
       });
       logger.info('Social digest email sent');
     } catch (error) {
@@ -517,6 +518,7 @@ export async function completeNewsVideo(
         captions: digestCaptions,
         sourceArticleUrl: videoRecord.articleUrl,
         sourceArticleName: videoRecord.source,
+        voiceoverTranscript: videoRecord.script || undefined,
       });
       logger.info('Social digest email sent');
     } catch (error) {
