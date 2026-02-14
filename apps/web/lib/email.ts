@@ -8,6 +8,7 @@ import { render } from '@react-email/render';
 import MagicLinkEmail from '@/components/emails/MagicLinkEmail';
 import TicketReminderEmail from '@/components/emails/TicketReminderEmail';
 import SocialDigestEmail from '@/emails/SocialDigestEmail';
+import NewsVideoSkippedEmail from '@/emails/NewsVideoSkippedEmail';
 
 const AttachmentSchema = z.object({
   filename: z.string(),
@@ -28,12 +29,13 @@ const EmailSchema = z.object({
 export type EmailAttachment = z.infer<typeof AttachmentSchema>;
 export type EmailData = z.infer<typeof EmailSchema>;
 
-interface RateLimitStore {
-  [key: string]: {
+type RateLimitStore = Record<
+  string,
+  {
     count: number;
     resetTime: number;
-  };
-}
+  }
+>;
 
 // In-memory rate limiting (consider using Redis in production)
 const rateLimit: RateLimitStore = {};
@@ -195,12 +197,12 @@ export const sendBatchEmails = async (
   emails: EmailData[],
 ): Promise<{
   success: boolean;
-  results: Array<{
+  results: {
     success: boolean;
     messageId?: string;
     error?: string;
     recipient: string | string[];
-  }>;
+  }[];
 }> => {
   const results = await Promise.all(
     emails.map(async (email, index) => {
@@ -290,6 +292,8 @@ export const sendSocialDigest = async (
     imageUrl: string;
     videoUrl: string;
     captions: SocialDigestCaption[];
+    sourceArticleUrl?: string;
+    sourceArticleName?: string;
   },
 ): Promise<{
   success: boolean;
@@ -303,6 +307,8 @@ export const sendSocialDigest = async (
       imageUrl: digestData.imageUrl,
       videoUrl: digestData.videoUrl,
       captions: digestData.captions,
+      sourceArticleUrl: digestData.sourceArticleUrl,
+      sourceArticleName: digestData.sourceArticleName,
     }),
   );
 
@@ -314,10 +320,34 @@ export const sendSocialDigest = async (
     )
     .join('\n\n---\n\n');
 
+  const sourceText = digestData.sourceArticleUrl
+    ? `\n\nSource article: ${digestData.sourceArticleName ? `${digestData.sourceArticleName} - ` : ''}${digestData.sourceArticleUrl}`
+    : '';
+
   return sendEmail({
     to,
     subject: `Social Media Assets Ready: ${digestData.blogTitle}`,
     html: emailHtml,
-    text: `Social Media Assets Ready: ${digestData.blogTitle}\n\nAssets:\n- Image: ${digestData.imageUrl}\n- Video: ${digestData.videoUrl}\n\nCaptions:\n\n${captionsText}\n\nView blog post: ${digestData.blogUrl}`,
+    text: `Social Media Assets Ready: ${digestData.blogTitle}${sourceText}\n\nAssets:\n- Image: ${digestData.imageUrl}\n- Video: ${digestData.videoUrl}\n\nCaptions:\n\n${captionsText}\n\nView blog post: ${digestData.blogUrl}`,
+  });
+};
+
+export const sendNewsVideoSkipped = async (
+  to: string,
+  data: { checkedAt: string },
+): Promise<{
+  success: boolean;
+  messageId?: string;
+  error?: string;
+}> => {
+  const emailHtml = await render(
+    NewsVideoSkippedEmail({ checkedAt: data.checkedAt }),
+  );
+
+  return sendEmail({
+    to,
+    subject: 'News Video Pipeline: No new articles found',
+    html: emailHtml,
+    text: `News Video Pipeline: No new articles found\n\nThe news video pipeline ran but didn't find any new articles to create a video from.\n\nThis is normal — the pipeline deduplicates against previously used articles to avoid posting the same story twice.\n\nChecked at: ${data.checkedAt}`,
   });
 };

@@ -29,6 +29,8 @@ type SocialDigestEmailProps = {
   imageUrl: string;
   videoUrl: string;
   captions: PlatformCaption[];
+  sourceArticleUrl?: string;
+  sourceArticleName?: string;
 };
 
 // Styles
@@ -86,6 +88,37 @@ const assetLabel = {
 const assetLink = {
   color: '#1ABC9C',
   fontSize: '14px',
+  textDecoration: 'underline',
+};
+
+const sourceSection = {
+  backgroundColor: '#eff6ff',
+  border: '1px solid #93c5fd',
+  borderRadius: '8px',
+  padding: '20px',
+  margin: '24px 0',
+};
+
+const sourceTitle = {
+  color: '#1e40af',
+  fontSize: '14px',
+  fontWeight: '700',
+  margin: '0 0 8px 0',
+  textTransform: 'uppercase' as const,
+  letterSpacing: '0.5px',
+};
+
+const sourceText = {
+  color: '#374151',
+  fontSize: '14px',
+  lineHeight: '22px',
+  margin: '0',
+};
+
+const sourceLink = {
+  color: '#1ABC9C',
+  fontSize: '14px',
+  fontWeight: '600',
   textDecoration: 'underline',
 };
 
@@ -221,17 +254,21 @@ const SocialDigestEmail = ({
   captions = [
     {
       platform: 'instagram',
-      caption: 'Got a parking ticket? Here\'s what you need to know...\n\n#ParkingTicket #UKDriving',
+      caption:
+        "Got a parking ticket? Here's what you need to know...\n\n#ParkingTicket #UKDriving",
       autoPosted: true,
       assetType: 'both',
     },
     {
       platform: 'tiktok',
-      caption: 'POV: You just got a parking ticket and don\'t know what to do 😱\n\n#parkingticket #uk #fyp',
+      caption:
+        "POV: You just got a parking ticket and don't know what to do 😱\n\n#parkingticket #uk #fyp",
       autoPosted: false,
       assetType: 'video',
     },
   ],
+  sourceArticleUrl,
+  sourceArticleName,
 }: SocialDigestEmailProps) => (
   <Html>
     <Head />
@@ -241,8 +278,21 @@ const SocialDigestEmail = ({
         <EmailHeader title="Social Media Assets Ready" />
 
         <Text style={text}>
-          Your social media posts for <strong>&quot;{blogTitle}&quot;</strong> are ready!
+          Your social media posts for <strong>&quot;{blogTitle}&quot;</strong>{' '}
+          are ready!
         </Text>
+
+        {sourceArticleUrl && (
+          <Section style={sourceSection}>
+            <Text style={sourceTitle}>📰 Source Article</Text>
+            <Text style={sourceText}>
+              {sourceArticleName && <>{sourceArticleName}: </>}
+              <Link href={sourceArticleUrl} style={sourceLink}>
+                {sourceArticleUrl}
+              </Link>
+            </Text>
+          </Section>
+        )}
 
         <Section style={assetSection}>
           <Text style={assetTitle}>📦 Download Assets</Text>
@@ -303,7 +353,9 @@ const SocialDigestEmail = ({
 
         <Hr style={divider} />
 
-        <EmailButton href={blogUrl}>View Blog Post</EmailButton>
+        <EmailButton href={sourceArticleUrl || blogUrl}>
+          {sourceArticleUrl ? 'View Source Article' : 'View Blog Post'}
+        </EmailButton>
 
         <Text style={signature}>
           Best regards,

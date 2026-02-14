@@ -515,6 +515,8 @@ export async function completeNewsVideo(
         imageUrl: '',
         videoUrl,
         captions: digestCaptions,
+        sourceArticleUrl: videoRecord.articleUrl,
+        sourceArticleName: videoRecord.source,
       });
       logger.info('Social digest email sent');
     } catch (error) {

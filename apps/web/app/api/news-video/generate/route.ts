@@ -1,6 +1,7 @@
 import { type NextRequest, NextResponse } from 'next/server';
 import { generateAndPostNewsVideo } from '@/app/actions/news-video';
 import { createServerLogger } from '@/lib/logger';
+import { sendNewsVideoSkipped } from '@/lib/email';
 
 const log = createServerLogger({ action: 'news-video-generate' });
 
@@ -24,6 +25,23 @@ const handleRequest = async (request: NextRequest) => {
 
     if ('skipped' in result && result.skipped) {
       log.info('No new articles found, skipped');
+
+      const digestEmail = process.env.SOCIAL_DIGEST_EMAIL;
+      if (digestEmail) {
+        try {
+          await sendNewsVideoSkipped(digestEmail, {
+            checkedAt: new Date().toISOString(),
+          });
+          log.info('Skipped notification email sent');
+        } catch (error) {
+          log.error(
+            'Failed to send skipped notification email',
+            {},
+            error instanceof Error ? error : undefined,
+          );
+        }
+      }
+
       return NextResponse.json({
         success: true,
         skipped: true,
