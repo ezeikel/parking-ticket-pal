@@ -45,6 +45,7 @@ import { useAnalytics } from '@/utils/analytics-client';
 import { TRACKING_EVENTS } from '@/constants/events';
 import { compressImage } from '@/utils/compressImage';
 import createUTCDate from '@/utils/createUTCDate';
+import { logger } from '@/lib/logger';
 
 const CreateLetterForm = () => {
   const router = useRouter();
@@ -112,7 +113,11 @@ const CreateLetterForm = () => {
 
       toast.success('Form prefilled with letter details');
     } catch (error) {
-      console.error('Error uploading image:', error);
+      logger.error(
+        'Error uploading image',
+        { page: 'create-letter' },
+        error instanceof Error ? error : undefined,
+      );
       toast.error('Failed to upload image. Please try again.');
     } finally {
       setIsLoading(false);
@@ -145,7 +150,11 @@ const CreateLetterForm = () => {
       // navigate to related ticket
       router.push(`/tickets/${letter.ticketId}`);
     } catch (error) {
-      console.error('Error creating letter:', error);
+      logger.error(
+        'Error creating letter',
+        { page: 'create-letter' },
+        error instanceof Error ? error : undefined,
+      );
       toast.error('Failed to create letter. Please try again.');
     } finally {
       setIsLoading(false);

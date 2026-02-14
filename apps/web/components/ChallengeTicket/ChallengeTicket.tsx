@@ -50,6 +50,7 @@ import { TicketWithRelations } from '@/types';
 import { useAnalytics } from '@/utils/analytics-client';
 import { TRACKING_EVENTS } from '@/constants/events';
 import SignatureGateModal from '@/components/SignatureGateModal/SignatureGateModal';
+import { logger } from '@/lib/logger';
 
 type ChallengeTicketProps = {
   ticket: TicketWithRelations;
@@ -182,7 +183,11 @@ const ChallengeTicket = ({ ticket, issuerType }: ChallengeTicketProps) => {
           setChallengeHistory(historyItems);
         }
       } catch (error) {
-        console.error('Failed to load challenge history:', error);
+        logger.error(
+          'Failed to load challenge history',
+          { page: 'challenge-ticket' },
+          error instanceof Error ? error : undefined,
+        );
       } finally {
         setIsLoadingHistory(false);
       }
@@ -210,7 +215,7 @@ const ChallengeTicket = ({ ticket, issuerType }: ChallengeTicketProps) => {
       type: action,
       timestamp: new Date(),
       status: 'pending',
-      challengeReason: selectedReason!,
+      challengeReason: selectedReason,
       additionalDetails: customReason || undefined,
     };
     setChallengeHistory((prev) => [pendingItem, ...prev]);
@@ -265,10 +270,10 @@ const ChallengeTicket = ({ ticket, issuerType }: ChallengeTicketProps) => {
       challengeReasons[selectedReason as keyof typeof challengeReasons];
 
     if (!challengeReasonEntry) {
-      console.error(
-        'Selected reason not found in challenge reasons:',
+      logger.error('Selected reason not found in challenge reasons', {
+        page: 'challenge-ticket',
         selectedReason,
-      );
+      });
       toast.error('Invalid challenge reason selected.');
       return;
     }
@@ -310,10 +315,10 @@ const ChallengeTicket = ({ ticket, issuerType }: ChallengeTicketProps) => {
       challengeReasons[selectedReason as keyof typeof challengeReasons];
 
     if (!challengeReasonEntry) {
-      console.error(
-        'Selected reason not found in challenge reasons:',
+      logger.error('Selected reason not found in challenge reasons', {
+        page: 'challenge-ticket',
         selectedReason,
-      );
+      });
       toast.error('Invalid challenge reason selected.');
       return;
     }

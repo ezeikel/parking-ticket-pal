@@ -13,6 +13,7 @@ import {
 } from '@/components/ui/dialog';
 import { useAccountContext } from '@/contexts/account';
 import { ProductType } from '@parking-ticket-pal/db/types';
+import { logger } from '@/lib/logger';
 
 const FundAccountDialog = () => {
   const { isFundAccountDialogOpen, setIsFundAccountDialogOpen } =
@@ -23,7 +24,7 @@ const FundAccountDialog = () => {
     const session = await createCheckoutSession(productType);
 
     if (!session) {
-      console.error('Error creating checkout session');
+      logger.error('Error creating checkout session', { page: 'fund-account' });
       return;
     }
 

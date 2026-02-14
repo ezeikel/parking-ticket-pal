@@ -1,6 +1,10 @@
+/* eslint-disable @typescript-eslint/naming-convention, import-x/prefer-default-export */
 import { revalidateTag } from 'next/cache';
 import { type NextRequest, NextResponse } from 'next/server';
 import { parseBody } from 'next-sanity/webhook';
+import { createServerLogger } from '@/lib/logger';
+
+const log = createServerLogger({ action: 'sanity-revalidate' });
 
 type SanityWebhookPayload = {
   _type: string;
@@ -8,7 +12,7 @@ type SanityWebhookPayload = {
   slug?: { current: string };
 };
 
-const SANITY_REVALIDATE_SECRET = process.env.SANITY_REVALIDATE_SECRET;
+const { SANITY_REVALIDATE_SECRET } = process.env;
 
 export async function POST(req: NextRequest) {
   try {
@@ -87,10 +91,7 @@ export async function POST(req: NextRequest) {
         });
     }
 
-    console.log(
-      `[Sanity Webhook] Revalidated tags for ${_type} (${_id}):`,
-      revalidatedTags,
-    );
+    log.info('Revalidated tags', { _type, _id, revalidatedTags });
 
     return NextResponse.json({
       message: 'Revalidation successful',
@@ -99,7 +100,11 @@ export async function POST(req: NextRequest) {
       document: { _type, _id, slug: slug?.current },
     });
   } catch (error) {
-    console.error('[Sanity Webhook] Error:', error);
+    log.error(
+      'Error processing webhook',
+      undefined,
+      error instanceof Error ? error : undefined,
+    );
     return NextResponse.json(
       { message: 'Error processing webhook', error: String(error) },
       { status: 500 },

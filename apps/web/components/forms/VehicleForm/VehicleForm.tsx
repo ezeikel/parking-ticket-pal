@@ -25,6 +25,7 @@ import {
 import { useRouter } from 'next/navigation';
 import VerifiedBadge from '@/components/VerifiedBadge/VerifiedBadge';
 import { VerificationStatus } from '@parking-ticket-pal/db/types';
+import { logger } from '@/lib/logger';
 
 const vehicleFormSchema = z.object({
   registrationNumber: z.string().min(1, 'Registration number is required'),
@@ -66,7 +67,11 @@ const VehicleForm = ({
     try {
       await onSubmit(data);
     } catch (error) {
-      console.error('Error submitting form:', error);
+      logger.error(
+        'Error submitting form',
+        { page: 'vehicle-form' },
+        error instanceof Error ? error : undefined,
+      );
     } finally {
       setIsLoading(false);
     }

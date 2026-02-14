@@ -1,13 +1,15 @@
 'use server';
 
-import { Prisma } from '@parking-ticket-pal/db';
-import { db } from '@parking-ticket-pal/db';
+import { Prisma, db } from '@parking-ticket-pal/db';
 import getVehicleInfo from '@/utils/getVehicleInfo';
+import { createServerLogger } from '@/lib/logger';
+
+const log = createServerLogger({ action: 'vehicle-service' });
 
 /**
  * Handles post-update tasks for a vehicle (re-verifies if registration changed)
  */
-// eslint-disable-next-line import/prefer-default-export
+// eslint-disable-next-line import-x/prefer-default-export
 export const afterVehicleUpdate = async (
   vehicleId: string,
   oldRegistrationNumber: string | undefined,
@@ -56,7 +58,11 @@ export const afterVehicleUpdate = async (
         } as Prisma.VehicleUpdateInput,
       });
     } catch (error) {
-      console.error('Failed to verify vehicle:', error);
+      log.error(
+        'Failed to verify vehicle',
+        undefined,
+        error instanceof Error ? error : undefined,
+      );
       // Don't throw - verification failure shouldn't break vehicle updates
     }
   }

@@ -1,9 +1,14 @@
-/* eslint-disable import/prefer-default-export */
-
-import { db } from '@parking-ticket-pal/db';
-import { SubscriptionType, SubscriptionSource } from '@parking-ticket-pal/db';
+/* eslint-disable import-x/prefer-default-export */
+import {
+  db,
+  SubscriptionType,
+  SubscriptionSource,
+} from '@parking-ticket-pal/db';
 import { revalidatePath } from 'next/cache';
 import crypto from 'crypto';
+import { createServerLogger } from '@/lib/logger';
+
+const log = createServerLogger({ action: 'revenuecat-webhook' });
 
 /**
  * RevenueCat Webhook Event Types
@@ -23,7 +28,7 @@ type RevenueCatEventType =
   | 'SUBSCRIPTION_EXTENDED'
   | 'TRANSFER';
 
-interface RevenueCatWebhookEvent {
+type RevenueCatWebhookEvent = {
   api_version: string;
   event: {
     type: RevenueCatEventType;
@@ -64,7 +69,7 @@ interface RevenueCatWebhookEvent {
     id: string;
     app_id: string;
   };
-}
+};
 
 /**
  * Verify RevenueCat webhook signature
@@ -76,7 +81,7 @@ function verifyWebhookSignature(
   const webhookSecret = process.env.REVENUECAT_WEBHOOK_SECRET;
 
   if (!webhookSecret) {
-    console.error('REVENUECAT_WEBHOOK_SECRET not set');
+    log.error('REVENUECAT_WEBHOOK_SECRET not set');
     return false;
   }
 
@@ -120,7 +125,7 @@ export const POST = async (req: Request) => {
 
     // Verify webhook signature
     if (!verifyWebhookSignature(body, signature)) {
-      console.error('Invalid RevenueCat webhook signature');
+      log.error('Invalid RevenueCat webhook signature');
       return Response.json({ error: 'Invalid signature' }, { status: 400 });
     }
 
@@ -128,8 +133,8 @@ export const POST = async (req: Request) => {
     const webhookEvent: RevenueCatWebhookEvent = JSON.parse(body);
     const { event } = webhookEvent;
 
-    console.log(
-      `[RevenueCat Webhook] Event type: ${event.type}, User: ${event.app_user_id}, Product: ${event.product_id}`,
+    log.info(
+      `Event type: ${event.type}, User: ${event.app_user_id}, Product: ${event.product_id}`,
     );
 
     // Get the user ID (this should match User.id in our database)
@@ -142,7 +147,7 @@ export const POST = async (req: Request) => {
     });
 
     if (!user) {
-      console.error(`User not found: ${userId}`);
+      log.error(`User not found: ${userId}`);
       return Response.json({ error: 'User not found' }, { status: 404 });
     }
 
@@ -181,8 +186,8 @@ export const POST = async (req: Request) => {
             },
           });
 
-          console.log(
-            `[RevenueCat] Subscription updated: ${subscriptionType} for user ${userId}`,
+          log.info(
+            `Subscription updated: ${subscriptionType} for user ${userId}`,
           );
 
           // Revalidate relevant paths
@@ -204,7 +209,7 @@ export const POST = async (req: Request) => {
             where: { userId },
           });
 
-          console.log(`[RevenueCat] Subscription removed for user ${userId}`);
+          log.info(`Subscription removed for user ${userId}`);
 
           // Revalidate relevant paths
           revalidatePath('/dashboard');
@@ -218,31 +223,35 @@ export const POST = async (req: Request) => {
         // This is a consumable purchase (e.g., standard_ticket_v1 or premium_ticket_v1)
         // The mobile app should handle this via /api/iap/confirm-purchase
         // We just log it here for tracking
-        console.log(
-          `[RevenueCat] Non-renewing purchase: ${event.product_id} for user ${userId}`,
+        log.info(
+          `Non-renewing purchase: ${event.product_id} for user ${userId}`,
         );
         break;
       }
 
       case 'BILLING_ISSUE': {
         // Handle billing issues - could send notification to user
-        console.warn(`[RevenueCat] Billing issue for user ${userId}`);
+        log.warn(`Billing issue for user ${userId}`);
         break;
       }
 
       case 'SUBSCRIPTION_PAUSED': {
         // Handle subscription pause - keep subscription but mark as paused
-        console.log(`[RevenueCat] Subscription paused for user ${userId}`);
+        log.info(`Subscription paused for user ${userId}`);
         break;
       }
 
       default:
-        console.log(`[RevenueCat] Unhandled event type: ${event.type}`);
+        log.warn(`Unhandled event type: ${event.type}`);
     }
 
     return Response.json({ received: true }, { status: 200 });
   } catch (error) {
-    console.error('[RevenueCat Webhook] Error processing webhook:', error);
+    log.error(
+      'Error processing webhook',
+      undefined,
+      error instanceof Error ? error : undefined,
+    );
     return Response.json({ error: 'Internal server error' }, { status: 500 });
   }
 };

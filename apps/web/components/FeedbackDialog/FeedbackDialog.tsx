@@ -25,6 +25,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
+import { logger } from '@/lib/logger';
 
 type FeedbackType = 'bug' | 'idea' | 'help' | 'other';
 
@@ -159,7 +160,11 @@ const FeedbackDialog = ({
         setOpen(false);
       }, 2000);
     } catch (error) {
-      console.error('Failed to submit feedback:', error);
+      logger.error(
+        'Failed to submit feedback',
+        { page: 'feedback' },
+        error instanceof Error ? error : undefined,
+      );
     } finally {
       setIsSubmitting(false);
     }

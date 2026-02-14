@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/set-state-in-effect */
 'use client';
 
 import { useEffect, useState, Suspense } from 'react';
@@ -10,6 +11,7 @@ import {
   faCircleExclamation,
 } from '@fortawesome/pro-solid-svg-icons';
 import { Button } from '@/components/ui/button';
+import { logger } from '@/lib/logger';
 
 const MagicLinkVerifyContent = () => {
   const searchParams = useSearchParams();
@@ -42,7 +44,11 @@ const MagicLinkVerifyContent = () => {
           router.push(callbackUrl);
         }, 2000);
       } catch (error) {
-        console.error('Magic link verification error:', error);
+        logger.error(
+          'Magic link verification error',
+          { page: 'magic-link-verify' },
+          error instanceof Error ? error : undefined,
+        );
         setStatus('error');
         setMessage('Something went wrong. Please try again.');
       }

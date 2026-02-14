@@ -1,5 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { checkAllTokens } from '@/lib/social-tokens';
+import { createServerLogger } from '@/lib/logger';
+
+const log = createServerLogger({ action: 'admin-tokens' });
 
 export const maxDuration = 60;
 
@@ -69,7 +72,11 @@ export const GET = async (request: NextRequest) => {
       timestamp: new Date().toISOString(),
     });
   } catch (error) {
-    console.error('Error checking tokens:', error);
+    log.error(
+      'Error checking tokens',
+      undefined,
+      error instanceof Error ? error : undefined,
+    );
     return NextResponse.json(
       {
         status: 'error',

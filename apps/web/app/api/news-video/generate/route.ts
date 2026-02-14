@@ -1,5 +1,8 @@
 import { type NextRequest, NextResponse } from 'next/server';
 import { generateAndPostNewsVideo } from '@/app/actions/news-video';
+import { createServerLogger } from '@/lib/logger';
+
+const log = createServerLogger({ action: 'news-video-generate' });
 
 // Pipeline now returns after dispatching async render (~90s)
 export const maxDuration = 120;
@@ -15,12 +18,12 @@ const handleRequest = async (request: NextRequest) => {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    console.log('Starting news video generation pipeline...');
+    log.info('Starting news video generation pipeline');
 
     const result = await generateAndPostNewsVideo();
 
     if ('skipped' in result && result.skipped) {
-      console.log('No new articles found, skipped');
+      log.info('No new articles found, skipped');
       return NextResponse.json({
         success: true,
         skipped: true,
@@ -30,16 +33,17 @@ const handleRequest = async (request: NextRequest) => {
     }
 
     if (!result.success) {
-      console.error('News video generation failed:', result.error);
+      log.error('News video generation failed', { error: result.error });
       return NextResponse.json(
         { error: result.error, videoId: result.videoId },
         { status: 500 },
       );
     }
 
-    console.log(
-      `News video pipeline dispatched: ${result.videoId} (status: ${'status' in result ? result.status : 'unknown'})`,
-    );
+    log.info('News video pipeline dispatched', {
+      videoId: result.videoId,
+      status: 'status' in result ? result.status : 'unknown',
+    });
 
     return NextResponse.json({
       success: true,
@@ -50,7 +54,11 @@ const handleRequest = async (request: NextRequest) => {
       timestamp: new Date().toISOString(),
     });
   } catch (error) {
-    console.error('Error in news video generation:', error);
+    log.error(
+      'Error in news video generation',
+      undefined,
+      error instanceof Error ? error : undefined,
+    );
 
     return NextResponse.json(
       {

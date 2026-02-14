@@ -40,6 +40,7 @@ import {
 import { TicketWithRelations } from '@/types';
 import { useAnalytics } from '@/utils/analytics-client';
 import { TRACKING_EVENTS } from '@/constants/events';
+import { logger } from '@/lib/logger';
 
 type AdvancedFormsProps = {
   ticket: TicketWithRelations;
@@ -365,7 +366,11 @@ const AdvancedForms = ({ ticket, hasSignature }: AdvancedFormsProps) => {
         );
       }
     } catch (error) {
-      console.error('Error generating form:', error);
+      logger.error(
+        'Error generating form',
+        { page: 'advanced-forms' },
+        error instanceof Error ? error : undefined,
+      );
       toast.error('Failed to generate form. Please try again.');
     } finally {
       setIsGenerating(false);

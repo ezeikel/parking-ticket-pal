@@ -4,6 +4,9 @@ import {
   generateBlogPostForTopic,
   generateRandomBlogPost,
 } from '@/app/actions/blog';
+import { createServerLogger } from '@/lib/logger';
+
+const log = createServerLogger({ action: 'blog-generate' });
 
 // set max duration to 3 minutes
 export const maxDuration = 180;
@@ -69,11 +72,13 @@ const handleRequest = async (request: NextRequest) => {
     }
 
     if (topic) {
-      console.log(`Generating blog post for topic: ${topic}`);
+      log.info('Generating blog post for topic', { topic });
     } else {
-      console.log('Generating blog post for random topic');
+      log.info('Generating blog post for random topic');
     }
-    console.log(`Publish date: ${publishDate.toISOString().split('T')[0]}`);
+    log.info('Publish date', {
+      publishDate: publishDate.toISOString().split('T')[0],
+    });
 
     // generate the blog post - use specific topic or random
     const result = topic
@@ -81,14 +86,14 @@ const handleRequest = async (request: NextRequest) => {
       : await generateRandomBlogPost(publishDate);
 
     if (!result.success) {
-      console.error('Failed to generate blog post:', result.error);
+      log.error('Failed to generate blog post', { error: result.error });
       return NextResponse.json({ error: result.error }, { status: 500 });
     }
 
     // revalidate blog cache to show new content (expire: 0 for immediate invalidation)
     revalidateTag('blog', { expire: 0 });
 
-    console.log(`Successfully generated blog post: ${result.title}`);
+    log.info('Successfully generated blog post', { title: result.title });
 
     return NextResponse.json({
       success: true,
@@ -101,7 +106,11 @@ const handleRequest = async (request: NextRequest) => {
       timestamp: new Date().toISOString(),
     });
   } catch (error) {
-    console.error('Error in manual blog generation:', error);
+    log.error(
+      'Error in manual blog generation',
+      undefined,
+      error instanceof Error ? error : undefined,
+    );
 
     return NextResponse.json(
       {

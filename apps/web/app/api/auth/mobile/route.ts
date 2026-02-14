@@ -1,13 +1,15 @@
-/* eslint-disable import/prefer-default-export */
-
 import { OAuth2Client } from 'google-auth-library';
 import { db } from '@parking-ticket-pal/db';
 import { encrypt } from '@/app/lib/session';
+import { createServerLogger } from '@/lib/logger';
+
+const log = createServerLogger({ action: 'auth-google' });
 
 const client = new OAuth2Client(
   '1069305445287-1m5mhd9lkm8c1trksbhlqd2cia0itjpj.apps.googleusercontent.com',
 );
 
+// eslint-disable-next-line import-x/prefer-default-export
 export const POST = async (req: Request) => {
   const { idToken } = await req.json();
   let user;
@@ -68,7 +70,11 @@ export const POST = async (req: Request) => {
       },
     );
   } catch (error) {
-    console.error('error', error);
+    log.error(
+      'Google auth error',
+      undefined,
+      error instanceof Error ? error : undefined,
+    );
 
     return Response.json(
       {

@@ -1,5 +1,8 @@
 import { ImageResponse } from 'next/og';
 import { getPostBySlug } from '@/lib/queries/blog';
+import { createServerLogger } from '@/lib/logger';
+
+const log = createServerLogger({ action: 'og-image' });
 
 // load Plus Jakarta Sans fonts from Google Fonts
 const getPlusJakartaSansRegular = fetch(
@@ -276,7 +279,11 @@ export default async function Image({
       },
     );
   } catch (error) {
-    console.error('Error generating OG image:', error);
+    log.error(
+      'Error generating OG image',
+      undefined,
+      error instanceof Error ? error : undefined,
+    );
 
     // fallback error image
     return new ImageResponse(

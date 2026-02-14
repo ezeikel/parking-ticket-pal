@@ -6,13 +6,16 @@ import type {
   Platform,
   Prisma,
 } from '@parking-ticket-pal/db';
+import { createServerLogger } from '@/lib/logger';
 
-interface NotificationPreferences {
+const log = createServerLogger({ action: 'notification' });
+
+type NotificationPreferences = {
   inApp: boolean;
   email: boolean;
   sms: boolean;
   push: boolean;
-}
+};
 
 // Get user notifications with pagination
 export async function getUserNotifications(
@@ -54,7 +57,11 @@ export async function getUserNotifications(
       unreadCount,
     };
   } catch (error) {
-    console.error('Error getting user notifications:', error);
+    log.error(
+      'Error getting user notifications',
+      undefined,
+      error instanceof Error ? error : undefined,
+    );
     return {
       success: false,
       error: 'Failed to fetch notifications',
@@ -101,7 +108,11 @@ export async function markNotificationAsRead(
       notification: updatedNotification,
     };
   } catch (error) {
-    console.error('Error marking notification as read:', error);
+    log.error(
+      'Error marking notification as read',
+      undefined,
+      error instanceof Error ? error : undefined,
+    );
     return {
       success: false,
       error: 'Failed to mark notification as read',
@@ -137,7 +148,11 @@ export async function getNotificationPreferences(userId: string) {
       preferences,
     };
   } catch (error) {
-    console.error('Error getting notification preferences:', error);
+    log.error(
+      'Error getting notification preferences',
+      undefined,
+      error instanceof Error ? error : undefined,
+    );
     return {
       success: false,
       error: 'Failed to fetch notification preferences',
@@ -166,7 +181,11 @@ export async function updateNotificationPreferences(
         user.notificationPreferences as unknown as NotificationPreferences,
     };
   } catch (error) {
-    console.error('Error updating notification preferences:', error);
+    log.error(
+      'Error updating notification preferences',
+      undefined,
+      error instanceof Error ? error : undefined,
+    );
     return {
       success: false,
       error: 'Failed to update notification preferences',
@@ -208,7 +227,11 @@ export async function registerPushToken(
       pushToken,
     };
   } catch (error) {
-    console.error('Error registering push token:', error);
+    log.error(
+      'Error registering push token',
+      undefined,
+      error instanceof Error ? error : undefined,
+    );
     return {
       success: false,
       error: 'Failed to register push token',
@@ -230,7 +253,11 @@ export async function unregisterPushToken(userId: string, token: string) {
       success: true,
     };
   } catch (error) {
-    console.error('Error unregistering push token:', error);
+    log.error(
+      'Error unregistering push token',
+      undefined,
+      error instanceof Error ? error : undefined,
+    );
     return {
       success: false,
       error: 'Failed to unregister push token',
@@ -264,7 +291,11 @@ export async function createNotification(
       notification,
     };
   } catch (error) {
-    console.error('Error creating notification:', error);
+    log.error(
+      'Error creating notification',
+      undefined,
+      error instanceof Error ? error : undefined,
+    );
     return {
       success: false,
       error: 'Failed to create notification',

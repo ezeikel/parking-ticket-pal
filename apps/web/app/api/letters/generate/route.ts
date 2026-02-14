@@ -1,6 +1,9 @@
 import { generateChallengeLetterByPcn } from '@/app/actions/letter';
 import { NextRequest } from 'next/server';
 import { getUserId } from '@/utils/user';
+import { createServerLogger } from '@/lib/logger';
+
+const log = createServerLogger({ action: 'letter-generate' });
 
 export const maxDuration = 60;
 
@@ -15,7 +18,7 @@ export const POST = async (req: NextRequest) => {
     if (isDevelopment && testUserId) {
       // In development, allow bypassing auth with test header
       userId = testUserId;
-      console.log('[DEV] Using test user ID:', userId);
+      log.debug('Using test user ID', { userId });
     } else {
       // Production: require proper authentication
       userId = await getUserId('generate a challenge letter');
@@ -69,7 +72,11 @@ export const POST = async (req: NextRequest) => {
       },
     });
   } catch (error) {
-    console.error('Error in challenge letter API:', error);
+    log.error(
+      'Error in challenge letter API',
+      undefined,
+      error instanceof Error ? error : undefined,
+    );
     return Response.json(
       { success: false, error: 'Internal server error' },
       { status: 500 },

@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/set-state-in-effect */
 'use client';
 
 import { ChangeEvent, useEffect, useRef, useState } from 'react';
@@ -20,6 +21,7 @@ import Loader from '@/components/Loader/Loader';
 import { toast } from 'sonner';
 import { refresh } from '@/app/actions';
 import { extractOCRTextWithVision } from '@/app/actions/ocr';
+import { logger } from '@/lib/logger';
 // import { useAccountContext } from '@/contexts/account';
 
 // type UploadButtonProps = {
@@ -60,7 +62,7 @@ const UploadButton = () => {
     const file = event.target.files?.[0];
 
     if (!file) {
-      console.error('No file selected.');
+      logger.warn('No file selected.', { page: 'upload-button' });
       return;
     }
 
@@ -79,7 +81,7 @@ const UploadButton = () => {
 
   const handleSubmit = async () => {
     if (!imageFile) {
-      console.error('No image file selected.');
+      logger.warn('No image file selected.', { page: 'upload-button' });
       return;
     }
 
@@ -109,7 +111,11 @@ const UploadButton = () => {
       // show success toast
       toast.success('Your ticket has been successfully uploaded');
     } catch (error) {
-      console.error('Error creating ticket:', error);
+      logger.error(
+        'Error creating ticket',
+        { page: 'upload-button' },
+        error instanceof Error ? error : undefined,
+      );
       toast.error('Failed to upload ticket. Please try again.');
     }
   };

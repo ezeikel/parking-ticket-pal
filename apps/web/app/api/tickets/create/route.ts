@@ -2,6 +2,9 @@ import { NextRequest } from 'next/server';
 import { createTicket } from '@/app/actions/ticket';
 import { ticketFormSchema } from '@parking-ticket-pal/types';
 import { getUserId } from '@/utils/user';
+import { createServerLogger } from '@/lib/logger';
+
+const log = createServerLogger({ action: 'ticket-create' });
 
 export async function POST(request: NextRequest) {
   try {
@@ -52,7 +55,11 @@ export async function POST(request: NextRequest) {
       },
     );
   } catch (error) {
-    console.error('API Error creating ticket:', error);
+    log.error(
+      'Error creating ticket',
+      undefined,
+      error instanceof Error ? error : undefined,
+    );
 
     if (error instanceof Error && error.name === 'ZodError') {
       return Response.json(

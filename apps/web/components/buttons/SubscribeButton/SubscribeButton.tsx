@@ -4,6 +4,7 @@ import { createCheckoutSession } from '@/app/actions/stripe';
 import { Button } from '@/components/ui/button';
 import cn from '@/utils/cn';
 import { ProductType } from '@parking-ticket-pal/db/types';
+import { logger } from '@/lib/logger';
 
 type SubscribeButtonProps = {
   productType: ProductType;
@@ -16,7 +17,9 @@ const SubscribeButton = ({ className, productType }: SubscribeButtonProps) => {
     const session = await createCheckoutSession(productType);
 
     if (!session) {
-      console.error('Error creating checkout session');
+      logger.error('Error creating checkout session', {
+        page: 'subscribe-button',
+      });
       return;
     }
 

@@ -1,6 +1,9 @@
 'use server';
 
 import { db } from '@parking-ticket-pal/db';
+import { createServerLogger } from '@/lib/logger';
+
+const log = createServerLogger({ action: 'prediction-service' });
 
 /**
  * Prediction metadata returned with each prediction
@@ -8,8 +11,8 @@ import { db } from '@parking-ticket-pal/db';
 export type PredictionMetadata = {
   dataSource: string;
   statsLevel: 'issuer_contravention' | 'contravention' | 'baseline';
-  winningPatterns: Array<{ pattern: string; frequency: number }>;
-  losingPatterns: Array<{ pattern: string; frequency: number }>;
+  winningPatterns: { pattern: string; frequency: number }[];
+  losingPatterns: { pattern: string; frequency: number }[];
   lastUpdated: string | null;
 };
 
@@ -112,7 +115,10 @@ export async function calculatePrediction(ticket: {
       confidence = Math.min(0.95, 0.5 + issuerStats.totalCases / 200);
       statsLevel = 'issuer_contravention';
       lastUpdated = issuerStats.lastUpdated;
-    } else if (contraventionStats && contraventionStats.totalCases >= MIN_CASES_CONTRAVENTION) {
+    } else if (
+      contraventionStats &&
+      contraventionStats.totalCases >= MIN_CASES_CONTRAVENTION
+    ) {
       // Medium confidence: contravention-only
       percentage = Math.round(contraventionStats.successRate * 100);
       numberOfCases = contraventionStats.totalCases;
@@ -129,7 +135,9 @@ export async function calculatePrediction(ticket: {
     const patterns = await db.appealPattern.findMany({
       where: {
         contraventionCode: contravention,
-        OR: issuerId ? [{ issuerId }, { issuerId: null }] : [{ issuerId: null }],
+        OR: issuerId
+          ? [{ issuerId }, { issuerId: null }]
+          : [{ issuerId: null }],
       },
       orderBy: { frequency: 'desc' },
     });
@@ -157,7 +165,11 @@ export async function calculatePrediction(ticket: {
       },
     };
   } catch (error) {
-    console.error('Error calculating prediction:', error);
+    log.error(
+      'Error calculating prediction',
+      undefined,
+      error instanceof Error ? error : undefined,
+    );
     return defaultResult;
   }
 }
@@ -169,7 +181,7 @@ export async function calculatePrediction(ticket: {
  */
 export async function getRecommendedReasons(
   contraventionCode: string | null,
-  issuerId: string | null
+  issuerId: string | null,
 ): Promise<{
   recommended: string[];
   toAvoid: string[];
@@ -184,7 +196,9 @@ export async function getRecommendedReasons(
     const patterns = await db.appealPattern.findMany({
       where: {
         contraventionCode,
-        OR: normalizedIssuer ? [{ issuerId: normalizedIssuer }, { issuerId: null }] : [{ issuerId: null }],
+        OR: normalizedIssuer
+          ? [{ issuerId: normalizedIssuer }, { issuerId: null }]
+          : [{ issuerId: null }],
       },
       orderBy: { frequency: 'desc' },
     });
@@ -214,22 +228,24 @@ export async function getRecommendedReasons(
       ...new Set(
         winningPatterns
           .map((p) => PATTERN_TO_REASON[p.pattern])
-          .filter(Boolean)
+          .filter(Boolean),
       ),
     ];
 
     // Get reasons to avoid from losing patterns
     const toAvoid = [
       ...new Set(
-        losingPatterns
-          .map((p) => PATTERN_TO_REASON[p.pattern])
-          .filter(Boolean)
+        losingPatterns.map((p) => PATTERN_TO_REASON[p.pattern]).filter(Boolean),
       ),
     ];
 
     return { recommended, toAvoid };
   } catch (error) {
-    console.error('Error getting recommended reasons:', error);
+    log.error(
+      'Error getting recommended reasons',
+      undefined,
+      error instanceof Error ? error : undefined,
+    );
     return { recommended: [], toAvoid: [] };
   }
 }

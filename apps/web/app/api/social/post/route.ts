@@ -1,11 +1,13 @@
+/* eslint-disable import-x/no-extraneous-dependencies */
 import { NextRequest, NextResponse } from 'next/server';
 import * as Sentry from '@sentry/nextjs';
 import { toPlainText } from '@portabletext/toolkit';
 import { postToSocialMedia } from '@/app/actions/social';
 import { getPostBySlug, getAllPosts } from '@/lib/queries/blog';
 import { PostPlatform } from '@/types';
+import { createServerLogger } from '@/lib/logger';
 
-const LOG_PREFIX = '[social/post]';
+const log = createServerLogger({ action: 'social-post' });
 
 export const maxDuration = 300; // 5 minutes - video rendering can take a while
 
@@ -16,8 +18,7 @@ const handleRequest = async (request: NextRequest) => {
     const cronSecret = process.env.CRON_SECRET;
 
     if (cronSecret && authHeader !== `Bearer ${cronSecret}`) {
-      // eslint-disable-next-line no-console
-      console.log(`${LOG_PREFIX} Unauthorized request`);
+      log.info('Unauthorized request');
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
@@ -42,8 +43,7 @@ const handleRequest = async (request: NextRequest) => {
     let postSlug = slug;
     if (!postSlug) {
       // If no slug provided, get the most recent blog post
-      // eslint-disable-next-line no-console
-      console.log(`${LOG_PREFIX} No slug provided, getting most recent blog post`);
+      log.info('No slug provided, getting most recent blog post');
       const allPosts = await getAllPosts();
 
       if (allPosts.length === 0) {
@@ -54,8 +54,7 @@ const handleRequest = async (request: NextRequest) => {
       }
 
       postSlug = allPosts[0].meta.slug; // most recent post slug
-      // eslint-disable-next-line no-console
-      console.log(`${LOG_PREFIX} Using most recent post: ${postSlug}`);
+      log.info('Using most recent post', { postSlug });
     }
 
     // Get full blog post by slug (includes bodyBlocks for content)
@@ -70,8 +69,10 @@ const handleRequest = async (request: NextRequest) => {
     // Convert Portable Text body to plain text for Reel hook generation
     const blogContent = post.bodyBlocks ? toPlainText(post.bodyBlocks) : '';
 
-    // eslint-disable-next-line no-console
-    console.log(`${LOG_PREFIX} Calling postToSocialMedia with slug: ${post.meta.slug}, blogContent length: ${blogContent.length}`);
+    log.info('Calling postToSocialMedia', {
+      slug: post.meta.slug,
+      blogContentLength: blogContent.length,
+    });
 
     // Call the server action
     const result = await postToSocialMedia({
@@ -106,8 +107,7 @@ const handleRequest = async (request: NextRequest) => {
       },
     );
   } catch (error) {
-    // eslint-disable-next-line no-console
-    console.error(`${LOG_PREFIX} Error:`, error);
+    log.error('Error', undefined, error instanceof Error ? error : undefined);
 
     // Only send actual errors to Sentry
     if (error instanceof Error) {

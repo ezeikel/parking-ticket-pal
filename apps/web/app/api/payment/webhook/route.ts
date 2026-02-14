@@ -1,8 +1,6 @@
-/* eslint-disable import/prefer-default-export */
-
 import Stripe from 'stripe';
-import { db } from '@parking-ticket-pal/db';
 import {
+  db,
   SubscriptionType,
   SubscriptionSource,
   TicketTier,
@@ -14,6 +12,9 @@ import {
   getSubscriptionTierFromPriceId,
 } from '@/constants';
 import { revalidatePath } from 'next/cache';
+import { createServerLogger } from '@/lib/logger';
+
+const log = createServerLogger({ action: 'stripe-webhook' });
 
 const stripe = new Stripe(process.env.STRIPE_SECRET!, {
   apiVersion: STRIPE_API_VERSION,
@@ -21,13 +22,14 @@ const stripe = new Stripe(process.env.STRIPE_SECRET!, {
 
 const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET!;
 
+// eslint-disable-next-line import-x/prefer-default-export
 export const POST = async (req: Request) => {
   // get the raw body for signature verification
   const body = await req.text();
   const signature = req.headers.get('stripe-signature');
 
   if (!signature) {
-    console.error('Missing Stripe signature header');
+    log.error('Missing Stripe signature header');
     return Response.json({ error: 'Missing signature' }, { status: 400 });
   }
 
@@ -41,17 +43,17 @@ export const POST = async (req: Request) => {
       webhookSecret,
     );
   } catch (err) {
-    console.error(
-      `Webhook signature verification failed:`,
-      (err as Error).message,
+    log.error(
+      `Webhook signature verification failed: ${(err as Error).message}`,
+      undefined,
+      err instanceof Error ? err : undefined,
     );
     return Response.json({ error: 'Invalid signature' }, { status: 400 });
   }
 
   // handle the event
   if (stripeEvent.type === 'checkout.session.completed') {
-    const completedCheckoutSession = stripeEvent.data
-      .object as Stripe.Checkout.Session;
+    const completedCheckoutSession = stripeEvent.data.object;
 
     let email: string | null = null;
     let customerId: string | null = null;
@@ -97,8 +99,8 @@ export const POST = async (req: Request) => {
           },
         });
 
-        console.log(
-          `[Stripe] Created pending ticket for guest: ${email}, PCN: ${metadata.pcnNumber}`,
+        log.info(
+          `Created pending ticket for guest: ${email}, PCN: ${metadata.pcnNumber}`,
         );
       } catch (error) {
         // Check for unique constraint violation (duplicate session ID)
@@ -106,11 +108,15 @@ export const POST = async (req: Request) => {
           error instanceof Error &&
           error.message.includes('Unique constraint failed')
         ) {
-          console.log(
-            `[Stripe] Pending ticket already exists for session: ${completedCheckoutSession.id}`,
+          log.info(
+            `Pending ticket already exists for session: ${completedCheckoutSession.id}`,
           );
         } else {
-          console.error('[Stripe] Error creating pending ticket:', error);
+          log.error(
+            'Error creating pending ticket',
+            undefined,
+            error instanceof Error ? error : undefined,
+          );
         }
       }
     }
@@ -158,7 +164,11 @@ export const POST = async (req: Request) => {
             revalidatePath('/dashboard'); // if dashboard shows ticket info
           }
         } catch (error) {
-          console.error('Error retrieving line items:', error);
+          log.error(
+            'Error retrieving line items',
+            undefined,
+            error instanceof Error ? error : undefined,
+          );
           // for test events, we might not be able to retrieve line items
           // so we'll update the ticket based on metadata alone
           if (ticketId && tier) {
@@ -207,7 +217,7 @@ export const POST = async (req: Request) => {
             });
 
             if (!user) {
-              console.error(`User not found for email: ${email}`);
+              log.error(`User not found for email: ${email}`);
               return Response.json({ received: true }, { status: 200 });
             }
 
@@ -258,8 +268,8 @@ export const POST = async (req: Request) => {
               });
             }
 
-            console.log(
-              `[Stripe] Subscription created/updated: ${type} for user ${user.id}`,
+            log.info(
+              `Subscription created/updated: ${type} for user ${user.id}`,
             );
 
             // revalidate user-related routes
@@ -269,15 +279,18 @@ export const POST = async (req: Request) => {
             revalidatePath('/billing');
           }
         } catch (error) {
-          console.error('Error handling subscription payment:', error);
+          log.error(
+            'Error handling subscription payment',
+            undefined,
+            error instanceof Error ? error : undefined,
+          );
         }
       }
     } else {
-      console.error(`No customer email provided to complete the payment`);
+      log.error('No customer email provided to complete the payment');
     }
   } else if (stripeEvent.type === 'customer.subscription.created') {
-    const createdCustomerSubscription = stripeEvent.data
-      .object as Stripe.Subscription;
+    const createdCustomerSubscription = stripeEvent.data.object;
 
     const customer = (await stripe.customers.retrieve(
       createdCustomerSubscription.customer as string,
@@ -289,7 +302,7 @@ export const POST = async (req: Request) => {
       });
 
       if (!user) {
-        console.error(`User not found for email: ${customer.email}`);
+        log.error(`User not found for email: ${customer.email}`);
         return Response.json({ received: true }, { status: 200 });
       }
 
@@ -333,7 +346,7 @@ export const POST = async (req: Request) => {
         });
       }
 
-      console.log(`[Stripe] Subscription created: ${type} for user ${user.id}`);
+      log.info(`Subscription created: ${type} for user ${user.id}`);
 
       // revalidate subscription-related routes
       revalidatePath('/dashboard');
@@ -341,14 +354,13 @@ export const POST = async (req: Request) => {
       revalidatePath('/profile');
       revalidatePath('/billing');
     } else {
-      console.error(
+      log.error(
         `No customer email provided for ${customer.id} to create Subscription`,
       );
     }
   } else if (stripeEvent.type === 'customer.subscription.updated') {
     // handle subscription updated event
-    const updatedCustomerSubscription = stripeEvent.data
-      .object as Stripe.Subscription;
+    const updatedCustomerSubscription = stripeEvent.data.object;
 
     const user = await db.user.findFirst({
       where: {
@@ -357,7 +369,7 @@ export const POST = async (req: Request) => {
     });
 
     if (!user) {
-      console.error(
+      log.error(
         `User not found with Stripe customer ID: ${updatedCustomerSubscription.customer}`,
       );
       return Response.json({ received: true }, { status: 200 });
@@ -393,7 +405,7 @@ export const POST = async (req: Request) => {
       },
     });
 
-    console.log(`[Stripe] Subscription updated: ${type} for user ${user.id}`);
+    log.info(`Subscription updated: ${type} for user ${user.id}`);
 
     // revalidate subscription-related routes
     revalidatePath('/dashboard');
@@ -401,8 +413,7 @@ export const POST = async (req: Request) => {
     revalidatePath('/profile');
     revalidatePath('/billing');
   } else if (stripeEvent.type === 'customer.subscription.deleted') {
-    const deletedCustomerSubscription = stripeEvent.data
-      .object as Stripe.Subscription;
+    const deletedCustomerSubscription = stripeEvent.data.object;
 
     // delete the subscription record when subscription is cancelled
     await db.subscription.deleteMany({
@@ -419,7 +430,7 @@ export const POST = async (req: Request) => {
     revalidatePath('/profile');
     revalidatePath('/billing');
   } else {
-    console.error(`Unhandled event type ${stripeEvent.type}`);
+    log.warn(`Unhandled event type ${stripeEvent.type}`);
   }
 
   // return a 200 response to acknowledge receipt of the event

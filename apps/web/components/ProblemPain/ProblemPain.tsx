@@ -49,8 +49,6 @@ const ProblemPain = () => {
     };
   }, []);
 
-  console.log('painPoints', painPoints);
-
   return (
     <section
       ref={sectionRef}

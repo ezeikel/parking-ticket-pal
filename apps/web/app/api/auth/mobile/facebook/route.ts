@@ -1,8 +1,10 @@
-/* eslint-disable import/prefer-default-export */
-
 import { db } from '@parking-ticket-pal/db';
 import { encrypt } from '@/app/lib/session';
+import { createServerLogger } from '@/lib/logger';
 
+const log = createServerLogger({ action: 'auth-facebook' });
+
+// eslint-disable-next-line import-x/prefer-default-export
 export const POST = async (req: Request) => {
   const { accessToken } = await req.json();
   let user;
@@ -72,7 +74,11 @@ export const POST = async (req: Request) => {
       },
     );
   } catch (error) {
-    console.error('Facebook auth error', error);
+    log.error(
+      'Facebook auth error',
+      undefined,
+      error instanceof Error ? error : undefined,
+    );
 
     return Response.json(
       {

@@ -1,8 +1,9 @@
-/* eslint-disable import/prefer-default-export */
-
 import { NextRequest } from 'next/server';
 import { getTicket, deleteTicketById } from '@/app/actions/ticket';
 import { getUserId } from '@/utils/user';
+import { createServerLogger } from '@/lib/logger';
+
+const log = createServerLogger({ action: 'ticket-detail' });
 
 export const GET = async (
   _request: NextRequest,
@@ -56,7 +57,11 @@ export const GET = async (
       },
     );
   } catch (error) {
-    console.error('Error fetching ticket:', error);
+    log.error(
+      'Error fetching ticket',
+      undefined,
+      error instanceof Error ? error : undefined,
+    );
     return Response.json(
       { error: 'Failed to fetch ticket' },
       {

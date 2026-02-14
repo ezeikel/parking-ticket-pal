@@ -1,3 +1,4 @@
+/* eslint-disable no-nested-ternary */
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -34,6 +35,7 @@ import {
 import { toast } from 'sonner';
 import { useAnalytics } from '@/utils/analytics-client';
 import { TRACKING_EVENTS } from '@/constants/events';
+import { logger } from '@/lib/logger';
 
 type BillingTabProps = {
   user: Partial<User>;
@@ -79,7 +81,11 @@ const BillingTab = ({ user }: BillingTabProps) => {
         setInvoices(invoiceList);
         setSubscription(activeSub);
       } catch (error) {
-        console.error('Error fetching Stripe data:', error);
+        logger.error(
+          'Error fetching Stripe data',
+          { page: 'billing' },
+          error instanceof Error ? error : undefined,
+        );
       } finally {
         setIsLoading(false);
       }

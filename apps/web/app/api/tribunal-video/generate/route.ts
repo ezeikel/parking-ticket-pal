@@ -1,5 +1,8 @@
 import { type NextRequest, NextResponse } from 'next/server';
 import { generateAndPostTribunalVideo } from '@/app/actions/tribunal-video';
+import { createServerLogger } from '@/lib/logger';
+
+const log = createServerLogger({ action: 'tribunal-video-generate' });
 
 // Pipeline now returns after dispatching async render (~90s)
 export const maxDuration = 120;
@@ -15,21 +18,22 @@ const handleRequest = async (request: NextRequest) => {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    console.log('Starting tribunal case video generation pipeline...');
+    log.info('Starting tribunal case video generation pipeline');
 
     const result = await generateAndPostTribunalVideo();
 
     if (!result.success) {
-      console.error('Tribunal video generation failed:', result.error);
+      log.error('Tribunal video generation failed', { error: result.error });
       return NextResponse.json(
         { error: result.error, videoId: result.videoId },
         { status: 500 },
       );
     }
 
-    console.log(
-      `Tribunal video pipeline dispatched: ${result.videoId} (status: ${'status' in result ? result.status : 'unknown'})`,
-    );
+    log.info('Tribunal video pipeline dispatched', {
+      videoId: result.videoId,
+      status: 'status' in result ? result.status : 'unknown',
+    });
 
     return NextResponse.json({
       success: true,
@@ -41,7 +45,11 @@ const handleRequest = async (request: NextRequest) => {
       timestamp: new Date().toISOString(),
     });
   } catch (error) {
-    console.error('Error in tribunal video generation:', error);
+    log.error(
+      'Error in tribunal video generation',
+      undefined,
+      error instanceof Error ? error : undefined,
+    );
 
     return NextResponse.json(
       {

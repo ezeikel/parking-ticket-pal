@@ -3,6 +3,9 @@ import { db, ChallengeStatus } from '@parking-ticket-pal/db';
 import { cancelChallengeJob } from '@/utils/automation/workerClient';
 import { getUserId } from '@/utils/user';
 import { revalidatePath } from 'next/cache';
+import { createServerLogger } from '@/lib/logger';
+
+const log = createServerLogger({ action: 'challenge-cancel' });
 
 /**
  * POST /api/challenges/[id]/cancel
@@ -10,6 +13,7 @@ import { revalidatePath } from 'next/cache';
  * Cancels an in-progress challenge.
  * Marks the challenge as CANCELLED in the DB and attempts to cancel the worker job.
  */
+// eslint-disable-next-line import-x/prefer-default-export
 export async function POST(
   _request: NextRequest,
   { params }: { params: Promise<{ id: string }> },
@@ -35,7 +39,10 @@ export async function POST(
     });
 
     if (!challenge) {
-      return NextResponse.json({ error: 'Challenge not found' }, { status: 404 });
+      return NextResponse.json(
+        { error: 'Challenge not found' },
+        { status: 404 },
+      );
     }
 
     // Verify the user owns this challenge
@@ -54,7 +61,11 @@ export async function POST(
     // Try to cancel the worker job (best effort)
     if (challenge.workerJobId) {
       await cancelChallengeJob(challenge.workerJobId).catch((error) => {
-        console.warn('Failed to cancel worker job:', error);
+        log.warn(
+          'Failed to cancel worker job',
+          undefined,
+          error instanceof Error ? error : undefined,
+        );
         // Continue even if worker cancel fails
       });
     }
@@ -78,7 +89,11 @@ export async function POST(
       message: 'Challenge cancelled',
     });
   } catch (error) {
-    console.error('Error cancelling challenge:', error);
+    log.error(
+      'Error cancelling challenge',
+      undefined,
+      error instanceof Error ? error : undefined,
+    );
     return NextResponse.json(
       { error: 'Failed to cancel challenge' },
       { status: 500 },

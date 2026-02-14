@@ -1,3 +1,4 @@
+/* eslint-disable no-underscore-dangle, no-restricted-syntax, no-continue, no-await-in-loop, no-plusplus, no-promise-executor-return */
 'use server';
 
 import { generateText, generateObject } from 'ai';
@@ -25,33 +26,33 @@ import { getCoveredTopics } from '@/lib/queries/blog';
 const logger = createServerLogger({ action: 'blog' });
 
 // Types
-interface BlogPostMeta {
+type BlogPostMeta = {
   title: string;
   slug: string;
   excerpt: string;
   keywords: string[];
   category: string;
-}
+};
 
-interface ImageSearchTerms {
+type ImageSearchTerms = {
   searchTerms: string[];
   altText: string;
   style: string;
-}
+};
 
-interface FeaturedImage {
+type FeaturedImage = {
   asset: { _type: 'reference'; _ref: string };
   alt: string;
   credit?: string;
   creditUrl?: string;
   pexelsPhotoId?: string;
-}
+};
 
-interface PexelsSearchResult {
+type PexelsSearchResult = {
   photo: PexelsPhoto | null;
   searchTerm: string;
   allPhotos?: PexelsPhoto[];
-}
+};
 
 // Zod schemas for structured output
 const BlogMetaSchema = z.object({
@@ -572,7 +573,7 @@ const createSanityPost = async (
   publishDate?: Date,
 ): Promise<string> => {
   // Get or create a default author
-  let authorRef = await writeClient.fetch(`*[_type == "author"][0]._id`);
+  const authorRef = await writeClient.fetch(`*[_type == "author"][0]._id`);
 
   // If no author exists, skip author reference
   if (!authorRef) {
@@ -580,11 +581,11 @@ const createSanityPost = async (
   }
 
   // Get category references
-  const categoryRefs: Array<{
+  const categoryRefs: {
     _type: 'reference';
     _ref: string;
     _key: string;
-  }> = [];
+  }[] = [];
   for (const keyword of meta.keywords.slice(0, 3)) {
     const existingTag = BLOG_TAGS.find(
       (tag) => tag.toLowerCase() === keyword.toLowerCase(),
@@ -765,13 +766,13 @@ export const previewBlogImages = async (
   topic: string,
 ): Promise<{
   searchTerms: string[];
-  photos: Array<{
+  photos: {
     id: number;
     url: string;
     photographer: string;
     photographerUrl: string;
     alt: string;
-  }>;
+  }[];
   error?: string;
 }> => {
   try {
@@ -920,31 +921,31 @@ export const regenerateAllPostImages = async (): Promise<{
   total: number;
   successful: number;
   failed: number;
-  results: Array<{
+  results: {
     postId: string;
     title: string;
     success: boolean;
     imageSource?: 'pexels' | 'gemini';
     error?: string;
-  }>;
+  }[];
 }> => {
   // Fetch all posts
-  const posts = await writeClient.fetch<Array<{ _id: string; title: string }>>(
+  const posts = await writeClient.fetch<{ _id: string; title: string }[]>(
     `*[_type == "post"] | order(publishedAt desc) { _id, title }`,
   );
 
   logger.info('Starting batch image regeneration', {
     totalPosts: posts.length,
   });
-  console.log(`Found ${posts.length} posts to process\n`);
+  logger.info(`Found ${posts.length} posts to process`);
 
-  const results: Array<{
+  const results: {
     postId: string;
     title: string;
     success: boolean;
     imageSource?: 'pexels' | 'gemini';
     error?: string;
-  }> = [];
+  }[] = [];
 
   let successful = 0;
   let failed = 0;
@@ -954,7 +955,7 @@ export const regenerateAllPostImages = async (): Promise<{
     logger.info(
       `Processing ${results.length + 1}/${posts.length}: ${post.title}`,
     );
-    console.log(`${progress} Processing: ${post.title}`);
+    logger.info(`${progress} Processing: ${post.title}`);
 
     const result = await regeneratePostImage(post._id);
 
@@ -968,10 +969,10 @@ export const regenerateAllPostImages = async (): Promise<{
 
     if (result.success) {
       successful++;
-      console.log(`${progress} ✓ Success (${result.imageSource})`);
+      logger.info(`${progress} Success`, { imageSource: result.imageSource });
     } else {
       failed++;
-      console.log(`${progress} ✗ Failed: ${result.error}`);
+      logger.info(`${progress} Failed`, { error: result.error });
     }
 
     // Small delay to avoid rate limits

@@ -1,5 +1,9 @@
+/* eslint-disable no-restricted-syntax, no-continue, no-await-in-loop, no-plusplus */
 import { Expo, ExpoPushMessage, ExpoPushTicket } from 'expo-server-sdk';
 import { db as prisma } from '@parking-ticket-pal/db';
+import { createServerLogger } from '@/lib/logger';
+
+const log = createServerLogger({ action: 'push-notification' });
 
 // Create a new Expo SDK client
 const expo = new Expo({
@@ -7,10 +11,10 @@ const expo = new Expo({
   // useFcmV1: true, // Enable FCM v1 (optional, recommended for new projects)
 });
 
-interface PushNotificationData {
+type PushNotificationData = {
   ticketId?: string;
   [key: string]: any;
-}
+};
 
 /**
  * Send push notification to a specific user
@@ -28,7 +32,7 @@ export async function sendPushNotification(
     });
 
     if (pushTokens.length === 0) {
-      console.log(`No push tokens found for user ${userId}`);
+      log.info('No push tokens found for user', { userId });
       return { success: true }; // Not an error, user just doesn't have tokens
     }
 
@@ -38,7 +42,7 @@ export async function sendPushNotification(
     for (const { token } of pushTokens) {
       // Check if token is valid Expo push token
       if (!Expo.isExpoPushToken(token)) {
-        console.error(`Invalid Expo push token: ${token}`);
+        log.error('Invalid Expo push token', { token });
         continue;
       }
 
@@ -68,7 +72,11 @@ export async function sendPushNotification(
         const ticketChunk = await expo.sendPushNotificationsAsync(chunk);
         tickets.push(...ticketChunk);
       } catch (error) {
-        console.error('Error sending push notification chunk:', error);
+        log.error(
+          'Error sending push notification chunk',
+          undefined,
+          error instanceof Error ? error : undefined,
+        );
       }
     }
 
@@ -77,7 +85,7 @@ export async function sendPushNotification(
       const ticket = tickets[i];
 
       if (ticket.status === 'error') {
-        console.error(`Push notification error: ${ticket.message}`);
+        log.error('Push notification error', { message: ticket.message });
 
         // Remove invalid tokens
         if (
@@ -88,14 +96,18 @@ export async function sendPushNotification(
           await prisma.pushToken.deleteMany({
             where: { token: invalidToken },
           });
-          console.log(`Removed invalid push token: ${invalidToken}`);
+          log.info('Removed invalid push token', { token: invalidToken });
         }
       }
     }
 
     return { success: true };
   } catch (error) {
-    console.error('Error sending push notification:', error);
+    log.error(
+      'Error sending push notification',
+      undefined,
+      error instanceof Error ? error : undefined,
+    );
     return {
       success: false,
       error: error instanceof Error ? error.message : 'Unknown error',
@@ -120,12 +132,18 @@ export async function sendPushNotificationToUsers(
     const failures = results.filter((r) => r.status === 'rejected');
 
     if (failures.length > 0) {
-      console.error(`${failures.length} push notifications failed to send`);
+      log.error('Push notifications failed to send', {
+        failureCount: failures.length,
+      });
     }
 
     return { success: true };
   } catch (error) {
-    console.error('Error sending push notifications to users:', error);
+    log.error(
+      'Error sending push notifications to users',
+      undefined,
+      error instanceof Error ? error : undefined,
+    );
     return {
       success: false,
       error: error instanceof Error ? error.message : 'Unknown error',

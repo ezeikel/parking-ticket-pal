@@ -1,5 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import cleanupTempUploads from '@/scripts/cleanup-temp-uploads';
+import { createServerLogger } from '@/lib/logger';
+
+const log = createServerLogger({ action: 'blob-cleanup' });
 
 // Set max duration for cleanup operations
 export const maxDuration = 300; // 5 minutes
@@ -14,11 +17,11 @@ export const GET = async (request: NextRequest) => {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    console.log('Starting temporary file cleanup...');
+    log.info('Starting temporary file cleanup');
 
     await cleanupTempUploads();
 
-    console.log('Temporary file cleanup completed successfully');
+    log.info('Temporary file cleanup completed successfully');
 
     return NextResponse.json(
       {
@@ -29,7 +32,11 @@ export const GET = async (request: NextRequest) => {
       { status: 200 },
     );
   } catch (error) {
-    console.error('Temporary file cleanup failed:', error);
+    log.error(
+      'Temporary file cleanup failed',
+      undefined,
+      error instanceof Error ? error : undefined,
+    );
 
     return NextResponse.json(
       {

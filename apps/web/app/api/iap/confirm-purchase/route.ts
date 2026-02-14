@@ -1,9 +1,9 @@
-/* eslint-disable import/prefer-default-export */
-
-import { db } from '@parking-ticket-pal/db';
-import { TicketTier } from '@parking-ticket-pal/db';
+import { db, TicketTier } from '@parking-ticket-pal/db';
 import { verifyPurchase } from '@/lib/revenuecat';
 import { decrypt } from '@/app/lib/session';
+import { createServerLogger } from '@/lib/logger';
+
+const log = createServerLogger({ action: 'iap-confirm-purchase' });
 
 /**
  * POST /api/iap/confirm-purchase
@@ -11,6 +11,7 @@ import { decrypt } from '@/app/lib/session';
  * Confirms a RevenueCat consumable purchase and upgrades the ticket tier.
  * Called by the mobile app after a successful purchase of standard_ticket or premium_ticket.
  */
+// eslint-disable-next-line import-x/prefer-default-export
 export const POST = async (req: Request) => {
   try {
     // Authenticate the user
@@ -131,7 +132,11 @@ export const POST = async (req: Request) => {
       { status: 200 },
     );
   } catch (error) {
-    console.error('Error confirming purchase:', error);
+    log.error(
+      'Error confirming purchase',
+      undefined,
+      error instanceof Error ? error : undefined,
+    );
     return Response.json({ error: 'Internal server error' }, { status: 500 });
   }
 };

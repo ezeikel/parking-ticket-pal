@@ -1,5 +1,8 @@
 import { ImageResponse } from 'next/og';
 import { getPostBySlug } from '@/lib/queries/blog';
+import { createServerLogger } from '@/lib/logger';
+
+const log = createServerLogger({ action: 'twitter-image' });
 
 // load fonts from Google Fonts
 const getInterRegularFont = fetch(
@@ -251,7 +254,11 @@ export default async function Image({
       },
     );
   } catch (error) {
-    console.error('Error generating Twitter image:', error);
+    log.error(
+      'Error generating Twitter image',
+      undefined,
+      error instanceof Error ? error : undefined,
+    );
 
     // fallback error image
     return new ImageResponse(

@@ -3,6 +3,7 @@
 // TODO: delete this page
 
 import { useState } from 'react';
+import { logger } from '@/lib/logger';
 
 const TestSocialPage = () => {
   const [result, setResult] = useState<any>(null);
@@ -29,7 +30,11 @@ const TestSocialPage = () => {
       const data = await response.json();
       setResult(data);
     } catch (error) {
-      console.error('Failed to test social posting', error);
+      logger.error(
+        'Failed to test social posting',
+        { page: 'test-social' },
+        error instanceof Error ? error : undefined,
+      );
       setResult({ error: 'Failed to test social posting', details: error });
     } finally {
       setLoading(false);
@@ -42,7 +47,7 @@ const TestSocialPage = () => {
 
       <div className="bg-white rounded-lg shadow-md p-6 mb-6">
         <div className="mb-4">
-          {/* eslint-disable-next-line jsx-a11y/label-has-associated-control */}
+          {}
           <label
             htmlFor="slug"
             className="block text-sm font-medium text-gray-700 mb-2"

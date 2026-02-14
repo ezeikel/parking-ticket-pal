@@ -1,6 +1,9 @@
 import { generatePE3Form, getFormFillDataFromTicket } from '@/app/actions/form';
 import { NextRequest } from 'next/server';
 import { getUserId } from '@/utils/user';
+import { createServerLogger } from '@/lib/logger';
+
+const log = createServerLogger({ action: 'form-pe3' });
 
 export const maxDuration = 60;
 
@@ -15,7 +18,7 @@ export const POST = async (req: NextRequest) => {
     if (isDevelopment && testUserId) {
       // In development, allow bypassing auth with test header
       userId = testUserId;
-      console.log('[DEV] Using test user ID:', userId);
+      log.debug('Using test user ID', { userId });
     } else {
       // Production: require proper authentication
       userId = await getUserId('generate PE3 form');
@@ -95,7 +98,11 @@ export const POST = async (req: NextRequest) => {
       },
     });
   } catch (error) {
-    console.error('Error in PE3 form API:', error);
+    log.error(
+      'Error in PE3 form API',
+      undefined,
+      error instanceof Error ? error : undefined,
+    );
     return Response.json(
       { success: false, error: 'Internal server error' },
       { status: 500 },

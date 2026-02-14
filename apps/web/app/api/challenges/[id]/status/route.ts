@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db, ChallengeStatus } from '@parking-ticket-pal/db';
 import { getChallengeJobStatus } from '@/utils/automation/workerClient';
 import { getUserId } from '@/utils/user';
+import { createServerLogger } from '@/lib/logger';
+
+const log = createServerLogger({ action: 'challenge-status' });
 
 /**
  * GET /api/challenges/[id]/status
@@ -9,6 +12,7 @@ import { getUserId } from '@/utils/user';
  * Returns the status of a challenge, including real-time progress for in-progress jobs.
  * If the challenge is IN_PROGRESS, polls the worker for progress updates.
  */
+// eslint-disable-next-line import-x/prefer-default-export
 export async function GET(
   _request: NextRequest,
   { params }: { params: Promise<{ id: string }> },
@@ -34,7 +38,10 @@ export async function GET(
     });
 
     if (!challenge) {
-      return NextResponse.json({ error: 'Challenge not found' }, { status: 404 });
+      return NextResponse.json(
+        { error: 'Challenge not found' },
+        { status: 404 },
+      );
     }
 
     // Verify the user owns this challenge
@@ -84,7 +91,11 @@ export async function GET(
         : undefined,
     });
   } catch (error) {
-    console.error('Error getting challenge status:', error);
+    log.error(
+      'Error getting challenge status',
+      undefined,
+      error instanceof Error ? error : undefined,
+    );
     return NextResponse.json(
       { error: 'Failed to get challenge status' },
       { status: 500 },

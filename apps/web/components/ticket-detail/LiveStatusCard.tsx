@@ -1,3 +1,4 @@
+/* eslint-disable no-await-in-loop, no-plusplus, no-promise-executor-return, no-continue */
 'use client';
 
 import { useState, useTransition, useEffect, useCallback } from 'react';
@@ -15,10 +16,11 @@ import {
 } from '@fortawesome/pro-solid-svg-icons';
 import { Button } from '@/components/ui/button';
 import { checkLiveStatus } from '@/app/actions/checkLiveStatus';
+import { logger } from '@/lib/logger';
+import { toast } from 'sonner';
 
 // Use string literal type instead of importing from db package (Prisma can't run in browser)
 type TicketTier = 'FREE' | 'STANDARD' | 'PREMIUM';
-import { toast } from 'sonner';
 
 type PollResponse = {
   status: 'running' | 'completed' | 'failed' | 'no_job' | 'unknown';
@@ -96,7 +98,11 @@ const getStatusDisplay = (
   bgColor: string;
 } => {
   // Check failed / error state
-  if (isError || portalStatus.toLowerCase().includes('check failed') || portalStatus.toLowerCase().includes('cannot match')) {
+  if (
+    isError ||
+    portalStatus.toLowerCase().includes('check failed') ||
+    portalStatus.toLowerCase().includes('cannot match')
+  ) {
     return {
       label: 'Unable to Verify',
       icon: faExclamationTriangle,
@@ -219,15 +225,19 @@ export default function LiveStatusCard({
             checkedAt: data.result.checkedAt || new Date().toISOString(),
           });
           toast.success('Status checked', {
-            description: data.result.portalStatus || 'Status retrieved successfully',
+            description:
+              data.result.portalStatus || 'Status retrieved successfully',
           });
           break;
         }
 
         if (data.status === 'failed') {
-          const errorMessage = data.result?.error === 'PCN_NOT_FOUND'
-            ? 'PCN not found on portal - it may have been removed from the system'
-            : data.result?.errorMessage || data.error || 'Could not check status on portal';
+          const errorMessage =
+            data.result?.error === 'PCN_NOT_FOUND'
+              ? 'PCN not found on portal - it may have been removed from the system'
+              : data.result?.errorMessage ||
+                data.error ||
+                'Could not check status on portal';
 
           toast.error('Status check failed', {
             description: errorMessage,
@@ -235,7 +245,8 @@ export default function LiveStatusCard({
 
           if (data.result?.screenshotUrl) {
             setCurrentStatus({
-              portalStatus: data.result.errorMessage || 'Check failed - see screenshot',
+              portalStatus:
+                data.result.errorMessage || 'Check failed - see screenshot',
               mappedStatus: null,
               outstandingAmount: 0,
               canChallenge: false,
@@ -251,7 +262,11 @@ export default function LiveStatusCard({
         attempts++;
         await new Promise((resolve) => setTimeout(resolve, pollInterval));
       } catch (error) {
-        console.error('Poll error:', error);
+        logger.error(
+          'Poll error',
+          { page: 'live-status' },
+          error instanceof Error ? error : undefined,
+        );
         attempts++;
         await new Promise((resolve) => setTimeout(resolve, pollInterval));
       }
@@ -259,7 +274,8 @@ export default function LiveStatusCard({
 
     if (attempts >= maxAttempts) {
       toast.error('Status check timed out', {
-        description: 'The check is taking longer than expected. Please try again.',
+        description:
+          'The check is taking longer than expected. Please try again.',
       });
     }
 
@@ -282,9 +298,10 @@ export default function LiveStatusCard({
         });
       } else {
         // Error starting job
-        const errorMessage = result.errorCode === 'PCN_NOT_FOUND'
-          ? 'PCN not found on portal - it may have been removed from the system'
-          : result.error || 'Could not start status check';
+        const errorMessage =
+          result.errorCode === 'PCN_NOT_FOUND'
+            ? 'PCN not found on portal - it may have been removed from the system'
+            : result.error || 'Could not start status check';
 
         toast.error('Status check failed', {
           description: errorMessage,
@@ -305,7 +322,11 @@ export default function LiveStatusCard({
           pollForResult();
         }
       } catch (error) {
-        console.error('Error checking pending job:', error);
+        logger.error(
+          'Error checking pending job',
+          { page: 'live-status' },
+          error instanceof Error ? error : undefined,
+        );
       }
     };
 
@@ -340,7 +361,9 @@ export default function LiveStatusCard({
 
         <div className="flex items-center gap-2 mb-4">
           <FontAwesomeIcon icon={faGlobe} className="h-5 w-5 text-primary" />
-          <h2 className="text-lg font-semibold text-dark">Live Portal Status</h2>
+          <h2 className="text-lg font-semibold text-dark">
+            Live Portal Status
+          </h2>
         </div>
 
         <div className="opacity-30">
@@ -371,7 +394,9 @@ export default function LiveStatusCard({
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
           <FontAwesomeIcon icon={faGlobe} className="h-5 w-5 text-primary" />
-          <h2 className="text-lg font-semibold text-dark">Live Portal Status</h2>
+          <h2 className="text-lg font-semibold text-dark">
+            Live Portal Status
+          </h2>
         </div>
         {currentStatus && (
           <span className="text-xs text-gray-500">
@@ -453,7 +478,8 @@ export default function LiveStatusCard({
       ) : (
         <div className="space-y-4">
           <p className="text-sm text-gray-500">
-            Check the live status of your ticket directly from the council portal.
+            Check the live status of your ticket directly from the council
+            portal.
           </p>
 
           <Button

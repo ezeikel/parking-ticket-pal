@@ -1,8 +1,10 @@
-/* eslint-disable import/prefer-default-export */
-
 import { db } from '@parking-ticket-pal/db';
 import { decrypt, encrypt } from '@/app/lib/session';
+import { createServerLogger } from '@/lib/logger';
 
+const log = createServerLogger({ action: 'auth-magic-link-verify' });
+
+// eslint-disable-next-line import-x/prefer-default-export
 export const POST = async (req: Request) => {
   const { token } = await req.json();
 
@@ -53,7 +55,11 @@ export const POST = async (req: Request) => {
       },
     );
   } catch (error) {
-    console.error('Magic link verification error', error);
+    log.error(
+      'Magic link verification error',
+      undefined,
+      error instanceof Error ? error : undefined,
+    );
     return Response.json(
       { error: 'Invalid or expired token' },
       { status: 400 },

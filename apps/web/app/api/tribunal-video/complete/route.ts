@@ -1,5 +1,8 @@
 import { type NextRequest, NextResponse } from 'next/server';
 import { completeTribunalVideo } from '@/lib/video-completion';
+import { createServerLogger } from '@/lib/logger';
+
+const log = createServerLogger({ action: 'tribunal-video-complete' });
 
 // Caption generation + social posting can take a while
 export const maxDuration = 120;
@@ -21,13 +24,17 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    console.log(`[Tribunal Complete] Received callback for video ${videoId}`);
+    log.info('Received callback for video', { videoId });
 
     await completeTribunalVideo(videoId, videoUrl, coverImageUrl ?? null);
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error('[Tribunal Complete] Error:', error);
+    log.error(
+      'Error completing tribunal video',
+      undefined,
+      error instanceof Error ? error : undefined,
+    );
     return NextResponse.json(
       {
         error: 'Completion failed',

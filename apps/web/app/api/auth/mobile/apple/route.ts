@@ -1,9 +1,11 @@
-/* eslint-disable import/prefer-default-export */
-
 import jwt from 'jsonwebtoken';
 import { db } from '@parking-ticket-pal/db';
 import { encrypt } from '@/app/lib/session';
+import { createServerLogger } from '@/lib/logger';
 
+const log = createServerLogger({ action: 'auth-apple' });
+
+// eslint-disable-next-line import-x/prefer-default-export
 export const POST = async (req: Request) => {
   const { identityToken } = await req.json();
   let user;
@@ -60,7 +62,11 @@ export const POST = async (req: Request) => {
       },
     );
   } catch (error) {
-    console.error('Apple auth error', error);
+    log.error(
+      'Apple auth error',
+      undefined,
+      error instanceof Error ? error : undefined,
+    );
 
     return Response.json(
       {

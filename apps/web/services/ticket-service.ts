@@ -1,8 +1,10 @@
 'use server';
 
-import { PredictionType, Ticket } from '@parking-ticket-pal/db';
-import { db } from '@parking-ticket-pal/db';
+import { PredictionType, Ticket, db } from '@parking-ticket-pal/db';
+import { createServerLogger } from '@/lib/logger';
 import { calculatePrediction } from './prediction-service';
+
+const log = createServerLogger({ action: 'ticket-service' });
 
 /**
  * Updates or creates a prediction for a ticket using historical tribunal data
@@ -19,7 +21,7 @@ const updateTicketPrediction = async (ticketId: string) => {
     });
 
     if (!ticket) {
-      console.error(`Ticket ${ticketId} not found for prediction update`);
+      log.error(`Ticket ${ticketId} not found for prediction update`);
       return;
     }
 
@@ -49,7 +51,11 @@ const updateTicketPrediction = async (ticketId: string) => {
       },
     });
   } catch (error) {
-    console.error(`Failed to update prediction for ticket ${ticketId}:`, error);
+    log.error(
+      `Failed to update prediction for ticket ${ticketId}`,
+      undefined,
+      error instanceof Error ? error : undefined,
+    );
     // Don't throw - prediction updates shouldn't break ticket operations
   }
 };
@@ -77,7 +83,11 @@ const createTicketPrediction = async (ticket: Ticket) => {
       },
     });
   } catch (error) {
-    console.error(`Failed to create prediction for ticket ${ticket.id}:`, error);
+    log.error(
+      `Failed to create prediction for ticket ${ticket.id}`,
+      undefined,
+      error instanceof Error ? error : undefined,
+    );
     // Don't throw - prediction creation shouldn't break ticket creation
   }
 };
