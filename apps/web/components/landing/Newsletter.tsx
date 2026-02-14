@@ -1,11 +1,12 @@
 'use client';
 
-import { useRef, useState } from 'react';
+import { useRef, useState, useTransition } from 'react';
 import { motion, useInView, type Variants } from 'framer-motion';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faEnvelopeOpenText } from '@fortawesome/pro-solid-svg-icons';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { subscribeNewsletter } from '@/app/actions/newsletter';
 
 const fadeUpVariants: Variants = {
   hidden: { opacity: 0, y: 30 },
@@ -20,6 +21,8 @@ const Newsletter = () => {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, margin: '-100px' });
   const [email, setEmail] = useState('');
+  const [isPending, startTransition] = useTransition();
+  const [status, setStatus] = useState<'idle' | 'success' | 'error'>('idle');
 
   return (
     <section ref={ref} className="bg-light py-16 md:py-20">
@@ -48,30 +51,60 @@ const Newsletter = () => {
           </p>
 
           {/* Form */}
-          <form
-            onSubmit={(e) => e.preventDefault()}
-            className="mt-8 flex w-full flex-col gap-3 sm:flex-row"
-          >
-            <Input
-              type="email"
-              placeholder="Enter your email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="h-12 flex-1"
-              required
-            />
-            <Button
-              type="submit"
-              className="h-12 bg-teal px-8 font-semibold text-white hover:bg-teal-dark"
+          {status === 'success' ? (
+            <p className="mt-8 text-base font-medium text-teal">
+              You&apos;re in! We&apos;ll be in touch.
+            </p>
+          ) : (
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                startTransition(async () => {
+                  const result = await subscribeNewsletter(email);
+                  if (result.success) {
+                    setStatus('success');
+                    setEmail('');
+                  } else {
+                    setStatus('error');
+                  }
+                });
+              }}
+              className="mt-8 flex w-full flex-col gap-3 sm:flex-row"
             >
-              Subscribe
-            </Button>
-          </form>
+              <Input
+                type="email"
+                placeholder="Enter your email"
+                value={email}
+                onChange={(e) => {
+                  setEmail(e.target.value);
+                  if (status === 'error') setStatus('idle');
+                }}
+                className="h-12 flex-1"
+                required
+                disabled={isPending}
+              />
+              <Button
+                type="submit"
+                className="h-12 bg-teal px-8 font-semibold text-white hover:bg-teal-dark"
+                disabled={isPending}
+              >
+                {isPending ? 'Subscribing...' : 'Subscribe'}
+              </Button>
+            </form>
+          )}
+
+          {status === 'error' && (
+            <p className="mt-3 text-sm text-red-500">
+              Something went wrong. Please try again.
+            </p>
+          )}
 
           {/* Trust text */}
-          <p className="mt-4 text-sm text-gray">
-            Join 8,000+ drivers who fight smarter
-          </p>
+          {status !== 'success' && (
+            <p className="mt-4 text-sm text-gray">
+              Join 8,000+ drivers who fight smarter
+            </p>
+          )}
         </motion.div>
       </div>
     </section>

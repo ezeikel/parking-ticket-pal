@@ -13,6 +13,9 @@ import { render } from '@react-email/render';
 import generateFreeLetterPDF from '@/utils/generateFreeLetterPDF';
 import FreeTemplateEmail from '@/emails/FreeTemplateEmail';
 import type { TemplateCategory } from '@/data/templates';
+import { createServerLogger } from '@/lib/logger';
+
+const log = createServerLogger({ action: 'tools' });
 
 /**
  * Server action to fetch MOT history for a vehicle
@@ -54,9 +57,12 @@ export async function captureToolsEmail(
     await addToolsContact(email, firstName, toolCategory);
     return { success: true };
   } catch (error) {
-    console.error('Failed to capture tools email:', error);
+    log.error(
+      'Failed to capture tools email',
+      undefined,
+      error instanceof Error ? error : undefined,
+    );
     // Don't fail the download if email capture fails
-    // Just log the error and return success anyway
     return { success: true };
   }
 }
@@ -79,11 +85,19 @@ export async function sendFreeLetterEmail(
       motoring: 'motoring-templates',
     };
 
-    // 1. Add to Resend audience for free tools (don't fail if this errors)
+    // 1. Add to Resend free tools segment (don't fail if this errors)
     try {
-      await addToolsContact(email, firstName, toolCategoryMap[templateCategory]);
+      await addToolsContact(
+        email,
+        firstName,
+        toolCategoryMap[templateCategory],
+      );
     } catch (e) {
-      console.error('Failed to add contact to audience:', e);
+      log.error(
+        'Failed to add contact to segment',
+        undefined,
+        e instanceof Error ? e : undefined,
+      );
     }
 
     // 2. Generate PDF
@@ -118,7 +132,11 @@ export async function sendFreeLetterEmail(
 
     return { success: true };
   } catch (error) {
-    console.error('Failed to send free letter email:', error);
+    log.error(
+      'Failed to send free letter email',
+      undefined,
+      error instanceof Error ? error : undefined,
+    );
     return {
       success: false,
       error: error instanceof Error ? error.message : 'Failed to send email',
