@@ -1,10 +1,10 @@
 import { View } from 'react-native';
-import { Redirect, Stack } from 'expo-router';
+import { Stack } from 'expo-router';
 import { useAuthContext } from '@/contexts/auth';
 import Loader from '@/components/Loader/Loader';
 
 const AppLayout = () => {
-  const { isAuthenticated, isLoading } = useAuthContext();
+  const { isLoading } = useAuthContext();
 
   if (isLoading) {
     return (
@@ -12,10 +12,6 @@ const AppLayout = () => {
         <Loader />
       </View>
     )
-  }
-
-  if (!isAuthenticated) {
-    return <Redirect href="/sign-in" />;
   }
 
   return (
@@ -33,6 +29,14 @@ const AppLayout = () => {
         options={{
           headerShown: false,
           presentation: 'card',
+        }}
+      />
+      <Stack.Screen
+        name="paywall"
+        options={{
+          headerShown: false,
+          presentation: 'modal',
+          animation: 'slide_from_bottom',
         }}
       />
     </Stack>

@@ -1,13 +1,12 @@
-import { db } from '@parking-ticket-pal/db';
 import { encrypt } from '@/app/lib/session';
 import { createServerLogger } from '@/lib/logger';
+import { handleMobileOAuthSignIn } from '@/lib/mobile-auth';
 
 const log = createServerLogger({ action: 'auth-facebook' });
 
 // eslint-disable-next-line import-x/prefer-default-export
 export const POST = async (req: Request) => {
-  const { accessToken } = await req.json();
-  let user;
+  const { accessToken, deviceId } = await req.json();
 
   try {
     // Verify Facebook access token
@@ -18,51 +17,31 @@ export const POST = async (req: Request) => {
 
     if (!response.ok || payload.error) {
       return Response.json(
-        {
-          error: 'Invalid Facebook token',
-        },
-        {
-          status: 400,
-        },
+        { error: 'Invalid Facebook token' },
+        { status: 400 },
       );
     }
 
     if (!payload.email) {
       return Response.json(
-        {
-          error: 'Email permission required',
-        },
-        {
-          status: 400,
-        },
+        { error: 'Email permission required' },
+        { status: 400 },
       );
     }
 
-    const existingUser = await db.user.findUnique({
-      where: { email: payload.email },
+    const { userId, isNewUser, wasMerged } = await handleMobileOAuthSignIn(
+      deviceId,
+      payload.email,
+      payload.name,
+    );
+
+    const sessionToken = await encrypt({
+      email: payload.email,
+      id: userId,
     });
 
-    if (!existingUser) {
-      user = await db.user.create({
-        data: {
-          email: payload.email,
-          name: payload.name,
-          subscription: {
-            create: {},
-          },
-        },
-      });
-    } else {
-      user = existingUser;
-    }
-
-    // generate a session token for the mobile app to use
-    const sessionToken = await encrypt({ email: user.email, id: user.id });
-
     return Response.json(
-      {
-        sessionToken,
-      },
+      { sessionToken, userId, isNewUser, wasMerged },
       {
         headers: {
           'Access-Control-Allow-Origin': '*',
@@ -80,13 +59,6 @@ export const POST = async (req: Request) => {
       error instanceof Error ? error : undefined,
     );
 
-    return Response.json(
-      {
-        error: 'Bad request',
-      },
-      {
-        status: 400,
-      },
-    );
+    return Response.json({ error: 'Bad request' }, { status: 400 });
   }
 };

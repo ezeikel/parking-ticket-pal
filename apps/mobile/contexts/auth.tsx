@@ -1,18 +1,40 @@
-import { createContext, useState, useEffect, useContext, ReactNode } from 'react';
-import * as SecureStore from 'expo-secure-store';
+import { createContext, useState, useEffect, useContext, ReactNode, useCallback } from 'react';
 import { GoogleSignin, statusCodes } from '@react-native-google-signin/google-signin';
 import { LoginManager, AccessToken } from 'react-native-fbsdk-next';
 import appleAuth from '@invertase/react-native-apple-authentication';
 import Purchases from 'react-native-purchases';
-import { useRouter } from 'expo-router';
 import { usePostHog } from 'posthog-react-native';
 import * as Sentry from '@sentry/react-native';
-import { getCurrentUser, signIn as signInApi, signInWithFacebook, signInWithApple, sendMagicLink } from '@/api';
+import {
+  getCurrentUser,
+  signIn as signInApi,
+  signInWithFacebook,
+  signInWithApple,
+  sendMagicLink,
+  ensureRegistered,
+} from '@/api';
+import {
+  getDeviceId,
+  getSessionToken,
+  setSessionToken,
+  setUserId,
+  logout as authLogout,
+} from '@/lib/auth';
 import { usePurchases } from './purchases';
 
-// define the shape of the context
+type User = {
+  id: string;
+  email: string | null;
+  name: string | null;
+  createdAt: string;
+  subscription?: { type: string; source: string } | null;
+  [key: string]: any;
+};
+
 type AuthContextType = {
   isAuthenticated: boolean;
+  isLinked: boolean;
+  user: User | null;
   signIn: () => Promise<void>;
   signInWithFacebook: () => Promise<void>;
   signInWithApple: () => Promise<void>;
@@ -20,7 +42,7 @@ type AuthContextType = {
   signOut: () => Promise<void>;
   isLoading: boolean;
   getToken: () => Promise<string | null>;
-}
+};
 
 type AuthContextProviderProps = {
   children: ReactNode;
@@ -28,95 +50,117 @@ type AuthContextProviderProps = {
 
 export const AuthContext = createContext<AuthContextType>({
   isAuthenticated: false,
-  signIn: async () => { },
-  signInWithFacebook: async () => { },
-  signInWithApple: async () => { },
-  sendMagicLink: async () => { },
-  signOut: async () => { },
-  isLoading: false,
-  getToken: async () => null
+  isLinked: false,
+  user: null,
+  signIn: async () => {},
+  signInWithFacebook: async () => {},
+  signInWithApple: async () => {},
+  sendMagicLink: async () => {},
+  signOut: async () => {},
+  isLoading: true,
+  getToken: async () => null,
 });
 
 export const AuthContextProvider = ({ children }: AuthContextProviderProps) => {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
-  const [isLoading, setIsLoading] = useState<boolean>(false);
-  const router = useRouter();
+  const [isLinked, setIsLinked] = useState<boolean>(false);
+  const [user, setUser] = useState<User | null>(null);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
   const posthog = usePostHog();
   const { isConfigured: isPurchasesConfigured } = usePurchases();
 
-  const conifgureGoogleSignIn = () => {
+  const configureGoogleSignIn = () => {
     GoogleSignin.configure({
       webClientId: process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID,
       iosClientId: process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID,
     });
-  }
+  };
 
   useEffect(() => {
-    conifgureGoogleSignIn();
-  }, [])
+    configureGoogleSignIn();
+  }, []);
+
+  const identifyUser = useCallback(
+    async (userData: User) => {
+      // PostHog
+      if (userData.id) {
+        try {
+          posthog.identify(userData.id, {
+            email: userData.email,
+            name: userData.name,
+            created_at: userData.createdAt,
+            subscription_type: userData.subscription?.type,
+            subscription_source: userData.subscription?.source,
+            is_anonymous: !userData.email,
+          });
+          console.log('[Auth] User identified with PostHog:', userData.id);
+        } catch (error) {
+          console.error('[Auth] Error identifying user with PostHog:', error);
+        }
+      }
+
+      // Sentry
+      if (userData.id) {
+        try {
+          Sentry.setUser({
+            id: userData.id,
+            email: userData.email || undefined,
+            username: userData.name || undefined,
+          });
+          Sentry.setTag('subscription_type', userData.subscription?.type || 'free');
+          Sentry.setTag('subscription_source', userData.subscription?.source || 'none');
+          Sentry.setTag('is_anonymous', (!userData.email).toString());
+          console.log('[Auth] User identified with Sentry:', userData.id);
+        } catch (error) {
+          console.error('[Auth] Error identifying user with Sentry:', error);
+        }
+      }
+
+      // RevenueCat
+      if (userData.id && isPurchasesConfigured) {
+        try {
+          await Purchases.logIn(userData.id);
+          console.log('[Auth] User identified with RevenueCat:', userData.id);
+        } catch (error) {
+          console.error('[Auth] Error identifying user with RevenueCat:', error);
+        }
+      }
+    },
+    [isPurchasesConfigured, posthog],
+  );
 
   useEffect(() => {
     const checkAuth = async () => {
       try {
         setIsLoading(true);
-        const token = await SecureStore.getItemAsync('sessionToken');
 
+        // Ensure device is registered (auto-creates anonymous user if needed)
+        await ensureRegistered();
+
+        const token = await getSessionToken();
         if (token) {
-          const { user } = await getCurrentUser();
+          const { user: userData, isLinked: linked } = await getCurrentUser();
 
-          if (user) {
+          if (userData) {
+            setUser(userData);
             setIsAuthenticated(true);
-
-            // Identify user with PostHog
-            if (user.id) {
-              try {
-                posthog.identify(user.id, {
-                  email: user.email,
-                  name: user.name,
-                  created_at: user.createdAt,
-                  subscription_type: user.subscription?.type,
-                  subscription_source: user.subscription?.source,
-                });
-                console.log('[Auth] User identified with PostHog:', user.id);
-              } catch (error) {
-                console.error('[Auth] Error identifying user with PostHog:', error);
-              }
-            }
-
-            // Identify user with Sentry
-            if (user.id) {
-              try {
-                Sentry.setUser({
-                  id: user.id,
-                  email: user.email,
-                  username: user.name,
-                });
-                Sentry.setTag('subscription_type', user.subscription?.type || 'free');
-                Sentry.setTag('subscription_source', user.subscription?.source || 'none');
-                console.log('[Auth] User identified with Sentry:', user.id);
-              } catch (error) {
-                console.error('[Auth] Error identifying user with Sentry:', error);
-              }
-            }
-
-            // Identify user with RevenueCat only if SDK is configured
-            if (user.id && isPurchasesConfigured) {
-              try {
-                await Purchases.logIn(user.id);
-                console.log('[Auth] User identified with RevenueCat:', user.id);
-              } catch (error) {
-                console.error('[Auth] Error identifying user with RevenueCat:', error);
-              }
-            }
+            setIsLinked(linked);
+            await setUserId(userData.id);
+            await identifyUser(userData);
           } else {
-            setIsAuthenticated(false);
+            setIsAuthenticated(true);
+            setIsLinked(false);
           }
         } else {
           setIsAuthenticated(false);
+          setIsLinked(false);
         }
       } catch (error) {
-        console.error('Error checking token validity', error);
-        setIsAuthenticated(false);
+        console.error('Error checking auth', error);
+        // Even on error, if we have a token we're "authenticated" (device auth)
+        const token = await getSessionToken();
+        setIsAuthenticated(!!token);
+        setIsLinked(false);
       } finally {
         setIsLoading(false);
       }
@@ -124,74 +168,49 @@ export const AuthContextProvider = ({ children }: AuthContextProviderProps) => {
 
     checkAuth();
 
-    // Set up periodic checks every 10 minutes
     const intervalId = setInterval(checkAuth, 10 * 60 * 1000);
     return () => clearInterval(intervalId);
-  }, [isPurchasesConfigured]);
+  }, [isPurchasesConfigured, identifyUser]);
+
+  const handlePostSignIn = async (sessionToken: string) => {
+    await setSessionToken(sessionToken);
+    setIsAuthenticated(true);
+
+    const { user: userData, isLinked: linked } = await getCurrentUser();
+    if (userData) {
+      setUser(userData);
+      setIsLinked(linked);
+      await setUserId(userData.id);
+      await identifyUser(userData);
+    }
+  };
 
   const signIn = async () => {
     try {
-      const { sessionToken } = await signInApi();
-      await SecureStore.setItemAsync('sessionToken', sessionToken);
-      setIsAuthenticated(true);
-
-      // Get user info to identify with PostHog and RevenueCat
-      const { user } = await getCurrentUser();
-
-      // Identify user with PostHog
-      if (user?.id) {
-        try {
-          posthog.identify(user.id, {
-            email: user.email,
-            name: user.name,
-            created_at: user.createdAt,
-            subscription_type: user.subscription?.type,
-            subscription_source: user.subscription?.source,
-          });
-          console.log('[Auth] User identified with PostHog:', user.id);
-        } catch (error) {
-          console.error('[Auth] Error identifying user with PostHog:', error);
-        }
-      }
-
-      // Identify user with Sentry
-      if (user?.id) {
-        try {
-          Sentry.setUser({
-            id: user.id,
-            email: user.email,
-            username: user.name,
-          });
-          Sentry.setTag('subscription_type', user.subscription?.type || 'free');
-          Sentry.setTag('subscription_source', user.subscription?.source || 'none');
-          console.log('[Auth] User identified with Sentry:', user.id);
-        } catch (error) {
-          console.error('[Auth] Error identifying user with Sentry:', error);
-        }
-      }
-
-      // Identify user with RevenueCat only if SDK is configured
-      if (user?.id && isPurchasesConfigured) {
-        try {
-          await Purchases.logIn(user.id);
-          console.log('[Auth] User logged in to RevenueCat:', user.id);
-        } catch (error) {
-          console.error('[Auth] Error logging in to RevenueCat:', error);
-        }
-      }
+      const deviceId = await getDeviceId();
+      const { sessionToken } = await signInApi(deviceId);
+      await handlePostSignIn(sessionToken);
     } catch (error) {
-      if (error && typeof error === 'object' && 'code' in error && error.code === statusCodes.SIGN_IN_CANCELLED) {
+      if (
+        error &&
+        typeof error === 'object' &&
+        'code' in error &&
+        error.code === statusCodes.SIGN_IN_CANCELLED
+      ) {
         console.info('User cancelled sign-in');
       } else {
         console.error('Sign-in error', error);
       }
-      setIsAuthenticated(false);
+      throw error;
     }
   };
 
   const signInWithFacebookMethod = async () => {
     try {
-      const result = await LoginManager.logInWithPermissions(['public_profile', 'email']);
+      const result = await LoginManager.logInWithPermissions([
+        'public_profile',
+        'email',
+      ]);
 
       if (result.isCancelled) {
         console.info('User cancelled Facebook sign-in');
@@ -203,57 +222,15 @@ export const AuthContextProvider = ({ children }: AuthContextProviderProps) => {
         throw new Error('No Facebook access token received');
       }
 
-      const { sessionToken } = await signInWithFacebook(data.accessToken);
-      await SecureStore.setItemAsync('sessionToken', sessionToken);
-      setIsAuthenticated(true);
-
-      // Get user info to identify with PostHog and RevenueCat
-      const { user } = await getCurrentUser();
-
-      // Identify user with PostHog
-      if (user?.id) {
-        try {
-          posthog.identify(user.id, {
-            email: user.email,
-            name: user.name,
-            created_at: user.createdAt,
-            subscription_type: user.subscription?.type,
-            subscription_source: user.subscription?.source,
-          });
-          console.log('[Auth] User identified with PostHog:', user.id);
-        } catch (error) {
-          console.error('[Auth] Error identifying user with PostHog:', error);
-        }
-      }
-
-      // Identify user with Sentry
-      if (user?.id) {
-        try {
-          Sentry.setUser({
-            id: user.id,
-            email: user.email,
-            username: user.name,
-          });
-          Sentry.setTag('subscription_type', user.subscription?.type || 'free');
-          Sentry.setTag('subscription_source', user.subscription?.source || 'none');
-          console.log('[Auth] User identified with Sentry:', user.id);
-        } catch (error) {
-          console.error('[Auth] Error identifying user with Sentry:', error);
-        }
-      }
-
-      // Identify user with RevenueCat only if SDK is configured
-      if (user?.id && isPurchasesConfigured) {
-        try {
-          await Purchases.logIn(user.id);
-          console.log('[Auth] User logged in to RevenueCat:', user.id);
-        } catch (error) {
-          console.error('[Auth] Error logging in to RevenueCat:', error);
-        }
-      }
+      const deviceId = await getDeviceId();
+      const { sessionToken } = await signInWithFacebook(
+        data.accessToken,
+        deviceId,
+      );
+      await handlePostSignIn(sessionToken);
     } catch (error) {
       console.error('Facebook sign-in error', error);
-      setIsAuthenticated(false);
+      throw error;
     }
   };
 
@@ -264,30 +241,22 @@ export const AuthContextProvider = ({ children }: AuthContextProviderProps) => {
         requestedScopes: [appleAuth.Scope.EMAIL, appleAuth.Scope.FULL_NAME],
       });
 
-      const credentialState = await appleAuth.getCredentialStateForUser(appleAuthRequestResponse.user);
+      const credentialState = await appleAuth.getCredentialStateForUser(
+        appleAuthRequestResponse.user,
+      );
 
       if (credentialState === appleAuth.State.AUTHORIZED) {
+        const deviceId = await getDeviceId();
         const { sessionToken } = await signInWithApple(
           appleAuthRequestResponse.identityToken || '',
-          appleAuthRequestResponse.authorizationCode || ''
+          appleAuthRequestResponse.authorizationCode || '',
+          deviceId,
         );
-        await SecureStore.setItemAsync('sessionToken', sessionToken);
-        setIsAuthenticated(true);
-
-        // Get user info to identify with RevenueCat only if SDK is configured
-        const { user } = await getCurrentUser();
-        if (user?.id && isPurchasesConfigured) {
-          try {
-            await Purchases.logIn(user.id);
-            console.log('[Auth] User logged in to RevenueCat:', user.id);
-          } catch (error) {
-            console.error('[Auth] Error logging in to RevenueCat:', error);
-          }
-        }
+        await handlePostSignIn(sessionToken);
       }
     } catch (error) {
       console.error('Apple sign-in error', error);
-      setIsAuthenticated(false);
+      throw error;
     }
   };
 
@@ -305,33 +274,31 @@ export const AuthContextProvider = ({ children }: AuthContextProviderProps) => {
       await GoogleSignin.signOut();
       await LoginManager.logOut();
 
-      // Reset PostHog user identity
       try {
         posthog.reset();
-        console.log('[Auth] User identity reset in PostHog');
       } catch (error) {
         console.error('[Auth] Error resetting PostHog:', error);
       }
 
-      // Clear Sentry user identity
       try {
         Sentry.setUser(null);
-        console.log('[Auth] User identity cleared in Sentry');
       } catch (error) {
         console.error('[Auth] Error clearing Sentry user:', error);
       }
 
-      // Only log out from RevenueCat if it's configured
       if (isPurchasesConfigured) {
         try {
           await Purchases.logOut();
-          console.log('[Auth] User logged out from RevenueCat');
         } catch (error) {
           console.error('[Auth] Error logging out from RevenueCat:', error);
         }
       }
 
-      await SecureStore.deleteItemAsync('sessionToken');
+      await authLogout();
+      setIsLinked(false);
+      setUser(null);
+      // Don't set isAuthenticated to false — device will re-register on next API call
+      // This triggers a re-check which will create a new anonymous user
       setIsAuthenticated(false);
     } catch (error) {
       console.error('Error signing out: ', error);
@@ -339,20 +306,22 @@ export const AuthContextProvider = ({ children }: AuthContextProviderProps) => {
   };
 
   const getToken = async () => {
-    return await SecureStore.getItemAsync('sessionToken');
+    return await getSessionToken();
   };
 
   return (
     <AuthContext.Provider
       value={{
         isAuthenticated,
+        isLinked,
+        user,
         signIn,
         signInWithFacebook: signInWithFacebookMethod,
         signInWithApple: signInWithAppleMethod,
         sendMagicLink: sendMagicLinkMethod,
         signOut,
         isLoading,
-        getToken
+        getToken,
       }}
     >
       {children}

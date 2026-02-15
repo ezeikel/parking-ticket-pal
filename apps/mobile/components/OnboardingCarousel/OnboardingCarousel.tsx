@@ -1,44 +1,22 @@
-import { View, Text, Dimensions, Image } from 'react-native';
+import { View, Dimensions } from 'react-native';
 import Carousel from 'react-native-reanimated-carousel';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
   interpolate,
 } from 'react-native-reanimated';
-import { router } from 'expo-router';
-import { useState } from 'react';
-import SquishyPressable from '@/components/SquishyPressable/SquishyPressable';
+import { useState, useCallback, useRef } from 'react';
 import { useAnalytics } from '@/lib/analytics';
+import WelcomeSlide from './WelcomeSlide';
+import AIAppealsSlide from './AIAppealsSlide';
+import TrackWinSlide from './TrackWinSlide';
+import ScanTicketSlide from './ScanTicketSlide';
+import GetStartedSlide from './GetStartedSlide';
+import CameraSheet from '@/components/CameraSheet/CameraSheet';
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
-interface OnboardingSlide {
-  id: string;
-  illustration: any;
-  title: string;
-  description: string;
-}
-
-const slides: OnboardingSlide[] = [
-  {
-    id: '1',
-    illustration: require('@/assets/illustrations/1-upload-ticket.png'),
-    title: 'Snap & Upload',
-    description: 'Take a photo of your parking ticket in seconds. Quick, simple, and secure.',
-  },
-  {
-    id: '2',
-    illustration: require('@/assets/illustrations/2-ai-helper.png'),
-    title: 'AI-Powered Appeals',
-    description: 'Our intelligent AI analyses your ticket and crafts a compelling appeal letter tailored to your case.',
-  },
-  {
-    id: '3',
-    illustration: require('@/assets/illustrations/3-success.png'),
-    title: 'Track & Win',
-    description: 'Monitor your appeal status and get notified when you successfully challenge your fine.',
-  },
-];
+const SLIDE_COUNT = 5;
 
 interface PaginationDotProps {
   index: number;
@@ -53,25 +31,23 @@ const PaginationDot = ({ index, activeIndex }: PaginationDotProps) => {
       activeIndex.value,
       inputRange,
       [8, 24, 8],
-      'clamp'
+      'clamp',
     );
 
     const opacity = interpolate(
       activeIndex.value,
       inputRange,
       [0.5, 1, 0.5],
-      'clamp'
+      'clamp',
     );
 
-    // Interpolate between gray and teal
     const backgroundColor = interpolate(
       activeIndex.value,
       inputRange,
       [0, 1, 0],
-      'clamp'
+      'clamp',
     );
 
-    // Convert interpolated value to color
     const tealR = 26;
     const tealG = 188;
     const tealB = 156;
@@ -106,12 +82,14 @@ const PaginationDot = ({ index, activeIndex }: PaginationDotProps) => {
 
 interface OnboardingCarouselProps {
   onComplete: () => void;
+  onTicketCreated?: (ticketId: string) => void;
 }
 
-const OnboardingCarousel = ({ onComplete }: OnboardingCarouselProps) => {
+const OnboardingCarousel = ({ onComplete, onTicketCreated }: OnboardingCarouselProps) => {
   const activeIndex = useSharedValue(0);
   const [currentSlide, setCurrentSlide] = useState(0);
-  const carouselRef = useState<any>(null);
+  const carouselRef = useRef<any>(null);
+  const [isCameraVisible, setIsCameraVisible] = useState(false);
   const { trackEvent } = useAnalytics();
 
   const updateCurrentSlide = (progress: number) => {
@@ -121,82 +99,99 @@ const OnboardingCarousel = ({ onComplete }: OnboardingCarouselProps) => {
     }
   };
 
-  const renderItem = ({ item }: { item: OnboardingSlide }) => (
-    <View className="flex-1 items-center justify-center px-8">
-      {/* Illustration */}
-      <View className="w-full aspect-square max-w-sm mb-12 rounded-3xl overflow-hidden">
-        <Image
-          source={item.illustration}
-          style={{ width: '100%', height: '100%' }}
-          resizeMode="cover"
-        />
-      </View>
-
-      {/* Content */}
-      <View className="items-center">
-        <Text className="font-inter text-3xl font-bold text-gray-900 text-center mb-4">
-          {item.title}
-        </Text>
-        <Text className="font-inter text-lg text-gray-600 text-center leading-relaxed max-w-md">
-          {item.description}
-        </Text>
-      </View>
-    </View>
+  const goToSlide = useCallback(
+    (index: number) => {
+      if (carouselRef.current) {
+        // scrollTo expects relative offset from current
+        const offset = index - currentSlide;
+        if (offset !== 0) {
+          for (let i = 0; i < Math.abs(offset); i++) {
+            if (offset > 0) {
+              carouselRef.current.next();
+            } else {
+              carouselRef.current.prev();
+            }
+          }
+        }
+      }
+    },
+    [currentSlide],
   );
 
-  const handleNext = () => {
-    const nextSlide = currentSlide + 1;
-    trackEvent('onboarding_next_clicked', {
-      screen: 'onboarding',
-      current_slide: currentSlide,
-      slide_title: slides[currentSlide].title,
-    });
-
-    if (carouselRef[0]) {
-      carouselRef[0].next();
-    }
+  const handleScanNow = () => {
+    trackEvent('onboarding_scan_now_tapped', { screen: 'onboarding', slide: 3 });
+    setIsCameraVisible(true);
   };
 
-  const handleGetStarted = () => {
-    trackEvent('onboarding_get_started_clicked', {
-      screen: 'onboarding',
-      slides_viewed: currentSlide + 1,
-    });
-    onComplete();
+  const handleScanSkip = () => {
+    trackEvent('onboarding_scan_skipped', { screen: 'onboarding', slide: 3 });
+    goToSlide(4);
+  };
+
+  const handleCameraClose = () => {
+    setIsCameraVisible(false);
+    // After camera closes (ticket created or dismissed), go to last slide
+    goToSlide(4);
   };
 
   const handleSkip = () => {
     trackEvent('onboarding_skipped', {
       screen: 'onboarding',
       skipped_at_slide: currentSlide,
-      slide_title: slides[currentSlide].title,
     });
     onComplete();
   };
 
-  const isLastSlide = currentSlide === slides.length - 1;
+  const renderSlide = ({ index }: { index: number }) => {
+    switch (index) {
+      case 0:
+        return <WelcomeSlide />;
+      case 1:
+        return <AIAppealsSlide />;
+      case 2:
+        return <TrackWinSlide />;
+      case 3:
+        return (
+          <ScanTicketSlide onScanNow={handleScanNow} onSkip={handleScanSkip} />
+        );
+      case 4:
+        return <GetStartedSlide onGetStarted={onComplete} />;
+      default:
+        return null;
+    }
+  };
+
+  // Hide pagination on scan and get-started slides (they have their own CTAs)
+  const showPagination = currentSlide < 3;
+  const showSkip = currentSlide < 3;
+  const showNextButton = currentSlide < 3;
 
   return (
     <View className="flex-1 bg-white">
       {/* Skip Button */}
-      <View className="absolute top-14 right-6 z-10">
-        <SquishyPressable onPress={handleSkip}>
-          <Text className="font-inter text-base font-semibold text-gray-500">
-            Skip
-          </Text>
-        </SquishyPressable>
-      </View>
+      {showSkip && (
+        <View className="absolute top-14 right-6 z-10">
+          <Animated.View>
+            <View>
+              <Animated.Text
+                className="font-jakarta-semibold text-base text-gray-500"
+                onPress={handleSkip}
+              >
+                Skip
+              </Animated.Text>
+            </View>
+          </Animated.View>
+        </View>
+      )}
 
       {/* Carousel */}
       <View className="flex-1 justify-center">
         <Carousel
-          ref={(ref) => {
-            carouselRef[0] = ref;
-          }}
+          ref={carouselRef}
           width={screenWidth}
           height={screenHeight * 0.75}
-          data={slides}
-          renderItem={renderItem}
+          data={Array.from({ length: SLIDE_COUNT }, (_, i) => i)}
+          renderItem={renderSlide}
           onProgressChange={(_, absoluteProgress) => {
             activeIndex.value = absoluteProgress;
             updateCurrentSlide(absoluteProgress);
@@ -207,28 +202,45 @@ const OnboardingCarousel = ({ onComplete }: OnboardingCarouselProps) => {
         />
       </View>
 
-      {/* Pagination & Action Button */}
-      <View className="pb-12 px-8">
-        {/* Pagination Dots */}
-        <View className="flex-row justify-center items-center mb-8">
-          {slides.map((_, index) => (
-            <PaginationDot key={index} index={index} activeIndex={activeIndex} />
-          ))}
-        </View>
+      {/* Pagination & Next Button */}
+      {(showPagination || showNextButton) && (
+        <View className="pb-12 px-8">
+          {showPagination && (
+            <View className="flex-row justify-center items-center mb-8">
+              {Array.from({ length: SLIDE_COUNT }, (_, index) => (
+                <PaginationDot key={index} index={index} activeIndex={activeIndex} />
+              ))}
+            </View>
+          )}
 
-        {/* Next / Get Started Button */}
-        <SquishyPressable
-          onPress={isLastSlide ? handleGetStarted : handleNext}
-          className="py-4 rounded-xl items-center justify-center"
-          style={{
-            backgroundColor: '#1ABC9C',
-          }}
-        >
-          <Text className="font-inter font-semibold text-white text-lg">
-            {isLastSlide ? 'Get Started' : 'Next'}
-          </Text>
-        </SquishyPressable>
-      </View>
+          {showNextButton && (
+            <Animated.View>
+              <View
+                className="py-4 rounded-xl items-center justify-center"
+                style={{ backgroundColor: '#1ABC9C' }}
+              >
+                <Animated.Text
+                  className="font-jakarta-semibold text-white text-lg"
+                  onPress={() => {
+                    trackEvent('onboarding_next_clicked', {
+                      screen: 'onboarding',
+                      current_slide: currentSlide,
+                    });
+                    if (carouselRef.current) {
+                      carouselRef.current.next();
+                    }
+                  }}
+                >
+                  Next
+                </Animated.Text>
+              </View>
+            </Animated.View>
+          )}
+        </View>
+      )}
+
+      {/* Camera Sheet for ticket scanning */}
+      <CameraSheet isVisible={isCameraVisible} onClose={handleCameraClose} />
     </View>
   );
 };

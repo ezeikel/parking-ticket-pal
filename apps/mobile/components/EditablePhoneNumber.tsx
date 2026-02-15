@@ -25,15 +25,15 @@ export function EditablePhoneNumber({ phoneNumber, onPress }: EditablePhoneNumbe
         style={{ marginRight: 12 }}
       />
       <View className="flex-1">
-        <Text className="font-inter text-base text-gray-900">
+        <Text className="font-jakarta text-base text-gray-900">
           Mobile Number
         </Text>
         {phoneNumber ? (
-          <Text className="font-inter text-sm text-gray-500 mt-1">
+          <Text className="font-jakarta text-sm text-gray-500 mt-1">
             {phoneNumber}
           </Text>
         ) : (
-          <Text className="font-inter text-sm text-gray-400 mt-1">
+          <Text className="font-jakarta text-sm text-gray-400 mt-1">
             Not set
           </Text>
         )}

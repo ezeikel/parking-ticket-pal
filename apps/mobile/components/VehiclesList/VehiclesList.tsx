@@ -26,9 +26,9 @@ const VehicleItem = ({ vehicle, style }: {
         <View className="flex-1">
           <View className="flex-row items-center gap-x-2">
             <Typography variant="vrm">{vehicle.vrm}</Typography>
-            <Text className="font-inter text-lg">{vehicle.make}</Text>
+            <Text className="font-jakarta text-lg">{vehicle.make}</Text>
           </View>
-          <Text className="font-inter text-[#71717a]">
+          <Text className="font-jakarta text-[#71717a]">
             {`${vehicle.model} ${vehicle.year}`}
           </Text>
         </View>

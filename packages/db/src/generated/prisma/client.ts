@@ -45,6 +45,11 @@ export { Prisma }
  */
 export type User = Prisma.UserModel
 /**
+ * Model MobileDeviceSession
+ * 
+ */
+export type MobileDeviceSession = Prisma.MobileDeviceSessionModel
+/**
  * Model Vehicle
  * 
  */

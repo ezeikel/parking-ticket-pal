@@ -1,11 +1,12 @@
-import { Text, View, ScrollView, Alert, Dimensions } from 'react-native';
+import { Text, View, ScrollView, Alert, Dimensions, Linking, Platform } from 'react-native';
 import Switch from '@/components/Switch/Switch';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import SquishyPressable from '@/components/SquishyPressable/SquishyPressable';
 import { useState, useRef } from 'react';
 import { router } from 'expo-router';
 import { FontAwesomeIcon } from "@fortawesome/react-native-fontawesome";
-import { faSignOut, faUser, faEnvelope, faInfoCircle, faHeart, faBookOpen, faTrashCan, faCrown, faRotateRight, faPencil, faPlus, faSignature, faBell as faBellRegular, faComment } from "@fortawesome/pro-regular-svg-icons";
+import { faSignOut, faUser, faEnvelope, faInfoCircle, faHeart, faBookOpen, faTrashCan, faCrown, faRotateRight, faPencil, faSignature, faBell as faBellRegular, faComment, faCircleQuestion, faStar, faShieldCheck, faFileLines } from "@fortawesome/pro-regular-svg-icons";
+import SocialAuthButtons from '@/components/SocialAuthButtons/SocialAuthButtons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import BottomSheet from '@gorhom/bottom-sheet';
 import { useAuthContext } from '@/contexts/auth';
@@ -29,6 +30,7 @@ import EditablePhoneNumberBottomSheet from '@/components/EditablePhoneNumberBott
 import EditableAddressBottomSheet from '@/components/EditableAddressBottomSheet';
 import { updateUser } from '@/api';
 import type { Address } from '@parking-ticket-pal/types';
+import { useQueryClient } from '@tanstack/react-query';
 import { useNotificationPreferences, useUpdateNotificationPreferences } from '@/hooks/api/useNotificationPreferences';
 import NotificationBell from '@/components/NotificationBell';
 import { AdBanner } from '@/components/AdBanner';
@@ -39,7 +41,7 @@ const screenWidth = Dimensions.get('screen').width - padding * 2;
 const SettingsScreen = () => {
   const { data, isLoading, refetch } = useUser();
   const user = data?.user;
-  const { signOut } = useAuthContext();
+  const { signOut, isLinked, signIn, signInWithApple: signInWithAppleMethod, signInWithFacebook: signInWithFacebookMethod, sendMagicLink } = useAuthContext();
   const {
     hasActiveSubscription,
     hasPremiumAccess,
@@ -49,7 +51,9 @@ const SettingsScreen = () => {
   } = usePurchases();
   const colorScheme = useColorScheme();
   const { trackEvent } = useAnalytics();
+  const queryClient = useQueryClient();
   const [isRestoring, setIsRestoring] = useState(false);
+  const [isLinking, setIsLinking] = useState(false);
   const signatureBottomSheetRef = useRef<BottomSheet>(null);
   const nameBottomSheetRef = useRef<BottomSheet>(null);
   const emailBottomSheetRef = useRef<BottomSheet>(null);
@@ -87,6 +91,72 @@ const SettingsScreen = () => {
         },
       ]
     );
+  };
+
+  const handleLinkGoogle = async () => {
+    setIsLinking(true);
+    try {
+      trackEvent("link_account_started", { screen: "settings", method: "google" });
+      await signIn();
+      trackEvent("link_account_success", { screen: "settings", method: "google" });
+      await refetch();
+      queryClient.invalidateQueries({ queryKey: ['tickets'] });
+    } catch (error) {
+      trackEvent("link_account_failed", { screen: "settings", method: "google" });
+      Alert.alert('Error', 'Failed to link Google account. Please try again.');
+    } finally {
+      setIsLinking(false);
+    }
+  };
+
+  const handleLinkApple = async () => {
+    setIsLinking(true);
+    try {
+      trackEvent("link_account_started", { screen: "settings", method: "apple" });
+      await signInWithAppleMethod();
+      trackEvent("link_account_success", { screen: "settings", method: "apple" });
+      await refetch();
+      queryClient.invalidateQueries({ queryKey: ['tickets'] });
+    } catch (error) {
+      trackEvent("link_account_failed", { screen: "settings", method: "apple" });
+      Alert.alert('Error', 'Failed to link Apple account. Please try again.');
+    } finally {
+      setIsLinking(false);
+    }
+  };
+
+  const handleLinkFacebook = async () => {
+    setIsLinking(true);
+    try {
+      trackEvent("link_account_started", { screen: "settings", method: "facebook" });
+      await signInWithFacebookMethod();
+      trackEvent("link_account_success", { screen: "settings", method: "facebook" });
+      await refetch();
+      queryClient.invalidateQueries({ queryKey: ['tickets'] });
+    } catch (error) {
+      trackEvent("link_account_failed", { screen: "settings", method: "facebook" });
+      Alert.alert('Error', 'Failed to link Facebook account. Please try again.');
+    } finally {
+      setIsLinking(false);
+    }
+  };
+
+  const handleLinkMagicLink = async (email: string) => {
+    if (!email.trim()) {
+      Alert.alert('Error', 'Please enter your email address.');
+      return;
+    }
+    setIsLinking(true);
+    try {
+      trackEvent("link_account_started", { screen: "settings", method: "magic_link" });
+      await sendMagicLink(email);
+      Alert.alert('Success', `Magic link sent to ${email}. Check your email and click the link to link your account.`);
+    } catch (error) {
+      trackEvent("link_account_failed", { screen: "settings", method: "magic_link" });
+      Alert.alert('Error', 'Failed to send magic link. Please try again.');
+    } finally {
+      setIsLinking(false);
+    }
   };
 
   const handleViewOnboarding = async () => {
@@ -286,13 +356,13 @@ const SettingsScreen = () => {
           style={{ marginRight: 12 }}
         />
         <View className="flex-1">
-          <Text className={`font-inter text-base ${
+          <Text className={`font-jakarta text-base ${
             destructive ? 'text-red-500' : 'text-gray-900'
           }`}>
             {title}
           </Text>
           {value && (
-            <Text className="font-inter text-sm text-gray-500 mt-1">
+            <Text className="font-jakarta text-sm text-gray-500 mt-1">
               {value}
             </Text>
           )}
@@ -331,7 +401,7 @@ const SettingsScreen = () => {
       {/* Header */}
       <View className="bg-white border-b border-gray-200 px-4 pb-4">
         <View className="flex-row justify-between items-center">
-          <Text className="text-2xl font-bold text-gray-900">
+          <Text className="text-2xl font-jakarta-bold text-dark">
             Settings
           </Text>
           <NotificationBell />
@@ -351,9 +421,10 @@ const SettingsScreen = () => {
           }}
         >
           <ScrollView className="flex-1">
+          {/* Account Section */}
           <View className="bg-white rounded-lg mb-6 overflow-hidden">
             <View className="p-4 border-b border-gray-100">
-              <Text className="font-inter text-lg font-semibold text-gray-900 mb-2">
+              <Text className="font-jakarta-semibold text-lg text-gray-900 mb-2">
                 Account
               </Text>
             </View>
@@ -371,11 +442,11 @@ const SettingsScreen = () => {
             <SettingRow
               icon={faEnvelope}
               title="Email"
-              value={user?.email}
-              onPress={() => {
+              value={user?.email || 'Not linked'}
+              onPress={user?.email ? () => {
                 trackEvent("email_sheet_opened", { screen: "settings" });
                 emailBottomSheetRef.current?.expand();
-              }}
+              } : undefined}
             />
 
             <EditablePhoneNumber
@@ -405,7 +476,7 @@ const SettingsScreen = () => {
                 style={{ marginRight: 12 }}
               />
               <View className="flex-1">
-                <Text className="font-inter text-base text-gray-900">
+                <Text className="font-jakarta text-base text-gray-900">
                   Signature
                 </Text>
                 {user?.signatureUrl ? (
@@ -418,7 +489,7 @@ const SettingsScreen = () => {
                     />
                   </View>
                 ) : (
-                  <Text className="font-inter text-sm text-gray-400 mt-1">
+                  <Text className="font-jakarta text-sm text-gray-400 mt-1">
                     Not set
                   </Text>
                 )}
@@ -430,55 +501,36 @@ const SettingsScreen = () => {
               />
             </SquishyPressable>
 
+            {/* Subscription - inline in Account */}
             <SettingRow
               icon={faCrown}
               title="Subscription"
               value={getSubscriptionStatus()}
+              onPress={!hasPremiumAccess && user?.subscription?.source !== 'STRIPE'
+                ? () => router.push({ pathname: '/(authenticated)/paywall', params: { mode: 'subscriptions' } })
+                : undefined
+              }
             />
-          </View>
-
-          {/* Subscription Section */}
-          <View className="bg-white rounded-lg mb-6 overflow-hidden">
-            <View className="p-4 border-b border-gray-100">
-              <Text className="font-inter text-lg font-semibold text-gray-900 mb-2">
-                Subscription & Purchases
-              </Text>
-            </View>
 
             {user?.subscription?.source === 'STRIPE' ? (
-              <View className="p-4">
-                <Text className="font-inter text-sm text-gray-600 mb-3">
-                  You have a web subscription. To manage your subscription, please visit the website.
+              <View className="px-4 pb-4">
+                <Text className="font-jakarta text-sm text-gray-500">
+                  Manage your subscription on the website
                 </Text>
               </View>
             ) : (
-              <View className="p-4">
+              <>
                 {!hasActiveSubscription && (
-                  <>
-                    <Text className="font-inter text-sm text-gray-600 mb-3">
-                      Unlock unlimited tickets and premium features
-                    </Text>
+                  <View className="px-4 pt-2 pb-4">
                     <UpgradeButton fullWidth variant="primary" />
-                  </>
-                )}
-
-                {hasActiveSubscription && !hasPremiumAccess && (
-                  <>
-                    <Text className="font-inter text-sm text-gray-600 mb-3">
-                      Upgrade to Premium for more features
-                    </Text>
-                    <UpgradeButton fullWidth variant="primary" />
-                  </>
-                )}
-
-                {hasPremiumAccess && (
-                  <View className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-                    <Text className="font-inter text-sm text-blue-700 text-center">
-                      You have Premium access
-                    </Text>
                   </View>
                 )}
-              </View>
+                {hasActiveSubscription && !hasPremiumAccess && (
+                  <View className="px-4 pt-2 pb-4">
+                    <UpgradeButton fullWidth variant="primary" />
+                  </View>
+                )}
+              </>
             )}
 
             <SquishyPressable
@@ -498,19 +550,41 @@ const SettingsScreen = () => {
                   style={{ marginRight: 12 }}
                 />
               )}
-              <Text className="font-inter text-base text-gray-900">
+              <Text className="font-jakarta text-base text-gray-900">
                 {isRestoring ? 'Restoring...' : 'Restore Purchases'}
               </Text>
             </SquishyPressable>
           </View>
 
+          {/* Link Account Section - shown when user is anonymous */}
+          {!isLinked && (
+            <View className="bg-white rounded-lg mb-6 overflow-hidden">
+              <View className="p-4 border-b border-gray-100">
+                <Text className="font-jakarta-semibold text-lg text-gray-900 mb-1">
+                  Link Account
+                </Text>
+                <Text className="font-jakarta text-sm text-gray-500">
+                  Link an account to sync your data across devices
+                </Text>
+              </View>
+
+              <SocialAuthButtons
+                onGoogle={handleLinkGoogle}
+                onApple={handleLinkApple}
+                onFacebook={handleLinkFacebook}
+                onMagicLink={handleLinkMagicLink}
+                disabled={isLinking}
+              />
+            </View>
+          )}
+
           {/* Notification Preferences Section */}
           <View className="bg-white rounded-lg mb-6 overflow-hidden">
             <View className="p-4 border-b border-gray-100">
-              <Text className="font-inter text-lg font-semibold text-gray-900 mb-2">
+              <Text className="font-jakarta-semibold text-lg text-gray-900 mb-2">
                 Notification Preferences
               </Text>
-              <Text className="font-inter text-sm text-gray-600">
+              <Text className="font-jakarta text-sm text-gray-600">
                 Choose how you want to receive notifications about your tickets
               </Text>
             </View>
@@ -525,10 +599,10 @@ const SettingsScreen = () => {
                   style={{ marginRight: 12 }}
                 />
                 <View className="flex-1">
-                  <Text className="font-inter text-base text-gray-900">
+                  <Text className="font-jakarta text-base text-gray-900">
                     Push Notifications
                   </Text>
-                  <Text className="font-inter text-xs text-gray-500 mt-1">
+                  <Text className="font-jakarta text-xs text-gray-500 mt-1">
                     Get notified in-app and when app is closed
                   </Text>
                 </View>
@@ -551,18 +625,18 @@ const SettingsScreen = () => {
                 />
                 <View className="flex-1">
                   <View className="flex-row items-center">
-                    <Text className={`font-inter text-base ${hasActiveSubscription ? 'text-gray-900' : 'text-gray-400'}`}>
+                    <Text className={`font-jakarta text-base ${hasActiveSubscription ? 'text-gray-900' : 'text-gray-400'}`}>
                       Email Notifications
                     </Text>
                     {!hasActiveSubscription && (
                       <View className="ml-2 bg-purple-100 rounded-full px-2 py-0.5">
-                        <Text className="font-inter text-xs text-purple-700 font-semibold">
+                        <Text className="font-jakarta-semibold text-xs text-purple-700">
                           Premium
                         </Text>
                       </View>
                     )}
                   </View>
-                  <Text className="font-inter text-xs text-gray-500 mt-1">
+                  <Text className="font-jakarta text-xs text-gray-500 mt-1">
                     {hasActiveSubscription ? 'Get email alerts' : 'Available for Standard & Premium'}
                   </Text>
                 </View>
@@ -586,18 +660,18 @@ const SettingsScreen = () => {
                 />
                 <View className="flex-1">
                   <View className="flex-row items-center">
-                    <Text className={`font-inter text-base ${hasActiveSubscription ? 'text-gray-900' : 'text-gray-400'}`}>
+                    <Text className={`font-jakarta text-base ${hasActiveSubscription ? 'text-gray-900' : 'text-gray-400'}`}>
                       SMS Notifications
                     </Text>
                     {!hasActiveSubscription && (
                       <View className="ml-2 bg-purple-100 rounded-full px-2 py-0.5">
-                        <Text className="font-inter text-xs text-purple-700 font-semibold">
+                        <Text className="font-jakarta-semibold text-xs text-purple-700">
                           Premium
                         </Text>
                       </View>
                     )}
                   </View>
-                  <Text className="font-inter text-xs text-gray-500 mt-1">
+                  <Text className="font-jakarta text-xs text-gray-500 mt-1">
                     {hasActiveSubscription ? 'Get text message alerts' : 'Available for Standard & Premium'}
                   </Text>
                 </View>
@@ -611,9 +685,58 @@ const SettingsScreen = () => {
             </View>
           </View>
 
+          {/* Support & Legal */}
           <View className="bg-white rounded-lg mb-6 overflow-hidden">
             <View className="p-4 border-b border-gray-100">
-              <Text className="font-inter text-lg font-semibold text-gray-900 mb-2">
+              <Text className="font-jakarta-semibold text-lg text-gray-900 mb-2">
+                Support & Legal
+              </Text>
+            </View>
+
+            <SettingRow
+              icon={faCircleQuestion}
+              title="Help & FAQ"
+              value="Get answers to common questions"
+              onPress={() => Linking.openURL('mailto:support@parkingticketpal.com')}
+            />
+
+            <SettingRow
+              icon={faEnvelope}
+              title="Contact Us"
+              value="support@parkingticketpal.com"
+              onPress={() => Linking.openURL('mailto:support@parkingticketpal.com')}
+            />
+
+            <SettingRow
+              icon={faStar}
+              title="Rate the App"
+              value="Share your feedback"
+              onPress={() => {
+                const storeUrl = Platform.select({
+                  ios: 'https://apps.apple.com/app/parking-ticket-pal',
+                  android: 'https://play.google.com/store/apps/details?id=com.parkingticketpal',
+                });
+                if (storeUrl) Linking.openURL(storeUrl);
+              }}
+            />
+
+            <SettingRow
+              icon={faShieldCheck}
+              title="Privacy Policy"
+              onPress={() => Linking.openURL('https://www.parkingticketpal.com/privacy')}
+            />
+
+            <SettingRow
+              icon={faFileLines}
+              title="Terms of Service"
+              onPress={() => Linking.openURL('https://www.parkingticketpal.com/terms')}
+            />
+          </View>
+
+          {/* App Information */}
+          <View className="bg-white rounded-lg mb-6 overflow-hidden">
+            <View className="p-4 border-b border-gray-100">
+              <Text className="font-jakarta-semibold text-lg text-gray-900 mb-2">
                 App Information
               </Text>
             </View>
@@ -634,7 +757,7 @@ const SettingsScreen = () => {
           {isDev && (
             <View className="bg-white rounded-lg mb-6 overflow-hidden">
               <View className="p-4 border-b border-gray-100">
-                <Text className="font-inter text-lg font-semibold text-gray-900 mb-2">
+                <Text className="font-jakarta-semibold text-lg text-gray-900 mb-2">
                   Developer Tools
                 </Text>
               </View>
@@ -647,25 +770,27 @@ const SettingsScreen = () => {
             </View>
           )}
 
-          <View className="bg-white rounded-lg mb-6 overflow-hidden">
-            <SettingRow
-              icon={faSignOut}
-              title="Sign Out"
-              onPress={handleSignOut}
-              destructive={true}
-            />
-          </View>
+          {isLinked && (
+            <View className="bg-white rounded-lg mb-6 overflow-hidden">
+              <SettingRow
+                icon={faSignOut}
+                title="Sign Out"
+                onPress={handleSignOut}
+                destructive={true}
+              />
+            </View>
+          )}
 
           <View className="items-center pb-6">
             <View className="flex-row items-center">
-              <Text className="font-inter text-xs text-gray-400">
+              <Text className="font-jakarta text-xs text-gray-400">
                 Made with{' '}
               </Text>
               <FontAwesomeIcon icon={faHeart} size={12} color="#ef4444" />
-              <Text className="font-inter text-xs text-gray-400">
+              <Text className="font-jakarta text-xs text-gray-400">
                 {' '}in{' '}
               </Text>
-              <Text className="font-inter text-xs text-gray-600 font-medium">
+              <Text className="font-jakarta-medium text-xs text-gray-600">
                 South London
               </Text>
             </View>

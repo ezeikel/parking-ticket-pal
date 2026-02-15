@@ -52,6 +52,7 @@ export const AnyNull = runtime.AnyNull
 
 export const ModelName = {
   User: 'User',
+  MobileDeviceSession: 'MobileDeviceSession',
   Vehicle: 'Vehicle',
   Ticket: 'Ticket',
   Media: 'Media',
@@ -116,6 +117,18 @@ export const UserScalarFieldEnum = {
 } as const
 
 export type UserScalarFieldEnum = (typeof UserScalarFieldEnum)[keyof typeof UserScalarFieldEnum]
+
+
+export const MobileDeviceSessionScalarFieldEnum = {
+  id: 'id',
+  deviceId: 'deviceId',
+  userId: 'userId',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+  lastSeenAt: 'lastSeenAt'
+} as const
+
+export type MobileDeviceSessionScalarFieldEnum = (typeof MobileDeviceSessionScalarFieldEnum)[keyof typeof MobileDeviceSessionScalarFieldEnum]
 
 
 export const VehicleScalarFieldEnum = {

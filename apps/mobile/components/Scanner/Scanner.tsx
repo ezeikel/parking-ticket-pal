@@ -426,20 +426,20 @@ const Scanner = ({ onClose, onImageScanned }: ScannerProps) => {
           className="flex-1 py-3 border border-gray-300 rounded-lg"
           disabled={ocrMutation.isPending}
         >
-          <Text className="text-center font-medium">
+          <Text className="text-center font-jakarta-medium">
             Retry Scan
           </Text>
         </SquishyPressable>
 
         <SquishyPressable
           onPress={handleProcess}
-          className="flex-1 bg-blue-500 py-3 rounded-lg"
+          className="flex-1 bg-dark py-3 rounded-lg"
           disabled={ocrMutation.isPending}
         >
           {ocrMutation.isPending ? (
             <Loader size={20} color="white" />
           ) : (
-            <Text className="text-white text-center font-medium">
+            <Text className="text-white text-center font-jakarta-medium">
               Process Image
             </Text>
           )}

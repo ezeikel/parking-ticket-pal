@@ -23,7 +23,7 @@ const getVariantStyles = (variant: ButtonVariant, disabled: boolean) => {
   if (disabled) {
     return {
       container: `${baseStyles} bg-gray-300`,
-      text: 'font-inter text-sm text-gray-500',
+      text: 'font-jakarta text-sm text-gray-500',
       iconColor: '#9ca3af',
     };
   }
@@ -31,21 +31,21 @@ const getVariantStyles = (variant: ButtonVariant, disabled: boolean) => {
   switch (variant) {
     case 'primary':
       return {
-        container: `${baseStyles} bg-blue-500`,
-        text: 'font-inter text-sm text-white font-semibold',
+        container: `${baseStyles} bg-dark`,
+        text: 'font-jakarta-semibold text-sm text-white',
         iconColor: '#ffffff',
       };
     case 'danger':
       return {
         container: `${baseStyles} bg-red-500`,
-        text: 'font-inter text-sm text-white font-semibold',
+        text: 'font-jakarta-semibold text-sm text-white',
         iconColor: '#ffffff',
       };
     case 'secondary':
     default:
       return {
         container: `${baseStyles} bg-gray-200`,
-        text: 'font-inter text-sm text-gray-700',
+        text: 'font-jakarta text-sm text-gray-700',
         iconColor: '#374151',
       };
   }

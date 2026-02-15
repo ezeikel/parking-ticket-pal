@@ -2,11 +2,10 @@
 
 import { headers } from 'next/headers';
 import Stripe from 'stripe';
-import { ProductType, TicketTier, UserRole } from '@parking-ticket-pal/db';
+import { ProductType, TicketTier, UserRole, db } from '@parking-ticket-pal/db';
 import { track } from '@/utils/analytics-server';
 import { getTierPriceId, getConsumerSubscriptionPriceId } from '@/constants';
 import { TRACKING_EVENTS } from '@/constants/events';
-import { db } from '@parking-ticket-pal/db';
 import stripe from '@/lib/stripe';
 import { getUserId } from '@/utils/user';
 import { createServerLogger } from '@/lib/logger';
@@ -33,95 +32,93 @@ const getUserRole = async () => {
 };
 
 export const createCheckoutSession = async (
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   _productType: ProductType,
 ): Promise<{
   id: string;
   url?: string;
-} | null> => {
+} | null> =>
   // TODO: reinstate this once pricing page ctas are refactored - using createTicketCheckoutSession directly for now
-  return {
+  ({
     id: 'no-id',
     url: undefined,
-  };
+  });
 
-  // let priceId;
-  // let mode: 'payment' | 'subscription';
+// let priceId;
+// let mode: 'payment' | 'subscription';
 
-  // switch (productType) {
-  //   case ProductType.PAY_PER_TICKET:
-  //     priceId = process.env.PAY_PER_TICKET_STRIPE_PRICE_ID;
-  //     mode = 'payment';
-  //     break;
-  //   case ProductType.PRO_MONTHLY:
-  //     priceId = process.env.PRO_MONTHLY_STRIPE_PRICE_ID;
-  //     mode = 'subscription';
-  //     break;
-  //   case ProductType.PRO_ANNUAL:
-  //     priceId = process.env.PRO_ANNUAL_STRIPE_PRICE_ID;
-  //     mode = 'subscription';
-  //     break;
-  //   default:
-  //     throw new Error('Invalid product type');
-  // }
+// switch (productType) {
+//   case ProductType.PAY_PER_TICKET:
+//     priceId = process.env.PAY_PER_TICKET_STRIPE_PRICE_ID;
+//     mode = 'payment';
+//     break;
+//   case ProductType.PRO_MONTHLY:
+//     priceId = process.env.PRO_MONTHLY_STRIPE_PRICE_ID;
+//     mode = 'subscription';
+//     break;
+//   case ProductType.PRO_ANNUAL:
+//     priceId = process.env.PRO_ANNUAL_STRIPE_PRICE_ID;
+//     mode = 'subscription';
+//     break;
+//   default:
+//     throw new Error('Invalid product type');
+// }
 
-  // const headersList = await headers();
-  // const origin = headersList.get('origin');
+// const headersList = await headers();
+// const origin = headersList.get('origin');
 
-  // const userId = await getUserId('create a checkout session');
+// const userId = await getUserId('create a checkout session');
 
-  // if (!userId) {
-  //   return null;
-  // }
+// if (!userId) {
+//   return null;
+// }
 
-  // // get user information
-  // const user = await db.user.findUnique({
-  //   where: {
-  //     id: userId,
-  //   },
-  //   select: {
-  //     name: true,
-  //     address: true,
-  //     email: true,
-  //     stripeCustomerId: true,
-  //   },
-  // });
+// // get user information
+// const user = await db.user.findUnique({
+//   where: {
+//     id: userId,
+//   },
+//   select: {
+//     name: true,
+//     address: true,
+//     email: true,
+//     stripeCustomerId: true,
+//   },
+// });
 
-  // if (!user) {
-  //   console.error('User not found.');
-  //   return null;
-  // }
+// if (!user) {
+//   console.error('User not found.');
+//   return null;
+// }
 
-  // const stripeSession = await stripe.checkout.sessions.create({
-  //   payment_method_types: ['card'],
-  //   line_items: [
-  //     {
-  //       price: priceId,
-  //       quantity: 1,
-  //     },
-  //   ],
-  //   mode,
-  //   success_url: `${origin}/account/billing/success`,
-  //   cancel_url: `${origin}/account/billing`,
-  //   client_reference_id: userId,
+// const stripeSession = await stripe.checkout.sessions.create({
+//   payment_method_types: ['card'],
+//   line_items: [
+//     {
+//       price: priceId,
+//       quantity: 1,
+//     },
+//   ],
+//   mode,
+//   success_url: `${origin}/account/billing/success`,
+//   cancel_url: `${origin}/account/billing`,
+//   client_reference_id: userId,
 
-  //   // conditionally set customer parameters - use existing customer OR create new one
-  //   ...(user.stripeCustomerId
-  //     ? { customer: user.stripeCustomerId }
-  //     : {
-  //         customer_creation: 'always',
-  //         customer_email: user.email,
-  //       }),
-  // });
+//   // conditionally set customer parameters - use existing customer OR create new one
+//   ...(user.stripeCustomerId
+//     ? { customer: user.stripeCustomerId }
+//     : {
+//         customer_creation: 'always',
+//         customer_email: user.email,
+//       }),
+// });
 
-  // await track(TRACKING_EVENTS.CHECKOUT_SESSION_CREATED, {
-  //   productType,
-  // });
+// await track(TRACKING_EVENTS.CHECKOUT_SESSION_CREATED, {
+//   productType,
+// });
 
-  // return {
-  //   id: stripeSession.id,
-  // };
-};
+// return {
+//   id: stripeSession.id,
+// };
 
 export const createCustomerPortalSession = async () => {
   const headersList = await headers();
@@ -494,7 +491,7 @@ export const createTicketCheckoutSession = async (
       ? { customer: user.stripeCustomerId }
       : {
           customer_creation: 'always',
-          customer_email: user.email,
+          customer_email: user.email || undefined,
         }),
   };
 
@@ -634,7 +631,7 @@ export const createSubscriptionCheckoutSession = async (
   if (!customerId) {
     // Create a new Stripe customer
     const customer = await stripe.customers.create({
-      email: user.email,
+      email: user.email || undefined,
       name: user.name || undefined,
       metadata: {
         userId,

@@ -104,31 +104,31 @@ const EditableAddressBottomSheet = forwardRef<BottomSheet, EditableAddressBottom
           <View className="flex-1">
             {/* Header */}
             <View className="flex-row items-center mb-4">
-              <Text className="font-inter text-xl font-semibold text-gray-900 flex-1">
+              <Text className="font-jakarta-semibold text-xl text-gray-900 flex-1">
                 Edit Address
               </Text>
               <SquishyPressable
                 onPress={() => setUseAutocomplete(!useAutocomplete)}
                 className="px-3 py-1 bg-gray-200 rounded"
               >
-                <Text className="font-inter text-xs text-gray-700">
+                <Text className="font-jakarta text-xs text-gray-700">
                   {useAutocomplete ? 'Manual Entry' : 'Autocomplete'}
                 </Text>
               </SquishyPressable>
             </View>
 
             {/* Description */}
-            <Text className="font-inter text-sm text-gray-600 mb-4">
+            <Text className="font-jakarta text-sm text-gray-600 mb-4">
               Your address will be used on official forms and letters.
             </Text>
 
             {/* Selected Address Preview */}
             {useAutocomplete && selectedAddress && (
               <View className="mb-3 p-3 bg-white rounded-lg border border-gray-200">
-                <Text className="font-inter text-sm text-gray-900 font-semibold mb-1">
+                <Text className="font-jakarta-semibold text-sm text-gray-900 mb-1">
                   Selected Address:
                 </Text>
-                <Text className="font-inter text-sm text-gray-600">
+                <Text className="font-jakarta text-sm text-gray-600">
                   {formatAddress(selectedAddress)}
                 </Text>
               </View>
@@ -149,18 +149,18 @@ const EditableAddressBottomSheet = forwardRef<BottomSheet, EditableAddressBottom
                   <form.Field name="line1" validators={{ onChange: AddressSchema.shape.line1 }}>
                     {(field) => (
                       <View className="mb-3">
-                        <Text className="font-inter text-sm text-gray-700 mb-1">
+                        <Text className="font-jakarta text-sm text-gray-700 mb-1">
                           Address Line 1 *
                         </Text>
                         <TextInput
-                          className="font-inter text-sm bg-white border border-gray-300 rounded-lg px-3 py-2"
+                          className="font-jakarta text-sm bg-white border border-gray-300 rounded-lg px-3 py-2"
                           placeholder="Street address"
                           value={field.state.value}
                           onChangeText={field.handleChange}
                           onBlur={field.handleBlur}
                         />
                         {field.state.meta.errors.length > 0 && (
-                          <Text className="font-inter text-xs text-red-500 mt-1">
+                          <Text className="font-jakarta text-xs text-red-500 mt-1">
                             {String(field.state.meta.errors[0]?.message || field.state.meta.errors[0])}
                           </Text>
                         )}
@@ -171,11 +171,11 @@ const EditableAddressBottomSheet = forwardRef<BottomSheet, EditableAddressBottom
                   <form.Field name="line2">
                     {(field) => (
                       <View className="mb-3">
-                        <Text className="font-inter text-sm text-gray-700 mb-1">
+                        <Text className="font-jakarta text-sm text-gray-700 mb-1">
                           Address Line 2
                         </Text>
                         <TextInput
-                          className="font-inter text-sm bg-white border border-gray-300 rounded-lg px-3 py-2"
+                          className="font-jakarta text-sm bg-white border border-gray-300 rounded-lg px-3 py-2"
                           placeholder="Apartment, suite, etc. (optional)"
                           value={field.state.value}
                           onChangeText={field.handleChange}
@@ -188,18 +188,18 @@ const EditableAddressBottomSheet = forwardRef<BottomSheet, EditableAddressBottom
                   <form.Field name="city" validators={{ onChange: AddressSchema.shape.city }}>
                     {(field) => (
                       <View className="mb-3">
-                        <Text className="font-inter text-sm text-gray-700 mb-1">
+                        <Text className="font-jakarta text-sm text-gray-700 mb-1">
                           City *
                         </Text>
                         <TextInput
-                          className="font-inter text-sm bg-white border border-gray-300 rounded-lg px-3 py-2"
+                          className="font-jakarta text-sm bg-white border border-gray-300 rounded-lg px-3 py-2"
                           placeholder="City"
                           value={field.state.value}
                           onChangeText={field.handleChange}
                           onBlur={field.handleBlur}
                         />
                         {field.state.meta.errors.length > 0 && (
-                          <Text className="font-inter text-xs text-red-500 mt-1">
+                          <Text className="font-jakarta text-xs text-red-500 mt-1">
                             {String(field.state.meta.errors[0]?.message || field.state.meta.errors[0])}
                           </Text>
                         )}
@@ -210,11 +210,11 @@ const EditableAddressBottomSheet = forwardRef<BottomSheet, EditableAddressBottom
                   <form.Field name="county">
                     {(field) => (
                       <View className="mb-3">
-                        <Text className="font-inter text-sm text-gray-700 mb-1">
+                        <Text className="font-jakarta text-sm text-gray-700 mb-1">
                           County
                         </Text>
                         <TextInput
-                          className="font-inter text-sm bg-white border border-gray-300 rounded-lg px-3 py-2"
+                          className="font-jakarta text-sm bg-white border border-gray-300 rounded-lg px-3 py-2"
                           placeholder="County (optional)"
                           value={field.state.value}
                           onChangeText={field.handleChange}
@@ -227,11 +227,11 @@ const EditableAddressBottomSheet = forwardRef<BottomSheet, EditableAddressBottom
                   <form.Field name="postcode" validators={{ onChange: AddressSchema.shape.postcode }}>
                     {(field) => (
                       <View className="mb-3">
-                        <Text className="font-inter text-sm text-gray-700 mb-1">
+                        <Text className="font-jakarta text-sm text-gray-700 mb-1">
                           Postcode *
                         </Text>
                         <TextInput
-                          className="font-inter text-sm bg-white border border-gray-300 rounded-lg px-3 py-2"
+                          className="font-jakarta text-sm bg-white border border-gray-300 rounded-lg px-3 py-2"
                           placeholder="Postcode"
                           value={field.state.value}
                           onChangeText={field.handleChange}
@@ -239,7 +239,7 @@ const EditableAddressBottomSheet = forwardRef<BottomSheet, EditableAddressBottom
                           autoCapitalize="characters"
                         />
                         {field.state.meta.errors.length > 0 && (
-                          <Text className="font-inter text-xs text-red-500 mt-1">
+                          <Text className="font-jakarta text-xs text-red-500 mt-1">
                             {String(field.state.meta.errors[0]?.message || field.state.meta.errors[0])}
                           </Text>
                         )}
@@ -250,18 +250,18 @@ const EditableAddressBottomSheet = forwardRef<BottomSheet, EditableAddressBottom
                   <form.Field name="country" validators={{ onChange: AddressSchema.shape.country }}>
                     {(field) => (
                       <View className="mb-3">
-                        <Text className="font-inter text-sm text-gray-700 mb-1">
+                        <Text className="font-jakarta text-sm text-gray-700 mb-1">
                           Country *
                         </Text>
                         <TextInput
-                          className="font-inter text-sm bg-white border border-gray-300 rounded-lg px-3 py-2"
+                          className="font-jakarta text-sm bg-white border border-gray-300 rounded-lg px-3 py-2"
                           placeholder="Country"
                           value={field.state.value}
                           onChangeText={field.handleChange}
                           onBlur={field.handleBlur}
                         />
                         {field.state.meta.errors.length > 0 && (
-                          <Text className="font-inter text-xs text-red-500 mt-1">
+                          <Text className="font-jakarta text-xs text-red-500 mt-1">
                             {String(field.state.meta.errors[0]?.message || field.state.meta.errors[0])}
                           </Text>
                         )}

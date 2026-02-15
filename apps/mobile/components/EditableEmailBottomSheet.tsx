@@ -33,27 +33,27 @@ const EditableEmailBottomSheet = forwardRef<BottomSheet, EditableEmailBottomShee
           <View className="flex-1">
             {/* Header */}
             <View className="mb-4">
-              <Text className="font-inter text-xl font-semibold text-gray-900">
+              <Text className="font-jakarta-semibold text-xl text-gray-900">
                 Email Address
               </Text>
             </View>
 
             {/* Email Display */}
             <View className="mb-4 p-4 bg-gray-50 border border-gray-200 rounded-lg">
-              <Text className="font-inter text-base text-gray-900">
+              <Text className="font-jakarta text-base text-gray-900">
                 {email}
               </Text>
             </View>
 
             {/* Info Message */}
-            <View className="flex-row items-start p-3 bg-blue-50 rounded-lg border border-blue-200 mb-6">
+            <View className="flex-row items-start p-3 bg-teal/10 rounded-lg border border-teal/20 mb-6">
               <FontAwesomeIcon
                 icon={faInfoCircle}
                 size={16}
                 color="#3b82f6"
                 style={{ marginRight: 8, marginTop: 2 }}
               />
-              <Text className="font-inter text-xs text-blue-700 flex-1">
+              <Text className="font-jakarta text-xs text-teal-dark flex-1">
                 Your email address cannot be changed as it's used for authentication. If you need to change your email, please contact support.
               </Text>
             </View>

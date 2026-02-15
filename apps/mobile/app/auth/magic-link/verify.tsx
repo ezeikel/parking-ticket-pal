@@ -2,10 +2,10 @@ import { useEffect, useState } from 'react';
 import { View, Text } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import * as SecureStore from 'expo-secure-store';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { faCheckCircle, faExclamationCircle } from '@fortawesome/pro-regular-svg-icons';
 import { verifyMagicLink } from '@/api';
+import { getDeviceId, setSessionToken } from '@/lib/auth';
 import { useColorScheme } from '@/hooks/useColorScheme';
 import { Colors } from '@/constants/Colors';
 import Loader from '@/components/Loader/Loader';
@@ -26,16 +26,16 @@ const MagicLinkVerify = () => {
 
     const verify = async () => {
       try {
-        const { sessionToken } = await verifyMagicLink(token);
+        const deviceId = await getDeviceId();
+        const { sessionToken } = await verifyMagicLink(token, deviceId);
 
         if (sessionToken) {
-          await SecureStore.setItemAsync('sessionToken', sessionToken);
+          await setSessionToken(sessionToken);
           setStatus('success');
           setMessage('Successfully verified! Redirecting...');
 
-          // Redirect to home after a short delay
           setTimeout(() => {
-            router.replace('/');
+            router.replace('/(authenticated)/(tabs)');
           }, 2000);
         } else {
           setStatus('error');
@@ -73,22 +73,22 @@ const MagicLinkVerify = () => {
             />
           )}
 
-          <Text className="font-inter text-2xl font-semibold text-gray-800 text-center">
+          <Text className="font-jakarta-semibold text-2xl text-gray-800 text-center">
             {status === 'verifying' && 'Verifying Magic Link'}
             {status === 'success' && 'Success!'}
             {status === 'error' && 'Verification Failed'}
           </Text>
 
-          <Text className="font-inter text-base text-gray-600 text-center">
+          <Text className="font-jakarta text-base text-gray-600 text-center">
             {message}
           </Text>
 
           {status === 'error' && (
             <Text
-              className="font-inter text-base text-blue-600 underline mt-4"
-              onPress={() => router.replace('/sign-in')}
+              className="font-jakarta text-base text-teal underline mt-4"
+              onPress={() => router.back()}
             >
-              Return to sign in
+              Go back
             </Text>
           )}
         </View>

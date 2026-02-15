@@ -1,9 +1,14 @@
-import * as SecureStore from 'expo-secure-store';
 import axios from 'axios';
-import { GoogleSignin } from '@react-native-google-signin/google-signin';
 import { Platform } from 'react-native';
+import { GoogleSignin } from '@react-native-google-signin/google-signin';
 import type { Address } from '@parking-ticket-pal/types';
 import { TicketStatus, IssuerType, TicketType } from './types';
+import {
+  getDeviceId,
+  getSessionToken,
+  setSessionToken,
+  setUserId,
+} from './lib/auth';
 
 // allow an override just for Android if set in EAS
 const apiUrlFromEnv =
@@ -27,20 +32,67 @@ export type TicketFilters = {
   sortOrder?: 'asc' | 'desc';
 };
 
-export const getCurrentUser = async () => {
-  const token = await SecureStore.getItemAsync('sessionToken');
+// Shared axios instance
+const api = axios.create({
+  baseURL: apiUrlFromEnv,
+  headers: { 'Content-Type': 'application/json' },
+});
 
-  const response = await axios.get(`${apiUrlFromEnv}/me`, {
-    headers: { Authorization: `Bearer ${token}` }
-  });
+let registrationPromise: Promise<void> | null = null;
 
-  return response.data;
+/**
+ * Ensure device is registered and we have a session token.
+ * Only calls the register endpoint once; subsequent calls reuse the promise.
+ */
+async function ensureRegistered(): Promise<void> {
+  const token = await getSessionToken();
+  if (token) return;
+
+  if (!registrationPromise) {
+    registrationPromise = (async () => {
+      try {
+        const deviceId = await getDeviceId();
+        const response = await axios.post(
+          `${apiUrlFromEnv}/auth/mobile/register`,
+          { deviceId },
+        );
+        const { token: newToken, userId } = response.data;
+        await setSessionToken(newToken);
+        await setUserId(userId);
+      } finally {
+        registrationPromise = null;
+      }
+    })();
+  }
+
+  await registrationPromise;
 }
 
-export const getTickets = async (filters?: TicketFilters) => {
-  const token = await SecureStore.getItemAsync('sessionToken');
+// Request interceptor: attach auth header, auto-register if needed
+api.interceptors.request.use(async (config) => {
+  // Skip registration for the register endpoint itself
+  const isRegisterEndpoint = config.url?.includes('/auth/mobile/register');
+  if (!isRegisterEndpoint) {
+    await ensureRegistered();
+  }
 
-  // Build query params
+  const token = await getSessionToken();
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+
+  return config;
+});
+
+// Export for use by auth context to manually trigger registration
+export { ensureRegistered };
+
+export const getCurrentUser = async () => {
+  const response = await api.get('/me');
+  return response.data;
+};
+
+export const getTickets = async (filters?: TicketFilters) => {
   const params = new URLSearchParams();
 
   if (filters?.search) {
@@ -92,36 +144,23 @@ export const getTickets = async (filters?: TicketFilters) => {
   }
 
   const queryString = params.toString();
-  const url = queryString ? `${apiUrlFromEnv}/tickets?${queryString}` : `${apiUrlFromEnv}/tickets`;
+  const url = queryString ? `/tickets?${queryString}` : '/tickets';
 
-  const response = await axios.get(url, {
-    headers: { Authorization: `Bearer ${token}` }
-  });
-
+  const response = await api.get(url);
   return response.data;
-}
+};
 
 export const getTicket = async (ticketId: string) => {
-  const token = await SecureStore.getItemAsync('sessionToken');
-
-  const response = await axios.get(`${apiUrlFromEnv}/tickets/${ticketId}`, {
-    headers: { Authorization: `Bearer ${token}` }
-  });
-
+  const response = await api.get(`/tickets/${ticketId}`);
   return response.data;
-}
+};
 
 export const getVehicles = async () => {
-  const token = await SecureStore.getItemAsync('sessionToken');
-
-  const response = await axios.get(`${apiUrlFromEnv}/vehicles`, {
-    headers: { Authorization: `Bearer ${token}` }
-  });
-
+  const response = await api.get('/vehicles');
   return response.data;
-}
+};
 
-export const signIn = async () => {
+export const signIn = async (deviceId?: string) => {
   await GoogleSignin.hasPlayServices();
   const userInfo = await GoogleSignin.signIn();
 
@@ -130,174 +169,105 @@ export const signIn = async () => {
   }
 
   const response = await axios.post(`${apiUrlFromEnv}/auth/mobile`, {
-    idToken: userInfo.data.idToken
+    idToken: userInfo.data.idToken,
+    deviceId,
   });
 
   return response.data;
-}
+};
 
-export const signInWithFacebook = async (accessToken: string) => {
+export const signInWithFacebook = async (accessToken: string, deviceId?: string) => {
   const response = await axios.post(`${apiUrlFromEnv}/auth/mobile/facebook`, {
-    accessToken
+    accessToken,
+    deviceId,
   });
 
   return response.data;
-}
+};
 
-export const signInWithApple = async (identityToken: string, authorizationCode: string) => {
+export const signInWithApple = async (
+  identityToken: string,
+  authorizationCode: string,
+  deviceId?: string,
+) => {
   const response = await axios.post(`${apiUrlFromEnv}/auth/mobile/apple`, {
     identityToken,
-    authorizationCode
+    authorizationCode,
+    deviceId,
   });
 
   return response.data;
-}
+};
 
 export const sendMagicLink = async (email: string) => {
   const response = await axios.post(`${apiUrlFromEnv}/auth/mobile/magic-link`, {
-    email
+    email,
   });
 
   return response.data;
-}
+};
 
-export const verifyMagicLink = async (token: string) => {
+export const verifyMagicLink = async (token: string, deviceId?: string) => {
   const response = await axios.post(`${apiUrlFromEnv}/auth/mobile/magic-link/verify`, {
-    token
+    token,
+    deviceId,
   });
 
   return response.data;
-}
+};
 
 export const processImageWithOCR = async (scannedImage: string) => {
-  const token = await SecureStore.getItemAsync('sessionToken');
-
-  const response = await axios.post(`${apiUrlFromEnv}/ocr/upload-image`, {
-    scannedImage,
-  }, {
-    headers: { 
-      Authorization: `Bearer ${token}`,
-      'Content-Type': 'application/json'
-    }
-  });
-
+  const response = await api.post('/ocr/upload-image', { scannedImage });
   return response.data;
 };
 
 export const createTicket = async (ticketData: any) => {
-  const token = await SecureStore.getItemAsync('sessionToken');
-
-  const response = await axios.post(`${apiUrlFromEnv}/tickets/create`, ticketData, {
-    headers: { 
-      Authorization: `Bearer ${token}`,
-      'Content-Type': 'application/json'
-    }
-  });
-
+  const response = await api.post('/tickets/create', ticketData);
   return response.data;
 };
 
-// TODO: was previously using FormData, but it's not working with the Next.js API deployed on Vercel
 export const uploadImage = async (data: string, text?: string) => {
-  const token = await SecureStore.getItemAsync('sessionToken');
-
-  const response = await axios.post(`${apiUrlFromEnv}/upload`, {
+  const response = await api.post('/upload', {
     scannedImage: data,
-    ocrText: text
-  }, {
-    headers: { Authorization: `Bearer ${token}` }
+    ocrText: text,
   });
-
   return response.data;
-}
+};
 
-/**
- * Confirm a RevenueCat purchase with the backend
- * Used for consumable purchases (ticket upgrades)
- */
 export const confirmPurchase = async (ticketId: string, productId: string) => {
-  const token = await SecureStore.getItemAsync('sessionToken');
-
-  const response = await axios.post(`${apiUrlFromEnv}/iap/confirm-purchase`, {
+  const response = await api.post('/iap/confirm-purchase', {
     ticketId,
-    productId
-  }, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-      'Content-Type': 'application/json'
-    }
+    productId,
   });
-
   return response.data;
-}
+};
 
-/**
- * Update user profile information
- */
-export const updateUser = async (userId: string, data: { phoneNumber?: string; name?: string; address?: Address; signatureDataUrl?: string }) => {
-  const token = await SecureStore.getItemAsync('sessionToken');
-
-  const response = await axios.patch(`${apiUrlFromEnv}/user/${userId}`, data, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-      'Content-Type': 'application/json'
-    }
-  });
-
+export const updateUser = async (
+  userId: string,
+  data: { phoneNumber?: string; name?: string; address?: Address; signatureDataUrl?: string },
+) => {
+  const response = await api.patch(`/user/${userId}`, data);
   return response.data;
-}
+};
 
-/**
- * Generate a challenge letter for a ticket
- */
 export const generateChallengeLetter = async (
   pcnNumber: string,
   challengeReason: string,
-  additionalDetails?: string
+  additionalDetails?: string,
 ) => {
-  const token = await SecureStore.getItemAsync('sessionToken');
-
-  const response = await axios.post(
-    `${apiUrlFromEnv}/letters/generate`,
-    {
-      pcnNumber,
-      challengeReason,
-      additionalDetails,
-    },
-    {
-      headers: {
-        Authorization: `Bearer ${token}`,
-        'Content-Type': 'application/json',
-      },
-    }
-  );
-
+  const response = await api.post('/letters/generate', {
+    pcnNumber,
+    challengeReason,
+    additionalDetails,
+  });
   return response.data;
 };
 
-/**
- * Generate a TE7 form for a ticket
- */
 export const generateTE7Form = async (pcnNumber: string, reasonText: string) => {
-  const token = await SecureStore.getItemAsync('sessionToken');
-
-  const response = await axios.post(
-    `${apiUrlFromEnv}/forms/te7`,
-    { pcnNumber, reasonText },
-    {
-      headers: {
-        Authorization: `Bearer ${token}`,
-        'Content-Type': 'application/json',
-      },
-    }
-  );
-
+  const response = await api.post('/forms/te7', { pcnNumber, reasonText });
   return response.data;
 };
 
-/**
- * Generate a TE9 form for a ticket
- */
 export const generateTE9Form = async (
   pcnNumber: string,
   grounds: {
@@ -307,47 +277,17 @@ export const generateTE9Form = async (
     appealNotDetermined: boolean;
     appealInFavour: boolean;
     paidInFull: boolean;
-  }
+  },
 ) => {
-  const token = await SecureStore.getItemAsync('sessionToken');
-
-  const response = await axios.post(
-    `${apiUrlFromEnv}/forms/te9`,
-    { pcnNumber, ...grounds },
-    {
-      headers: {
-        Authorization: `Bearer ${token}`,
-        'Content-Type': 'application/json',
-      },
-    }
-  );
-
+  const response = await api.post('/forms/te9', { pcnNumber, ...grounds });
   return response.data;
 };
 
-/**
- * Generate a PE2 form for a ticket
- */
 export const generatePE2Form = async (pcnNumber: string, reasonText: string) => {
-  const token = await SecureStore.getItemAsync('sessionToken');
-
-  const response = await axios.post(
-    `${apiUrlFromEnv}/forms/pe2`,
-    { pcnNumber, reasonText },
-    {
-      headers: {
-        Authorization: `Bearer ${token}`,
-        'Content-Type': 'application/json',
-      },
-    }
-  );
-
+  const response = await api.post('/forms/pe2', { pcnNumber, reasonText });
   return response.data;
 };
 
-/**
- * Generate a PE3 form for a ticket
- */
 export const generatePE3Form = async (
   pcnNumber: string,
   grounds: {
@@ -357,142 +297,58 @@ export const generatePE3Form = async (
     appealNotDetermined: boolean;
     appealInFavour: boolean;
     paidInFull: boolean;
-  }
+  },
 ) => {
-  const token = await SecureStore.getItemAsync('sessionToken');
-
-  const response = await axios.post(
-    `${apiUrlFromEnv}/forms/pe3`,
-    { pcnNumber, ...grounds },
-    {
-      headers: {
-        Authorization: `Bearer ${token}`,
-        'Content-Type': 'application/json',
-      },
-    }
-  );
-
+  const response = await api.post('/forms/pe3', { pcnNumber, ...grounds });
   return response.data;
 };
 
 export const deleteTicket = async (ticketId: string) => {
-  const token = await SecureStore.getItemAsync('sessionToken');
-
-  const response = await axios.delete(`${apiUrlFromEnv}/tickets/${ticketId}`, {
-    headers: { Authorization: `Bearer ${token}` }
-  });
-
+  const response = await api.delete(`/tickets/${ticketId}`);
   return response.data;
 };
 
-/**
- * Fetch user notifications
- */
 export const getNotifications = async (limit = 50, offset = 0, unreadOnly = false) => {
-  const token = await SecureStore.getItemAsync('sessionToken');
-
-  const response = await axios.get(`${apiUrlFromEnv}/notifications`, {
+  const response = await api.get('/notifications', {
     params: { limit, offset, unreadOnly },
-    headers: { Authorization: `Bearer ${token}` }
   });
-
   return response.data;
 };
 
-/**
- * Mark notification as read
- */
 export const markNotificationAsRead = async (notificationId: string) => {
-  const token = await SecureStore.getItemAsync('sessionToken');
-
-  const response = await axios.patch(
-    `${apiUrlFromEnv}/notifications/${notificationId}/read`,
-    {},
-    {
-      headers: {
-        Authorization: `Bearer ${token}`,
-        'Content-Type': 'application/json'
-      }
-    }
-  );
-
+  const response = await api.patch(`/notifications/${notificationId}/read`, {});
   return response.data;
 };
 
-/**
- * Get notification preferences
- */
 export const getNotificationPreferences = async () => {
-  const token = await SecureStore.getItemAsync('sessionToken');
-
-  const response = await axios.get(`${apiUrlFromEnv}/notifications/preferences`, {
-    headers: { Authorization: `Bearer ${token}` }
-  });
-
+  const response = await api.get('/notifications/preferences');
   return response.data;
 };
 
-/**
- * Update notification preferences
- */
 export const updateNotificationPreferences = async (preferences: {
   inApp: boolean;
   email: boolean;
   sms: boolean;
   push: boolean;
 }) => {
-  const token = await SecureStore.getItemAsync('sessionToken');
-
-  const response = await axios.patch(
-    `${apiUrlFromEnv}/notifications/preferences`,
-    { preferences },
-    {
-      headers: {
-        Authorization: `Bearer ${token}`,
-        'Content-Type': 'application/json'
-      }
-    }
-  );
-
+  const response = await api.patch('/notifications/preferences', { preferences });
   return response.data;
 };
 
-/**
- * Register push token
- */
-export const registerPushToken = async (token: string, platform: 'IOS' | 'ANDROID', deviceId?: string) => {
-  const sessionToken = await SecureStore.getItemAsync('sessionToken');
-
-  const response = await axios.post(
-    `${apiUrlFromEnv}/notifications/register-token`,
-    { token, platform, deviceId },
-    {
-      headers: {
-        Authorization: `Bearer ${sessionToken}`,
-        'Content-Type': 'application/json'
-      }
-    }
-  );
-
+export const registerPushToken = async (
+  token: string,
+  platform: 'IOS' | 'ANDROID',
+  deviceId?: string,
+) => {
+  const response = await api.post('/notifications/register-token', {
+    token,
+    platform,
+    deviceId,
+  });
   return response.data;
 };
 
-/**
- * Unregister push token
- */
 export const unregisterPushToken = async (token: string) => {
-  const sessionToken = await SecureStore.getItemAsync('sessionToken');
-
-  const response = await axios.post(
-    `${apiUrlFromEnv}/notifications/unregister-token`,
-    { token },
-    {
-      headers: {
-        Authorization: `Bearer ${sessionToken}`,
-        'Content-Type': 'application/json'
-      }
-    }
-  );
-
+  const response = await api.post('/notifications/unregister-token', { token });
   return response.data;
 };

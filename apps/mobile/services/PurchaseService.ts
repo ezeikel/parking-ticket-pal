@@ -106,10 +106,10 @@ class PurchaseService {
   }
 
   /**
-   * Check if user has any premium plan (Standard or Ultimate)
-   * This determines if ads should be hidden
+   * Check if user has any paid plan (Standard or Premium)
+   * Users with active entitlements get an ad-free experience
    */
-  async isPremium(): Promise<boolean> {
+  async isAdFree(): Promise<boolean> {
     try {
       const customerInfo = await this.getCustomerInfo();
       if (!customerInfo) {

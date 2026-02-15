@@ -1,14 +1,13 @@
 import jwt from 'jsonwebtoken';
-import { db } from '@parking-ticket-pal/db';
 import { encrypt } from '@/app/lib/session';
 import { createServerLogger } from '@/lib/logger';
+import { handleMobileOAuthSignIn } from '@/lib/mobile-auth';
 
 const log = createServerLogger({ action: 'auth-apple' });
 
 // eslint-disable-next-line import-x/prefer-default-export
 export const POST = async (req: Request) => {
-  const { identityToken } = await req.json();
-  let user;
+  const { identityToken, deviceId } = await req.json();
 
   try {
     // Decode the Apple identity token (without verification for simplicity)
@@ -16,41 +15,22 @@ export const POST = async (req: Request) => {
     const decoded = jwt.decode(identityToken) as any;
 
     if (!decoded || !decoded.email) {
-      return Response.json(
-        {
-          error: 'Invalid Apple token',
-        },
-        {
-          status: 400,
-        },
-      );
+      return Response.json({ error: 'Invalid Apple token' }, { status: 400 });
     }
 
-    const existingUser = await db.user.findUnique({
-      where: { email: decoded.email },
+    const { userId, isNewUser, wasMerged } = await handleMobileOAuthSignIn(
+      deviceId,
+      decoded.email,
+      decoded.email.split('@')[0],
+    );
+
+    const sessionToken = await encrypt({
+      email: decoded.email,
+      id: userId,
     });
 
-    if (!existingUser) {
-      user = await db.user.create({
-        data: {
-          email: decoded.email,
-          name: decoded.email.split('@')[0], // Apple might not provide a name
-          subscription: {
-            create: {},
-          },
-        },
-      });
-    } else {
-      user = existingUser;
-    }
-
-    // generate a session token for the mobile app to use
-    const sessionToken = await encrypt({ email: user.email, id: user.id });
-
     return Response.json(
-      {
-        sessionToken,
-      },
+      { sessionToken, userId, isNewUser, wasMerged },
       {
         headers: {
           'Access-Control-Allow-Origin': '*',
@@ -68,13 +48,6 @@ export const POST = async (req: Request) => {
       error instanceof Error ? error : undefined,
     );
 
-    return Response.json(
-      {
-        error: 'Bad request',
-      },
-      {
-        status: 400,
-      },
-    );
+    return Response.json({ error: 'Bad request' }, { status: 400 });
   }
 };

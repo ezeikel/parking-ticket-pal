@@ -30,7 +30,7 @@ const NotificationsScreen = () => {
           </SquishyPressable>
         </View>
 
-        <Text className="text-2xl font-bold text-gray-900 mb-4">
+        <Text className="text-2xl font-jakarta-bold text-dark mb-4">
           Notifications
         </Text>
 
@@ -43,9 +43,9 @@ const NotificationsScreen = () => {
             }`}
           >
             <Text
-              className={`font-inter text-sm text-center ${
+              className={`font-jakarta text-sm text-center ${
                 filter === 'all'
-                  ? 'text-gray-900 font-inter-bold'
+                  ? 'text-gray-900 font-jakarta-bold'
                   : 'text-gray-600'
               }`}
             >
@@ -61,9 +61,9 @@ const NotificationsScreen = () => {
           >
             <View className="flex-row items-center justify-center">
               <Text
-                className={`font-inter text-sm ${
+                className={`font-jakarta text-sm ${
                   filter === 'unread'
-                    ? 'text-gray-900 font-inter-bold'
+                    ? 'text-gray-900 font-jakarta-bold'
                     : 'text-gray-600'
                 }`}
               >
@@ -71,7 +71,7 @@ const NotificationsScreen = () => {
               </Text>
               {data?.unreadCount ? (
                 <View className="ml-2 bg-red-500 rounded-full min-w-[20px] h-5 items-center justify-center px-1.5">
-                  <Text className="text-white text-xs font-inter-bold">
+                  <Text className="text-white text-xs font-jakarta-bold">
                     {data.unreadCount > 99 ? '99+' : data.unreadCount}
                   </Text>
                 </View>

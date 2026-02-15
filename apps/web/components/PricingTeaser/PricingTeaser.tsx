@@ -31,6 +31,7 @@ const PRICING_TIERS = [
       'Email + SMS reminders',
       'Timeline tracking',
       'Storage for letters and tickets',
+      'Success prediction score',
     ],
     cta: 'Add Ticket & Get Standard',
     href: '/new?tier=standard&source=homepage',

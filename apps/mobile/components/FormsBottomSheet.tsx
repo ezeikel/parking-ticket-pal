@@ -125,12 +125,12 @@ const FormsBottomSheet = forwardRef<BottomSheet, FormsBottomSheetProps>(
       if (formType === 'TE7' || formType === 'PE2') {
         return (
           <View className="mb-6">
-            <Text className="text-sm font-semibold text-gray-700 mb-2">
+            <Text className="text-sm font-jakarta-semibold text-gray-700 mb-2">
               Reason for filing out of time <Text className="text-red-500">*</Text>
             </Text>
-            <View className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-3">
-              <Text className="text-xs text-blue-900 font-semibold mb-1">Important</Text>
-              <Text className="text-xs text-blue-800 leading-4">
+            <View className="bg-teal/10 border border-teal/20 rounded-lg p-3 mb-3">
+              <Text className="text-xs text-teal-dark font-jakarta-semibold mb-1">Important</Text>
+              <Text className="text-xs text-teal-dark leading-4">
                 Do NOT give your reasons for appealing the original penalty charge here. Only explain why your statement is late.
               </Text>
             </View>
@@ -153,7 +153,7 @@ const FormsBottomSheet = forwardRef<BottomSheet, FormsBottomSheetProps>(
       if (formType === 'TE9' || formType === 'PE3') {
         return (
           <View className="mb-6">
-            <Text className="text-sm font-semibold text-gray-700 mb-3">
+            <Text className="text-sm font-jakarta-semibold text-gray-700 mb-3">
               Grounds for statement <Text className="text-red-500">*</Text>
             </Text>
             <Text className="text-xs text-gray-600 mb-4">Select all that apply:</Text>
@@ -250,7 +250,7 @@ const FormsBottomSheet = forwardRef<BottomSheet, FormsBottomSheetProps>(
       >
         <BottomSheetView style={{ flex: 1, paddingHorizontal: 16 }}>
           <KeyboardAwareScrollView showsVerticalScrollIndicator={false}>
-            <Text className="text-xl font-bold text-gray-900 mb-2">
+            <Text className="text-xl font-jakarta-bold text-gray-900 mb-2">
               Generate {formInfo.name}
             </Text>
             <Text className="text-sm text-gray-600 mb-6">
@@ -261,9 +261,9 @@ const FormsBottomSheet = forwardRef<BottomSheet, FormsBottomSheetProps>(
             {renderFormFields()}
 
             {/* Form Information */}
-            <View className="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-6">
-              <Text className="text-sm text-blue-900 font-semibold mb-2">What happens next?</Text>
-              <Text className="text-sm text-blue-800 leading-5">
+            <View className="bg-teal/10 border border-teal/20 rounded-xl p-4 mb-6">
+              <Text className="text-sm text-teal-dark font-jakarta-semibold mb-2">What happens next?</Text>
+              <Text className="text-sm text-teal-dark leading-5">
                 {'\u2022'} Your ticket information will be auto-filled into the form{'\n'}
                 {'\u2022'} The completed form will be emailed to you as a PDF{'\n'}
                 {'\u2022'} You can then review, sign (if required), and submit it
@@ -280,10 +280,10 @@ const FormsBottomSheet = forwardRef<BottomSheet, FormsBottomSheetProps>(
                 {isLoading ? (
                   <View className="flex-row items-center">
                     <Loader size={20} color="#ffffff" />
-                    <Text className="text-white font-semibold ml-2">Generating...</Text>
+                    <Text className="text-white font-jakarta-semibold ml-2">Generating...</Text>
                   </View>
                 ) : (
-                  <Text className="text-white font-semibold text-base">Generate & Email Form</Text>
+                  <Text className="text-white font-jakarta-semibold text-base">Generate & Email Form</Text>
                 )}
               </View>
             </SquishyPressable>

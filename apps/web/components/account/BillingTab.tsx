@@ -118,6 +118,7 @@ const BillingTab = ({ user }: BillingTabProps) => {
               'Email + SMS reminders',
               'Timeline tracking',
               'Storage for letters and tickets',
+              'Success prediction score',
             ],
       }
     : {
@@ -141,7 +142,7 @@ const BillingTab = ({ user }: BillingTabProps) => {
       } else {
         toast.error('Failed to create checkout session');
       }
-    } catch (error) {
+    } catch (_error) {
       toast.error('Something went wrong. Please try again.');
     } finally {
       setIsUpgrading(null);
@@ -157,7 +158,7 @@ const BillingTab = ({ user }: BillingTabProps) => {
       } else {
         toast.error('Unable to open billing portal. Please try again.');
       }
-    } catch (error) {
+    } catch (_error) {
       toast.error('Something went wrong. Please try again.');
     } finally {
       setIsLoadingPortal(false);

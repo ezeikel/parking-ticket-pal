@@ -26,6 +26,7 @@ export const ONE_TIME_PRICING: Omit<PriceCardProps, 'dataAttrs'>[] = [
       'Timeline tracking',
       'Storage for letters and tickets',
       'Deadline notifications',
+      'Success prediction score',
     ],
     ctaLabel: 'Add Ticket & Get Standard',
     href: '/new?tier=standard&source=pricing',
@@ -61,6 +62,7 @@ export const SUBSCRIPTION_PRICING = {
         'Email + SMS reminders',
         'Timeline tracking',
         'Storage for letters and tickets',
+        'Success prediction score',
       ],
       ctaLabel: 'Subscribe to Standard',
       href: '/signin?redirect=/account/billing&plan=standard-monthly',
@@ -77,6 +79,7 @@ export const SUBSCRIPTION_PRICING = {
         'AI appeal letter generation',
         'Success prediction score',
         'Automatic challenge submission',
+        'Priority support',
       ],
       ctaLabel: 'Subscribe to Premium',
       href: '/signin?redirect=/account/billing&plan=premium-monthly',
@@ -97,6 +100,7 @@ export const SUBSCRIPTION_PRICING = {
         'Email + SMS reminders',
         'Timeline tracking',
         'Storage for letters and tickets',
+        'Success prediction score',
         'Save £13.89 per year',
       ],
       ctaLabel: 'Subscribe to Standard',
@@ -115,6 +119,7 @@ export const SUBSCRIPTION_PRICING = {
         'AI appeal letter generation',
         'Success prediction score',
         'Automatic challenge submission',
+        'Priority support',
         'Save £29.89 per year',
       ],
       ctaLabel: 'Subscribe to Premium',
@@ -254,7 +259,7 @@ export const FAQ_ITEMS = [
   {
     question: "What's the difference between Standard and Premium?",
     answer:
-      'Standard includes reminders and tracking. Premium adds AI-generated appeal letters, success prediction, and automatic submission.',
+      'Standard includes reminders, tracking, and success prediction. Premium adds AI-generated appeal letters and automatic submission.',
   },
   {
     question: 'How does Fleet pricing work?',
@@ -294,7 +299,7 @@ export const COMPARISON_FEATURES = [
   {
     name: 'Success prediction',
     free: false,
-    standard: false,
+    standard: true,
     premium: true,
   },
   {

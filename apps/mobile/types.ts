@@ -88,8 +88,8 @@ export enum ProductType {
 
 export type User = {
   id: string;
-  name: string;
-  email: string;
+  name: string | null;
+  email: string | null;
   address?: Address;
   phoneNumber?: string;
   signatureUrl?: string;

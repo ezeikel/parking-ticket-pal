@@ -60,11 +60,11 @@ class AdService {
   }
 
   async showAd(): Promise<boolean> {
-    const isPremium = await purchaseService.isPremium();
-    if (isPremium) {
-      logger.debug('Ad not shown: user is premium', {
+    const adFree = await purchaseService.isAdFree();
+    if (adFree) {
+      logger.debug('Ad not shown: user is ad-free', {
         action: 'ad_show_skipped',
-        reason: 'premium',
+        reason: 'ad_free',
       });
       return false;
     }

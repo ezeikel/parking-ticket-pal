@@ -385,6 +385,7 @@ type FieldRefInputType<Model, FieldType> = Model extends never ? never : FieldRe
 
 export const ModelName = {
   User: 'User',
+  MobileDeviceSession: 'MobileDeviceSession',
   Vehicle: 'Vehicle',
   Ticket: 'Ticket',
   Media: 'Media',
@@ -427,7 +428,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "vehicle" | "ticket" | "media" | "letter" | "subscription" | "reminder" | "form" | "prediction" | "amountIncrease" | "verification" | "challenge" | "notification" | "pushToken" | "account" | "session" | "verificationToken" | "londonTribunalCase" | "appealDataSource" | "contraventionStats" | "issuerContraventionStats" | "appealPattern" | "pendingIssuer" | "pendingChallenge" | "pendingTicket" | "issuerHealthCheck" | "tribunalCaseVideo" | "newsVideo"
+    modelProps: "user" | "mobileDeviceSession" | "vehicle" | "ticket" | "media" | "letter" | "subscription" | "reminder" | "form" | "prediction" | "amountIncrease" | "verification" | "challenge" | "notification" | "pushToken" | "account" | "session" | "verificationToken" | "londonTribunalCase" | "appealDataSource" | "contraventionStats" | "issuerContraventionStats" | "appealPattern" | "pendingIssuer" | "pendingChallenge" | "pendingTicket" | "issuerHealthCheck" | "tribunalCaseVideo" | "newsVideo"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -502,6 +503,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         count: {
           args: Prisma.UserCountArgs<ExtArgs>
           result: runtime.Types.Utils.Optional<Prisma.UserCountAggregateOutputType> | number
+        }
+      }
+    }
+    MobileDeviceSession: {
+      payload: Prisma.$MobileDeviceSessionPayload<ExtArgs>
+      fields: Prisma.MobileDeviceSessionFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.MobileDeviceSessionFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MobileDeviceSessionPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.MobileDeviceSessionFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MobileDeviceSessionPayload>
+        }
+        findFirst: {
+          args: Prisma.MobileDeviceSessionFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MobileDeviceSessionPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.MobileDeviceSessionFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MobileDeviceSessionPayload>
+        }
+        findMany: {
+          args: Prisma.MobileDeviceSessionFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MobileDeviceSessionPayload>[]
+        }
+        create: {
+          args: Prisma.MobileDeviceSessionCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MobileDeviceSessionPayload>
+        }
+        createMany: {
+          args: Prisma.MobileDeviceSessionCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.MobileDeviceSessionCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MobileDeviceSessionPayload>[]
+        }
+        delete: {
+          args: Prisma.MobileDeviceSessionDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MobileDeviceSessionPayload>
+        }
+        update: {
+          args: Prisma.MobileDeviceSessionUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MobileDeviceSessionPayload>
+        }
+        deleteMany: {
+          args: Prisma.MobileDeviceSessionDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.MobileDeviceSessionUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.MobileDeviceSessionUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MobileDeviceSessionPayload>[]
+        }
+        upsert: {
+          args: Prisma.MobileDeviceSessionUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MobileDeviceSessionPayload>
+        }
+        aggregate: {
+          args: Prisma.MobileDeviceSessionAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateMobileDeviceSession>
+        }
+        groupBy: {
+          args: Prisma.MobileDeviceSessionGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.MobileDeviceSessionGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.MobileDeviceSessionCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.MobileDeviceSessionCountAggregateOutputType> | number
         }
       }
     }
@@ -2563,6 +2638,18 @@ export const UserScalarFieldEnum = {
 export type UserScalarFieldEnum = (typeof UserScalarFieldEnum)[keyof typeof UserScalarFieldEnum]
 
 
+export const MobileDeviceSessionScalarFieldEnum = {
+  id: 'id',
+  deviceId: 'deviceId',
+  userId: 'userId',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+  lastSeenAt: 'lastSeenAt'
+} as const
+
+export type MobileDeviceSessionScalarFieldEnum = (typeof MobileDeviceSessionScalarFieldEnum)[keyof typeof MobileDeviceSessionScalarFieldEnum]
+
+
 export const VehicleScalarFieldEnum = {
   id: 'id',
   userId: 'userId',
@@ -3695,6 +3782,7 @@ export type PrismaClientOptions = ({
 }
 export type GlobalOmitConfig = {
   user?: Prisma.UserOmit
+  mobileDeviceSession?: Prisma.MobileDeviceSessionOmit
   vehicle?: Prisma.VehicleOmit
   ticket?: Prisma.TicketOmit
   media?: Prisma.MediaOmit

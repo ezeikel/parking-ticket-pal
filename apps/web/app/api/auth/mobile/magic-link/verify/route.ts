@@ -1,12 +1,12 @@
-import { db } from '@parking-ticket-pal/db';
 import { decrypt, encrypt } from '@/app/lib/session';
 import { createServerLogger } from '@/lib/logger';
+import { handleMobileOAuthSignIn } from '@/lib/mobile-auth';
 
 const log = createServerLogger({ action: 'auth-magic-link-verify' });
 
 // eslint-disable-next-line import-x/prefer-default-export
 export const POST = async (req: Request) => {
-  const { token } = await req.json();
+  const { token, deviceId } = await req.json();
 
   if (!token) {
     return Response.json({ error: 'Token is required' }, { status: 400 });
@@ -20,30 +20,20 @@ export const POST = async (req: Request) => {
       return Response.json({ error: 'Invalid token' }, { status: 400 });
     }
 
-    // Token expiration is handled by JWT itself, no need to check manually
-
-    // Find or create user
-    let user = await db.user.findUnique({
-      where: { email: payload.email },
-    });
-
-    if (!user) {
-      user = await db.user.create({
-        data: {
-          email: payload.email,
-          name: payload.email.split('@')[0],
-          subscription: {
-            create: {},
-          },
-        },
-      });
-    }
+    const { userId, isNewUser, wasMerged } = await handleMobileOAuthSignIn(
+      deviceId,
+      payload.email,
+      payload.email.split('@')[0],
+    );
 
     // Generate session token for mobile app
-    const sessionToken = await encrypt({ email: user.email, id: user.id });
+    const sessionToken = await encrypt({
+      email: payload.email,
+      id: userId,
+    });
 
     return Response.json(
-      { sessionToken },
+      { sessionToken, userId, isNewUser, wasMerged },
       {
         headers: {
           'Access-Control-Allow-Origin': '*',

@@ -6,10 +6,10 @@ import { getTextClassName } from "./textStyles";
 export type TypographyProps = TextProps & {
   children: ReactNode;
   numberOfLines?: number;
-  weight?: "normal" | "bold";
+  weight?: "normal" | "medium" | "semibold" | "bold" | "extrabold";
   italic?: boolean;
   style?: StyleProp<TextStyle>;
-  font?: "inter" | "lato" | "uknumberplate" | "robotoslab";
+  font?: "jakarta" | "inter" | "lato" | "uknumberplate";
   size?: "xs" | "sm" | "base" | "lg" | "xl" | "2xl" | "3xl" | "4xl" | "5xl";
   color?: string;
 };
@@ -19,7 +19,7 @@ export const Typography = ({
   className,
   weight = "normal",
   italic = false,
-  font = "inter",
+  font = "jakarta",
   size = "base",
   color,
   numberOfLines = 0,
@@ -29,8 +29,8 @@ export const Typography = ({
   const maxFontSizeMultiplier = props.maxFontSizeMultiplier;
 
   // Handle iOS italic styling
-  const italicStyle = Platform.OS === 'ios' && italic && (font === 'inter' || font === 'lato') 
-    ? { fontStyle: 'italic' as const } 
+  const italicStyle = Platform.OS === 'ios' && italic && (font === 'inter' || font === 'lato' || font === 'jakarta')
+    ? { fontStyle: 'italic' as const }
     : undefined;
 
   return (

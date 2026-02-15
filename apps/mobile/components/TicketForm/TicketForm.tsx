@@ -72,11 +72,11 @@ const TicketForm = ({ initialData, onSubmit, onCancel, isLoading = false }: Tick
     <View className="flex-1 bg-gray-50">
       <ScrollView className="flex-1 p-4" showsVerticalScrollIndicator={false}>
         <View className="bg-white rounded-lg p-4 mb-4">
-          <Text className="text-2xl font-bold mb-6 text-center">Ticket Details</Text>
+          <Text className="text-2xl font-jakarta-bold mb-6 text-center">Ticket Details</Text>
 
         {/* Vehicle Registration */}
         <View className="mb-4">
-          <Text className="text-base font-medium mb-2">Vehicle Registration *</Text>
+          <Text className="text-base font-jakarta-medium mb-2">Vehicle Registration *</Text>
           <Controller
             control={control}
             name="vehicleReg"
@@ -98,7 +98,7 @@ const TicketForm = ({ initialData, onSubmit, onCancel, isLoading = false }: Tick
 
         {/* PCN Number */}
         <View className="mb-4">
-          <Text className="text-base font-medium mb-2">PCN Number *</Text>
+          <Text className="text-base font-jakarta-medium mb-2">PCN Number *</Text>
           <Controller
             control={control}
             name="pcnNumber"
@@ -119,7 +119,7 @@ const TicketForm = ({ initialData, onSubmit, onCancel, isLoading = false }: Tick
 
         {/* Date Issued */}
         <View className="mb-4">
-          <Text className="text-base font-medium mb-2">Date Issued *</Text>
+          <Text className="text-base font-jakarta-medium mb-2">Date Issued *</Text>
           <Controller
             control={control}
             name="issuedAt"
@@ -160,7 +160,7 @@ const TicketForm = ({ initialData, onSubmit, onCancel, isLoading = false }: Tick
 
         {/* Contravention Code with Search */}
         <View className="mb-4">
-          <Text className="text-base font-medium mb-2">Contravention *</Text>
+          <Text className="text-base font-jakarta-medium mb-2">Contravention *</Text>
           
           {/* Search input */}
           <View className="mb-2">
@@ -217,7 +217,7 @@ const TicketForm = ({ initialData, onSubmit, onCancel, isLoading = false }: Tick
 
         {/* Initial Amount */}
         <View className="mb-4">
-          <Text className="text-base font-medium mb-2">Initial Amount (£) *</Text>
+          <Text className="text-base font-jakarta-medium mb-2">Initial Amount (£) *</Text>
           <Controller
             control={control}
             name="initialAmount"
@@ -242,7 +242,7 @@ const TicketForm = ({ initialData, onSubmit, onCancel, isLoading = false }: Tick
 
         {/* Issuer */}
         <View className="mb-4">
-          <Text className="text-base font-medium mb-2">Issuer *</Text>
+          <Text className="text-base font-jakarta-medium mb-2">Issuer *</Text>
           <Controller
             control={control}
             name="issuer"
@@ -263,7 +263,7 @@ const TicketForm = ({ initialData, onSubmit, onCancel, isLoading = false }: Tick
 
         {/* Location with Mapbox Autocomplete */}
         <View className="mb-6">
-          <Text className="text-base font-medium mb-2">Location *</Text>
+          <Text className="text-base font-jakarta-medium mb-2">Location *</Text>
           <Controller
             control={control}
             name="location"
@@ -294,18 +294,18 @@ const TicketForm = ({ initialData, onSubmit, onCancel, isLoading = false }: Tick
             className="flex-1 py-4 border border-gray-300 rounded-lg bg-gray-50"
             disabled={isLoading}
           >
-            <Text className="text-center font-semibold text-gray-700">Cancel</Text>
+            <Text className="text-center font-jakarta-semibold text-gray-700">Cancel</Text>
           </SquishyPressable>
 
           <SquishyPressable
             onPress={handleSubmit(onFormSubmit)}
-            className="flex-1 bg-blue-500 py-4 rounded-lg shadow-sm"
+            className="flex-1 bg-dark py-4 rounded-lg shadow-sm"
             disabled={isLoading}
           >
             {isLoading ? (
               <Loader size={20} color="white" />
             ) : (
-              <Text className="text-white text-center font-semibold">Create Ticket</Text>
+              <Text className="text-white text-center font-jakarta-semibold">Create Ticket</Text>
             )}
           </SquishyPressable>
         </View>

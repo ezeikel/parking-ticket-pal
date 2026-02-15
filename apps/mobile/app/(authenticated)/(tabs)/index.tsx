@@ -396,7 +396,7 @@ const TicketsScreen = () => {
       {/* Header */}
       <View className="bg-white border-b border-gray-200 px-4 pb-4">
         <View className="flex-row justify-between items-center mb-3">
-          <Text className="text-2xl font-bold text-gray-900">
+          <Text className="text-2xl font-jakarta-bold text-dark">
             Tickets
           </Text>
           <View className="flex-row items-center gap-3">
@@ -437,8 +437,8 @@ const TicketsScreen = () => {
             >
               <FontAwesomeIcon icon={faFilter} size={20} color="#6b7280" />
               {activeFilterCount > 0 && (
-                <View className="absolute -top-1 -right-1 w-5 h-5 bg-blue-600 rounded-full items-center justify-center">
-                  <Text className="text-white text-xs font-bold">{activeFilterCount}</Text>
+                <View className="absolute -top-1 -right-1 w-5 h-5 bg-dark rounded-full items-center justify-center">
+                  <Text className="text-white text-xs font-jakarta-bold">{activeFilterCount}</Text>
                 </View>
               )}
             </SquishyPressable>

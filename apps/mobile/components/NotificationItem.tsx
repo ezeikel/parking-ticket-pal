@@ -94,7 +94,7 @@ const NotificationItem = ({ notification }: NotificationItemProps) => {
       onPressIn={handlePressIn}
       onPressOut={handlePressOut}
       className={`bg-white rounded-lg p-4 mb-3 border ${
-        notification.read ? 'border-gray-100' : 'border-blue-200 bg-blue-50'
+        notification.read ? 'border-gray-100' : 'border-teal/20 bg-teal/10'
       }`}
       style={animatedStyle}
     >
@@ -102,7 +102,7 @@ const NotificationItem = ({ notification }: NotificationItemProps) => {
         {/* Icon */}
         <View
           className={`w-10 h-10 rounded-lg items-center justify-center mr-3 ${
-            notification.read ? 'bg-gray-100' : 'bg-blue-100'
+            notification.read ? 'bg-gray-100' : 'bg-teal/10'
           }`}
         >
           <FontAwesomeIcon
@@ -117,21 +117,21 @@ const NotificationItem = ({ notification }: NotificationItemProps) => {
           {/* Title and timestamp */}
           <View className="flex-row items-start justify-between mb-1">
             <Text
-              className={`flex-1 font-inter text-base ${
-                notification.read ? 'text-gray-900' : 'text-gray-900 font-inter-bold'
+              className={`flex-1 font-jakarta text-base ${
+                notification.read ? 'text-gray-900' : 'text-gray-900 font-jakarta-bold'
               }`}
               numberOfLines={1}
             >
               {notification.title}
             </Text>
             {!notification.read && (
-              <View className="w-2 h-2 bg-blue-500 rounded-full ml-2 mt-2" />
+              <View className="w-2 h-2 bg-dark rounded-full ml-2 mt-2" />
             )}
           </View>
 
           {/* Body */}
           <Text
-            className={`font-inter text-sm mb-2 ${
+            className={`font-jakarta text-sm mb-2 ${
               notification.read ? 'text-gray-600' : 'text-gray-700'
             }`}
             numberOfLines={2}
@@ -141,12 +141,12 @@ const NotificationItem = ({ notification }: NotificationItemProps) => {
 
           {/* Metadata */}
           <View className="flex-row items-center justify-between">
-            <Text className="font-inter text-xs text-gray-500">
+            <Text className="font-jakarta text-xs text-gray-500">
               {timeAgo}
             </Text>
 
             {notification.ticket && (
-              <Text className="font-inter text-xs text-gray-500">
+              <Text className="font-jakarta text-xs text-gray-500">
                 {notification.ticket.pcnNumber}
               </Text>
             )}

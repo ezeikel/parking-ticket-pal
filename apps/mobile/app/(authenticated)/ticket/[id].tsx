@@ -48,7 +48,7 @@ const InfoItem = ({ icon, label, value, description }: InfoItemProps) => (
       </View>
       <View className="flex-1">
         <Text className="text-sm text-gray-500 mb-1">{label}</Text>
-        <Text className="text-base font-semibold text-gray-900">{value}</Text>
+        <Text className="text-base font-jakarta-semibold text-gray-900">{value}</Text>
         {description && (
           <Text className="text-xs text-gray-500 mt-1">{description}</Text>
         )}
@@ -198,7 +198,7 @@ export default function TicketDetailScreen() {
             style={{ backgroundColor: tierInfo.bg }}
           >
             <Text
-              className="text-sm font-semibold"
+              className="text-sm font-jakarta-semibold"
               style={{ color: tierInfo.text }}
             >
               {tierInfo.label}
@@ -207,7 +207,7 @@ export default function TicketDetailScreen() {
         </View>
 
         <View>
-          <Text className="text-2xl font-bold text-gray-900 mb-1">
+          <Text className="text-2xl font-jakarta-bold text-gray-900 mb-1">
             {ticketData.pcnNumber}
           </Text>
           <Text className="text-gray-600">{ticketData.issuer}</Text>
@@ -245,7 +245,7 @@ export default function TicketDetailScreen() {
                     <FontAwesomeIcon icon={faStar} size={18} color="#9333ea" />
                   </View>
                   <View className="flex-1">
-                    <Text className="text-white font-bold text-base mb-1">
+                    <Text className="text-white font-jakarta-bold text-base mb-1">
                       Premium Actions
                     </Text>
                     <Text className="text-white text-sm" style={{ opacity: 0.8 }}>
@@ -260,7 +260,7 @@ export default function TicketDetailScreen() {
 
         {/* Details */}
         <View className="bg-white rounded-xl border border-gray-200 p-4 mb-6">
-          <Text className="text-lg font-semibold text-gray-900 mb-4">
+          <Text className="text-lg font-jakarta-semibold text-gray-900 mb-4">
             Ticket Details
           </Text>
 
@@ -331,7 +331,7 @@ export default function TicketDetailScreen() {
                   title={location?.line1 || 'Ticket Location'}
                   description={`${location?.city}, ${location?.postcode}`}
                 >
-                  <View className="items-center justify-center size-8 bg-blue-600 rounded-full shadow-lg">
+                  <View className="items-center justify-center size-8 bg-dark rounded-full shadow-lg">
                     <FontAwesomeIcon
                       icon={faCarSide}
                       size={15}
@@ -342,8 +342,8 @@ export default function TicketDetailScreen() {
               </MapView>
             </View>
             <SquishyPressable onPress={openInMaps}>
-              <View className="mt-3 bg-blue-50 border border-blue-200 rounded-lg p-3">
-                <Text className="text-blue-700 text-sm text-center font-medium">
+              <View className="mt-3 bg-teal/10 border border-teal/20 rounded-lg p-3">
+                <Text className="text-teal-dark text-sm text-center font-jakarta-medium">
                   Tap to open in Maps app
                 </Text>
               </View>
@@ -353,11 +353,11 @@ export default function TicketDetailScreen() {
 
         {/* Only show upgrade prompts for non-premium tiers */}
         {ticketData.tier === 'FREE' && (
-          <View className="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-6">
-            <Text className="text-sm font-semibold text-blue-900 mb-2">
+          <View className="bg-teal/10 border border-teal/20 rounded-xl p-4 mb-6">
+            <Text className="text-sm font-jakarta-semibold text-teal-dark mb-2">
               Upgrade to unlock more features
             </Text>
-            <Text className="text-sm text-blue-700 mb-3">
+            <Text className="text-sm text-teal-dark mb-3">
               • Standard: Get reminders for important deadlines{'\n'}
               • Premium: Challenge letters, TE/PE forms, and more
             </Text>
@@ -366,7 +366,7 @@ export default function TicketDetailScreen() {
 
         {ticketData.tier === 'STANDARD' && (
           <View className="bg-purple-50 border border-purple-200 rounded-xl p-4 mb-6">
-            <Text className="text-sm font-semibold text-purple-900 mb-2">
+            <Text className="text-sm font-jakarta-semibold text-purple-900 mb-2">
               Upgrade to Premium
             </Text>
             <Text className="text-sm text-purple-700">

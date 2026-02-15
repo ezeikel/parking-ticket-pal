@@ -28,7 +28,7 @@ const CaptureModal = ({ isVisible, setIsVisible }: CaptureModalProps) => {
           {hasScannedImage && (
             <View className="flex-1 px-4">
               <View className="flex-row justify-between items-center relative">
-                <Text className="font-lato font-bold text-2xl">
+                <Text className="font-lato-bold text-2xl">
                   Scan Ticket
                 </Text>
                 <SquishyPressable

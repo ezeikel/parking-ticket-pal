@@ -116,13 +116,13 @@ const SignatureBottomSheet = forwardRef<BottomSheet, SignatureBottomSheetProps>(
           <View className="flex-1">
             {/* Header */}
             <View className="mb-4">
-              <Text className="font-inter text-xl font-semibold text-gray-900">
+              <Text className="font-jakarta-semibold text-xl text-gray-900">
                 Add Signature
               </Text>
             </View>
 
             {/* Description */}
-            <Text className="font-inter text-sm text-gray-600 mb-4">
+            <Text className="font-jakarta text-sm text-gray-600 mb-4">
               {showExisting && existingSignatureUrl
                 ? 'Your current signature is shown below. Tap "Create New Signature" to replace it.'
                 : 'Draw your signature below. This will be saved with your profile and used when filling out forms and generating letters.'}
@@ -131,7 +131,7 @@ const SignatureBottomSheet = forwardRef<BottomSheet, SignatureBottomSheetProps>(
             {/* Existing Signature Preview */}
             {showExisting && existingSignatureUrl ? (
               <View className="mb-4">
-                <Text className="font-inter text-xs text-gray-500 mb-2">Current Signature:</Text>
+                <Text className="font-jakarta text-xs text-gray-500 mb-2">Current Signature:</Text>
                 <View className="border border-gray-300 rounded-lg bg-white" style={{ height: canvasHeight }}>
                   <SignatureSvg
                     uri={existingSignatureUrl}
@@ -150,7 +150,7 @@ const SignatureBottomSheet = forwardRef<BottomSheet, SignatureBottomSheetProps>(
                       alignItems: 'center',
                     }}
                   >
-                    <Text className="font-inter text-sm text-white font-semibold">Create New Signature</Text>
+                    <Text className="font-jakarta-semibold text-sm text-white">Create New Signature</Text>
                   </SquishyPressable>
                 </View>
               </View>
@@ -164,7 +164,7 @@ const SignatureBottomSheet = forwardRef<BottomSheet, SignatureBottomSheetProps>(
                   onDrawEnd={handleDrawEnd}
                 />
                 <View className="absolute bottom-2 left-0 right-0 pointer-events-none">
-                  <Text className="font-inter text-xs text-gray-400 text-center">
+                  <Text className="font-jakarta text-xs text-gray-400 text-center">
                     Sign here
                   </Text>
                 </View>
@@ -208,7 +208,7 @@ const SignatureBottomSheet = forwardRef<BottomSheet, SignatureBottomSheetProps>(
                 color="#f97316"
                 style={{ marginRight: 8 }}
               />
-              <Text className="font-inter text-xs text-orange-700 flex-1">
+              <Text className="font-jakarta text-xs text-orange-700 flex-1">
                 Your signature will be used on official forms and letters. Please ensure it matches your legal signature.
               </Text>
             </View>

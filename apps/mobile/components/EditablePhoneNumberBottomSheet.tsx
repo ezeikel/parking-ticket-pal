@@ -144,13 +144,13 @@ const EditablePhoneNumberBottomSheet = forwardRef<BottomSheet, EditablePhoneNumb
           <View className="flex-1">
             {/* Header */}
             <View className="mb-4">
-              <Text className="font-inter text-xl font-semibold text-gray-900">
+              <Text className="font-jakarta-semibold text-xl text-gray-900">
                 Edit Mobile Number
               </Text>
             </View>
 
             {/* Description */}
-            <Text className="font-inter text-sm text-gray-600 mb-4">
+            <Text className="font-jakarta text-sm text-gray-600 mb-4">
               Your mobile number will be used for contact purposes on forms and letters.
             </Text>
 
@@ -164,11 +164,11 @@ const EditablePhoneNumberBottomSheet = forwardRef<BottomSheet, EditablePhoneNumb
               >
                 {(field) => (
                   <>
-                    <Text className="font-inter text-sm text-gray-700 mb-2">
+                    <Text className="font-jakarta text-sm text-gray-700 mb-2">
                       Mobile Number
                     </Text>
                     <TextInput
-                      className="font-inter text-base bg-white border border-gray-300 rounded-lg px-4 py-3"
+                      className="font-jakarta text-base bg-white border border-gray-300 rounded-lg px-4 py-3"
                       placeholder={getPlaceholderText()}
                       keyboardType="phone-pad"
                       value={field.state.value}
@@ -176,7 +176,7 @@ const EditablePhoneNumberBottomSheet = forwardRef<BottomSheet, EditablePhoneNumb
                       onBlur={field.handleBlur}
                     />
                     {field.state.meta.errors.length > 0 && (
-                      <Text className="font-inter text-xs text-red-500 mt-2">
+                      <Text className="font-jakarta text-xs text-red-500 mt-2">
                         {String(field.state.meta.errors[0]?.message || field.state.meta.errors[0])}
                       </Text>
                     )}

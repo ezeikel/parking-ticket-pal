@@ -34,7 +34,7 @@ const PremiumActionsBottomSheet = forwardRef<BottomSheet, PremiumActionsBottomSh
         onChange={onChange}
       >
         <BottomSheetView style={{ flex: 1, paddingHorizontal: 16 }}>
-          <Text className="text-xl font-bold text-gray-900 mb-4">Premium Actions</Text>
+          <Text className="text-xl font-jakarta-bold text-gray-900 mb-4">Premium Actions</Text>
           <Text className="text-sm text-gray-600 mb-6">
             Generate professional documents to challenge your parking ticket
           </Text>
@@ -45,11 +45,11 @@ const PremiumActionsBottomSheet = forwardRef<BottomSheet, PremiumActionsBottomSh
             className="mb-3 active:opacity-70"
           >
             <View className="bg-white border border-gray-200 rounded-xl p-4 flex-row items-center">
-              <View className="w-12 h-12 bg-blue-50 rounded-lg items-center justify-center mr-3">
+              <View className="w-12 h-12 bg-teal/10 rounded-lg items-center justify-center mr-3">
                 <FontAwesomeIcon icon={faFileLines} size={20} color="#3b82f6" />
               </View>
               <View className="flex-1">
-                <Text className="text-base font-semibold text-gray-900 mb-1">
+                <Text className="text-base font-jakarta-semibold text-gray-900 mb-1">
                   Challenge Letter
                 </Text>
                 <Text className="text-sm text-gray-600">
@@ -63,7 +63,7 @@ const PremiumActionsBottomSheet = forwardRef<BottomSheet, PremiumActionsBottomSh
           {availableForms.length > 0 && (
             <View className="my-4">
               <View className="border-b border-gray-200" />
-              <Text className="text-xs font-semibold text-gray-500 mt-4 mb-2 uppercase">
+              <Text className="text-xs font-jakarta-semibold text-gray-500 mt-4 mb-2 uppercase">
                 Official Forms
               </Text>
             </View>
@@ -83,7 +83,7 @@ const PremiumActionsBottomSheet = forwardRef<BottomSheet, PremiumActionsBottomSh
                     <FontAwesomeIcon icon={faFileContract} size={20} color="#9333ea" />
                   </View>
                   <View className="flex-1">
-                    <Text className="text-base font-semibold text-gray-900 mb-1">
+                    <Text className="text-base font-jakarta-semibold text-gray-900 mb-1">
                       {formInfo.name}
                     </Text>
                     <Text className="text-sm text-gray-600">

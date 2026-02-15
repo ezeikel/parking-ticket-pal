@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react';
-import { Text, View, Alert } from 'react-native';
+import { useCallback, useEffect, useState } from 'react';
+import { Text, View, Alert, RefreshControl, ScrollView } from 'react-native';
 import { FlashList } from "@shopify/flash-list";
 import { router } from 'expo-router';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
@@ -67,7 +67,7 @@ const CountdownTimer = ({ deadline }: CountdownTimerProps) => {
   return (
     <View className="flex-row items-center">
       <FontAwesomeIcon icon={faClock} size={14} color="#dc2626" style={{ marginRight: 6 }} />
-      <Text className="text-sm font-medium text-red-600">
+      <Text className="text-sm font-jakarta-medium text-red-600">
         {days > 0 ? `${days}d ${hours}h left` : `${hours}h ${minutes}m left`}
       </Text>
     </View>
@@ -167,10 +167,10 @@ const TicketItem = ({ ticket, style, onDelete }: {
       {/* Header */}
       <View className="flex-row items-start justify-between p-4 pb-2">
         <View className="flex-1">
-          <Text className="font-inter font-bold text-lg text-gray-900 mb-1">
+          <Text className="font-jakarta-bold text-lg text-gray-900 mb-1">
             {ticket.pcnNumber}
           </Text>
-          <Text className="font-inter text-sm text-gray-600">
+          <Text className="font-jakarta text-sm text-gray-600">
             {ticket.issuer}
           </Text>
         </View>
@@ -190,7 +190,7 @@ const TicketItem = ({ ticket, style, onDelete }: {
           style={{ backgroundColor: statusColors.bg }}
         >
           <Text
-            className="font-inter text-xs font-medium"
+            className="font-jakarta-medium text-xs"
             style={{ color: statusColors.text }}
           >
             {ticket.status.replace(/_/g, ' ')}
@@ -204,7 +204,7 @@ const TicketItem = ({ ticket, style, onDelete }: {
             style={{ backgroundColor: tierColors.bg }}
           >
             <Text
-              className="font-inter text-xs font-semibold"
+              className="font-jakarta-semibold text-xs"
               style={{ color: tierColors.text }}
             >
               {tier}
@@ -224,7 +224,7 @@ const TicketItem = ({ ticket, style, onDelete }: {
               color="#6b7280"
               style={{ marginRight: 8 }}
             />
-            <Text className="font-inter text-sm text-gray-700">
+            <Text className="font-jakarta text-sm text-gray-700">
               {ticket.vehicle?.registrationNumber || 'N/A'}
             </Text>
           </View>
@@ -237,7 +237,7 @@ const TicketItem = ({ ticket, style, onDelete }: {
               color="#6b7280"
               style={{ marginRight: 8 }}
             />
-            <Text className="font-inter text-sm text-gray-700">
+            <Text className="font-jakarta text-sm text-gray-700">
               {formattedDate}
             </Text>
           </View>
@@ -250,7 +250,7 @@ const TicketItem = ({ ticket, style, onDelete }: {
               color="#6b7280"
               style={{ marginRight: 8 }}
             />
-            <Text className="font-inter text-sm font-semibold text-gray-900">
+            <Text className="font-jakarta-semibold text-sm text-gray-900">
               £{amount.toFixed(2)}
             </Text>
           </View>
@@ -263,7 +263,7 @@ const TicketItem = ({ ticket, style, onDelete }: {
               color="#6b7280"
               style={{ marginRight: 8 }}
             />
-            <Text className="font-inter text-sm text-gray-700">
+            <Text className="font-jakarta text-sm text-gray-700">
               Due {dueDateFormatted}
             </Text>
           </View>
@@ -277,7 +277,7 @@ const TicketItem = ({ ticket, style, onDelete }: {
                 color="#6b7280"
                 style={{ marginRight: 8 }}
               />
-              <Text className="font-inter text-sm text-gray-700 flex-1" numberOfLines={1}>
+              <Text className="font-jakarta text-sm text-gray-700 flex-1" numberOfLines={1}>
                 {(ticket.location as Address)?.line1 || 'Location not specified'}
               </Text>
             </View>
@@ -295,8 +295,12 @@ const TicketItem = ({ ticket, style, onDelete }: {
 };
 
 const TicketsList = ({ filters }: TicketsListProps) => {
-  const { data: { tickets } = {}, isLoading } = useTickets(filters);
+  const { data: { tickets } = {}, isLoading, refetch, isRefetching } = useTickets(filters);
   const queryClient = useQueryClient();
+
+  const onRefresh = useCallback(() => {
+    refetch();
+  }, [refetch]);
 
   const handleDeleteTicket = async (ticketId: string) => {
     try {
@@ -325,17 +329,23 @@ const TicketsList = ({ filters }: TicketsListProps) => {
                              (filters?.ticketType && filters.ticketType.length > 0);
 
     return (
-      <View className="flex-1 items-center justify-center px-8">
-        <Text className="font-inter text-lg text-gray-600 text-center mb-2">
+      <ScrollView
+        className="flex-1"
+        contentContainerClassName="flex-1 items-center justify-center px-8"
+        refreshControl={
+          <RefreshControl refreshing={isRefetching} onRefresh={onRefresh} />
+        }
+      >
+        <Text className="font-jakarta text-lg text-gray-600 text-center mb-2">
           {hasActiveFilters ? 'No tickets found' : 'No tickets yet'}
         </Text>
-        <Text className="font-inter text-sm text-gray-500 text-center">
+        <Text className="font-jakarta text-sm text-gray-500 text-center">
           {hasActiveFilters
             ? 'Try adjusting your filters or search terms'
             : 'Use the camera button to capture your first parking ticket'
           }
         </Text>
-      </View>
+      </ScrollView>
     );
   }
 
@@ -361,7 +371,7 @@ const TicketsList = ({ filters }: TicketsListProps) => {
     <View className="flex-1">
       {showResultCount && (
         <View className="mb-3">
-          <Text className="font-inter text-sm text-gray-600">
+          <Text className="font-jakarta text-sm text-gray-600">
             Found {tickets.length} {tickets.length === 1 ? 'ticket' : 'tickets'}
             {hasSearch && ` matching "${filters.search}"`}
           </Text>
@@ -385,6 +395,9 @@ const TicketsList = ({ filters }: TicketsListProps) => {
         estimatedItemSize={200}
         keyExtractor={(item) => item.id.toString()}
         showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl refreshing={isRefetching} onRefresh={onRefresh} />
+        }
       />
     </View>
   );

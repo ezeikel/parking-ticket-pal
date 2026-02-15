@@ -86,6 +86,14 @@ export type AnalyticsEvent =
   | "sort_applied"
   | "sort_cleared"
 
+  // Paywall events
+  | "paywall_opened"
+  | "paywall_plan_selected"
+  | "paywall_billing_period_changed"
+  | "paywall_purchase_success"
+  | "paywall_purchase_cancelled"
+  | "paywall_restore_success"
+
   // Error events
   | "error_occurred"
   | "network_error"
@@ -174,6 +182,14 @@ export type AnalyticsProperties = {
   sortOrder?: "asc" | "desc"
   previousSortBy?: string
   previousSortOrder?: "asc" | "desc"
+
+  // Paywall properties
+  mode?: string
+  plan_id?: string
+  tier?: string
+  product_id?: string
+  price?: string
+  billing_period?: string
 }
 
 /**

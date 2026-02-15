@@ -72,23 +72,23 @@ const EditableNameBottomSheet = forwardRef<BottomSheet, EditableNameBottomSheetP
           <View className="flex-1">
             {/* Header */}
             <View className="mb-4">
-              <Text className="font-inter text-xl font-semibold text-gray-900">
+              <Text className="font-jakarta-semibold text-xl text-gray-900">
                 Edit Name
               </Text>
             </View>
 
             {/* Description */}
-            <Text className="font-inter text-sm text-gray-600 mb-4">
+            <Text className="font-jakarta text-sm text-gray-600 mb-4">
               Your name will be used on official forms and letters.
             </Text>
 
             {/* Input */}
             <View className="mb-6">
-              <Text className="font-inter text-sm text-gray-700 mb-2">
+              <Text className="font-jakarta text-sm text-gray-700 mb-2">
                 Full Name
               </Text>
               <TextInput
-                className="font-inter text-base bg-white border border-gray-300 rounded-lg px-4 py-3"
+                className="font-jakarta text-base bg-white border border-gray-300 rounded-lg px-4 py-3"
                 placeholder="Enter your full name"
                 value={name}
                 onChangeText={setName}

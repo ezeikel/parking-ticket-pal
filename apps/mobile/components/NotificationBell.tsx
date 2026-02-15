@@ -56,7 +56,7 @@ const NotificationBell = () => {
           className="absolute top-1 right-0 bg-[#1ABC9C] rounded-full min-w-[20px] h-5 items-center justify-center px-1.5"
           style={badgeAnimatedStyle}
         >
-          <Text className="text-white text-xs font-inter-bold">
+          <Text className="text-white text-xs font-jakarta-bold">
             {unreadCount > 99 ? '99+' : unreadCount}
           </Text>
         </Animated.View>

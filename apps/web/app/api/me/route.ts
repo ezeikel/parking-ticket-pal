@@ -13,7 +13,7 @@ export const GET = async (req: Request) => {
   });
 
   return Response.json(
-    { user },
+    { user, isLinked: !!user?.email },
     {
       headers: {
         'Access-Control-Allow-Origin': '*',

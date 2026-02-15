@@ -94,7 +94,7 @@ const ChallengeLetterBottomSheet = forwardRef<BottomSheet, ChallengeLetterBottom
       >
         <BottomSheetView style={{ flex: 1, paddingHorizontal: 16 }}>
           <KeyboardAwareScrollView showsVerticalScrollIndicator={false}>
-            <Text className="text-xl font-bold text-gray-900 mb-2">
+            <Text className="text-xl font-jakarta-bold text-gray-900 mb-2">
               Generate Challenge Letter
             </Text>
             <Text className="text-sm text-gray-600 mb-6">
@@ -103,7 +103,7 @@ const ChallengeLetterBottomSheet = forwardRef<BottomSheet, ChallengeLetterBottom
 
             {/* Challenge Reason Picker */}
             <View className="mb-6">
-              <Text className="text-sm font-semibold text-gray-700 mb-2">
+              <Text className="text-sm font-jakarta-semibold text-gray-700 mb-2">
                 Challenge Reason <Text className="text-red-500">*</Text>
               </Text>
               <View className="border border-gray-300 rounded-lg overflow-hidden bg-white">
@@ -127,7 +127,7 @@ const ChallengeLetterBottomSheet = forwardRef<BottomSheet, ChallengeLetterBottom
 
             {/* Additional Details */}
             <View className="mb-6">
-              <Text className="text-sm font-semibold text-gray-700 mb-2">
+              <Text className="text-sm font-jakarta-semibold text-gray-700 mb-2">
                 Additional Details (Optional)
               </Text>
               <TextInput
@@ -150,16 +150,16 @@ const ChallengeLetterBottomSheet = forwardRef<BottomSheet, ChallengeLetterBottom
             <SquishyPressable onPress={handleGenerate} disabled={isLoading}>
               <View
                 className={`rounded-lg p-4 items-center justify-center ${
-                  isLoading ? 'bg-blue-400' : 'bg-blue-600'
+                  isLoading ? 'bg-dark/70' : 'bg-dark'
                 }`}
               >
                 {isLoading ? (
                   <View className="flex-row items-center">
                     <Loader size={20} color="#ffffff" />
-                    <Text className="text-white font-semibold ml-2">Generating...</Text>
+                    <Text className="text-white font-jakarta-semibold ml-2">Generating...</Text>
                   </View>
                 ) : (
-                  <Text className="text-white font-semibold text-base">Generate & Email</Text>
+                  <Text className="text-white font-jakarta-semibold text-base">Generate & Email</Text>
                 )}
               </View>
             </SquishyPressable>

@@ -9,7 +9,7 @@ datasource db {
 
 model User {
   id            String     @id @default(cuid())
-  email         String     @unique
+  email         String?    @unique
   name          String?
   emailVerified DateTime?
   image         String?
@@ -42,8 +42,21 @@ model User {
   sessions                Session[]
   pushTokens              PushToken[]
   notifications           Notification[]
+  mobileDeviceSessions    MobileDeviceSession[]
 
   @@map("users")
+}
+
+model MobileDeviceSession {
+  id         String   @id @default(cuid())
+  deviceId   String   @unique
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  lastSeenAt DateTime @default(now())
+
+  @@map("mobile_device_sessions")
 }
 
 model Vehicle {

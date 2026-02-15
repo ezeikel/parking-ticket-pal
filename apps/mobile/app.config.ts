@@ -138,13 +138,18 @@ export default ({ config }: ConfigContext): ExpoConfig => {
     [
       'expo-font', {
         fonts: [
+          "./assets/fonts/PlusJakartaSans-Regular.ttf",
+          "./assets/fonts/PlusJakartaSans-Medium.ttf",
+          "./assets/fonts/PlusJakartaSans-SemiBold.ttf",
+          "./assets/fonts/PlusJakartaSans-Bold.ttf",
+          "./assets/fonts/PlusJakartaSans-ExtraBold.ttf",
+          "./assets/fonts/PlusJakartaSans-Italic.ttf",
           "./assets/fonts/Inter18pt-Regular.ttf",
           "./assets/fonts/Inter18pt-Bold.ttf",
           "./assets/fonts/Inter18pt-Italic.ttf",
-          "./assets/fonts/Lato-Regular.ttf", 
+          "./assets/fonts/Lato-Regular.ttf",
           "./assets/fonts/Lato-Bold.ttf",
           "./assets/fonts/Lato-Italic.ttf",
-          "./assets/fonts/RobotoSlab-Regular.ttf",
           "./assets/fonts/UKNumberPlate.ttf"
         ],
       },

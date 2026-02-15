@@ -47,6 +47,7 @@ const oneTimeTiers: PricingTier[] = [
       'Timeline tracking',
       'Storage for letters and tickets',
       'Deadline notifications',
+      'Success prediction score',
     ],
     cta: 'Add Ticket & Get Standard',
     href: '/new?tier=standard',
@@ -83,6 +84,7 @@ const subscriptionTiers: PricingTier[] = [
       'Email + SMS reminders',
       'Timeline tracking',
       'Storage for letters and tickets',
+      'Success prediction score',
     ],
     cta: 'Subscribe to Standard',
     href: '/account/billing?plan=standard_monthly',
@@ -100,6 +102,7 @@ const subscriptionTiers: PricingTier[] = [
       'AI appeal letter generation',
       'Success prediction score',
       'Automatic challenge submission',
+      'Priority support',
     ],
     cta: 'Subscribe to Premium',
     href: '/account/billing?plan=premium_monthly',
@@ -198,7 +201,7 @@ const faqs = [
   {
     question: "What's the difference between Standard and Premium?",
     answer:
-      'Standard includes reminders and tracking. Premium adds AI-generated appeal letters, success prediction, and automatic submission.',
+      'Standard includes reminders, tracking, and success prediction. Premium adds AI-generated appeal letters and automatic submission.',
   },
   {
     question: 'How does Fleet pricing work?',
@@ -539,18 +542,29 @@ const PricingPage = () => {
                   >
                     <td className="py-4 text-sm text-dark">{feature.name}</td>
                     <td className="py-4 text-center">
-                      {feature.free === true ? (
-                        <FontAwesomeIcon icon={faCheck} className="text-teal" />
-                      ) : feature.free === false ? (
-                        <FontAwesomeIcon
-                          icon={faXmark}
-                          className="text-gray/40"
-                        />
-                      ) : (
-                        <span className="text-sm text-gray">
-                          {feature.free}
-                        </span>
-                      )}
+                      {(() => {
+                        if (feature.free === true) {
+                          return (
+                            <FontAwesomeIcon
+                              icon={faCheck}
+                              className="text-teal"
+                            />
+                          );
+                        }
+                        if (feature.free === false) {
+                          return (
+                            <FontAwesomeIcon
+                              icon={faXmark}
+                              className="text-gray/40"
+                            />
+                          );
+                        }
+                        return (
+                          <span className="text-sm text-gray">
+                            {feature.free}
+                          </span>
+                        );
+                      })()}
                     </td>
                     <td className="py-4 text-center">
                       {feature.standard === true ? (

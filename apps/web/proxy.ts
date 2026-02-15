@@ -1,4 +1,4 @@
-/* eslint-disable import/prefer-default-export */
+/* eslint-disable import-x/prefer-default-export */
 import { NextRequest, NextResponse } from 'next/server';
 import { isPathAuthenticated } from './utils/isAuthenticatedPath';
 import { decrypt } from './app/lib/session';
@@ -33,8 +33,8 @@ export const proxy = async (req: NextRequest) => {
       return NextResponse.next();
     }
 
-    // skip auth middleware for mobile auth route (no token required)
-    if (pathname === '/api/auth/mobile') {
+    // skip auth middleware for mobile auth routes (no token required)
+    if (pathname.startsWith('/api/auth/mobile')) {
       return NextResponse.next();
     }
 
@@ -62,25 +62,26 @@ export const proxy = async (req: NextRequest) => {
 
     try {
       const payload = await decrypt(token);
-      const { id, email } = payload || {};
 
       const reqHeaders = new Headers(req.headers);
 
-      // for api requests from mobile app add user id and email to response headers
-      if (id && email) {
-        // add user id and email to request headers
-        reqHeaders.set('x-user-id', id as string);
-        reqHeaders.set('x-user-email', email as string);
+      // Handle device token (has userId) or legacy session token (has id)
+      const userId = (payload?.userId ?? payload?.id) as string | undefined;
+      const email = payload?.email as string | undefined;
+
+      if (userId) {
+        reqHeaders.set('x-user-id', userId);
+        if (email) {
+          reqHeaders.set('x-user-email', email);
+        }
       }
 
       return NextResponse.next({
         request: {
-          // new request headers
           headers: reqHeaders,
         },
       });
-    } catch (error) {
-      console.error('Failed to verify token', error);
+    } catch (_error) {
       return NextResponse.error();
     }
   }

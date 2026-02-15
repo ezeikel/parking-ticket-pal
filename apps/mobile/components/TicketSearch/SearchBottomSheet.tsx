@@ -59,7 +59,7 @@ const SearchBottomSheet = forwardRef<BottomSheet, SearchBottomSheetProps>(
         keyboardBlurBehavior="restore"
       >
         <BottomSheetView className="flex-1 px-4">
-          <Text className="text-xl font-bold text-gray-900 mb-2">Search Tickets</Text>
+          <Text className="text-xl font-jakarta-bold text-gray-900 mb-2">Search Tickets</Text>
           <Text className="text-sm text-gray-600 mb-6">
             Search by PCN number, issuer, location, or vehicle registration
           </Text>
@@ -107,9 +107,9 @@ const SearchBottomSheet = forwardRef<BottomSheet, SearchBottomSheetProps>(
           )}
 
           {/* Search Tips */}
-          <View className="bg-blue-50 rounded-lg p-3">
-            <Text className="text-xs font-semibold text-blue-900 mb-2">Search Tips:</Text>
-            <Text className="text-xs text-blue-800 leading-5">
+          <View className="bg-teal/10 rounded-lg p-3">
+            <Text className="text-xs font-jakarta-semibold text-teal-dark mb-2">Search Tips:</Text>
+            <Text className="text-xs text-teal-dark leading-5">
               • PCN numbers: e.g., "AB123456789"
               {'\n'}• Issuer names: e.g., "Westminster"
               {'\n'}• Locations: e.g., "Baker Street"

@@ -64,21 +64,21 @@ const SortBottomSheet = forwardRef<BottomSheet, SortBottomSheetProps>(
           {/* Header */}
           <View className="flex-row justify-between items-center mb-4 pt-2">
             <View>
-              <Text className="text-xl font-bold text-gray-900">Sort Tickets</Text>
+              <Text className="text-xl font-jakarta-bold text-gray-900">Sort Tickets</Text>
               <Text className="text-sm text-gray-600 mt-1">
                 Choose how to order your tickets
               </Text>
             </View>
             {hasNonDefaultSort && (
               <SquishyPressable onPress={handleClearSort}>
-                <Text className="text-sm font-semibold text-blue-600">Clear Sort</Text>
+                <Text className="text-sm font-jakarta-semibold text-teal">Clear Sort</Text>
               </SquishyPressable>
             )}
           </View>
 
           {/* Sort Direction Toggle */}
           <View className="mb-4 flex-row items-center justify-between bg-gray-50 rounded-xl p-3">
-            <Text className="text-sm font-medium text-gray-700">Sort Direction</Text>
+            <Text className="text-sm font-jakarta-medium text-gray-700">Sort Direction</Text>
             <SquishyPressable
               onPress={toggleSortOrder}
               className="flex-row items-center gap-2 bg-white px-3 py-2 rounded-lg border border-gray-200"
@@ -86,9 +86,9 @@ const SortBottomSheet = forwardRef<BottomSheet, SortBottomSheetProps>(
               <FontAwesomeIcon
                 icon={tempSortOrder === 'asc' ? faArrowUpWideShort : faArrowDownShortWide}
                 size={16}
-                color="#3b82f6"
+                color="#1abc9c"
               />
-              <Text className="text-sm font-medium text-gray-900">
+              <Text className="text-sm font-jakarta-medium text-gray-900">
                 {tempSortOrder === 'asc' ? 'Ascending' : 'Descending'}
               </Text>
             </SquishyPressable>
@@ -96,7 +96,7 @@ const SortBottomSheet = forwardRef<BottomSheet, SortBottomSheetProps>(
 
           {/* Sort Options */}
           <View className="mb-4">
-            <Text className="text-xs font-semibold text-gray-500 uppercase mb-2">
+            <Text className="text-xs font-jakarta-semibold text-gray-500 uppercase mb-2">
               Sort By
             </Text>
             {SORT_OPTIONS.map((option) => {
@@ -110,19 +110,19 @@ const SortBottomSheet = forwardRef<BottomSheet, SortBottomSheetProps>(
                   <View
                     className={`flex-row items-center justify-between p-4 rounded-xl border ${
                       isSelected
-                        ? 'bg-blue-50 border-blue-600'
+                        ? 'bg-teal/10 border-dark'
                         : 'bg-white border-gray-200'
                     }`}
                   >
                     <Text
-                      className={`text-base font-medium ${
-                        isSelected ? 'text-blue-900' : 'text-gray-900'
+                      className={`text-base font-jakarta-medium ${
+                        isSelected ? 'text-teal-dark' : 'text-gray-900'
                       }`}
                     >
                       {option.label}
                     </Text>
                     {isSelected && (
-                      <FontAwesomeIcon icon={faCheck} size={18} color="#2563eb" />
+                      <FontAwesomeIcon icon={faCheck} size={18} color="#1abc9c" />
                     )}
                   </View>
                 </SquishyPressable>

@@ -111,7 +111,7 @@ const FilterBottomSheet = forwardRef<BottomSheet, FilterBottomSheetProps>(
           {/* Header */}
           <View className="flex-row justify-between items-center mb-4 px-4 pt-2">
             <View>
-              <Text className="text-xl font-bold text-gray-900">Filters</Text>
+              <Text className="text-xl font-jakarta-bold text-gray-900">Filters</Text>
               {totalActiveCount > 0 && (
                 <Text className="text-sm text-gray-600 mt-1">
                   {totalActiveCount} selected
@@ -120,7 +120,7 @@ const FilterBottomSheet = forwardRef<BottomSheet, FilterBottomSheetProps>(
             </View>
             {totalActiveCount > 0 && (
               <SquishyPressable onPress={handleClearFilters}>
-                <Text className="text-sm font-semibold text-blue-600">Clear All</Text>
+                <Text className="text-sm font-jakarta-semibold text-teal">Clear All</Text>
               </SquishyPressable>
             )}
           </View>
@@ -134,7 +134,7 @@ const FilterBottomSheet = forwardRef<BottomSheet, FilterBottomSheetProps>(
             {/* Issuer Filter */}
             {availableIssuers.length > 1 && (
               <View className="mb-6">
-                <Text className="text-sm font-semibold text-gray-700 uppercase mb-3">
+                <Text className="text-sm font-jakarta-semibold text-gray-700 uppercase mb-3">
                   Issuer
                 </Text>
                 <View className="flex-row flex-wrap gap-2">
@@ -148,12 +148,12 @@ const FilterBottomSheet = forwardRef<BottomSheet, FilterBottomSheetProps>(
                         <View
                           className={`px-4 py-2.5 rounded-full border ${
                             isSelected
-                              ? 'bg-blue-600 border-blue-600'
+                              ? 'bg-dark border-dark'
                               : 'bg-white border-gray-300'
                           }`}
                         >
                           <Text
-                            className={`text-sm font-medium ${
+                            className={`text-sm font-jakarta-medium ${
                               isSelected ? 'text-white' : 'text-gray-700'
                             }`}
                           >
@@ -170,7 +170,7 @@ const FilterBottomSheet = forwardRef<BottomSheet, FilterBottomSheetProps>(
             {/* Status Filter */}
             {availableStatuses.length > 0 && (
               <View>
-                <Text className="text-sm font-semibold text-gray-700 uppercase mb-3">
+                <Text className="text-sm font-jakarta-semibold text-gray-700 uppercase mb-3">
                   Status
                 </Text>
                 <View className="flex-row flex-wrap gap-2">
@@ -185,12 +185,12 @@ const FilterBottomSheet = forwardRef<BottomSheet, FilterBottomSheetProps>(
                         <View
                           className={`px-4 py-2.5 rounded-full border ${
                             isSelected
-                              ? 'bg-blue-600 border-blue-600'
+                              ? 'bg-dark border-dark'
                               : 'bg-white border-gray-300'
                           }`}
                         >
                           <Text
-                            className={`text-sm font-medium ${
+                            className={`text-sm font-jakarta-medium ${
                               isSelected ? 'text-white' : 'text-gray-700'
                             }`}
                           >

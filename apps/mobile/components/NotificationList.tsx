@@ -39,10 +39,10 @@ const NotificationList = ({ unreadOnly = false }: NotificationListProps) => {
         <View className="w-20 h-20 bg-gray-100 rounded-full items-center justify-center mb-4">
           <FontAwesomeIcon icon={faBell} size={32} color="#9ca3af" />
         </View>
-        <Text className="font-inter text-lg font-semibold text-gray-900 mb-2 text-center">
+        <Text className="font-jakarta-semibold text-lg text-gray-900 mb-2 text-center">
           {unreadOnly ? 'No unread notifications' : 'No notifications yet'}
         </Text>
-        <Text className="font-inter text-sm text-gray-600 text-center">
+        <Text className="font-jakarta text-sm text-gray-600 text-center">
           {unreadOnly
             ? 'You\'re all caught up! Check back later for updates on your parking tickets.'
             : 'When you receive notifications about your parking tickets, they\'ll appear here.'}
