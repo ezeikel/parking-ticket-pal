@@ -1,10 +1,12 @@
 import { View, Text } from 'react-native';
 import Animated, { FadeIn, FadeInUp, ZoomIn } from 'react-native-reanimated';
+import { useEffect, useState } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { faRocket, faCheck } from '@fortawesome/pro-solid-svg-icons';
 import SquishyPressable from '@/components/SquishyPressable/SquishyPressable';
 
 type GetStartedSlideProps = {
+  isActive: boolean;
   onGetStarted: () => void;
 };
 
@@ -20,7 +22,19 @@ const BenefitRow = ({ text, delay }: { text: string; delay: number }) => (
   </Animated.View>
 );
 
-const GetStartedSlide = ({ onGetStarted }: GetStartedSlideProps) => {
+const GetStartedSlide = ({ isActive, onGetStarted }: GetStartedSlideProps) => {
+  const [hasBeenActive, setHasBeenActive] = useState(false);
+
+  useEffect(() => {
+    if (isActive && !hasBeenActive) {
+      setHasBeenActive(true);
+    }
+  }, [isActive, hasBeenActive]);
+
+  if (!hasBeenActive) {
+    return <View className="flex-1" />;
+  }
+
   return (
     <View className="flex-1 justify-center px-8">
       {/* Icon */}

@@ -143,19 +143,20 @@ const OnboardingCarousel = ({ onComplete, onTicketCreated }: OnboardingCarouselP
   };
 
   const renderSlide = ({ index }: { index: number }) => {
+    const isActive = currentSlide === index;
     switch (index) {
       case 0:
-        return <WelcomeSlide />;
+        return <WelcomeSlide isActive={isActive} />;
       case 1:
-        return <AIAppealsSlide />;
+        return <AIAppealsSlide isActive={isActive} />;
       case 2:
-        return <TrackWinSlide />;
+        return <TrackWinSlide isActive={isActive} />;
       case 3:
         return (
-          <ScanTicketSlide onScanNow={handleScanNow} onSkip={handleScanSkip} />
+          <ScanTicketSlide isActive={isActive} onScanNow={handleScanNow} onSkip={handleScanSkip} />
         );
       case 4:
-        return <GetStartedSlide onGetStarted={onComplete} />;
+        return <GetStartedSlide isActive={isActive} onGetStarted={onComplete} />;
       default:
         return null;
     }

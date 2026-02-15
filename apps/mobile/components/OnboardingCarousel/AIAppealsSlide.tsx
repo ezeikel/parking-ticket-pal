@@ -1,5 +1,6 @@
 import { View, Text } from 'react-native';
 import Animated, { FadeInDown, FadeIn } from 'react-native-reanimated';
+import { useEffect, useState } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { faWandMagicSparkles, faFileLines, faBrain } from '@fortawesome/pro-solid-svg-icons';
 
@@ -37,7 +38,23 @@ const FeaturePoint = ({
   </Animated.View>
 );
 
-const AIAppealsSlide = () => {
+type AIAppealsSlideProps = {
+  isActive: boolean;
+};
+
+const AIAppealsSlide = ({ isActive }: AIAppealsSlideProps) => {
+  const [hasBeenActive, setHasBeenActive] = useState(false);
+
+  useEffect(() => {
+    if (isActive && !hasBeenActive) {
+      setHasBeenActive(true);
+    }
+  }, [isActive, hasBeenActive]);
+
+  if (!hasBeenActive) {
+    return <View className="flex-1" />;
+  }
+
   return (
     <View className="flex-1 justify-center px-8">
       {/* Header */}

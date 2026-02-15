@@ -8,20 +8,29 @@ import Animated, {
   withSequence,
   withTiming,
 } from 'react-native-reanimated';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { faCamera, faForward } from '@fortawesome/pro-solid-svg-icons';
 import SquishyPressable from '@/components/SquishyPressable/SquishyPressable';
 
 type ScanTicketSlideProps = {
+  isActive: boolean;
   onScanNow: () => void;
   onSkip: () => void;
 };
 
-const ScanTicketSlide = ({ onScanNow, onSkip }: ScanTicketSlideProps) => {
+const ScanTicketSlide = ({ isActive, onScanNow, onSkip }: ScanTicketSlideProps) => {
+  const [hasBeenActive, setHasBeenActive] = useState(false);
   const pulse = useSharedValue(1);
 
   useEffect(() => {
+    if (isActive && !hasBeenActive) {
+      setHasBeenActive(true);
+    }
+  }, [isActive, hasBeenActive]);
+
+  useEffect(() => {
+    if (!hasBeenActive) return;
     pulse.value = withRepeat(
       withSequence(
         withTiming(1.05, { duration: 1000 }),
@@ -30,11 +39,15 @@ const ScanTicketSlide = ({ onScanNow, onSkip }: ScanTicketSlideProps) => {
       -1,
       true,
     );
-  }, []);
+  }, [hasBeenActive]);
 
   const pulseStyle = useAnimatedStyle(() => ({
     transform: [{ scale: pulse.value }],
   }));
+
+  if (!hasBeenActive) {
+    return <View className="flex-1" />;
+  }
 
   return (
     <View className="flex-1 justify-center px-8">

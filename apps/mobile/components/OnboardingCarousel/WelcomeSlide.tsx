@@ -9,7 +9,7 @@ import Animated, {
   withTiming,
   withDelay,
 } from 'react-native-reanimated';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { faParking, faGavel, faShieldCheck } from '@fortawesome/pro-solid-svg-icons';
 
@@ -19,16 +19,19 @@ const FloatingIcon = ({
   delay,
   left,
   top,
+  isActive,
 }: {
   icon: any;
   color: string;
   delay: number;
   left: number;
   top: number;
+  isActive: boolean;
 }) => {
   const translateY = useSharedValue(0);
 
   useEffect(() => {
+    if (!isActive) return;
     translateY.value = withDelay(
       delay,
       withRepeat(
@@ -40,7 +43,7 @@ const FloatingIcon = ({
         true,
       ),
     );
-  }, []);
+  }, [isActive]);
 
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [{ translateY: translateY.value }],
@@ -67,13 +70,29 @@ const FloatingIcon = ({
   );
 };
 
-const WelcomeSlide = () => {
+type WelcomeSlideProps = {
+  isActive: boolean;
+};
+
+const WelcomeSlide = ({ isActive }: WelcomeSlideProps) => {
+  const [hasBeenActive, setHasBeenActive] = useState(isActive);
+
+  useEffect(() => {
+    if (isActive && !hasBeenActive) {
+      setHasBeenActive(true);
+    }
+  }, [isActive, hasBeenActive]);
+
+  if (!hasBeenActive) {
+    return <View className="flex-1" />;
+  }
+
   return (
     <View className="flex-1 items-center justify-center px-8">
       {/* Floating decorative icons */}
-      <FloatingIcon icon={faParking} color="#E0F2FE" delay={0} left={40} top={80} />
-      <FloatingIcon icon={faGavel} color="#FEF3C7" delay={300} left={280} top={120} />
-      <FloatingIcon icon={faShieldCheck} color="#D1FAE5" delay={600} left={60} top={340} />
+      <FloatingIcon icon={faParking} color="#E0F2FE" delay={0} left={40} top={80} isActive={hasBeenActive} />
+      <FloatingIcon icon={faGavel} color="#FEF3C7" delay={300} left={280} top={120} isActive={hasBeenActive} />
+      <FloatingIcon icon={faShieldCheck} color="#D1FAE5" delay={600} left={60} top={340} isActive={hasBeenActive} />
 
       {/* App icon */}
       <Animated.View entering={ZoomIn.duration(600).springify()}>

@@ -7,7 +7,7 @@ import Animated, {
   withDelay,
   withTiming,
 } from 'react-native-reanimated';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { faCircleCheck, faClock, faPaperPlane, faPartyHorn } from '@fortawesome/pro-solid-svg-icons';
 
@@ -83,7 +83,23 @@ const TimelineStep = ({
   );
 };
 
-const TrackWinSlide = () => {
+type TrackWinSlideProps = {
+  isActive: boolean;
+};
+
+const TrackWinSlide = ({ isActive }: TrackWinSlideProps) => {
+  const [hasBeenActive, setHasBeenActive] = useState(false);
+
+  useEffect(() => {
+    if (isActive && !hasBeenActive) {
+      setHasBeenActive(true);
+    }
+  }, [isActive, hasBeenActive]);
+
+  if (!hasBeenActive) {
+    return <View className="flex-1" />;
+  }
+
   return (
     <View className="flex-1 justify-center px-8">
       {/* Header */}
