@@ -38,6 +38,12 @@ export enum TicketStatus {
   APPEAL_SUBMITTED_TO_OPERATOR = 'APPEAL_SUBMITTED_TO_OPERATOR',
   APPEAL_REJECTED_BY_OPERATOR = 'APPEAL_REJECTED_BY_OPERATOR',
 
+  // Additional statuses
+  APPEAL_UPHELD = 'APPEAL_UPHELD',
+  POPLA_APPEAL = 'POPLA_APPEAL',
+  IAS_APPEAL = 'IAS_APPEAL',
+  CANCELLED = 'CANCELLED',
+
   // Legacy statuses (keep for backward compatibility)
   PAID = 'PAID',
   APPEALED = 'APPEALED',
@@ -126,6 +132,7 @@ export type Ticket = {
   letters: Letter[];
   type: TicketType;
   amountDue: number;
+  initialAmount?: number;
   issuer: string;
   issuerType: IssuerType;
   discountedPaymentDeadline: string;
@@ -136,6 +143,17 @@ export type Ticket = {
   media: Media[];
   appeal?: Appeal;
   reminder: Reminder[];
+  tier?: 'FREE' | 'STANDARD' | 'PREMIUM';
+  contraventionCode?: string;
+  contraventionAt?: string;
+  location?: Address | null;
+  prediction?: {
+    percentage: number;
+    numberOfCases: number;
+    confidence: string;
+    metadata?: any;
+  };
+  amountIncreases?: { amount: number; effectiveAt: string }[];
   createdAt: string;
   updatedAt: string;
   issuedAt: string;

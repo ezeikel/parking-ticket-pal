@@ -352,3 +352,14 @@ export const unregisterPushToken = async (token: string) => {
   const response = await api.post('/notifications/unregister-token', { token });
   return response.data;
 };
+
+// Live status
+export const checkTicketLiveStatus = async (ticketId: string) => {
+  const response = await api.post(`/tickets/${ticketId}/live-status`);
+  return response.data;
+};
+
+export const pollTicketLiveStatus = async (ticketId: string) => {
+  const response = await api.get(`/tickets/${ticketId}/live-status`);
+  return response.data;
+};

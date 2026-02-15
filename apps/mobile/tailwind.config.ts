@@ -30,6 +30,7 @@ export default {
           DEFAULT: "#1abc9c",
           dark: "#16a085",
         },
+        yellow: "#FDD835",
         coral: "#ff5a5f",
         amber: "#ffb400",
         success: "#00a699",

@@ -1,55 +1,33 @@
-import React, { forwardRef, useMemo, useState, useEffect } from 'react';
+import React, { forwardRef, useMemo } from 'react';
 import { View, Text } from 'react-native';
 import BottomSheet, { BottomSheetBackdrop, BottomSheetView } from '@gorhom/bottom-sheet';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
-import { faArrowUpWideShort, faArrowDownShortWide, faCheck } from '@fortawesome/pro-regular-svg-icons';
-import type { TicketFilters } from '../../api';
-import { SORT_OPTIONS } from '../../hooks/useTicketFilters';
+import { faCheck } from '@fortawesome/pro-solid-svg-icons';
+import {
+  SORT_OPTIONS,
+  type SortOption,
+} from '../../hooks/useTicketFilters';
 import SquishyPressable from '../SquishyPressable/SquishyPressable';
-import { ActionButton } from '../ActionButton';
 
 interface SortBottomSheetProps {
-  sortBy: TicketFilters['sortBy'];
-  sortOrder: 'asc' | 'desc';
-  onSortChange: (sortBy: TicketFilters['sortBy'], sortOrder: 'asc' | 'desc') => void;
+  sortOption: SortOption;
+  onSortChange: (option: SortOption) => void;
   onChange?: (index: number) => void;
-  onClear?: () => void;
 }
 
 const SortBottomSheet = forwardRef<BottomSheet, SortBottomSheetProps>(
-  ({ sortBy, sortOrder, onSortChange, onChange, onClear }, ref) => {
-    const snapPoints = useMemo(() => ['55%'], []);
-    const [tempSortBy, setTempSortBy] = useState(sortBy);
-    const [tempSortOrder, setTempSortOrder] = useState(sortOrder);
-
-    // Update temp state when props change (i.e., when filters are applied)
-    useEffect(() => {
-      setTempSortBy(sortBy);
-      setTempSortOrder(sortOrder);
-    }, [sortBy, sortOrder]);
+  ({ sortOption, onSortChange, onChange }, ref) => {
+    const snapPoints = useMemo(() => ['35%'], []);
 
     const renderBackdrop = (props: any) => (
       <BottomSheetBackdrop {...props} disappearsOnIndex={-1} appearsOnIndex={0} />
     );
 
-    const handleApply = () => {
-      onSortChange(tempSortBy, tempSortOrder);
+    const handleSelect = (option: SortOption) => {
+      onSortChange(option);
       // @ts-ignore
       ref?.current?.close();
     };
-
-    const handleClearSort = () => {
-      setTempSortBy('issuedAt');
-      setTempSortOrder('desc');
-      onClear?.();
-    };
-
-    const toggleSortOrder = () => {
-      setTempSortOrder(prev => prev === 'asc' ? 'desc' : 'asc');
-    };
-
-    // Check if APPLIED sort (from props) differs from default, not temp state
-    const hasNonDefaultSort = sortBy !== 'issuedAt' || sortOrder !== 'desc';
 
     return (
       <BottomSheet
@@ -59,65 +37,37 @@ const SortBottomSheet = forwardRef<BottomSheet, SortBottomSheetProps>(
         enablePanDownToClose
         backdropComponent={renderBackdrop}
         onChange={onChange}
+        handleIndicatorStyle={{ backgroundColor: '#d1d5db' }}
+        handleStyle={{ paddingTop: 12 }}
       >
         <BottomSheetView className="flex-1 px-4">
           {/* Header */}
-          <View className="flex-row justify-between items-center mb-4 pt-2">
-            <View>
-              <Text className="text-xl font-jakarta-bold text-gray-900">Sort Tickets</Text>
-              <Text className="text-sm text-gray-600 mt-1">
-                Choose how to order your tickets
-              </Text>
-            </View>
-            {hasNonDefaultSort && (
-              <SquishyPressable onPress={handleClearSort}>
-                <Text className="text-sm font-jakarta-semibold text-teal">Clear Sort</Text>
-              </SquishyPressable>
-            )}
-          </View>
-
-          {/* Sort Direction Toggle */}
-          <View className="mb-4 flex-row items-center justify-between bg-gray-50 rounded-xl p-3">
-            <Text className="text-sm font-jakarta-medium text-gray-700">Sort Direction</Text>
-            <SquishyPressable
-              onPress={toggleSortOrder}
-              className="flex-row items-center gap-2 bg-white px-3 py-2 rounded-lg border border-gray-200"
-            >
-              <FontAwesomeIcon
-                icon={tempSortOrder === 'asc' ? faArrowUpWideShort : faArrowDownShortWide}
-                size={16}
-                color="#1abc9c"
-              />
-              <Text className="text-sm font-jakarta-medium text-gray-900">
-                {tempSortOrder === 'asc' ? 'Ascending' : 'Descending'}
-              </Text>
-            </SquishyPressable>
-          </View>
-
-          {/* Sort Options */}
-          <View className="mb-4">
-            <Text className="text-xs font-jakarta-semibold text-gray-500 uppercase mb-2">
-              Sort By
+          <View className="mb-4 pt-2">
+            <Text className="text-xl font-jakarta-bold text-dark">Sort Tickets</Text>
+            <Text className="text-sm font-jakarta text-gray mt-1">
+              Choose how to order your tickets
             </Text>
+          </View>
+
+          {/* Sort options */}
+          <View className="gap-2">
             {SORT_OPTIONS.map((option) => {
-              const isSelected = tempSortBy === option.value;
+              const isSelected = sortOption === option.value;
               return (
                 <SquishyPressable
                   key={option.value}
-                  onPress={() => setTempSortBy(option.value)}
-                  className="mb-2"
+                  onPress={() => handleSelect(option.value)}
                 >
                   <View
-                    className={`flex-row items-center justify-between p-4 rounded-xl border ${
-                      isSelected
-                        ? 'bg-teal/10 border-dark'
-                        : 'bg-white border-gray-200'
-                    }`}
+                    className="flex-row items-center justify-between p-4 rounded-xl border"
+                    style={{
+                      backgroundColor: isSelected ? 'rgba(26, 188, 156, 0.1)' : '#ffffff',
+                      borderColor: isSelected ? '#222222' : '#E2E8F0',
+                    }}
                   >
                     <Text
-                      className={`text-base font-jakarta-medium ${
-                        isSelected ? 'text-teal-dark' : 'text-gray-900'
-                      }`}
+                      className={`text-base ${isSelected ? 'font-jakarta-semibold' : 'font-jakarta-medium'}`}
+                      style={{ color: isSelected ? '#222222' : '#374151' }}
                     >
                       {option.label}
                     </Text>
@@ -128,11 +78,6 @@ const SortBottomSheet = forwardRef<BottomSheet, SortBottomSheetProps>(
                 </SquishyPressable>
               );
             })}
-          </View>
-
-          {/* Apply Button */}
-          <View className="mt-auto py-4 border-t border-gray-200 bg-white" style={{ marginLeft: -16, marginRight: -16, paddingLeft: 16, paddingRight: 16 }}>
-            <ActionButton onPress={handleApply} label="Apply Sort" variant="primary" />
           </View>
         </BottomSheetView>
       </BottomSheet>

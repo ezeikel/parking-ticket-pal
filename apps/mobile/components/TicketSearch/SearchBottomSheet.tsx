@@ -2,7 +2,7 @@ import React, { forwardRef, useMemo, useState, useEffect } from 'react';
 import { View, Text, TextInput } from 'react-native';
 import BottomSheet, { BottomSheetBackdrop, BottomSheetView } from '@gorhom/bottom-sheet';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
-import { faMagnifyingGlass, faXmark } from '@fortawesome/pro-regular-svg-icons';
+import { faMagnifyingGlass, faXmark } from '@fortawesome/pro-solid-svg-icons';
 import SquishyPressable from '../SquishyPressable/SquishyPressable';
 import Loader from '../Loader/Loader';
 

@@ -1,9 +1,9 @@
-import { View, Text, Dimensions, Alert } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { useRef, useMemo, useEffect, useState } from 'react';
+import { View, Text, Dimensions, Alert, Modal, Pressable } from 'react-native';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useRef, useEffect, useState } from 'react';
 import BottomSheet from '@gorhom/bottom-sheet';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
-import { faMagnifyingGlass, faFilter, faArrowDownWideShort, faImage } from '@fortawesome/pro-regular-svg-icons';
+import { faMagnifyingGlass, faFilter, faArrowDownWideShort, faImage, faMap, faXmark } from '@fortawesome/pro-solid-svg-icons';
 import * as ImagePicker from 'expo-image-picker';
 import TicketsList from '@/components/TicketList/TicketsList';
 import { useAnalytics, getOCRAnalyticsProperties, getTicketFormAnalyticsProperties } from '@/lib/analytics';
@@ -14,7 +14,6 @@ import FilterBottomSheet from '@/components/TicketFilter/FilterBottomSheet';
 import SortBottomSheet from '@/components/TicketSort/SortBottomSheet';
 import { useTicketFilters } from '@/hooks/useTicketFilters';
 import useTickets from '@/hooks/api/useTickets';
-import { TicketStatus } from '@/types';
 import { AdBanner } from '@/components/AdBanner';
 import TicketForm from '@/components/TicketForm/TicketForm';
 import useOCR from '@/hooks/api/useOCR';
@@ -22,6 +21,7 @@ import useCreateTicket from '@/hooks/api/useUploadTicket';
 import { useLogger, logScannerIssue } from '@/lib/logger';
 import Loader from '@/components/Loader/Loader';
 import { adService } from '@/services/AdService';
+import TicketsMapView from '@/components/TicketsMapView/TicketsMapView';
 
 const padding = 16;
 const screenWidth = Dimensions.get('screen').width - padding * 2;
@@ -40,6 +40,8 @@ const TicketsScreen = () => {
   const [importedImage, setImportedImage] = useState<string>();
   const [ocrData, setOcrData] = useState<any>(null);
   const [showForm, setShowForm] = useState(false);
+  const [isMapOpen, setIsMapOpen] = useState(false);
+  const insets = useSafeAreaInsets();
 
   const ocrMutation = useOCR();
   const createTicketMutation = useCreateTicket();
@@ -47,37 +49,18 @@ const TicketsScreen = () => {
   const {
     filters,
     search,
+    statusCategory,
+    sortOption,
     updateSearch,
-    updateIssuers,
-    updateStatuses,
+    updateStatusCategory,
     updateSort,
     clearAllFilters,
     clearSearch,
     activeFilterCount,
   } = useTicketFilters();
 
-  // Fetch all tickets (without filters) to get unique issuers and statuses
-  const { data: allTicketsData } = useTickets();
-
-  // Get filtered tickets data to check loading state and result count
+  // Get filtered tickets data to check loading state
   const { isFetching: isSearching, data: filteredTicketsData } = useTickets(filters);
-
-  // Get unique issuer names from all tickets
-  const availableIssuers = useMemo(() => {
-    const ticketsData = allTicketsData as any;
-    if (!ticketsData?.tickets) return [];
-    const issuers = [...new Set(ticketsData.tickets.map((ticket: any) => ticket.issuer))];
-    return issuers.filter(Boolean).sort() as string[];
-  }, [allTicketsData]);
-
-  // Get unique statuses from all tickets
-  const availableStatuses = useMemo(() => {
-    const ticketsData = allTicketsData as any;
-    if (!ticketsData?.tickets) return [];
-    const statuses = [...new Set(ticketsData.tickets.map((ticket: any) => ticket.status))];
-    return statuses.filter(Boolean) as TicketStatus[];
-  }, [allTicketsData]);
-
 
   const handleOpenSearch = () => {
     trackEvent('search_opened', { source: 'tickets_list' });
@@ -118,51 +101,6 @@ const TicketsScreen = () => {
     });
     clearSearch();
   };
-
-  const handleApplyFilters = () => {
-    trackEvent('filters_applied', {
-      issuerCount: filters.issuers?.length || 0,
-      statusCount: filters.status?.length || 0,
-      issuers: filters.issuers || [],
-      statuses: filters.status || [],
-      totalFilters: (filters.issuers?.length || 0) + (filters.status?.length || 0),
-    });
-    filterSheetRef.current?.close();
-  };
-
-  const handleSortChange = (sortBy: typeof filters.sortBy, sortOrder: 'asc' | 'desc') => {
-    trackEvent('sort_applied', {
-      sortBy,
-      sortOrder,
-      previousSortBy: filters.sortBy,
-      previousSortOrder: filters.sortOrder,
-    });
-    updateSort(sortBy, sortOrder);
-  };
-
-  const handleClearFilters = () => {
-    trackEvent('filters_cleared', {
-      clearedIssuers: filters.issuers || [],
-      clearedStatuses: filters.status || [],
-      issuerCount: filters.issuers?.length || 0,
-      statusCount: filters.status?.length || 0,
-    });
-  };
-
-  const handleClearSort = () => {
-    trackEvent('sort_cleared', {
-      previousSortBy: filters.sortBy,
-      previousSortOrder: filters.sortOrder,
-    });
-  };
-
-  const selectedIssuers = useMemo(() => {
-    return (filters.issuers || []) as string[];
-  }, [filters.issuers]);
-
-  const selectedStatuses = useMemo(() => {
-    return (filters.status || []) as TicketStatus[];
-  }, [filters.status]);
 
   // TODO: Photo import handler - temporary solution until camera tab supports gallery access
   const handlePhotoImport = async () => {
@@ -424,25 +362,23 @@ const TicketsScreen = () => {
             className="flex-1 flex-row items-center bg-gray-50 border border-gray-200 rounded-xl px-3 py-2.5"
           >
             <FontAwesomeIcon icon={faMagnifyingGlass} size={16} color="#6b7280" />
-            <Text className="ml-2 text-sm text-gray-500 flex-1">
+            <Text className="ml-2 text-sm text-gray-500 flex-1" numberOfLines={1}>
               {search || 'Search tickets...'}
             </Text>
           </SquishyPressable>
 
-          {/* Filter Button - Show if multiple issuers or any statuses */}
-          {(availableIssuers.length > 1 || availableStatuses.length > 0) && (
-            <SquishyPressable
-              onPress={handleOpenFilter}
-              className="relative bg-gray-50 border border-gray-200 rounded-xl p-3"
-            >
-              <FontAwesomeIcon icon={faFilter} size={20} color="#6b7280" />
-              {activeFilterCount > 0 && (
-                <View className="absolute -top-1 -right-1 w-5 h-5 bg-dark rounded-full items-center justify-center">
-                  <Text className="text-white text-xs font-jakarta-bold">{activeFilterCount}</Text>
-                </View>
-              )}
-            </SquishyPressable>
-          )}
+          {/* Filter Button */}
+          <SquishyPressable
+            onPress={handleOpenFilter}
+            className="relative bg-gray-50 border border-gray-200 rounded-xl p-3"
+          >
+            <FontAwesomeIcon icon={faFilter} size={20} color="#6b7280" />
+            {activeFilterCount > 0 && (
+              <View className="absolute -top-1 -right-1 w-5 h-5 bg-dark rounded-full items-center justify-center">
+                <Text className="text-white text-xs font-jakarta-bold">{activeFilterCount}</Text>
+              </View>
+            )}
+          </SquishyPressable>
 
           {/* Sort Button */}
           <SquishyPressable
@@ -479,27 +415,76 @@ const TicketsScreen = () => {
         isLoading={isSearching}
       />
 
-      {(availableIssuers.length > 1 || availableStatuses.length > 0) && (
-        <FilterBottomSheet
-          ref={filterSheetRef}
-          availableIssuers={availableIssuers}
-          availableStatuses={availableStatuses}
-          selectedIssuers={selectedIssuers}
-          selectedStatuses={selectedStatuses}
-          onIssuersChange={updateIssuers}
-          onStatusesChange={updateStatuses}
-          onApply={handleApplyFilters}
-          onClear={handleClearFilters}
-        />
-      )}
+      <FilterBottomSheet
+        ref={filterSheetRef}
+        statusCategory={statusCategory}
+        onStatusCategoryChange={updateStatusCategory}
+      />
 
       <SortBottomSheet
         ref={sortSheetRef}
-        sortBy={filters.sortBy}
-        sortOrder={filters.sortOrder || 'desc'}
-        onSortChange={handleSortChange}
-        onClear={handleClearSort}
+        sortOption={sortOption}
+        onSortChange={updateSort}
       />
+
+      {/* Map FAB */}
+      <Pressable
+        onPress={() => setIsMapOpen(true)}
+        style={{
+          position: 'absolute',
+          bottom: insets.bottom + 16,
+          right: 16,
+          zIndex: 10,
+          width: 56,
+          height: 56,
+          borderRadius: 28,
+          backgroundColor: '#222222',
+          alignItems: 'center',
+          justifyContent: 'center',
+          shadowColor: '#000',
+          shadowOffset: { width: 0, height: 4 },
+          shadowOpacity: 0.3,
+          shadowRadius: 8,
+          elevation: 8,
+        }}
+      >
+        <FontAwesomeIcon icon={faMap} size={22} color="#ffffff" />
+      </Pressable>
+
+      {/* Map Modal */}
+      <Modal
+        visible={isMapOpen}
+        animationType="slide"
+        presentationStyle="fullScreen"
+      >
+        <View style={{ flex: 1 }}>
+          <TicketsMapView tickets={((filteredTicketsData as any)?.tickets || []) as any} />
+
+          {/* Close button */}
+          <Pressable
+            onPress={() => setIsMapOpen(false)}
+            style={{
+              position: 'absolute',
+              top: insets.top + 12,
+              left: 16,
+              zIndex: 10,
+              width: 40,
+              height: 40,
+              borderRadius: 20,
+              backgroundColor: '#ffffff',
+              alignItems: 'center',
+              justifyContent: 'center',
+              shadowColor: '#000',
+              shadowOffset: { width: 0, height: 2 },
+              shadowOpacity: 0.15,
+              shadowRadius: 6,
+              elevation: 5,
+            }}
+          >
+            <FontAwesomeIcon icon={faXmark} size={20} color="#222222" />
+          </Pressable>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
