@@ -3,28 +3,23 @@ import { View, Image, Text, Alert, Platform } from 'react-native';
 import DocumentScanner, { ResponseType } from 'react-native-document-scanner-plugin';
 import * as ImagePicker from 'expo-image-picker';
 
-import useOCR from '@/hooks/api/useOCR';
-import useCreateTicket from '@/hooks/api/useUploadTicket';
-import TicketForm from '@/components/TicketForm/TicketForm';
-import { useAnalytics, getOCRAnalyticsProperties, getTicketFormAnalyticsProperties } from '@/lib/analytics';
+import useOCR, { type OCRProcessingResult } from '@/hooks/api/useOCR';
+import { useAnalytics, getOCRAnalyticsProperties } from '@/lib/analytics';
 import { useLogger, logScannerIssue } from '@/lib/logger';
 import Loader from '../Loader/Loader';
 import SquishyPressable from '@/components/SquishyPressable/SquishyPressable';
-import { adService } from '@/services/AdService';
 
 
 type ScannerProps = {
   onClose?: () => void;
   onImageScanned?: () => void;
+  onOCRComplete: (ocrResult: OCRProcessingResult) => void;
 }
 
-const Scanner = ({ onClose, onImageScanned }: ScannerProps) => {
+const Scanner = ({ onClose, onImageScanned, onOCRComplete }: ScannerProps) => {
   const [scannedImage, setScannedImage] = useState<string>();
-  const [ocrData, setOcrData] = useState<any>(null);
-  const [showForm, setShowForm] = useState(false);
 
   const ocrMutation = useOCR();
-  const createTicketMutation = useCreateTicket();
   const { trackEvent, trackError } = useAnalytics();
   const logger = useLogger();
 
@@ -271,8 +266,8 @@ const Scanner = ({ onClose, onImageScanned }: ScannerProps) => {
           screen: "scanner",
           ...ocrProperties
         });
-        setOcrData(ocrResult);
-        setShowForm(true);
+
+        onOCRComplete(ocrResult);
       } else {
         logger.ocrError('OCR processing failed', undefined, {
           screen: "scanner",
@@ -297,105 +292,11 @@ const Scanner = ({ onClose, onImageScanned }: ScannerProps) => {
     }
   };
 
-  const handleFormSubmit = async (formData: any) => {
-    try {
-      const ticketData = {
-        ...formData,
-        tempImageUrl: ocrData?.imageUrl,
-        tempImagePath: ocrData?.tempImagePath,
-        extractedText: ocrData?.data?.extractedText,
-      };
-
-      const formProperties = getTicketFormAnalyticsProperties(formData);
-      trackEvent("ticket_form_submitted", {
-        screen: "scanner",
-        ...formProperties
-      });
-
-      const result = await createTicketMutation.mutateAsync(ticketData);
-
-      if (result.success) {
-        trackEvent("ticket_created", {
-          screen: "scanner",
-          ...formProperties
-        });
-
-        // Show interstitial ad before success message
-        await adService.showAd();
-
-        Alert.alert('Success', 'Ticket created successfully!', [
-          { text: 'OK', onPress: () => onClose?.() }
-        ]);
-      } else {
-        trackError(result.error || 'Failed to create ticket', {
-          screen: "scanner",
-          action: "create_ticket",
-          errorType: "network"
-        });
-        Alert.alert('Error', result.error || 'Failed to create ticket.');
-      }
-    } catch (error) {
-      logger.error('Error creating ticket', { screen: "scanner" }, error as Error);
-      trackError(error as Error, {
-        screen: "scanner",
-        action: "create_ticket",
-        errorType: "network"
-      });
-      Alert.alert('Error', 'Failed to create ticket. Please try again.');
-    }
-  };
-
-  const handleFormCancel = () => {
-    trackEvent("ticket_form_cancelled", { screen: "scanner" });
-    setShowForm(false);
-    setOcrData(null);
-  };
-
   const handleRetry = () => {
     trackEvent("ticket_scan_retry", { screen: "scanner" });
     setScannedImage(undefined);
-    setOcrData(null);
-    setShowForm(false);
     scanDocument();
   };
-
-  // Show the form after OCR processing
-  if (showForm && ocrData) {
-    const initialFormData = {
-      vehicleReg: ocrData.data?.vehicleReg || '',
-      pcnNumber: ocrData.data?.pcnNumber || '',
-      issuedAt: ocrData.data?.issuedAt ? new Date(ocrData.data.issuedAt) : new Date(),
-      contraventionCode: ocrData.data?.contraventionCode || '',
-      initialAmount: ocrData.data?.initialAmount || 0,
-      issuer: ocrData.data?.issuer || '',
-      location: ocrData.data?.location || {
-        line1: '',
-        city: '',
-        postcode: '',
-        country: 'United Kingdom',
-        coordinates: {
-          latitude: 0,
-          longitude: 0,
-        },
-      },
-    };
-
-    // Track form opened with prefilled data info
-    trackEvent("ticket_form_opened", {
-      screen: "scanner",
-      is_prefilled: true,
-      ...getTicketFormAnalyticsProperties(initialFormData)
-    });
-
-    return (
-      <TicketForm
-        initialData={initialFormData}
-        onSubmit={handleFormSubmit}
-        onCancel={handleFormCancel}
-        isLoading={createTicketMutation.isPending}
-      />
-    );
-  }
 
   if (!scannedImage) {
     // don't show any UI while camera is opening - Instagram-like experience

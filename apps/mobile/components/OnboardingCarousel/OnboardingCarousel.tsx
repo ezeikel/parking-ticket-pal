@@ -7,16 +7,21 @@ import Animated, {
 } from 'react-native-reanimated';
 import { useState, useCallback, useRef } from 'react';
 import { useAnalytics } from '@/lib/analytics';
+import type { OCRProcessingResult } from '@/hooks/api/useOCR';
+import type { WizardResult } from '@/components/TicketWizard/types';
 import WelcomeSlide from './WelcomeSlide';
 import AIAppealsSlide from './AIAppealsSlide';
 import TrackWinSlide from './TrackWinSlide';
 import ScanTicketSlide from './ScanTicketSlide';
-import GetStartedSlide from './GetStartedSlide';
 import CameraSheet from '@/components/CameraSheet/CameraSheet';
+import TicketWizard from '@/components/TicketWizard/TicketWizard';
+import { Paywall } from '@/components/Paywall/Paywall';
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
-const SLIDE_COUNT = 5;
+const SLIDE_COUNT = 4;
+
+type OnboardingPhase = 'carousel' | 'wizard' | 'paywall';
 
 interface PaginationDotProps {
   index: number;
@@ -92,6 +97,11 @@ const OnboardingCarousel = ({ onComplete, onTicketCreated }: OnboardingCarouselP
   const [isCameraVisible, setIsCameraVisible] = useState(false);
   const { trackEvent } = useAnalytics();
 
+  // Phase state machine
+  const [phase, setPhase] = useState<OnboardingPhase>('carousel');
+  const [ocrData, setOcrData] = useState<OCRProcessingResult | null>(null);
+  const [wizardResult, setWizardResult] = useState<WizardResult | null>(null);
+
   const updateCurrentSlide = (progress: number) => {
     const newSlide = Math.round(progress);
     if (newSlide !== currentSlide) {
@@ -99,39 +109,31 @@ const OnboardingCarousel = ({ onComplete, onTicketCreated }: OnboardingCarouselP
     }
   };
 
-  const goToSlide = useCallback(
-    (index: number) => {
-      if (carouselRef.current) {
-        // scrollTo expects relative offset from current
-        const offset = index - currentSlide;
-        if (offset !== 0) {
-          for (let i = 0; i < Math.abs(offset); i++) {
-            if (offset > 0) {
-              carouselRef.current.next();
-            } else {
-              carouselRef.current.prev();
-            }
-          }
-        }
-      }
-    },
-    [currentSlide],
-  );
-
   const handleScanNow = () => {
     trackEvent('onboarding_scan_now_tapped', { screen: 'onboarding', slide: 3 });
     setIsCameraVisible(true);
   };
 
+  const handleManualEntry = () => {
+    trackEvent('onboarding_manual_entry_tapped', { screen: 'onboarding', slide: 3 });
+    setIsCameraVisible(false);
+    setOcrData(null);
+    setPhase('wizard');
+  };
+
   const handleScanSkip = () => {
     trackEvent('onboarding_scan_skipped', { screen: 'onboarding', slide: 3 });
-    goToSlide(4);
+    setPhase('paywall');
   };
+
+  const handleOCRComplete = useCallback((result: OCRProcessingResult) => {
+    setIsCameraVisible(false);
+    setOcrData(result);
+    setPhase('wizard');
+  }, []);
 
   const handleCameraClose = () => {
     setIsCameraVisible(false);
-    // After camera closes (ticket created or dismissed), go to last slide
-    goToSlide(4);
   };
 
   const handleSkip = () => {
@@ -139,8 +141,23 @@ const OnboardingCarousel = ({ onComplete, onTicketCreated }: OnboardingCarouselP
       screen: 'onboarding',
       skipped_at_slide: currentSlide,
     });
-    onComplete();
+    setPhase('paywall');
   };
+
+  const handleWizardComplete = useCallback((result: WizardResult) => {
+    setWizardResult(result);
+    onTicketCreated?.(result.ticketId);
+    setPhase('paywall');
+  }, [onTicketCreated]);
+
+  const handleWizardCancel = useCallback(() => {
+    setOcrData(null);
+    setPhase('carousel');
+  }, []);
+
+  const handleOnboardingComplete = useCallback(() => {
+    onComplete();
+  }, [onComplete]);
 
   const renderSlide = ({ index }: { index: number }) => {
     const isActive = currentSlide === index;
@@ -153,19 +170,43 @@ const OnboardingCarousel = ({ onComplete, onTicketCreated }: OnboardingCarouselP
         return <TrackWinSlide isActive={isActive} />;
       case 3:
         return (
-          <ScanTicketSlide isActive={isActive} onScanNow={handleScanNow} onSkip={handleScanSkip} />
+          <ScanTicketSlide
+            isActive={isActive}
+            onScanNow={handleScanNow}
+            onManualEntry={handleManualEntry}
+            onSkip={handleScanSkip}
+          />
         );
-      case 4:
-        return <GetStartedSlide isActive={isActive} onGetStarted={onComplete} />;
       default:
         return null;
     }
   };
 
-  // Hide pagination on scan and get-started slides (they have their own CTAs)
+  // Hide pagination on scan slide (it has its own CTAs)
   const showPagination = currentSlide < 3;
   const showSkip = currentSlide < 3;
   const showNextButton = currentSlide < 3;
+
+  if (phase === 'wizard') {
+    return (
+      <TicketWizard
+        ocrData={ocrData}
+        onComplete={handleWizardComplete}
+        onCancel={handleWizardCancel}
+      />
+    );
+  }
+
+  if (phase === 'paywall') {
+    return (
+      <Paywall
+        mode={wizardResult?.intent === 'challenge' ? 'ticket_upgrades' : 'subscriptions'}
+        ticketId={wizardResult?.ticketId}
+        onClose={handleOnboardingComplete}
+        onPurchaseComplete={handleOnboardingComplete}
+      />
+    );
+  }
 
   return (
     <View className="flex-1 bg-white">
@@ -241,7 +282,12 @@ const OnboardingCarousel = ({ onComplete, onTicketCreated }: OnboardingCarouselP
       )}
 
       {/* Camera Sheet for ticket scanning */}
-      <CameraSheet isVisible={isCameraVisible} onClose={handleCameraClose} />
+      <CameraSheet
+        isVisible={isCameraVisible}
+        onClose={handleCameraClose}
+        onboardingMode
+        onOCRComplete={handleOCRComplete}
+      />
     </View>
   );
 };

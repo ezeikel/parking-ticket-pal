@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { View, Dimensions, Text } from 'react-native';
+import { View, Dimensions, Text, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Animated, {
   useSharedValue,
@@ -12,20 +12,30 @@ import Animated, {
 } from 'react-native-reanimated';
 import { Gesture, GestureDetector, GestureHandlerRootView } from 'react-native-gesture-handler';
 import Scanner from '@/components/Scanner/Scanner';
+import TicketWizard from '@/components/TicketWizard/TicketWizard';
+import { Paywall } from '@/components/Paywall/Paywall';
 import { useCameraContext } from '@/contexts/CameraContext';
+import { useAnalytics } from '@/lib/analytics';
+import { adService } from '@/services/AdService';
 import Loader from '../Loader/Loader';
-import SquishyPressable from '@/components/SquishyPressable/SquishyPressable';
+import type { OCRProcessingResult } from '@/hooks/api/useOCR';
+import type { WizardResult } from '@/components/TicketWizard/types';
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 const SHEET_ANIMATION_DURATION = 300;
 const DISMISS_THRESHOLD = SCREEN_HEIGHT * 0.3; // 30% of screen height
 
+type CameraSheetPhase = 'scanning' | 'wizard' | 'paywall';
+
 type CameraSheetProps = {
   isVisible: boolean;
   onClose: () => void;
+  /** When true, skip wizard/paywall and just hand off OCR data (used by OnboardingCarousel) */
+  onboardingMode?: boolean;
+  onOCRComplete?: (ocrResult: OCRProcessingResult) => void;
 };
 
-const CameraSheet = ({ isVisible, onClose }: CameraSheetProps) => {
+const CameraSheet = ({ isVisible, onClose, onboardingMode, onOCRComplete }: CameraSheetProps) => {
   const translateY = useSharedValue(SCREEN_HEIGHT);
   const animationStarted = useSharedValue(0); // 0 = not started, 1 = started
   const [isLoadingPermissions, setIsLoadingPermissions] = useState(false);
@@ -37,12 +47,21 @@ const CameraSheet = ({ isVisible, onClose }: CameraSheetProps) => {
     requestMediaLibraryPermission,
     arePermissionsReady
   } = useCameraContext();
+  const { trackEvent } = useAnalytics();
+
+  // Internal phase state for non-onboarding flow
+  const [phase, setPhase] = useState<CameraSheetPhase>('scanning');
+  const [ocrData, setOcrData] = useState<OCRProcessingResult | null>(null);
+  const [wizardResult, setWizardResult] = useState<WizardResult | null>(null);
 
   useEffect(() => {
     if (isVisible) {
       // Reset all state when opening
       setIsLoadingPermissions(false);
       setShouldShowScanner(false);
+      setPhase('scanning');
+      setOcrData(null);
+      setWizardResult(null);
       animationStarted.value = 0;
 
       // Pre-request permissions first
@@ -53,6 +72,9 @@ const CameraSheet = ({ isVisible, onClose }: CameraSheetProps) => {
       setIsLoadingPermissions(false);
       setScannerKey(prev => prev + 1);
       animationStarted.value = 0;
+      setPhase('scanning');
+      setOcrData(null);
+      setWizardResult(null);
 
       // Don't animate on close, just reset values
       translateY.value = SCREEN_HEIGHT;
@@ -93,25 +115,70 @@ const CameraSheet = ({ isVisible, onClose }: CameraSheetProps) => {
     onClose();
   }, [onClose]);
 
+  const handleOCRComplete = useCallback((result: OCRProcessingResult) => {
+    if (onboardingMode && onOCRComplete) {
+      // In onboarding mode, hand off to the parent (OnboardingCarousel manages wizard/paywall)
+      onOCRComplete(result);
+      return;
+    }
+
+    // Non-onboarding: manage wizard internally
+    setOcrData(result);
+    setPhase('wizard');
+  }, [onboardingMode, onOCRComplete]);
+
+  const handleWizardComplete = useCallback((result: WizardResult) => {
+    setWizardResult(result);
+    trackEvent('camera_wizard_completed', {
+      screen: 'camera',
+      intent: result.intent,
+      ticket_id: result.ticketId,
+    });
+
+    if (result.intent === 'challenge') {
+      // Show paywall for challenge flow
+      setPhase('paywall');
+    } else {
+      // Track flow: show ad, then close
+      (async () => {
+        await adService.showAd();
+        Alert.alert('Success', 'Ticket created successfully!', [
+          { text: 'OK', onPress: handleClose }
+        ]);
+      })();
+    }
+  }, [trackEvent, handleClose]);
+
+  const handleWizardCancel = useCallback(() => {
+    // Go back to scanning
+    setOcrData(null);
+    setPhase('scanning');
+    setScannerKey(prev => prev + 1);
+  }, []);
+
+  const handlePaywallClose = useCallback(() => {
+    handleClose();
+  }, [handleClose]);
+
+  const handlePurchaseComplete = useCallback(() => {
+    handleClose();
+  }, [handleClose]);
+
+  // Gesture handling - only allow drag-to-dismiss during scanning phase
   const pan = Gesture.Pan()
-    .onBegin(() => {
-      // Store the initial position when gesture begins
-    })
+    .enabled(phase === 'scanning')
     .onUpdate((event) => {
-      // Only allow downward movement
       const newY = Math.max(0, event.translationY);
       translateY.value = newY;
-      // Backdrop opacity is now automatically calculated from translateY in the animated style
     })
     .onEnd((event) => {
       const shouldDismiss =
         translateY.value > DISMISS_THRESHOLD ||
-        event.velocityY > 1000; // Fast swipe down
+        event.velocityY > 1000;
 
       if (shouldDismiss) {
         runOnJS(handleClose)();
       } else {
-        // Snap back to open position - backdrop will follow automatically
         translateY.value = withTiming(0, {
           duration: SHEET_ANIMATION_DURATION,
           easing: Easing.out(Easing.cubic)
@@ -124,12 +191,10 @@ const CameraSheet = ({ isVisible, onClose }: CameraSheetProps) => {
   }));
 
   const backdropAnimatedStyle = useAnimatedStyle(() => {
-    // Only show backdrop after animation has started
     if (animationStarted.value === 0) {
       return { opacity: 0 };
     }
 
-    // Make backdrop opacity tied to sheet position for perfect sync
     const opacity = interpolate(
       translateY.value,
       [SCREEN_HEIGHT, 0],
@@ -137,15 +202,77 @@ const CameraSheet = ({ isVisible, onClose }: CameraSheetProps) => {
       Extrapolate.CLAMP
     );
 
-    return {
-      opacity: opacity,
-    };
+    return { opacity };
   });
 
-  // Don't render anything if not visible
   if (!isVisible) {
     return null;
   }
+
+  const renderContent = () => {
+    if (phase === 'wizard' && ocrData) {
+      return (
+        <View style={{ flex: 1, backgroundColor: 'white' }}>
+          <TicketWizard
+            ocrData={ocrData}
+            onComplete={handleWizardComplete}
+            onCancel={handleWizardCancel}
+          />
+        </View>
+      );
+    }
+
+    if (phase === 'paywall' && wizardResult) {
+      return (
+        <View style={{ flex: 1, backgroundColor: 'white' }}>
+          <Paywall
+            mode="ticket_upgrades"
+            ticketId={wizardResult.ticketId}
+            onClose={handlePaywallClose}
+            onPurchaseComplete={handlePurchaseComplete}
+          />
+        </View>
+      );
+    }
+
+    // Scanning phase
+    return (
+      <View style={{ flex: 1, backgroundColor: 'black' }}>
+        {isLoadingPermissions ? (
+          <View style={{
+            flex: 1,
+            justifyContent: 'center',
+            alignItems: 'center',
+            backgroundColor: 'black'
+          }}>
+            <Loader size={48} color="white" />
+            <Text style={{
+              color: 'white',
+              marginTop: 16,
+              fontSize: 16,
+              fontFamily: 'Inter18pt-Regular'
+            }}>
+              Preparing Camera...
+            </Text>
+          </View>
+        ) : shouldShowScanner ? (
+          <Scanner
+            key={`scanner-${scannerKey}`}
+            onClose={handleClose}
+            onImageScanned={() => {
+              // Keep sheet open during image processing
+            }}
+            onOCRComplete={handleOCRComplete}
+          />
+        ) : (
+          <View style={{
+            flex: 1,
+            backgroundColor: 'black'
+          }} />
+        )}
+      </View>
+    );
+  };
 
   return (
     <GestureHandlerRootView
@@ -158,7 +285,7 @@ const CameraSheet = ({ isVisible, onClose }: CameraSheetProps) => {
         zIndex: 1000
       }}
     >
-      {/* Backdrop */}
+      {/* Backdrop - only tappable during scanning phase */}
       <Animated.View
         style={[
           {
@@ -172,11 +299,11 @@ const CameraSheet = ({ isVisible, onClose }: CameraSheetProps) => {
           },
           backdropAnimatedStyle,
         ]}
+        pointerEvents={phase === 'scanning' ? 'auto' : 'none'}
       >
-        <SquishyPressable
-          style={{ flex: 1 }}
-          onPress={handleClose}
-        />
+        {phase === 'scanning' && (
+          <View style={{ flex: 1 }} onTouchEnd={handleClose} />
+        )}
       </Animated.View>
 
       {/* Camera Sheet */}
@@ -191,67 +318,34 @@ const CameraSheet = ({ isVisible, onClose }: CameraSheetProps) => {
               height: SCREEN_HEIGHT,
               backgroundColor: 'white',
               zIndex: 1002,
-              borderTopLeftRadius: 16,
-              borderTopRightRadius: 16,
+              borderTopLeftRadius: phase === 'scanning' ? 16 : 0,
+              borderTopRightRadius: phase === 'scanning' ? 16 : 0,
             },
             sheetAnimatedStyle,
           ]}
         >
-          {/* Drag Handle */}
-          <View
-            style={{
-              alignItems: 'center',
-              paddingTop: 8,
-              paddingBottom: 4,
-            }}
-          >
+          {/* Drag Handle - only show during scanning */}
+          {phase === 'scanning' && (
             <View
               style={{
-                width: 36,
-                height: 4,
-                backgroundColor: '#D1D5DB',
-                borderRadius: 2,
+                alignItems: 'center',
+                paddingTop: 8,
+                paddingBottom: 4,
               }}
-            />
-          </View>
-
-          <SafeAreaView style={{ flex: 1 }} edges={['bottom']}>
-            <View style={{ flex: 1, backgroundColor: 'black' }}>
-              {/* Show loading state while permissions are being requested */}
-              {isLoadingPermissions ? (
-                <View style={{
-                  flex: 1,
-                  justifyContent: 'center',
-                  alignItems: 'center',
-                  backgroundColor: 'black'
-                }}>
-                  <Loader size={48} color="white" />
-                  <Text style={{
-                    color: 'white',
-                    marginTop: 16,
-                    fontSize: 16,
-                    fontFamily: 'Inter18pt-Regular'
-                  }}>
-                    Preparing Camera...
-                  </Text>
-                </View>
-              ) : shouldShowScanner ? (
-                /* Controlled Scanner mounting for proper lifecycle */
-                <Scanner
-                  key={`scanner-${scannerKey}`}
-                  onClose={handleClose}
-                  onImageScanned={() => {
-                    // Keep sheet open during image processing
-                  }}
-                />
-              ) : (
-                /* Black placeholder while not ready */
-                <View style={{
-                  flex: 1,
-                  backgroundColor: 'black'
-                }} />
-              )}
+            >
+              <View
+                style={{
+                  width: 36,
+                  height: 4,
+                  backgroundColor: '#D1D5DB',
+                  borderRadius: 2,
+                }}
+              />
             </View>
+          )}
+
+          <SafeAreaView style={{ flex: 1 }} edges={phase === 'scanning' ? ['bottom'] : []}>
+            {renderContent()}
           </SafeAreaView>
         </Animated.View>
       </GestureDetector>

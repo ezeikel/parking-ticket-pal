@@ -10,16 +10,17 @@ import Animated, {
 } from 'react-native-reanimated';
 import { useEffect, useState } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
-import { faCamera, faForward } from '@fortawesome/pro-solid-svg-icons';
+import { faCamera, faForward, faPenToSquare } from '@fortawesome/pro-solid-svg-icons';
 import SquishyPressable from '@/components/SquishyPressable/SquishyPressable';
 
 type ScanTicketSlideProps = {
   isActive: boolean;
   onScanNow: () => void;
+  onManualEntry: () => void;
   onSkip: () => void;
 };
 
-const ScanTicketSlide = ({ isActive, onScanNow, onSkip }: ScanTicketSlideProps) => {
+const ScanTicketSlide = ({ isActive, onScanNow, onManualEntry, onSkip }: ScanTicketSlideProps) => {
   const [hasBeenActive, setHasBeenActive] = useState(false);
   const pulse = useSharedValue(1);
 
@@ -99,12 +100,22 @@ const ScanTicketSlide = ({ isActive, onScanNow, onSkip }: ScanTicketSlideProps) 
         </SquishyPressable>
 
         <SquishyPressable
-          onPress={onSkip}
-          className="py-4 rounded-xl items-center justify-center flex-row gap-x-2"
+          onPress={onManualEntry}
+          className="py-4 rounded-xl items-center justify-center flex-row gap-x-2 mb-3"
           style={{ backgroundColor: '#F3F4F6' }}
         >
-          <FontAwesomeIcon icon={faForward} size={14} color="#6B7280" />
+          <FontAwesomeIcon icon={faPenToSquare} size={14} color="#6B7280" />
           <Text className="font-jakarta-medium text-gray-500 text-base">
+            I'll enter details manually
+          </Text>
+        </SquishyPressable>
+
+        <SquishyPressable
+          onPress={onSkip}
+          className="py-4 rounded-xl items-center justify-center flex-row gap-x-2"
+        >
+          <FontAwesomeIcon icon={faForward} size={14} color="#9CA3AF" />
+          <Text className="font-jakarta-medium text-gray-400 text-base">
             Not right now
           </Text>
         </SquishyPressable>
