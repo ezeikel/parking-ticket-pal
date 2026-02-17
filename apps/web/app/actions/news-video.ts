@@ -252,6 +252,7 @@ ${combinedResults}`,
   const existing = await db.newsVideo.findMany({
     where: {
       articleUrlHash: { in: urlHashes.map((a) => a.hash) },
+      status: { not: 'FAILED' },
     },
     select: { articleUrlHash: true },
   });
@@ -277,6 +278,7 @@ ${combinedResults}`,
   // 3b. Semantic dedup — filter out articles covering the same story as
   //     previously processed ones (e.g. BBC and Sky reporting the same news)
   const existingVideos = await db.newsVideo.findMany({
+    where: { status: { not: 'FAILED' } },
     orderBy: { createdAt: 'desc' },
     take: 30,
     select: { headline: true, summary: true },
@@ -840,10 +842,14 @@ export const generateAndPostNewsVideo = async () => {
       return { success: true, skipped: true, diagnostics };
     }
 
-    // 2. Create tracking record
+    // 2. Create tracking record (delete any previous failed attempt first)
     const articleUrlHash = createHash('sha256')
       .update(article.url)
       .digest('hex');
+
+    await db.newsVideo.deleteMany({
+      where: { articleUrlHash, status: 'FAILED' },
+    });
 
     const videoRecord = await db.newsVideo.create({
       data: {
