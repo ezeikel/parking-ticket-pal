@@ -1,7 +1,7 @@
 import { type NextRequest, NextResponse } from 'next/server';
 import { generateAndPostNewsVideo } from '@/app/actions/news-video';
 import { createServerLogger } from '@/lib/logger';
-import { sendNewsVideoSkipped } from '@/lib/email';
+import { sendNewsVideoSkipped, sendNewsVideoFailed } from '@/lib/email';
 
 const log = createServerLogger({ action: 'news-video-generate' });
 
@@ -55,6 +55,27 @@ const handleRequest = async (request: NextRequest) => {
 
     if (!result.success) {
       log.error('News video generation failed', { error: result.error });
+
+      const digestEmail = process.env.SOCIAL_DIGEST_EMAIL;
+      if (digestEmail) {
+        try {
+          await sendNewsVideoFailed(digestEmail, {
+            failedAt: new Date().toISOString(),
+            errorMessage: result.error || 'Unknown error',
+            videoId: result.videoId,
+            headline:
+              'headline' in result ? (result.headline as string) : undefined,
+          });
+          log.info('Failure notification email sent');
+        } catch (emailErr) {
+          log.error(
+            'Failed to send failure notification email',
+            {},
+            emailErr instanceof Error ? emailErr : undefined,
+          );
+        }
+      }
+
       return NextResponse.json(
         { error: result.error, videoId: result.videoId },
         { status: 500 },
@@ -80,6 +101,19 @@ const handleRequest = async (request: NextRequest) => {
       undefined,
       error instanceof Error ? error : undefined,
     );
+
+    const digestEmail = process.env.SOCIAL_DIGEST_EMAIL;
+    if (digestEmail) {
+      try {
+        await sendNewsVideoFailed(digestEmail, {
+          failedAt: new Date().toISOString(),
+          errorMessage:
+            error instanceof Error ? error.message : 'Unknown error',
+        });
+      } catch {
+        // Best-effort — don't let email failure mask the original error
+      }
+    }
 
     return NextResponse.json(
       {

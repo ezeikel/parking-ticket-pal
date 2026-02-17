@@ -460,7 +460,9 @@ const newsScriptSchema = z.object({
 type NewsScriptSegments = z.infer<typeof newsScriptSchema>;
 
 /**
- * Generate a video script for a news article using Claude Sonnet 4.5.
+ * Generate a video script for a news article.
+ * Tries Claude Sonnet 4.5 first (best creative writing), falls back to GPT-4o
+ * if Anthropic is overloaded or unavailable.
  */
 const generateNewsScript = async (article: {
   headline: string;
@@ -468,14 +470,7 @@ const generateNewsScript = async (article: {
   category: string;
   summary: string;
 }): Promise<NewsScriptSegments> => {
-  logger.info('Generating news script with Claude Sonnet 4.5');
-
-  const { object: script } = await generateObject({
-    model: getTracedModel(models.creative, {
-      properties: { feature: 'news_video_script' },
-    }),
-    schema: newsScriptSchema,
-    prompt: `You are writing a script for a 60-90 second social media video (Instagram Reel / TikTok / YouTube Short) about a real UK motorist news story.
+  const scriptPrompt = `You are writing a script for a 60-90 second social media video (Instagram Reel / TikTok / YouTube Short) about a real UK motorist news story.
 
 The video tells the story in an educational, engaging way — like a knowledgeable friend explaining what happened and what we can learn from it.
 
@@ -510,10 +505,46 @@ SCENE IMAGE PROMPTS:
 For each segment, write a short image prompt (1-2 sentences) describing a specific scene. These will be rendered as soft 3D clay miniature dioramas.
 - Reference the actual story details: real locations, real situations
 - Be specific — "a clay parking meter on a busy high street with a council warden writing a ticket" not "a parking scene"
-- Each scene should tell a visual mini-story matching the script segment`,
+- Each scene should tell a visual mini-story matching the script segment`;
+
+  // Try Claude Sonnet 4.5 first with more retries (default is 2)
+  try {
+    logger.info('Generating news script with Claude Sonnet 4.5');
+
+    const { object: script } = await generateObject({
+      model: getTracedModel(models.creative, {
+        properties: { feature: 'news_video_script' },
+      }),
+      schema: newsScriptSchema,
+      maxRetries: 5,
+      prompt: scriptPrompt,
+    });
+
+    logger.info('News script generated (Claude)', {
+      wordCount: script.fullScript.split(/\s+/).length,
+    });
+
+    return script;
+  } catch (error) {
+    const errMsg = error instanceof Error ? error.message : String(error);
+    logger.warn(
+      `Claude script generation failed, falling back to GPT-4o: ${errMsg}`,
+    );
+  }
+
+  // Fallback to GPT-4o
+  logger.info('Generating news script with GPT-4o (fallback)');
+
+  const { object: script } = await generateObject({
+    model: getTracedModel(models.text, {
+      properties: { feature: 'news_video_script_fallback' },
+    }),
+    schema: newsScriptSchema,
+    maxRetries: 3,
+    prompt: scriptPrompt,
   });
 
-  logger.info('News script generated', {
+  logger.info('News script generated (GPT-4o fallback)', {
     wordCount: script.fullScript.split(/\s+/).length,
   });
 
@@ -798,6 +829,7 @@ const generateSceneImages = async (sceneImagePrompts: {
  */
 export const generateAndPostNewsVideo = async () => {
   let videoRecordId: string | null = null;
+  let articleHeadline: string | null = null;
 
   try {
     // 1. Discover news article
@@ -827,6 +859,7 @@ export const generateAndPostNewsVideo = async () => {
       },
     });
     videoRecordId = videoRecord.id;
+    articleHeadline = article.headline;
 
     logger.info('Created news video record', { videoId: videoRecord.id });
 
@@ -979,6 +1012,7 @@ export const generateAndPostNewsVideo = async () => {
       success: false,
       error: err.message,
       videoId: videoRecordId ?? undefined,
+      headline: articleHeadline ?? undefined,
     };
   }
 };

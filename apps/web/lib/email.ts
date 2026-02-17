@@ -9,6 +9,7 @@ import MagicLinkEmail from '@/components/emails/MagicLinkEmail';
 import TicketReminderEmail from '@/components/emails/TicketReminderEmail';
 import SocialDigestEmail from '@/emails/SocialDigestEmail';
 import NewsVideoSkippedEmail from '@/emails/NewsVideoSkippedEmail';
+import NewsVideoFailedEmail from '@/emails/NewsVideoFailedEmail';
 
 const AttachmentSchema = z.object({
   filename: z.string(),
@@ -381,5 +382,37 @@ export const sendNewsVideoSkipped = async (
     subject: `News Video Pipeline: ${data.diagnostics?.skipReason || 'No new articles found'}`,
     html: emailHtml,
     text: `News Video Pipeline: No new articles found\n\nThe news video pipeline ran but didn't find any new articles to create a video from.\n\nChecked at: ${data.checkedAt}${diagText}`,
+  });
+};
+
+export const sendNewsVideoFailed = async (
+  to: string,
+  data: {
+    failedAt: string;
+    errorMessage: string;
+    videoId?: string;
+    headline?: string;
+    stage?: string;
+  },
+): Promise<{
+  success: boolean;
+  messageId?: string;
+  error?: string;
+}> => {
+  const emailHtml = await render(
+    NewsVideoFailedEmail({
+      failedAt: data.failedAt,
+      errorMessage: data.errorMessage,
+      videoId: data.videoId,
+      headline: data.headline,
+      stage: data.stage,
+    }),
+  );
+
+  return sendEmail({
+    to,
+    subject: `News Video Pipeline FAILED: ${data.errorMessage.slice(0, 60)}`,
+    html: emailHtml,
+    text: `News Video Pipeline FAILED\n\nThe pipeline encountered an error:\n${data.errorMessage}\n\n${data.headline ? `Article: ${data.headline}\n` : ''}${data.videoId ? `Video ID: ${data.videoId}\n` : ''}${data.stage ? `Stage: ${data.stage}\n` : ''}\nFailed at: ${data.failedAt}`,
   });
 };
