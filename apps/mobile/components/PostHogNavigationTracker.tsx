@@ -4,7 +4,11 @@ import { usePostHog } from 'posthog-react-native';
 
 /**
  * Component to integrate PostHog with Expo Router navigation tracking
- * This enables automatic screen view tracking without manual calls
+ * This enables automatic screen view tracking without manual calls.
+ *
+ * Note: This component renders before the navigation container is fully
+ * initialized, so getCurrentRoute() may return undefined on first render.
+ * The state listener handles tracking once navigation is ready.
  */
 export const PostHogNavigationTracker = () => {
   const navigationRef = useNavigationContainerRef();
@@ -13,11 +17,15 @@ export const PostHogNavigationTracker = () => {
   useEffect(() => {
     if (!navigationRef) return;
 
-    const currentRoute = navigationRef.getCurrentRoute();
-
-    // Track initial screen
-    if (currentRoute?.name) {
-      posthog.screen(currentRoute.name, currentRoute.params);
+    // Navigation may not be ready on initial render — guard safely
+    try {
+      const currentRoute = navigationRef.getCurrentRoute();
+      if (currentRoute?.name) {
+        posthog.screen(currentRoute.name, currentRoute.params);
+      }
+    } catch {
+      // Navigation container not yet initialized — the state listener below
+      // will pick up the initial screen once it's ready.
     }
 
     // Subscribe to navigation state changes

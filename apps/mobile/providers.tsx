@@ -22,9 +22,9 @@ const Providers = ({ children }: { children: React.ReactNode }) => {
               captureNativeAppLifecycleEvents: true,
             }}
             autocapture={{
-              captureTouches: true,
+              captureTouches: false,
               captureLifecycleEvents: true,
-              captureScreens: true,
+              captureScreens: false,
             }}
           >
             <QueryClientProvider client={queryClient}>

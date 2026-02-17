@@ -94,6 +94,10 @@ export type AnalyticsEvent =
   | "paywall_purchase_cancelled"
   | "paywall_restore_success"
 
+  // Wizard events
+  | "camera_wizard_completed"
+  | "manual_entry_wizard_completed"
+
   // Error events
   | "error_occurred"
   | "network_error"
@@ -108,6 +112,7 @@ export type AnalyticsProperties = {
 
   // Ticket properties
   ticket_id?: string
+  intent?: string
   has_vehicle_reg?: boolean
   has_pcn_number?: boolean
   has_location?: boolean
