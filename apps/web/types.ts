@@ -81,7 +81,7 @@ export type PdfFormFields = {
   userAddress: string;
   userPostcode: string;
   reasonText: string;
-  userEmail: string;
+  userEmail: string | null;
   userName: string;
   userTitle: string;
   userId: string;

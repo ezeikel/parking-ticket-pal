@@ -181,6 +181,15 @@ export async function initiateAutoChallenge(
 
     const dryRun = isDryRunEnabled();
 
+    // Ensure user has an email (required for challenge submissions)
+    if (!ticket.vehicle.user.email) {
+      return {
+        success: false,
+        status: 'error',
+        message: 'An email address is required to challenge a ticket. Please update your profile.',
+      };
+    }
+
     // Transform ticket to the format expected by runWorkerChallenge
     const userAddress = ticket.vehicle.user.address as {
       line1?: string | null;

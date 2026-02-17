@@ -654,6 +654,10 @@ const generateChallengeLetterByTicketId = async (
       }),
     );
 
+    if (!user.email) {
+      throw new Error('User email is required to send challenge letter');
+    }
+
     const emailResult = await sendEmail({
       to: user.email,
       subject: `Your Challenge Letter for PCN ${ticket.pcnNumber}`,

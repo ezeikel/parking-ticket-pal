@@ -135,7 +135,7 @@ export const sendReminder = async (reminderId: string) => {
     }
 
     // email
-    if (reminder.notificationType === NotificationType.EMAIL) {
+    if (reminder.notificationType === NotificationType.EMAIL && user.email) {
       const html = await render(
         ReminderEmail({
           name: user.name ?? '',
