@@ -50,7 +50,7 @@ const discoverNews = async (): Promise<DiscoveredArticle | null> => {
     model: getTracedModel(models.search, {
       properties: { feature: 'news_video_discovery' },
     }),
-    prompt: `Find the most interesting UK motorist news stories from the last 24 hours from reputable UK news sources.
+    prompt: `Today is ${new Date().toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}. Find the most interesting UK motorist news stories published TODAY (${new Date().getFullYear()}) from reputable UK news sources. Do NOT include articles from previous years — only articles from ${new Date().getFullYear()}.
 
 IMPORTANT: Only include articles from proper news websites — BBC News, The Guardian, The Telegraph, Daily Mail, The Sun, Mirror, The Times, Sky News, ITV News, Express, Metro, Evening Standard, local UK newspapers, AutoExpress, What Car, Honest John, RAC, AA, Autocar, Car Magazine. Do NOT include YouTube videos, Reddit posts, or social media content.
 
@@ -104,10 +104,15 @@ Return at least 5 stories if available.`,
             'TRAFFIC',
           ]),
           summary: z.string(),
+          publishedDate: z
+            .string()
+            .describe(
+              'The article publication date in YYYY-MM-DD format, or empty string if unknown',
+            ),
         }),
       ),
     }),
-    prompt: `Extract structured article data from the following search results. Return each distinct article with its URL, source, headline, category, and summary.
+    prompt: `Extract structured article data from the following search results. Return each distinct article with its URL, source, headline, category, summary, and published date. Today is ${new Date().toISOString().split('T')[0]}. Only include articles published in ${new Date().getFullYear()}.
 
 Search results:
 ${searchResults}`,
@@ -118,12 +123,31 @@ ${searchResults}`,
     return null;
   }
 
+  // 2b. Filter out articles not from the current year
+  const currentYear = new Date().getFullYear();
+  const recentArticles = parsed.articles.filter((a) => {
+    if (!a.publishedDate) return true; // keep if date unknown, rely on prompt instructions
+    const articleYear = new Date(a.publishedDate).getFullYear();
+    if (articleYear !== currentYear) {
+      logger.info(
+        `Filtering out stale article: "${a.headline}" (${a.publishedDate})`,
+      );
+      return false;
+    }
+    return true;
+  });
+
+  if (recentArticles.length === 0) {
+    logger.info('All articles filtered out — none from current year');
+    return null;
+  }
+
   logger.info(
-    `Found ${parsed.articles.length} articles, checking for duplicates`,
+    `Found ${recentArticles.length} articles from ${currentYear}, checking for duplicates`,
   );
 
   // 3. Deduplicate against existing records
-  const urlHashes = parsed.articles.map((a) => ({
+  const urlHashes = recentArticles.map((a) => ({
     ...a,
     hash: createHash('sha256').update(a.url).digest('hex'),
   }));
