@@ -37,20 +37,50 @@ type DiscoveredArticle = {
   interestScore: number;
 };
 
+type DiscoveryDiagnostics = {
+  searchPrompt: string;
+  rawResultPreview: string;
+  articlesFound: {
+    url: string;
+    source: string;
+    headline: string;
+    category: string;
+  }[];
+  filteredOutStale: { headline: string; publishedDate: string }[];
+  filteredOutDuplicate: { headline: string; url: string }[];
+  filteredOutSemantic: {
+    headline: string;
+    url: string;
+    matchedExisting: string;
+  }[];
+  skipReason: string | null;
+};
+
+type DiscoveryResult = {
+  article: DiscoveredArticle | null;
+  diagnostics: DiscoveryDiagnostics;
+};
+
 /**
  * Discover a fresh UK motorist news article using Perplexity Sonar.
  * Deduplicates against previously processed articles.
- * Returns the highest-scoring new article, or null if none found.
+ * Returns the highest-scoring new article (or null) plus diagnostics.
  */
-const discoverNews = async (): Promise<DiscoveredArticle | null> => {
+const discoverNews = async (): Promise<DiscoveryResult> => {
   logger.info('Discovering UK motorist news via Perplexity');
 
+  const diagnostics: DiscoveryDiagnostics = {
+    searchPrompt: '',
+    rawResultPreview: '',
+    articlesFound: [],
+    filteredOutStale: [],
+    filteredOutDuplicate: [],
+    filteredOutSemantic: [],
+    skipReason: null,
+  };
+
   // 1. Search for recent UK motorist news
-  const { text: searchResults } = await generateText({
-    model: getTracedModel(models.search, {
-      properties: { feature: 'news_video_discovery' },
-    }),
-    prompt: `Today is ${new Date().toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}. Find the most interesting UK motorist news stories published TODAY (${new Date().getFullYear()}) from reputable UK news sources. Do NOT include articles from previous years — only articles from ${new Date().getFullYear()}.
+  const searchPrompt = `Today is ${new Date().toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}. Find the most interesting UK motorist news stories published in the last 7 days (${new Date().getFullYear()}) from reputable UK news sources. Prefer the most recent stories first — today and yesterday are best, but stories from the past week are fine. Do NOT include articles from previous years — only articles from ${new Date().getFullYear()}.
 
 IMPORTANT: Only include articles from proper news websites — BBC News, The Guardian, The Telegraph, Daily Mail, The Sun, Mirror, The Times, Sky News, ITV News, Express, Metro, Evening Standard, local UK newspapers, AutoExpress, What Car, Honest John, RAC, AA, Autocar, Car Magazine. Do NOT include YouTube videos, Reddit posts, or social media content.
 
@@ -75,8 +105,18 @@ For each story, provide:
 
 Focus on stories that would generate strong reactions from UK motorists — stories about unfair fines, new charges, controversial rules, or surprising statistics.
 
-Return at least 5 stories if available.`,
+Return at least 5 stories if available.`;
+
+  diagnostics.searchPrompt = searchPrompt;
+
+  const { text: searchResults } = await generateText({
+    model: getTracedModel(models.search, {
+      properties: { feature: 'news_video_discovery' },
+    }),
+    prompt: searchPrompt,
   });
+
+  diagnostics.rawResultPreview = searchResults.slice(0, 1000);
 
   logger.info('Perplexity search results received', {
     resultLength: searchResults.length,
@@ -120,8 +160,16 @@ ${searchResults}`,
 
   if (parsed.articles.length === 0) {
     logger.info('No articles found in search results');
-    return null;
+    diagnostics.skipReason = 'Perplexity returned no parseable articles';
+    return { article: null, diagnostics };
   }
+
+  diagnostics.articlesFound = parsed.articles.map((a) => ({
+    url: a.url,
+    source: a.source,
+    headline: a.headline,
+    category: a.category,
+  }));
 
   // 2b. Filter out articles not from the current year
   const currentYear = new Date().getFullYear();
@@ -132,6 +180,10 @@ ${searchResults}`,
       logger.info(
         `Filtering out stale article: "${a.headline}" (${a.publishedDate})`,
       );
+      diagnostics.filteredOutStale.push({
+        headline: a.headline,
+        publishedDate: a.publishedDate,
+      });
       return false;
     }
     return true;
@@ -139,7 +191,8 @@ ${searchResults}`,
 
   if (recentArticles.length === 0) {
     logger.info('All articles filtered out — none from current year');
-    return null;
+    diagnostics.skipReason = `All ${parsed.articles.length} articles filtered out — none from ${currentYear}`;
+    return { article: null, diagnostics };
   }
 
   logger.info(
@@ -160,14 +213,97 @@ ${searchResults}`,
   });
 
   const existingHashes = new Set(existing.map((e) => e.articleUrlHash));
-  const newArticles = urlHashes.filter((a) => !existingHashes.has(a.hash));
+  const newArticles = urlHashes.filter((a) => {
+    if (existingHashes.has(a.hash)) {
+      diagnostics.filteredOutDuplicate.push({
+        headline: a.headline,
+        url: a.url,
+      });
+      return false;
+    }
+    return true;
+  });
 
   if (newArticles.length === 0) {
     logger.info('All discovered articles already processed');
-    return null;
+    diagnostics.skipReason = `All ${recentArticles.length} articles already processed (deduplicated)`;
+    return { article: null, diagnostics };
   }
 
-  logger.info(`${newArticles.length} new articles found, scoring`);
+  // 3b. Semantic dedup — filter out articles covering the same story as
+  //     previously processed ones (e.g. BBC and Sky reporting the same news)
+  const existingVideos = await db.newsVideo.findMany({
+    orderBy: { createdAt: 'desc' },
+    take: 30,
+    select: { headline: true, summary: true },
+  });
+
+  let semanticFiltered = newArticles;
+
+  if (existingVideos.length > 0 && newArticles.length > 0) {
+    logger.info(
+      `Running semantic dedup: ${newArticles.length} candidates vs ${existingVideos.length} existing`,
+    );
+
+    const { object: dedup } = await generateObject({
+      model: getTracedModel(models.textFast, {
+        properties: { feature: 'news_video_semantic_dedup' },
+      }),
+      schema: z.object({
+        results: z.array(
+          z.object({
+            url: z.string(),
+            isDuplicate: z.boolean(),
+            matchedExistingHeadline: z
+              .string()
+              .describe(
+                'The headline of the existing article it duplicates, or empty string if not a duplicate',
+              ),
+          }),
+        ),
+      }),
+      prompt: `You are a news editor checking for duplicate story coverage.
+
+PREVIOUSLY PUBLISHED stories (we already made videos for these):
+${existingVideos.map((v, i) => `${i + 1}. "${v.headline}" — ${v.summary}`).join('\n')}
+
+NEW CANDIDATE articles:
+${newArticles.map((a) => `URL: ${a.url}\nHeadline: "${a.headline}"\nSummary: ${a.summary}\n---`).join('\n')}
+
+For each candidate article, determine if it covers the SAME underlying story as any previously published article. Two articles are duplicates if they report on the same event, policy change, legal case, or announcement — even if from different sources, with different headlines, or different angles.
+
+They are NOT duplicates if they:
+- Cover a different aspect of a broader topic (e.g. two different councils making separate parking changes)
+- Are follow-up/update stories with genuinely new developments
+- Cover the same general theme but about different specific events
+
+Return results for ALL candidate articles.`,
+    });
+
+    semanticFiltered = newArticles.filter((a) => {
+      const result = dedup.results.find((r) => r.url === a.url);
+      if (result?.isDuplicate) {
+        logger.info(
+          `Semantic duplicate: "${a.headline}" matches "${result.matchedExistingHeadline}"`,
+        );
+        diagnostics.filteredOutSemantic.push({
+          headline: a.headline,
+          url: a.url,
+          matchedExisting: result.matchedExistingHeadline,
+        });
+        return false;
+      }
+      return true;
+    });
+
+    if (semanticFiltered.length === 0) {
+      logger.info('All articles are semantic duplicates of existing videos');
+      diagnostics.skipReason = `All ${newArticles.length} new articles are covering stories we already made videos for`;
+      return { article: null, diagnostics };
+    }
+  }
+
+  logger.info(`${semanticFiltered.length} new articles found, scoring`);
 
   // 4. Score articles for engagement potential
   const { object: scored } = await generateObject({
@@ -193,17 +329,17 @@ Score from 0 (boring) to 1 (extremely engaging) based on:
 - Shareability: Would someone tag their friends?
 
 Articles:
-${newArticles.map((a) => `URL: ${a.url}\nSource: ${a.source}\nHeadline: ${a.headline}\nCategory: ${a.category}\nSummary: ${a.summary}\n---`).join('\n')}
+${semanticFiltered.map((a) => `URL: ${a.url}\nSource: ${a.source}\nHeadline: ${a.headline}\nCategory: ${a.category}\nSummary: ${a.summary}\n---`).join('\n')}
 
 Return scores for all articles.`,
   });
 
   // 5. Find highest scoring article
   const scoreMap = new Map(scored.scores.map((s) => [s.url, s.score]));
-  let bestArticle = newArticles[0];
+  let bestArticle = semanticFiltered[0];
   let bestScore = 0;
 
-  for (const article of newArticles) {
+  for (const article of semanticFiltered) {
     const score = scoreMap.get(article.url) || 0;
     if (score > bestScore) {
       bestScore = score;
@@ -219,12 +355,15 @@ Return scores for all articles.`,
   });
 
   return {
-    url: bestArticle.url,
-    source: bestArticle.source,
-    headline: bestArticle.headline,
-    category: bestArticle.category,
-    summary: bestArticle.summary,
-    interestScore: bestScore,
+    article: {
+      url: bestArticle.url,
+      source: bestArticle.source,
+      headline: bestArticle.headline,
+      category: bestArticle.category,
+      summary: bestArticle.summary,
+      interestScore: bestScore,
+    },
+    diagnostics,
   };
 };
 
@@ -618,11 +757,11 @@ export const generateAndPostNewsVideo = async () => {
 
   try {
     // 1. Discover news article
-    const article = await discoverNews();
+    const { article, diagnostics } = await discoverNews();
 
     if (!article) {
       logger.info('No new articles found, skipping');
-      return { success: true, skipped: true };
+      return { success: true, skipped: true, diagnostics };
     }
 
     // 2. Create tracking record

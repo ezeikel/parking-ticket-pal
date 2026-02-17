@@ -1,5 +1,32 @@
 import * as Sentry from '@sentry/nextjs';
 
+// Lazy-loaded server-side PostHog — avoids importing posthog-node in client bundles
+type PostHogServerLike = {
+  capture: (opts: {
+    distinctId: string;
+    event: string;
+    properties: Record<string, unknown>;
+  }) => void;
+  shutdown: () => Promise<void> | void;
+};
+
+let posthogServerCache: PostHogServerLike | null | undefined;
+const getPostHogServer = () => {
+  if (posthogServerCache !== undefined) return posthogServerCache;
+  if (typeof window !== 'undefined') {
+    posthogServerCache = null;
+    return null;
+  }
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const mod = require('@/lib/posthog-server');
+    posthogServerCache = mod.posthogServer ?? null;
+  } catch {
+    posthogServerCache = null;
+  }
+  return posthogServerCache;
+};
+
 export type LogLevel = 'debug' | 'info' | 'warn' | 'error';
 
 export type LogContext = {
@@ -31,13 +58,13 @@ export type LogEntry = {
 
 class Logger {
   private posthog: unknown = null;
-  private sessionId: string = '';
+
+  private sessionId = '';
 
   constructor() {
     this.sessionId = Logger.generateSessionId();
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   setPostHog(posthog: any) {
     this.posthog = posthog;
   }
@@ -76,6 +103,7 @@ class Logger {
     };
   }
 
+  // eslint-disable-next-line class-methods-use-this
   private logToConsole(entry: LogEntry) {
     if (process.env.NODE_ENV !== 'development') return;
 
@@ -111,6 +139,7 @@ class Logger {
    * Only errors go to Sentry - debug/info/warn go to console only
    * (Vercel Logs capture server console output)
    */
+  // eslint-disable-next-line class-methods-use-this
   private logToSentry(message: string, context?: LogContext, error?: Error) {
     try {
       if (context) {
@@ -135,28 +164,41 @@ class Logger {
 
   private logToPostHog(entry: LogEntry) {
     try {
-      // Use the stored posthog instance first, fallback to window.posthog
-      // eslint-disable-next-line prefer-destructuring
-      let posthog = this.posthog;
+      const properties = {
+        log_level: entry.level,
+        log_message: entry.message,
+        log_page: entry.context?.page,
+        log_action: entry.context?.action,
+        log_session_id: entry.context?.sessionId,
+        log_error: entry.error?.message,
+        log_error_stack: entry.error?.stack,
+        ...entry.context,
+      };
 
-      if (!posthog && typeof window !== 'undefined') {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      // Server-side: use PostHog Node SDK directly
+      if (typeof window === 'undefined') {
+        const phServer = getPostHogServer();
+        if (phServer) {
+          phServer.capture({
+            distinctId: (entry.context?.userId as string) || 'server',
+            event: 'log_entry',
+            properties,
+          });
+        }
+        return;
+      }
+
+      // Client-side: use stored posthog instance or window.posthog
+
+      let { posthog } = this;
+
+      if (!posthog) {
         posthog = (window as any).posthog;
       }
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any, no-underscore-dangle
+      // eslint-disable-next-line no-underscore-dangle
       if (posthog && (posthog as any).__loaded) {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        (posthog as any).capture('log_entry', {
-          log_level: entry.level,
-          log_message: entry.message,
-          log_page: entry.context?.page,
-          log_action: entry.context?.action,
-          log_session_id: entry.context?.sessionId,
-          log_error: entry.error?.message,
-          log_error_stack: entry.error?.stack,
-          ...entry.context,
-        });
+        (posthog as any).capture('log_entry', properties);
       }
     } catch (error) {
       if (process.env.NODE_ENV === 'development') {
@@ -291,11 +333,18 @@ export function createServerLogger(context?: Partial<LogContext>) {
       logger.warn(message, { ...baseContext, ...additionalContext }, error),
     error: (message: string, additionalContext?: LogContext, error?: Error) =>
       logger.error(message, { ...baseContext, ...additionalContext }, error),
+    /** Flush queued PostHog events — call before serverless function exits */
+    flush: async () => {
+      const phServer = getPostHogServer();
+      if (phServer) {
+        await phServer.shutdown();
+      }
+    },
   };
 }
 
 // Client-side helper with PostHog integration
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+
 export function createClientLogger(
   posthog?: any,
   context?: Partial<LogContext>,
@@ -340,12 +389,9 @@ export function useLogger(context?: Partial<LogContext>) {
     'DEPRECATED: Import useLogger from "@/lib/use-logger" instead for proper PostHog integration',
   );
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let posthog: any = null;
   try {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     if (typeof window !== 'undefined' && (window as any).posthog) {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       posthog = (window as any).posthog;
     }
   } catch {

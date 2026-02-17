@@ -2,26 +2,24 @@ import { PostHog } from 'posthog-node';
 
 const createPostHogClient = (): PostHog | null => {
   const posthogKey = process.env.NEXT_PUBLIC_POSTHOG_KEY;
-  const posthogHost = process.env.NEXT_PUBLIC_POSTHOG_HOST;
 
-  if (posthogKey && posthogHost) {
-    // for server-side PostHog, construct full URL from the relative path
-    const serverHost = process.env.VERCEL_URL
-      ? `https://${process.env.VERCEL_URL}${posthogHost}`
-      : `http://localhost:3000${posthogHost}`;
-
+  if (posthogKey) {
+    // Server-side: send directly to PostHog EU, not through the reverse proxy.
+    // The proxy (NEXT_PUBLIC_POSTHOG_HOST) is for client-side ad-blocker avoidance
+    // and doesn't work server-side (deployment URLs have Vercel Authentication).
     return new PostHog(posthogKey, {
-      host: serverHost,
+      host: 'https://eu.i.posthog.com',
       flushAt: 1,
       flushInterval: 0,
     });
   }
+  // eslint-disable-next-line no-console
   console.warn(
-    'PostHog server-side tracking is disabled due to missing environment variables.',
+    'PostHog server-side tracking is disabled due to missing NEXT_PUBLIC_POSTHOG_KEY.',
   );
   return null;
 };
 
 // create a singleton instance of the PostHog client
-// eslint-disable-next-line import/prefer-default-export
+// eslint-disable-next-line import-x/prefer-default-export
 export const posthogServer = createPostHogClient();

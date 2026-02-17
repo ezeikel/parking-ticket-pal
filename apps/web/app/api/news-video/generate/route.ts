@@ -29,8 +29,11 @@ const handleRequest = async (request: NextRequest) => {
       const digestEmail = process.env.SOCIAL_DIGEST_EMAIL;
       if (digestEmail) {
         try {
+          const diagnostics =
+            'diagnostics' in result ? result.diagnostics : undefined;
           await sendNewsVideoSkipped(digestEmail, {
             checkedAt: new Date().toISOString(),
+            diagnostics,
           });
           log.info('Skipped notification email sent');
         } catch (error) {

@@ -338,22 +338,48 @@ export const sendSocialDigest = async (
   });
 };
 
+export type NewsVideoSkippedDiagnostics = {
+  searchPrompt: string;
+  rawResultPreview: string;
+  articlesFound: {
+    url: string;
+    source: string;
+    headline: string;
+    category: string;
+  }[];
+  filteredOutStale: { headline: string; publishedDate: string }[];
+  filteredOutDuplicate: { headline: string; url: string }[];
+  filteredOutSemantic: {
+    headline: string;
+    url: string;
+    matchedExisting: string;
+  }[];
+  skipReason: string | null;
+};
+
 export const sendNewsVideoSkipped = async (
   to: string,
-  data: { checkedAt: string },
+  data: { checkedAt: string; diagnostics?: NewsVideoSkippedDiagnostics },
 ): Promise<{
   success: boolean;
   messageId?: string;
   error?: string;
 }> => {
   const emailHtml = await render(
-    NewsVideoSkippedEmail({ checkedAt: data.checkedAt }),
+    NewsVideoSkippedEmail({
+      checkedAt: data.checkedAt,
+      diagnostics: data.diagnostics,
+    }),
   );
+
+  const diagText = data.diagnostics
+    ? `\n\nSkip reason: ${data.diagnostics.skipReason || 'Unknown'}\nArticles found: ${data.diagnostics.articlesFound.length}\nFiltered (stale): ${data.diagnostics.filteredOutStale.length}\nFiltered (URL duplicate): ${data.diagnostics.filteredOutDuplicate.length}\nFiltered (same story): ${data.diagnostics.filteredOutSemantic.length}\n\nArticles found:\n${data.diagnostics.articlesFound.map((a) => `- [${a.source}] ${a.headline}`).join('\n') || 'None'}${data.diagnostics.filteredOutSemantic.length > 0 ? `\n\nSame story matches:\n${data.diagnostics.filteredOutSemantic.map((a) => `- "${a.headline}" ← matches → "${a.matchedExisting}"`).join('\n')}` : ''}\n\nPerplexity raw preview:\n${data.diagnostics.rawResultPreview.slice(0, 500)}`
+    : '';
 
   return sendEmail({
     to,
-    subject: 'News Video Pipeline: No new articles found',
+    subject: `News Video Pipeline: ${data.diagnostics?.skipReason || 'No new articles found'}`,
     html: emailHtml,
-    text: `News Video Pipeline: No new articles found\n\nThe news video pipeline ran but didn't find any new articles to create a video from.\n\nThis is normal — the pipeline deduplicates against previously used articles to avoid posting the same story twice.\n\nChecked at: ${data.checkedAt}`,
+    text: `News Video Pipeline: No new articles found\n\nThe news video pipeline ran but didn't find any new articles to create a video from.\n\nChecked at: ${data.checkedAt}${diagText}`,
   });
 };
