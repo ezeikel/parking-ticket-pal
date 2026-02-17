@@ -1,1 +1,13 @@
+# Run lint-staged for web app
 cd apps/web && pnpm lint-staged
+
+# Return to repo root
+cd ../..
+
+# Format Prisma schema if it's staged
+if git diff --cached --name-only | grep -q 'packages/db/prisma/schema.prisma'; then
+  cd packages/db
+  pnpm dlx prisma format
+  cd ../..
+  git add packages/db/prisma/schema.prisma
+fi

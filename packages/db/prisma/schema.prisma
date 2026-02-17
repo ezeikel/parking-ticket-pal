@@ -29,12 +29,12 @@ model User {
   //  longitude: -0.1278
   //  }
 
-  role                    UserRole       @default(USER)
+  role                    UserRole              @default(USER)
   stripeCustomerId        String? // set after Stripe customer creation
   revenueCatCustomerId    String? // set after RevenueCat identification
-  notificationPreferences Json?          @default("{\"inApp\":true,\"email\":true,\"sms\":true,\"push\":true}")
-  createdAt               DateTime       @default(now())
-  updatedAt               DateTime       @updatedAt
+  notificationPreferences Json?                 @default("{\"inApp\":true,\"email\":true,\"sms\":true,\"push\":true}")
+  createdAt               DateTime              @default(now())
+  updatedAt               DateTime              @updatedAt
   signatureUrl            String?
   subscription            Subscription?
   vehicles                Vehicle[]
