@@ -266,8 +266,8 @@ const NewsVideoSkippedEmail = ({
             {/* Raw Perplexity output preview */}
             <Text style={sectionHeader}>Perplexity Raw Output (preview)</Text>
             <Text style={codeBlock}>
-              {diagnostics.rawResultPreview.slice(0, 800) || '(empty)'}
-              {diagnostics.rawResultPreview.length > 800 ? '...' : ''}
+              {diagnostics.rawResultPreview.slice(0, 1500) || '(empty)'}
+              {diagnostics.rawResultPreview.length > 1500 ? '...' : ''}
             </Text>
           </>
         )}

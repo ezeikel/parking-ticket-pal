@@ -79,51 +79,89 @@ const discoverNews = async (): Promise<DiscoveryResult> => {
     skipReason: null,
   };
 
-  // 1. Search for recent UK motorist news
-  const searchPrompt = `Today is ${new Date().toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}. Find the most interesting UK motorist news stories published in the last 7 days (${new Date().getFullYear()}) from reputable UK news sources. Prefer the most recent stories first — today and yesterday are best, but stories from the past week are fine. Do NOT include articles from previous years — only articles from ${new Date().getFullYear()}.
+  // 1. Run multiple targeted searches in parallel for better coverage
+  const today = new Date().toLocaleDateString('en-GB', {
+    weekday: 'long',
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+  });
+  const year = new Date().getFullYear();
 
-IMPORTANT: Only include articles from proper news websites — BBC News, The Guardian, The Telegraph, Daily Mail, The Sun, Mirror, The Times, Sky News, ITV News, Express, Metro, Evening Standard, local UK newspapers, AutoExpress, What Car, Honest John, RAC, AA, Autocar, Car Magazine. Do NOT include YouTube videos, Reddit posts, or social media content.
+  const searchQueries = [
+    {
+      label: 'parking-fines',
+      prompt: `UK parking fines news this week ${year}. Find recent UK news articles about parking fines, PCN penalties, council parking enforcement, unfair parking tickets, parking charge notices. Include articles from any UK news website, local newspaper, or motoring site. Return article URLs, headlines, and 2-sentence summaries.`,
+    },
+    {
+      label: 'driving-laws',
+      prompt: `New UK driving laws and regulations ${year}. Find recent UK news articles about new driving rules, Highway Code changes, speed limit changes, mobile phone driving laws, MOT changes, vehicle tax updates. Include articles from any UK news website. Return article URLs, headlines, and 2-sentence summaries.`,
+    },
+    {
+      label: 'parking-charges',
+      prompt: `UK parking charges news this week. Find recent articles about car park charges, hospital parking fees, airport parking, parking meters, pay and display changes, parking apps, council parking revenue in ${year}. Include articles from any UK news source. Return article URLs, headlines, and 2-sentence summaries.`,
+    },
+    {
+      label: 'congestion-ulez-ev',
+      prompt: `UK congestion charge ULEZ electric vehicle news ${year}. Find recent UK news about congestion charges, ULEZ expansion, clean air zones, EV charging, electric car incentives, petrol diesel ban. Include articles from any UK news website. Return article URLs, headlines, and 2-sentence summaries.`,
+    },
+    {
+      label: 'motoring-general',
+      prompt: `UK motoring news this week ${year}. Find recent UK news articles about fuel prices, car insurance costs, speed cameras, traffic enforcement, road closures, council transport decisions. Include articles from any UK news website or local newspaper. Return article URLs, headlines, and 2-sentence summaries.`,
+    },
+    {
+      label: 'parking-stories',
+      prompt: `UK parking news stories February ${year}. Find recent articles about parking wardens, clamping, towing, residents parking, parking disputes, supermarket parking fines, private parking companies. Include articles from any UK news source including local newspapers. Return article URLs, headlines, and 2-sentence summaries.`,
+    },
+  ];
 
-Topics to search for:
-- Parking fines and PCN changes
-- New driving laws and regulations
-- Congestion charges and ULEZ updates
-- Electric vehicle news (charging, incentives, bans)
-- Car insurance changes
-- Vehicle tax and MOT updates
-- Speed cameras and traffic enforcement
-- Fuel prices
-- Council parking revenue stories
-- Road closures and major traffic news
+  const allSearchPrompts = searchQueries.map((q) => q.prompt).join('\n---\n');
+  diagnostics.searchPrompt = allSearchPrompts;
 
-For each story, provide:
-1. The article URL (must be a news website, not YouTube)
-2. The source publication (e.g., "BBC News", "The Guardian", "Daily Mail")
-3. The headline
-4. A 2-3 sentence summary
-5. Category: PARKING, DRIVING, CONGESTION, EV, INSURANCE, TAX, or TRAFFIC
+  logger.info(`Running ${searchQueries.length} parallel Perplexity searches`);
 
-Focus on stories that would generate strong reactions from UK motorists — stories about unfair fines, new charges, controversial rules, or surprising statistics.
-
-Return at least 5 stories if available.`;
-
-  diagnostics.searchPrompt = searchPrompt;
-
-  const { text: searchResults } = await generateText({
-    model: getTracedModel(models.search, {
-      properties: { feature: 'news_video_discovery' },
+  const searchResultsArray = await Promise.all(
+    searchQueries.map(async (q) => {
+      try {
+        const { text } = await generateText({
+          model: getTracedModel(models.search, {
+            properties: { feature: `news_video_discovery_${q.label}` },
+          }),
+          prompt: `Today is ${today}. ${q.prompt}`,
+        });
+        logger.info(`Search "${q.label}" returned ${text.length} chars`);
+        return { label: q.label, text };
+      } catch (error) {
+        logger.error(
+          `Search "${q.label}" failed`,
+          {},
+          error instanceof Error ? error : new Error(String(error)),
+        );
+        return { label: q.label, text: '' };
+      }
     }),
-    prompt: searchPrompt,
+  );
+
+  const combinedResults = searchResultsArray
+    .filter((r) => r.text.length > 0)
+    .map((r) => `=== ${r.label} ===\n${r.text}`)
+    .join('\n\n');
+
+  diagnostics.rawResultPreview = combinedResults.slice(0, 2000);
+
+  logger.info('All Perplexity searches complete', {
+    totalChars: combinedResults.length,
+    queriesWithResults: searchResultsArray.filter((r) => r.text.length > 0)
+      .length,
   });
 
-  diagnostics.rawResultPreview = searchResults.slice(0, 1000);
+  if (combinedResults.length === 0) {
+    logger.info('All searches returned empty results');
+    diagnostics.skipReason = 'All Perplexity searches returned empty results';
+    return { article: null, diagnostics };
+  }
 
-  logger.info('Perplexity search results received', {
-    resultLength: searchResults.length,
-    preview: searchResults.slice(0, 500),
-  });
-
-  // 2. Parse into structured articles
+  // 2. Parse combined results into structured articles
   const { object: parsed } = await generateObject({
     model: getTracedModel(models.textFast, {
       properties: { feature: 'news_video_parse' },
@@ -152,15 +190,21 @@ Return at least 5 stories if available.`;
         }),
       ),
     }),
-    prompt: `Extract structured article data from the following search results. Return each distinct article with its URL, source, headline, category, summary, and published date. Today is ${new Date().toISOString().split('T')[0]}. Only include articles published in ${new Date().getFullYear()}.
+    prompt: `Extract structured article data from the following search results. Return each DISTINCT article (deduplicate by story — if the same story appears from multiple searches, keep the best source).
+
+Rules:
+- Only include articles from news websites, local newspapers, or motoring publications
+- Exclude YouTube videos, Reddit posts, social media, commercial/sales sites, and government .gov.uk pages
+- Only include articles from ${year}
+- Today is ${new Date().toISOString().split('T')[0]}
 
 Search results:
-${searchResults}`,
+${combinedResults}`,
   });
 
   if (parsed.articles.length === 0) {
-    logger.info('No articles found in search results');
-    diagnostics.skipReason = 'Perplexity returned no parseable articles';
+    logger.info('No articles found across all search results');
+    diagnostics.skipReason = `${searchQueries.length} Perplexity searches returned no parseable news articles`;
     return { article: null, diagnostics };
   }
 
