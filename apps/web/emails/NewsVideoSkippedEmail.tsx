@@ -204,8 +204,7 @@ const NewsVideoSkippedEmail = ({
             {diagnostics.filteredOutStale.length > 0 && (
               <>
                 <Text style={sectionHeader}>
-                  Filtered Out — Wrong Year (
-                  {diagnostics.filteredOutStale.length})
+                  Filtered Out — Too Old ({diagnostics.filteredOutStale.length})
                 </Text>
                 {diagnostics.filteredOutStale.map((a) => (
                   <Section key={a.headline} style={articleItem}>

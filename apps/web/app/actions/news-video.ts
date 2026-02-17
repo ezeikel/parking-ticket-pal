@@ -215,12 +215,15 @@ ${combinedResults}`,
     category: a.category,
   }));
 
-  // 2b. Filter out articles not from the current year
-  const currentYear = new Date().getFullYear();
+  // 2b. Filter out articles older than 14 days
+  const now = Date.now();
+  const MAX_AGE_MS = 14 * 24 * 60 * 60 * 1000; // 14 days
   const recentArticles = parsed.articles.filter((a) => {
     if (!a.publishedDate) return true; // keep if date unknown, rely on prompt instructions
-    const articleYear = new Date(a.publishedDate).getFullYear();
-    if (articleYear !== currentYear) {
+    const articleDate = new Date(a.publishedDate);
+    if (Number.isNaN(articleDate.getTime())) return true; // unparseable date, keep
+    const ageMs = now - articleDate.getTime();
+    if (ageMs > MAX_AGE_MS) {
       logger.info(
         `Filtering out stale article: "${a.headline}" (${a.publishedDate})`,
       );
@@ -234,13 +237,13 @@ ${combinedResults}`,
   });
 
   if (recentArticles.length === 0) {
-    logger.info('All articles filtered out — none from current year');
-    diagnostics.skipReason = `All ${parsed.articles.length} articles filtered out — none from ${currentYear}`;
+    logger.info('All articles filtered out — none within last 14 days');
+    diagnostics.skipReason = `All ${parsed.articles.length} articles filtered out — none published within the last 14 days`;
     return { article: null, diagnostics };
   }
 
   logger.info(
-    `Found ${recentArticles.length} articles from ${currentYear}, checking for duplicates`,
+    `Found ${recentArticles.length} recent articles, checking for duplicates`,
   );
 
   // 3. Deduplicate against existing records
@@ -472,9 +475,18 @@ const generateNewsScript = async (article: {
   category: string;
   summary: string;
 }): Promise<NewsScriptSegments> => {
+  const todayStr = new Date().toLocaleDateString('en-GB', {
+    weekday: 'long',
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+  });
+
   const scriptPrompt = `You are writing a script for a 60-90 second social media video (Instagram Reel / TikTok / YouTube Short) about a real UK motorist news story.
 
 The video tells the story in an educational, engaging way — like a knowledgeable friend explaining what happened and what we can learn from it.
+
+TODAY'S DATE: ${todayStr}
 
 ARTICLE:
 - Headline: ${article.headline}
@@ -487,6 +499,7 @@ WRITING GUIDELINES:
 - Third person ("drivers could face...", "councils are now...", "a motorist was fined...")
 - Reference specific facts, numbers, dates, and locations from the article
 - Frame as educational: "here's what's happening and what we can learn from it"
+- IMPORTANT: Today is ${todayStr}. Use correct tense — if an event has already happened, use past tense. Never present past events as upcoming or future.
 - Build suspense before revealing the key detail
 - End with actionable advice viewers can use
 - Target 200-250 words total (~70-90 seconds at natural speech pace)
