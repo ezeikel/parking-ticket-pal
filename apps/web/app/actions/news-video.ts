@@ -9,7 +9,7 @@ import { db } from '@parking-ticket-pal/db';
 import { createServerLogger } from '@/lib/logger';
 import { put } from '@/lib/storage';
 import { models, getTracedModel } from '@/lib/ai/models';
-import { getRandomMusicTrack } from '@/lib/music';
+import { getRandomMusicTrack, getRandomSfx } from '@/lib/music';
 
 const logger = createServerLogger({ action: 'news-video' });
 
@@ -689,71 +689,20 @@ const generateVoiceoverWithTimestamps = async (
 };
 
 // ============================================================================
-// Step 4: Generate background music + SFX
+// Step 4: Background music + SFX (curated from Epidemic Sound, served from R2)
 // ============================================================================
 
 /**
- * Generate sound effects for news reel (transition whoosh + news alert).
+ * Pick curated SFX for news reel (transition whoosh + news alert).
+ * Previously AI-generated per video via ElevenLabs — now instant from R2.
  */
-const generateSoundEffects = async (): Promise<{
-  transitionSfxUrl: string | null;
-  newsSfxUrl: string | null;
-}> => {
-  if (!elevenlabs) {
-    logger.info('ElevenLabs not configured, skipping sound effects');
-    return { transitionSfxUrl: null, newsSfxUrl: null };
-  }
-
-  const generateSfx = async (
-    text: string,
-    durationSeconds: number,
-    label: string,
-  ): Promise<string | null> => {
-    try {
-      const audioStream = await elevenlabs.textToSoundEffects.convert({
-        text,
-        duration_seconds: durationSeconds,
-      });
-
-      const chunks: Buffer[] = [];
-      for await (const chunk of audioStream) {
-        chunks.push(Buffer.from(chunk));
-      }
-      const buffer = Buffer.concat(chunks);
-
-      const timestamp = Date.now();
-      const r2Path = `social/sfx/news-${label}-${timestamp}.mp3`;
-      const { url } = await put(r2Path, buffer, {
-        contentType: 'audio/mpeg',
-      });
-
-      logger.info(`SFX generated: ${label}`, { url });
-      return url;
-    } catch (error) {
-      logger.error(
-        `SFX generation failed: ${label}`,
-        {},
-        error instanceof Error ? error : new Error(String(error)),
-      );
-      return null;
-    }
-  };
-
-  const [transitionSfxUrl, newsSfxUrl] = await Promise.all([
-    generateSfx(
-      'crisp paper page turn flip sound, single clean page flip, short snappy',
-      1,
-      'transition',
-    ),
-    generateSfx(
-      'short bright digital chime, then a subtle low braam, modern news broadcast alert sting',
-      2,
-      'news-alert',
-    ),
-  ]);
-
-  return { transitionSfxUrl, newsSfxUrl };
-};
+const pickSoundEffects = (): {
+  transitionSfxUrl: string;
+  newsSfxUrl: string;
+} => ({
+  transitionSfxUrl: getRandomSfx('transition'),
+  newsSfxUrl: getRandomSfx('news-alert'),
+});
 
 // ============================================================================
 // Step 4c: Generate AI scene images with Gemini
@@ -910,12 +859,12 @@ export const generateAndPostNewsVideo = async () => {
 
     logger.info('Script generated, generating audio + images');
 
-    // 4. Generate voiceover + SFX + scene images in parallel; pick curated music track
+    // 4. Generate voiceover + scene images in parallel; pick curated music + SFX
     const backgroundMusicUrl = getRandomMusicTrack('news');
+    const sfx = pickSoundEffects();
 
-    const [voiceover, sfx, sceneImages] = await Promise.all([
+    const [voiceover, sceneImages] = await Promise.all([
       generateVoiceoverWithTimestamps(script.fullScript),
-      generateSoundEffects(),
       generateSceneImages(script.sceneImagePrompts),
     ]);
 

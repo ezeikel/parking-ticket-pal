@@ -1,4 +1,4 @@
-/* eslint-disable no-plusplus, no-restricted-syntax, import-x/prefer-default-export */
+/* eslint-disable no-plusplus, import-x/prefer-default-export */
 'use server';
 
 import { generateObject, generateText } from 'ai';
@@ -8,7 +8,7 @@ import { db } from '@parking-ticket-pal/db';
 import { createServerLogger } from '@/lib/logger';
 import { put } from '@/lib/storage';
 import { models, getTracedModel } from '@/lib/ai/models';
-import { getRandomMusicTrack } from '@/lib/music';
+import { getRandomMusicTrack, getRandomSfx } from '@/lib/music';
 
 const logger = createServerLogger({ action: 'tribunal-video' });
 
@@ -402,68 +402,21 @@ const generateVoiceoverWithTimestamps = async (
  * Generate sound effects for the video (verdict gavel/chime and transition whoosh).
  * Non-fatal — returns nulls on failure.
  */
-const generateSoundEffects = async (
+/**
+ * Pick curated SFX for tribunal reel (verdict sound + transition whoosh).
+ * Previously AI-generated per video via ElevenLabs — now instant from R2.
+ */
+const pickSoundEffects = (
   appealDecision: string,
-): Promise<{
-  verdictSfxUrl: string | null;
-  transitionSfxUrl: string | null;
-}> => {
-  if (!elevenlabs) {
-    logger.info('ElevenLabs not configured, skipping sound effects');
-    return { verdictSfxUrl: null, transitionSfxUrl: null };
-  }
-
-  const generateSfx = async (
-    text: string,
-    durationSeconds: number,
-    label: string,
-  ): Promise<string | null> => {
-    try {
-      const audioStream = await elevenlabs.textToSoundEffects.convert({
-        text,
-        duration_seconds: durationSeconds,
-      });
-
-      const chunks: Buffer[] = [];
-      for await (const chunk of audioStream) {
-        chunks.push(Buffer.from(chunk));
-      }
-      const buffer = Buffer.concat(chunks);
-
-      const timestamp = Date.now();
-      const r2Path = `social/sfx/tribunal-${label}-${timestamp}.mp3`;
-      const { url } = await put(r2Path, buffer, {
-        contentType: 'audio/mpeg',
-      });
-
-      logger.info(`SFX generated: ${label}`, { url });
-      return url;
-    } catch (error) {
-      logger.error(
-        `SFX generation failed: ${label}`,
-        {},
-        error instanceof Error ? error : new Error(String(error)),
-      );
-      return null;
-    }
-  };
-
-  const verdictText =
-    appealDecision === 'ALLOWED'
-      ? 'single clean wooden gavel tap on sounding block, bright positive resolution chime, warm reverb, professional courtroom audio'
-      : 'single clean wooden gavel tap on sounding block, low serious orchestral note, solemn mood, professional courtroom audio';
-
-  const [verdictSfxUrl, transitionSfxUrl] = await Promise.all([
-    generateSfx(verdictText, 2, 'verdict'),
-    generateSfx(
-      'crisp paper page turn flip sound, single clean page flip, short snappy',
-      1,
-      'transition',
-    ),
-  ]);
-
-  return { verdictSfxUrl, transitionSfxUrl };
-};
+): {
+  verdictSfxUrl: string;
+  transitionSfxUrl: string;
+} => ({
+  verdictSfxUrl: getRandomSfx(
+    appealDecision === 'ALLOWED' ? 'gavel-allowed' : 'gavel-refused',
+  ),
+  transitionSfxUrl: getRandomSfx('transition'),
+});
 
 // ============================================================================
 // Step 4c: Generate AI scene images with Gemini
@@ -600,12 +553,12 @@ export const generateAndPostTribunalVideo = async () => {
 
     logger.info('Script generated, generating voiceover');
 
-    // 4. Generate voiceover + sound effects + scene images in parallel; pick curated music track
+    // 4. Generate voiceover + scene images in parallel; pick curated music + SFX
     const backgroundMusicUrl = getRandomMusicTrack('tribunal');
+    const sfx = pickSoundEffects(selectedCase.appealDecision);
 
-    const [voiceover, sfx, sceneImages] = await Promise.all([
+    const [voiceover, sceneImages] = await Promise.all([
       generateVoiceoverWithTimestamps(script.fullScript),
-      generateSoundEffects(selectedCase.appealDecision),
       generateSceneImages(script.sceneImagePrompts),
     ]);
 
