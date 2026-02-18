@@ -311,7 +311,7 @@ ${combinedResults}`,
           }),
         ),
       }),
-      prompt: `You are a news editor checking for duplicate story coverage.
+      prompt: `You are a strict news editor checking for duplicate story coverage. Your job is to AVOID false positives — only mark something as a duplicate if you are very confident it is the exact same story.
 
 PREVIOUSLY PUBLISHED stories (we already made videos for these):
 ${existingVideos.map((v, i) => `${i + 1}. "${v.headline}" — ${v.summary}`).join('\n')}
@@ -319,12 +319,19 @@ ${existingVideos.map((v, i) => `${i + 1}. "${v.headline}" — ${v.summary}`).joi
 NEW CANDIDATE articles:
 ${newArticles.map((a) => `URL: ${a.url}\nHeadline: "${a.headline}"\nSummary: ${a.summary}\n---`).join('\n')}
 
-For each candidate article, determine if it covers the SAME underlying story as any previously published article. Two articles are duplicates if they report on the same event, policy change, legal case, or announcement — even if from different sources, with different headlines, or different angles.
+For each candidate, determine if it covers the EXACT SAME specific story as a previously published article.
 
-They are NOT duplicates if they:
-- Cover a different aspect of a broader topic (e.g. two different councils making separate parking changes)
-- Are follow-up/update stories with genuinely new developments
-- Cover the same general theme but about different specific events
+Mark as DUPLICATE only if:
+- Both articles are about the same specific event, announcement, or incident
+- Example: "BBC: London congestion charge rises to £18" and "Sky: TfL hikes congestion charge" = SAME specific story
+
+Mark as NOT DUPLICATE if:
+- The candidate is a roundup/listicle that merely MENTIONS a topic we covered (e.g. "2026 driving law changes" roundup is NOT a duplicate of our specific congestion charge article, even though the roundup mentions congestion charges among many other topics)
+- They cover the same general theme but different specific events
+- They are follow-up stories with genuinely new developments
+- One is broad/general and the other is narrow/specific
+
+When in doubt, mark as NOT a duplicate. We'd rather make a video about a slightly overlapping topic than miss a good story.
 
 Return results for ALL candidate articles.`,
     });
