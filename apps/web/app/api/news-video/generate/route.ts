@@ -5,8 +5,9 @@ import { sendNewsVideoSkipped, sendNewsVideoFailed } from '@/lib/email';
 
 const log = createServerLogger({ action: 'news-video-generate' });
 
-// Pipeline now returns after dispatching async render (~90s)
-export const maxDuration = 120;
+// Discovery + script + voiceover + SFX + scene images can take 2-3 mins
+// before the async render is dispatched to the worker
+export const maxDuration = 300;
 
 const handleRequest = async (request: NextRequest) => {
   try {
