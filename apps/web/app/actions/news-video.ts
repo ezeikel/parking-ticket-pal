@@ -242,12 +242,42 @@ ${combinedResults}`,
     return { article: null, diagnostics };
   }
 
+  // 2c. Verify article URLs exist (Perplexity can hallucinate URLs)
+  const verifiedArticles = (
+    await Promise.all(
+      recentArticles.map(async (a) => {
+        try {
+          const res = await fetch(a.url, {
+            method: 'HEAD',
+            redirect: 'follow',
+            signal: AbortSignal.timeout(5000),
+          });
+          if (res.ok) return a;
+          logger.info(
+            `Filtering out bad URL (${res.status}): "${a.headline}" — ${a.url}`,
+          );
+        } catch {
+          logger.info(
+            `Filtering out unreachable URL: "${a.headline}" — ${a.url}`,
+          );
+        }
+        return null;
+      }),
+    )
+  ).filter(Boolean) as typeof recentArticles;
+
+  if (verifiedArticles.length === 0) {
+    logger.info('All article URLs failed verification');
+    diagnostics.skipReason = `All ${recentArticles.length} article URLs returned errors or were unreachable`;
+    return { article: null, diagnostics };
+  }
+
   logger.info(
-    `Found ${recentArticles.length} recent articles, checking for duplicates`,
+    `${verifiedArticles.length}/${recentArticles.length} articles passed URL verification, checking for duplicates`,
   );
 
   // 3. Deduplicate against existing records
-  const urlHashes = recentArticles.map((a) => ({
+  const urlHashes = verifiedArticles.map((a) => ({
     ...a,
     hash: createHash('sha256').update(a.url).digest('hex'),
   }));
@@ -274,7 +304,7 @@ ${combinedResults}`,
 
   if (newArticles.length === 0) {
     logger.info('All discovered articles already processed');
-    diagnostics.skipReason = `All ${recentArticles.length} articles already processed (deduplicated)`;
+    diagnostics.skipReason = `All ${verifiedArticles.length} articles already processed (deduplicated)`;
     return { article: null, diagnostics };
   }
 
