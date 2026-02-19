@@ -409,8 +409,8 @@ const generateVoiceoverWithTimestamps = async (
 const pickSoundEffects = (
   appealDecision: string,
 ): {
-  verdictSfxUrl: string;
-  transitionSfxUrl: string;
+  verdictSfxUrl: string | null;
+  transitionSfxUrl: string | null;
 } => ({
   verdictSfxUrl: getRandomSfx(
     appealDecision === 'ALLOWED' ? 'gavel-allowed' : 'gavel-refused',

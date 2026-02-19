@@ -75,7 +75,8 @@ const SFX_TRACKS: Record<SfxCategory, string[]> = {
   ],
 };
 
-export function getRandomSfx(category: SfxCategory): string {
+export function getRandomSfx(category: SfxCategory): string | null {
   const tracks = SFX_TRACKS[category];
+  if (!tracks.length || !R2_PUBLIC_URL) return null;
   return tracks[Math.floor(Math.random() * tracks.length)];
 }

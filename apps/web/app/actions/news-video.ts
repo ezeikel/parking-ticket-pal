@@ -727,8 +727,8 @@ const generateVoiceoverWithTimestamps = async (
  * Previously AI-generated per video via ElevenLabs — now instant from R2.
  */
 const pickSoundEffects = (): {
-  transitionSfxUrl: string;
-  newsSfxUrl: string;
+  transitionSfxUrl: string | null;
+  newsSfxUrl: string | null;
 } => ({
   transitionSfxUrl: getRandomSfx('transition'),
   newsSfxUrl: getRandomSfx('news-alert'),
