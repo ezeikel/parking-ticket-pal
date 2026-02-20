@@ -79,7 +79,9 @@ export const ModelName = {
   PendingTicket: 'PendingTicket',
   IssuerHealthCheck: 'IssuerHealthCheck',
   TribunalCaseVideo: 'TribunalCaseVideo',
-  NewsVideo: 'NewsVideo'
+  NewsVideo: 'NewsVideo',
+  HighwayCodeSign: 'HighwayCodeSign',
+  HighwayCodeQuizPost: 'HighwayCodeQuizPost'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -601,6 +603,37 @@ export const NewsVideoScalarFieldEnum = {
 } as const
 
 export type NewsVideoScalarFieldEnum = (typeof NewsVideoScalarFieldEnum)[keyof typeof NewsVideoScalarFieldEnum]
+
+
+export const HighwayCodeSignScalarFieldEnum = {
+  id: 'id',
+  name: 'name',
+  category: 'category',
+  description: 'description',
+  imageUrl: 'imageUrl',
+  govUkRef: 'govUkRef',
+  used: 'used',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type HighwayCodeSignScalarFieldEnum = (typeof HighwayCodeSignScalarFieldEnum)[keyof typeof HighwayCodeSignScalarFieldEnum]
+
+
+export const HighwayCodeQuizPostScalarFieldEnum = {
+  id: 'id',
+  signId: 'signId',
+  questionSlideUrl: 'questionSlideUrl',
+  answerSlideUrl: 'answerSlideUrl',
+  caption: 'caption',
+  status: 'status',
+  postingResults: 'postingResults',
+  errorMessage: 'errorMessage',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type HighwayCodeQuizPostScalarFieldEnum = (typeof HighwayCodeQuizPostScalarFieldEnum)[keyof typeof HighwayCodeQuizPostScalarFieldEnum]
 
 
 export const SortOrder = {

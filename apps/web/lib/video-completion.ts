@@ -204,6 +204,228 @@ const postReelToFacebook = async (
 };
 
 // ============================================================================
+// Carousel / album posting (for image-based content like quizzes)
+// ============================================================================
+
+export const postCarouselToInstagram = async (
+  imageUrls: string[],
+  caption: string,
+  logger?: ReturnType<typeof createServerLogger>,
+): Promise<{ success: boolean; mediaId?: string; error?: string }> => {
+  try {
+    if (
+      !process.env.INSTAGRAM_ACCOUNT_ID ||
+      !process.env.FACEBOOK_PAGE_ACCESS_TOKEN
+    ) {
+      throw new Error('Instagram credentials not configured');
+    }
+
+    const accessToken = process.env.FACEBOOK_PAGE_ACCESS_TOKEN;
+    const igAccountId = process.env.INSTAGRAM_ACCOUNT_ID;
+
+    // 1. Create child containers for each image
+    const childIds: string[] = [];
+    // eslint-disable-next-line no-restricted-syntax
+    for (const imageUrl of imageUrls) {
+      // eslint-disable-next-line no-await-in-loop
+      const childResponse = await fetch(
+        `https://graph.facebook.com/v24.0/${igAccountId}/media`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            image_url: imageUrl,
+            is_carousel_item: true,
+            access_token: accessToken,
+          }),
+        },
+      );
+      // eslint-disable-next-line no-await-in-loop
+      const childData = await childResponse.json();
+      if (!childResponse.ok) {
+        throw new Error(
+          `Instagram carousel child failed: ${JSON.stringify(childData)}`,
+        );
+      }
+      childIds.push(childData.id);
+    }
+
+    // 2. Wait for each child to reach FINISHED
+    // eslint-disable-next-line no-restricted-syntax
+    for (const childId of childIds) {
+      let ready = false;
+      // eslint-disable-next-line no-plusplus
+      for (let i = 0; i < 30; i++) {
+        // eslint-disable-next-line no-await-in-loop, no-promise-executor-return
+        await new Promise((r) => setTimeout(r, 3000));
+        // eslint-disable-next-line no-await-in-loop
+        const statusResponse = await fetch(
+          `https://graph.facebook.com/v24.0/${childId}?fields=status_code&access_token=${accessToken}`,
+        );
+        // eslint-disable-next-line no-await-in-loop
+        const statusData = await statusResponse.json();
+        if (statusData.status_code === 'FINISHED') {
+          ready = true;
+          break;
+        }
+        if (statusData.status_code === 'ERROR') {
+          throw new Error(
+            `Instagram carousel child ${childId} processing failed`,
+          );
+        }
+      }
+      if (!ready) {
+        throw new Error(
+          `Instagram carousel child ${childId} processing timed out`,
+        );
+      }
+    }
+
+    // 3. Create carousel container
+    const carouselResponse = await fetch(
+      `https://graph.facebook.com/v24.0/${igAccountId}/media`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          media_type: 'CAROUSEL',
+          children: childIds.join(','),
+          caption,
+          access_token: accessToken,
+        }),
+      },
+    );
+    const carouselData = await carouselResponse.json();
+    if (!carouselResponse.ok) {
+      throw new Error(
+        `Instagram carousel create failed: ${JSON.stringify(carouselData)}`,
+      );
+    }
+    const carouselId = carouselData.id;
+
+    // 4. Wait for carousel to be ready
+    let carouselReady = false;
+    // eslint-disable-next-line no-plusplus
+    for (let i = 0; i < 30; i++) {
+      // eslint-disable-next-line no-await-in-loop, no-promise-executor-return
+      await new Promise((r) => setTimeout(r, 3000));
+      // eslint-disable-next-line no-await-in-loop
+      const statusResponse = await fetch(
+        `https://graph.facebook.com/v24.0/${carouselId}?fields=status_code&access_token=${accessToken}`,
+      );
+      // eslint-disable-next-line no-await-in-loop
+      const statusData = await statusResponse.json();
+      if (statusData.status_code === 'FINISHED') {
+        carouselReady = true;
+        break;
+      }
+      if (statusData.status_code === 'ERROR') {
+        throw new Error('Instagram carousel processing failed');
+      }
+    }
+    if (!carouselReady) {
+      throw new Error('Instagram carousel processing timed out');
+    }
+
+    // 5. Publish
+    const publishResponse = await fetch(
+      `https://graph.facebook.com/v24.0/${igAccountId}/media_publish`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          creation_id: carouselId,
+          access_token: accessToken,
+        }),
+      },
+    );
+    const publishData = await publishResponse.json();
+    if (!publishResponse.ok) {
+      throw new Error(
+        `Instagram carousel publish failed: ${JSON.stringify(publishData)}`,
+      );
+    }
+
+    return { success: true, mediaId: publishData.id };
+  } catch (error) {
+    const err = error instanceof Error ? error : new Error(String(error));
+    logger?.error('Instagram carousel posting failed', {}, err);
+    return { success: false, error: err.message };
+  }
+};
+
+export const postAlbumToFacebook = async (
+  imageUrls: string[],
+  caption: string,
+  title: string,
+  logger?: ReturnType<typeof createServerLogger>,
+): Promise<{ success: boolean; postId?: string; error?: string }> => {
+  try {
+    if (
+      !process.env.FACEBOOK_PAGE_ID ||
+      !process.env.FACEBOOK_PAGE_ACCESS_TOKEN
+    ) {
+      throw new Error('Facebook credentials not configured');
+    }
+
+    const accessToken = process.env.FACEBOOK_PAGE_ACCESS_TOKEN;
+    const pageId = process.env.FACEBOOK_PAGE_ID;
+
+    // Upload each image as an unpublished photo, collect their IDs
+    const photoIds: string[] = [];
+    // eslint-disable-next-line no-restricted-syntax
+    for (const imageUrl of imageUrls) {
+      // eslint-disable-next-line no-await-in-loop
+      const response = await fetch(
+        `https://graph.facebook.com/v24.0/${pageId}/photos`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            url: imageUrl,
+            published: false,
+            access_token: accessToken,
+          }),
+        },
+      );
+      // eslint-disable-next-line no-await-in-loop
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(
+          `Facebook photo upload failed: ${JSON.stringify(data)}`,
+        );
+      }
+      photoIds.push(data.id);
+    }
+
+    // Create a multi-photo post referencing all uploaded photos
+    const attachedMedia = photoIds.map((id) => ({ media_fbid: id }));
+    const response = await fetch(
+      `https://graph.facebook.com/v24.0/${pageId}/feed`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          message: `${title}\n\n${caption}`,
+          attached_media: attachedMedia,
+          access_token: accessToken,
+        }),
+      },
+    );
+    const data = await response.json();
+    if (!response.ok) {
+      throw new Error(`Facebook album post failed: ${JSON.stringify(data)}`);
+    }
+
+    return { success: true, postId: data.id };
+  } catch (error) {
+    const err = error instanceof Error ? error : new Error(String(error));
+    logger?.error('Facebook album posting failed', {}, err);
+    return { success: false, error: err.message };
+  }
+};
+
+// ============================================================================
 // Completion functions (called by webhook endpoints)
 // ============================================================================
 

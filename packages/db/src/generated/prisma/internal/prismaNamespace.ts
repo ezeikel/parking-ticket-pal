@@ -412,7 +412,9 @@ export const ModelName = {
   PendingTicket: 'PendingTicket',
   IssuerHealthCheck: 'IssuerHealthCheck',
   TribunalCaseVideo: 'TribunalCaseVideo',
-  NewsVideo: 'NewsVideo'
+  NewsVideo: 'NewsVideo',
+  HighwayCodeSign: 'HighwayCodeSign',
+  HighwayCodeQuizPost: 'HighwayCodeQuizPost'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -428,7 +430,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "mobileDeviceSession" | "vehicle" | "ticket" | "media" | "letter" | "subscription" | "reminder" | "form" | "prediction" | "amountIncrease" | "verification" | "challenge" | "notification" | "pushToken" | "account" | "session" | "verificationToken" | "londonTribunalCase" | "appealDataSource" | "contraventionStats" | "issuerContraventionStats" | "appealPattern" | "pendingIssuer" | "pendingChallenge" | "pendingTicket" | "issuerHealthCheck" | "tribunalCaseVideo" | "newsVideo"
+    modelProps: "user" | "mobileDeviceSession" | "vehicle" | "ticket" | "media" | "letter" | "subscription" | "reminder" | "form" | "prediction" | "amountIncrease" | "verification" | "challenge" | "notification" | "pushToken" | "account" | "session" | "verificationToken" | "londonTribunalCase" | "appealDataSource" | "contraventionStats" | "issuerContraventionStats" | "appealPattern" | "pendingIssuer" | "pendingChallenge" | "pendingTicket" | "issuerHealthCheck" | "tribunalCaseVideo" | "newsVideo" | "highwayCodeSign" | "highwayCodeQuizPost"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -2578,6 +2580,154 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    HighwayCodeSign: {
+      payload: Prisma.$HighwayCodeSignPayload<ExtArgs>
+      fields: Prisma.HighwayCodeSignFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.HighwayCodeSignFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$HighwayCodeSignPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.HighwayCodeSignFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$HighwayCodeSignPayload>
+        }
+        findFirst: {
+          args: Prisma.HighwayCodeSignFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$HighwayCodeSignPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.HighwayCodeSignFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$HighwayCodeSignPayload>
+        }
+        findMany: {
+          args: Prisma.HighwayCodeSignFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$HighwayCodeSignPayload>[]
+        }
+        create: {
+          args: Prisma.HighwayCodeSignCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$HighwayCodeSignPayload>
+        }
+        createMany: {
+          args: Prisma.HighwayCodeSignCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.HighwayCodeSignCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$HighwayCodeSignPayload>[]
+        }
+        delete: {
+          args: Prisma.HighwayCodeSignDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$HighwayCodeSignPayload>
+        }
+        update: {
+          args: Prisma.HighwayCodeSignUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$HighwayCodeSignPayload>
+        }
+        deleteMany: {
+          args: Prisma.HighwayCodeSignDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.HighwayCodeSignUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.HighwayCodeSignUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$HighwayCodeSignPayload>[]
+        }
+        upsert: {
+          args: Prisma.HighwayCodeSignUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$HighwayCodeSignPayload>
+        }
+        aggregate: {
+          args: Prisma.HighwayCodeSignAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateHighwayCodeSign>
+        }
+        groupBy: {
+          args: Prisma.HighwayCodeSignGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.HighwayCodeSignGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.HighwayCodeSignCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.HighwayCodeSignCountAggregateOutputType> | number
+        }
+      }
+    }
+    HighwayCodeQuizPost: {
+      payload: Prisma.$HighwayCodeQuizPostPayload<ExtArgs>
+      fields: Prisma.HighwayCodeQuizPostFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.HighwayCodeQuizPostFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$HighwayCodeQuizPostPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.HighwayCodeQuizPostFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$HighwayCodeQuizPostPayload>
+        }
+        findFirst: {
+          args: Prisma.HighwayCodeQuizPostFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$HighwayCodeQuizPostPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.HighwayCodeQuizPostFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$HighwayCodeQuizPostPayload>
+        }
+        findMany: {
+          args: Prisma.HighwayCodeQuizPostFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$HighwayCodeQuizPostPayload>[]
+        }
+        create: {
+          args: Prisma.HighwayCodeQuizPostCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$HighwayCodeQuizPostPayload>
+        }
+        createMany: {
+          args: Prisma.HighwayCodeQuizPostCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.HighwayCodeQuizPostCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$HighwayCodeQuizPostPayload>[]
+        }
+        delete: {
+          args: Prisma.HighwayCodeQuizPostDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$HighwayCodeQuizPostPayload>
+        }
+        update: {
+          args: Prisma.HighwayCodeQuizPostUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$HighwayCodeQuizPostPayload>
+        }
+        deleteMany: {
+          args: Prisma.HighwayCodeQuizPostDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.HighwayCodeQuizPostUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.HighwayCodeQuizPostUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$HighwayCodeQuizPostPayload>[]
+        }
+        upsert: {
+          args: Prisma.HighwayCodeQuizPostUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$HighwayCodeQuizPostPayload>
+        }
+        aggregate: {
+          args: Prisma.HighwayCodeQuizPostAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateHighwayCodeQuizPost>
+        }
+        groupBy: {
+          args: Prisma.HighwayCodeQuizPostGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.HighwayCodeQuizPostGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.HighwayCodeQuizPostCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.HighwayCodeQuizPostCountAggregateOutputType> | number
+        }
+      }
+    }
   }
 } & {
   other: {
@@ -3120,6 +3270,37 @@ export const NewsVideoScalarFieldEnum = {
 } as const
 
 export type NewsVideoScalarFieldEnum = (typeof NewsVideoScalarFieldEnum)[keyof typeof NewsVideoScalarFieldEnum]
+
+
+export const HighwayCodeSignScalarFieldEnum = {
+  id: 'id',
+  name: 'name',
+  category: 'category',
+  description: 'description',
+  imageUrl: 'imageUrl',
+  govUkRef: 'govUkRef',
+  used: 'used',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type HighwayCodeSignScalarFieldEnum = (typeof HighwayCodeSignScalarFieldEnum)[keyof typeof HighwayCodeSignScalarFieldEnum]
+
+
+export const HighwayCodeQuizPostScalarFieldEnum = {
+  id: 'id',
+  signId: 'signId',
+  questionSlideUrl: 'questionSlideUrl',
+  answerSlideUrl: 'answerSlideUrl',
+  caption: 'caption',
+  status: 'status',
+  postingResults: 'postingResults',
+  errorMessage: 'errorMessage',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type HighwayCodeQuizPostScalarFieldEnum = (typeof HighwayCodeQuizPostScalarFieldEnum)[keyof typeof HighwayCodeQuizPostScalarFieldEnum]
 
 
 export const SortOrder = {
@@ -3810,6 +3991,8 @@ export type GlobalOmitConfig = {
   issuerHealthCheck?: Prisma.IssuerHealthCheckOmit
   tribunalCaseVideo?: Prisma.TribunalCaseVideoOmit
   newsVideo?: Prisma.NewsVideoOmit
+  highwayCodeSign?: Prisma.HighwayCodeSignOmit
+  highwayCodeQuizPost?: Prisma.HighwayCodeQuizPostOmit
 }
 
 /* Types for Logging */

@@ -870,3 +870,43 @@ model NewsVideo {
   @@index([createdAt])
   @@map("news_videos")
 }
+
+// ============================================================================
+// Highway Code Quiz Pipeline
+// ============================================================================
+
+model HighwayCodeSign {
+  id          String   @id @default(cuid())
+  name        String
+  category    String // "warning" | "regulatory" | "informatory"
+  description String   @db.Text
+  imageUrl    String // R2 URL
+  govUkRef    String?
+  used        Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  quizPosts HighwayCodeQuizPost[]
+
+  @@index([used])
+  @@index([category])
+  @@map("highway_code_signs")
+}
+
+model HighwayCodeQuizPost {
+  id               String          @id @default(cuid())
+  signId           String
+  sign             HighwayCodeSign @relation(fields: [signId], references: [id])
+  questionSlideUrl String?
+  answerSlideUrl   String?
+  caption          String?         @db.Text
+  status           VideoStatus     @default(PENDING)
+  postingResults   Json?
+  errorMessage     String?
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
+
+  @@index([signId])
+  @@index([status])
+  @@map("highway_code_quiz_posts")
+}

@@ -184,3 +184,13 @@ export type TribunalCaseVideo = Prisma.TribunalCaseVideoModel
  * 
  */
 export type NewsVideo = Prisma.NewsVideoModel
+/**
+ * Model HighwayCodeSign
+ * 
+ */
+export type HighwayCodeSign = Prisma.HighwayCodeSignModel
+/**
+ * Model HighwayCodeQuizPost
+ * 
+ */
+export type HighwayCodeQuizPost = Prisma.HighwayCodeQuizPostModel
