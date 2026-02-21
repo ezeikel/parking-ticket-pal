@@ -567,7 +567,7 @@ export async function completeTribunalVideo(
       await sendSocialDigest(digestEmail, {
         blogTitle: `Tribunal Case: ${caseData.authority} - ${caseData.contravention}`,
         blogUrl: '',
-        imageUrl: '',
+        imageUrl: coverImageUrl ?? '',
         videoUrl,
         captions: digestCaptions,
         voiceoverTranscript: videoRecord.script || undefined,
@@ -735,7 +735,7 @@ export async function completeNewsVideo(
       await sendSocialDigest(digestEmail, {
         blogTitle: `UK News: ${videoRecord.headline}`,
         blogUrl: videoRecord.articleUrl,
-        imageUrl: '',
+        imageUrl: coverImageUrl ?? '',
         videoUrl,
         captions: digestCaptions,
         sourceArticleUrl: videoRecord.articleUrl,
