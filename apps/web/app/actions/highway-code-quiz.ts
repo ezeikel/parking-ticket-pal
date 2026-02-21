@@ -20,13 +20,27 @@ const { WORKER_SECRET } = process.env;
 // ============================================================================
 
 const selectUnusedSign = async () => {
-  const sign = await db.highwayCodeSign.findFirst({
+  let sign = await db.highwayCodeSign.findFirst({
     where: { used: false },
     orderBy: { createdAt: 'asc' },
   });
 
   if (!sign) {
-    throw new Error('No unused Highway Code signs available');
+    // All signs used — reset the cycle and start again
+    await db.highwayCodeSign.updateMany({
+      where: { used: true },
+      data: { used: false },
+    });
+    logger.info('All signs used — reset cycle');
+
+    sign = await db.highwayCodeSign.findFirst({
+      where: { used: false },
+      orderBy: { createdAt: 'asc' },
+    });
+
+    if (!sign) {
+      throw new Error('No Highway Code signs available');
+    }
   }
 
   return sign;
