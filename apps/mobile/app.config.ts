@@ -122,7 +122,7 @@ export default ({ config }: ConfigContext): ExpoConfig => {
       [
         "expo-image-picker",
         {
-          "photosPermission": "The app needs access to your photos to test document scanning in development."
+          "photosPermission": "This app allows you to upload existing photos of parking tickets and related documents from your library."
         }
       ],
       [
