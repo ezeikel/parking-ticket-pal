@@ -1,5 +1,6 @@
 import React, { forwardRef, useMemo, useState } from 'react';
-import { View, Text, TextInput, Alert } from 'react-native';
+import { View, Text, TextInput } from 'react-native';
+import { toast } from '@/lib/toast';
 import BottomSheet, { BottomSheetBackdrop, BottomSheetView } from '@gorhom/bottom-sheet';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { Picker } from '@react-native-picker/picker';
@@ -27,7 +28,7 @@ const ChallengeLetterBottomSheet = forwardRef<BottomSheet, ChallengeLetterBottom
 
     const handleGenerate = async () => {
       if (!selectedReason) {
-        Alert.alert('Required Field', 'Please select a challenge reason');
+        toast.error('Required', 'Please select a challenge reason');
         return;
       }
 
@@ -39,28 +40,14 @@ const ChallengeLetterBottomSheet = forwardRef<BottomSheet, ChallengeLetterBottom
 
         // Check if the result indicates success
         if (result && result.success) {
-          Alert.alert(
-            'Success!',
-            'Your challenge letter has been generated and sent to your email address.',
-            [
-              {
-                text: 'OK',
-                onPress: () => {
-                  // Reset form
-                  setSelectedReason('');
-                  setAdditionalDetails('');
-                  onSuccess();
-                },
-              },
-            ]
-          );
+          toast.success('Letter Generated', 'Check your email');
+          setSelectedReason('');
+          setAdditionalDetails('');
+          onSuccess();
         } else {
           // API returned but indicated failure
           console.error('Challenge letter generation failed:', result);
-          Alert.alert(
-            'Error',
-            result?.message || 'Failed to generate challenge letter. Please try again.'
-          );
+          toast.error('Generation Failed', result?.message || 'Please try again');
         }
       } catch (error: any) {
         console.error('Error generating challenge letter:', error);
@@ -69,10 +56,7 @@ const ChallengeLetterBottomSheet = forwardRef<BottomSheet, ChallengeLetterBottom
           response: error.response?.data,
           status: error.response?.status,
         });
-        Alert.alert(
-          'Error',
-          error.response?.data?.error || error.response?.data?.message || 'Failed to generate challenge letter. Please try again.'
-        );
+        toast.error('Generation Failed', error.response?.data?.error || error.response?.data?.message || 'Please try again');
       } finally {
         setIsLoading(false);
       }

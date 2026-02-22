@@ -4,6 +4,7 @@ import Constants, { ExecutionEnvironment } from "expo-constants";
 import * as Sentry from '@sentry/react-native';
 import { ErrorBoundary } from '@sentry/react-native';
 import { View, Text, Button } from 'react-native';
+import { Toaster } from 'sonner-native';
 import Providers from "@/providers";
 import { PostHogNavigationTracker } from "@/components/PostHogNavigationTracker";
 import { purchaseService } from '@/services/PurchaseService';
@@ -71,6 +72,7 @@ const RootLayout = () => {
       <Providers>
         <PostHogNavigationTracker />
         <Slot />
+        <Toaster position="top-center" />
       </Providers>
     </ErrorBoundary>
   );

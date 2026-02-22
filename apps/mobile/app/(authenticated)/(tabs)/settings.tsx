@@ -1,4 +1,5 @@
 import { Text, View, ScrollView, Alert, useWindowDimensions, Linking, Platform } from 'react-native';
+import { toast } from '@/lib/toast';
 import Switch from '@/components/Switch/Switch';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import SquishyPressable from '@/components/SquishyPressable/SquishyPressable';
@@ -104,7 +105,7 @@ const SettingsScreen = () => {
       queryClient.invalidateQueries({ queryKey: ['tickets'] });
     } catch (error) {
       trackEvent("link_account_failed", { screen: "settings", method: "google" });
-      Alert.alert('Error', 'Failed to link Google account. Please try again.');
+      toast.error('Link Failed', 'Could not connect Google account');
     } finally {
       setIsLinking(false);
     }
@@ -120,7 +121,7 @@ const SettingsScreen = () => {
       queryClient.invalidateQueries({ queryKey: ['tickets'] });
     } catch (error) {
       trackEvent("link_account_failed", { screen: "settings", method: "apple" });
-      Alert.alert('Error', 'Failed to link Apple account. Please try again.');
+      toast.error('Link Failed', 'Could not connect Apple account');
     } finally {
       setIsLinking(false);
     }
@@ -136,7 +137,7 @@ const SettingsScreen = () => {
       queryClient.invalidateQueries({ queryKey: ['tickets'] });
     } catch (error) {
       trackEvent("link_account_failed", { screen: "settings", method: "facebook" });
-      Alert.alert('Error', 'Failed to link Facebook account. Please try again.');
+      toast.error('Link Failed', 'Could not connect Facebook account');
     } finally {
       setIsLinking(false);
     }
@@ -144,17 +145,17 @@ const SettingsScreen = () => {
 
   const handleLinkMagicLink = async (email: string) => {
     if (!email.trim()) {
-      Alert.alert('Error', 'Please enter your email address.');
+      toast.error('Email Required', 'Please enter your email address');
       return;
     }
     setIsLinking(true);
     try {
       trackEvent("link_account_started", { screen: "settings", method: "magic_link" });
       await sendMagicLink(email);
-      Alert.alert('Success', `Magic link sent to ${email}. Check your email and click the link to link your account.`);
+      toast.success('Email Sent', 'Check your inbox for the login link');
     } catch (error) {
       trackEvent("link_account_failed", { screen: "settings", method: "magic_link" });
-      Alert.alert('Error', 'Failed to send magic link. Please try again.');
+      toast.error('Send Failed', 'Could not send magic link');
     } finally {
       setIsLinking(false);
     }
@@ -166,7 +167,7 @@ const SettingsScreen = () => {
       trackEvent("onboarding_viewed_from_settings", { screen: "settings" });
       router.push('/onboarding');
     } catch (error) {
-      Alert.alert('Error', 'Failed to navigate to onboarding');
+      toast.error('Error', 'Failed to open onboarding');
     }
   };
 
@@ -193,7 +194,7 @@ const SettingsScreen = () => {
                 }
               ]);
             } catch (error) {
-              Alert.alert('Error', 'Failed to clear app data');
+              toast.error('Error', 'Failed to clear app data');
             }
           },
         },
@@ -245,10 +246,10 @@ const SettingsScreen = () => {
       // Force SignatureSvg to remount with fresh data
       setSignatureRefreshKey(prev => prev + 1);
 
-      Alert.alert('Success', 'Signature updated successfully');
+      toast.success('Saved', 'Signature updated');
     } catch (error) {
       console.error('Error saving signature:', error);
-      Alert.alert('Error', 'Failed to save signature');
+      toast.error('Save Failed', 'Could not save signature');
     }
   };
 
@@ -274,25 +275,13 @@ const SettingsScreen = () => {
       const hasEntitlements = Object.keys(customerInfo.entitlements.active).length > 0;
 
       if (hasEntitlements) {
-        Alert.alert(
-          'Success',
-          'Your purchases have been restored successfully!',
-          [{ text: 'OK' }]
-        );
+        toast.success('Purchases Restored');
       } else {
-        Alert.alert(
-          'No Purchases Found',
-          'We could not find any previous purchases to restore.',
-          [{ text: 'OK' }]
-        );
+        toast.info('No Purchases Found', 'No previous purchases on this account');
       }
     } catch (error) {
       console.error('Error restoring purchases:', error);
-      Alert.alert(
-        'Error',
-        'Failed to restore purchases. Please try again later.',
-        [{ text: 'OK' }]
-      );
+      toast.error('Restore Failed', 'Please try again later');
     } finally {
       setIsRestoring(false);
     }
@@ -318,11 +307,7 @@ const SettingsScreen = () => {
   const handleToggleNotification = (key: 'inApp' | 'email' | 'sms' | 'push') => {
     // Check if user is trying to enable email/sms without subscription
     if (!hasActiveSubscription && (key === 'email' || key === 'sms')) {
-      Alert.alert(
-        'Upgrade Required',
-        `${key === 'email' ? 'Email' : 'SMS'} notifications are only available for Standard and Premium subscribers.`,
-        [{ text: 'OK' }]
-      );
+      toast.info('Upgrade Required', `${key === 'email' ? 'Email' : 'SMS'} notifications are only available for Standard and Premium subscribers.`);
       return;
     }
 

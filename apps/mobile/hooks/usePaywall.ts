@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Alert } from 'react-native';
+import { toast } from '@/lib/toast';
 import { PurchasesPackage, PURCHASES_ERROR_CODE } from 'react-native-purchases';
 import { usePurchases } from '@/contexts/purchases';
 import { useAnalytics } from '@/lib/analytics';
@@ -78,7 +78,7 @@ export function usePaywall({ mode, ticketId, onPurchaseComplete }: UsePaywallOpt
     async (plan: PricingPlan) => {
       const pkg = getPackageForPlan(plan);
       if (!pkg) {
-        Alert.alert('Error', 'This plan is not available right now. Please try again later.');
+        toast.error('Not Available', 'This plan is unavailable right now');
         return;
       }
 
@@ -96,13 +96,13 @@ export function usePaywall({ mode, ticketId, onPurchaseComplete }: UsePaywallOpt
 
         await refreshCustomerInfo();
 
-        Alert.alert(
+        toast.success(
           'Success',
           mode === 'subscriptions'
-            ? 'Welcome to your subscription! You now have access to all premium features.'
-            : 'Your ticket has been upgraded successfully!',
-          [{ text: 'OK', onPress: () => onPurchaseComplete?.() }]
+            ? 'Welcome! You now have access to all premium features.'
+            : 'Your ticket has been upgraded successfully!'
         );
+        onPurchaseComplete?.();
       } catch (error: any) {
         if (error.code === PURCHASES_ERROR_CODE.PURCHASE_CANCELLED_ERROR) {
           trackEvent('paywall_purchase_cancelled', {
@@ -111,7 +111,7 @@ export function usePaywall({ mode, ticketId, onPurchaseComplete }: UsePaywallOpt
           });
         } else {
           console.error('[usePaywall] Purchase error:', error);
-          Alert.alert('Error', 'Something went wrong with the purchase. Please try again.');
+          toast.error('Purchase Failed', 'Please try again');
         }
       } finally {
         setIsPurchasing(false);
@@ -128,19 +128,18 @@ export function usePaywall({ mode, ticketId, onPurchaseComplete }: UsePaywallOpt
 
       trackEvent('paywall_restore_success');
 
-      Alert.alert(
-        hasEntitlements ? 'Purchases Restored' : 'No Purchases Found',
-        hasEntitlements
-          ? 'Your previous purchases have been restored.'
-          : 'We couldn\'t find any previous purchases associated with your account.'
-      );
+      if (hasEntitlements) {
+        toast.success('Purchases Restored', 'Your previous purchases have been restored.');
+      } else {
+        toast.info('No Purchases Found', 'No previous purchases on this account');
+      }
 
       if (hasEntitlements) {
         onPurchaseComplete?.();
       }
     } catch (error) {
       console.error('[usePaywall] Restore error:', error);
-      Alert.alert('Error', 'Failed to restore purchases. Please try again.');
+      toast.error('Restore Failed', 'Please try again');
     } finally {
       setIsPurchasing(false);
     }

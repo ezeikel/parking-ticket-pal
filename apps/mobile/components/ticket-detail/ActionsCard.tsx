@@ -1,4 +1,5 @@
 import { View, Text, Alert } from 'react-native';
+import { toast } from '@/lib/toast';
 import { router } from 'expo-router';
 import { useQueryClient } from '@tanstack/react-query';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
@@ -56,7 +57,7 @@ export default function ActionsCard({
               queryClient.invalidateQueries({ queryKey: ['tickets'] });
               router.back();
             } catch {
-              Alert.alert('Error', 'Failed to delete ticket. Please try again.');
+              toast.error('Delete Failed', 'Please try again');
             }
           },
         },

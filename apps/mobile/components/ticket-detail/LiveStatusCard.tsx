@@ -1,5 +1,6 @@
 import { useState, useCallback, useEffect } from 'react';
-import { View, Text, Alert, ActivityIndicator } from 'react-native';
+import { View, Text, ActivityIndicator } from 'react-native';
+import { toast } from '@/lib/toast';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import {
   faGlobe,
@@ -125,7 +126,7 @@ export default function LiveStatusCard({
         }
 
         if (data.status === 'failed') {
-          Alert.alert('Status Check Failed', data.result?.errorMessage || data.error || 'Could not check status on portal');
+          toast.error('Check Failed', data.result?.errorMessage || data.error || 'Could not check status on portal');
           break;
         }
 
@@ -138,7 +139,7 @@ export default function LiveStatusCard({
     }
 
     if (attempts >= maxAttempts) {
-      Alert.alert('Timeout', 'The check is taking longer than expected. Please try again.');
+      toast.error('Check Timeout', 'Taking longer than expected');
     }
 
     setIsChecking(false);
@@ -156,11 +157,11 @@ export default function LiveStatusCard({
         setCurrentStatus(result.status);
         setIsChecking(false);
       } else {
-        Alert.alert('Error', result.error || 'Could not start status check');
+        toast.error('Check Error', result.error || 'Could not start status check');
         setIsChecking(false);
       }
     } catch {
-      Alert.alert('Error', 'Could not start status check');
+      toast.error('Check Error', 'Could not start status check');
       setIsChecking(false);
     }
   };

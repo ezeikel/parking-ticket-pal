@@ -1,5 +1,7 @@
 import type { ReactNode } from 'react';
 import type { PressableProps } from 'react-native';
+import { Platform } from 'react-native';
+import * as Haptics from 'expo-haptics';
 import Animated, {
   Extrapolation,
   interpolate,
@@ -49,7 +51,12 @@ const SquishyPressable = ({
       <OptionalPressable
         onPress={onPress}
         onPressOut={() => (pressed.value = false)}
-        onPressIn={() => (pressed.value = true)}
+        onPressIn={() => {
+          pressed.value = true;
+          if (Platform.OS === 'ios') {
+            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+          }
+        }}
         disabled={disabled}
         {...props}
       >

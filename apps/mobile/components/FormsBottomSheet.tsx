@@ -1,5 +1,6 @@
 import React, { forwardRef, useMemo, useState } from 'react';
-import { View, Text, TextInput, Alert } from 'react-native';
+import { View, Text, TextInput } from 'react-native';
+import { toast } from '@/lib/toast';
 import BottomSheet, { BottomSheetBackdrop, BottomSheetView } from '@gorhom/bottom-sheet';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import Checkbox from 'expo-checkbox';
@@ -34,14 +35,14 @@ const FormsBottomSheet = forwardRef<BottomSheet, FormsBottomSheetProps>(
     const handleGenerate = async () => {
       // Validate based on form type
       if ((formType === 'TE7' || formType === 'PE2') && !reasonText.trim()) {
-        Alert.alert('Required Field', 'Please provide a reason for filing out of time');
+        toast.error('Required', 'Please provide a reason');
         return;
       }
 
       if ((formType === 'TE9' || formType === 'PE3')) {
         const hasSelectedGround = Object.values(grounds).some(v => v);
         if (!hasSelectedGround) {
-          Alert.alert('Required Field', 'Please select at least one ground for your statement');
+          toast.error('Required', 'Select at least one ground');
           return;
         }
       }
@@ -70,35 +71,21 @@ const FormsBottomSheet = forwardRef<BottomSheet, FormsBottomSheetProps>(
 
         // Check if the result indicates success
         if (result && result.success) {
-          Alert.alert(
-            'Success!',
-            `Your ${formInfo.name} has been generated and sent to your email address.`,
-            [
-              {
-                text: 'OK',
-                onPress: () => {
-                  // Reset form
-                  setReasonText('');
-                  setGrounds({
-                    didNotReceiveNotice: false,
-                    madeRepresentations: false,
-                    hadNoResponse: false,
-                    appealNotDetermined: false,
-                    appealInFavour: false,
-                    paidInFull: false,
-                  });
-                  onSuccess();
-                },
-              },
-            ]
-          );
+          toast.success('Form Generated', 'Check your email');
+          setReasonText('');
+          setGrounds({
+            didNotReceiveNotice: false,
+            madeRepresentations: false,
+            hadNoResponse: false,
+            appealNotDetermined: false,
+            appealInFavour: false,
+            paidInFull: false,
+          });
+          onSuccess();
         } else {
           // API returned but indicated failure
           console.error('Form generation failed:', result);
-          Alert.alert(
-            'Error',
-            result?.error || `Failed to generate ${formInfo.name}. Please try again.`
-          );
+          toast.error('Generation Failed', result?.error || `Failed to generate ${formInfo.name}`);
         }
       } catch (error: any) {
         console.error(`Error generating ${formType} form:`, error);
@@ -107,10 +94,7 @@ const FormsBottomSheet = forwardRef<BottomSheet, FormsBottomSheetProps>(
           response: error.response?.data,
           status: error.response?.status,
         });
-        Alert.alert(
-          'Error',
-          error.response?.data?.error || error.response?.data?.message || `Failed to generate ${formInfo.name}. Please try again.`
-        );
+        toast.error('Generation Failed', error.response?.data?.error || error.response?.data?.message || `Failed to generate ${formInfo.name}`);
       } finally {
         setIsLoading(false);
       }

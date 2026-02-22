@@ -255,6 +255,14 @@ const TicketsList = ({ filters }: TicketsListProps) => {
     refetch();
   }, [refetch]);
 
+  const renderTicketItem = useCallback(({ item }: { item: Ticket }) => (
+    <TicketItem
+      ticket={item}
+      hasSubscription={hasSubscription}
+      style={ticketItemStyle}
+    />
+  ), [hasSubscription]);
+
   if (isLoading) {
     return (
       <View className="flex-1 items-center justify-center">
@@ -327,13 +335,7 @@ const TicketsList = ({ filters }: TicketsListProps) => {
       )}
       <FlashList
         data={displayTickets}
-        renderItem={useCallback(({ item }: { item: Ticket }) => (
-          <TicketItem
-            ticket={item}
-            hasSubscription={hasSubscription}
-            style={ticketItemStyle}
-          />
-        ), [hasSubscription])}
+        renderItem={renderTicketItem}
         estimatedItemSize={280}
         keyExtractor={(item) => item.id.toString()}
         getItemType={(item) => isTerminalStatus(item.status) ? 'terminal' : 'active'}

@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { View, Text, Alert } from 'react-native';
+import { toast } from '@/lib/toast';
 import { Image } from 'expo-image';
 import * as ImagePicker from 'expo-image-picker';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
@@ -35,7 +36,7 @@ export default function EvidenceCard({
 
     if (!result.canceled && result.assets[0]) {
       // TODO: Upload evidence via API
-      Alert.alert('Coming Soon', 'Evidence upload will be available soon.');
+      toast.info('Coming Soon', 'Evidence upload available soon');
     }
   };
 
@@ -47,7 +48,7 @@ export default function EvidenceCard({
         style: 'destructive',
         onPress: () => {
           // TODO: Delete evidence via API
-          Alert.alert('Coming Soon', 'Evidence deletion will be available soon.');
+          toast.info('Coming Soon', 'Evidence deletion available soon');
         },
       },
     ]);
