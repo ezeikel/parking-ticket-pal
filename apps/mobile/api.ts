@@ -308,6 +308,11 @@ export const deleteTicket = async (ticketId: string) => {
   return response.data;
 };
 
+export const deleteAccount = async (userId: string) => {
+  const response = await api.delete(`/user/${userId}`);
+  return response.data;
+};
+
 export const getNotifications = async (limit = 50, offset = 0, unreadOnly = false) => {
   const response = await api.get('/notifications', {
     params: { limit, offset, unreadOnly },

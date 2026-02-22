@@ -246,6 +246,79 @@ export const getUserById = async (
   }
 };
 
+/**
+ * Delete user account by ID (for API routes)
+ * Includes authentication check to ensure user can only delete their own account
+ */
+export const deleteUserById = async (
+  requestedUserId: string,
+  authenticatedUserId: string,
+) => {
+  // Verify the authenticated user is deleting their own account
+  if (requestedUserId !== authenticatedUserId) {
+    logger.error('Unauthorized user account deletion attempt', {
+      requestedUserId,
+      authenticatedUserId,
+    });
+    return {
+      success: false as const,
+      error: "Unauthorized - cannot delete another user's account",
+    };
+  }
+
+  try {
+    // 1. Delete user's R2 files (signatures, evidence, etc.)
+    try {
+      const { blobs } = await list({
+        prefix: `users/${requestedUserId}/`,
+      });
+
+      if (blobs.length > 0) {
+        await Promise.all(blobs.map((blob) => del(blob.url)));
+      }
+    } catch (storageError) {
+      logger.error(
+        'Error deleting user R2 files during account deletion',
+        { userId: requestedUserId },
+        storageError instanceof Error
+          ? storageError
+          : new Error(String(storageError)),
+      );
+      // Continue with deletion even if R2 cleanup fails
+    }
+
+    // 2. Delete Subscription first (no cascade on User delete)
+    await db.subscription.deleteMany({
+      where: { userId: requestedUserId },
+    });
+
+    // 3. Delete User — all other relations cascade automatically
+    await db.user.delete({
+      where: { id: requestedUserId },
+    });
+
+    await track(TRACKING_EVENTS.USER_ACCOUNT_DELETED, {
+      userId: requestedUserId,
+    });
+
+    logger.info('User account deleted successfully', {
+      userId: requestedUserId,
+    });
+
+    return { success: true as const };
+  } catch (error) {
+    logger.error(
+      'Error deleting user account',
+      { userId: requestedUserId },
+      error instanceof Error ? error : new Error(String(error)),
+    );
+    return {
+      success: false as const,
+      error: 'Failed to delete account',
+    };
+  }
+};
+
 export const signOutAction = async () => {
   await signOut();
 };

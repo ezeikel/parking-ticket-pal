@@ -1,4 +1,8 @@
-import { getUserById, updateUserById } from '@/app/actions/user';
+import {
+  getUserById,
+  updateUserById,
+  deleteUserById,
+} from '@/app/actions/user';
 import { getUserId } from '@/utils/user';
 
 // longer duration to account for openai api calls
@@ -19,7 +23,7 @@ export const GET = async (
       {
         headers: {
           'Access-Control-Allow-Origin': '*',
-          'Access-Control-Allow-Methods': 'GET, PATCH, OPTIONS',
+          'Access-Control-Allow-Methods': 'GET, PATCH, DELETE, OPTIONS',
           'Access-Control-Allow-Headers': 'Content-Type, Authorization',
           'Content-Type': 'application/json',
         },
@@ -38,7 +42,7 @@ export const GET = async (
       {
         headers: {
           'Access-Control-Allow-Origin': '*',
-          'Access-Control-Allow-Methods': 'GET, PATCH, OPTIONS',
+          'Access-Control-Allow-Methods': 'GET, PATCH, DELETE, OPTIONS',
           'Access-Control-Allow-Headers': 'Content-Type, Authorization',
           'Content-Type': 'application/json',
         },
@@ -52,7 +56,7 @@ export const GET = async (
     {
       headers: {
         'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Methods': 'GET, PATCH, OPTIONS',
+        'Access-Control-Allow-Methods': 'GET, PATCH, DELETE, OPTIONS',
         'Access-Control-Allow-Headers': 'Content-Type, Authorization',
         'Content-Type': 'application/json',
       },
@@ -76,7 +80,7 @@ export const PATCH = async (
       {
         headers: {
           'Access-Control-Allow-Origin': '*',
-          'Access-Control-Allow-Methods': 'GET, PATCH, OPTIONS',
+          'Access-Control-Allow-Methods': 'GET, PATCH, DELETE, OPTIONS',
           'Access-Control-Allow-Headers': 'Content-Type, Authorization',
           'Content-Type': 'application/json',
         },
@@ -108,7 +112,7 @@ export const PATCH = async (
       {
         headers: {
           'Access-Control-Allow-Origin': '*',
-          'Access-Control-Allow-Methods': 'GET, PATCH, OPTIONS',
+          'Access-Control-Allow-Methods': 'GET, PATCH, DELETE, OPTIONS',
           'Access-Control-Allow-Headers': 'Content-Type, Authorization',
           'Content-Type': 'application/json',
         },
@@ -122,7 +126,63 @@ export const PATCH = async (
     {
       headers: {
         'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Methods': 'GET, PATCH, OPTIONS',
+        'Access-Control-Allow-Methods': 'GET, PATCH, DELETE, OPTIONS',
+        'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+        'Content-Type': 'application/json',
+      },
+      status: 200,
+    },
+  );
+};
+
+export const DELETE = async (
+  _req: Request,
+  { params }: { params: Promise<{ id: string }> },
+) => {
+  const { id } = await params;
+
+  // Get authenticated user
+  const authenticatedUserId = await getUserId('delete account');
+
+  if (!authenticatedUserId) {
+    return Response.json(
+      { success: false, error: 'Unauthorized' },
+      {
+        headers: {
+          'Access-Control-Allow-Origin': '*',
+          'Access-Control-Allow-Methods': 'GET, PATCH, DELETE, OPTIONS',
+          'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+          'Content-Type': 'application/json',
+        },
+        status: 401,
+      },
+    );
+  }
+
+  const result = await deleteUserById(id, authenticatedUserId);
+
+  if (!result.success) {
+    const statusCode = result.error?.includes('Unauthorized') ? 403 : 500;
+    return Response.json(
+      { success: false, error: result.error },
+      {
+        headers: {
+          'Access-Control-Allow-Origin': '*',
+          'Access-Control-Allow-Methods': 'GET, PATCH, DELETE, OPTIONS',
+          'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+          'Content-Type': 'application/json',
+        },
+        status: statusCode,
+      },
+    );
+  }
+
+  return Response.json(
+    { success: true },
+    {
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Methods': 'GET, PATCH, DELETE, OPTIONS',
         'Access-Control-Allow-Headers': 'Content-Type, Authorization',
         'Content-Type': 'application/json',
       },

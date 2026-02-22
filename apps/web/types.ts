@@ -262,6 +262,7 @@ export type EventProperties = {
     signature: boolean;
   };
   [TRACKING_EVENTS.USER_SIGNATURE_ADDED]: Record<string, never>;
+  [TRACKING_EVENTS.USER_ACCOUNT_DELETED]: { userId: string };
 
   // Hero (Web Homepage)
   [TRACKING_EVENTS.HERO_VIEWED]: { source: string };

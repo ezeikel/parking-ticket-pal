@@ -1,4 +1,4 @@
-// eslint-disable-next-line import/prefer-default-export
+// eslint-disable-next-line import-x/prefer-default-export
 export const TRACKING_EVENTS = {
   // Authentication & User Management
   AUTH_METHOD_SELECTED: 'auth_method_selected',
@@ -7,6 +7,7 @@ export const TRACKING_EVENTS = {
   USER_SIGNED_OUT: 'user_signed_out',
   USER_PROFILE_UPDATED: 'user_profile_updated',
   USER_SIGNATURE_ADDED: 'user_signature_added',
+  USER_ACCOUNT_DELETED: 'user_account_deleted',
 
   // Hero (Web Homepage)
   HERO_VIEWED: 'hero_viewed',

@@ -29,7 +29,7 @@ import EditableNameBottomSheet from '@/components/EditableNameBottomSheet';
 import EditableEmailBottomSheet from '@/components/EditableEmailBottomSheet';
 import EditablePhoneNumberBottomSheet from '@/components/EditablePhoneNumberBottomSheet';
 import EditableAddressBottomSheet from '@/components/EditableAddressBottomSheet';
-import { updateUser } from '@/api';
+import { updateUser, deleteAccount } from '@/api';
 import type { Address } from '@parking-ticket-pal/types';
 import { useQueryClient } from '@tanstack/react-query';
 import { useNotificationPreferences, useUpdateNotificationPreferences } from '@/hooks/api/useNotificationPreferences';
@@ -286,6 +286,45 @@ const SettingsScreen = () => {
     } finally {
       setIsRestoring(false);
     }
+  };
+
+  const handleDeleteAccount = () => {
+    if (!user?.id) return;
+
+    trackEvent("account_delete_tapped", { screen: "settings" });
+
+    Alert.alert(
+      'Delete Account?',
+      'This will permanently delete your account and all associated data. This action cannot be undone.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Continue',
+          style: 'destructive',
+          onPress: () => {
+            Alert.alert(
+              'Are you sure?',
+              'All your tickets, evidence, and personal data will be permanently deleted.',
+              [
+                { text: 'Go Back', style: 'cancel' },
+                {
+                  text: 'Delete My Account',
+                  style: 'destructive',
+                  onPress: async () => {
+                    try {
+                      await deleteAccount(user.id);
+                      await signOut();
+                    } catch (error) {
+                      toast.error('Delete Failed', 'Could not delete your account. Please try again.');
+                    }
+                  },
+                },
+              ],
+            );
+          },
+        },
+      ],
+    );
   };
 
   const getSubscriptionStatus = () => {
@@ -554,6 +593,15 @@ const SettingsScreen = () => {
                 {isRestoring ? 'Restoring...' : 'Restore Purchases'}
               </Text>
             </SquishyPressable>
+
+            {isLinked && (
+              <SettingRow
+                icon={faTrashCan}
+                title="Delete Account"
+                onPress={handleDeleteAccount}
+                destructive={true}
+              />
+            )}
           </View>
 
           {/* Link Account Section - shown when user is anonymous */}
