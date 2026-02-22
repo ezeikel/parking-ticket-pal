@@ -10,18 +10,17 @@ import HeaderWrapper from '@/components/Header/HeaderWrapper';
 import FundAccountDialog from '@/components/dialogs/FundAccountDialog/FundAccountDialog';
 import Footer from '@/components/Footer/Footer';
 import PendingActionHandler from '@/components/PendingActionHandler';
+import { FacebookPixel } from '@/components/analytics/FacebookPixel';
 import Providers from './providers';
 import { plusJakartaSans, robotoSlab, ukNumberPlate } from './fonts';
-import { FacebookPixel } from '@/components/analytics/FacebookPixel';
 import '@/global.css';
 
 config.autoAddCss = false;
 
 export const metadata: Metadata = {
-  title:
-    'Parking Ticket Pal: Manage, Track, and Challenge Parking & Penalty Charge Notices with Ease',
+  title: 'Parking Ticket Pal: Track, Manage & Challenge UK Parking Tickets',
   description:
-    'Parking Ticket Pal is your all-in-one solution for handling Parking Charge Notices (PCNs) and Penalty Charge Notices (PCNs). Track your notices, receive reminders for crucial dates, and avoid increased penalties. Utilize our AI-powered system to appeal or challenge notices effortlessly. Take control of your parking tickets today!',
+    'Track your parking tickets, get deadline reminders, and avoid increased fines. Parking Ticket Pal helps you manage PCNs and Penalty Charge Notices in one place — with optional challenge tools, success scores based on real tribunal data, and appeal letter generation when you need them.',
   icons: {
     icon: '/favicon.ico',
     shortcut: '/icons/favicon-16x16.png',

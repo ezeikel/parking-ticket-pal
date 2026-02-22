@@ -34,11 +34,11 @@ const FinalCTA = () => {
         >
           {/* Headline */}
           <h2 className="text-3xl font-bold text-white md:text-4xl lg:text-[40px]">
-            Ready to Fight Your Ticket?
+            Got a Parking Ticket?
           </h2>
           <p className="mt-4 text-lg text-white/70">
             {
-              "Most tickets have a 14-day deadline. Don't wait until your fine doubles."
+              'Most fines double after 14 days. Upload now to track your deadline and see your options.'
             }
           </p>
 

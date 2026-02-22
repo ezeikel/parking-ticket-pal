@@ -60,10 +60,10 @@ const AIAppealsSlide = ({ isActive }: AIAppealsSlideProps) => {
       {/* Header */}
       <Animated.View entering={FadeIn.delay(100).duration(500)} className="mb-8">
         <Text className="font-jakarta-bold text-3xl text-gray-900 mb-3">
-          AI-Powered Appeals
+          Challenge Tools
         </Text>
         <Text className="font-jakarta text-base text-gray-500 leading-6">
-          Our AI analyses your ticket and builds the strongest possible case
+          Think your ticket was unfair? We give you the tools to take action
         </Text>
       </Animated.View>
 
@@ -72,22 +72,22 @@ const AIAppealsSlide = ({ isActive }: AIAppealsSlideProps) => {
         <FeaturePoint
           icon={faBrain}
           color="#6366F1"
-          title="Smart Analysis"
-          description="AI examines your ticket details against thousands of successful appeals"
+          title="Success Score"
+          description="See how likely a challenge is to succeed, based on real UK tribunal data"
           delay={200}
         />
         <FeaturePoint
           icon={faWandMagicSparkles}
           color="#1ABC9C"
-          title="Auto-Generated Letters"
-          description="Get a compelling appeal letter tailored to your specific case"
+          title="Appeal Letters"
+          description="Generate a tailored appeal letter with optional AI assistance, then review and send"
           delay={400}
         />
         <FeaturePoint
           icon={faFileLines}
           color="#F59E0B"
-          title="Legal Grounds"
-          description="We identify the strongest legal arguments for your situation"
+          title="Official Forms"
+          description="Fill in TE7, TE9, PE2, and PE3 forms with step-by-step guidance"
           delay={600}
         />
       </View>

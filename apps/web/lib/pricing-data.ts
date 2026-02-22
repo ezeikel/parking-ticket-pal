@@ -33,7 +33,7 @@ export const ONE_TIME_PRICING: Omit<PriceCardProps, 'dataAttrs'>[] = [
   },
   {
     title: 'Premium',
-    subtitle: 'Challenge your ticket the smart way',
+    subtitle: 'Full tools to manage and challenge',
     price: '£9.99',
     period: 'ticket',
     features: [

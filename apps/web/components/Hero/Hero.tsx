@@ -127,116 +127,121 @@ const Hero = () => {
     return () => clearInterval(interval);
   }, []);
 
-  const handlePhotoUpload = useCallback(async (file: File) => {
-    const startTime = Date.now();
-    setIsUploading(true);
+  const handlePhotoUpload = useCallback(
+    async (file: File) => {
+      const startTime = Date.now();
+      setIsUploading(true);
 
-    // Compress image before upload (skip PDFs, small files)
-    let uploadFile = file;
-    let wasCompressed = false;
-    let compressedFileSize: number | undefined;
-    let compressionRatio: number | undefined;
+      // Compress image before upload (skip PDFs, small files)
+      let uploadFile = file;
+      let wasCompressed = false;
+      let compressedFileSize: number | undefined;
+      let compressionRatio: number | undefined;
 
-    try {
-      const result = await compressImage(file);
-      uploadFile = result.file;
-      wasCompressed = result.wasCompressed;
-      if (wasCompressed) {
-        compressedFileSize = result.compressedSize;
-        compressionRatio = Math.round((1 - result.compressedSize / result.originalSize) * 100);
+      try {
+        const result = await compressImage(file);
+        uploadFile = result.file;
+        wasCompressed = result.wasCompressed;
+        if (wasCompressed) {
+          compressedFileSize = result.compressedSize;
+          compressionRatio = Math.round(
+            (1 - result.compressedSize / result.originalSize) * 100,
+          );
+        }
+      } catch {
+        // Compression failed (e.g. HEIC on Chrome) — use original file
       }
-    } catch {
-      // Compression failed (e.g. HEIC on Chrome) — use original file
-    }
 
-    // Hard limit: reject files still over 4MB after compression
-    const MAX_UPLOAD_SIZE = 4 * 1024 * 1024;
-    if (uploadFile.size > MAX_UPLOAD_SIZE) {
-      toast.error('File is too large. Please upload an image under 4MB.');
-      setIsUploading(false);
-      return;
-    }
+      // Hard limit: reject files still over 4MB after compression
+      const MAX_UPLOAD_SIZE = 4 * 1024 * 1024;
+      if (uploadFile.size > MAX_UPLOAD_SIZE) {
+        toast.error('File is too large. Please upload an image under 4MB.');
+        setIsUploading(false);
+        return;
+      }
 
-    // Track upload started
-    track(TRACKING_EVENTS.HERO_UPLOAD_STARTED, {
-      fileType: file.type,
-      fileSize: file.size,
-      compressedFileSize,
-      wasCompressed,
-      compressionRatio,
-    });
+      // Track upload started
+      track(TRACKING_EVENTS.HERO_UPLOAD_STARTED, {
+        fileType: file.type,
+        fileSize: file.size,
+        compressedFileSize,
+        wasCompressed,
+        compressionRatio,
+      });
 
-    try {
-      const formData = new FormData();
-      formData.append('image', uploadFile);
+      try {
+        const formData = new FormData();
+        formData.append('image', uploadFile);
 
-      const result = await extractOCRTextWithVision(formData);
+        const result = await extractOCRTextWithVision(formData);
 
-      if (result.success && result.data) {
-        // Track upload completed with OCR success
-        track(TRACKING_EVENTS.HERO_UPLOAD_COMPLETED, {
+        if (result.success && result.data) {
+          // Track upload completed with OCR success
+          track(TRACKING_EVENTS.HERO_UPLOAD_COMPLETED, {
+            fileType: file.type,
+            fileSize: file.size,
+            durationMs: Date.now() - startTime,
+            ocrSuccess: true,
+            fieldsExtracted: [
+              result.data.pcnNumber ? 'pcnNumber' : null,
+              result.data.vehicleReg ? 'vehicleReg' : null,
+              result.data.issuer ? 'issuer' : null,
+              result.data.initialAmount ? 'initialAmount' : null,
+            ].filter(Boolean),
+          });
+
+          setExtractedData({
+            pcnNumber: result.data.pcnNumber || '',
+            vehicleReg: result.data.vehicleReg || '',
+            issuerType: 'council',
+            ticketStage: 'initial',
+            initialAmount: result.data.initialAmount,
+            issuer: result.data.issuer,
+            imageUrl: result.imageUrl,
+            tempImagePath: result.tempImagePath,
+          });
+          setIsWizardOpen(true);
+        } else {
+          // Track upload completed but OCR failed
+          track(TRACKING_EVENTS.HERO_UPLOAD_COMPLETED, {
+            fileType: file.type,
+            fileSize: file.size,
+            durationMs: Date.now() - startTime,
+            ocrSuccess: false,
+            ocrError: result.message || 'Unknown OCR error',
+          });
+
+          toast.error(result.message || 'Failed to extract ticket details');
+          // Still open wizard for manual entry
+          setExtractedData(undefined);
+          setIsWizardOpen(true);
+        }
+      } catch (error) {
+        // Track upload failed
+        track(TRACKING_EVENTS.HERO_UPLOAD_FAILED, {
           fileType: file.type,
-          fileSize: file.size,
-          durationMs: Date.now() - startTime,
-          ocrSuccess: true,
-          fieldsExtracted: [
-            result.data.pcnNumber ? 'pcnNumber' : null,
-            result.data.vehicleReg ? 'vehicleReg' : null,
-            result.data.issuer ? 'issuer' : null,
-            result.data.initialAmount ? 'initialAmount' : null,
-          ].filter(Boolean),
+          error: error instanceof Error ? error.message : 'Unknown error',
         });
 
-        setExtractedData({
-          pcnNumber: result.data.pcnNumber || '',
-          vehicleReg: result.data.vehicleReg || '',
-          issuerType: 'council',
-          ticketStage: 'initial',
-          initialAmount: result.data.initialAmount,
-          issuer: result.data.issuer,
-          imageUrl: result.imageUrl,
-          tempImagePath: result.tempImagePath,
-        });
-        setIsWizardOpen(true);
-      } else {
-        // Track upload completed but OCR failed
-        track(TRACKING_EVENTS.HERO_UPLOAD_COMPLETED, {
-          fileType: file.type,
-          fileSize: file.size,
-          durationMs: Date.now() - startTime,
-          ocrSuccess: false,
-          ocrError: result.message || 'Unknown OCR error',
+        Sentry.captureException(error, {
+          tags: { feature: 'hero_upload' },
+          extra: {
+            fileType: file.type,
+            fileSize: file.size,
+            compressedFileSize,
+            wasCompressed,
+          },
         });
 
-        toast.error(result.message || 'Failed to extract ticket details');
-        // Still open wizard for manual entry
+        toast.error('Something went wrong. Please try again.');
         setExtractedData(undefined);
         setIsWizardOpen(true);
+      } finally {
+        setIsUploading(false);
       }
-    } catch (error) {
-      // Track upload failed
-      track(TRACKING_EVENTS.HERO_UPLOAD_FAILED, {
-        fileType: file.type,
-        error: error instanceof Error ? error.message : 'Unknown error',
-      });
-
-      Sentry.captureException(error, {
-        tags: { feature: 'hero_upload' },
-        extra: {
-          fileType: file.type,
-          fileSize: file.size,
-          compressedFileSize,
-          wasCompressed,
-        },
-      });
-
-      toast.error('Something went wrong. Please try again.');
-      setExtractedData(undefined);
-      setIsWizardOpen(true);
-    } finally {
-      setIsUploading(false);
-    }
-  }, [track]);
+    },
+    [track],
+  );
 
   const handleManualEntry = () => {
     track(TRACKING_EVENTS.HERO_MANUAL_ENTRY_CLICKED, {});
@@ -407,7 +412,7 @@ const Hero = () => {
                 disabled={isUploading}
               >
                 <FontAwesomeIcon icon={faBolt} className="text-yellow" />
-                {isUploading ? 'Processing...' : 'Start My Appeal'}
+                {isUploading ? 'Processing...' : 'Upload Your Ticket'}
               </Button>
             </motion.div>
 

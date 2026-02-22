@@ -36,7 +36,8 @@ export default ({ config }: ConfigContext): ExpoConfig => {
         "FacebookDisplayName": "Parking Ticket Pal",
         "ITSAppUsesNonExemptEncryption": false,
         "NSCameraUsageDescription": "This app uses your camera to scan parking tickets and related documents.",
-        "NSPhotoLibraryUsageDescription": "This app allows you to upload existing photos of parking tickets and related documents from your library."
+        "NSPhotoLibraryUsageDescription": "This app allows you to upload existing photos of parking tickets and related documents from your library.",
+        "NSUserTrackingUsageDescription": "This identifier helps us understand how you use the app to improve your experience and show relevant ads."
       },
       associatedDomains: [
         "applinks:parkingticketpal.com",
@@ -44,7 +45,82 @@ export default ({ config }: ConfigContext): ExpoConfig => {
       ],
       entitlements: {
         "com.apple.developer.applesignin": ["Default"],
-      }
+      },
+      privacyManifests: {
+        NSPrivacyTracking: true,
+        NSPrivacyTrackingDomains: [
+          "eu.i.posthog.com",
+        ],
+        NSPrivacyCollectedDataTypes: [
+          {
+            NSPrivacyCollectedDataType: "NSPrivacyCollectedDataTypeEmailAddress",
+            NSPrivacyCollectedDataTypeLinked: true,
+            NSPrivacyCollectedDataTypeTracking: false,
+            NSPrivacyCollectedDataTypePurposes: [
+              "NSPrivacyCollectedDataTypePurposeAppFunctionality",
+            ],
+          },
+          {
+            NSPrivacyCollectedDataType: "NSPrivacyCollectedDataTypeName",
+            NSPrivacyCollectedDataTypeLinked: true,
+            NSPrivacyCollectedDataTypeTracking: false,
+            NSPrivacyCollectedDataTypePurposes: [
+              "NSPrivacyCollectedDataTypePurposeAppFunctionality",
+            ],
+          },
+          {
+            NSPrivacyCollectedDataType: "NSPrivacyCollectedDataTypeDeviceID",
+            NSPrivacyCollectedDataTypeLinked: false,
+            NSPrivacyCollectedDataTypeTracking: true,
+            NSPrivacyCollectedDataTypePurposes: [
+              "NSPrivacyCollectedDataTypePurposeAnalytics",
+              "NSPrivacyCollectedDataTypePurposeThirdPartyAdvertising",
+            ],
+          },
+          {
+            NSPrivacyCollectedDataType: "NSPrivacyCollectedDataTypeCrashData",
+            NSPrivacyCollectedDataTypeLinked: false,
+            NSPrivacyCollectedDataTypeTracking: false,
+            NSPrivacyCollectedDataTypePurposes: [
+              "NSPrivacyCollectedDataTypePurposeAppFunctionality",
+            ],
+          },
+          {
+            NSPrivacyCollectedDataType: "NSPrivacyCollectedDataTypeProductInteraction",
+            NSPrivacyCollectedDataTypeLinked: true,
+            NSPrivacyCollectedDataTypeTracking: false,
+            NSPrivacyCollectedDataTypePurposes: [
+              "NSPrivacyCollectedDataTypePurposeAnalytics",
+            ],
+          },
+          {
+            NSPrivacyCollectedDataType: "NSPrivacyCollectedDataTypePurchaseHistory",
+            NSPrivacyCollectedDataTypeLinked: true,
+            NSPrivacyCollectedDataTypeTracking: false,
+            NSPrivacyCollectedDataTypePurposes: [
+              "NSPrivacyCollectedDataTypePurposeAppFunctionality",
+            ],
+          },
+        ],
+        NSPrivacyAccessedAPITypes: [
+          {
+            NSPrivacyAccessedAPIType: "NSPrivacyAccessedAPICategoryFileTimestamp",
+            NSPrivacyAccessedAPITypeReasons: ["C617.1", "0A2A.1", "3B52.1"],
+          },
+          {
+            NSPrivacyAccessedAPIType: "NSPrivacyAccessedAPICategoryUserDefaults",
+            NSPrivacyAccessedAPITypeReasons: ["CA92.1", "C56D.1"],
+          },
+          {
+            NSPrivacyAccessedAPIType: "NSPrivacyAccessedAPICategorySystemBootTime",
+            NSPrivacyAccessedAPITypeReasons: ["35F9.1"],
+          },
+          {
+            NSPrivacyAccessedAPIType: "NSPrivacyAccessedAPICategoryDiskSpace",
+            NSPrivacyAccessedAPITypeReasons: ["E174.1", "85F4.1"],
+          },
+        ],
+      },
     },
     android: {
       package: "com.chewybytes.parkingticketpal.app",
@@ -94,11 +170,12 @@ export default ({ config }: ConfigContext): ExpoConfig => {
     },
     plugins: [
       "expo-router",
+      "expo-tracking-transparency",
     [
       'expo-splash-screen',
       {
         image: './assets/images/splash-icon.png',
-        imageWidth: 200,
+        imageWidth: 400,
         resizeMode: 'contain',
         backgroundColor: '#1ABC9C',
       },

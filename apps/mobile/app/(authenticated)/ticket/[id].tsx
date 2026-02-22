@@ -2,7 +2,7 @@ import { View, Text, ScrollView, useWindowDimensions, Linking, Alert } from 'rea
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, router } from 'expo-router';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
-import { faArrowLeft } from '@fortawesome/pro-solid-svg-icons';
+import { faArrowLeft, faTriangleExclamation } from '@fortawesome/pro-solid-svg-icons';
 import { useRef, useCallback, useState } from 'react';
 import BottomSheet from '@gorhom/bottom-sheet';
 import useTicket from '@/hooks/api/useTicket';
@@ -13,6 +13,7 @@ import {
   isTerminalStatus,
   getDisplayAmount,
 } from '@/constants/ticket-status';
+import { MAX_CONTENT_WIDTH } from '@/constants/layout';
 import Loader from '@/components/Loader/Loader';
 import SquishyPressable from '@/components/SquishyPressable/SquishyPressable';
 import PremiumActionsBottomSheet from '@/components/PremiumActionsBottomSheet';
@@ -41,7 +42,7 @@ export default function TicketDetailScreen() {
   const { width } = useWindowDimensions();
   const screenWidth = width - padding * 2;
   const { id } = useLocalSearchParams<{ id: string }>();
-  const { data, isLoading, refetch } = useTicket(id!);
+  const { data, isLoading, isError, refetch } = useTicket(id!);
   const { hasActiveSubscription, hasPremiumAccess, hasStandardAccess } =
     usePurchases();
 
@@ -84,6 +85,32 @@ export default function TicketDetailScreen() {
     return (
       <SafeAreaView className="flex-1 items-center justify-center">
         <Loader />
+      </SafeAreaView>
+    );
+  }
+
+  if (isError) {
+    return (
+      <SafeAreaView className="flex-1 items-center justify-center px-8">
+        <FontAwesomeIcon
+          icon={faTriangleExclamation}
+          size={40}
+          color="#717171"
+          style={{ marginBottom: 16 }}
+        />
+        <Text className="font-jakarta-semibold text-lg text-dark text-center mb-2">
+          Something went wrong
+        </Text>
+        <Text className="font-jakarta text-sm text-gray text-center mb-6">
+          We couldn't load this ticket. Please try again.
+        </Text>
+        <SquishyPressable onPress={() => refetch()}>
+          <View className="bg-dark rounded-xl px-6 py-3">
+            <Text className="font-jakarta-semibold text-white text-sm">
+              Try Again
+            </Text>
+          </View>
+        </SquishyPressable>
       </SafeAreaView>
     );
   }
@@ -180,6 +207,7 @@ export default function TicketDetailScreen() {
         style={{
           marginTop: padding,
           width: screenWidth,
+          maxWidth: MAX_CONTENT_WIDTH,
           alignSelf: 'center',
         }}
       >
@@ -226,6 +254,7 @@ export default function TicketDetailScreen() {
           paddingTop: padding,
           paddingBottom: padding * 2,
           width: screenWidth,
+          maxWidth: MAX_CONTENT_WIDTH,
           alignSelf: 'center',
         }}
       >

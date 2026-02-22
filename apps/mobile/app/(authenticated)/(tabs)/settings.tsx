@@ -35,6 +35,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { useNotificationPreferences, useUpdateNotificationPreferences } from '@/hooks/api/useNotificationPreferences';
 import NotificationBell from '@/components/NotificationBell';
 import { AdBanner } from '@/components/AdBanner';
+import { MAX_CONTENT_WIDTH } from '@/constants/layout';
 
 const padding = 16;
 
@@ -427,6 +428,7 @@ const SettingsScreen = () => {
           style={{
             marginTop: padding,
             width: screenWidth,
+            maxWidth: MAX_CONTENT_WIDTH,
             alignSelf: 'center',
           }}
         >

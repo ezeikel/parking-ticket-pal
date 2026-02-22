@@ -1,12 +1,14 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { Slot, useNavigationContainerRef } from 'expo-router';
 import Constants, { ExecutionEnvironment } from "expo-constants";
 import * as Sentry from '@sentry/react-native';
 import { ErrorBoundary } from '@sentry/react-native';
-import { View, Text, Button } from 'react-native';
+import { Platform, View, Text, Button } from 'react-native';
 import { Toaster } from 'sonner-native';
+import { requestTrackingPermissionsAsync } from 'expo-tracking-transparency';
 import Providers from "@/providers";
 import { PostHogNavigationTracker } from "@/components/PostHogNavigationTracker";
+import OfflineBanner from "@/components/OfflineBanner";
 import { purchaseService } from '@/services/PurchaseService';
 import { registerForPushNotifications, setupNotificationListeners } from '@/lib/notifications';
 import "../global.css";
@@ -31,6 +33,7 @@ Sentry.init({
 
 const RootLayout = () => {
   const ref = useNavigationContainerRef();
+  const [trackingAllowed, setTrackingAllowed] = useState(false);
 
   useEffect(() => {
     if (ref) {
@@ -39,11 +42,22 @@ const RootLayout = () => {
   }, [ref]);
 
   useEffect(() => {
-    // Initialize RevenueCat when app starts, before any providers
-    purchaseService.initialize();
+    (async () => {
+      // Request ATT permission on iOS before initializing tracking SDKs
+      if (Platform.OS === 'ios') {
+        const { status } = await requestTrackingPermissionsAsync();
+        setTrackingAllowed(status === 'granted');
+      } else {
+        // Android doesn't have ATT — tracking is allowed by default
+        setTrackingAllowed(true);
+      }
 
-    // Initialize push notifications
-    registerForPushNotifications();
+      // Initialize RevenueCat when app starts, before any providers
+      purchaseService.initialize();
+
+      // Initialize push notifications
+      registerForPushNotifications();
+    })();
 
     // Setup notification listeners
     const cleanupNotificationListeners = setupNotificationListeners();
@@ -67,10 +81,11 @@ const RootLayout = () => {
         </View>
       )}
     >
-      <Providers>
+      <Providers trackingAllowed={trackingAllowed}>
         <PostHogNavigationTracker />
         <Slot />
         <Toaster position="top-center" />
+        <OfflineBanner />
       </Providers>
     </ErrorBoundary>
   );

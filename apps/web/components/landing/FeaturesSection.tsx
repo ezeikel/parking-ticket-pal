@@ -26,18 +26,18 @@ type Feature = {
 
 const features: Feature[] = [
   {
-    icon: faBrain,
-    title: 'AI-Powered Challenge Letters',
+    icon: faTimeline,
+    title: 'Full Lifecycle Tracking',
     description:
-      'Our AI analyzes your ticket against real tribunal decisions for your specific contravention code. We know what arguments work and write a persuasive appeal letter signed with your signature.',
+      'From PCN to Notice to Owner to Bailiff stage — we track every step, remind you of deadlines, and tell you exactly what to do next so your fine never increases unnecessarily.',
     size: 'large',
     visual: 'letter',
   },
   {
     icon: faChartPie,
-    title: 'Parking Ticket Power Score',
+    title: 'Success Score',
     description:
-      'See your chances of winning before you pay. We analyze historical tribunal data to predict your appeal success rate.',
+      'Thinking about challenging? See how likely it is to succeed first. We analyse real UK tribunal decisions to give you a data-backed success score.',
     size: 'medium',
     visual: 'progress',
   },
@@ -65,10 +65,10 @@ const features: Feature[] = [
     size: 'small',
   },
   {
-    icon: faTimeline,
-    title: 'Full Lifecycle Tracking',
+    icon: faBrain,
+    title: 'Challenge Letters',
     description:
-      'From PCN to Notice to Owner to Bailiff stage - we track every step and tell you exactly what to do next.',
+      'Generate appeal letters with optional AI assistance, tailored to your specific ticket and signed with your signature.',
     size: 'small',
   },
 ];
@@ -224,7 +224,7 @@ const FeaturesSection = () => {
           className="mb-16 text-center"
         >
           <h2 className="text-3xl font-bold text-dark md:text-4xl">
-            Everything You Need to Fight Back
+            Everything You Need to Manage Your Tickets
           </h2>
         </motion.div>
 

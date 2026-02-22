@@ -2,6 +2,7 @@ import { View, ScrollView } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { usePaywall } from '@/hooks/usePaywall';
 import { useAnalytics } from '@/lib/analytics';
+import { MAX_CONTENT_WIDTH } from '@/constants/layout';
 import { useEffect } from 'react';
 import Loader from '@/components/Loader/Loader';
 import SquishyPressable from '@/components/SquishyPressable/SquishyPressable';
@@ -70,7 +71,7 @@ export function Paywall({ mode, ticketId, onClose, onPurchaseComplete }: Paywall
   }
 
   return (
-    <View className="flex-1 bg-white" style={{ paddingTop: insets.top }}>
+    <View className="flex-1 bg-white" style={{ paddingTop: insets.top, maxWidth: MAX_CONTENT_WIDTH, width: '100%', alignSelf: 'center' as const }}>
       <PaywallHeader title={title} subtitle={subtitle} onClose={onClose} />
 
       {mode === 'subscriptions' && (

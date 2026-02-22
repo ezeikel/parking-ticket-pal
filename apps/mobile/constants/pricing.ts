@@ -34,7 +34,7 @@ export const ONE_TIME_PLANS: PricingPlan[] = [
   {
     id: "premium_ticket",
     name: "Premium",
-    subtitle: "Challenge your ticket the smart way",
+    subtitle: "Full tools to manage and challenge",
     rcProductPrefix: "premium_ticket",
     badge: "Most Popular",
     popular: true,

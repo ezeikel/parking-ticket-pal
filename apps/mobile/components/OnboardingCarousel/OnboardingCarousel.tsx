@@ -7,6 +7,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import { useState, useCallback, useRef } from 'react';
 import { useAnalytics } from '@/lib/analytics';
+import { MAX_CONTENT_WIDTH } from '@/constants/layout';
 import type { OCRProcessingResult } from '@/hooks/api/useOCR';
 import type { WizardResult } from '@/components/TicketWizard/types';
 import WelcomeSlide from './WelcomeSlide';
@@ -226,10 +227,10 @@ const OnboardingCarousel = ({ onComplete, onTicketCreated }: OnboardingCarouselP
       )}
 
       {/* Carousel */}
-      <View className="flex-1 justify-center">
+      <View className="flex-1 justify-center" style={{ maxWidth: MAX_CONTENT_WIDTH, alignSelf: 'center', width: '100%' }}>
         <Carousel
           ref={carouselRef}
-          width={screenWidth}
+          width={Math.min(screenWidth, MAX_CONTENT_WIDTH)}
           height={screenHeight * 0.75}
           data={Array.from({ length: SLIDE_COUNT }, (_, i) => i)}
           renderItem={renderSlide}
@@ -245,7 +246,7 @@ const OnboardingCarousel = ({ onComplete, onTicketCreated }: OnboardingCarouselP
 
       {/* Pagination & Next Button */}
       {(showPagination || showNextButton) && (
-        <View className="pb-12 px-8">
+        <View className="pb-12 px-8" style={{ maxWidth: MAX_CONTENT_WIDTH, alignSelf: 'center', width: '100%' }}>
           {showPagination && (
             <View className="flex-row justify-center items-center mb-8">
               {Array.from({ length: SLIDE_COUNT }, (_, index) => (

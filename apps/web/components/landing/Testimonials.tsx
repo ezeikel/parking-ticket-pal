@@ -21,23 +21,7 @@ type Testimonial = {
 const testimonials: Testimonial[] = [
   {
     quote:
-      'I was about to pay a £130 Westminster fine until I tried this. The AI letter was so professional - they cancelled it in 3 days!',
-    name: 'Sarah M.',
-    location: 'Manchester',
-    saved: 130,
-    timeAgo: '2 weeks ago',
-  },
-  {
-    quote:
-      'The PE3 form was already filled out with my signature. All I had to do was send it. Brilliant.',
-    name: 'James K.',
-    location: 'Bristol',
-    saved: 65,
-    timeAgo: '1 week ago',
-  },
-  {
-    quote:
-      'Deadline reminders literally saved me. I had no idea I only had 14 days before it doubled!',
+      'Deadline reminders literally saved me. I had no idea I only had 14 days before my fine doubled!',
     name: 'Priya S.',
     location: 'London',
     saved: 110,
@@ -45,7 +29,23 @@ const testimonials: Testimonial[] = [
   },
   {
     quote:
-      'Used it for two TfL tickets. Both cancelled. The tribunal case analysis is genuinely useful.',
+      'I get a lot of tickets across my vehicles. Having them all tracked in one place with deadline alerts is a lifesaver.',
+    name: 'James K.',
+    location: 'Bristol',
+    saved: 65,
+    timeAgo: '1 week ago',
+  },
+  {
+    quote:
+      'Checked my success score and it was high, so I used the appeal letter tool. They cancelled the ticket in 3 days.',
+    name: 'Sarah M.',
+    location: 'Manchester',
+    saved: 130,
+    timeAgo: '2 weeks ago',
+  },
+  {
+    quote:
+      'I just needed to track my ticket and pay on time. The app made it really easy — no stress about missing deadlines.',
     name: 'Tom D.',
     location: 'Birmingham',
     saved: 180,
@@ -53,7 +53,7 @@ const testimonials: Testimonial[] = [
   },
   {
     quote:
-      'Better than any solicitor and a fraction of the price. The auto-submit feature is magic.',
+      'The PE3 form was already filled out with my details and signature. All I had to do was review and send. Brilliant.',
     name: 'Emma L.',
     location: 'Leeds',
     saved: 70,
@@ -61,7 +61,7 @@ const testimonials: Testimonial[] = [
   },
   {
     quote:
-      'I was skeptical AI could help with legal stuff. The TE7 form it generated was perfect.',
+      'Love that it shows your chances of winning before you commit to challenging. The success score made my decision easy.',
     name: 'Michael R.',
     location: 'Edinburgh',
     saved: 95,

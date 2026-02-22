@@ -105,10 +105,10 @@ const TrackWinSlide = ({ isActive }: TrackWinSlideProps) => {
       {/* Header */}
       <Animated.View entering={FadeIn.delay(100).duration(500)} className="mb-10">
         <Text className="font-jakarta-bold text-3xl text-gray-900 mb-3">
-          Track & Win
+          Track Every Step
         </Text>
         <Text className="font-jakarta text-base text-gray-500 leading-6">
-          Monitor every step of your appeal journey in real-time
+          Stay on top of your tickets from start to finish
         </Text>
       </Animated.View>
 
@@ -117,25 +117,25 @@ const TrackWinSlide = ({ isActive }: TrackWinSlideProps) => {
         <TimelineStep
           icon={faCircleCheck}
           color="#1ABC9C"
-          label="Ticket uploaded & analysed"
+          label="Ticket scanned & saved"
           delay={200}
-        />
-        <TimelineStep
-          icon={faPaperPlane}
-          color="#6366F1"
-          label="Appeal letter submitted"
-          delay={600}
         />
         <TimelineStep
           icon={faClock}
           color="#F59E0B"
-          label="Awaiting council response"
+          label="Deadline reminders sent"
+          delay={600}
+        />
+        <TimelineStep
+          icon={faPaperPlane}
+          color="#6366F1"
+          label="Challenge submitted (if needed)"
           delay={1000}
         />
         <TimelineStep
           icon={faPartyHorn}
           color="#10B981"
-          label="Appeal successful!"
+          label="Ticket resolved"
           delay={1400}
           isLast
         />

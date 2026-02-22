@@ -16,6 +16,7 @@ import useTickets from '@/hooks/api/useTickets';
 import { AdBanner } from '@/components/AdBanner';
 import TicketsMapView from '@/components/TicketsMapView/TicketsMapView';
 import { FAB_SIZE, FAB_GAP, FAB_BOTTOM_OFFSET } from '@/constants/TabBar';
+import { MAX_CONTENT_WIDTH } from '@/constants/layout';
 import { useSheetContext } from '@/contexts/SheetContext';
 import { perfect } from '@/styles';
 
@@ -155,6 +156,7 @@ const TicketsScreen = () => {
           style={{
             marginTop: padding,
             width: screenWidth,
+            maxWidth: MAX_CONTENT_WIDTH,
             alignSelf: 'center',
           }}
         >

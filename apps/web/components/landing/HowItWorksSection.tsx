@@ -5,7 +5,6 @@ import { motion, useInView, type Variants } from 'framer-motion';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
   faUpload,
-  faWandMagicSparkles,
   faPaperPlane,
   faMobileScreen,
   faFileLines,
@@ -27,23 +26,23 @@ const steps: Step[] = [
     icon: faUpload,
     title: 'Upload Your Ticket',
     description:
-      'Snap a photo of your PCN or upload the PDF. Our AI extracts all the details instantly - PCN number, vehicle reg, contravention code, deadline dates.',
+      'Snap a photo of your PCN or upload the PDF. We extract all the details instantly — PCN number, vehicle reg, contravention code, and deadline dates.',
     visual: faMobileScreen,
   },
   {
     number: 2,
-    icon: faWandMagicSparkles,
-    title: 'AI Analyzes & Generates Appeal',
+    icon: faCircleCheck,
+    title: 'Track Deadlines & Avoid Increases',
     description:
-      'We check your ticket against thousands of tribunal cases, calculate your success probability, and generate a legally-sound appeal letter tailored to your specific contravention.',
+      'We monitor every deadline and send you reminders before your fine increases. See your ticket status, store evidence, and keep everything in one place.',
     visual: faFileLines,
   },
   {
     number: 3,
     icon: faPaperPlane,
-    title: 'We Handle the Paperwork',
+    title: 'Challenge If You Choose To',
     description:
-      'Download your appeal letter as PDF, or let us auto-submit it directly to the council. We pre-fill all the forms (PE2, PE3, TE7, TE9) and track your case through every stage.',
+      'Check your success score, generate an appeal letter with AI assistance, or fill in official forms. We can even auto-submit to supported councils.',
     visual: faCircleCheck,
   },
 ];
@@ -75,7 +74,7 @@ const HowItWorksSection = () => {
             How Parking Ticket Pal Works
           </h2>
           <p className="mx-auto mt-4 max-w-2xl text-lg text-gray">
-            From ticket to appeal in minutes, not hours
+            From ticket to sorted in minutes, not hours
           </p>
         </motion.div>
 

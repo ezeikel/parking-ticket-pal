@@ -107,13 +107,13 @@ const WelcomeSlide = ({ isActive }: WelcomeSlideProps) => {
       {/* Tagline */}
       <Animated.View entering={FadeIn.delay(300).duration(600)}>
         <Text className="font-jakarta-bold text-3xl text-gray-900 text-center mb-4">
-          Fight unfair parking tickets
+          Take control of your parking tickets
         </Text>
       </Animated.View>
 
       <Animated.View entering={FadeIn.delay(500).duration(600)}>
         <Text className="font-jakarta text-lg text-gray-500 text-center leading-relaxed max-w-xs">
-          AI-powered appeals that help you challenge parking fines and win
+          Track deadlines, avoid increased fines, and challenge when it makes sense
         </Text>
       </Animated.View>
     </View>

@@ -10,6 +10,7 @@ import {
   faLocationDot,
   faLock,
   faSterlingSign,
+  faTriangleExclamation,
 } from '@fortawesome/pro-solid-svg-icons';
 import { addDays, format } from 'date-fns';
 import useTickets from '@/hooks/api/useTickets';
@@ -242,6 +243,7 @@ const TicketsList = ({ filters }: TicketsListProps) => {
   const {
     data: { tickets } = {},
     isLoading,
+    isError,
     refetch,
     isRefetching,
   } = useTickets(filters);
@@ -268,6 +270,32 @@ const TicketsList = ({ filters }: TicketsListProps) => {
       <View className="flex-1 items-center justify-center">
         <Loader />
       </View>
+    );
+  }
+
+  if (isError) {
+    return (
+      <ScrollView
+        className="flex-1"
+        contentContainerClassName="flex-1 items-center justify-center px-8"
+        contentInsetAdjustmentBehavior="automatic"
+        refreshControl={
+          <RefreshControl refreshing={isRefetching} onRefresh={onRefresh} />
+        }
+      >
+        <FontAwesomeIcon
+          icon={faTriangleExclamation}
+          size={40}
+          color="#717171"
+          style={{ marginBottom: 16 }}
+        />
+        <Text className="font-jakarta-semibold text-lg text-dark text-center mb-2">
+          Something went wrong
+        </Text>
+        <Text className="font-jakarta text-sm text-gray text-center">
+          Pull down to refresh and try again
+        </Text>
+      </ScrollView>
     );
   }
 

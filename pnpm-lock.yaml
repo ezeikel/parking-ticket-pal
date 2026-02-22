@@ -74,6 +74,9 @@ importers:
       '@react-native-community/datetimepicker':
         specifier: ^8.6.0
         version: 8.6.0(expo@55.0.0-preview.10)(react-native@0.83.1(@babel/core@7.28.5)(@types/react@19.2.2)(bufferutil@4.1.0)(react@19.1.0))(react@19.1.0)
+      '@react-native-community/netinfo':
+        specifier: ^12.0.1
+        version: 12.0.1(react-native@0.83.1(@babel/core@7.28.5)(@types/react@19.2.2)(bufferutil@4.1.0)(react@19.1.0))(react@19.1.0)
       '@react-native-google-signin/google-signin':
         specifier: ^16.0.0
         version: 16.0.0(expo@55.0.0-preview.10)(react-native@0.83.1(@babel/core@7.28.5)(@types/react@19.2.2)(bufferutil@4.1.0)(react@19.1.0))(react@19.1.0)
@@ -173,6 +176,9 @@ importers:
       expo-system-ui:
         specifier: ~55.0.5
         version: 55.0.5(expo@55.0.0-preview.10)(react-native-web@0.21.2(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(react-native@0.83.1(@babel/core@7.28.5)(@types/react@19.2.2)(bufferutil@4.1.0)(react@19.1.0))
+      expo-tracking-transparency:
+        specifier: ^6.0.8
+        version: 6.0.8(expo@55.0.0-preview.10)(react-native@0.83.1(@babel/core@7.28.5)(@types/react@19.2.2)(bufferutil@4.1.0)(react@19.1.0))
       expo-updates:
         specifier: ~55.0.7
         version: 55.0.7(expo@55.0.0-preview.10)(react-native@0.83.1(@babel/core@7.28.5)(@types/react@19.2.2)(bufferutil@4.1.0)(react@19.1.0))(react@19.1.0)
@@ -4767,6 +4773,12 @@ packages:
       react-native-windows:
         optional: true
 
+  '@react-native-community/netinfo@12.0.1':
+    resolution: {integrity: sha512-P/3caXIvfYSJG8AWJVefukg+ZGRPs+M4Lp3pNJtgcTYoJxCjWrKQGNnCkj/Cz//zWa/avGed0i/wzm0T8vV2IQ==}
+    peerDependencies:
+      react: 19.1.0
+      react-native: '>=0.59'
+
   '@react-native-google-signin/google-signin@16.0.0':
     resolution: {integrity: sha512-jVuzPo8odREekFc0b4RK3YsqCvedtLIM2P6NSszFr9cYyhKrUNikffPapL6LmkL9qkb8K6pDeb5CXg4qALOc0g==}
     peerDependencies:
@@ -8932,6 +8944,12 @@ packages:
     peerDependenciesMeta:
       react-native-web:
         optional: true
+
+  expo-tracking-transparency@6.0.8:
+    resolution: {integrity: sha512-4/NW47Kmrtj3J0udUmzxiq01gRY+vG8wFsUop6CTOVWlk+2MypjDFwBSscHcyiS2dJGNQLOQSBZ1RNhLdgSBOQ==}
+    peerDependencies:
+      expo: '*'
+      react-native: '*'
 
   expo-updates-interface@55.1.1:
     resolution: {integrity: sha512-++rlh9dNRUgm+uqN+x4vB/8ELidt0gc3kbwec55YzRizdD845kn5ufjTcGpkGs9SbAYHsP0eh8axlKHpY/v7Kg==}
@@ -19972,6 +19990,11 @@ snapshots:
     optionalDependencies:
       expo: 55.0.0-preview.10(@babel/core@7.28.5)(@expo/dom-webview@55.0.3)(@expo/metro-runtime@55.0.5)(bufferutil@4.1.0)(expo-router@55.0.0-preview.7)(react-dom@19.1.0(react@19.1.0))(react-native@0.83.1(@babel/core@7.28.5)(@types/react@19.2.2)(bufferutil@4.1.0)(react@19.1.0))(react@19.1.0)
 
+  '@react-native-community/netinfo@12.0.1(react-native@0.83.1(@babel/core@7.28.5)(@types/react@19.2.2)(bufferutil@4.1.0)(react@19.1.0))(react@19.1.0)':
+    dependencies:
+      react: 19.1.0
+      react-native: 0.83.1(@babel/core@7.28.5)(@types/react@19.2.2)(bufferutil@4.1.0)(react@19.1.0)
+
   '@react-native-google-signin/google-signin@16.0.0(expo@55.0.0-preview.10)(react-native@0.83.1(@babel/core@7.28.5)(@types/react@19.2.2)(bufferutil@4.1.0)(react@19.1.0))(react@19.1.0)':
     dependencies:
       react: 19.1.0
@@ -25149,6 +25172,11 @@ snapshots:
       react-native-web: 0.21.2(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
     transitivePeerDependencies:
       - supports-color
+
+  expo-tracking-transparency@6.0.8(expo@55.0.0-preview.10)(react-native@0.83.1(@babel/core@7.28.5)(@types/react@19.2.2)(bufferutil@4.1.0)(react@19.1.0)):
+    dependencies:
+      expo: 55.0.0-preview.10(@babel/core@7.28.5)(@expo/dom-webview@55.0.3)(@expo/metro-runtime@55.0.5)(bufferutil@4.1.0)(expo-router@55.0.0-preview.7)(react-dom@19.1.0(react@19.1.0))(react-native@0.83.1(@babel/core@7.28.5)(@types/react@19.2.2)(bufferutil@4.1.0)(react@19.1.0))(react@19.1.0)
+      react-native: 0.83.1(@babel/core@7.28.5)(@types/react@19.2.2)(bufferutil@4.1.0)(react@19.1.0)
 
   expo-updates-interface@55.1.1(expo@55.0.0-preview.10):
     dependencies:
