@@ -236,6 +236,14 @@ CASE DETAILS:
 - Appeal Decision: ${tribunalCase.appealDecision}
 - Adjudicator's Reasons: ${tribunalCase.reasons}
 
+CRITICAL — IDENTIFY THE ACTUAL LEGAL REASON:
+Before writing, carefully read the adjudicator's reasons and identify WHY the appeal was ${tribunalCase.appealDecision.toLowerCase()}. The legal reason is often different from the background story. Common examples:
+- Driver tells a compelling story about a broken meter, BUT the appeal was actually allowed because the council failed to serve the notice correctly
+- Driver argues they were loading, BUT the appeal was refused because they couldn't provide evidence
+- The background circumstances sound sympathetic, BUT the adjudicator decided on a technicality (liability transfer, procedural error, signage issue, etc.)
+
+Your script MUST centre the narrative on the ACTUAL reason the adjudicator gave for their decision, not just the most interesting background facts. The background story provides context, but the legal reasoning is the star of the video. The takeaway must relate to the actual decision reason.
+
 WRITING GUIDELINES:
 - Conversational but informative British English
 - Third person ("a driver received a ticket", "the motorist argued that...")
@@ -251,13 +259,13 @@ WRITING GUIDELINES:
 - Cite real facts from the case to add credibility
 
 SEGMENT GUIDELINES:
-- hook: Start with a question or surprising statement that makes people stop scrolling. Reference a specific detail from the case.
-- setup: Describe what happened using real details — the contravention, location, date, and penalty amount.
-- keyDetail: The twist — what made the driver's argument interesting, what evidence they presented, or what the council got wrong. Cite the adjudicator's actual reasoning.
-- verdict: The decision — build to it dramatically. Include the adjudicator's key reasoning.
-- takeaway: One clear, practical piece of advice based on this case. What can other drivers learn?
+- hook: Start with a question or surprising statement that makes people stop scrolling. Reference a specific detail from the case — ideally hinting at the legal twist, not just the background story.
+- setup: Briefly describe what happened — the contravention, location, date, and penalty amount. Keep this concise (2-3 sentences max). Don't over-invest in the background narrative.
+- keyDetail: This is the most important segment. Focus on the LEGAL reason the case was decided — what the adjudicator actually found. If the council made a procedural error, this is where you explain it. If the driver's evidence was compelling, explain what specifically convinced the adjudicator. Cite the adjudicator's actual reasoning.
+- verdict: The decision — build to it dramatically. The reasoning here should flow directly from the keyDetail, not introduce a surprise technicality the viewer hasn't been set up for.
+- takeaway: One clear, practical piece of advice based on the LEGAL reasoning that decided this case, not just the background story.
 
-The fullScript should flow naturally when read aloud — it's the voiceover script.
+The fullScript should flow naturally when read aloud — it's the voiceover script. The narrative arc should be: "Here's what happened → Here's the legal issue that mattered → Here's how it was decided → Here's what you can learn."
 
 SCENE IMAGE PROMPTS:
 For each segment, write a short image prompt (1-2 sentences) describing a specific scene to illustrate it. These will be rendered as soft 3D clay miniature dioramas.

@@ -4,8 +4,8 @@ import { createServerLogger } from '@/lib/logger';
 
 const log = createServerLogger({ action: 'news-video-complete' });
 
-// Caption generation + social posting can take a while
-export const maxDuration = 120;
+// Caption generation + social posting (IG polls up to 150s) + email
+export const maxDuration = 300;
 
 export async function POST(request: NextRequest) {
   try {
