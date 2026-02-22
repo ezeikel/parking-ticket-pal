@@ -177,8 +177,8 @@ importers:
         specifier: ~55.0.5
         version: 55.0.5(expo@55.0.0-preview.10)(react-native-web@0.21.2(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(react-native@0.83.1(@babel/core@7.28.5)(@types/react@19.2.2)(bufferutil@4.1.0)(react@19.1.0))
       expo-tracking-transparency:
-        specifier: ^6.0.8
-        version: 6.0.8(expo@55.0.0-preview.10)(react-native@0.83.1(@babel/core@7.28.5)(@types/react@19.2.2)(bufferutil@4.1.0)(react@19.1.0))
+        specifier: ^55.0.7
+        version: 55.0.7(expo@55.0.0-preview.10)(react-native@0.83.1(@babel/core@7.28.5)(@types/react@19.2.2)(bufferutil@4.1.0)(react@19.1.0))
       expo-updates:
         specifier: ~55.0.7
         version: 55.0.7(expo@55.0.0-preview.10)(react-native@0.83.1(@babel/core@7.28.5)(@types/react@19.2.2)(bufferutil@4.1.0)(react@19.1.0))(react@19.1.0)
@@ -8945,8 +8945,8 @@ packages:
       react-native-web:
         optional: true
 
-  expo-tracking-transparency@6.0.8:
-    resolution: {integrity: sha512-4/NW47Kmrtj3J0udUmzxiq01gRY+vG8wFsUop6CTOVWlk+2MypjDFwBSscHcyiS2dJGNQLOQSBZ1RNhLdgSBOQ==}
+  expo-tracking-transparency@55.0.7:
+    resolution: {integrity: sha512-ZrIsrBP5T3mZgVtSc/SNcwbBsJgtd/VQbcG8fYs1uL1ocFqxqOELTZ2OCH4Rq52Lw3NCJ8YvauyuFDq7EC1GYA==}
     peerDependencies:
       expo: '*'
       react-native: '*'
@@ -25173,7 +25173,7 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  expo-tracking-transparency@6.0.8(expo@55.0.0-preview.10)(react-native@0.83.1(@babel/core@7.28.5)(@types/react@19.2.2)(bufferutil@4.1.0)(react@19.1.0)):
+  expo-tracking-transparency@55.0.7(expo@55.0.0-preview.10)(react-native@0.83.1(@babel/core@7.28.5)(@types/react@19.2.2)(bufferutil@4.1.0)(react@19.1.0)):
     dependencies:
       expo: 55.0.0-preview.10(@babel/core@7.28.5)(@expo/dom-webview@55.0.3)(@expo/metro-runtime@55.0.5)(bufferutil@4.1.0)(expo-router@55.0.0-preview.7)(react-dom@19.1.0(react@19.1.0))(react-native@0.83.1(@babel/core@7.28.5)(@types/react@19.2.2)(bufferutil@4.1.0)(react@19.1.0))(react@19.1.0)
       react-native: 0.83.1(@babel/core@7.28.5)(@types/react@19.2.2)(bufferutil@4.1.0)(react@19.1.0)
