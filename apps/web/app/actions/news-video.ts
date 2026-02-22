@@ -631,21 +631,28 @@ const generateVoiceoverWithTimestamps = async (
     scriptLength: script.length,
   });
 
-  const result = await elevenlabs.textToSpeech.convertWithTimestamps(
-    ELEVENLABS_VOICE_ID,
-    {
-      text: script,
-      model_id: 'eleven_v3',
-      output_format: 'mp3_44100_128',
-      voice_settings: {
-        stability: 0.5,
-        similarity_boost: 0.75,
-        style: 0.3,
-        use_speaker_boost: true,
-        speed: 0.95,
+  let result;
+  try {
+    result = await elevenlabs.textToSpeech.convertWithTimestamps(
+      ELEVENLABS_VOICE_ID,
+      {
+        text: script,
+        model_id: 'eleven_v3',
+        output_format: 'mp3_44100_128',
+        voice_settings: {
+          stability: 0.5,
+          similarity_boost: 0.75,
+          style: 0.3,
+          use_speaker_boost: true,
+          speed: 0.95,
+        },
       },
-    },
-  );
+    );
+  } catch (error) {
+    throw new Error(
+      `ElevenLabs voiceover generation failed: ${error instanceof Error ? error.message : String(error)}`,
+    );
+  }
 
   const audioBase64 = result.audio_base64;
   if (!audioBase64) {
