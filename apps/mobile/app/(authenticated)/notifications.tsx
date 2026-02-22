@@ -1,4 +1,4 @@
-import { View, Text, Dimensions } from 'react-native';
+import { View, Text } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useState } from 'react';
 import { router } from 'expo-router';
@@ -7,9 +7,6 @@ import { faArrowLeft } from '@fortawesome/pro-regular-svg-icons';
 import NotificationList from '@/components/NotificationList';
 import { useNotifications } from '@/hooks/api/useNotifications';
 import SquishyPressable from '@/components/SquishyPressable/SquishyPressable';
-
-const padding = 16;
-const screenWidth = Dimensions.get('screen').width - padding * 2;
 
 type FilterType = 'all' | 'unread';
 

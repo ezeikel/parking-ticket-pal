@@ -154,6 +154,7 @@ export default ({ config }: ConfigContext): ExpoConfig => {
         ],
       },
     ],
+    "expo-image",
     "expo-localization",
     [
       "react-native-fbsdk-next",

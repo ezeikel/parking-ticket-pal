@@ -1,6 +1,6 @@
 import { View, Text, RefreshControl } from 'react-native';
 import { FlashList } from '@shopify/flash-list';
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { useNotifications } from '@/hooks/api/useNotifications';
 import NotificationItem from './NotificationItem';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
@@ -16,6 +16,11 @@ const NotificationList = ({ unreadOnly = false }: NotificationListProps) => {
   const { data, isLoading, refetch } = useNotifications({ unreadOnly });
 
   const notifications = data?.notifications || [];
+
+  const renderNotificationItem = useCallback(
+    ({ item }: { item: (typeof notifications)[number] }) => <NotificationItem notification={item} />,
+    [],
+  );
 
   const handleRefresh = async () => {
     setRefreshing(true);
@@ -54,9 +59,10 @@ const NotificationList = ({ unreadOnly = false }: NotificationListProps) => {
   return (
     <FlashList
       data={notifications}
-      renderItem={({ item }) => <NotificationItem notification={item} />}
+      renderItem={renderNotificationItem}
       estimatedItemSize={100}
       keyExtractor={(item) => item.id}
+      getItemType={(item) => item.read ? 'read' : 'unread'}
       showsVerticalScrollIndicator={false}
       contentContainerStyle={{
         paddingHorizontal: 16,

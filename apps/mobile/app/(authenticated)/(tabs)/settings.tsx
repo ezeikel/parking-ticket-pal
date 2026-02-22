@@ -1,8 +1,8 @@
-import { Text, View, ScrollView, Alert, Dimensions, Linking, Platform } from 'react-native';
+import { Text, View, ScrollView, Alert, useWindowDimensions, Linking, Platform } from 'react-native';
 import Switch from '@/components/Switch/Switch';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import SquishyPressable from '@/components/SquishyPressable/SquishyPressable';
-import { useState, useRef } from 'react';
+import { useState, useRef, useCallback } from 'react';
 import { router } from 'expo-router';
 import { FontAwesomeIcon } from "@fortawesome/react-native-fontawesome";
 import { faSignOut, faUser, faEnvelope, faInfoCircle, faHeart, faBookOpen, faTrashCan, faCrown, faRotateRight, faPencil, faSignature, faBell as faBellRegular, faComment, faCircleQuestion, faStar, faShieldCheck, faFileLines } from "@fortawesome/pro-regular-svg-icons";
@@ -36,9 +36,10 @@ import NotificationBell from '@/components/NotificationBell';
 import { AdBanner } from '@/components/AdBanner';
 
 const padding = 16;
-const screenWidth = Dimensions.get('screen').width - padding * 2;
 
 const SettingsScreen = () => {
+  const { width } = useWindowDimensions();
+  const screenWidth = width - padding * 2;
   const { data, isLoading, refetch } = useUser();
   const user = data?.user;
   const { signOut, isLinked, signIn, signInWithApple: signInWithAppleMethod, signInWithFacebook: signInWithFacebookMethod, sendMagicLink } = useAuthContext();
@@ -340,6 +341,30 @@ const SettingsScreen = () => {
     }
   };
 
+  const handleOpenNameSheet = useCallback(() => {
+    trackEvent("name_sheet_opened", { screen: "settings" });
+    nameBottomSheetRef.current?.expand();
+  }, [trackEvent]);
+
+  const handleOpenEmailSheet = useCallback(() => {
+    trackEvent("email_sheet_opened", { screen: "settings" });
+    emailBottomSheetRef.current?.expand();
+  }, [trackEvent]);
+
+  const handleOpenPhoneSheet = useCallback(() => {
+    trackEvent("phone_sheet_opened", { screen: "settings" });
+    phoneBottomSheetRef.current?.expand();
+  }, [trackEvent]);
+
+  const handleOpenAddressSheet = useCallback(() => {
+    trackEvent("address_sheet_opened", { screen: "settings" });
+    addressBottomSheetRef.current?.expand();
+  }, [trackEvent]);
+
+  const handleOpenSubscription = useCallback(() => {
+    router.push({ pathname: '/(authenticated)/paywall', params: { mode: 'subscriptions' } });
+  }, []);
+
   const SettingRow = ({ icon, title, value, onPress, destructive = false }: {
     icon: any;
     title: string;
@@ -420,7 +445,7 @@ const SettingsScreen = () => {
             alignSelf: 'center',
           }}
         >
-          <ScrollView className="flex-1">
+          <ScrollView className="flex-1" contentInsetAdjustmentBehavior="automatic">
           {/* Account Section */}
           <View className="bg-white rounded-lg mb-6 overflow-hidden">
             <View className="p-4 border-b border-gray-100">
@@ -433,36 +458,24 @@ const SettingsScreen = () => {
               icon={faUser}
               title="Name"
               value={user?.name || 'Not set'}
-              onPress={() => {
-                trackEvent("name_sheet_opened", { screen: "settings" });
-                nameBottomSheetRef.current?.expand();
-              }}
+              onPress={handleOpenNameSheet}
             />
 
             <SettingRow
               icon={faEnvelope}
               title="Email"
               value={user?.email || 'Not linked'}
-              onPress={user?.email ? () => {
-                trackEvent("email_sheet_opened", { screen: "settings" });
-                emailBottomSheetRef.current?.expand();
-              } : undefined}
+              onPress={user?.email ? handleOpenEmailSheet : undefined}
             />
 
             <EditablePhoneNumber
               phoneNumber={user?.phoneNumber}
-              onPress={() => {
-                trackEvent("phone_sheet_opened", { screen: "settings" });
-                phoneBottomSheetRef.current?.expand();
-              }}
+              onPress={handleOpenPhoneSheet}
             />
 
             <EditableAddress
               address={user?.address}
-              onPress={() => {
-                trackEvent("address_sheet_opened", { screen: "settings" });
-                addressBottomSheetRef.current?.expand();
-              }}
+              onPress={handleOpenAddressSheet}
             />
 
             <SquishyPressable
@@ -507,7 +520,7 @@ const SettingsScreen = () => {
               title="Subscription"
               value={getSubscriptionStatus()}
               onPress={!hasPremiumAccess && user?.subscription?.source !== 'STRIPE'
-                ? () => router.push({ pathname: '/(authenticated)/paywall', params: { mode: 'subscriptions' } })
+                ? handleOpenSubscription
                 : undefined
               }
             />

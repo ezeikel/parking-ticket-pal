@@ -1,5 +1,5 @@
 import React, { forwardRef, useMemo, useState, useRef } from 'react';
-import { View, Text, Alert, Dimensions } from 'react-native';
+import { View, Text, Alert, useWindowDimensions } from 'react-native';
 import BottomSheet, { BottomSheetBackdrop, BottomSheetView } from '@gorhom/bottom-sheet';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { faTrash, faXmark, faExclamationTriangle } from '@fortawesome/pro-regular-svg-icons';
@@ -14,12 +14,12 @@ interface SignatureBottomSheetProps {
   existingSignatureUrl?: string | null;
 }
 
-const { width: screenWidth } = Dimensions.get('window');
-const canvasWidth = screenWidth - 64; // Account for padding
 const canvasHeight = 200;
 
 const SignatureBottomSheet = forwardRef<BottomSheet, SignatureBottomSheetProps>(
   ({ onSave, onCancel, existingSignatureUrl }, ref) => {
+    const { width: screenWidth } = useWindowDimensions();
+    const canvasWidth = screenWidth - 64; // Account for padding
     const snapPoints = useMemo(() => ['65%', '85%'], []);
     const [hasDrawn, setHasDrawn] = useState(false);
     const [showExisting, setShowExisting] = useState(true);

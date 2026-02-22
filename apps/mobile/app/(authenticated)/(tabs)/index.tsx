@@ -1,4 +1,4 @@
-import { View, Text, Dimensions, Modal, Pressable } from 'react-native';
+import { View, Text, useWindowDimensions, Modal, Pressable } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRef, useEffect, useState } from 'react';
 import BottomSheet from '@gorhom/bottom-sheet';
@@ -20,7 +20,6 @@ import { useSheetContext } from '@/contexts/SheetContext';
 import { perfect } from '@/styles';
 
 const padding = 16;
-const screenWidth = Dimensions.get('screen').width - padding * 2;
 
 const fabStyle = {
   width: FAB_SIZE,
@@ -32,6 +31,8 @@ const fabStyle = {
 };
 
 const TicketsScreen = () => {
+  const { width } = useWindowDimensions();
+  const screenWidth = width - padding * 2;
   const { trackEvent } = useAnalytics();
   const searchSheetRef = useRef<BottomSheet>(null);
   const filterSheetRef = useRef<BottomSheet>(null);
@@ -194,15 +195,30 @@ const TicketsScreen = () => {
         }}
         pointerEvents="box-none"
       >
-        <SquishyPressable onPress={openCamera} style={[fabStyle, perfect.cardShadow]}>
+        <SquishyPressable
+          onPress={openCamera}
+          style={[fabStyle, perfect.cardShadow]}
+          accessibilityRole="button"
+          accessibilityLabel="Scan parking ticket"
+        >
           <FontAwesomeIcon icon={faCamera} size={20} color="#ffffff" />
         </SquishyPressable>
 
-        <SquishyPressable onPress={openManualEntry} style={[fabStyle, perfect.cardShadow]}>
+        <SquishyPressable
+          onPress={openManualEntry}
+          style={[fabStyle, perfect.cardShadow]}
+          accessibilityRole="button"
+          accessibilityLabel="Add ticket manually"
+        >
           <FontAwesomeIcon icon={faPlus} size={20} color="#ffffff" />
         </SquishyPressable>
 
-        <SquishyPressable onPress={() => setIsMapOpen(true)} style={[fabStyle, perfect.cardShadow]}>
+        <SquishyPressable
+          onPress={() => setIsMapOpen(true)}
+          style={[fabStyle, perfect.cardShadow]}
+          accessibilityRole="button"
+          accessibilityLabel="View tickets on map"
+        >
           <FontAwesomeIcon icon={faMap} size={20} color="#ffffff" />
         </SquishyPressable>
       </View>
@@ -219,6 +235,8 @@ const TicketsScreen = () => {
           {/* Close button */}
           <Pressable
             onPress={() => setIsMapOpen(false)}
+            accessibilityRole="button"
+            accessibilityLabel="Close map"
             style={{
               position: 'absolute',
               top: insets.top + 12,

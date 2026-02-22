@@ -115,7 +115,7 @@ export default function ActionsCard({
       {/* Primary CTAs */}
       {isPremium && needsAction ? (
         <View className="gap-3 mb-4">
-          <SquishyPressable onPress={onOpenPremiumActions}>
+          <SquishyPressable onPress={onOpenPremiumActions} accessibilityRole="button" accessibilityLabel="Auto-submit challenge">
             <View className="bg-teal rounded-xl p-3.5 flex-row items-center justify-center">
               <FontAwesomeIcon icon={faRobot} size={14} color="#ffffff" style={{ marginRight: 8 }} />
               <Text className="font-jakarta-semibold text-sm text-white">
@@ -123,7 +123,7 @@ export default function ActionsCard({
               </Text>
             </View>
           </SquishyPressable>
-          <SquishyPressable onPress={onOpenChallengeLetter}>
+          <SquishyPressable onPress={onOpenChallengeLetter} accessibilityRole="button" accessibilityLabel="Generate challenge letter">
             <View className="rounded-xl p-3.5 flex-row items-center justify-center border border-teal">
               <FontAwesomeIcon icon={faWandMagicSparkles} size={14} color="#1abc9c" style={{ marginRight: 8 }} />
               <Text className="font-jakarta-semibold text-sm text-teal">
@@ -134,7 +134,7 @@ export default function ActionsCard({
         </View>
       ) : isPremium && !isTerminal ? (
         <View className="gap-3 mb-4">
-          <SquishyPressable onPress={onOpenPremiumActions}>
+          <SquishyPressable onPress={onOpenPremiumActions} accessibilityRole="button" accessibilityLabel="Track ticket status">
             <View className="bg-teal rounded-xl p-3.5 flex-row items-center justify-center">
               <FontAwesomeIcon icon={faChartLine} size={14} color="#ffffff" style={{ marginRight: 8 }} />
               <Text className="font-jakarta-semibold text-sm text-white">
@@ -173,7 +173,7 @@ export default function ActionsCard({
 
       {/* Secondary actions */}
       <View className="border-t border-border pt-4 gap-3">
-        <SquishyPressable onPress={() => router.push(`/ticket/${ticket.id}/edit` as any)}>
+        <SquishyPressable onPress={() => router.push(`/ticket/${ticket.id}/edit` as any)} accessibilityRole="button" accessibilityLabel="Edit ticket">
           <View className="flex-row items-center py-1">
             <FontAwesomeIcon icon={faPen} size={16} color="#717171" style={{ marginRight: 10 }} />
             <Text className="font-jakarta-medium text-sm text-dark">
@@ -183,7 +183,7 @@ export default function ActionsCard({
         </SquishyPressable>
 
         {!isTerminal && (
-          <SquishyPressable onPress={handleMarkAsPaid}>
+          <SquishyPressable onPress={handleMarkAsPaid} accessibilityRole="button" accessibilityLabel="Mark ticket as paid">
             <View className="flex-row items-center py-1">
               <FontAwesomeIcon icon={faCreditCard} size={16} color="#717171" style={{ marginRight: 10 }} />
               <Text className="font-jakarta-medium text-sm text-dark">
@@ -193,7 +193,7 @@ export default function ActionsCard({
           </SquishyPressable>
         )}
 
-        <SquishyPressable onPress={handleDelete}>
+        <SquishyPressable onPress={handleDelete} accessibilityRole="button" accessibilityLabel="Delete ticket">
           <View className="flex-row items-center py-1">
             <FontAwesomeIcon icon={faTrash} size={16} color="#FF5A5F" style={{ marginRight: 10 }} />
             <Text className="font-jakarta-medium text-sm text-coral">

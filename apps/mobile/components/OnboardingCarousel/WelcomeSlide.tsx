@@ -1,4 +1,5 @@
-import { View, Text, Image } from 'react-native';
+import { View, Text } from 'react-native';
+import { Image } from 'expo-image';
 import Animated, {
   FadeIn,
   ZoomIn,
@@ -99,7 +100,7 @@ const WelcomeSlide = ({ isActive }: WelcomeSlideProps) => {
         <Image
           source={require('@/assets/logos/ptp.png')}
           style={{ width: 120, height: 120, marginBottom: 32 }}
-          resizeMode="contain"
+          contentFit="contain"
         />
       </Animated.View>
 

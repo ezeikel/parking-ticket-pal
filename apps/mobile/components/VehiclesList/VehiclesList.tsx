@@ -1,3 +1,4 @@
+import { useCallback, memo } from 'react';
 import { View, Text } from 'react-native';
 import { FlashList } from "@shopify/flash-list";
 import useVehicles from '@/hooks/api/useVehicles';
@@ -8,11 +9,13 @@ import { Typography } from '../Typography/Typography';
 import Loader from '../Loader/Loader';
 
 const gridGap = 16;
+const vehicleItemStyle = { marginBottom: gridGap };
+const vehicleItemLastStyle = { marginBottom: 0 };
 
-const VehicleItem = ({ vehicle, style }: {
+const VehicleItem = memo(function VehicleItem({ vehicle, style }: {
   vehicle: Vehicle;
   style: Record<string, unknown>
-}) => {
+}) {
   return (
     <View
       className="rounded-lg border border-[#e4e4e7] bg-white text-[#09090b] shadow-sm"
@@ -35,7 +38,7 @@ const VehicleItem = ({ vehicle, style }: {
       </View>
     </View>
   );
-};
+});
 
 const VehiclesList = () => {
   const { data: { vehicles } = {}, isLoading } = useVehicles();
@@ -60,20 +63,12 @@ const VehiclesList = () => {
     <View className="flex-1 gap-y-6 p-4">
       <FlashList
         data={vehicles}
-        renderItem={({ item, index }) => {
-          const isLastRow =
-            Math.floor(index) ===
-            Math.floor(vehicles.length - 1);
-
-          return (
-            <VehicleItem
-              vehicle={item}
-              style={{
-                marginBottom: isLastRow ? 0 : gridGap,
-              }}
-            />
-          );
-        }}
+        renderItem={useCallback(({ item, index }: { item: Vehicle; index: number }) => (
+          <VehicleItem
+            vehicle={item}
+            style={index === vehicles.length - 1 ? vehicleItemLastStyle : vehicleItemStyle}
+          />
+        ), [vehicles.length])}
         estimatedItemSize={100}
         keyExtractor={(item) => item.id.toString()}
       />

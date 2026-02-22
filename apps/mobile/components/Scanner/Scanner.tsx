@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
-import { View, Image, Text, Alert, Platform } from 'react-native';
+import { View, Text, Alert, Platform } from 'react-native';
+import { Image } from 'expo-image';
 import DocumentScanner, { ResponseType } from 'react-native-document-scanner-plugin';
 import * as ImagePicker from 'expo-image-picker';
 
@@ -309,7 +310,7 @@ const Scanner = ({ onClose, onImageScanned, onOCRComplete }: ScannerProps) => {
         <Image
           source={{ uri: `data:image/jpeg;base64,${scannedImage}` }}
           className="w-72 h-96 rounded-lg"
-          resizeMode="contain"
+          contentFit="contain"
         />
         {ocrMutation.isPending && (
           <View className="absolute inset-0 bg-black/50 items-center justify-center rounded-lg">

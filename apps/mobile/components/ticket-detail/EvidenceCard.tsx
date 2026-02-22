@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { View, Text, Image, Alert } from 'react-native';
+import { View, Text, Alert } from 'react-native';
+import { Image } from 'expo-image';
 import * as ImagePicker from 'expo-image-picker';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import {
@@ -91,7 +92,7 @@ export default function EvidenceCard({
                   <Image
                     source={{ uri: item.url }}
                     style={{ flex: 1, borderRadius: 8 }}
-                    resizeMode="cover"
+                    contentFit="cover"
                   />
                 ) : (
                   <View className="flex-1 rounded-lg bg-light items-center justify-center">

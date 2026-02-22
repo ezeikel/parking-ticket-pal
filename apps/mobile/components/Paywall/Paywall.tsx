@@ -82,6 +82,7 @@ export function Paywall({ mode, ticketId, onClose, onPurchaseComplete }: Paywall
       <ScrollView
         className="flex-1"
         contentContainerClassName="px-6 pb-4 gap-5"
+        contentInsetAdjustmentBehavior="automatic"
         showsVerticalScrollIndicator={false}
       >
         {plans.map((plan) => (

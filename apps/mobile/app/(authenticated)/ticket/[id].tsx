@@ -1,4 +1,4 @@
-import { View, Text, ScrollView, Dimensions, Linking, Alert } from 'react-native';
+import { View, Text, ScrollView, useWindowDimensions, Linking, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, router } from 'expo-router';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
@@ -36,9 +36,10 @@ import ActivityTimelineCard, {
 import StickyBottomCTA from '@/components/ticket-detail/StickyBottomCTA';
 
 const padding = 16;
-const screenWidth = Dimensions.get('screen').width - padding * 2;
 
 export default function TicketDetailScreen() {
+  const { width } = useWindowDimensions();
+  const screenWidth = width - padding * 2;
   const { id } = useLocalSearchParams<{ id: string }>();
   const { data, isLoading, refetch } = useTicket(id!);
   const { hasActiveSubscription, hasPremiumAccess, hasStandardAccess } =
@@ -183,7 +184,11 @@ export default function TicketDetailScreen() {
         }}
       >
         <View className="flex-row items-center mb-4">
-          <SquishyPressable onPress={() => router.back()}>
+          <SquishyPressable
+            onPress={() => router.back()}
+            accessibilityRole="button"
+            accessibilityLabel="Go back"
+          >
             <View className="flex-row items-center">
               <FontAwesomeIcon icon={faArrowLeft} size={20} color="#717171" />
               <Text className="ml-2 font-jakarta text-gray">Back</Text>
@@ -216,6 +221,7 @@ export default function TicketDetailScreen() {
 
       <ScrollView
         className="flex-1"
+        contentInsetAdjustmentBehavior="automatic"
         contentContainerStyle={{
           paddingTop: padding,
           paddingBottom: padding * 2,

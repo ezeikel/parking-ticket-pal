@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, ScrollView, Alert } from 'react-native';
+import { View, Text, TextInput, ScrollView, Alert, KeyboardAvoidingView, Platform } from 'react-native';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import DateTimePicker, { DateTimePickerEvent } from '@react-native-community/datetimepicker';
@@ -69,8 +69,11 @@ const TicketForm = ({ initialData, onSubmit, onCancel, isLoading = false }: Tick
   };
 
   return (
-    <View className="flex-1 bg-gray-50">
-      <ScrollView className="flex-1 p-4" showsVerticalScrollIndicator={false}>
+    <KeyboardAvoidingView
+      className="flex-1 bg-gray-50"
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+    >
+      <ScrollView className="flex-1 p-4" showsVerticalScrollIndicator={false} keyboardDismissMode="on-drag" keyboardShouldPersistTaps="handled">
         <View className="bg-white rounded-lg p-4 mb-4">
           <Text className="text-2xl font-jakarta-bold mb-6 text-center">Ticket Details</Text>
 
@@ -310,7 +313,7 @@ const TicketForm = ({ initialData, onSubmit, onCancel, isLoading = false }: Tick
           </SquishyPressable>
         </View>
       </View>
-    </View>
+    </KeyboardAvoidingView>
   );
 };
 

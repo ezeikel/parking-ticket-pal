@@ -1,4 +1,5 @@
-import { View, Text, Image } from 'react-native';
+import { View, Text } from 'react-native';
+import { Image } from 'expo-image';
 import { Media } from '@/types';
 
 type TicketPhotoCardProps = {
@@ -18,7 +19,7 @@ export default function TicketPhotoCard({ media }: TicketPhotoCardProps) {
           <Image
             source={{ uri: image.url }}
             style={{ width: '100%', aspectRatio: 4 / 3 }}
-            resizeMode="cover"
+            contentFit="cover"
           />
         </View>
       ))}

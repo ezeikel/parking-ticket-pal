@@ -1,4 +1,4 @@
-import { View, Dimensions } from 'react-native';
+import { View, useWindowDimensions } from 'react-native';
 import Carousel from 'react-native-reanimated-carousel';
 import Animated, {
   useSharedValue,
@@ -16,8 +16,6 @@ import ScanTicketSlide from './ScanTicketSlide';
 import CameraSheet from '@/components/CameraSheet/CameraSheet';
 import TicketWizard from '@/components/TicketWizard/TicketWizard';
 import { Paywall } from '@/components/Paywall/Paywall';
-
-const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
 const SLIDE_COUNT = 4;
 
@@ -91,6 +89,7 @@ interface OnboardingCarouselProps {
 }
 
 const OnboardingCarousel = ({ onComplete, onTicketCreated }: OnboardingCarouselProps) => {
+  const { width: screenWidth, height: screenHeight } = useWindowDimensions();
   const activeIndex = useSharedValue(0);
   const [currentSlide, setCurrentSlide] = useState(0);
   const carouselRef = useRef<any>(null);

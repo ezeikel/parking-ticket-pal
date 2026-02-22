@@ -1,4 +1,4 @@
-import { useCallback } from 'react';
+import { useCallback, memo } from 'react';
 import { Text, View, RefreshControl, ScrollView } from 'react-native';
 import { FlashList } from '@shopify/flash-list';
 import { router } from 'expo-router';
@@ -32,7 +32,9 @@ interface TicketsListProps {
   filters?: TicketFilters;
 }
 
-const TicketItem = ({
+const ticketItemStyle = { marginHorizontal: 16, marginBottom: 16 };
+
+const TicketItem = memo(function TicketItem({
   ticket,
   style,
   hasSubscription,
@@ -40,7 +42,7 @@ const TicketItem = ({
   ticket: Ticket;
   style: Record<string, unknown>;
   hasSubscription: boolean;
-}) => {
+}) {
   const statusConfig = getStatusConfig(ticket.status);
   const isTerminal = isTerminalStatus(ticket.status);
   const initials = getIssuerInitials(ticket.issuer);
@@ -234,7 +236,7 @@ const TicketItem = ({
       </View>
     </SquishyPressable>
   );
-};
+});
 
 const TicketsList = ({ filters }: TicketsListProps) => {
   const {
@@ -272,6 +274,7 @@ const TicketsList = ({ filters }: TicketsListProps) => {
       <ScrollView
         className="flex-1"
         contentContainerClassName="flex-1 items-center justify-center px-8"
+        contentInsetAdjustmentBehavior="automatic"
         refreshControl={
           <RefreshControl refreshing={isRefetching} onRefresh={onRefresh} />
         }
@@ -324,21 +327,16 @@ const TicketsList = ({ filters }: TicketsListProps) => {
       )}
       <FlashList
         data={displayTickets}
-        renderItem={({ item, index }) => {
-          const isLastRow = index === displayTickets.length - 1;
-          return (
-            <TicketItem
-              ticket={item}
-              hasSubscription={hasSubscription}
-              style={{
-                marginHorizontal: 16,
-                marginBottom: isLastRow ? 16 : 16,
-              }}
-            />
-          );
-        }}
+        renderItem={useCallback(({ item }: { item: Ticket }) => (
+          <TicketItem
+            ticket={item}
+            hasSubscription={hasSubscription}
+            style={ticketItemStyle}
+          />
+        ), [hasSubscription])}
         estimatedItemSize={280}
         keyExtractor={(item) => item.id.toString()}
+        getItemType={(item) => isTerminalStatus(item.status) ? 'terminal' : 'active'}
         showsVerticalScrollIndicator={false}
         refreshControl={
           <RefreshControl refreshing={isRefetching} onRefresh={onRefresh} />
