@@ -1,12 +1,13 @@
 import Purchases, { CustomerInfo, PurchasesOffering, PurchasesPackage } from 'react-native-purchases';
 import { Platform } from 'react-native';
+import { logger } from '@/lib/logger';
 
 class PurchaseService {
   private isInitialized = false;
 
   async initialize() {
     if (this.isInitialized) {
-      console.log('[PurchaseService] Already initialized, skipping...');
+      logger.debug('Already initialized, skipping', { action: 'purchases' });
       return;
     }
 
@@ -16,16 +17,16 @@ class PurchaseService {
         : process.env.EXPO_PUBLIC_REVENUECAT_ANDROID_KEY;
 
       if (!apiKey) {
-        console.error('[PurchaseService] RevenueCat API key not found for platform:', Platform.OS);
+        logger.error('RevenueCat API key not found', { action: 'purchases', platform: Platform.OS });
         return;
       }
 
       Purchases.configure({ apiKey });
       this.isInitialized = true;
 
-      console.log('[PurchaseService] RevenueCat initialized successfully');
+      logger.info('RevenueCat initialized successfully', { action: 'purchases' });
     } catch (error) {
-      console.error('[PurchaseService] Failed to initialize RevenueCat:', error);
+      logger.error('Failed to initialize RevenueCat', { action: 'purchases' }, error instanceof Error ? error : new Error(String(error)));
     }
   }
 
@@ -37,7 +38,7 @@ class PurchaseService {
 
       return await Purchases.getCustomerInfo();
     } catch (error) {
-      console.error('[PurchaseService] Failed to get customer info:', error);
+      logger.error('Failed to get customer info', { action: 'purchases' }, error instanceof Error ? error : new Error(String(error)));
       return null;
     }
   }
@@ -50,7 +51,7 @@ class PurchaseService {
 
       return await Purchases.getOfferings();
     } catch (error) {
-      console.error('[PurchaseService] Failed to get offerings:', error);
+      logger.error('Failed to get offerings', { action: 'purchases' }, error instanceof Error ? error : new Error(String(error)));
       return null;
     }
   }
@@ -64,7 +65,7 @@ class PurchaseService {
       const offerings = await Purchases.getOfferings();
       return offerings.all[offeringId] || null;
     } catch (error) {
-      console.error('[PurchaseService] Failed to get offering:', error);
+      logger.error('Failed to get offering', { action: 'purchases', offeringId }, error instanceof Error ? error : new Error(String(error)));
       return null;
     }
   }
@@ -122,7 +123,7 @@ class PurchaseService {
 
       return hasActiveEntitlements;
     } catch (error) {
-      console.error('[PurchaseService] Failed to check premium status:', error);
+      logger.error('Failed to check premium status', { action: 'purchases' }, error instanceof Error ? error : new Error(String(error)));
       return false;
     }
   }

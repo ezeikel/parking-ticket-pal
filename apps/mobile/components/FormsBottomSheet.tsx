@@ -8,6 +8,7 @@ import { FormType, FORM_TYPES } from '@/constants/challenges';
 import SquishyPressable from '@/components/SquishyPressable/SquishyPressable';
 import Loader from '@/components/Loader/Loader';
 import { generateTE7Form, generateTE9Form, generatePE2Form, generatePE3Form } from '@/api';
+import { logger } from '@/lib/logger';
 
 interface FormsBottomSheetProps {
   pcnNumber: string;
@@ -49,7 +50,7 @@ const FormsBottomSheet = forwardRef<BottomSheet, FormsBottomSheetProps>(
 
       setIsLoading(true);
       try {
-        console.log('Generating form...', { formType, pcnNumber });
+        logger.debug('Generating form', { action: 'forms', screen: 'forms-bottom-sheet', formType, pcnNumber });
         let result;
         switch (formType) {
           case 'TE7':
@@ -67,7 +68,7 @@ const FormsBottomSheet = forwardRef<BottomSheet, FormsBottomSheetProps>(
           default:
             throw new Error('Invalid form type');
         }
-        console.log('Form generation result:', result);
+        logger.debug('Form generation result', { action: 'forms', screen: 'forms-bottom-sheet', formType, success: result?.success });
 
         // Check if the result indicates success
         if (result && result.success) {
@@ -84,16 +85,17 @@ const FormsBottomSheet = forwardRef<BottomSheet, FormsBottomSheetProps>(
           onSuccess();
         } else {
           // API returned but indicated failure
-          console.error('Form generation failed:', result);
+          logger.error('Form generation failed', { action: 'forms', screen: 'forms-bottom-sheet', formType, result });
           toast.error('Generation Failed', result?.error || `Failed to generate ${formInfo.name}`);
         }
       } catch (error: any) {
-        console.error(`Error generating ${formType} form:`, error);
-        console.error('Error details:', {
-          message: error.message,
-          response: error.response?.data,
-          status: error.response?.status,
-        });
+        logger.error(`Error generating ${formType} form`, {
+          action: 'forms',
+          screen: 'forms-bottom-sheet',
+          formType,
+          responseData: error.response?.data,
+          responseStatus: error.response?.status,
+        }, error instanceof Error ? error : new Error(String(error)));
         toast.error('Generation Failed', error.response?.data?.error || error.response?.data?.message || `Failed to generate ${formInfo.name}`);
       } finally {
         setIsLoading(false);

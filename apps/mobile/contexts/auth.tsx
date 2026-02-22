@@ -20,6 +20,7 @@ import {
   setUserId,
   logout as authLogout,
 } from '@/lib/auth';
+import { logger } from '@/lib/logger';
 import { usePurchases } from './purchases';
 
 type User = {
@@ -93,9 +94,9 @@ export const AuthContextProvider = ({ children }: AuthContextProviderProps) => {
             subscription_source: userData.subscription?.source,
             is_anonymous: !userData.email,
           });
-          console.log('[Auth] User identified with PostHog:', userData.id);
+          logger.debug('User identified with PostHog', { action: 'auth', userId: userData.id });
         } catch (error) {
-          console.error('[Auth] Error identifying user with PostHog:', error);
+          logger.error('Error identifying user with PostHog', { action: 'auth', userId: userData.id }, error instanceof Error ? error : new Error(String(error)));
         }
       }
 
@@ -110,9 +111,9 @@ export const AuthContextProvider = ({ children }: AuthContextProviderProps) => {
           Sentry.setTag('subscription_type', userData.subscription?.type || 'free');
           Sentry.setTag('subscription_source', userData.subscription?.source || 'none');
           Sentry.setTag('is_anonymous', (!userData.email).toString());
-          console.log('[Auth] User identified with Sentry:', userData.id);
+          logger.debug('User identified with Sentry', { action: 'auth', userId: userData.id });
         } catch (error) {
-          console.error('[Auth] Error identifying user with Sentry:', error);
+          logger.error('Error identifying user with Sentry', { action: 'auth', userId: userData.id }, error instanceof Error ? error : new Error(String(error)));
         }
       }
 
@@ -120,9 +121,9 @@ export const AuthContextProvider = ({ children }: AuthContextProviderProps) => {
       if (userData.id && isPurchasesConfigured) {
         try {
           await Purchases.logIn(userData.id);
-          console.log('[Auth] User identified with RevenueCat:', userData.id);
+          logger.debug('User identified with RevenueCat', { action: 'auth', userId: userData.id });
         } catch (error) {
-          console.error('[Auth] Error identifying user with RevenueCat:', error);
+          logger.error('Error identifying user with RevenueCat', { action: 'auth', userId: userData.id }, error instanceof Error ? error : new Error(String(error)));
         }
       }
     },
@@ -156,7 +157,7 @@ export const AuthContextProvider = ({ children }: AuthContextProviderProps) => {
           setIsLinked(false);
         }
       } catch (error) {
-        console.error('Error checking auth', error);
+        logger.error('Error checking auth', { action: 'auth' }, error instanceof Error ? error : new Error(String(error)));
         // Even on error, if we have a token we're "authenticated" (device auth)
         const token = await getSessionToken();
         setIsAuthenticated(!!token);
@@ -197,9 +198,9 @@ export const AuthContextProvider = ({ children }: AuthContextProviderProps) => {
         'code' in error &&
         error.code === statusCodes.SIGN_IN_CANCELLED
       ) {
-        console.info('User cancelled sign-in');
+        logger.info('User cancelled sign-in', { action: 'auth', provider: 'google' });
       } else {
-        console.error('Sign-in error', error);
+        logger.error('Sign-in error', { action: 'auth', provider: 'google' }, error instanceof Error ? error : new Error(String(error)));
       }
       throw error;
     }
@@ -213,7 +214,7 @@ export const AuthContextProvider = ({ children }: AuthContextProviderProps) => {
       ]);
 
       if (result.isCancelled) {
-        console.info('User cancelled Facebook sign-in');
+        logger.info('User cancelled Facebook sign-in', { action: 'auth', provider: 'facebook' });
         return;
       }
 
@@ -229,7 +230,7 @@ export const AuthContextProvider = ({ children }: AuthContextProviderProps) => {
       );
       await handlePostSignIn(sessionToken);
     } catch (error) {
-      console.error('Facebook sign-in error', error);
+      logger.error('Facebook sign-in error', { action: 'auth', provider: 'facebook' }, error instanceof Error ? error : new Error(String(error)));
       throw error;
     }
   };
@@ -255,7 +256,7 @@ export const AuthContextProvider = ({ children }: AuthContextProviderProps) => {
         await handlePostSignIn(sessionToken);
       }
     } catch (error) {
-      console.error('Apple sign-in error', error);
+      logger.error('Apple sign-in error', { action: 'auth', provider: 'apple' }, error instanceof Error ? error : new Error(String(error)));
       throw error;
     }
   };
@@ -264,7 +265,7 @@ export const AuthContextProvider = ({ children }: AuthContextProviderProps) => {
     try {
       await sendMagicLink(email);
     } catch (error) {
-      console.error('Magic link error', error);
+      logger.error('Magic link error', { action: 'auth', provider: 'magic-link' }, error instanceof Error ? error : new Error(String(error)));
       throw error;
     }
   };
@@ -277,20 +278,20 @@ export const AuthContextProvider = ({ children }: AuthContextProviderProps) => {
       try {
         posthog.reset();
       } catch (error) {
-        console.error('[Auth] Error resetting PostHog:', error);
+        logger.error('Error resetting PostHog', { action: 'auth' }, error instanceof Error ? error : new Error(String(error)));
       }
 
       try {
         Sentry.setUser(null);
       } catch (error) {
-        console.error('[Auth] Error clearing Sentry user:', error);
+        logger.error('Error clearing Sentry user', { action: 'auth' }, error instanceof Error ? error : new Error(String(error)));
       }
 
       if (isPurchasesConfigured) {
         try {
           await Purchases.logOut();
         } catch (error) {
-          console.error('[Auth] Error logging out from RevenueCat:', error);
+          logger.error('Error logging out from RevenueCat', { action: 'auth' }, error instanceof Error ? error : new Error(String(error)));
         }
       }
 
@@ -301,7 +302,7 @@ export const AuthContextProvider = ({ children }: AuthContextProviderProps) => {
       // This triggers a re-check which will create a new anonymous user
       setIsAuthenticated(false);
     } catch (error) {
-      console.error('Error signing out: ', error);
+      logger.error('Error signing out', { action: 'auth' }, error instanceof Error ? error : new Error(String(error)));
     }
   };
 

@@ -1,57 +1,86 @@
 import { useState } from 'react';
-import { View, Text, Alert } from 'react-native';
-import { toast } from '@/lib/toast';
+import { View, Text, Alert, ActivityIndicator } from 'react-native';
 import { Image } from 'expo-image';
 import * as ImagePicker from 'expo-image-picker';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
-import {
-  faPlus,
-  faCloudArrowUp,
-  faFile,
-  faTrash,
-} from '@fortawesome/pro-solid-svg-icons';
+import { faFile, faPlus, faTrash } from '@fortawesome/pro-solid-svg-icons';
 import { Media } from '@/types';
+import { uploadEvidence, deleteEvidence } from '@/api';
+import { toast } from '@/lib/toast';
 import SquishyPressable from '@/components/SquishyPressable/SquishyPressable';
 
 type EvidenceCardProps = {
   ticketId: string;
   evidence: Media[];
   onImagePress?: (imageUrl: string) => void;
+  onRefetch: () => void;
 };
 
 const isImageUrl = (url: string) => /\.(jpeg|jpg|gif|png|webp)$/i.test(url);
 
 export default function EvidenceCard({
-  ticketId: _ticketId,
+  ticketId,
   evidence,
   onImagePress,
+  onRefetch,
 }: EvidenceCardProps) {
-  const [showUpload, setShowUpload] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
 
   const handlePickImage = async () => {
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ['images'],
       quality: 0.8,
+      base64: true,
     });
 
-    if (!result.canceled && result.assets[0]) {
-      // TODO: Upload evidence via API
-      toast.info('Coming Soon', 'Evidence upload available soon');
+    if (result.canceled || !result.assets[0]?.base64) return;
+
+    const asset = result.assets[0];
+    const mimeType = asset.mimeType || 'image/jpeg';
+    const base64WithPrefix = `data:${mimeType};base64,${asset.base64}`;
+
+    setUploading(true);
+    try {
+      await uploadEvidence(
+        ticketId,
+        base64WithPrefix,
+        'User uploaded evidence',
+        'PHOTO',
+      );
+      onRefetch();
+      toast.success('Evidence Uploaded', 'Your evidence has been added');
+    } catch {
+      toast.error('Upload Failed', 'Please try again');
+    } finally {
+      setUploading(false);
     }
   };
 
-  const handleDelete = (item: Media) => {
-    Alert.alert('Delete Evidence', 'Are you sure you want to delete this evidence?', [
-      { text: 'Cancel', style: 'cancel' },
-      {
-        text: 'Delete',
-        style: 'destructive',
-        onPress: () => {
-          // TODO: Delete evidence via API
-          toast.info('Coming Soon', 'Evidence deletion available soon');
+  const handleDelete = (mediaId: string) => {
+    Alert.alert(
+      'Delete Evidence',
+      'Are you sure you want to remove this evidence?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: async () => {
+            setDeletingId(mediaId);
+            try {
+              await deleteEvidence(ticketId, mediaId);
+              onRefetch();
+              toast.success('Evidence Deleted', 'Evidence has been removed');
+            } catch {
+              toast.error('Delete Failed', 'Please try again');
+            } finally {
+              setDeletingId(null);
+            }
+          },
         },
-      },
-    ]);
+      ],
+    );
   };
 
   return (
@@ -60,27 +89,25 @@ export default function EvidenceCard({
         <Text className="font-jakarta-semibold text-lg text-dark">
           Evidence & Documents
         </Text>
-        <SquishyPressable onPress={() => setShowUpload(true)}>
-          <View className="flex-row items-center rounded-lg border border-border px-3 py-1.5">
-            <FontAwesomeIcon icon={faPlus} size={12} color="#717171" style={{ marginRight: 6 }} />
-            <Text className="font-jakarta-medium text-xs text-dark">Add Evidence</Text>
+        <SquishyPressable
+          onPress={handlePickImage}
+          disabled={uploading}
+          accessibilityRole="button"
+          accessibilityLabel="Add evidence"
+        >
+          <View className="flex-row items-center rounded-lg bg-light px-3 py-2">
+            {uploading ? (
+              <ActivityIndicator size="small" color="#1abc9c" />
+            ) : (
+              <>
+                <FontAwesomeIcon icon={faPlus} size={12} color="#1abc9c" style={{ marginRight: 4 }} />
+                <Text className="font-jakarta-medium text-xs text-teal">Add</Text>
+              </>
+            )}
           </View>
         </SquishyPressable>
       </View>
 
-      {/* Upload prompt */}
-      {showUpload && evidence.length === 0 && (
-        <SquishyPressable onPress={handlePickImage}>
-          <View className="rounded-xl border-2 border-dashed border-border py-6 items-center mb-4">
-            <FontAwesomeIcon icon={faCloudArrowUp} size={28} color="#D1D5DB" />
-            <Text className="font-jakarta text-sm text-gray mt-2">
-              Tap to upload evidence
-            </Text>
-          </View>
-        </SquishyPressable>
-      )}
-
-      {/* Evidence grid */}
       {evidence.length > 0 ? (
         <View className="flex-row flex-wrap" style={{ gap: 8 }}>
           {evidence.map((item) => (
@@ -101,45 +128,52 @@ export default function EvidenceCard({
                   </View>
                 )}
               </SquishyPressable>
+              {/* Delete button overlay */}
               <SquishyPressable
-                onPress={() => handleDelete(item)}
+                onPress={() => handleDelete(item.id)}
+                disabled={deletingId === item.id}
+                accessibilityRole="button"
+                accessibilityLabel="Delete evidence"
                 style={{
                   position: 'absolute',
-                  top: -6,
-                  right: -6,
-                  width: 22,
-                  height: 22,
-                  borderRadius: 11,
-                  backgroundColor: '#FF5A5F',
-                  alignItems: 'center',
-                  justifyContent: 'center',
+                  top: 4,
+                  right: 4,
                 }}
               >
-                <FontAwesomeIcon icon={faTrash} size={10} color="#ffffff" />
+                <View
+                  className="rounded-full items-center justify-center"
+                  style={{
+                    width: 24,
+                    height: 24,
+                    backgroundColor: 'rgba(0,0,0,0.5)',
+                  }}
+                >
+                  {deletingId === item.id ? (
+                    <ActivityIndicator size="small" color="#ffffff" />
+                  ) : (
+                    <FontAwesomeIcon icon={faTrash} size={10} color="#ffffff" />
+                  )}
+                </View>
               </SquishyPressable>
             </View>
           ))}
-
-          {/* Add more button */}
-          <SquishyPressable
-            onPress={handlePickImage}
-            style={{ width: '31%', aspectRatio: 1 }}
-          >
-            <View className="flex-1 rounded-lg border-2 border-dashed border-border items-center justify-center">
-              <FontAwesomeIcon icon={faPlus} size={20} color="#717171" />
-            </View>
-          </SquishyPressable>
         </View>
-      ) : !showUpload ? (
-        <SquishyPressable onPress={() => setShowUpload(true)}>
+      ) : (
+        <SquishyPressable onPress={handlePickImage} disabled={uploading}>
           <View className="rounded-xl border-2 border-dashed border-border py-6 items-center">
-            <FontAwesomeIcon icon={faCloudArrowUp} size={28} color="#D1D5DB" />
-            <Text className="font-jakarta text-sm text-gray mt-2">
-              Add supporting evidence
-            </Text>
+            {uploading ? (
+              <ActivityIndicator size="small" color="#1abc9c" />
+            ) : (
+              <>
+                <FontAwesomeIcon icon={faPlus} size={28} color="#D1D5DB" />
+                <Text className="font-jakarta text-sm text-gray mt-2">
+                  Tap to add evidence
+                </Text>
+              </>
+            )}
           </View>
         </SquishyPressable>
-      ) : null}
+      )}
     </View>
   );
 }

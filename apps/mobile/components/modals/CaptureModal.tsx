@@ -4,6 +4,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-native-fontawesome";
 import { faXmark } from "@fortawesome/pro-regular-svg-icons";
 import Scanner from '@/components/Scanner/Scanner';
 import { useState } from 'react';
+import { logger } from '@/lib/logger';
 import SquishyPressable from '@/components/SquishyPressable/SquishyPressable';
 
 type CaptureModalProps = {
@@ -45,7 +46,7 @@ const CaptureModal = ({ isVisible, setIsVisible }: CaptureModalProps) => {
           <Scanner
             key={isVisible ? 'open' : 'closed'}
             onClose={() => {
-              console.log('Scanner onClose called, hiding modal');
+              logger.debug('Scanner onClose called, hiding modal', { screen: 'capture-modal', action: 'scanner' });
               setHasScannedImage(false);
               setIsVisible(false);
             }}

@@ -6,15 +6,15 @@ import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import {
   faLock,
   faPen,
-  faCreditCard,
   faTrash,
   faClock,
   faRobot,
   faWandMagicSparkles,
   faChartLine,
+  faCircleCheck,
 } from '@fortawesome/pro-solid-svg-icons';
 import { Ticket } from '@/types';
-import { deleteTicket } from '@/api';
+import { deleteTicket, updateTicketStatus } from '@/api';
 import {
   needsActionStatus,
   isTerminalStatus,
@@ -42,6 +42,29 @@ export default function ActionsCard({
   const isTerminal = isTerminalStatus(ticket.status);
   const deadlineDays = getDeadlineDays(ticket.issuedAt);
 
+  const handleMarkAsPaid = () => {
+    Alert.alert(
+      'Mark as Paid',
+      'Are you sure you want to mark this ticket as paid?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Mark as Paid',
+          onPress: async () => {
+            try {
+              await updateTicketStatus(ticket.id, 'PAID');
+              queryClient.invalidateQueries({ queryKey: ['tickets'] });
+              onRefetch();
+              toast.success('Ticket Updated', 'Ticket marked as paid');
+            } catch {
+              toast.error('Update Failed', 'Please try again');
+            }
+          },
+        },
+      ],
+    );
+  };
+
   const handleDelete = () => {
     Alert.alert(
       'Delete Ticket',
@@ -59,23 +82,6 @@ export default function ActionsCard({
             } catch {
               toast.error('Delete Failed', 'Please try again');
             }
-          },
-        },
-      ],
-    );
-  };
-
-  const handleMarkAsPaid = () => {
-    Alert.alert(
-      'Mark as Paid',
-      'Are you sure you want to mark this ticket as paid?',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Mark as Paid',
-          onPress: () => {
-            // TODO: implement mark as paid API call
-            onRefetch();
           },
         },
       ],
@@ -174,6 +180,17 @@ export default function ActionsCard({
 
       {/* Secondary actions */}
       <View className="border-t border-border pt-4 gap-3">
+        {!isTerminal && ticket.status !== 'PAID' && (
+          <SquishyPressable onPress={handleMarkAsPaid} accessibilityRole="button" accessibilityLabel="Mark as paid">
+            <View className="flex-row items-center py-1">
+              <FontAwesomeIcon icon={faCircleCheck} size={16} color="#1abc9c" style={{ marginRight: 10 }} />
+              <Text className="font-jakarta-medium text-sm text-dark">
+                Mark as Paid
+              </Text>
+            </View>
+          </SquishyPressable>
+        )}
+
         <SquishyPressable onPress={() => router.push(`/ticket/${ticket.id}/edit` as any)} accessibilityRole="button" accessibilityLabel="Edit ticket">
           <View className="flex-row items-center py-1">
             <FontAwesomeIcon icon={faPen} size={16} color="#717171" style={{ marginRight: 10 }} />
@@ -182,17 +199,6 @@ export default function ActionsCard({
             </Text>
           </View>
         </SquishyPressable>
-
-        {!isTerminal && (
-          <SquishyPressable onPress={handleMarkAsPaid} accessibilityRole="button" accessibilityLabel="Mark ticket as paid">
-            <View className="flex-row items-center py-1">
-              <FontAwesomeIcon icon={faCreditCard} size={16} color="#717171" style={{ marginRight: 10 }} />
-              <Text className="font-jakarta-medium text-sm text-dark">
-                Mark as Paid
-              </Text>
-            </View>
-          </SquishyPressable>
-        )}
 
         <SquishyPressable onPress={handleDelete} accessibilityRole="button" accessibilityLabel="Delete ticket">
           <View className="flex-row items-center py-1">

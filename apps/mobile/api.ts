@@ -353,6 +353,32 @@ export const unregisterPushToken = async (token: string) => {
   return response.data;
 };
 
+// Evidence
+export const uploadEvidence = async (
+  ticketId: string,
+  image: string,
+  description: string,
+  evidenceType: string,
+) => {
+  const response = await api.post(`/tickets/${ticketId}/evidence`, {
+    image,
+    description,
+    evidenceType,
+  });
+  return response.data;
+};
+
+export const deleteEvidence = async (ticketId: string, mediaId: string) => {
+  const response = await api.delete(`/tickets/${ticketId}/evidence/${mediaId}`);
+  return response.data;
+};
+
+// Ticket status
+export const updateTicketStatus = async (ticketId: string, status: string) => {
+  const response = await api.patch(`/tickets/${ticketId}/status`, { status });
+  return response.data;
+};
+
 // Live status
 export const checkTicketLiveStatus = async (ticketId: string) => {
   const response = await api.post(`/tickets/${ticketId}/live-status`);

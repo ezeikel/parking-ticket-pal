@@ -20,12 +20,10 @@ const SENTRY_DSN = process.env.SENTRY_DSN || process.env.EXPO_PUBLIC_SENTRY_DSN;
 
 Sentry.init({
   dsn: SENTRY_DSN,
-  sendDefaultPii: true,
-  tracesSampleRate: 1.0,
-  // TODO: enable once upgraded to v7
-  // enableLogs: true,
-  profilesSampleRate: 1.0,
-  replaysSessionSampleRate: 1.0,
+  sendDefaultPii: false,
+  tracesSampleRate: __DEV__ ? 1.0 : 0.2,
+  profilesSampleRate: __DEV__ ? 1.0 : 0.2,
+  replaysSessionSampleRate: __DEV__ ? 1.0 : 0.1,
   replaysOnErrorSampleRate: 1.0,
   integrations: [navigationIntegration, Sentry.mobileReplayIntegration()],
   enableNativeFramesTracking: Constants.executionEnvironment === ExecutionEnvironment.StoreClient,

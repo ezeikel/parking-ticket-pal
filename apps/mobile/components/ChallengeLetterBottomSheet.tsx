@@ -9,6 +9,7 @@ import { getChallengeReasons } from '@/constants/challenges';
 import SquishyPressable from '@/components/SquishyPressable/SquishyPressable';
 import Loader from '@/components/Loader/Loader';
 import { generateChallengeLetter } from '@/api';
+import { logger } from '@/lib/logger';
 
 interface ChallengeLetterBottomSheetProps {
   pcnNumber: string;
@@ -34,9 +35,9 @@ const ChallengeLetterBottomSheet = forwardRef<BottomSheet, ChallengeLetterBottom
 
       setIsLoading(true);
       try {
-        console.log('Generating challenge letter...', { pcnNumber, selectedReason });
+        logger.debug('Generating challenge letter', { action: 'challenge-letter', screen: 'challenge-letter-bottom-sheet', pcnNumber, selectedReason });
         const result = await generateChallengeLetter(pcnNumber, selectedReason, additionalDetails);
-        console.log('Challenge letter result:', result);
+        logger.debug('Challenge letter result', { action: 'challenge-letter', screen: 'challenge-letter-bottom-sheet', success: result?.success });
 
         // Check if the result indicates success
         if (result && result.success) {
@@ -46,16 +47,16 @@ const ChallengeLetterBottomSheet = forwardRef<BottomSheet, ChallengeLetterBottom
           onSuccess();
         } else {
           // API returned but indicated failure
-          console.error('Challenge letter generation failed:', result);
+          logger.error('Challenge letter generation failed', { action: 'challenge-letter', screen: 'challenge-letter-bottom-sheet', result });
           toast.error('Generation Failed', result?.message || 'Please try again');
         }
       } catch (error: any) {
-        console.error('Error generating challenge letter:', error);
-        console.error('Error details:', {
-          message: error.message,
-          response: error.response?.data,
-          status: error.response?.status,
-        });
+        logger.error('Error generating challenge letter', {
+          action: 'challenge-letter',
+          screen: 'challenge-letter-bottom-sheet',
+          responseData: error.response?.data,
+          responseStatus: error.response?.status,
+        }, error instanceof Error ? error : new Error(String(error)));
         toast.error('Generation Failed', error.response?.data?.error || error.response?.data?.message || 'Please try again');
       } finally {
         setIsLoading(false);

@@ -8,6 +8,7 @@ import Purchases, {
 import { Platform } from 'react-native';
 import { confirmPurchase } from '@/api';
 import { purchaseService } from '@/services/PurchaseService';
+import { logger } from '@/lib/logger';
 
 type PurchasesContextType = {
   isConfigured: boolean;
@@ -70,9 +71,9 @@ export const PurchasesContextProvider = ({ children }: PurchasesContextProviderP
         }
 
         setIsConfigured(purchaseService.getIsInitialized());
-        console.log('[PurchasesContext] Loaded purchase data successfully');
+        logger.info('Loaded purchase data successfully', { action: 'purchases' });
       } catch (error) {
-        console.error('[PurchasesContext] Error loading purchase data:', error);
+        logger.error('Error loading purchase data', { action: 'purchases' }, error instanceof Error ? error : new Error(String(error)));
       } finally {
         setIsLoading(false);
       }
@@ -109,9 +110,9 @@ export const PurchasesContextProvider = ({ children }: PurchasesContextProviderP
       ) {
         try {
           await confirmPurchase(ticketId, productId);
-          console.log('[Purchases] Ticket upgrade confirmed with backend');
+          logger.info('Ticket upgrade confirmed with backend', { action: 'purchases', ticketId, productId });
         } catch (error) {
-          console.error('[Purchases] Error confirming purchase with backend:', error);
+          logger.error('Error confirming purchase with backend', { action: 'purchases', ticketId, productId }, error instanceof Error ? error : new Error(String(error)));
           // Don't throw - purchase went through, just backend confirmation failed
         }
       }
@@ -120,11 +121,11 @@ export const PurchasesContextProvider = ({ children }: PurchasesContextProviderP
     } catch (error: any) {
       // Handle specific error cases
       if (error.code === PURCHASES_ERROR_CODE.PURCHASE_CANCELLED_ERROR) {
-        console.log('[Purchases] User cancelled purchase');
+        logger.info('User cancelled purchase', { action: 'purchases' });
       } else if (error.code === PURCHASES_ERROR_CODE.PRODUCT_ALREADY_PURCHASED_ERROR) {
-        console.log('[Purchases] Product already purchased');
+        logger.info('Product already purchased', { action: 'purchases' });
       } else {
-        console.error('[Purchases] Purchase error:', error);
+        logger.error('Purchase error', { action: 'purchases', errorCode: error.code }, error instanceof Error ? error : new Error(String(error)));
       }
       throw error;
     }
@@ -138,10 +139,10 @@ export const PurchasesContextProvider = ({ children }: PurchasesContextProviderP
     try {
       const info = await Purchases.restorePurchases();
       setCustomerInfo(info);
-      console.log('[Purchases] Purchases restored successfully');
+      logger.info('Purchases restored successfully', { action: 'purchases' });
       return info;
     } catch (error) {
-      console.error('[Purchases] Error restoring purchases:', error);
+      logger.error('Error restoring purchases', { action: 'purchases' }, error instanceof Error ? error : new Error(String(error)));
       throw error;
     }
   };
@@ -154,7 +155,7 @@ export const PurchasesContextProvider = ({ children }: PurchasesContextProviderP
       const info = await Purchases.getCustomerInfo();
       setCustomerInfo(info);
     } catch (error) {
-      console.error('[Purchases] Error refreshing customer info:', error);
+      logger.error('Error refreshing customer info', { action: 'purchases' }, error instanceof Error ? error : new Error(String(error)));
     }
   };
 
@@ -167,17 +168,16 @@ export const PurchasesContextProvider = ({ children }: PurchasesContextProviderP
       // Use the purchaseService which handles initialization
       const offering = await purchaseService.getOffering(offeringId);
 
-      // Log what we got back
-      console.log('[Purchases] Looking for offering:', offeringId);
-      console.log('[Purchases] Found offering:', offering ? 'YES' : 'NO');
-
-      if (offering) {
-        console.log('[Purchases] Offering packages:', offering.availablePackages.length);
-      }
+      logger.debug('Fetched offering', {
+        action: 'purchases',
+        offeringId,
+        found: !!offering,
+        packageCount: offering?.availablePackages.length ?? 0,
+      });
 
       return offering;
     } catch (error) {
-      console.error('[Purchases] Error fetching offering:', error);
+      logger.error('Error fetching offering', { action: 'purchases', offeringId }, error instanceof Error ? error : new Error(String(error)));
       return null;
     }
   };

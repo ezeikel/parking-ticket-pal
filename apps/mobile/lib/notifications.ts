@@ -3,6 +3,7 @@ import * as Device from 'expo-device';
 import { Platform } from 'react-native';
 import { router } from 'expo-router';
 import { registerPushToken, unregisterPushToken as unregisterPushTokenAPI } from '@/api';
+import { logger } from '@/lib/logger';
 
 // Configure how notifications are handled when app is in foreground
 Notifications.setNotificationHandler({
@@ -18,7 +19,7 @@ Notifications.setNotificationHandler({
  */
 export async function requestNotificationPermissions(): Promise<boolean> {
   if (!Device.isDevice) {
-    console.log('Must use physical device for Push Notifications');
+    logger.info('Must use physical device for push notifications', { action: 'notifications' });
     return false;
   }
 
@@ -31,7 +32,7 @@ export async function requestNotificationPermissions(): Promise<boolean> {
   }
 
   if (finalStatus !== 'granted') {
-    console.log('Failed to get push token for push notification!');
+    logger.info('Push notification permission not granted', { action: 'notifications', status: finalStatus });
     return false;
   }
 
@@ -45,7 +46,7 @@ export async function registerForPushNotifications(): Promise<string | null> {
   try {
     // Check if it's a physical device
     if (!Device.isDevice) {
-      console.log('Must use physical device for Push Notifications');
+      logger.info('Must use physical device for push notifications', { action: 'notifications' });
       return null;
     }
 
@@ -62,7 +63,7 @@ export async function registerForPushNotifications(): Promise<string | null> {
       })
     ).data;
 
-    console.log('Expo push token:', token);
+    logger.debug('Expo push token obtained', { action: 'notifications', token });
 
     // Register token with backend
     const platform = Platform.OS === 'ios' ? 'IOS' : 'ANDROID';
@@ -82,7 +83,7 @@ export async function registerForPushNotifications(): Promise<string | null> {
 
     return token;
   } catch (error) {
-    console.error('Error registering for push notifications:', error);
+    logger.error('Error registering for push notifications', { action: 'notifications' }, error instanceof Error ? error : new Error(String(error)));
     return null;
   }
 }
@@ -100,7 +101,7 @@ export async function unregisterPushToken(): Promise<void> {
 
     await unregisterPushTokenAPI(token);
   } catch (error) {
-    console.error('Error unregistering push token:', error);
+    logger.error('Error unregistering push token', { action: 'notifications' }, error instanceof Error ? error : new Error(String(error)));
   }
 }
 
@@ -111,8 +112,7 @@ export function setupNotificationListeners() {
   // Handle notifications received while app is in foreground
   const foregroundSubscription = Notifications.addNotificationReceivedListener(
     (notification) => {
-      console.log('Notification received in foreground:', notification);
-      // You can show a custom banner here if you want
+      logger.debug('Notification received in foreground', { action: 'notifications', notificationId: notification.request.identifier });
     },
   );
 
@@ -135,7 +135,7 @@ export function setupNotificationListeners() {
  * Handle navigation when user taps a notification
  */
 function handleNotificationTap(data: any) {
-  console.log('Notification tapped:', data);
+  logger.debug('Notification tapped', { action: 'notifications', ticketId: data.ticketId });
 
   if (data.ticketId) {
     // Navigate to ticket detail screen

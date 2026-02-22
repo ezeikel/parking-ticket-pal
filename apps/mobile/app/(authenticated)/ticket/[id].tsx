@@ -250,6 +250,7 @@ export default function TicketDetailScreen() {
         <EvidenceCard
           ticketId={ticket.id}
           evidence={userEvidence}
+          onRefetch={refetch}
         />
 
         {/* 6. Success Prediction */}
@@ -268,7 +269,7 @@ export default function TicketDetailScreen() {
           onOpenChallengeLetter={() =>
             challengeLetterSheetRef.current?.snapToIndex(0)
           }
-          onRefetch={() => refetch()}
+          onRefetch={refetch}
         />
 
         {/* 8. Deadline Alert */}
