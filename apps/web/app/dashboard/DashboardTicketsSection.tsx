@@ -1,9 +1,4 @@
-import {
-  TicketTier,
-  Prisma,
-  SubscriptionType,
-  IssuerType,
-} from '@parking-ticket-pal/db/types';
+import { Prisma, SubscriptionType } from '@parking-ticket-pal/db/types';
 import { getCachedTickets } from '@/app/actions/ticket';
 import { getUserSubscriptionStatus } from '@/app/actions/user';
 import { getUserId } from '@/utils/user';
