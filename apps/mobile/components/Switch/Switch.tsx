@@ -41,33 +41,33 @@ const Switch = ({
 
   // Sync animated value with prop value
   useEffect(() => {
-    animatedValue.value = withTiming(value ? 1 : 0, { duration });
+    animatedValue.set(withTiming(value ? 1 : 0, { duration }));
   }, [value, duration]);
 
   const trackAnimatedStyle = useAnimatedStyle(() => {
     const color = interpolateColor(
-      animatedValue.value,
+      animatedValue.get(),
       [0, 1],
       [trackColors.off, trackColors.on]
     );
 
     return {
       backgroundColor: color,
-      borderRadius: height.value / 2,
+      borderRadius: height.get() / 2,
       opacity: disabled ? 0.5 : 1,
     };
   });
 
   const thumbAnimatedStyle = useAnimatedStyle(() => {
     const moveValue = interpolate(
-      animatedValue.value,
+      animatedValue.get(),
       [0, 1],
-      [0, width.value - height.value]
+      [0, width.get() - height.get()]
     );
 
     return {
       transform: [{ translateX: moveValue }],
-      borderRadius: height.value / 2,
+      borderRadius: height.get() / 2,
     };
   });
 
@@ -87,8 +87,8 @@ const Switch = ({
     >
       <Animated.View
         onLayout={(e) => {
-          height.value = e.nativeEvent.layout.height;
-          width.value = e.nativeEvent.layout.width;
+          height.set(e.nativeEvent.layout.height);
+          width.set(e.nativeEvent.layout.width);
         }}
         style={[
           styles.track,

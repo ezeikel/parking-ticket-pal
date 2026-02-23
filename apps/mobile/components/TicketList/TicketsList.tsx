@@ -1,4 +1,4 @@
-import { useCallback, memo } from 'react';
+import { useCallback, useMemo, memo } from 'react';
 import { Text, View, RefreshControl, ScrollView } from 'react-native';
 import { FlashList } from '@shopify/flash-list';
 import { router } from 'expo-router';
@@ -265,6 +265,23 @@ const TicketsList = ({ filters }: TicketsListProps) => {
     />
   ), [hasSubscription]);
 
+  // Client-side sorting fallback — must be above early returns to satisfy Rules of Hooks
+  const displayTickets = useMemo(() => {
+    if (!tickets || !tickets.length) return tickets;
+    if (filters?.sortBy) return tickets;
+    return [...tickets].sort((a, b) => {
+      const aDeadline = addDays(
+        new Date(a.issuedAt),
+        a.status === TicketStatus.ISSUED_DISCOUNT_PERIOD ? 14 : 28,
+      );
+      const bDeadline = addDays(
+        new Date(b.issuedAt),
+        b.status === TicketStatus.ISSUED_DISCOUNT_PERIOD ? 14 : 28,
+      );
+      return aDeadline.getTime() - bDeadline.getTime();
+    });
+  }, [tickets, filters?.sortBy]);
+
   if (isLoading) {
     return (
       <View className="flex-1 items-center justify-center">
@@ -326,21 +343,6 @@ const TicketsList = ({ filters }: TicketsListProps) => {
       </ScrollView>
     );
   }
-
-  // Client-side sorting fallback
-  const displayTickets = !filters?.sortBy
-    ? [...tickets].sort((a, b) => {
-        const aDeadline = addDays(
-          new Date(a.issuedAt),
-          a.status === TicketStatus.ISSUED_DISCOUNT_PERIOD ? 14 : 28,
-        );
-        const bDeadline = addDays(
-          new Date(b.issuedAt),
-          b.status === TicketStatus.ISSUED_DISCOUNT_PERIOD ? 14 : 28,
-        );
-        return aDeadline.getTime() - bDeadline.getTime();
-      })
-    : tickets;
 
   const hasSearch = !!filters?.search;
   const hasFilters =

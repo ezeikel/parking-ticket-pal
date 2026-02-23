@@ -39,6 +39,7 @@ export default function StickyBottomCTA({
           <View
             style={{
               borderRadius: 12,
+              borderCurve: 'continuous',
               borderWidth: 1,
               borderColor: '#E2E8F0',
               paddingVertical: 14,
@@ -61,6 +62,7 @@ export default function StickyBottomCTA({
           <View
             style={{
               borderRadius: 12,
+              borderCurve: 'continuous',
               backgroundColor: '#1abc9c',
               paddingVertical: 14,
               flexDirection: 'row',

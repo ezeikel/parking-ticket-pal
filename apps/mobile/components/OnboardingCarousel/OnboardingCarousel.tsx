@@ -4,6 +4,7 @@ import Animated, {
   useSharedValue,
   useAnimatedStyle,
   interpolate,
+  type SharedValue,
 } from 'react-native-reanimated';
 import { useState, useCallback, useRef } from 'react';
 import { useAnalytics } from '@/lib/analytics';
@@ -24,29 +25,30 @@ type OnboardingPhase = 'carousel' | 'wizard' | 'paywall';
 
 interface PaginationDotProps {
   index: number;
-  activeIndex: Animated.SharedValue<number>;
+  activeIndex: SharedValue<number>;
 }
 
 const PaginationDot = ({ index, activeIndex }: PaginationDotProps) => {
   const animatedStyle = useAnimatedStyle(() => {
     const inputRange = [index - 1, index, index + 1];
 
-    const width = interpolate(
-      activeIndex.value,
+    // Animate scaleX instead of width to avoid layout recalculation every frame
+    const scaleX = interpolate(
+      activeIndex.get(),
       inputRange,
-      [8, 24, 8],
+      [8 / 24, 1, 8 / 24],
       'clamp',
     );
 
     const opacity = interpolate(
-      activeIndex.value,
+      activeIndex.get(),
       inputRange,
       [0.5, 1, 0.5],
       'clamp',
     );
 
     const backgroundColor = interpolate(
-      activeIndex.value,
+      activeIndex.get(),
       inputRange,
       [0, 1, 0],
       'clamp',
@@ -64,7 +66,7 @@ const PaginationDot = ({ index, activeIndex }: PaginationDotProps) => {
     const b = Math.round(grayB + (tealB - grayB) * backgroundColor);
 
     return {
-      width,
+      transform: [{ scaleX }],
       opacity,
       backgroundColor: `rgb(${r}, ${g}, ${b})`,
     };
@@ -74,9 +76,12 @@ const PaginationDot = ({ index, activeIndex }: PaginationDotProps) => {
     <Animated.View
       style={[
         {
+          width: 24,
           height: 8,
           borderRadius: 4,
+          borderCurve: 'continuous',
           marginHorizontal: 4,
+          transformOrigin: 'center',
         },
         animatedStyle,
       ]}
@@ -235,7 +240,7 @@ const OnboardingCarousel = ({ onComplete, onTicketCreated }: OnboardingCarouselP
           data={Array.from({ length: SLIDE_COUNT }, (_, i) => i)}
           renderItem={renderSlide}
           onProgressChange={(_, absoluteProgress) => {
-            activeIndex.value = absoluteProgress;
+            activeIndex.set(absoluteProgress);
             updateCurrentSlide(absoluteProgress);
           }}
           pagingEnabled

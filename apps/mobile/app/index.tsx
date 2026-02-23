@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { View } from 'react-native';
 import { Redirect } from 'expo-router';
+import * as SplashScreen from 'expo-splash-screen';
 import { hasCompletedOnboarding } from '@/utils/onboarding';
 import Loader from '@/components/Loader/Loader';
 
@@ -11,6 +12,11 @@ const Index = () => {
     const checkOnboarding = async () => {
       const completed = await hasCompletedOnboarding();
       setOnboardingCompleted(completed);
+
+      // Hide splash screen for onboarding path (auth path hides it in (authenticated)/_layout)
+      if (!completed) {
+        SplashScreen.hideAsync();
+      }
     };
     checkOnboarding();
   }, []);

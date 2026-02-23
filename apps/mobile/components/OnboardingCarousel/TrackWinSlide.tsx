@@ -27,16 +27,16 @@ const TimelineStep = ({
   const progress = useSharedValue(0);
 
   useEffect(() => {
-    progress.value = withDelay(delay, withTiming(1, { duration: 600 }));
+    progress.set(withDelay(delay, withTiming(1, { duration: 600 })));
   }, []);
 
   const fillStyle = useAnimatedStyle(() => ({
-    opacity: progress.value,
-    transform: [{ scale: 0.8 + progress.value * 0.2 }],
+    opacity: progress.get(),
+    transform: [{ scale: 0.8 + progress.get() * 0.2 }],
   }));
 
   const lineStyle = useAnimatedStyle(() => ({
-    opacity: progress.value,
+    opacity: progress.get(),
   }));
 
   return (

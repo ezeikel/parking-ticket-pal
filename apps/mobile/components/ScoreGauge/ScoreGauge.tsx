@@ -76,14 +76,14 @@ const ScoreGauge = ({
 
   useEffect(() => {
     if (!locked) {
-      progress.value = animated
+      progress.set(animated
         ? withTiming(score / 100, { duration: 800, easing: Easing.out(Easing.cubic) })
-        : score / 100;
+        : score / 100);
     }
   }, [score, animated, locked]);
 
   const animatedProps = useAnimatedProps(() => ({
-    strokeDashoffset: circumference * (1 - progress.value),
+    strokeDashoffset: circumference * (1 - progress.get()),
   }));
 
   if (locked) {

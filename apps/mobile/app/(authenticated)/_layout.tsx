@@ -1,10 +1,18 @@
+import { useEffect } from 'react';
 import { View } from 'react-native';
 import { Stack } from 'expo-router';
+import * as SplashScreen from 'expo-splash-screen';
 import { useAuthContext } from '@/contexts/auth';
 import Loader from '@/components/Loader/Loader';
 
 const AppLayout = () => {
   const { isLoading } = useAuthContext();
+
+  useEffect(() => {
+    if (!isLoading) {
+      SplashScreen.hideAsync();
+    }
+  }, [isLoading]);
 
   if (isLoading) {
     return (

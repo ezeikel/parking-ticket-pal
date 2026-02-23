@@ -58,6 +58,7 @@ const WizardStepLayout = ({
             width: `${progress * 100}%`,
             height: '100%',
             borderRadius: 9999,
+            borderCurve: 'continuous',
             backgroundColor: '#1ABC9C',
           }}
         />

@@ -32,18 +32,18 @@ const ScanTicketSlide = ({ isActive, onScanNow, onManualEntry, onSkip }: ScanTic
 
   useEffect(() => {
     if (!hasBeenActive) return;
-    pulse.value = withRepeat(
+    pulse.set(withRepeat(
       withSequence(
         withTiming(1.05, { duration: 1000 }),
         withTiming(1, { duration: 1000 }),
       ),
       -1,
       true,
-    );
+    ));
   }, [hasBeenActive]);
 
   const pulseStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: pulse.value }],
+    transform: [{ scale: pulse.get() }],
   }));
 
   if (!hasBeenActive) {

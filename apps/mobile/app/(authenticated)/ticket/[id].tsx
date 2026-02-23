@@ -47,33 +47,28 @@ export default function TicketDetailScreen() {
     usePurchases();
 
   // Bottom sheet refs
-  const premiumActionsSheetRef = useRef<BottomSheet>(null);
   const challengeLetterSheetRef = useRef<BottomSheet>(null);
   const formsSheetRef = useRef<BottomSheet>(null);
 
+  const [isPremiumActionsVisible, setIsPremiumActionsVisible] = useState(false);
   const [selectedFormType, setSelectedFormType] = useState<FormType | null>(
     null,
   );
-  const pendingActionRef = useRef<'challenge-letter' | FormType | null>(null);
 
   const handlePremiumActionSelect = (
     action: 'challenge-letter' | FormType,
   ) => {
-    pendingActionRef.current = action;
-    premiumActionsSheetRef.current?.close();
-  };
-
-  const handlePremiumActionsSheetChange = useCallback((index: number) => {
-    if (index === -1 && pendingActionRef.current) {
-      if (pendingActionRef.current === 'challenge-letter') {
+    setIsPremiumActionsVisible(false);
+    // Use setTimeout to let modal dismiss before opening bottom sheet
+    setTimeout(() => {
+      if (action === 'challenge-letter') {
         challengeLetterSheetRef.current?.snapToIndex(0);
       } else {
-        setSelectedFormType(pendingActionRef.current);
+        setSelectedFormType(action);
         formsSheetRef.current?.snapToIndex(0);
       }
-      pendingActionRef.current = null;
-    }
-  }, []);
+    }, 300);
+  };
 
   const handleSuccess = () => {
     challengeLetterSheetRef.current?.close();
@@ -189,7 +184,7 @@ export default function TicketDetailScreen() {
 
   const handleChallenge = () => {
     if (hasPremiumFeatures) {
-      premiumActionsSheetRef.current?.snapToIndex(0);
+      setIsPremiumActionsVisible(true);
     } else {
       router.push({
         pathname: '/(authenticated)/paywall' as any,
@@ -293,7 +288,7 @@ export default function TicketDetailScreen() {
           ticket={ticket}
           isPremium={hasPremiumFeatures}
           onOpenPremiumActions={() =>
-            premiumActionsSheetRef.current?.snapToIndex(0)
+            setIsPremiumActionsVisible(true)
           }
           onOpenChallengeLetter={() =>
             challengeLetterSheetRef.current?.snapToIndex(0)
@@ -326,10 +321,10 @@ export default function TicketDetailScreen() {
 
       {/* Bottom Sheets */}
       <PremiumActionsBottomSheet
-        ref={premiumActionsSheetRef}
+        visible={isPremiumActionsVisible}
         issuerType={ticketData.issuerType}
         onActionSelect={handlePremiumActionSelect}
-        onChange={handlePremiumActionsSheetChange}
+        onClose={() => setIsPremiumActionsVisible(false)}
       />
 
       <ChallengeLetterBottomSheet

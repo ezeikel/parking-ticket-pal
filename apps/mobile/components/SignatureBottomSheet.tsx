@@ -147,6 +147,7 @@ const SignatureBottomSheet = forwardRef<BottomSheet, SignatureBottomSheetProps>(
                       paddingVertical: 12,
                       backgroundColor: '#3b82f6',
                       borderRadius: 8,
+                      borderCurve: 'continuous',
                       alignItems: 'center',
                     }}
                   >

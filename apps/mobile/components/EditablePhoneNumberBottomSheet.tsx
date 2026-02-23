@@ -1,7 +1,8 @@
-import React, { forwardRef, useMemo, useState, useEffect } from 'react';
-import { View, Text, TextInput, Alert } from 'react-native';
-import BottomSheet, { BottomSheetBackdrop, BottomSheetView } from '@gorhom/bottom-sheet';
+import React, { useState, useEffect } from 'react';
+import { View, Text, TextInput, Alert, Modal, Pressable } from 'react-native';
+import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { faXmark, faCheck } from '@fortawesome/pro-regular-svg-icons';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useForm } from '@tanstack/react-form';
 import { z } from 'zod';
 import { ActionButton, ActionButtonGroup } from './ActionButton';
@@ -80,135 +81,130 @@ const mobileNumberSchema = z.string()
   .transform(normalizeMobileNumber);
 
 interface EditablePhoneNumberBottomSheetProps {
+  visible: boolean;
   phoneNumber?: string | null;
   onSave: (phoneNumber: string) => Promise<void>;
   onCancel: () => void;
 }
 
-const EditablePhoneNumberBottomSheet = forwardRef<BottomSheet, EditablePhoneNumberBottomSheetProps>(
-  ({ phoneNumber, onSave, onCancel }, ref) => {
-    const snapPoints = useMemo(() => ['40%'], []);
-    const [isSaving, setIsSaving] = useState(false);
+const EditablePhoneNumberBottomSheet = ({
+  visible,
+  phoneNumber,
+  onSave,
+  onCancel,
+}: EditablePhoneNumberBottomSheetProps) => {
+  const insets = useSafeAreaInsets();
+  const [isSaving, setIsSaving] = useState(false);
 
-    const form = useForm({
-      defaultValues: {
-        phoneNumber: phoneNumber || '',
-      },
-      onSubmit: async ({ value }) => {
-        try {
-          setIsSaving(true);
-          await onSave(value.phoneNumber);
-          Alert.alert('Success', 'Mobile number updated successfully');
-        } catch (error) {
-          console.error('Error saving phone number:', error);
-          Alert.alert('Error', 'Failed to update mobile number');
-        } finally {
-          setIsSaving(false);
-        }
-      },
-    });
+  const form = useForm({
+    defaultValues: {
+      phoneNumber: phoneNumber || '',
+    },
+    onSubmit: async ({ value }) => {
+      try {
+        setIsSaving(true);
+        await onSave(value.phoneNumber);
+        Alert.alert('Success', 'Mobile number updated successfully');
+      } catch (error) {
+        console.error('Error saving phone number:', error);
+        Alert.alert('Error', 'Failed to update mobile number');
+      } finally {
+        setIsSaving(false);
+      }
+    },
+  });
 
-    // Reset form when sheet is opened with new phoneNumber
-    useEffect(() => {
+  // Reset form when modal is opened
+  useEffect(() => {
+    if (visible) {
       form.reset();
-    }, [phoneNumber]);
+      setIsSaving(false);
+    }
+  }, [visible, phoneNumber]);
 
-    const handleCancel = () => {
-      form.reset();
-      onCancel();
-    };
+  const handleCancel = () => {
+    form.reset();
+    onCancel();
+  };
 
-    return (
-      <BottomSheet
-        ref={ref}
-        index={-1}
-        snapPoints={snapPoints}
-        enablePanDownToClose
-        onChange={(index) => {
-          // Reset state when sheet is closed
-          if (index === -1) {
-            form.reset();
-            setIsSaving(false);
-          }
-        }}
-        backdropComponent={(props) => (
-          <BottomSheetBackdrop
-            {...props}
-            disappearsOnIndex={-1}
-            appearsOnIndex={0}
-            opacity={0.5}
-          />
-        )}
-      >
-        <BottomSheetView style={{ flex: 1, padding: 16 }}>
-          <View className="flex-1">
-            {/* Header */}
-            <View className="mb-4">
-              <Text className="font-jakarta-semibold text-xl text-gray-900">
-                Edit Mobile Number
-              </Text>
-            </View>
-
-            {/* Description */}
-            <Text className="font-jakarta text-sm text-gray-600 mb-4">
-              Your mobile number will be used for contact purposes on forms and letters.
+  return (
+    <Modal
+      visible={visible}
+      presentationStyle="formSheet"
+      animationType="slide"
+      onRequestClose={handleCancel}
+    >
+      <View style={{ flex: 1, padding: 16, paddingTop: 16 + insets.top }}>
+        <View className="flex-1">
+          {/* Header */}
+          <View className="flex-row items-center justify-between mb-4">
+            <Text className="font-jakarta-semibold text-xl text-gray-900">
+              Edit Mobile Number
             </Text>
-
-            {/* Input */}
-            <View className="mb-6">
-              <form.Field
-                name="phoneNumber"
-                validators={{
-                  onChange: mobileNumberSchema,
-                }}
-              >
-                {(field) => (
-                  <>
-                    <Text className="font-jakarta text-sm text-gray-700 mb-2">
-                      Mobile Number
-                    </Text>
-                    <TextInput
-                      className="font-jakarta text-base bg-white border border-gray-300 rounded-lg px-4 py-3"
-                      placeholder={getPlaceholderText()}
-                      keyboardType="phone-pad"
-                      value={field.state.value}
-                      onChangeText={field.handleChange}
-                      onBlur={field.handleBlur}
-                    />
-                    {field.state.meta.errors.length > 0 && (
-                      <Text className="font-jakarta text-xs text-red-500 mt-2">
-                        {String(field.state.meta.errors[0]?.message || field.state.meta.errors[0])}
-                      </Text>
-                    )}
-                  </>
-                )}
-              </form.Field>
-            </View>
-
-            {/* Action Buttons */}
-            <ActionButtonGroup>
-              <ActionButton
-                onPress={handleCancel}
-                icon={faXmark}
-                label="Cancel"
-                variant="secondary"
-                disabled={isSaving}
-              />
-              <ActionButton
-                onPress={form.handleSubmit}
-                icon={faCheck}
-                label="Save Changes"
-                variant="primary"
-                disabled={isSaving}
-                loading={isSaving}
-              />
-            </ActionButtonGroup>
+            <Pressable onPress={handleCancel} hitSlop={8}>
+              <FontAwesomeIcon icon={faXmark} size={20} color="#6B7280" />
+            </Pressable>
           </View>
-        </BottomSheetView>
-      </BottomSheet>
-    );
-  }
-);
+
+          {/* Description */}
+          <Text className="font-jakarta text-sm text-gray-600 mb-4">
+            Your mobile number will be used for contact purposes on forms and letters.
+          </Text>
+
+          {/* Input */}
+          <View className="mb-6">
+            <form.Field
+              name="phoneNumber"
+              validators={{
+                onChange: mobileNumberSchema,
+              }}
+            >
+              {(field) => (
+                <>
+                  <Text className="font-jakarta text-sm text-gray-700 mb-2">
+                    Mobile Number
+                  </Text>
+                  <TextInput
+                    className="font-jakarta text-base bg-white border border-gray-300 rounded-lg px-4 py-3"
+                    placeholder={getPlaceholderText()}
+                    keyboardType="phone-pad"
+                    value={field.state.value}
+                    onChangeText={field.handleChange}
+                    onBlur={field.handleBlur}
+                  />
+                  {field.state.meta.errors.length > 0 && (
+                    <Text className="font-jakarta text-xs text-red-500 mt-2">
+                      {String(field.state.meta.errors[0]?.message || field.state.meta.errors[0])}
+                    </Text>
+                  )}
+                </>
+              )}
+            </form.Field>
+          </View>
+
+          {/* Action Buttons */}
+          <ActionButtonGroup>
+            <ActionButton
+              onPress={handleCancel}
+              icon={faXmark}
+              label="Cancel"
+              variant="secondary"
+              disabled={isSaving}
+            />
+            <ActionButton
+              onPress={form.handleSubmit}
+              icon={faCheck}
+              label="Save Changes"
+              variant="primary"
+              disabled={isSaving}
+              loading={isSaving}
+            />
+          </ActionButtonGroup>
+        </View>
+      </View>
+    </Modal>
+  );
+};
 
 EditablePhoneNumberBottomSheet.displayName = 'EditablePhoneNumberBottomSheet';
 

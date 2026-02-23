@@ -59,16 +59,18 @@ const VehiclesList = () => {
     );
   }
 
+  const renderItem = useCallback(({ item }: { item: Vehicle }) => (
+    <VehicleItem
+      vehicle={item}
+      style={vehicleItemStyle}
+    />
+  ), []);
+
   return (
     <View className="flex-1 gap-y-6 p-4">
       <FlashList
         data={vehicles}
-        renderItem={useCallback(({ item, index }: { item: Vehicle; index: number }) => (
-          <VehicleItem
-            vehicle={item}
-            style={index === vehicles.length - 1 ? vehicleItemLastStyle : vehicleItemStyle}
-          />
-        ), [vehicles.length])}
+        renderItem={renderItem}
         estimatedItemSize={100}
         keyExtractor={(item) => item.id.toString()}
       />

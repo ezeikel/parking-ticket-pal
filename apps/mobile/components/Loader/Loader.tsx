@@ -17,16 +17,16 @@ const Loader = ({ size = 32, color }: LoaderProps) => {
 
   const animatedStyle = useAnimatedStyle(() => {
     return {
-      transform: [{ rotate: `${rotation.value}deg` }],
+      transform: [{ rotate: `${rotation.get()}deg` }],
     };
   });
 
   useEffect(() => {
-    rotation.value = withRepeat(
+    rotation.set(withRepeat(
       withTiming(360, { duration: 1000 }),
       -1,
       false
-    );
+    ));
   }, []);
 
   return (

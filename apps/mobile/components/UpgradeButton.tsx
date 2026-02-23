@@ -13,11 +13,11 @@ export function UpgradeButton({
   variant = 'primary',
   fullWidth = false,
 }: UpgradeButtonProps) {
-  const router = useRouter();
+  const { push } = useRouter();
   const { hasActiveSubscription, hasPremiumAccess, isLoading } = usePurchases();
 
   const handlePress = () => {
-    router.push({
+    push({
       pathname: '/(authenticated)/paywall',
       params: { mode: 'subscriptions' },
     });

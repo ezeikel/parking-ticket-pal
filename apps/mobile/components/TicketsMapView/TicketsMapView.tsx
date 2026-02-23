@@ -142,6 +142,7 @@ export default function TicketsMapView({ tickets }: TicketsMapViewProps) {
                   style={{
                     backgroundColor: '#ffffff',
                     borderRadius: 12,
+                    borderCurve: 'continuous',
                     padding: 12,
                     width: 220,
                     shadowColor: '#000',
@@ -214,6 +215,7 @@ export default function TicketsMapView({ tickets }: TicketsMapViewProps) {
             right: 16,
             backgroundColor: '#ffffff',
             borderRadius: 12,
+            borderCurve: 'continuous',
             padding: 16,
             alignItems: 'center',
             shadowColor: '#000',

@@ -35,14 +35,14 @@ const ManualEntrySheet = ({ isVisible, onClose }: ManualEntrySheetProps) => {
       setPhase('wizard');
       setWizardResult(null);
 
-      translateY.value = withTiming(0, {
+      translateY.set(withTiming(0, {
         duration: SHEET_ANIMATION_DURATION,
         easing: Easing.out(Easing.cubic),
-      });
+      }));
     } else {
       setPhase('wizard');
       setWizardResult(null);
-      translateY.value = SCREEN_HEIGHT;
+      translateY.set(SCREEN_HEIGHT);
     }
   }, [isVisible]);
 
@@ -83,7 +83,7 @@ const ManualEntrySheet = ({ isVisible, onClose }: ManualEntrySheetProps) => {
   }, [handleClose]);
 
   const sheetAnimatedStyle = useAnimatedStyle(() => ({
-    transform: [{ translateY: translateY.value }],
+    transform: [{ translateY: translateY.get() }],
   }));
 
   if (!isVisible) {

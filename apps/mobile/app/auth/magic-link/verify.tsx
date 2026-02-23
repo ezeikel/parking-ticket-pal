@@ -12,7 +12,7 @@ import Loader from '@/components/Loader/Loader';
 
 const MagicLinkVerify = () => {
   const { token } = useLocalSearchParams<{ token: string }>();
-  const router = useRouter();
+  const { replace, back } = useRouter();
   const colorScheme = useColorScheme();
   const [status, setStatus] = useState<'verifying' | 'success' | 'error'>('verifying');
   const [message, setMessage] = useState('Verifying your magic link...');
@@ -35,7 +35,7 @@ const MagicLinkVerify = () => {
           setMessage('Successfully verified! Redirecting...');
 
           setTimeout(() => {
-            router.replace('/(authenticated)/(tabs)');
+            replace('/(authenticated)/(tabs)');
           }, 2000);
         } else {
           setStatus('error');
@@ -49,7 +49,7 @@ const MagicLinkVerify = () => {
     };
 
     verify();
-  }, [token, router]);
+  }, [token, replace]);
 
   return (
     <SafeAreaView className="flex-1 bg-white">
@@ -86,7 +86,7 @@ const MagicLinkVerify = () => {
           {status === 'error' && (
             <Text
               className="font-jakarta text-base text-teal underline mt-4"
-              onPress={() => router.back()}
+              onPress={() => back()}
             >
               Go back
             </Text>

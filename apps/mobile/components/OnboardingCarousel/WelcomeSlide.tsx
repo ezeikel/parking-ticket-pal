@@ -33,7 +33,7 @@ const FloatingIcon = ({
 
   useEffect(() => {
     if (!isActive) return;
-    translateY.value = withDelay(
+    translateY.set(withDelay(
       delay,
       withRepeat(
         withSequence(
@@ -43,11 +43,11 @@ const FloatingIcon = ({
         -1,
         true,
       ),
-    );
+    ));
   }, [isActive]);
 
   const animatedStyle = useAnimatedStyle(() => ({
-    transform: [{ translateY: translateY.value }],
+    transform: [{ translateY: translateY.get() }],
   }));
 
   return (
@@ -60,6 +60,7 @@ const FloatingIcon = ({
           top,
           backgroundColor: color,
           borderRadius: 16,
+          borderCurve: 'continuous',
           padding: 12,
           opacity: 0.15,
         },

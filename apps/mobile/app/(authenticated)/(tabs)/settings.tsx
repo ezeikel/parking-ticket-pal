@@ -58,10 +58,10 @@ const SettingsScreen = () => {
   const [isRestoring, setIsRestoring] = useState(false);
   const [isLinking, setIsLinking] = useState(false);
   const signatureBottomSheetRef = useRef<BottomSheet>(null);
-  const nameBottomSheetRef = useRef<BottomSheet>(null);
-  const emailBottomSheetRef = useRef<BottomSheet>(null);
-  const phoneBottomSheetRef = useRef<BottomSheet>(null);
-  const addressBottomSheetRef = useRef<BottomSheet>(null);
+  const [isNameSheetVisible, setIsNameSheetVisible] = useState(false);
+  const [isEmailSheetVisible, setIsEmailSheetVisible] = useState(false);
+  const [isPhoneSheetVisible, setIsPhoneSheetVisible] = useState(false);
+  const [isAddressSheetVisible, setIsAddressSheetVisible] = useState(false);
 
   // Notification preferences
   const { data: preferencesData } = useNotificationPreferences();
@@ -209,7 +209,7 @@ const SettingsScreen = () => {
     trackEvent("name_updated", { screen: "settings" });
     await updateUser(user.id, { name });
     await refetch();
-    nameBottomSheetRef.current?.close();
+    setIsNameSheetVisible(false);
   };
 
   const handleUpdatePhoneNumber = async (phoneNumber: string) => {
@@ -218,7 +218,7 @@ const SettingsScreen = () => {
     trackEvent("phone_number_updated", { screen: "settings" });
     await updateUser(user.id, { phoneNumber });
     await refetch();
-    phoneBottomSheetRef.current?.close();
+    setIsPhoneSheetVisible(false);
   };
 
   const handleUpdateAddress = async (address: Address) => {
@@ -227,7 +227,7 @@ const SettingsScreen = () => {
     trackEvent("address_updated", { screen: "settings" });
     await updateUser(user.id, { address });
     await refetch();
-    addressBottomSheetRef.current?.close();
+    setIsAddressSheetVisible(false);
   };
 
   const [isEditingSignature, setIsEditingSignature] = useState(false);
@@ -368,22 +368,22 @@ const SettingsScreen = () => {
 
   const handleOpenNameSheet = useCallback(() => {
     trackEvent("name_sheet_opened", { screen: "settings" });
-    nameBottomSheetRef.current?.expand();
+    setIsNameSheetVisible(true);
   }, [trackEvent]);
 
   const handleOpenEmailSheet = useCallback(() => {
     trackEvent("email_sheet_opened", { screen: "settings" });
-    emailBottomSheetRef.current?.expand();
+    setIsEmailSheetVisible(true);
   }, [trackEvent]);
 
   const handleOpenPhoneSheet = useCallback(() => {
     trackEvent("phone_sheet_opened", { screen: "settings" });
-    phoneBottomSheetRef.current?.expand();
+    setIsPhoneSheetVisible(true);
   }, [trackEvent]);
 
   const handleOpenAddressSheet = useCallback(() => {
     trackEvent("address_sheet_opened", { screen: "settings" });
-    addressBottomSheetRef.current?.expand();
+    setIsAddressSheetVisible(true);
   }, [trackEvent]);
 
   const handleOpenSubscription = useCallback(() => {
@@ -848,30 +848,30 @@ const SettingsScreen = () => {
       </View>
 
       <EditableNameBottomSheet
-        ref={nameBottomSheetRef}
+        visible={isNameSheetVisible}
         currentName={user?.name}
         onSave={handleUpdateName}
-        onCancel={() => nameBottomSheetRef.current?.close()}
+        onCancel={() => setIsNameSheetVisible(false)}
       />
 
       <EditableEmailBottomSheet
-        ref={emailBottomSheetRef}
+        visible={isEmailSheetVisible}
         email={user?.email || ''}
-        onClose={() => emailBottomSheetRef.current?.close()}
+        onClose={() => setIsEmailSheetVisible(false)}
       />
 
       <EditablePhoneNumberBottomSheet
-        ref={phoneBottomSheetRef}
+        visible={isPhoneSheetVisible}
         phoneNumber={user?.phoneNumber}
         onSave={handleUpdatePhoneNumber}
-        onCancel={() => phoneBottomSheetRef.current?.close()}
+        onCancel={() => setIsPhoneSheetVisible(false)}
       />
 
       <EditableAddressBottomSheet
-        ref={addressBottomSheetRef}
+        visible={isAddressSheetVisible}
         address={user?.address}
         onSave={handleUpdateAddress}
-        onCancel={() => addressBottomSheetRef.current?.close()}
+        onCancel={() => setIsAddressSheetVisible(false)}
       />
 
       <SignatureBottomSheet

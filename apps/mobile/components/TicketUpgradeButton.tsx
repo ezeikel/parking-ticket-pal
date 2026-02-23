@@ -14,12 +14,12 @@ export function TicketUpgradeButton({
   ticketId,
   currentTier,
 }: TicketUpgradeButtonProps) {
-  const router = useRouter();
+  const { push } = useRouter();
   const { hasActiveSubscription } = usePurchases();
   const { data: userData } = useUser();
 
   const handlePress = () => {
-    router.push({
+    push({
       pathname: '/(authenticated)/paywall',
       params: { mode: 'ticket_upgrades', ticketId },
     });

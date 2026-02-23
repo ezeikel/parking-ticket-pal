@@ -29,14 +29,14 @@ const SquishyPressable = ({
 }: SquishyPressableProps) => {
   const pressed = useSharedValue(false);
   const progress = useDerivedValue(() => {
-    return pressed.value
+    return pressed.get()
       ? withTiming(1, { duration: 50 })
       : withTiming(0, { duration: 50 });
   });
 
   const animatedStyle = useAnimatedStyle(() => {
     const scale = interpolate(
-      progress.value,
+      progress.get(),
       [0, 1],
       [1, scaleTo],
       Extrapolation.CLAMP,
@@ -50,9 +50,9 @@ const SquishyPressable = ({
     <Animated.View style={[animatedStyle]}>
       <OptionalPressable
         onPress={onPress}
-        onPressOut={() => (pressed.value = false)}
+        onPressOut={() => pressed.set(false)}
         onPressIn={() => {
-          pressed.value = true;
+          pressed.set(true);
           if (Platform.OS === 'ios') {
             Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
           }

@@ -2,7 +2,7 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Paywall } from '@/components/Paywall';
 
 export default function PaywallScreen() {
-  const router = useRouter();
+  const { back } = useRouter();
   const { mode = 'subscriptions', ticketId } = useLocalSearchParams<{
     mode?: 'subscriptions' | 'ticket_upgrades';
     ticketId?: string;
@@ -12,8 +12,8 @@ export default function PaywallScreen() {
     <Paywall
       mode={mode as 'subscriptions' | 'ticket_upgrades'}
       ticketId={ticketId}
-      onClose={() => router.back()}
-      onPurchaseComplete={() => router.back()}
+      onClose={() => back()}
+      onPurchaseComplete={() => back()}
     />
   );
 }

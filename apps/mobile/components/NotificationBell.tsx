@@ -18,25 +18,25 @@ const NotificationBell = () => {
   // Animate badge when unread count changes
   useEffect(() => {
     if (unreadCount > 0) {
-      badgeScale.value = withSpring(1.2, { damping: 8 }, () => {
-        badgeScale.value = withSpring(1);
-      });
+      badgeScale.set(withSpring(1.2, { damping: 8 }, () => {
+        badgeScale.set(withSpring(1));
+      }));
     }
   }, [unreadCount]);
 
   const handlePress = () => {
-    scale.value = withSpring(0.9, { damping: 8 }, () => {
-      scale.value = withSpring(1);
-    });
+    scale.set(withSpring(0.9, { damping: 8 }, () => {
+      scale.set(withSpring(1));
+    }));
     router.push('/(authenticated)/notifications');
   };
 
   const animatedStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: scale.value }],
+    transform: [{ scale: scale.get() }],
   }));
 
   const badgeAnimatedStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: badgeScale.value }],
+    transform: [{ scale: badgeScale.get() }],
   }));
 
   return (

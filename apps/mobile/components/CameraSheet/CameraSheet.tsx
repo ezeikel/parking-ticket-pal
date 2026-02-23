@@ -62,7 +62,7 @@ const CameraSheet = ({ isVisible, onClose, onboardingMode, onOCRComplete }: Came
       setPhase('scanning');
       setOcrData(null);
       setWizardResult(null);
-      animationStarted.value = 0;
+      animationStarted.set(0);
 
       // Pre-request permissions first
       requestPermissionsIfNeeded();
@@ -71,26 +71,26 @@ const CameraSheet = ({ isVisible, onClose, onboardingMode, onOCRComplete }: Came
       setShouldShowScanner(false);
       setIsLoadingPermissions(false);
       setScannerKey(prev => prev + 1);
-      animationStarted.value = 0;
+      animationStarted.set(0);
       setPhase('scanning');
       setOcrData(null);
       setWizardResult(null);
 
       // Don't animate on close, just reset values
-      translateY.value = SCREEN_HEIGHT;
+      translateY.set(SCREEN_HEIGHT);
     }
   }, [isVisible]);
 
   // Start animation only when Scanner is ready to show
   useEffect(() => {
-    if (shouldShowScanner && animationStarted.value === 0) {
-      animationStarted.value = 1;
+    if (shouldShowScanner && animationStarted.get() === 0) {
+      animationStarted.set(1);
 
       // Now start the animation - Scanner is ready
-      translateY.value = withTiming(0, {
+      translateY.set(withTiming(0, {
         duration: SHEET_ANIMATION_DURATION,
         easing: Easing.out(Easing.cubic)
-      });
+      }));
     }
   }, [shouldShowScanner]);
 
@@ -169,34 +169,34 @@ const CameraSheet = ({ isVisible, onClose, onboardingMode, onOCRComplete }: Came
     .enabled(phase === 'scanning')
     .onUpdate((event) => {
       const newY = Math.max(0, event.translationY);
-      translateY.value = newY;
+      translateY.set(newY);
     })
     .onEnd((event) => {
       const shouldDismiss =
-        translateY.value > DISMISS_THRESHOLD ||
+        translateY.get() > DISMISS_THRESHOLD ||
         event.velocityY > 1000;
 
       if (shouldDismiss) {
         runOnJS(handleClose)();
       } else {
-        translateY.value = withTiming(0, {
+        translateY.set(withTiming(0, {
           duration: SHEET_ANIMATION_DURATION,
           easing: Easing.out(Easing.cubic)
-        });
+        }));
       }
     });
 
   const sheetAnimatedStyle = useAnimatedStyle(() => ({
-    transform: [{ translateY: translateY.value }],
+    transform: [{ translateY: translateY.get() }],
   }));
 
   const backdropAnimatedStyle = useAnimatedStyle(() => {
-    if (animationStarted.value === 0) {
+    if (animationStarted.get() === 0) {
       return { opacity: 0 };
     }
 
     const opacity = interpolate(
-      translateY.value,
+      translateY.get(),
       [SCREEN_HEIGHT, 0],
       [0, 0.4],
       Extrapolate.CLAMP
@@ -320,6 +320,7 @@ const CameraSheet = ({ isVisible, onClose, onboardingMode, onOCRComplete }: Came
               zIndex: 1002,
               borderTopLeftRadius: phase === 'scanning' ? 16 : 0,
               borderTopRightRadius: phase === 'scanning' ? 16 : 0,
+              borderCurve: 'continuous',
             },
             sheetAnimatedStyle,
           ]}
