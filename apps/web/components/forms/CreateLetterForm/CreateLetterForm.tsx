@@ -1,21 +1,18 @@
 'use client';
 
 import { useState } from 'react';
-import { useForm } from 'react-hook-form';
+import { useForm } from '@tanstack/react-form';
 import { useRouter } from 'next/navigation';
-import { zodResolver } from '@hookform/resolvers/zod';
 import { CreateLetterValues, letterFormSchema } from '@/types';
 import { createLetter } from '@/app/actions/letter';
 import { LetterType } from '@parking-ticket-pal/db/types';
 import { Button } from '@/components/ui/button';
 import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from '@/components/ui/form';
+  TanstackFormItem,
+  TanstackFormLabel,
+  TanstackFormControl,
+  TanstackFormMessage,
+} from '@/components/ui/tanstack-form';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import {
@@ -55,14 +52,52 @@ const CreateLetterForm = () => {
   const [extractedText, setExtractedText] = useState<string>('');
   const { track } = useAnalytics();
 
-  const form = useForm<CreateLetterValues>({
-    resolver: zodResolver(letterFormSchema),
+  const form = useForm({
     defaultValues: {
       pcnNumber: '',
       vehicleReg: '',
       type: LetterType.INITIAL_NOTICE,
       summary: '',
       sentAt: new Date(),
+    } as CreateLetterValues,
+    validators: {
+      onSubmit: letterFormSchema,
+    },
+    onSubmit: async ({ value }) => {
+      try {
+        setIsLoading(true);
+        const letter = await createLetter({
+          ...value,
+          extractedText,
+          tempImageUrl,
+          tempImagePath,
+        });
+
+        if (!letter) {
+          toast.error('Failed to create letter. Please try again.');
+          return;
+        }
+
+        await track(TRACKING_EVENTS.LETTER_CREATED, {
+          letterType: letter.type,
+          ticketId: letter.ticketId,
+        });
+
+        toast.success('Letter created successfully');
+        form.reset();
+
+        // navigate to related ticket
+        router.push(`/tickets/${letter.ticketId}`);
+      } catch (error) {
+        logger.error(
+          'Error creating letter',
+          { page: 'create-letter' },
+          error instanceof Error ? error : undefined,
+        );
+        toast.error('Failed to create letter. Please try again.');
+      } finally {
+        setIsLoading(false);
+      }
     },
   });
 
@@ -104,10 +139,10 @@ const CreateLetterForm = () => {
       }
 
       // prefill form with parsed data
-      form.setValue('pcnNumber', result.data.pcnNumber);
-      form.setValue('vehicleReg', result.data.vehicleReg);
-      form.setValue('summary', result.data.summary || '');
-      form.setValue('sentAt', new Date(result.data.sentAt || ''));
+      form.setFieldValue('pcnNumber', result.data.pcnNumber);
+      form.setFieldValue('vehicleReg', result.data.vehicleReg);
+      form.setFieldValue('summary', result.data.summary || '');
+      form.setFieldValue('sentAt', new Date(result.data.sentAt || ''));
 
       setExtractedText(result.data.extractedText || '');
 
@@ -124,245 +159,209 @@ const CreateLetterForm = () => {
     }
   };
 
-  const onSubmit = async (values: CreateLetterValues) => {
-    try {
-      setIsLoading(true);
-      const letter = await createLetter({
-        ...values,
-        extractedText,
-        tempImageUrl,
-        tempImagePath,
-      });
-
-      if (!letter) {
-        toast.error('Failed to create letter. Please try again.');
-        return;
-      }
-
-      await track(TRACKING_EVENTS.LETTER_CREATED, {
-        letterType: letter.type,
-        ticketId: letter.ticketId,
-      });
-
-      toast.success('Letter created successfully');
-      form.reset();
-
-      // navigate to related ticket
-      router.push(`/tickets/${letter.ticketId}`);
-    } catch (error) {
-      logger.error(
-        'Error creating letter',
-        { page: 'create-letter' },
-        error instanceof Error ? error : undefined,
-      );
-      toast.error('Failed to create letter. Please try again.');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
   return (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-        <div className="flex items-center justify-center w-full mb-4">
-          <label
-            htmlFor="letter-file-upload"
-            className="flex flex-col items-center justify-center w-full h-32 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100"
-          >
-            <div className="flex flex-col items-center justify-center pt-5 pb-6">
-              {isLoading ? (
-                <FontAwesomeIcon
-                  icon={faSpinnerThird}
-                  className="w-8 h-8 mb-4 text-gray-500 animate-spin"
-                />
-              ) : (
-                <FontAwesomeIcon
-                  icon={faCamera}
-                  className="w-8 h-8 mb-4 text-gray-500"
-                />
-              )}
-              <p className="text-sm text-gray-500">
-                {isLoading
-                  ? 'Processing image...'
-                  : 'Upload image to pre-fill form'}
-              </p>
-            </div>
-            <input
-              id="letter-file-upload"
-              type="file"
-              className="hidden"
-              accept="image/*,.pdf"
-              onChange={handleFileUpload}
-              disabled={isLoading}
-            />
-          </label>
-        </div>
-
-        {isLoading ? (
-          <div className="flex justify-center">
-            <FontAwesomeIcon icon={faSpinnerThird} spin size="3x" />
+    <form
+      onSubmit={(e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        form.handleSubmit();
+      }}
+      className="space-y-4"
+    >
+      <div className="flex items-center justify-center w-full mb-4">
+        <label
+          htmlFor="letter-file-upload"
+          className="flex flex-col items-center justify-center w-full h-32 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100"
+        >
+          <div className="flex flex-col items-center justify-center pt-5 pb-6">
+            {isLoading ? (
+              <FontAwesomeIcon
+                icon={faSpinnerThird}
+                className="w-8 h-8 mb-4 text-gray-500 animate-spin"
+              />
+            ) : (
+              <FontAwesomeIcon
+                icon={faCamera}
+                className="w-8 h-8 mb-4 text-gray-500"
+              />
+            )}
+            <p className="text-sm text-gray-500">
+              {isLoading
+                ? 'Processing image...'
+                : 'Upload image to pre-fill form'}
+            </p>
           </div>
-        ) : (
-          <>
-            <FormField
-              control={form.control}
-              name="pcnNumber"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>PCN Number</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Enter PCN number" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+          <input
+            id="letter-file-upload"
+            type="file"
+            className="hidden"
+            accept="image/*,.pdf"
+            onChange={handleFileUpload}
+            disabled={isLoading}
+          />
+        </label>
+      </div>
 
-            <FormField
-              control={form.control}
-              name="vehicleReg"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Vehicle Registration</FormLabel>
-                  <FormControl>
-                    <Input
-                      placeholder="Enter vehicle registration"
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="type"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Letter Type</FormLabel>
-                  <Select
-                    onValueChange={field.onChange}
-                    defaultValue={field.value}
-                  >
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select letter type" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value={LetterType.INITIAL_NOTICE}>
-                        Initial Notice
-                      </SelectItem>
-                      <SelectItem value={LetterType.NOTICE_TO_OWNER}>
-                        Notice to Owner
-                      </SelectItem>
-                      <SelectItem value={LetterType.CHARGE_CERTIFICATE}>
-                        Charge Certificate
-                      </SelectItem>
-                      <SelectItem value={LetterType.ORDER_FOR_RECOVERY}>
-                        Order for Recovery
-                      </SelectItem>
-                      <SelectItem value={LetterType.CCJ_NOTICE}>
-                        CCJ Notice
-                      </SelectItem>
-                      <SelectItem value={LetterType.FINAL_DEMAND}>
-                        Final Demand
-                      </SelectItem>
-                      <SelectItem value={LetterType.BAILIFF_NOTICE}>
-                        Bailiff Notice
-                      </SelectItem>
-                      <SelectItem value={LetterType.APPEAL_RESPONSE}>
-                        Appeal Response
-                      </SelectItem>
-                      <SelectItem value={LetterType.GENERIC}>
-                        Generic
-                      </SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="summary"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Summary</FormLabel>
-                  <FormControl>
-                    <Textarea
-                      placeholder="Enter a summary of the letter contents"
-                      className="min-h-[100px]"
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="sentAt"
-              render={({ field }) => (
-                <FormItem className="flex flex-col">
-                  <FormLabel>Date Sent</FormLabel>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <FormControl>
-                        <Button
-                          variant="outline"
-                          className={cn(
-                            'w-full pl-3 text-left font-normal',
-                            !field.value && 'text-muted-foreground',
-                          )}
-                        >
-                          {field.value ? (
-                            format(field.value, 'PPP')
-                          ) : (
-                            <span>Pick a date</span>
-                          )}
-                          <FontAwesomeIcon
-                            icon={faCalendarDays}
-                            size="lg"
-                            className="ml-auto opacity-50"
-                          />
-                        </Button>
-                      </FormControl>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0" align="start">
-                      <Calendar
-                        mode="single"
-                        selected={field.value}
-                        onSelect={(date) => {
-                          if (date) {
-                            // create timezone-safe date immediately when user selects
-                            const safeDate = createUTCDate(date);
-                            field.onChange(safeDate);
-                          }
-                        }}
-                        disabled={(date) =>
-                          date > new Date() || date < new Date('1900-01-01')
-                        }
-                        initialFocus
-                      />
-                    </PopoverContent>
-                  </Popover>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </>
-        )}
-        <div className="flex justify-end">
-          <Button type="submit" disabled={isLoading}>
-            {isLoading ? 'Creating...' : 'Create Letter'}
-          </Button>
+      {isLoading ? (
+        <div className="flex justify-center">
+          <FontAwesomeIcon icon={faSpinnerThird} spin size="3x" />
         </div>
-      </form>
-    </Form>
+      ) : (
+        <>
+          <form.Field name="pcnNumber">
+            {(field) => (
+              <TanstackFormItem field={field}>
+                <TanstackFormLabel>PCN Number</TanstackFormLabel>
+                <TanstackFormControl>
+                  <Input
+                    placeholder="Enter PCN number"
+                    value={field.state.value}
+                    onChange={(e) => field.handleChange(e.target.value)}
+                    onBlur={field.handleBlur}
+                  />
+                </TanstackFormControl>
+                <TanstackFormMessage />
+              </TanstackFormItem>
+            )}
+          </form.Field>
+
+          <form.Field name="vehicleReg">
+            {(field) => (
+              <TanstackFormItem field={field}>
+                <TanstackFormLabel>Vehicle Registration</TanstackFormLabel>
+                <TanstackFormControl>
+                  <Input
+                    placeholder="Enter vehicle registration"
+                    value={field.state.value}
+                    onChange={(e) => field.handleChange(e.target.value)}
+                    onBlur={field.handleBlur}
+                  />
+                </TanstackFormControl>
+                <TanstackFormMessage />
+              </TanstackFormItem>
+            )}
+          </form.Field>
+
+          <form.Field name="type">
+            {(field) => (
+              <TanstackFormItem field={field}>
+                <TanstackFormLabel>Letter Type</TanstackFormLabel>
+                <Select
+                  onValueChange={(val) => field.handleChange(val as LetterType)}
+                  defaultValue={field.state.value}
+                >
+                  <TanstackFormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select letter type" />
+                    </SelectTrigger>
+                  </TanstackFormControl>
+                  <SelectContent>
+                    <SelectItem value={LetterType.INITIAL_NOTICE}>
+                      Initial Notice
+                    </SelectItem>
+                    <SelectItem value={LetterType.NOTICE_TO_OWNER}>
+                      Notice to Owner
+                    </SelectItem>
+                    <SelectItem value={LetterType.CHARGE_CERTIFICATE}>
+                      Charge Certificate
+                    </SelectItem>
+                    <SelectItem value={LetterType.ORDER_FOR_RECOVERY}>
+                      Order for Recovery
+                    </SelectItem>
+                    <SelectItem value={LetterType.CCJ_NOTICE}>
+                      CCJ Notice
+                    </SelectItem>
+                    <SelectItem value={LetterType.FINAL_DEMAND}>
+                      Final Demand
+                    </SelectItem>
+                    <SelectItem value={LetterType.BAILIFF_NOTICE}>
+                      Bailiff Notice
+                    </SelectItem>
+                    <SelectItem value={LetterType.APPEAL_RESPONSE}>
+                      Appeal Response
+                    </SelectItem>
+                    <SelectItem value={LetterType.GENERIC}>Generic</SelectItem>
+                  </SelectContent>
+                </Select>
+                <TanstackFormMessage />
+              </TanstackFormItem>
+            )}
+          </form.Field>
+
+          <form.Field name="summary">
+            {(field) => (
+              <TanstackFormItem field={field}>
+                <TanstackFormLabel>Summary</TanstackFormLabel>
+                <TanstackFormControl>
+                  <Textarea
+                    placeholder="Enter a summary of the letter contents"
+                    className="min-h-[100px]"
+                    value={field.state.value}
+                    onChange={(e) => field.handleChange(e.target.value)}
+                    onBlur={field.handleBlur}
+                  />
+                </TanstackFormControl>
+                <TanstackFormMessage />
+              </TanstackFormItem>
+            )}
+          </form.Field>
+
+          <form.Field name="sentAt">
+            {(field) => (
+              <TanstackFormItem field={field} className="flex flex-col">
+                <TanstackFormLabel>Date Sent</TanstackFormLabel>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <TanstackFormControl>
+                      <Button
+                        variant="outline"
+                        className={cn(
+                          'w-full pl-3 text-left font-normal',
+                          !field.state.value && 'text-muted-foreground',
+                        )}
+                      >
+                        {field.state.value ? (
+                          format(field.state.value, 'PPP')
+                        ) : (
+                          <span>Pick a date</span>
+                        )}
+                        <FontAwesomeIcon
+                          icon={faCalendarDays}
+                          size="lg"
+                          className="ml-auto opacity-50"
+                        />
+                      </Button>
+                    </TanstackFormControl>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar
+                      mode="single"
+                      selected={field.state.value}
+                      onSelect={(date) => {
+                        if (date) {
+                          const safeDate = createUTCDate(date);
+                          field.handleChange(safeDate);
+                        }
+                      }}
+                      disabled={(date) =>
+                        date > new Date() || date < new Date('1900-01-01')
+                      }
+                      initialFocus
+                    />
+                  </PopoverContent>
+                </Popover>
+                <TanstackFormMessage />
+              </TanstackFormItem>
+            )}
+          </form.Field>
+        </>
+      )}
+      <div className="flex justify-end">
+        <Button type="submit" disabled={isLoading}>
+          {isLoading ? 'Creating...' : 'Create Letter'}
+        </Button>
+      </div>
+    </form>
   );
 };
 

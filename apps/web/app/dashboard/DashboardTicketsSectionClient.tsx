@@ -3,12 +3,14 @@
 import { useState } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faList, faMap } from '@fortawesome/pro-solid-svg-icons';
-import { TicketTier, SubscriptionType, IssuerType } from '@parking-ticket-pal/db/types';
-import { Button } from '@/components/ui/button';
 import {
-  DashboardTicketsList,
-  DashboardTicketsMap,
-} from '@/components/dashboard';
+  TicketTier,
+  SubscriptionType,
+  IssuerType,
+} from '@parking-ticket-pal/db/types';
+import { Button } from '@/components/ui/button';
+import DashboardTicketsList from '@/components/dashboard/DashboardTicketsList';
+import DashboardTicketsMap from '@/components/dashboard/DynamicDashboardTicketsMap';
 
 type TicketStatus =
   | 'NEEDS_ACTION'
@@ -87,7 +89,7 @@ const DashboardTicketsSectionClient = ({
 
       <div className="grid gap-4 lg:grid-cols-2 lg:gap-6">
         {/* Tickets List - Hidden on mobile when map is shown */}
-        <div className={`${showMap ? 'hidden lg:block' : ''}`}>
+        <div className={showMap ? 'hidden lg:block' : ''}>
           <div className="h-[600px]">
             <DashboardTicketsList
               tickets={tickets}
@@ -100,7 +102,7 @@ const DashboardTicketsSectionClient = ({
         </div>
 
         {/* Map - Hidden on mobile unless toggled */}
-        <div className={`${!showMap ? 'hidden lg:block' : ''}`}>
+        <div className={!showMap ? 'hidden lg:block' : ''}>
           <div className="h-[600px]">
             <DashboardTicketsMap
               tickets={mapTickets}

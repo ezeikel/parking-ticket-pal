@@ -1,8 +1,9 @@
-/* eslint-disable import/prefer-default-export */
+/* eslint-disable import-x/prefer-default-export */
 
 import { getTickets } from '@/app/actions/ticket';
 import { TicketStatus, IssuerType, TicketType } from '@parking-ticket-pal/db';
 
+// TODO: Restrict CORS — replace wildcard '*' origin with allowed domains (web app + mobile).
 export const GET = async (request: Request) => {
   const { searchParams } = new URL(request.url);
 

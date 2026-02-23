@@ -10,9 +10,9 @@ import {
   faTrash,
   faXmark,
 } from '@fortawesome/pro-regular-svg-icons';
-import SignatureCanvas, {
+import DynamicSignatureCanvas, {
   SignatureCanvasHandle,
-} from '../SignatureCanvas/SignatureCanvas';
+} from '../SignatureCanvas/DynamicSignatureCanvas';
 
 type SignatureInputProps = {
   onSignatureChange: (dataUrl: string | null) => void;
@@ -96,7 +96,7 @@ const SignatureInput = ({
       ) : (
         // Show signature canvas for editing or creating a signature
         <div className="signature-container border rounded-md border-input p-2">
-          <SignatureCanvas
+          <DynamicSignatureCanvas
             ref={canvasRef}
             onSignatureChange={handleSignatureChange}
             width={width}

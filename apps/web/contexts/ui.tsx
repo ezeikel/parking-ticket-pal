@@ -3,6 +3,7 @@ import {
   SetStateAction,
   createContext,
   useContext,
+  useMemo,
   useState,
 } from 'react';
 
@@ -23,17 +24,15 @@ export const UIContext = createContext<UIContextArgs>({
 export const UIContextProvider = ({ children }: UIContextProviderProps) => {
   const [headerHeight, setHeaderHeight] = useState(88);
 
-  return (
-    <UIContext.Provider
-      // eslint-disable-next-line react/jsx-no-constructed-context-values
-      value={{
-        headerHeight,
-        setHeaderHeight,
-      }}
-    >
-      {children}
-    </UIContext.Provider>
+  const value = useMemo(
+    () => ({
+      headerHeight,
+      setHeaderHeight,
+    }),
+    [headerHeight],
   );
+
+  return <UIContext.Provider value={value}>{children}</UIContext.Provider>;
 };
 
 export const useUIContext = () => {

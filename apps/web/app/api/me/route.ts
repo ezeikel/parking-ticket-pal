@@ -3,6 +3,7 @@ import { db } from '@parking-ticket-pal/db';
 // longer duration to account for openai api calls
 export const maxDuration = 30;
 
+// TODO: Restrict CORS — replace wildcard '*' origin with allowed domains (web app + mobile).
 export const GET = async (req: Request) => {
   const userId = req.headers.get('x-user-id');
 

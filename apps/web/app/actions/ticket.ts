@@ -1,5 +1,6 @@
 'use server';
 
+import { cache } from 'react';
 import { revalidatePath } from 'next/cache';
 import { after } from 'next/server';
 import { del, put } from '@/lib/storage';
@@ -14,10 +15,10 @@ import {
   Prisma,
   Ticket,
   ChallengeStatus,
+  db,
 } from '@parking-ticket-pal/db';
 import getVehicleInfo from '@/utils/getVehicleInfo';
 import type { TicketFormData } from '@parking-ticket-pal/types';
-import { db } from '@parking-ticket-pal/db';
 import { runVerify, runChallenge } from '@/utils/automation/workerClient';
 import { generateReminders } from '@/app/actions/reminder';
 import { STORAGE_PATHS } from '@/constants';
@@ -57,7 +58,7 @@ export const createTicket = async (
     if (ticket && values.tempImagePath && values.tempImageUrl) {
       try {
         // extract file extension from temp path
-        const extension = values.tempImagePath!.split('.').pop() || 'jpg';
+        const extension = values.tempImagePath.split('.').pop() || 'jpg';
 
         // move file to permanent location
         // New path: tickets/{ticketId}/front.{ext}
@@ -67,7 +68,7 @@ export const createTicket = async (
         ).replace('%s', extension);
 
         // download temp file and upload to permanent location
-        const tempResponse = await fetch(values.tempImageUrl!);
+        const tempResponse = await fetch(values.tempImageUrl);
         if (!tempResponse.ok) {
           throw new Error(
             `Failed to fetch temp file: ${tempResponse.statusText}`,
@@ -96,7 +97,7 @@ export const createTicket = async (
         });
 
         // delete temporary file
-        await del(values.tempImageUrl!);
+        await del(values.tempImageUrl);
       } catch (error) {
         logger.error(
           'Failed to move image for ticket',
@@ -381,11 +382,29 @@ export const updateTicketNotes = async (
   _prevState: any,
   formData: FormData,
 ) => {
+  const userId = await getUserId('update ticket notes');
+
+  if (!userId) {
+    return { success: false, error: 'Authentication required.' };
+  }
+
   const ticketId = formData.get('ticketId') as string;
   const notes = formData.get('notes') as string;
 
   if (!ticketId) {
     return { success: false, error: 'Ticket ID is missing.' };
+  }
+
+  // Verify ticket belongs to user
+  const ticket = await db.ticket.findFirst({
+    where: {
+      id: ticketId,
+      vehicle: { userId },
+    },
+  });
+
+  if (!ticket) {
+    return { success: false, error: 'Ticket not found.' };
   }
 
   try {
@@ -396,7 +415,7 @@ export const updateTicketNotes = async (
 
     revalidatePath(`/tickets/${ticketId}`);
     return { success: true };
-  } catch (error) {
+  } catch {
     return { success: false, error: 'Failed to save notes.' };
   }
 };
@@ -622,6 +641,8 @@ export const getTickets = async (params?: {
       case 'issuer':
         orderBy = { issuer: sortOrder };
         break;
+      default:
+        break;
     }
   }
 
@@ -649,6 +670,13 @@ export const getTickets = async (params?: {
 
   return tickets;
 };
+
+/**
+ * React.cache()-wrapped version of getTickets.
+ * Deduplicates multiple calls within a single server render pass
+ * (e.g. dashboard wrappers that each need the full ticket list).
+ */
+export const getCachedTickets = cache(getTickets);
 
 export const getTicket = async (id: string) => {
   const userId = await getUserId('get a ticket');
@@ -812,7 +840,10 @@ export const verifyTicket = async (pcnNumber: string, ticketId?: string) => {
     });
 
     if (!ticket) {
-      logger.error('Ticket not found for verification', { pcnNumber, ticketId });
+      logger.error('Ticket not found for verification', {
+        pcnNumber,
+        ticketId,
+      });
       return false;
     }
 
@@ -878,7 +909,7 @@ export const challengeTicket = async (
     try {
       // Determine issuer ID from ticket
       const issuerId = ticket.issuer.toLowerCase().replace(/\s+/g, '-');
-      const user = ticket.vehicle.user;
+      const { user } = ticket.vehicle;
       const userAddress = user.address as {
         line1?: string;
         line2?: string;

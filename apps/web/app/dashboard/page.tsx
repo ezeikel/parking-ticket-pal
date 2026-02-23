@@ -2,36 +2,38 @@ import { Suspense } from 'react';
 import Link from 'next/link';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPlus } from '@fortawesome/pro-solid-svg-icons';
-import { getTickets } from '@/app/actions/ticket';
+import { getCachedTickets } from '@/app/actions/ticket';
 import { getVehicles } from '@/app/actions/vehicle';
 import { getCurrentUser } from '@/utils/user';
 import { Button } from '@/components/ui/button';
-import {
-  UrgentAlerts,
-  DashboardStatsCards,
-  DashboardQuickActions,
-  ActivityTimeline,
-  AnalyticsCharts,
-  PhonePromptCard,
-  PendingTicketsBanner,
-} from '@/components/dashboard';
+import UrgentAlerts from '@/components/dashboard/UrgentAlerts';
+import DashboardStatsCards from '@/components/dashboard/DashboardStatsCards';
+import DashboardQuickActions from '@/components/dashboard/DashboardQuickActions';
+import ActivityTimeline from '@/components/dashboard/ActivityTimeline';
+import DynamicAnalyticsCharts from '@/components/dashboard/DynamicAnalyticsCharts';
+import PhonePromptCard from '@/components/dashboard/PhonePromptCard';
+import PendingTicketsBanner from '@/components/dashboard/PendingTicketsBanner';
 import { getPendingTickets } from '@/app/actions/guest';
-import DashboardTicketsSection from './DashboardTicketsSection';
 import { getDisplayAmount } from '@/utils/getCurrentAmountDue';
 import { PageViewTracker } from '@/components/analytics/PageViewTracker';
 import { TRACKING_EVENTS } from '@/constants/events';
+import {
+  WON_STATUSES,
+  LOST_STATUSES,
+  PENDING_STATUSES,
+} from '@/constants/ticketStatuses';
+import DashboardTicketsSection from './DashboardTicketsSection';
 
 // Wrapper component for stats cards with data fetching
 const StatsCardsWrapper = async () => {
-  const tickets = (await getTickets()) ?? [];
+  const tickets = (await getCachedTickets()) ?? [];
 
   const totalTickets = tickets.length;
 
   // Calculate outstanding fines using current amount (accounts for price increases and time elapsed)
-  const wonStatuses = ['REPRESENTATION_ACCEPTED', 'APPEAL_UPHELD'];
   const outstandingTickets = tickets.filter(
     (ticket) =>
-      !wonStatuses.includes(ticket.status) &&
+      !(WON_STATUSES as readonly string[]).includes(ticket.status) &&
       ticket.status !== 'PAID' &&
       ticket.status !== 'CANCELLED',
   );
@@ -51,17 +53,14 @@ const StatsCardsWrapper = async () => {
 
   // Calculate appeal success rate
   const appealResolvedStatuses = [
-    'REPRESENTATION_ACCEPTED',
-    'APPEAL_UPHELD',
-    'NOTICE_OF_REJECTION',
-    'APPEAL_REJECTED_BY_OPERATOR',
-    'APPEAL_REJECTED',
-  ];
+    ...WON_STATUSES,
+    ...LOST_STATUSES,
+  ] as readonly string[];
   const appealsTotal = tickets.filter((ticket) =>
     appealResolvedStatuses.includes(ticket.status),
   ).length;
   const appealsWon = tickets.filter((ticket) =>
-    ['REPRESENTATION_ACCEPTED', 'APPEAL_UPHELD'].includes(ticket.status),
+    (WON_STATUSES as readonly string[]).includes(ticket.status),
   ).length;
   const appealSuccessRate =
     appealsTotal > 0 ? Math.round((appealsWon / appealsTotal) * 100) : 0;
@@ -75,7 +74,7 @@ const StatsCardsWrapper = async () => {
     return (
       dueDate > now &&
       dueDate < weekFromNow &&
-      !wonStatuses.includes(ticket.status) &&
+      !(WON_STATUSES as readonly string[]).includes(ticket.status) &&
       ticket.status !== 'PAID'
     );
   }).length;
@@ -84,7 +83,8 @@ const StatsCardsWrapper = async () => {
   const upcomingTickets = tickets
     .filter(
       (ticket) =>
-        !wonStatuses.includes(ticket.status) && ticket.status !== 'PAID',
+        !(WON_STATUSES as readonly string[]).includes(ticket.status) &&
+        ticket.status !== 'PAID',
     )
     .map((ticket) => {
       const dueDate = new Date(ticket.issuedAt);
@@ -125,7 +125,7 @@ const StatsCardsWrapper = async () => {
 
 // Wrapper component for quick actions with counts
 const QuickActionsWrapper = async () => {
-  const tickets = (await getTickets()) ?? [];
+  const tickets = (await getCachedTickets()) ?? [];
   const vehicles = (await getVehicles()) ?? [];
 
   return (
@@ -139,17 +139,17 @@ const QuickActionsWrapper = async () => {
 
 // Wrapper component for urgent alerts
 const UrgentAlertsWrapper = async () => {
-  const tickets = (await getTickets()) ?? [];
+  const tickets = (await getCachedTickets()) ?? [];
 
   const now = new Date();
   const weekFromNow = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
-  const wonStatuses = ['REPRESENTATION_ACCEPTED', 'APPEAL_UPHELD'];
 
   // Find tickets with deadlines in the next 7 days
   const urgentTickets = tickets
     .filter(
       (ticket) =>
-        !wonStatuses.includes(ticket.status) && ticket.status !== 'PAID',
+        !(WON_STATUSES as readonly string[]).includes(ticket.status) &&
+        ticket.status !== 'PAID',
     )
     .map((ticket) => {
       const dueDate = new Date(ticket.issuedAt);
@@ -185,7 +185,7 @@ const UrgentAlertsWrapper = async () => {
 
 // Wrapper component for activity timeline
 const ActivityTimelineWrapper = async () => {
-  const tickets = (await getTickets()) ?? [];
+  const tickets = (await getCachedTickets()) ?? [];
 
   // Generate activities from recent ticket events
   const activities = tickets.slice(0, 5).map((ticket) => {
@@ -215,7 +215,7 @@ const ActivityTimelineWrapper = async () => {
       id: ticket.id,
       type: 'ticket_uploaded' as const,
       title: `Ticket Uploaded - ${ticket.pcnNumber}`,
-      description: `${ticket.issuer || 'Unknown issuer'}`,
+      description: ticket.issuer || 'Unknown issuer',
       metadata: `Vehicle: ${ticket.vehicle?.registrationNumber || 'Unknown'}`,
       timestamp,
       group,
@@ -227,37 +227,29 @@ const ActivityTimelineWrapper = async () => {
 
 // Wrapper component for analytics charts
 const AnalyticsChartsWrapper = async () => {
-  const tickets = (await getTickets()) ?? [];
+  const tickets = (await getCachedTickets()) ?? [];
 
   // Calculate status breakdown
-  const wonStatuses = ['REPRESENTATION_ACCEPTED', 'APPEAL_UPHELD'];
-  const lostStatuses = [
-    'NOTICE_OF_REJECTION',
-    'APPEAL_REJECTED_BY_OPERATOR',
-    'APPEAL_REJECTED',
-  ];
-  const pendingStatuses = [
-    'FORMAL_REPRESENTATION',
-    'APPEAL_TO_TRIBUNAL',
-    'APPEAL_SUBMITTED_TO_OPERATOR',
-    'POPLA_APPEAL',
-    'IAS_APPEAL',
-  ];
-
   const statusBreakdown = [
     {
       name: 'Pending',
-      value: tickets.filter((t) => pendingStatuses.includes(t.status)).length,
+      value: tickets.filter((t) =>
+        (PENDING_STATUSES as readonly string[]).includes(t.status),
+      ).length,
       color: '#222222',
     },
     {
       name: 'Won',
-      value: tickets.filter((t) => wonStatuses.includes(t.status)).length,
+      value: tickets.filter((t) =>
+        (WON_STATUSES as readonly string[]).includes(t.status),
+      ).length,
       color: '#1ABC9C',
     },
     {
       name: 'Lost',
-      value: tickets.filter((t) => lostStatuses.includes(t.status)).length,
+      value: tickets.filter((t) =>
+        (LOST_STATUSES as readonly string[]).includes(t.status),
+      ).length,
       color: '#B0B0B0',
     },
     {
@@ -270,7 +262,7 @@ const AnalyticsChartsWrapper = async () => {
   // Calculate financial impact
   const savedAmount =
     tickets
-      .filter((t) => wonStatuses.includes(t.status))
+      .filter((t) => (WON_STATUSES as readonly string[]).includes(t.status))
       .reduce((sum, t) => sum + t.initialAmount, 0) / 100;
   const paidAmount =
     tickets
@@ -283,17 +275,21 @@ const AnalyticsChartsWrapper = async () => {
   ];
 
   // Calculate success rate
+  const chartAppealStatuses = [
+    ...WON_STATUSES,
+    ...LOST_STATUSES,
+  ] as readonly string[];
   const appealsTotal = tickets.filter((t) =>
-    [...wonStatuses, ...lostStatuses].includes(t.status),
+    chartAppealStatuses.includes(t.status),
   ).length;
   const appealsWon = tickets.filter((t) =>
-    wonStatuses.includes(t.status),
+    (WON_STATUSES as readonly string[]).includes(t.status),
   ).length;
   const currentSuccessRate =
     appealsTotal > 0 ? Math.round((appealsWon / appealsTotal) * 100) : 0;
 
   return (
-    <AnalyticsCharts
+    <DynamicAnalyticsCharts
       statusBreakdown={statusBreakdown}
       financialData={financialData}
       totalTicketsThisYear={tickets.length}

@@ -3,6 +3,7 @@ import {
   SetStateAction,
   createContext,
   useContext,
+  useMemo,
   useState,
 } from 'react';
 
@@ -25,16 +26,16 @@ export const AccountContextProvider = ({
 }: AccountContextProviderProps) => {
   const [isFundAccountDialogOpen, setIsFundAccountDialogOpen] = useState(false);
 
+  const value = useMemo(
+    () => ({
+      isFundAccountDialogOpen,
+      setIsFundAccountDialogOpen,
+    }),
+    [isFundAccountDialogOpen],
+  );
+
   return (
-    <AccountContext.Provider
-      // eslint-disable-next-line react/jsx-no-constructed-context-values
-      value={{
-        isFundAccountDialogOpen,
-        setIsFundAccountDialogOpen,
-      }}
-    >
-      {children}
-    </AccountContext.Provider>
+    <AccountContext.Provider value={value}>{children}</AccountContext.Provider>
   );
 };
 

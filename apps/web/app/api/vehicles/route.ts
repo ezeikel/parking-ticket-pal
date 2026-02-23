@@ -3,6 +3,7 @@ import { getVehicles } from '@/app/actions/vehicle';
 // longer duration to account for openai api calls
 export const maxDuration = 30;
 
+// TODO: Restrict CORS — replace wildcard '*' origin with allowed domains (web app + mobile).
 export async function GET() {
   const vehicles = await getVehicles();
 

@@ -1,19 +1,16 @@
 'use client';
 
 import { useState } from 'react';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
+import { useForm } from '@tanstack/react-form';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from '@/components/ui/form';
+  TanstackFormItem,
+  TanstackFormLabel,
+  TanstackFormControl,
+  TanstackFormMessage,
+} from '@/components/ui/tanstack-form';
 import { Calendar } from '@/components/ui/calendar';
 import {
   Popover,
@@ -48,8 +45,7 @@ const EditTicketForm = ({ ticket }: EditTicketFormProps) => {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
 
-  const form = useForm<TicketFormData>({
-    resolver: zodResolver(ticketFormSchema),
+  const form = useForm({
     defaultValues: {
       vehicleReg: ticket.vehicle.registrationNumber,
       pcnNumber: ticket.pcnNumber,
@@ -58,208 +54,222 @@ const EditTicketForm = ({ ticket }: EditTicketFormProps) => {
       initialAmount: ticket.initialAmount,
       issuer: ticket.issuer,
       location: ticket.location as Address,
+    } as TicketFormData,
+    validators: {
+      onSubmit: ticketFormSchema,
+    },
+    onSubmit: async ({ value }) => {
+      setIsLoading(true);
+
+      try {
+        const updatedTicket = await updateTicket(ticket.id, value);
+
+        if (!updatedTicket) {
+          throw new Error('Failed to update ticket');
+        }
+
+        await refreshTicket(ticket.id);
+        await refreshTickets();
+
+        toast.success('Ticket updated successfully');
+        router.push(`/tickets/${ticket.id}`);
+      } catch {
+        toast.error('Failed to update ticket. Please try again.');
+      } finally {
+        setIsLoading(false);
+      }
     },
   });
 
-  const onSubmit = async (values: TicketFormData) => {
-    setIsLoading(true);
-
-    try {
-      const updatedTicket = await updateTicket(ticket.id, values);
-
-      if (!updatedTicket) {
-        throw new Error('Failed to update ticket');
-      }
-
-      await refreshTicket(ticket.id);
-      await refreshTickets();
-
-      toast.success('Ticket updated successfully');
-      router.push(`/tickets/${ticket.id}`);
-    } catch {
-      toast.error('Failed to update ticket. Please try again.');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
   return (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <FormField
-            control={form.control}
-            name="pcnNumber"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>PCN Number</FormLabel>
-                <FormControl>
-                  <Input {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="vehicleReg"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Vehicle Registration</FormLabel>
-                <FormControl>
-                  <Input {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="issuer"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Issuer</FormLabel>
-                <FormControl>
-                  <Input {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="initialAmount"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Initial Amount (£)</FormLabel>
-                <FormControl>
-                  <Input
-                    type="number"
-                    step="0.01"
-                    {...field}
-                    onChange={(e) =>
-                      field.onChange(Math.round(Number(e.target.value) * 100))
-                    }
-                    value={field.value === 0 ? undefined : field.value / 100}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="issuedAt"
-            render={({ field }) => (
-              <FormItem className="flex flex-col">
-                <FormLabel>Date Issued</FormLabel>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <FormControl>
-                      <Button
-                        variant="outline"
-                        className={cn(
-                          'w-full pl-3 text-left font-normal',
-                          !field.value && 'text-muted-foreground',
-                        )}
-                      >
-                        {field.value ? (
-                          format(field.value, 'PPP')
-                        ) : (
-                          <span>Pick a date</span>
-                        )}
-                        <FontAwesomeIcon
-                          icon={faCalendar}
-                          className="ml-auto h-4 w-4 opacity-50"
-                        />
-                      </Button>
-                    </FormControl>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0" align="start">
-                    <Calendar
-                      mode="single"
-                      selected={field.value}
-                      onSelect={(date) => {
-                        if (date) {
-                          // create timezone-safe date immediately when user selects
-                          const safeDate = createUTCDate(date);
-                          field.onChange(safeDate);
-                        }
-                      }}
-                      disabled={(date) =>
-                        date > new Date() || date < new Date('1900-01-01')
-                      }
-                      initialFocus
-                    />
-                  </PopoverContent>
-                </Popover>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="contraventionCode"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Contravention Code</FormLabel>
-                <FormControl>
-                  <ContraventionCodeSelect
-                    value={field.value}
-                    onChange={field.onChange}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </div>
-
-        <div className="space-y-2">
-          <FormLabel>Location</FormLabel>
-          <AddressInput
-            onSelect={(address) => form.setValue('location', address)}
-            className="w-full"
-          />
-          {form.watch('location') && (
-            <div className="text-sm text-muted-foreground mt-2">
-              Current location: {form.watch('location').line1},{' '}
-              {form.watch('location').city}, {form.watch('location').postcode}
-            </div>
-          )}
-        </div>
-
-        <div className="flex justify-end gap-4">
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => router.push(`/tickets/${ticket.id}`)}
-            disabled={isLoading}
-          >
-            Cancel
-          </Button>
-          <Button type="submit" disabled={isLoading}>
-            {isLoading ? (
-              <>
-                <FontAwesomeIcon
-                  icon={faSpinnerThird}
-                  spin
-                  className="mr-2 h-4 w-4"
+    <form
+      onSubmit={(e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        form.handleSubmit();
+      }}
+      className="space-y-6"
+    >
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <form.Field name="pcnNumber">
+          {(field) => (
+            <TanstackFormItem field={field}>
+              <TanstackFormLabel>PCN Number</TanstackFormLabel>
+              <TanstackFormControl>
+                <Input
+                  value={field.state.value}
+                  onChange={(e) => field.handleChange(e.target.value)}
+                  onBlur={field.handleBlur}
                 />
-                Saving...
-              </>
-            ) : (
-              'Save Changes'
+              </TanstackFormControl>
+              <TanstackFormMessage />
+            </TanstackFormItem>
+          )}
+        </form.Field>
+
+        <form.Field name="vehicleReg">
+          {(field) => (
+            <TanstackFormItem field={field}>
+              <TanstackFormLabel>Vehicle Registration</TanstackFormLabel>
+              <TanstackFormControl>
+                <Input
+                  value={field.state.value}
+                  onChange={(e) => field.handleChange(e.target.value)}
+                  onBlur={field.handleBlur}
+                />
+              </TanstackFormControl>
+              <TanstackFormMessage />
+            </TanstackFormItem>
+          )}
+        </form.Field>
+
+        <form.Field name="issuer">
+          {(field) => (
+            <TanstackFormItem field={field}>
+              <TanstackFormLabel>Issuer</TanstackFormLabel>
+              <TanstackFormControl>
+                <Input
+                  value={field.state.value}
+                  onChange={(e) => field.handleChange(e.target.value)}
+                  onBlur={field.handleBlur}
+                />
+              </TanstackFormControl>
+              <TanstackFormMessage />
+            </TanstackFormItem>
+          )}
+        </form.Field>
+
+        <form.Field name="initialAmount">
+          {(field) => (
+            <TanstackFormItem field={field}>
+              <TanstackFormLabel>Initial Amount (£)</TanstackFormLabel>
+              <TanstackFormControl>
+                <Input
+                  type="number"
+                  step="0.01"
+                  value={
+                    field.state.value === 0
+                      ? undefined
+                      : field.state.value / 100
+                  }
+                  onChange={(e) =>
+                    field.handleChange(Math.round(Number(e.target.value) * 100))
+                  }
+                  onBlur={field.handleBlur}
+                />
+              </TanstackFormControl>
+              <TanstackFormMessage />
+            </TanstackFormItem>
+          )}
+        </form.Field>
+
+        <form.Field name="issuedAt">
+          {(field) => (
+            <TanstackFormItem field={field} className="flex flex-col">
+              <TanstackFormLabel>Date Issued</TanstackFormLabel>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <TanstackFormControl>
+                    <Button
+                      variant="outline"
+                      className={cn(
+                        'w-full pl-3 text-left font-normal',
+                        !field.state.value && 'text-muted-foreground',
+                      )}
+                    >
+                      {field.state.value ? (
+                        format(field.state.value, 'PPP')
+                      ) : (
+                        <span>Pick a date</span>
+                      )}
+                      <FontAwesomeIcon
+                        icon={faCalendar}
+                        className="ml-auto h-4 w-4 opacity-50"
+                      />
+                    </Button>
+                  </TanstackFormControl>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={field.state.value}
+                    onSelect={(date) => {
+                      if (date) {
+                        const safeDate = createUTCDate(date);
+                        field.handleChange(safeDate);
+                      }
+                    }}
+                    disabled={(date) =>
+                      date > new Date() || date < new Date('1900-01-01')
+                    }
+                    initialFocus
+                  />
+                </PopoverContent>
+              </Popover>
+              <TanstackFormMessage />
+            </TanstackFormItem>
+          )}
+        </form.Field>
+
+        <form.Field name="contraventionCode">
+          {(field) => (
+            <TanstackFormItem field={field}>
+              <TanstackFormLabel>Contravention Code</TanstackFormLabel>
+              <TanstackFormControl>
+                <ContraventionCodeSelect
+                  value={field.state.value}
+                  onChange={(val) => field.handleChange(val)}
+                />
+              </TanstackFormControl>
+              <TanstackFormMessage />
+            </TanstackFormItem>
+          )}
+        </form.Field>
+      </div>
+
+      <form.Field name="location">
+        {(field) => (
+          <div className="space-y-2">
+            <TanstackFormLabel>Location</TanstackFormLabel>
+            <AddressInput
+              onSelect={(address) => field.handleChange(address)}
+              className="w-full"
+            />
+            {field.state.value && (
+              <div className="text-sm text-muted-foreground mt-2">
+                Current location: {field.state.value.line1},{' '}
+                {field.state.value.city}, {field.state.value.postcode}
+              </div>
             )}
-          </Button>
-        </div>
-      </form>
-    </Form>
+          </div>
+        )}
+      </form.Field>
+
+      <div className="flex justify-end gap-4">
+        <Button
+          type="button"
+          variant="outline"
+          onClick={() => router.push(`/tickets/${ticket.id}`)}
+          disabled={isLoading}
+        >
+          Cancel
+        </Button>
+        <Button type="submit" disabled={isLoading}>
+          {isLoading ? (
+            <>
+              <FontAwesomeIcon
+                icon={faSpinnerThird}
+                spin
+                className="mr-2 h-4 w-4"
+              />
+              Saving...
+            </>
+          ) : (
+            'Save Changes'
+          )}
+        </Button>
+      </div>
+    </form>
   );
 };
 

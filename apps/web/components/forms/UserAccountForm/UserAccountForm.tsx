@@ -1,24 +1,22 @@
 'use client';
 
-import { useState, useEffect, useActionState } from 'react';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
+import { useState, useEffect } from 'react';
+import { useForm } from '@tanstack/react-form';
 import { z } from 'zod';
 import { updateUserProfile } from '@/app/actions/user';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from '@/components/ui/form';
+  TanstackFormItem,
+  TanstackFormLabel,
+  TanstackFormControl,
+  TanstackFormMessage,
+} from '@/components/ui/tanstack-form';
 import AddressInput from '@/components/forms/inputs/AddressInput/AddressInput';
 import SignatureInput from '@/components/SignatureInput/SignatureInput';
 import { User } from '@parking-ticket-pal/db/types';
 import { Address } from '@parking-ticket-pal/types';
+import { Label } from '@/components/ui/label';
 
 // Define an interface for the user address structure
 type UserAddress = {
@@ -37,19 +35,20 @@ const profileFormSchema = z.object({
     .regex(/^((\+44)|0)?7\d{9}$/, {
       message: 'Please enter a valid UK phone number.',
     })
-    .optional()
-    .nullable(),
-  addressLine1: z.string().optional(),
-  addressLine2: z.string().optional(),
-  city: z.string().optional(),
-  county: z.string().optional(),
+    .nullable()
+    .or(z.literal('')),
+  addressLine1: z.string().or(z.literal('')).or(z.literal(undefined)),
+  addressLine2: z.string().or(z.literal('')).or(z.literal(undefined)),
+  city: z.string().or(z.literal('')).or(z.literal(undefined)),
+  county: z.string().or(z.literal('')).or(z.literal(undefined)),
   postcode: z
     .string()
     .regex(/^[A-Z]{1,2}\d[A-Z\d]? ?\d[A-Z]{2}$/i, {
       message: 'Please enter a valid UK postcode',
     })
-    .optional(),
-  signatureDataUrl: z.string().optional().nullable(),
+    .or(z.literal(''))
+    .or(z.literal(undefined)),
+  signatureDataUrl: z.string().nullable().or(z.literal(undefined)),
 });
 
 type UserAccountFormProps = {
@@ -58,13 +57,14 @@ type UserAccountFormProps = {
 
 const UserAccountForm = ({ user }: UserAccountFormProps) => {
   const [showAddressInput, setShowAddressInput] = useState(true);
-  const [signatureDataUrl, setSignatureDataUrl] = useState<string | null>(null);
+  const [signatureDataUrl, setSignatureDataUrl] = useState<string | null>(
+    user?.signatureUrl ?? null,
+  );
 
-  const form = useForm<z.infer<typeof profileFormSchema>>({
-    resolver: zodResolver(profileFormSchema),
+  const form = useForm({
     defaultValues: {
       name: user?.name || '',
-      phoneNumber: user?.phoneNumber || '',
+      phoneNumber: (user?.phoneNumber || '') as string | null | undefined,
       addressLine1: user?.address
         ? (user.address as UserAddress).line1
         : undefined,
@@ -76,219 +76,246 @@ const UserAccountForm = ({ user }: UserAccountFormProps) => {
       postcode: user?.address
         ? (user.address as UserAddress).postcode
         : undefined,
-      signatureDataUrl: user?.signatureUrl || undefined,
+      signatureDataUrl: (user?.signatureUrl || undefined) as
+        | string
+        | null
+        | undefined,
+    },
+    validators: {
+      onSubmit: profileFormSchema,
+    },
+    onSubmit: async ({ value }) => {
+      // Build FormData to pass to the server action (maintaining compatibility)
+      const formData = new FormData();
+      formData.set('name', value.name);
+      if (value.phoneNumber) formData.set('phoneNumber', value.phoneNumber);
+      if (value.addressLine1) formData.set('addressLine1', value.addressLine1);
+      if (value.addressLine2) formData.set('addressLine2', value.addressLine2);
+      if (value.city) formData.set('city', value.city);
+      if (value.county) formData.set('county', value.county);
+      if (value.postcode) formData.set('postcode', value.postcode);
+      if (signatureDataUrl) formData.set('signatureDataUrl', signatureDataUrl);
+
+      await updateUserProfile(user.id!, formData);
     },
   });
 
-  // Use `useActionState` to bind the form to the server action
-  const [, formAction] = useActionState(
-    async (_: unknown, formData: FormData) =>
-      updateUserProfile(user.id!, formData),
-    null,
-  );
-
   const handleAddressSelect = (address: Address) => {
-    form.setValue('addressLine1', address.line1, { shouldValidate: true });
+    form.setFieldValue('addressLine1', address.line1);
     if (address.line2) {
-      form.setValue('addressLine2', address.line2, { shouldValidate: true });
+      form.setFieldValue('addressLine2', address.line2);
     }
-    form.setValue('city', address.city, { shouldValidate: true });
+    form.setFieldValue('city', address.city);
     if (address.county) {
-      form.setValue('county', address.county, { shouldValidate: true });
+      form.setFieldValue('county', address.county);
     }
-    form.setValue('postcode', address.postcode, { shouldValidate: true });
+    form.setFieldValue('postcode', address.postcode);
 
     setShowAddressInput(false);
   };
 
   useEffect(() => {
     if (signatureDataUrl) {
-      form.setValue('signatureDataUrl', signatureDataUrl);
+      form.setFieldValue('signatureDataUrl', signatureDataUrl);
     }
   }, [signatureDataUrl, form]);
 
-  useEffect(() => {
-    if (user?.signatureUrl) {
-      setSignatureDataUrl(user.signatureUrl);
-    }
-  }, [user]);
-
   return (
-    <Form {...form}>
-      <form action={formAction} className="space-y-8">
-        <input
-          type="hidden"
-          name="signatureDataUrl"
-          value={signatureDataUrl || ''}
-        />
+    <form
+      onSubmit={(e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        form.handleSubmit();
+      }}
+      className="space-y-8"
+    >
+      <div className="space-y-6">
+        <h3 className="text-lg font-medium">Personal Details</h3>
 
-        <div className="space-y-6">
-          <h3 className="text-lg font-medium">Personal Details</h3>
-
-          <FormField
-            control={form.control}
-            name="name"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Full Name</FormLabel>
-                <FormControl>
-                  <Input placeholder="John Doe" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="phoneNumber"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Phone Number</FormLabel>
-                <FormControl>
-                  <Input
-                    placeholder="07123456789"
-                    value={field.value || ''}
-                    onChange={field.onChange}
-                    onBlur={field.onBlur}
-                    name={field.name}
-                    ref={field.ref}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </div>
-
-        <div className="space-y-6 pt-6 border-t">
-          <h3 className="text-lg font-medium">Address Information</h3>
-
-          {showAddressInput && (
-            <div className="mb-6">
-              <FormLabel>Find your address</FormLabel>
-              <AddressInput
-                onSelect={handleAddressSelect}
-                className="w-full mt-2"
-              />
-              <p className="text-xs text-muted-foreground mt-2">
-                Start typing your address to use autocomplete, or enter your
-                address manually below.
-              </p>
-              <Button
-                variant="outline"
-                size="sm"
-                className="mt-2"
-                onClick={() => setShowAddressInput(false)}
-                type="button"
-              >
-                Enter manually
-              </Button>
-            </div>
+        <form.Field name="name">
+          {(field) => (
+            <TanstackFormItem field={field}>
+              <TanstackFormLabel>Full Name</TanstackFormLabel>
+              <TanstackFormControl>
+                <Input
+                  placeholder="John Doe"
+                  name="name"
+                  value={field.state.value}
+                  onChange={(e) => field.handleChange(e.target.value)}
+                  onBlur={field.handleBlur}
+                />
+              </TanstackFormControl>
+              <TanstackFormMessage />
+            </TanstackFormItem>
           )}
+        </form.Field>
 
-          {!showAddressInput && (
+        <form.Field name="phoneNumber">
+          {(field) => (
+            <TanstackFormItem field={field}>
+              <TanstackFormLabel>Phone Number</TanstackFormLabel>
+              <TanstackFormControl>
+                <Input
+                  placeholder="07123456789"
+                  name="phoneNumber"
+                  value={field.state.value || ''}
+                  onChange={(e) => field.handleChange(e.target.value)}
+                  onBlur={field.handleBlur}
+                />
+              </TanstackFormControl>
+              <TanstackFormMessage />
+            </TanstackFormItem>
+          )}
+        </form.Field>
+      </div>
+
+      <div className="space-y-6 pt-6 border-t">
+        <h3 className="text-lg font-medium">Address Information</h3>
+
+        {showAddressInput && (
+          <div className="mb-6">
+            <Label>Find your address</Label>
+            <AddressInput
+              onSelect={handleAddressSelect}
+              className="w-full mt-2"
+            />
+            <p className="text-xs text-muted-foreground mt-2">
+              Start typing your address to use autocomplete, or enter your
+              address manually below.
+            </p>
             <Button
               variant="outline"
               size="sm"
-              className="mb-6"
-              onClick={() => setShowAddressInput(true)}
+              className="mt-2"
+              onClick={() => setShowAddressInput(false)}
               type="button"
             >
-              Find address
+              Enter manually
             </Button>
-          )}
-
-          <FormField
-            control={form.control}
-            name="addressLine1"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Address Line 1</FormLabel>
-                <FormControl>
-                  <Input placeholder="123 High Street" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="addressLine2"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Address Line 2 (Optional)</FormLabel>
-                <FormControl>
-                  <Input placeholder="Apartment, floor, etc." {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <div className="grid grid-cols-2 gap-4">
-            <FormField
-              control={form.control}
-              name="city"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>City / Town</FormLabel>
-                  <FormControl>
-                    <Input placeholder="London" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="county"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>County (Optional)</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Greater London" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
           </div>
+        )}
 
-          <FormField
-            control={form.control}
-            name="postcode"
-            render={({ field }) => (
-              <FormItem className="max-w-[200px]">
-                <FormLabel>Postcode</FormLabel>
-                <FormControl>
-                  <Input placeholder="SW1A 1AA" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </div>
-
-        <div className="space-y-6 pt-6 border-t">
-          <h3 className="text-lg font-medium">Your Signature</h3>
-          <SignatureInput
-            onSignatureChange={(newSignatureDataUrl) =>
-              setSignatureDataUrl(newSignatureDataUrl)
-            }
-            signatureUrl={user?.signatureUrl || null}
-          />
-        </div>
-
-        <div className="pt-6">
-          <Button type="submit" className="w-full">
-            Save Changes
+        {!showAddressInput && (
+          <Button
+            variant="outline"
+            size="sm"
+            className="mb-6"
+            onClick={() => setShowAddressInput(true)}
+            type="button"
+          >
+            Find address
           </Button>
+        )}
+
+        <form.Field name="addressLine1">
+          {(field) => (
+            <TanstackFormItem field={field}>
+              <TanstackFormLabel>Address Line 1</TanstackFormLabel>
+              <TanstackFormControl>
+                <Input
+                  placeholder="123 High Street"
+                  name="addressLine1"
+                  value={field.state.value || ''}
+                  onChange={(e) => field.handleChange(e.target.value)}
+                  onBlur={field.handleBlur}
+                />
+              </TanstackFormControl>
+              <TanstackFormMessage />
+            </TanstackFormItem>
+          )}
+        </form.Field>
+
+        <form.Field name="addressLine2">
+          {(field) => (
+            <TanstackFormItem field={field}>
+              <TanstackFormLabel>Address Line 2 (Optional)</TanstackFormLabel>
+              <TanstackFormControl>
+                <Input
+                  placeholder="Apartment, floor, etc."
+                  name="addressLine2"
+                  value={field.state.value || ''}
+                  onChange={(e) => field.handleChange(e.target.value)}
+                  onBlur={field.handleBlur}
+                />
+              </TanstackFormControl>
+              <TanstackFormMessage />
+            </TanstackFormItem>
+          )}
+        </form.Field>
+
+        <div className="grid grid-cols-2 gap-4">
+          <form.Field name="city">
+            {(field) => (
+              <TanstackFormItem field={field}>
+                <TanstackFormLabel>City / Town</TanstackFormLabel>
+                <TanstackFormControl>
+                  <Input
+                    placeholder="London"
+                    name="city"
+                    value={field.state.value || ''}
+                    onChange={(e) => field.handleChange(e.target.value)}
+                    onBlur={field.handleBlur}
+                  />
+                </TanstackFormControl>
+                <TanstackFormMessage />
+              </TanstackFormItem>
+            )}
+          </form.Field>
+
+          <form.Field name="county">
+            {(field) => (
+              <TanstackFormItem field={field}>
+                <TanstackFormLabel>County (Optional)</TanstackFormLabel>
+                <TanstackFormControl>
+                  <Input
+                    placeholder="Greater London"
+                    name="county"
+                    value={field.state.value || ''}
+                    onChange={(e) => field.handleChange(e.target.value)}
+                    onBlur={field.handleBlur}
+                  />
+                </TanstackFormControl>
+                <TanstackFormMessage />
+              </TanstackFormItem>
+            )}
+          </form.Field>
         </div>
-      </form>
-    </Form>
+
+        <form.Field name="postcode">
+          {(field) => (
+            <TanstackFormItem field={field} className="max-w-[200px]">
+              <TanstackFormLabel>Postcode</TanstackFormLabel>
+              <TanstackFormControl>
+                <Input
+                  placeholder="SW1A 1AA"
+                  name="postcode"
+                  value={field.state.value || ''}
+                  onChange={(e) => field.handleChange(e.target.value)}
+                  onBlur={field.handleBlur}
+                />
+              </TanstackFormControl>
+              <TanstackFormMessage />
+            </TanstackFormItem>
+          )}
+        </form.Field>
+      </div>
+
+      <div className="space-y-6 pt-6 border-t">
+        <h3 className="text-lg font-medium">Your Signature</h3>
+        <SignatureInput
+          onSignatureChange={(newSignatureDataUrl) =>
+            setSignatureDataUrl(newSignatureDataUrl)
+          }
+          signatureUrl={user?.signatureUrl || null}
+        />
+      </div>
+
+      <div className="pt-6">
+        <Button type="submit" className="w-full">
+          Save Changes
+        </Button>
+      </div>
+    </form>
   );
 };
 

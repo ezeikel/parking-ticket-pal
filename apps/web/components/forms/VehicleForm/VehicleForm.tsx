@@ -1,18 +1,15 @@
 'use client';
 
 import { useState } from 'react';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
+import { useForm } from '@tanstack/react-form';
 import * as z from 'zod';
 import { Button } from '@/components/ui/button';
 import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from '@/components/ui/form';
+  TanstackFormItem,
+  TanstackFormLabel,
+  TanstackFormControl,
+  TanstackFormMessage,
+} from '@/components/ui/tanstack-form';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import {
@@ -57,200 +54,219 @@ const VehicleForm = ({
 }: VehicleFormProps) => {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
-  const form = useForm<VehicleFormValues>({
-    resolver: zodResolver(vehicleFormSchema),
+
+  const form = useForm({
     defaultValues: initialData,
+    validators: {
+      onSubmit: vehicleFormSchema,
+    },
+    onSubmit: async ({ value }) => {
+      setIsLoading(true);
+      try {
+        await onSubmit(value);
+      } catch (error) {
+        logger.error(
+          'Error submitting form',
+          { page: 'vehicle-form' },
+          error instanceof Error ? error : undefined,
+        );
+      } finally {
+        setIsLoading(false);
+      }
+    },
   });
 
-  const handleSubmit = async (data: VehicleFormValues) => {
-    setIsLoading(true);
-    try {
-      await onSubmit(data);
-    } catch (error) {
-      logger.error(
-        'Error submitting form',
-        { page: 'vehicle-form' },
-        error instanceof Error ? error : undefined,
-      );
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
   return (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
-        <div className="flex items-center gap-2">
-          <FormField
-            control={form.control}
-            name="registrationNumber"
-            render={({ field }) => (
-              <FormItem className="flex-1">
-                <FormLabel>Registration Number</FormLabel>
-                <FormControl>
-                  <Input placeholder="Enter registration number" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <VerifiedBadge status={verificationStatus || 'UNVERIFIED'} />
-        </div>
-
-        <div className="grid grid-cols-2 gap-4">
-          <FormField
-            control={form.control}
-            name="make"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Make</FormLabel>
-                <FormControl>
-                  <Input placeholder="Enter make" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="model"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Model</FormLabel>
-                <FormControl>
-                  <Input placeholder="Enter model" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </div>
-
-        <div className="grid grid-cols-2 gap-4">
-          <FormField
-            control={form.control}
-            name="year"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Year</FormLabel>
-                <FormControl>
-                  <Input type="number" placeholder="Enter year" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="color"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Color</FormLabel>
-                <FormControl>
-                  <Input placeholder="Enter color" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </div>
-
-        <div className="grid grid-cols-2 gap-4">
-          <FormField
-            control={form.control}
-            name="bodyType"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Body Type</FormLabel>
-                <Select
-                  onValueChange={field.onChange}
-                  defaultValue={field.value}
-                >
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select body type" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    <SelectItem value="hatchback">Hatchback</SelectItem>
-                    <SelectItem value="saloon">Saloon</SelectItem>
-                    <SelectItem value="estate">Estate</SelectItem>
-                    <SelectItem value="suv">SUV</SelectItem>
-                    <SelectItem value="van">Van</SelectItem>
-                    <SelectItem value="motorcycle">Motorcycle</SelectItem>
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="fuelType"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Fuel Type</FormLabel>
-                <Select
-                  onValueChange={field.onChange}
-                  defaultValue={field.value}
-                >
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select fuel type" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    <SelectItem value="petrol">Petrol</SelectItem>
-                    <SelectItem value="diesel">Diesel</SelectItem>
-                    <SelectItem value="electric">Electric</SelectItem>
-                    <SelectItem value="hybrid">Hybrid</SelectItem>
-                    <SelectItem value="lpg">LPG</SelectItem>
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </div>
-
-        <FormField
-          control={form.control}
-          name="notes"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Notes</FormLabel>
-              <FormControl>
-                <Textarea
-                  placeholder="Enter any additional notes"
-                  className="resize-none"
-                  {...field}
+    <form
+      onSubmit={(e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        form.handleSubmit();
+      }}
+      className="space-y-6"
+    >
+      <div className="flex items-center gap-2">
+        <form.Field name="registrationNumber">
+          {(field) => (
+            <TanstackFormItem field={field} className="flex-1">
+              <TanstackFormLabel>Registration Number</TanstackFormLabel>
+              <TanstackFormControl>
+                <Input
+                  placeholder="Enter registration number"
+                  value={field.state.value}
+                  onChange={(e) => field.handleChange(e.target.value)}
+                  onBlur={field.handleBlur}
                 />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
+              </TanstackFormControl>
+              <TanstackFormMessage />
+            </TanstackFormItem>
           )}
-        />
+        </form.Field>
+        <VerifiedBadge status={verificationStatus || 'UNVERIFIED'} />
+      </div>
 
-        <div className="flex justify-end gap-4">
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() =>
-              router.push(vehicleId ? `/vehicles/${vehicleId}` : '/vehicles')
-            }
-            disabled={isLoading}
-          >
-            Cancel
-          </Button>
-          <Button type="submit" disabled={isLoading}>
-            {isLoading ? 'Saving...' : submitLabel}
-          </Button>
-        </div>
-      </form>
-    </Form>
+      <div className="grid grid-cols-2 gap-4">
+        <form.Field name="make">
+          {(field) => (
+            <TanstackFormItem field={field}>
+              <TanstackFormLabel>Make</TanstackFormLabel>
+              <TanstackFormControl>
+                <Input
+                  placeholder="Enter make"
+                  value={field.state.value}
+                  onChange={(e) => field.handleChange(e.target.value)}
+                  onBlur={field.handleBlur}
+                />
+              </TanstackFormControl>
+              <TanstackFormMessage />
+            </TanstackFormItem>
+          )}
+        </form.Field>
+
+        <form.Field name="model">
+          {(field) => (
+            <TanstackFormItem field={field}>
+              <TanstackFormLabel>Model</TanstackFormLabel>
+              <TanstackFormControl>
+                <Input
+                  placeholder="Enter model"
+                  value={field.state.value}
+                  onChange={(e) => field.handleChange(e.target.value)}
+                  onBlur={field.handleBlur}
+                />
+              </TanstackFormControl>
+              <TanstackFormMessage />
+            </TanstackFormItem>
+          )}
+        </form.Field>
+      </div>
+
+      <div className="grid grid-cols-2 gap-4">
+        <form.Field name="year">
+          {(field) => (
+            <TanstackFormItem field={field}>
+              <TanstackFormLabel>Year</TanstackFormLabel>
+              <TanstackFormControl>
+                <Input
+                  type="number"
+                  placeholder="Enter year"
+                  value={field.state.value}
+                  onChange={(e) => field.handleChange(e.target.value)}
+                  onBlur={field.handleBlur}
+                />
+              </TanstackFormControl>
+              <TanstackFormMessage />
+            </TanstackFormItem>
+          )}
+        </form.Field>
+
+        <form.Field name="color">
+          {(field) => (
+            <TanstackFormItem field={field}>
+              <TanstackFormLabel>Color</TanstackFormLabel>
+              <TanstackFormControl>
+                <Input
+                  placeholder="Enter color"
+                  value={field.state.value}
+                  onChange={(e) => field.handleChange(e.target.value)}
+                  onBlur={field.handleBlur}
+                />
+              </TanstackFormControl>
+              <TanstackFormMessage />
+            </TanstackFormItem>
+          )}
+        </form.Field>
+      </div>
+
+      <div className="grid grid-cols-2 gap-4">
+        <form.Field name="bodyType">
+          {(field) => (
+            <TanstackFormItem field={field}>
+              <TanstackFormLabel>Body Type</TanstackFormLabel>
+              <Select
+                onValueChange={(val) => field.handleChange(val)}
+                defaultValue={field.state.value}
+              >
+                <TanstackFormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select body type" />
+                  </SelectTrigger>
+                </TanstackFormControl>
+                <SelectContent>
+                  <SelectItem value="hatchback">Hatchback</SelectItem>
+                  <SelectItem value="saloon">Saloon</SelectItem>
+                  <SelectItem value="estate">Estate</SelectItem>
+                  <SelectItem value="suv">SUV</SelectItem>
+                  <SelectItem value="van">Van</SelectItem>
+                  <SelectItem value="motorcycle">Motorcycle</SelectItem>
+                </SelectContent>
+              </Select>
+              <TanstackFormMessage />
+            </TanstackFormItem>
+          )}
+        </form.Field>
+
+        <form.Field name="fuelType">
+          {(field) => (
+            <TanstackFormItem field={field}>
+              <TanstackFormLabel>Fuel Type</TanstackFormLabel>
+              <Select
+                onValueChange={(val) => field.handleChange(val)}
+                defaultValue={field.state.value}
+              >
+                <TanstackFormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select fuel type" />
+                  </SelectTrigger>
+                </TanstackFormControl>
+                <SelectContent>
+                  <SelectItem value="petrol">Petrol</SelectItem>
+                  <SelectItem value="diesel">Diesel</SelectItem>
+                  <SelectItem value="electric">Electric</SelectItem>
+                  <SelectItem value="hybrid">Hybrid</SelectItem>
+                  <SelectItem value="lpg">LPG</SelectItem>
+                </SelectContent>
+              </Select>
+              <TanstackFormMessage />
+            </TanstackFormItem>
+          )}
+        </form.Field>
+      </div>
+
+      <form.Field name="notes">
+        {(field) => (
+          <TanstackFormItem field={field}>
+            <TanstackFormLabel>Notes</TanstackFormLabel>
+            <TanstackFormControl>
+              <Textarea
+                placeholder="Enter any additional notes"
+                className="resize-none"
+                value={field.state.value || ''}
+                onChange={(e) => field.handleChange(e.target.value)}
+                onBlur={field.handleBlur}
+              />
+            </TanstackFormControl>
+            <TanstackFormMessage />
+          </TanstackFormItem>
+        )}
+      </form.Field>
+
+      <div className="flex justify-end gap-4">
+        <Button
+          type="button"
+          variant="outline"
+          onClick={() =>
+            router.push(vehicleId ? `/vehicles/${vehicleId}` : '/vehicles')
+          }
+          disabled={isLoading}
+        >
+          Cancel
+        </Button>
+        <Button type="submit" disabled={isLoading}>
+          {isLoading ? 'Saving...' : submitLabel}
+        </Button>
+      </div>
+    </form>
   );
 };
 

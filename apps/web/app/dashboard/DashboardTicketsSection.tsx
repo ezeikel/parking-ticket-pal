@@ -4,7 +4,7 @@ import {
   SubscriptionType,
   IssuerType,
 } from '@parking-ticket-pal/db/types';
-import { getTickets } from '@/app/actions/ticket';
+import { getCachedTickets } from '@/app/actions/ticket';
 import { getUserSubscriptionStatus } from '@/app/actions/user';
 import { getUserId } from '@/utils/user';
 import { getDisplayAmount } from '@/utils/getCurrentAmountDue';
@@ -76,7 +76,7 @@ const mapTicketStatus = (status: string): TicketStatus => {
 
 const DashboardTicketsSection = async () => {
   const [ticketsData, userId] = await Promise.all([
-    getTickets(),
+    getCachedTickets(),
     getUserId('view dashboard'),
   ]);
 
@@ -106,7 +106,7 @@ const DashboardTicketsSection = async () => {
       id: ticket.id,
       pcnNumber: ticket.pcnNumber,
       issuer: ticket.issuer || 'Unknown Issuer',
-      issuerType: ticket.issuerType as IssuerType,
+      issuerType: ticket.issuerType,
       status: mapTicketStatus(ticket.status),
       amount: getDisplayAmount(ticket),
       location: location?.line1 || 'Location not specified',
@@ -114,7 +114,7 @@ const DashboardTicketsSection = async () => {
       deadlineDays,
       successPrediction: ticket.prediction?.percentage,
       vehicleReg: ticket.vehicle?.registrationNumber,
-      tier: ticket.tier as TicketTier,
+      tier: ticket.tier,
       coordinates: location?.coordinates
         ? {
             lat: location.coordinates.latitude,

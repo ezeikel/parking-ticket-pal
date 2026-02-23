@@ -4,7 +4,7 @@ import { motion } from 'framer-motion';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faLocationDot } from '@fortawesome/pro-solid-svg-icons';
 import { Address } from '@parking-ticket-pal/types';
-import LocationMap from '@/components/LocationMap/LocationMap';
+import LocationMap from '@/components/LocationMap/DynamicLocationMap';
 
 type LocationCardProps = {
   location: Address | null;
@@ -27,8 +27,8 @@ const LocationCard = ({ location }: LocationCardProps) => {
       {hasCoordinates ? (
         <div className="mt-4 h-48 overflow-hidden rounded-lg md:h-56">
           <LocationMap
-            latitude={location.coordinates!.latitude}
-            longitude={location.coordinates!.longitude}
+            latitude={location.coordinates.latitude}
+            longitude={location.coordinates.longitude}
           />
         </div>
       ) : (

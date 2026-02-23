@@ -1,6 +1,6 @@
 import { Suspense } from 'react';
 import { getTicket } from '@/app/actions/ticket';
-import { TicketDetailPage } from '@/components/ticket-detail';
+import TicketDetailPage from '@/components/ticket-detail/TicketDetailPage';
 import PaymentRedirectHandler from '@/components/PaymentRedirectHandler/PaymentRedirectHandler';
 
 type TicketPageProps = {

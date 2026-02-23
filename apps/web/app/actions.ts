@@ -1,8 +1,7 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
-import { MediaType, MediaSource } from '@parking-ticket-pal/db';
-import { db } from '@parking-ticket-pal/db';
+import { MediaType, MediaSource, db } from '@parking-ticket-pal/db';
 import { getUserId } from '@/utils/user';
 import { createServerLogger } from '@/lib/logger';
 
@@ -32,9 +31,16 @@ export const getEvidenceImages = async ({
 }: {
   pcnNumber: string;
 }) => {
-  const ticketWithMedia = await db.ticket.findUnique({
+  const userId = await getUserId('get evidence images');
+
+  if (!userId) {
+    return null;
+  }
+
+  const ticketWithMedia = await db.ticket.findFirst({
     where: {
       pcnNumber,
+      vehicle: { userId },
     },
     select: {
       media: {

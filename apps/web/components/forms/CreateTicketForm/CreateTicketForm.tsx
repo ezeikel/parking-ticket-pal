@@ -1,20 +1,17 @@
 'use client';
 
 import { ChangeEvent, useState, useEffect } from 'react';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
+import { useForm } from '@tanstack/react-form';
 import { useRouter } from 'next/navigation';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from '@/components/ui/form';
+  TanstackFormItem,
+  TanstackFormLabel,
+  TanstackFormControl,
+  TanstackFormMessage,
+} from '@/components/ui/tanstack-form';
 import { Calendar } from '@/components/ui/calendar';
 import {
   Popover,
@@ -43,10 +40,10 @@ import { compressImage } from '@/utils/compressImage';
 import createUTCDate from '@/utils/createUTCDate';
 import useLogger from '@/lib/use-logger';
 
-interface CreateTicketFormProps {
+type CreateTicketFormProps = {
   tier?: 'standard' | 'premium' | null;
   source?: string | null;
-}
+};
 
 const CreateTicketForm = ({ tier, source }: CreateTicketFormProps) => {
   const [isLoading, setIsLoading] = useState(false);
@@ -67,8 +64,7 @@ const CreateTicketForm = ({ tier, source }: CreateTicketFormProps) => {
     }
   }, [tier, source, track]);
 
-  const form = useForm<TicketFormData>({
-    resolver: zodResolver(ticketFormSchema),
+  const form = useForm({
     defaultValues: {
       vehicleReg: '',
       pcnNumber: '',
@@ -77,71 +73,73 @@ const CreateTicketForm = ({ tier, source }: CreateTicketFormProps) => {
       initialAmount: 0,
       issuer: '',
       location: undefined,
+    } as unknown as TicketFormData,
+    validators: {
+      onSubmit: ticketFormSchema,
     },
-  });
+    onSubmit: async ({ value }) => {
+      setIsLoading(true);
 
-  const onSubmit = async (values: TicketFormData) => {
-    setIsLoading(true);
-
-    try {
-      const ticket = await createTicket({
-        ...values,
-        tempImageUrl,
-        tempImagePath,
-        extractedText,
-      });
-
-      if (ticket) {
-        await track(TRACKING_EVENTS.TICKET_CREATED, {
-          ticketId: ticket.id,
-          pcnNumber: ticket.pcnNumber,
-          issuer: ticket.issuer,
-          issuerType: ticket.issuerType,
-          prefilled: !!ticket.extractedText,
+      try {
+        const ticket = await createTicket({
+          ...value,
+          tempImageUrl,
+          tempImagePath,
+          extractedText,
         });
 
-        // Track if ticket was created with a tier from pricing page
-        if (tier && source) {
-          await track(TRACKING_EVENTS.PRICING_TICKET_CREATED_WITH_TIER, {
+        if (ticket) {
+          await track(TRACKING_EVENTS.TICKET_CREATED, {
             ticketId: ticket.id,
+            pcnNumber: ticket.pcnNumber,
+            issuer: ticket.issuer,
+            issuerType: ticket.issuerType,
+            prefilled: !!ticket.extractedText,
+          });
+
+          // Track if ticket was created with a tier from pricing page
+          if (tier && source) {
+            await track(TRACKING_EVENTS.PRICING_TICKET_CREATED_WITH_TIER, {
+              ticketId: ticket.id,
+              tier,
+              source,
+            });
+          }
+
+          toast.success('Ticket created successfully');
+
+          // If tier is selected from pricing page, redirect to checkout
+          if (tier) {
+            const checkoutParams = new URLSearchParams({
+              ticketId: ticket.id,
+              tier,
+            });
+            if (source) {
+              checkoutParams.append('source', source);
+            }
+            router.push(`/checkout?${checkoutParams.toString()}`);
+          } else {
+            router.push('/');
+          }
+        } else {
+          throw new Error('Failed to create ticket');
+        }
+      } catch (error) {
+        logger.error(
+          'Error creating ticket',
+          {
             tier,
             source,
-          });
-        }
-
-        toast.success('Ticket created successfully');
-
-        // If tier is selected from pricing page, redirect to checkout
-        if (tier) {
-          const checkoutParams = new URLSearchParams({
-            ticketId: ticket.id,
-            tier,
-          });
-          if (source) {
-            checkoutParams.append('source', source);
-          }
-          router.push(`/checkout?${checkoutParams.toString()}`);
-        } else {
-          router.push('/');
-        }
-      } else {
-        throw new Error('Failed to create ticket');
+            hasImage: !!tempImageUrl,
+          },
+          error instanceof Error ? error : undefined,
+        );
+        toast.error('Failed to create ticket. Please try again.');
+      } finally {
+        setIsLoading(false);
       }
-    } catch (error) {
-      logger.error(
-        'Error creating ticket',
-        {
-          tier,
-          source,
-          hasImage: !!tempImageUrl,
-        },
-        error instanceof Error ? error : undefined,
-      );
-      toast.error('Failed to create ticket. Please try again.');
-    } finally {
-      setIsLoading(false);
-    }
-  };
+    },
+  });
 
   const handleFileUpload = async (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -182,13 +180,13 @@ const CreateTicketForm = ({ tier, source }: CreateTicketFormProps) => {
       setExtractedText(result.data.extractedText || '');
 
       // prefill form with parsed data
-      form.setValue('pcnNumber', result.data.pcnNumber);
-      form.setValue('vehicleReg', result.data.vehicleReg);
-      form.setValue('issuedAt', new Date(result.data.issuedAt));
-      form.setValue('contraventionCode', result.data.contraventionCode);
-      form.setValue('initialAmount', result.data.initialAmount);
-      form.setValue('issuer', result.data.issuer);
-      form.setValue('location', result.data.location);
+      form.setFieldValue('pcnNumber', result.data.pcnNumber);
+      form.setFieldValue('vehicleReg', result.data.vehicleReg);
+      form.setFieldValue('issuedAt', new Date(result.data.issuedAt));
+      form.setFieldValue('contraventionCode', result.data.contraventionCode);
+      form.setFieldValue('initialAmount', result.data.initialAmount);
+      form.setFieldValue('issuer', result.data.issuer);
+      form.setFieldValue('location', result.data.location);
 
       toast.success('Form prefilled with ticket details');
     } catch (error) {
@@ -204,217 +202,232 @@ const CreateTicketForm = ({ tier, source }: CreateTicketFormProps) => {
   };
 
   return (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-        <div className="flex items-center justify-center w-full mb-4">
-          <label
-            htmlFor="ticket-file-upload"
-            className="flex flex-col items-center justify-center w-full h-32 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100"
-          >
-            <div className="flex flex-col items-center justify-center pt-5 pb-6">
-              {isLoading ? (
-                <FontAwesomeIcon
-                  icon={faSpinnerThird}
-                  className="w-8 h-8 mb-4 text-gray-500 animate-spin"
-                />
-              ) : (
-                <FontAwesomeIcon
-                  icon={faCamera}
-                  className="w-8 h-8 mb-4 text-gray-500"
-                />
-              )}
-              <p className="text-sm text-gray-500">
-                {isLoading
-                  ? 'Processing image...'
-                  : 'Upload image to pre-fill form'}
-              </p>
-            </div>
-            <input
-              id="ticket-file-upload"
-              type="file"
-              className="hidden"
-              accept="image/*,.pdf"
-              onChange={handleFileUpload}
-              disabled={isLoading}
-            />
-          </label>
-        </div>
-
-        {isLoading ? (
-          <div className="flex justify-center">
-            <FontAwesomeIcon icon={faSpinnerThird} spin size="3x" />
+    <form
+      onSubmit={(e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        form.handleSubmit();
+      }}
+      className="space-y-6"
+    >
+      <div className="flex items-center justify-center w-full mb-4">
+        <label
+          htmlFor="ticket-file-upload"
+          className="flex flex-col items-center justify-center w-full h-32 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100"
+        >
+          <div className="flex flex-col items-center justify-center pt-5 pb-6">
+            {isLoading ? (
+              <FontAwesomeIcon
+                icon={faSpinnerThird}
+                className="w-8 h-8 mb-4 text-gray-500 animate-spin"
+              />
+            ) : (
+              <FontAwesomeIcon
+                icon={faCamera}
+                className="w-8 h-8 mb-4 text-gray-500"
+              />
+            )}
+            <p className="text-sm text-gray-500">
+              {isLoading
+                ? 'Processing image...'
+                : 'Upload image to pre-fill form'}
+            </p>
           </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <FormField
-              control={form.control}
-              name="vehicleReg"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Vehicle Registration</FormLabel>
-                  <FormControl>
-                    <Input placeholder="AB12 CDE" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+          <input
+            id="ticket-file-upload"
+            type="file"
+            className="hidden"
+            accept="image/*,.pdf"
+            onChange={handleFileUpload}
+            disabled={isLoading}
+          />
+        </label>
+      </div>
 
-            <FormField
-              control={form.control}
-              name="pcnNumber"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>PCN Number</FormLabel>
-                  <FormControl>
-                    <Input placeholder="PCN12345678" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+      {isLoading ? (
+        <div className="flex justify-center">
+          <FontAwesomeIcon icon={faSpinnerThird} spin size="3x" />
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <form.Field name="vehicleReg">
+            {(field) => (
+              <TanstackFormItem field={field}>
+                <TanstackFormLabel>Vehicle Registration</TanstackFormLabel>
+                <TanstackFormControl>
+                  <Input
+                    placeholder="AB12 CDE"
+                    value={field.state.value}
+                    onChange={(e) => field.handleChange(e.target.value)}
+                    onBlur={field.handleBlur}
+                  />
+                </TanstackFormControl>
+                <TanstackFormMessage />
+              </TanstackFormItem>
+            )}
+          </form.Field>
 
-            <FormField
-              control={form.control}
-              name="issuedAt"
-              render={({ field }) => (
-                <FormItem className="flex flex-col">
-                  <FormLabel>Date Issued</FormLabel>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <FormControl>
-                        <Button
-                          variant="outline"
-                          className={cn(
-                            'w-full pl-3 text-left font-normal',
-                            !field.value && 'text-muted-foreground',
-                          )}
-                        >
-                          {field.value ? (
-                            format(field.value, 'PPP')
-                          ) : (
-                            <span>Pick a date</span>
-                          )}
-                          <FontAwesomeIcon
-                            icon={faCalendar}
-                            className="ml-auto h-4 w-4 opacity-50"
-                          />
-                        </Button>
-                      </FormControl>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0" align="start">
-                      <Calendar
-                        mode="single"
-                        selected={field.value}
-                        onSelect={(date) => {
-                          if (date) {
-                            // create timezone-safe date immediately when user selects
-                            const safeDate = createUTCDate(date);
-                            logger.debug('Calendar selection', {
-                              userSelected: date.toDateString(),
-                              safeDate: safeDate.toISOString(),
-                            });
-                            field.onChange(safeDate);
-                          }
-                        }}
-                        disabled={(date) =>
-                          date > new Date() || date < new Date('1900-01-01')
+          <form.Field name="pcnNumber">
+            {(field) => (
+              <TanstackFormItem field={field}>
+                <TanstackFormLabel>PCN Number</TanstackFormLabel>
+                <TanstackFormControl>
+                  <Input
+                    placeholder="PCN12345678"
+                    value={field.state.value}
+                    onChange={(e) => field.handleChange(e.target.value)}
+                    onBlur={field.handleBlur}
+                  />
+                </TanstackFormControl>
+                <TanstackFormMessage />
+              </TanstackFormItem>
+            )}
+          </form.Field>
+
+          <form.Field name="issuedAt">
+            {(field) => (
+              <TanstackFormItem field={field} className="flex flex-col">
+                <TanstackFormLabel>Date Issued</TanstackFormLabel>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <TanstackFormControl>
+                      <Button
+                        variant="outline"
+                        className={cn(
+                          'w-full pl-3 text-left font-normal',
+                          !field.state.value && 'text-muted-foreground',
+                        )}
+                      >
+                        {field.state.value ? (
+                          format(field.state.value, 'PPP')
+                        ) : (
+                          <span>Pick a date</span>
+                        )}
+                        <FontAwesomeIcon
+                          icon={faCalendar}
+                          className="ml-auto h-4 w-4 opacity-50"
+                        />
+                      </Button>
+                    </TanstackFormControl>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar
+                      mode="single"
+                      selected={field.state.value}
+                      onSelect={(date) => {
+                        if (date) {
+                          // create timezone-safe date immediately when user selects
+                          const safeDate = createUTCDate(date);
+                          logger.debug('Calendar selection', {
+                            userSelected: date.toDateString(),
+                            safeDate: safeDate.toISOString(),
+                          });
+                          field.handleChange(safeDate);
                         }
-                        initialFocus
-                      />
-                    </PopoverContent>
-                  </Popover>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="contraventionCode"
-              render={({ field }) => (
-                <FormItem className="col-span-1 md:col-span-2">
-                  <FormLabel>Contravention</FormLabel>
-                  <FormControl>
-                    <ContraventionCodeSelect
-                      value={field.value}
-                      onChange={field.onChange}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="initialAmount"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Initial Amount (£)</FormLabel>
-                  <FormControl>
-                    <Input
-                      type="number"
-                      placeholder="70"
-                      {...field}
-                      onChange={(e) =>
-                        field.onChange(Math.round(Number(e.target.value) * 100))
-                      }
-                      value={field.value === 0 ? undefined : field.value / 100}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="issuer"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Issuer</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Local Council" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="location"
-              render={({ field }) => (
-                <FormItem className="col-span-2">
-                  <FormLabel>Location</FormLabel>
-                  <FormControl>
-                    <AddressInput
-                      onSelect={(address) => {
-                        field.onChange(address);
                       }}
-                      className="w-full"
-                      initialValue={
-                        field.value?.line1
-                          ? `${field.value.line1}, ${field.value.city}, ${field.value.postcode}`
-                          : undefined
+                      disabled={(date) =>
+                        date > new Date() || date < new Date('1900-01-01')
                       }
+                      initialFocus
                     />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </div>
-        )}
+                  </PopoverContent>
+                </Popover>
+                <TanstackFormMessage />
+              </TanstackFormItem>
+            )}
+          </form.Field>
 
-        <div className="flex justify-end">
-          <Button type="submit" disabled={isLoading}>
-            {isLoading ? 'Creating...' : 'Create Ticket'}
-          </Button>
+          <form.Field name="contraventionCode">
+            {(field) => (
+              <TanstackFormItem
+                field={field}
+                className="col-span-1 md:col-span-2"
+              >
+                <TanstackFormLabel>Contravention</TanstackFormLabel>
+                <TanstackFormControl>
+                  <ContraventionCodeSelect
+                    value={field.state.value}
+                    onChange={(val) => field.handleChange(val)}
+                  />
+                </TanstackFormControl>
+                <TanstackFormMessage />
+              </TanstackFormItem>
+            )}
+          </form.Field>
+
+          <form.Field name="initialAmount">
+            {(field) => (
+              <TanstackFormItem field={field}>
+                <TanstackFormLabel>Initial Amount (£)</TanstackFormLabel>
+                <TanstackFormControl>
+                  <Input
+                    type="number"
+                    placeholder="70"
+                    value={
+                      field.state.value === 0
+                        ? undefined
+                        : field.state.value / 100
+                    }
+                    onChange={(e) =>
+                      field.handleChange(
+                        Math.round(Number(e.target.value) * 100),
+                      )
+                    }
+                    onBlur={field.handleBlur}
+                  />
+                </TanstackFormControl>
+                <TanstackFormMessage />
+              </TanstackFormItem>
+            )}
+          </form.Field>
+
+          <form.Field name="issuer">
+            {(field) => (
+              <TanstackFormItem field={field}>
+                <TanstackFormLabel>Issuer</TanstackFormLabel>
+                <TanstackFormControl>
+                  <Input
+                    placeholder="Local Council"
+                    value={field.state.value}
+                    onChange={(e) => field.handleChange(e.target.value)}
+                    onBlur={field.handleBlur}
+                  />
+                </TanstackFormControl>
+                <TanstackFormMessage />
+              </TanstackFormItem>
+            )}
+          </form.Field>
+
+          <form.Field name="location">
+            {(field) => (
+              <TanstackFormItem field={field} className="col-span-2">
+                <TanstackFormLabel>Location</TanstackFormLabel>
+                <TanstackFormControl>
+                  <AddressInput
+                    onSelect={(address) => {
+                      field.handleChange(address);
+                    }}
+                    className="w-full"
+                    initialValue={
+                      field.state.value?.line1
+                        ? `${field.state.value.line1}, ${field.state.value.city}, ${field.state.value.postcode}`
+                        : undefined
+                    }
+                  />
+                </TanstackFormControl>
+                <TanstackFormMessage />
+              </TanstackFormItem>
+            )}
+          </form.Field>
         </div>
-      </form>
-    </Form>
+      )}
+
+      <div className="flex justify-end">
+        <Button type="submit" disabled={isLoading}>
+          {isLoading ? 'Creating...' : 'Create Ticket'}
+        </Button>
+      </div>
+    </form>
   );
 };
 

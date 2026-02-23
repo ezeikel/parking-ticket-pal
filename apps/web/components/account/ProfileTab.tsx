@@ -1,8 +1,7 @@
 'use client';
 
-import { useState, useEffect, useActionState } from 'react';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
+import { useState, useEffect } from 'react';
+import { useForm } from '@tanstack/react-form';
 import { z } from 'zod';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
@@ -16,17 +15,16 @@ import { updateUserProfile } from '@/app/actions/user';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from '@/components/ui/form';
+  TanstackFormItem,
+  TanstackFormLabel,
+  TanstackFormControl,
+  TanstackFormMessage,
+} from '@/components/ui/tanstack-form';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import AddressInput from '@/components/forms/inputs/AddressInput/AddressInput';
 import SignatureInput from '@/components/SignatureInput/SignatureInput';
 import { toast } from 'sonner';
+import { Label } from '@/components/ui/label';
 
 type UserAddress = {
   line1?: string;
@@ -44,21 +42,20 @@ const profileFormSchema = z.object({
     .regex(/^((\+44)|0)?7\d{9}$/, {
       message: 'Please enter a valid UK phone number.',
     })
-    .optional()
     .nullable()
     .or(z.literal('')),
-  addressLine1: z.string().optional(),
-  addressLine2: z.string().optional(),
-  city: z.string().optional(),
-  county: z.string().optional(),
+  addressLine1: z.string().or(z.literal('')).or(z.literal(undefined)),
+  addressLine2: z.string().or(z.literal('')).or(z.literal(undefined)),
+  city: z.string().or(z.literal('')).or(z.literal(undefined)),
+  county: z.string().or(z.literal('')).or(z.literal(undefined)),
   postcode: z
     .string()
     .regex(/^[A-Z]{1,2}\d[A-Z\d]? ?\d[A-Z]{2}$/i, {
       message: 'Please enter a valid UK postcode',
     })
-    .optional()
-    .or(z.literal('')),
-  signatureDataUrl: z.string().optional().nullable(),
+    .or(z.literal(''))
+    .or(z.literal(undefined)),
+  signatureDataUrl: z.string().nullable().or(z.literal(undefined)),
 });
 
 type ProfileTabProps = {
@@ -71,11 +68,10 @@ const ProfileTab = ({ user }: ProfileTabProps) => {
   const [isSaving, setIsSaving] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
 
-  const form = useForm<z.infer<typeof profileFormSchema>>({
-    resolver: zodResolver(profileFormSchema),
+  const form = useForm({
     defaultValues: {
       name: user?.name || '',
-      phoneNumber: user?.phoneNumber || '',
+      phoneNumber: (user?.phoneNumber || '') as string | null | undefined,
       addressLine1: user?.address
         ? (user.address as UserAddress).line1
         : undefined,
@@ -87,44 +83,59 @@ const ProfileTab = ({ user }: ProfileTabProps) => {
       postcode: user?.address
         ? (user.address as UserAddress).postcode
         : undefined,
-      signatureDataUrl: user?.signatureUrl || undefined,
+      signatureDataUrl: (user?.signatureUrl || undefined) as
+        | string
+        | null
+        | undefined,
     },
-  });
-
-  const [, formAction] = useActionState(
-    async (_: unknown, formData: FormData) => {
+    validators: {
+      onSubmit: profileFormSchema,
+    },
+    onSubmit: async ({ value }) => {
       setIsSaving(true);
       try {
+        // Build FormData to pass to the server action
+        const formData = new FormData();
+        formData.set('name', value.name);
+        if (value.phoneNumber) formData.set('phoneNumber', value.phoneNumber);
+        if (value.addressLine1)
+          formData.set('addressLine1', value.addressLine1);
+        if (value.addressLine2)
+          formData.set('addressLine2', value.addressLine2);
+        if (value.city) formData.set('city', value.city);
+        if (value.county) formData.set('county', value.county);
+        if (value.postcode) formData.set('postcode', value.postcode);
+        if (signatureDataUrl)
+          formData.set('signatureDataUrl', signatureDataUrl);
+
         const result = await updateUserProfile(user.id!, formData);
         if (result?.success) {
           setShowSuccess(true);
           toast.success('Profile updated successfully');
           setTimeout(() => setShowSuccess(false), 2000);
         }
-        return result;
       } finally {
         setIsSaving(false);
       }
     },
-    null,
-  );
+  });
 
   const handleAddressSelect = (address: Address) => {
-    form.setValue('addressLine1', address.line1, { shouldValidate: true });
+    form.setFieldValue('addressLine1', address.line1);
     if (address.line2) {
-      form.setValue('addressLine2', address.line2, { shouldValidate: true });
+      form.setFieldValue('addressLine2', address.line2);
     }
-    form.setValue('city', address.city, { shouldValidate: true });
+    form.setFieldValue('city', address.city);
     if (address.county) {
-      form.setValue('county', address.county, { shouldValidate: true });
+      form.setFieldValue('county', address.county);
     }
-    form.setValue('postcode', address.postcode, { shouldValidate: true });
+    form.setFieldValue('postcode', address.postcode);
     setShowAddressInput(false);
   };
 
   useEffect(() => {
     if (signatureDataUrl) {
-      form.setValue('signatureDataUrl', signatureDataUrl);
+      form.setFieldValue('signatureDataUrl', signatureDataUrl);
     }
   }, [signatureDataUrl, form]);
 
@@ -140,6 +151,12 @@ const ProfileTab = ({ user }: ProfileTabProps) => {
       .map((n) => n[0])
       .join('')
       .toUpperCase() || 'U';
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    form.handleSubmit();
+  };
 
   return (
     <div className="space-y-6">
@@ -171,102 +188,98 @@ const ProfileTab = ({ user }: ProfileTabProps) => {
         </h3>
         <p className="mt-1 text-sm text-gray">Update your personal details.</p>
 
-        <Form {...form}>
-          <form action={formAction} className="mt-6 space-y-5">
-            <input
-              type="hidden"
-              name="signatureDataUrl"
-              value={signatureDataUrl || ''}
-            />
-
-            <FormField
-              control={form.control}
-              name="name"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel className="text-sm font-medium text-dark">
-                    Full Name
-                  </FormLabel>
-                  <FormControl>
-                    <Input
-                      placeholder="John Doe"
-                      className="h-11 rounded-lg border-border"
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            {/* Email (read-only with verified badge) */}
-            <div>
-              <label className="mb-1.5 block text-sm font-medium text-dark">
-                Email
-              </label>
-              <div className="relative">
-                <Input
-                  value={user?.email || ''}
-                  disabled
-                  className="h-11 rounded-lg border-border bg-light pr-24"
-                />
-                {user?.emailVerified && (
-                  <span className="absolute right-3 top-1/2 flex -translate-y-1/2 items-center gap-1 rounded-full bg-teal/10 px-2.5 py-1 text-xs font-medium text-teal">
-                    <FontAwesomeIcon icon={faBadgeCheck} />
-                    Verified
-                  </span>
-                )}
-              </div>
-            </div>
-
-            <FormField
-              control={form.control}
-              name="phoneNumber"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel className="text-sm font-medium text-dark">
-                    Phone Number <span className="text-gray">(Optional)</span>
-                  </FormLabel>
-                  <FormControl>
-                    <Input
-                      placeholder="07123456789"
-                      className="h-11 rounded-lg border-border"
-                      value={field.value || ''}
-                      onChange={field.onChange}
-                      onBlur={field.onBlur}
-                      name={field.name}
-                      ref={field.ref}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <Button
-              type="submit"
-              disabled={isSaving}
-              className="h-11 bg-teal text-white hover:bg-teal-dark"
-            >
-              {isSaving ? (
-                <>
-                  <FontAwesomeIcon
-                    icon={faSpinnerThird}
-                    className="mr-2 animate-spin"
+        <form onSubmit={handleSubmit} className="mt-6 space-y-5">
+          <form.Field name="name">
+            {(field) => (
+              <TanstackFormItem field={field}>
+                <TanstackFormLabel className="text-sm font-medium text-dark">
+                  Full Name
+                </TanstackFormLabel>
+                <TanstackFormControl>
+                  <Input
+                    placeholder="John Doe"
+                    className="h-11 rounded-lg border-border"
+                    name="name"
+                    value={field.state.value}
+                    onChange={(e) => field.handleChange(e.target.value)}
+                    onBlur={field.handleBlur}
                   />
-                  Saving...
-                </>
-              ) : showSuccess ? (
-                <>
-                  <FontAwesomeIcon icon={faCheck} className="mr-2" />
-                  Saved!
-                </>
-              ) : (
-                'Save Changes'
+                </TanstackFormControl>
+                <TanstackFormMessage />
+              </TanstackFormItem>
+            )}
+          </form.Field>
+
+          {/* Email (read-only with verified badge) */}
+          <div>
+            <label className="mb-1.5 block text-sm font-medium text-dark">
+              Email
+            </label>
+            <div className="relative">
+              <Input
+                value={user?.email || ''}
+                disabled
+                className="h-11 rounded-lg border-border bg-light pr-24"
+              />
+              {user?.emailVerified && (
+                <span className="absolute right-3 top-1/2 flex -translate-y-1/2 items-center gap-1 rounded-full bg-teal/10 px-2.5 py-1 text-xs font-medium text-teal">
+                  <FontAwesomeIcon icon={faBadgeCheck} />
+                  Verified
+                </span>
               )}
-            </Button>
-          </form>
-        </Form>
+            </div>
+          </div>
+
+          <form.Field name="phoneNumber">
+            {(field) => (
+              <TanstackFormItem field={field}>
+                <TanstackFormLabel className="text-sm font-medium text-dark">
+                  Phone Number <span className="text-gray">(Optional)</span>
+                </TanstackFormLabel>
+                <TanstackFormControl>
+                  <Input
+                    placeholder="07123456789"
+                    className="h-11 rounded-lg border-border"
+                    name="phoneNumber"
+                    value={field.state.value || ''}
+                    onChange={(e) => field.handleChange(e.target.value)}
+                    onBlur={field.handleBlur}
+                  />
+                </TanstackFormControl>
+                <TanstackFormMessage />
+              </TanstackFormItem>
+            )}
+          </form.Field>
+
+          <Button
+            type="submit"
+            disabled={isSaving}
+            className="h-11 bg-teal text-white hover:bg-teal-dark"
+          >
+            {(() => {
+              if (isSaving) {
+                return (
+                  <>
+                    <FontAwesomeIcon
+                      icon={faSpinnerThird}
+                      className="mr-2 animate-spin"
+                    />
+                    Saving...
+                  </>
+                );
+              }
+              if (showSuccess) {
+                return (
+                  <>
+                    <FontAwesomeIcon icon={faCheck} className="mr-2" />
+                    Saved!
+                  </>
+                );
+              }
+              return 'Save Changes';
+            })()}
+          </Button>
+        </form>
       </div>
 
       {/* Address Card */}
@@ -276,175 +289,178 @@ const ProfileTab = ({ user }: ProfileTabProps) => {
           Your billing and correspondence address.
         </p>
 
-        <Form {...form}>
-          <form action={formAction} className="mt-6 space-y-5">
-            {showAddressInput && (
-              <div>
-                <FormLabel className="text-sm font-medium text-dark">
-                  Find your address
-                </FormLabel>
-                <AddressInput
-                  onSelect={handleAddressSelect}
-                  className="mt-1.5 w-full"
-                />
-                <p className="mt-2 text-xs text-gray">
-                  Start typing to search, or{' '}
-                  <button
-                    type="button"
-                    onClick={() => setShowAddressInput(false)}
-                    className="text-teal hover:underline"
-                  >
-                    enter manually
-                  </button>
-                </p>
-              </div>
-            )}
-
-            {!showAddressInput && (
-              <Button
-                variant="outline"
-                size="sm"
-                type="button"
-                onClick={() => setShowAddressInput(true)}
-                className="mb-4"
-              >
-                Search for address
-              </Button>
-            )}
-
-            <FormField
-              control={form.control}
-              name="addressLine1"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel className="text-sm font-medium text-dark">
-                    Address Line 1
-                  </FormLabel>
-                  <FormControl>
-                    <Input
-                      placeholder="123 High Street"
-                      className="h-11 rounded-lg border-border"
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="addressLine2"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel className="text-sm font-medium text-dark">
-                    Address Line 2 <span className="text-gray">(Optional)</span>
-                  </FormLabel>
-                  <FormControl>
-                    <Input
-                      placeholder="Flat 4B"
-                      className="h-11 rounded-lg border-border"
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <div className="grid grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="city"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="text-sm font-medium text-dark">
-                      City / Town
-                    </FormLabel>
-                    <FormControl>
-                      <Input
-                        placeholder="London"
-                        className="h-11 rounded-lg border-border"
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="postcode"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="text-sm font-medium text-dark">
-                      Postcode
-                    </FormLabel>
-                    <FormControl>
-                      <Input
-                        placeholder="SW1A 1AA"
-                        className="h-11 rounded-lg border-border"
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-
-            <FormField
-              control={form.control}
-              name="county"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel className="text-sm font-medium text-dark">
-                    County <span className="text-gray">(Optional)</span>
-                  </FormLabel>
-                  <FormControl>
-                    <Input
-                      placeholder="Greater London"
-                      className="h-11 rounded-lg border-border"
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            {/* Country is fixed for UK */}
+        <form onSubmit={handleSubmit} className="mt-6 space-y-5">
+          {showAddressInput && (
             <div>
-              <label className="mb-1.5 block text-sm font-medium text-dark">
-                Country
-              </label>
-              <Input
-                value="United Kingdom"
-                disabled
-                className="h-11 rounded-lg border-border bg-light"
+              <Label className="text-sm font-medium text-dark">
+                Find your address
+              </Label>
+              <AddressInput
+                onSelect={handleAddressSelect}
+                className="mt-1.5 w-full"
               />
+              <p className="mt-2 text-xs text-gray">
+                Start typing to search, or{' '}
+                <button
+                  type="button"
+                  onClick={() => setShowAddressInput(false)}
+                  className="text-teal hover:underline"
+                >
+                  enter manually
+                </button>
+              </p>
             </div>
+          )}
 
+          {!showAddressInput && (
             <Button
-              type="submit"
-              disabled={isSaving}
-              className="h-11 bg-teal text-white hover:bg-teal-dark"
+              variant="outline"
+              size="sm"
+              type="button"
+              onClick={() => setShowAddressInput(true)}
+              className="mb-4"
             >
-              {isSaving ? (
-                <>
-                  <FontAwesomeIcon
-                    icon={faSpinnerThird}
-                    className="mr-2 animate-spin"
-                  />
-                  Saving...
-                </>
-              ) : (
-                'Save Address'
-              )}
+              Search for address
             </Button>
-          </form>
-        </Form>
+          )}
+
+          <form.Field name="addressLine1">
+            {(field) => (
+              <TanstackFormItem field={field}>
+                <TanstackFormLabel className="text-sm font-medium text-dark">
+                  Address Line 1
+                </TanstackFormLabel>
+                <TanstackFormControl>
+                  <Input
+                    placeholder="123 High Street"
+                    className="h-11 rounded-lg border-border"
+                    name="addressLine1"
+                    value={field.state.value || ''}
+                    onChange={(e) => field.handleChange(e.target.value)}
+                    onBlur={field.handleBlur}
+                  />
+                </TanstackFormControl>
+                <TanstackFormMessage />
+              </TanstackFormItem>
+            )}
+          </form.Field>
+
+          <form.Field name="addressLine2">
+            {(field) => (
+              <TanstackFormItem field={field}>
+                <TanstackFormLabel className="text-sm font-medium text-dark">
+                  Address Line 2 <span className="text-gray">(Optional)</span>
+                </TanstackFormLabel>
+                <TanstackFormControl>
+                  <Input
+                    placeholder="Flat 4B"
+                    className="h-11 rounded-lg border-border"
+                    name="addressLine2"
+                    value={field.state.value || ''}
+                    onChange={(e) => field.handleChange(e.target.value)}
+                    onBlur={field.handleBlur}
+                  />
+                </TanstackFormControl>
+                <TanstackFormMessage />
+              </TanstackFormItem>
+            )}
+          </form.Field>
+
+          <div className="grid grid-cols-2 gap-4">
+            <form.Field name="city">
+              {(field) => (
+                <TanstackFormItem field={field}>
+                  <TanstackFormLabel className="text-sm font-medium text-dark">
+                    City / Town
+                  </TanstackFormLabel>
+                  <TanstackFormControl>
+                    <Input
+                      placeholder="London"
+                      className="h-11 rounded-lg border-border"
+                      name="city"
+                      value={field.state.value || ''}
+                      onChange={(e) => field.handleChange(e.target.value)}
+                      onBlur={field.handleBlur}
+                    />
+                  </TanstackFormControl>
+                  <TanstackFormMessage />
+                </TanstackFormItem>
+              )}
+            </form.Field>
+
+            <form.Field name="postcode">
+              {(field) => (
+                <TanstackFormItem field={field}>
+                  <TanstackFormLabel className="text-sm font-medium text-dark">
+                    Postcode
+                  </TanstackFormLabel>
+                  <TanstackFormControl>
+                    <Input
+                      placeholder="SW1A 1AA"
+                      className="h-11 rounded-lg border-border"
+                      name="postcode"
+                      value={field.state.value || ''}
+                      onChange={(e) => field.handleChange(e.target.value)}
+                      onBlur={field.handleBlur}
+                    />
+                  </TanstackFormControl>
+                  <TanstackFormMessage />
+                </TanstackFormItem>
+              )}
+            </form.Field>
+          </div>
+
+          <form.Field name="county">
+            {(field) => (
+              <TanstackFormItem field={field}>
+                <TanstackFormLabel className="text-sm font-medium text-dark">
+                  County <span className="text-gray">(Optional)</span>
+                </TanstackFormLabel>
+                <TanstackFormControl>
+                  <Input
+                    placeholder="Greater London"
+                    className="h-11 rounded-lg border-border"
+                    name="county"
+                    value={field.state.value || ''}
+                    onChange={(e) => field.handleChange(e.target.value)}
+                    onBlur={field.handleBlur}
+                  />
+                </TanstackFormControl>
+                <TanstackFormMessage />
+              </TanstackFormItem>
+            )}
+          </form.Field>
+
+          {/* Country is fixed for UK */}
+          <div>
+            <label className="mb-1.5 block text-sm font-medium text-dark">
+              Country
+            </label>
+            <Input
+              value="United Kingdom"
+              disabled
+              className="h-11 rounded-lg border-border bg-light"
+            />
+          </div>
+
+          <Button
+            type="submit"
+            disabled={isSaving}
+            className="h-11 bg-teal text-white hover:bg-teal-dark"
+          >
+            {isSaving ? (
+              <>
+                <FontAwesomeIcon
+                  icon={faSpinnerThird}
+                  className="mr-2 animate-spin"
+                />
+                Saving...
+              </>
+            ) : (
+              'Save Address'
+            )}
+          </Button>
+        </form>
       </div>
 
       {/* Signature Card */}

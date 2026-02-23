@@ -1,7 +1,6 @@
 import { Suspense } from 'react';
 import type { Metadata } from 'next';
 import { Analytics } from '@vercel/analytics/react';
-import PlausibleProvider from 'next-plausible';
 import { config } from '@fortawesome/fontawesome-svg-core';
 import { Toaster } from 'sonner';
 import '@fortawesome/fontawesome-svg-core/styles.css';
@@ -43,9 +42,7 @@ const RootLayout = ({
       'font-sans',
     )}
   >
-    <head>
-      <PlausibleProvider domain="parkingticketpal.com" />
-    </head>
+    <head />
     <body>
       <Suspense>
         <Providers>
