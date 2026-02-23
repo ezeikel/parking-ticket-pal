@@ -3,6 +3,7 @@ import { Slot, useNavigationContainerRef } from 'expo-router';
 import Constants, { ExecutionEnvironment } from "expo-constants";
 import * as Sentry from '@sentry/react-native';
 import { ErrorBoundary } from '@sentry/react-native';
+import * as SplashScreen from 'expo-splash-screen';
 import { Platform, View, Text, Button } from 'react-native';
 import { Toaster } from 'sonner-native';
 import { requestTrackingPermissionsAsync } from 'expo-tracking-transparency';
@@ -30,6 +31,8 @@ Sentry.init({
   integrations: [navigationIntegration, Sentry.mobileReplayIntegration()],
   enableNativeFramesTracking: Constants.executionEnvironment === ExecutionEnvironment.StoreClient,
 });
+
+SplashScreen.preventAutoHideAsync();
 
 const RootLayout = () => {
   const ref = useNavigationContainerRef();
