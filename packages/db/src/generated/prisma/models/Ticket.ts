@@ -350,6 +350,7 @@ export type TicketWhereInput = {
   notifications?: Prisma.NotificationListRelationFilter
   vehicle?: Prisma.XOR<Prisma.VehicleScalarRelationFilter, Prisma.VehicleWhereInput>
   verification?: Prisma.XOR<Prisma.VerificationNullableScalarRelationFilter, Prisma.VerificationWhereInput> | null
+  onboardingSequences?: Prisma.OnboardingSequenceListRelationFilter
 }
 
 export type TicketOrderByWithRelationInput = {
@@ -384,6 +385,7 @@ export type TicketOrderByWithRelationInput = {
   notifications?: Prisma.NotificationOrderByRelationAggregateInput
   vehicle?: Prisma.VehicleOrderByWithRelationInput
   verification?: Prisma.VerificationOrderByWithRelationInput
+  onboardingSequences?: Prisma.OnboardingSequenceOrderByRelationAggregateInput
 }
 
 export type TicketWhereUniqueInput = Prisma.AtLeast<{
@@ -421,6 +423,7 @@ export type TicketWhereUniqueInput = Prisma.AtLeast<{
   notifications?: Prisma.NotificationListRelationFilter
   vehicle?: Prisma.XOR<Prisma.VehicleScalarRelationFilter, Prisma.VehicleWhereInput>
   verification?: Prisma.XOR<Prisma.VerificationNullableScalarRelationFilter, Prisma.VerificationWhereInput> | null
+  onboardingSequences?: Prisma.OnboardingSequenceListRelationFilter
 }, "id" | "pcnNumber">
 
 export type TicketOrderByWithAggregationInput = {
@@ -510,6 +513,7 @@ export type TicketCreateInput = {
   notifications?: Prisma.NotificationCreateNestedManyWithoutTicketInput
   vehicle: Prisma.VehicleCreateNestedOneWithoutTicketsInput
   verification?: Prisma.VerificationCreateNestedOneWithoutTicketInput
+  onboardingSequences?: Prisma.OnboardingSequenceCreateNestedManyWithoutTicketInput
 }
 
 export type TicketUncheckedCreateInput = {
@@ -543,6 +547,7 @@ export type TicketUncheckedCreateInput = {
   challenges?: Prisma.ChallengeUncheckedCreateNestedManyWithoutTicketInput
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutTicketInput
   verification?: Prisma.VerificationUncheckedCreateNestedOneWithoutTicketInput
+  onboardingSequences?: Prisma.OnboardingSequenceUncheckedCreateNestedManyWithoutTicketInput
 }
 
 export type TicketUpdateInput = {
@@ -576,6 +581,7 @@ export type TicketUpdateInput = {
   notifications?: Prisma.NotificationUpdateManyWithoutTicketNestedInput
   vehicle?: Prisma.VehicleUpdateOneRequiredWithoutTicketsNestedInput
   verification?: Prisma.VerificationUpdateOneWithoutTicketNestedInput
+  onboardingSequences?: Prisma.OnboardingSequenceUpdateManyWithoutTicketNestedInput
 }
 
 export type TicketUncheckedUpdateInput = {
@@ -609,6 +615,7 @@ export type TicketUncheckedUpdateInput = {
   challenges?: Prisma.ChallengeUncheckedUpdateManyWithoutTicketNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutTicketNestedInput
   verification?: Prisma.VerificationUncheckedUpdateOneWithoutTicketNestedInput
+  onboardingSequences?: Prisma.OnboardingSequenceUncheckedUpdateManyWithoutTicketNestedInput
 }
 
 export type TicketCreateManyInput = {
@@ -970,6 +977,20 @@ export type TicketUpdateOneWithoutNotificationsNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.TicketUpdateToOneWithWhereWithoutNotificationsInput, Prisma.TicketUpdateWithoutNotificationsInput>, Prisma.TicketUncheckedUpdateWithoutNotificationsInput>
 }
 
+export type TicketCreateNestedOneWithoutOnboardingSequencesInput = {
+  create?: Prisma.XOR<Prisma.TicketCreateWithoutOnboardingSequencesInput, Prisma.TicketUncheckedCreateWithoutOnboardingSequencesInput>
+  connectOrCreate?: Prisma.TicketCreateOrConnectWithoutOnboardingSequencesInput
+  connect?: Prisma.TicketWhereUniqueInput
+}
+
+export type TicketUpdateOneRequiredWithoutOnboardingSequencesNestedInput = {
+  create?: Prisma.XOR<Prisma.TicketCreateWithoutOnboardingSequencesInput, Prisma.TicketUncheckedCreateWithoutOnboardingSequencesInput>
+  connectOrCreate?: Prisma.TicketCreateOrConnectWithoutOnboardingSequencesInput
+  upsert?: Prisma.TicketUpsertWithoutOnboardingSequencesInput
+  connect?: Prisma.TicketWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.TicketUpdateToOneWithWhereWithoutOnboardingSequencesInput, Prisma.TicketUpdateWithoutOnboardingSequencesInput>, Prisma.TicketUncheckedUpdateWithoutOnboardingSequencesInput>
+}
+
 export type TicketCreateWithoutVehicleInput = {
   id?: string
   pcnNumber: string
@@ -1000,6 +1021,7 @@ export type TicketCreateWithoutVehicleInput = {
   challenges?: Prisma.ChallengeCreateNestedManyWithoutTicketInput
   notifications?: Prisma.NotificationCreateNestedManyWithoutTicketInput
   verification?: Prisma.VerificationCreateNestedOneWithoutTicketInput
+  onboardingSequences?: Prisma.OnboardingSequenceCreateNestedManyWithoutTicketInput
 }
 
 export type TicketUncheckedCreateWithoutVehicleInput = {
@@ -1032,6 +1054,7 @@ export type TicketUncheckedCreateWithoutVehicleInput = {
   challenges?: Prisma.ChallengeUncheckedCreateNestedManyWithoutTicketInput
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutTicketInput
   verification?: Prisma.VerificationUncheckedCreateNestedOneWithoutTicketInput
+  onboardingSequences?: Prisma.OnboardingSequenceUncheckedCreateNestedManyWithoutTicketInput
 }
 
 export type TicketCreateOrConnectWithoutVehicleInput = {
@@ -1117,6 +1140,7 @@ export type TicketCreateWithoutMediaInput = {
   notifications?: Prisma.NotificationCreateNestedManyWithoutTicketInput
   vehicle: Prisma.VehicleCreateNestedOneWithoutTicketsInput
   verification?: Prisma.VerificationCreateNestedOneWithoutTicketInput
+  onboardingSequences?: Prisma.OnboardingSequenceCreateNestedManyWithoutTicketInput
 }
 
 export type TicketUncheckedCreateWithoutMediaInput = {
@@ -1149,6 +1173,7 @@ export type TicketUncheckedCreateWithoutMediaInput = {
   challenges?: Prisma.ChallengeUncheckedCreateNestedManyWithoutTicketInput
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutTicketInput
   verification?: Prisma.VerificationUncheckedCreateNestedOneWithoutTicketInput
+  onboardingSequences?: Prisma.OnboardingSequenceUncheckedCreateNestedManyWithoutTicketInput
 }
 
 export type TicketCreateOrConnectWithoutMediaInput = {
@@ -1197,6 +1222,7 @@ export type TicketUpdateWithoutMediaInput = {
   notifications?: Prisma.NotificationUpdateManyWithoutTicketNestedInput
   vehicle?: Prisma.VehicleUpdateOneRequiredWithoutTicketsNestedInput
   verification?: Prisma.VerificationUpdateOneWithoutTicketNestedInput
+  onboardingSequences?: Prisma.OnboardingSequenceUpdateManyWithoutTicketNestedInput
 }
 
 export type TicketUncheckedUpdateWithoutMediaInput = {
@@ -1229,6 +1255,7 @@ export type TicketUncheckedUpdateWithoutMediaInput = {
   challenges?: Prisma.ChallengeUncheckedUpdateManyWithoutTicketNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutTicketNestedInput
   verification?: Prisma.VerificationUncheckedUpdateOneWithoutTicketNestedInput
+  onboardingSequences?: Prisma.OnboardingSequenceUncheckedUpdateManyWithoutTicketNestedInput
 }
 
 export type TicketCreateWithoutLettersInput = {
@@ -1261,6 +1288,7 @@ export type TicketCreateWithoutLettersInput = {
   notifications?: Prisma.NotificationCreateNestedManyWithoutTicketInput
   vehicle: Prisma.VehicleCreateNestedOneWithoutTicketsInput
   verification?: Prisma.VerificationCreateNestedOneWithoutTicketInput
+  onboardingSequences?: Prisma.OnboardingSequenceCreateNestedManyWithoutTicketInput
 }
 
 export type TicketUncheckedCreateWithoutLettersInput = {
@@ -1293,6 +1321,7 @@ export type TicketUncheckedCreateWithoutLettersInput = {
   challenges?: Prisma.ChallengeUncheckedCreateNestedManyWithoutTicketInput
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutTicketInput
   verification?: Prisma.VerificationUncheckedCreateNestedOneWithoutTicketInput
+  onboardingSequences?: Prisma.OnboardingSequenceUncheckedCreateNestedManyWithoutTicketInput
 }
 
 export type TicketCreateOrConnectWithoutLettersInput = {
@@ -1341,6 +1370,7 @@ export type TicketUpdateWithoutLettersInput = {
   notifications?: Prisma.NotificationUpdateManyWithoutTicketNestedInput
   vehicle?: Prisma.VehicleUpdateOneRequiredWithoutTicketsNestedInput
   verification?: Prisma.VerificationUpdateOneWithoutTicketNestedInput
+  onboardingSequences?: Prisma.OnboardingSequenceUpdateManyWithoutTicketNestedInput
 }
 
 export type TicketUncheckedUpdateWithoutLettersInput = {
@@ -1373,6 +1403,7 @@ export type TicketUncheckedUpdateWithoutLettersInput = {
   challenges?: Prisma.ChallengeUncheckedUpdateManyWithoutTicketNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutTicketNestedInput
   verification?: Prisma.VerificationUncheckedUpdateOneWithoutTicketNestedInput
+  onboardingSequences?: Prisma.OnboardingSequenceUncheckedUpdateManyWithoutTicketNestedInput
 }
 
 export type TicketCreateWithoutRemindersInput = {
@@ -1405,6 +1436,7 @@ export type TicketCreateWithoutRemindersInput = {
   notifications?: Prisma.NotificationCreateNestedManyWithoutTicketInput
   vehicle: Prisma.VehicleCreateNestedOneWithoutTicketsInput
   verification?: Prisma.VerificationCreateNestedOneWithoutTicketInput
+  onboardingSequences?: Prisma.OnboardingSequenceCreateNestedManyWithoutTicketInput
 }
 
 export type TicketUncheckedCreateWithoutRemindersInput = {
@@ -1437,6 +1469,7 @@ export type TicketUncheckedCreateWithoutRemindersInput = {
   challenges?: Prisma.ChallengeUncheckedCreateNestedManyWithoutTicketInput
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutTicketInput
   verification?: Prisma.VerificationUncheckedCreateNestedOneWithoutTicketInput
+  onboardingSequences?: Prisma.OnboardingSequenceUncheckedCreateNestedManyWithoutTicketInput
 }
 
 export type TicketCreateOrConnectWithoutRemindersInput = {
@@ -1485,6 +1518,7 @@ export type TicketUpdateWithoutRemindersInput = {
   notifications?: Prisma.NotificationUpdateManyWithoutTicketNestedInput
   vehicle?: Prisma.VehicleUpdateOneRequiredWithoutTicketsNestedInput
   verification?: Prisma.VerificationUpdateOneWithoutTicketNestedInput
+  onboardingSequences?: Prisma.OnboardingSequenceUpdateManyWithoutTicketNestedInput
 }
 
 export type TicketUncheckedUpdateWithoutRemindersInput = {
@@ -1517,6 +1551,7 @@ export type TicketUncheckedUpdateWithoutRemindersInput = {
   challenges?: Prisma.ChallengeUncheckedUpdateManyWithoutTicketNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutTicketNestedInput
   verification?: Prisma.VerificationUncheckedUpdateOneWithoutTicketNestedInput
+  onboardingSequences?: Prisma.OnboardingSequenceUncheckedUpdateManyWithoutTicketNestedInput
 }
 
 export type TicketCreateWithoutFormsInput = {
@@ -1549,6 +1584,7 @@ export type TicketCreateWithoutFormsInput = {
   notifications?: Prisma.NotificationCreateNestedManyWithoutTicketInput
   vehicle: Prisma.VehicleCreateNestedOneWithoutTicketsInput
   verification?: Prisma.VerificationCreateNestedOneWithoutTicketInput
+  onboardingSequences?: Prisma.OnboardingSequenceCreateNestedManyWithoutTicketInput
 }
 
 export type TicketUncheckedCreateWithoutFormsInput = {
@@ -1581,6 +1617,7 @@ export type TicketUncheckedCreateWithoutFormsInput = {
   challenges?: Prisma.ChallengeUncheckedCreateNestedManyWithoutTicketInput
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutTicketInput
   verification?: Prisma.VerificationUncheckedCreateNestedOneWithoutTicketInput
+  onboardingSequences?: Prisma.OnboardingSequenceUncheckedCreateNestedManyWithoutTicketInput
 }
 
 export type TicketCreateOrConnectWithoutFormsInput = {
@@ -1629,6 +1666,7 @@ export type TicketUpdateWithoutFormsInput = {
   notifications?: Prisma.NotificationUpdateManyWithoutTicketNestedInput
   vehicle?: Prisma.VehicleUpdateOneRequiredWithoutTicketsNestedInput
   verification?: Prisma.VerificationUpdateOneWithoutTicketNestedInput
+  onboardingSequences?: Prisma.OnboardingSequenceUpdateManyWithoutTicketNestedInput
 }
 
 export type TicketUncheckedUpdateWithoutFormsInput = {
@@ -1661,6 +1699,7 @@ export type TicketUncheckedUpdateWithoutFormsInput = {
   challenges?: Prisma.ChallengeUncheckedUpdateManyWithoutTicketNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutTicketNestedInput
   verification?: Prisma.VerificationUncheckedUpdateOneWithoutTicketNestedInput
+  onboardingSequences?: Prisma.OnboardingSequenceUncheckedUpdateManyWithoutTicketNestedInput
 }
 
 export type TicketCreateWithoutPredictionInput = {
@@ -1693,6 +1732,7 @@ export type TicketCreateWithoutPredictionInput = {
   notifications?: Prisma.NotificationCreateNestedManyWithoutTicketInput
   vehicle: Prisma.VehicleCreateNestedOneWithoutTicketsInput
   verification?: Prisma.VerificationCreateNestedOneWithoutTicketInput
+  onboardingSequences?: Prisma.OnboardingSequenceCreateNestedManyWithoutTicketInput
 }
 
 export type TicketUncheckedCreateWithoutPredictionInput = {
@@ -1725,6 +1765,7 @@ export type TicketUncheckedCreateWithoutPredictionInput = {
   challenges?: Prisma.ChallengeUncheckedCreateNestedManyWithoutTicketInput
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutTicketInput
   verification?: Prisma.VerificationUncheckedCreateNestedOneWithoutTicketInput
+  onboardingSequences?: Prisma.OnboardingSequenceUncheckedCreateNestedManyWithoutTicketInput
 }
 
 export type TicketCreateOrConnectWithoutPredictionInput = {
@@ -1773,6 +1814,7 @@ export type TicketUpdateWithoutPredictionInput = {
   notifications?: Prisma.NotificationUpdateManyWithoutTicketNestedInput
   vehicle?: Prisma.VehicleUpdateOneRequiredWithoutTicketsNestedInput
   verification?: Prisma.VerificationUpdateOneWithoutTicketNestedInput
+  onboardingSequences?: Prisma.OnboardingSequenceUpdateManyWithoutTicketNestedInput
 }
 
 export type TicketUncheckedUpdateWithoutPredictionInput = {
@@ -1805,6 +1847,7 @@ export type TicketUncheckedUpdateWithoutPredictionInput = {
   challenges?: Prisma.ChallengeUncheckedUpdateManyWithoutTicketNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutTicketNestedInput
   verification?: Prisma.VerificationUncheckedUpdateOneWithoutTicketNestedInput
+  onboardingSequences?: Prisma.OnboardingSequenceUncheckedUpdateManyWithoutTicketNestedInput
 }
 
 export type TicketCreateWithoutAmountIncreasesInput = {
@@ -1837,6 +1880,7 @@ export type TicketCreateWithoutAmountIncreasesInput = {
   notifications?: Prisma.NotificationCreateNestedManyWithoutTicketInput
   vehicle: Prisma.VehicleCreateNestedOneWithoutTicketsInput
   verification?: Prisma.VerificationCreateNestedOneWithoutTicketInput
+  onboardingSequences?: Prisma.OnboardingSequenceCreateNestedManyWithoutTicketInput
 }
 
 export type TicketUncheckedCreateWithoutAmountIncreasesInput = {
@@ -1869,6 +1913,7 @@ export type TicketUncheckedCreateWithoutAmountIncreasesInput = {
   challenges?: Prisma.ChallengeUncheckedCreateNestedManyWithoutTicketInput
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutTicketInput
   verification?: Prisma.VerificationUncheckedCreateNestedOneWithoutTicketInput
+  onboardingSequences?: Prisma.OnboardingSequenceUncheckedCreateNestedManyWithoutTicketInput
 }
 
 export type TicketCreateOrConnectWithoutAmountIncreasesInput = {
@@ -1917,6 +1962,7 @@ export type TicketUpdateWithoutAmountIncreasesInput = {
   notifications?: Prisma.NotificationUpdateManyWithoutTicketNestedInput
   vehicle?: Prisma.VehicleUpdateOneRequiredWithoutTicketsNestedInput
   verification?: Prisma.VerificationUpdateOneWithoutTicketNestedInput
+  onboardingSequences?: Prisma.OnboardingSequenceUpdateManyWithoutTicketNestedInput
 }
 
 export type TicketUncheckedUpdateWithoutAmountIncreasesInput = {
@@ -1949,6 +1995,7 @@ export type TicketUncheckedUpdateWithoutAmountIncreasesInput = {
   challenges?: Prisma.ChallengeUncheckedUpdateManyWithoutTicketNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutTicketNestedInput
   verification?: Prisma.VerificationUncheckedUpdateOneWithoutTicketNestedInput
+  onboardingSequences?: Prisma.OnboardingSequenceUncheckedUpdateManyWithoutTicketNestedInput
 }
 
 export type TicketCreateWithoutVerificationInput = {
@@ -1981,6 +2028,7 @@ export type TicketCreateWithoutVerificationInput = {
   challenges?: Prisma.ChallengeCreateNestedManyWithoutTicketInput
   notifications?: Prisma.NotificationCreateNestedManyWithoutTicketInput
   vehicle: Prisma.VehicleCreateNestedOneWithoutTicketsInput
+  onboardingSequences?: Prisma.OnboardingSequenceCreateNestedManyWithoutTicketInput
 }
 
 export type TicketUncheckedCreateWithoutVerificationInput = {
@@ -2013,6 +2061,7 @@ export type TicketUncheckedCreateWithoutVerificationInput = {
   amountIncreases?: Prisma.AmountIncreaseUncheckedCreateNestedManyWithoutTicketInput
   challenges?: Prisma.ChallengeUncheckedCreateNestedManyWithoutTicketInput
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutTicketInput
+  onboardingSequences?: Prisma.OnboardingSequenceUncheckedCreateNestedManyWithoutTicketInput
 }
 
 export type TicketCreateOrConnectWithoutVerificationInput = {
@@ -2061,6 +2110,7 @@ export type TicketUpdateWithoutVerificationInput = {
   challenges?: Prisma.ChallengeUpdateManyWithoutTicketNestedInput
   notifications?: Prisma.NotificationUpdateManyWithoutTicketNestedInput
   vehicle?: Prisma.VehicleUpdateOneRequiredWithoutTicketsNestedInput
+  onboardingSequences?: Prisma.OnboardingSequenceUpdateManyWithoutTicketNestedInput
 }
 
 export type TicketUncheckedUpdateWithoutVerificationInput = {
@@ -2093,6 +2143,7 @@ export type TicketUncheckedUpdateWithoutVerificationInput = {
   amountIncreases?: Prisma.AmountIncreaseUncheckedUpdateManyWithoutTicketNestedInput
   challenges?: Prisma.ChallengeUncheckedUpdateManyWithoutTicketNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutTicketNestedInput
+  onboardingSequences?: Prisma.OnboardingSequenceUncheckedUpdateManyWithoutTicketNestedInput
 }
 
 export type TicketCreateWithoutChallengesInput = {
@@ -2125,6 +2176,7 @@ export type TicketCreateWithoutChallengesInput = {
   notifications?: Prisma.NotificationCreateNestedManyWithoutTicketInput
   vehicle: Prisma.VehicleCreateNestedOneWithoutTicketsInput
   verification?: Prisma.VerificationCreateNestedOneWithoutTicketInput
+  onboardingSequences?: Prisma.OnboardingSequenceCreateNestedManyWithoutTicketInput
 }
 
 export type TicketUncheckedCreateWithoutChallengesInput = {
@@ -2157,6 +2209,7 @@ export type TicketUncheckedCreateWithoutChallengesInput = {
   amountIncreases?: Prisma.AmountIncreaseUncheckedCreateNestedManyWithoutTicketInput
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutTicketInput
   verification?: Prisma.VerificationUncheckedCreateNestedOneWithoutTicketInput
+  onboardingSequences?: Prisma.OnboardingSequenceUncheckedCreateNestedManyWithoutTicketInput
 }
 
 export type TicketCreateOrConnectWithoutChallengesInput = {
@@ -2205,6 +2258,7 @@ export type TicketUpdateWithoutChallengesInput = {
   notifications?: Prisma.NotificationUpdateManyWithoutTicketNestedInput
   vehicle?: Prisma.VehicleUpdateOneRequiredWithoutTicketsNestedInput
   verification?: Prisma.VerificationUpdateOneWithoutTicketNestedInput
+  onboardingSequences?: Prisma.OnboardingSequenceUpdateManyWithoutTicketNestedInput
 }
 
 export type TicketUncheckedUpdateWithoutChallengesInput = {
@@ -2237,6 +2291,7 @@ export type TicketUncheckedUpdateWithoutChallengesInput = {
   amountIncreases?: Prisma.AmountIncreaseUncheckedUpdateManyWithoutTicketNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutTicketNestedInput
   verification?: Prisma.VerificationUncheckedUpdateOneWithoutTicketNestedInput
+  onboardingSequences?: Prisma.OnboardingSequenceUncheckedUpdateManyWithoutTicketNestedInput
 }
 
 export type TicketCreateWithoutNotificationsInput = {
@@ -2269,6 +2324,7 @@ export type TicketCreateWithoutNotificationsInput = {
   challenges?: Prisma.ChallengeCreateNestedManyWithoutTicketInput
   vehicle: Prisma.VehicleCreateNestedOneWithoutTicketsInput
   verification?: Prisma.VerificationCreateNestedOneWithoutTicketInput
+  onboardingSequences?: Prisma.OnboardingSequenceCreateNestedManyWithoutTicketInput
 }
 
 export type TicketUncheckedCreateWithoutNotificationsInput = {
@@ -2301,6 +2357,7 @@ export type TicketUncheckedCreateWithoutNotificationsInput = {
   amountIncreases?: Prisma.AmountIncreaseUncheckedCreateNestedManyWithoutTicketInput
   challenges?: Prisma.ChallengeUncheckedCreateNestedManyWithoutTicketInput
   verification?: Prisma.VerificationUncheckedCreateNestedOneWithoutTicketInput
+  onboardingSequences?: Prisma.OnboardingSequenceUncheckedCreateNestedManyWithoutTicketInput
 }
 
 export type TicketCreateOrConnectWithoutNotificationsInput = {
@@ -2349,6 +2406,7 @@ export type TicketUpdateWithoutNotificationsInput = {
   challenges?: Prisma.ChallengeUpdateManyWithoutTicketNestedInput
   vehicle?: Prisma.VehicleUpdateOneRequiredWithoutTicketsNestedInput
   verification?: Prisma.VerificationUpdateOneWithoutTicketNestedInput
+  onboardingSequences?: Prisma.OnboardingSequenceUpdateManyWithoutTicketNestedInput
 }
 
 export type TicketUncheckedUpdateWithoutNotificationsInput = {
@@ -2380,6 +2438,155 @@ export type TicketUncheckedUpdateWithoutNotificationsInput = {
   reminders?: Prisma.ReminderUncheckedUpdateManyWithoutTicketNestedInput
   amountIncreases?: Prisma.AmountIncreaseUncheckedUpdateManyWithoutTicketNestedInput
   challenges?: Prisma.ChallengeUncheckedUpdateManyWithoutTicketNestedInput
+  verification?: Prisma.VerificationUncheckedUpdateOneWithoutTicketNestedInput
+  onboardingSequences?: Prisma.OnboardingSequenceUncheckedUpdateManyWithoutTicketNestedInput
+}
+
+export type TicketCreateWithoutOnboardingSequencesInput = {
+  id?: string
+  pcnNumber: string
+  contraventionCode: string
+  location: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  extractedText: string
+  issuedAt: Date | string
+  contraventionAt: Date | string
+  observedAt?: Date | string | null
+  status?: $Enums.TicketStatus
+  type: $Enums.TicketType
+  initialAmount: number
+  statusUpdatedAt?: Date | string | null
+  statusUpdatedBy?: string | null
+  issuer: string
+  issuerType: $Enums.IssuerType
+  verified?: boolean
+  notes?: string | null
+  tier?: $Enums.TicketTier
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  forms?: Prisma.FormCreateNestedManyWithoutTicketInput
+  letters?: Prisma.LetterCreateNestedManyWithoutTicketInput
+  media?: Prisma.MediaCreateNestedManyWithoutTicketInput
+  prediction?: Prisma.PredictionCreateNestedOneWithoutTicketInput
+  reminders?: Prisma.ReminderCreateNestedManyWithoutTicketInput
+  amountIncreases?: Prisma.AmountIncreaseCreateNestedManyWithoutTicketInput
+  challenges?: Prisma.ChallengeCreateNestedManyWithoutTicketInput
+  notifications?: Prisma.NotificationCreateNestedManyWithoutTicketInput
+  vehicle: Prisma.VehicleCreateNestedOneWithoutTicketsInput
+  verification?: Prisma.VerificationCreateNestedOneWithoutTicketInput
+}
+
+export type TicketUncheckedCreateWithoutOnboardingSequencesInput = {
+  id?: string
+  pcnNumber: string
+  contraventionCode: string
+  location: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  extractedText: string
+  issuedAt: Date | string
+  contraventionAt: Date | string
+  observedAt?: Date | string | null
+  status?: $Enums.TicketStatus
+  type: $Enums.TicketType
+  initialAmount: number
+  statusUpdatedAt?: Date | string | null
+  statusUpdatedBy?: string | null
+  issuer: string
+  issuerType: $Enums.IssuerType
+  verified?: boolean
+  notes?: string | null
+  tier?: $Enums.TicketTier
+  vehicleId: string
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  forms?: Prisma.FormUncheckedCreateNestedManyWithoutTicketInput
+  letters?: Prisma.LetterUncheckedCreateNestedManyWithoutTicketInput
+  media?: Prisma.MediaUncheckedCreateNestedManyWithoutTicketInput
+  prediction?: Prisma.PredictionUncheckedCreateNestedOneWithoutTicketInput
+  reminders?: Prisma.ReminderUncheckedCreateNestedManyWithoutTicketInput
+  amountIncreases?: Prisma.AmountIncreaseUncheckedCreateNestedManyWithoutTicketInput
+  challenges?: Prisma.ChallengeUncheckedCreateNestedManyWithoutTicketInput
+  notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutTicketInput
+  verification?: Prisma.VerificationUncheckedCreateNestedOneWithoutTicketInput
+}
+
+export type TicketCreateOrConnectWithoutOnboardingSequencesInput = {
+  where: Prisma.TicketWhereUniqueInput
+  create: Prisma.XOR<Prisma.TicketCreateWithoutOnboardingSequencesInput, Prisma.TicketUncheckedCreateWithoutOnboardingSequencesInput>
+}
+
+export type TicketUpsertWithoutOnboardingSequencesInput = {
+  update: Prisma.XOR<Prisma.TicketUpdateWithoutOnboardingSequencesInput, Prisma.TicketUncheckedUpdateWithoutOnboardingSequencesInput>
+  create: Prisma.XOR<Prisma.TicketCreateWithoutOnboardingSequencesInput, Prisma.TicketUncheckedCreateWithoutOnboardingSequencesInput>
+  where?: Prisma.TicketWhereInput
+}
+
+export type TicketUpdateToOneWithWhereWithoutOnboardingSequencesInput = {
+  where?: Prisma.TicketWhereInput
+  data: Prisma.XOR<Prisma.TicketUpdateWithoutOnboardingSequencesInput, Prisma.TicketUncheckedUpdateWithoutOnboardingSequencesInput>
+}
+
+export type TicketUpdateWithoutOnboardingSequencesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  pcnNumber?: Prisma.StringFieldUpdateOperationsInput | string
+  contraventionCode?: Prisma.StringFieldUpdateOperationsInput | string
+  location?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  extractedText?: Prisma.StringFieldUpdateOperationsInput | string
+  issuedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  contraventionAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  observedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  status?: Prisma.EnumTicketStatusFieldUpdateOperationsInput | $Enums.TicketStatus
+  type?: Prisma.EnumTicketTypeFieldUpdateOperationsInput | $Enums.TicketType
+  initialAmount?: Prisma.IntFieldUpdateOperationsInput | number
+  statusUpdatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  statusUpdatedBy?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  issuer?: Prisma.StringFieldUpdateOperationsInput | string
+  issuerType?: Prisma.EnumIssuerTypeFieldUpdateOperationsInput | $Enums.IssuerType
+  verified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  tier?: Prisma.EnumTicketTierFieldUpdateOperationsInput | $Enums.TicketTier
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  forms?: Prisma.FormUpdateManyWithoutTicketNestedInput
+  letters?: Prisma.LetterUpdateManyWithoutTicketNestedInput
+  media?: Prisma.MediaUpdateManyWithoutTicketNestedInput
+  prediction?: Prisma.PredictionUpdateOneWithoutTicketNestedInput
+  reminders?: Prisma.ReminderUpdateManyWithoutTicketNestedInput
+  amountIncreases?: Prisma.AmountIncreaseUpdateManyWithoutTicketNestedInput
+  challenges?: Prisma.ChallengeUpdateManyWithoutTicketNestedInput
+  notifications?: Prisma.NotificationUpdateManyWithoutTicketNestedInput
+  vehicle?: Prisma.VehicleUpdateOneRequiredWithoutTicketsNestedInput
+  verification?: Prisma.VerificationUpdateOneWithoutTicketNestedInput
+}
+
+export type TicketUncheckedUpdateWithoutOnboardingSequencesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  pcnNumber?: Prisma.StringFieldUpdateOperationsInput | string
+  contraventionCode?: Prisma.StringFieldUpdateOperationsInput | string
+  location?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  extractedText?: Prisma.StringFieldUpdateOperationsInput | string
+  issuedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  contraventionAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  observedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  status?: Prisma.EnumTicketStatusFieldUpdateOperationsInput | $Enums.TicketStatus
+  type?: Prisma.EnumTicketTypeFieldUpdateOperationsInput | $Enums.TicketType
+  initialAmount?: Prisma.IntFieldUpdateOperationsInput | number
+  statusUpdatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  statusUpdatedBy?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  issuer?: Prisma.StringFieldUpdateOperationsInput | string
+  issuerType?: Prisma.EnumIssuerTypeFieldUpdateOperationsInput | $Enums.IssuerType
+  verified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  tier?: Prisma.EnumTicketTierFieldUpdateOperationsInput | $Enums.TicketTier
+  vehicleId?: Prisma.StringFieldUpdateOperationsInput | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  forms?: Prisma.FormUncheckedUpdateManyWithoutTicketNestedInput
+  letters?: Prisma.LetterUncheckedUpdateManyWithoutTicketNestedInput
+  media?: Prisma.MediaUncheckedUpdateManyWithoutTicketNestedInput
+  prediction?: Prisma.PredictionUncheckedUpdateOneWithoutTicketNestedInput
+  reminders?: Prisma.ReminderUncheckedUpdateManyWithoutTicketNestedInput
+  amountIncreases?: Prisma.AmountIncreaseUncheckedUpdateManyWithoutTicketNestedInput
+  challenges?: Prisma.ChallengeUncheckedUpdateManyWithoutTicketNestedInput
+  notifications?: Prisma.NotificationUncheckedUpdateManyWithoutTicketNestedInput
   verification?: Prisma.VerificationUncheckedUpdateOneWithoutTicketNestedInput
 }
 
@@ -2436,6 +2643,7 @@ export type TicketUpdateWithoutVehicleInput = {
   challenges?: Prisma.ChallengeUpdateManyWithoutTicketNestedInput
   notifications?: Prisma.NotificationUpdateManyWithoutTicketNestedInput
   verification?: Prisma.VerificationUpdateOneWithoutTicketNestedInput
+  onboardingSequences?: Prisma.OnboardingSequenceUpdateManyWithoutTicketNestedInput
 }
 
 export type TicketUncheckedUpdateWithoutVehicleInput = {
@@ -2468,6 +2676,7 @@ export type TicketUncheckedUpdateWithoutVehicleInput = {
   challenges?: Prisma.ChallengeUncheckedUpdateManyWithoutTicketNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutTicketNestedInput
   verification?: Prisma.VerificationUncheckedUpdateOneWithoutTicketNestedInput
+  onboardingSequences?: Prisma.OnboardingSequenceUncheckedUpdateManyWithoutTicketNestedInput
 }
 
 export type TicketUncheckedUpdateManyWithoutVehicleInput = {
@@ -2506,6 +2715,7 @@ export type TicketCountOutputType = {
   amountIncreases: number
   challenges: number
   notifications: number
+  onboardingSequences: number
 }
 
 export type TicketCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -2516,6 +2726,7 @@ export type TicketCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions
   amountIncreases?: boolean | TicketCountOutputTypeCountAmountIncreasesArgs
   challenges?: boolean | TicketCountOutputTypeCountChallengesArgs
   notifications?: boolean | TicketCountOutputTypeCountNotificationsArgs
+  onboardingSequences?: boolean | TicketCountOutputTypeCountOnboardingSequencesArgs
 }
 
 /**
@@ -2577,6 +2788,13 @@ export type TicketCountOutputTypeCountNotificationsArgs<ExtArgs extends runtime.
   where?: Prisma.NotificationWhereInput
 }
 
+/**
+ * TicketCountOutputType without action
+ */
+export type TicketCountOutputTypeCountOnboardingSequencesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.OnboardingSequenceWhereInput
+}
+
 
 export type TicketSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -2610,6 +2828,7 @@ export type TicketSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs =
   notifications?: boolean | Prisma.Ticket$notificationsArgs<ExtArgs>
   vehicle?: boolean | Prisma.VehicleDefaultArgs<ExtArgs>
   verification?: boolean | Prisma.Ticket$verificationArgs<ExtArgs>
+  onboardingSequences?: boolean | Prisma.Ticket$onboardingSequencesArgs<ExtArgs>
   _count?: boolean | Prisma.TicketCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["ticket"]>
 
@@ -2699,6 +2918,7 @@ export type TicketInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs 
   notifications?: boolean | Prisma.Ticket$notificationsArgs<ExtArgs>
   vehicle?: boolean | Prisma.VehicleDefaultArgs<ExtArgs>
   verification?: boolean | Prisma.Ticket$verificationArgs<ExtArgs>
+  onboardingSequences?: boolean | Prisma.Ticket$onboardingSequencesArgs<ExtArgs>
   _count?: boolean | Prisma.TicketCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type TicketIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -2721,6 +2941,7 @@ export type $TicketPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs
     notifications: Prisma.$NotificationPayload<ExtArgs>[]
     vehicle: Prisma.$VehiclePayload<ExtArgs>
     verification: Prisma.$VerificationPayload<ExtArgs> | null
+    onboardingSequences: Prisma.$OnboardingSequencePayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -3148,6 +3369,7 @@ export interface Prisma__TicketClient<T, Null = never, ExtArgs extends runtime.T
   notifications<T extends Prisma.Ticket$notificationsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Ticket$notificationsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$NotificationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   vehicle<T extends Prisma.VehicleDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.VehicleDefaultArgs<ExtArgs>>): Prisma.Prisma__VehicleClient<runtime.Types.Result.GetResult<Prisma.$VehiclePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   verification<T extends Prisma.Ticket$verificationArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Ticket$verificationArgs<ExtArgs>>): Prisma.Prisma__VerificationClient<runtime.Types.Result.GetResult<Prisma.$VerificationPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+  onboardingSequences<T extends Prisma.Ticket$onboardingSequencesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Ticket$onboardingSequencesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$OnboardingSequencePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -3797,6 +4019,30 @@ export type Ticket$verificationArgs<ExtArgs extends runtime.Types.Extensions.Int
    */
   include?: Prisma.VerificationInclude<ExtArgs> | null
   where?: Prisma.VerificationWhereInput
+}
+
+/**
+ * Ticket.onboardingSequences
+ */
+export type Ticket$onboardingSequencesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the OnboardingSequence
+   */
+  select?: Prisma.OnboardingSequenceSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the OnboardingSequence
+   */
+  omit?: Prisma.OnboardingSequenceOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.OnboardingSequenceInclude<ExtArgs> | null
+  where?: Prisma.OnboardingSequenceWhereInput
+  orderBy?: Prisma.OnboardingSequenceOrderByWithRelationInput | Prisma.OnboardingSequenceOrderByWithRelationInput[]
+  cursor?: Prisma.OnboardingSequenceWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.OnboardingSequenceScalarFieldEnum | Prisma.OnboardingSequenceScalarFieldEnum[]
 }
 
 /**

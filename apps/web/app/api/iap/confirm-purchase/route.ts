@@ -1,7 +1,8 @@
-import { db, TicketTier } from '@parking-ticket-pal/db';
+import { db, TicketTier, OnboardingExitReason } from '@parking-ticket-pal/db';
 import { verifyPurchase } from '@/lib/revenuecat';
 import { decrypt } from '@/app/lib/session';
 import { createServerLogger } from '@/lib/logger';
+import { exitOnboardingSequenceForTicket } from '@/services/onboarding-sequence';
 
 const log = createServerLogger({ action: 'iap-confirm-purchase' });
 
@@ -118,6 +119,18 @@ export const POST = async (req: Request) => {
         vehicle: true,
       },
     });
+
+    // Exit onboarding sequence on tier upgrade
+    await exitOnboardingSequenceForTicket(
+      ticketId,
+      OnboardingExitReason.UPGRADED,
+    ).catch((err) =>
+      log.error(
+        'Failed to exit onboarding on IAP upgrade',
+        undefined,
+        err instanceof Error ? err : undefined,
+      ),
+    );
 
     return Response.json(
       {

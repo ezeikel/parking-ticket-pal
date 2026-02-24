@@ -11,6 +11,12 @@ import SocialDigestEmail from '@/emails/SocialDigestEmail';
 import NewsVideoSkippedEmail from '@/emails/NewsVideoSkippedEmail';
 import NewsVideoFailedEmail from '@/emails/NewsVideoFailedEmail';
 import WelcomeEmail from '@/emails/WelcomeEmail';
+import OnboardingQuickWinEmail from '@/emails/onboarding/OnboardingQuickWinEmail';
+import OnboardingDeadlineEmail from '@/emails/onboarding/OnboardingDeadlineEmail';
+import OnboardingSocialProofEmail from '@/emails/onboarding/OnboardingSocialProofEmail';
+import OnboardingHowItWorksEmail from '@/emails/onboarding/OnboardingHowItWorksEmail';
+import OnboardingMathsEmail from '@/emails/onboarding/OnboardingMathsEmail';
+import OnboardingFinalWarningEmail from '@/emails/onboarding/OnboardingFinalWarningEmail';
 
 const AttachmentSchema = z.object({
   filename: z.string(),
@@ -433,5 +439,126 @@ export const sendWelcomeEmail = async (
     subject: 'Welcome to Parking Ticket Pal',
     html: emailHtml,
     text: `Welcome to Parking Ticket Pal!\n\nHi ${data.name || 'there'},\n\nYou're all set! Here's how Parking Ticket Pal helps you fight unfair parking tickets:\n\n- Scan or upload your parking ticket\n- Get an AI-powered Success Score\n- Generate appeal letters in minutes\n\nUpload your first ticket: ${process.env.NEXT_PUBLIC_APP_URL || 'https://parkingticketpal.com'}/new\n\nNeed help? Reply to this email or visit our support page.`,
+  });
+};
+
+// Onboarding email data types per step
+export type OnboardingStep1Data = {
+  name?: string;
+  pcnNumber: string;
+  issuer: string;
+  numberOfCases: number;
+  ticketId: string;
+};
+
+export type OnboardingStep2Data = {
+  name?: string;
+  pcnNumber: string;
+  issuer: string;
+  ticketId: string;
+  discountAmount: string;
+  fullAmount: string;
+  discountDeadline: string;
+  daysUntilDiscount: number;
+};
+
+export type OnboardingStep3Data = {
+  name?: string;
+  pcnNumber: string;
+  issuer: string;
+  ticketId: string;
+  issuerAllowedCount: number;
+  issuerTotalCases: number;
+};
+
+export type OnboardingStep4Data = {
+  name?: string;
+  pcnNumber: string;
+  issuer: string;
+  ticketId: string;
+  fullAmount: string;
+};
+
+export type OnboardingStep5Data = {
+  name?: string;
+  pcnNumber: string;
+  ticketId: string;
+  discountAmount: string;
+  fullAmount: string;
+  daysUntilDiscount: number;
+};
+
+export type OnboardingStep6Data = {
+  name?: string;
+  pcnNumber: string;
+  ticketId: string;
+  discountAmount: string;
+  fullAmount: string;
+  deadlineDate: string;
+};
+
+export type OnboardingEmailData =
+  | { step: 1; data: OnboardingStep1Data }
+  | { step: 2; data: OnboardingStep2Data }
+  | { step: 3; data: OnboardingStep3Data }
+  | { step: 4; data: OnboardingStep4Data }
+  | { step: 5; data: OnboardingStep5Data }
+  | { step: 6; data: OnboardingStep6Data };
+
+// eslint-disable-next-line consistent-return
+const getOnboardingSubject = (email: OnboardingEmailData): string => {
+  // eslint-disable-next-line default-case
+  switch (email.step) {
+    case 1:
+      return `Your ticket ${email.data.pcnNumber} — we found something`;
+    case 2:
+      return `${email.data.daysUntilDiscount} days before your fine doubles`;
+    case 3:
+      return `Tickets like yours — what the data shows`;
+    case 4:
+      return `Challenge your ticket in under 3 minutes`;
+    case 5:
+      return `£2.99 vs £${email.data.fullAmount} — simple maths`;
+    case 6:
+      return `Last chance — your fine doubles on ${email.data.deadlineDate}`;
+  }
+};
+
+/* eslint-disable consistent-return, default-case */
+const renderOnboardingTemplate = (
+  email: OnboardingEmailData,
+): Promise<string> => {
+  switch (email.step) {
+    case 1:
+      return render(OnboardingQuickWinEmail(email.data));
+    case 2:
+      return render(OnboardingDeadlineEmail(email.data));
+    case 3:
+      return render(OnboardingSocialProofEmail(email.data));
+    case 4:
+      return render(OnboardingHowItWorksEmail(email.data));
+    case 5:
+      return render(OnboardingMathsEmail(email.data));
+    case 6:
+      return render(OnboardingFinalWarningEmail(email.data));
+  }
+};
+/* eslint-enable consistent-return, default-case */
+
+export const sendOnboardingEmail = async (
+  to: string,
+  email: OnboardingEmailData,
+): Promise<{
+  success: boolean;
+  messageId?: string;
+  error?: string;
+}> => {
+  const subject = getOnboardingSubject(email);
+  const emailHtml = await renderOnboardingTemplate(email);
+
+  return sendEmail({
+    to,
+    subject,
+    html: emailHtml,
   });
 };

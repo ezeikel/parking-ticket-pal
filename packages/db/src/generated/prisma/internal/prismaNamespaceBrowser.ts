@@ -81,7 +81,8 @@ export const ModelName = {
   TribunalCaseVideo: 'TribunalCaseVideo',
   NewsVideo: 'NewsVideo',
   HighwayCodeSign: 'HighwayCodeSign',
-  HighwayCodeQuizPost: 'HighwayCodeQuizPost'
+  HighwayCodeQuizPost: 'HighwayCodeQuizPost',
+  OnboardingSequence: 'OnboardingSequence'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -634,6 +635,21 @@ export const HighwayCodeQuizPostScalarFieldEnum = {
 } as const
 
 export type HighwayCodeQuizPostScalarFieldEnum = (typeof HighwayCodeQuizPostScalarFieldEnum)[keyof typeof HighwayCodeQuizPostScalarFieldEnum]
+
+
+export const OnboardingSequenceScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  ticketId: 'ticketId',
+  currentStep: 'currentStep',
+  nextSendAt: 'nextSendAt',
+  completedAt: 'completedAt',
+  exitReason: 'exitReason',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type OnboardingSequenceScalarFieldEnum = (typeof OnboardingSequenceScalarFieldEnum)[keyof typeof OnboardingSequenceScalarFieldEnum]
 
 
 export const SortOrder = {

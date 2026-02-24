@@ -16,6 +16,7 @@ import {
   Ticket,
   ChallengeStatus,
   db,
+  OnboardingExitReason,
 } from '@parking-ticket-pal/db';
 import getVehicleInfo from '@/utils/getVehicleInfo';
 import type { TicketFormData } from '@parking-ticket-pal/types';
@@ -31,6 +32,10 @@ import {
   afterTicketCreation,
   afterTicketUpdate,
 } from '@/services/ticket-service';
+import {
+  createOnboardingSequence,
+  exitOnboardingSequenceForTicket,
+} from '@/services/onboarding-sequence';
 
 const logger = createServerLogger({ action: 'ticket' });
 
@@ -193,6 +198,17 @@ export const createTicket = async (
 
     // handle post-creation tasks e.g create prediction
     await afterTicketCreation(ticket);
+
+    // Start onboarding email sequence for FREE tier tickets
+    if (ticket.tier === 'FREE') {
+      await createOnboardingSequence(userId, ticket.id).catch((err) =>
+        logger.error(
+          'Failed to create onboarding sequence',
+          { ticketId: ticket.id },
+          err instanceof Error ? err : new Error(String(err)),
+        ),
+      );
+    }
 
     return ticket;
   } catch (error) {
@@ -461,6 +477,18 @@ export const deleteTicketById = async (
       ticketId,
     },
   });
+
+  // Exit any active onboarding sequences before deleting
+  await exitOnboardingSequenceForTicket(
+    ticketId,
+    OnboardingExitReason.TICKET_DELETED,
+  ).catch((err) =>
+    logger.error(
+      'Failed to exit onboarding sequence on ticket delete',
+      { ticketId },
+      err instanceof Error ? err : new Error(String(err)),
+    ),
+  );
 
   try {
     // delete ticket and media files from blob storage

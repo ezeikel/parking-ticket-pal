@@ -414,7 +414,8 @@ export const ModelName = {
   TribunalCaseVideo: 'TribunalCaseVideo',
   NewsVideo: 'NewsVideo',
   HighwayCodeSign: 'HighwayCodeSign',
-  HighwayCodeQuizPost: 'HighwayCodeQuizPost'
+  HighwayCodeQuizPost: 'HighwayCodeQuizPost',
+  OnboardingSequence: 'OnboardingSequence'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -430,7 +431,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "mobileDeviceSession" | "vehicle" | "ticket" | "media" | "letter" | "subscription" | "reminder" | "form" | "prediction" | "amountIncrease" | "verification" | "challenge" | "notification" | "pushToken" | "account" | "session" | "verificationToken" | "londonTribunalCase" | "appealDataSource" | "contraventionStats" | "issuerContraventionStats" | "appealPattern" | "pendingIssuer" | "pendingChallenge" | "pendingTicket" | "issuerHealthCheck" | "tribunalCaseVideo" | "newsVideo" | "highwayCodeSign" | "highwayCodeQuizPost"
+    modelProps: "user" | "mobileDeviceSession" | "vehicle" | "ticket" | "media" | "letter" | "subscription" | "reminder" | "form" | "prediction" | "amountIncrease" | "verification" | "challenge" | "notification" | "pushToken" | "account" | "session" | "verificationToken" | "londonTribunalCase" | "appealDataSource" | "contraventionStats" | "issuerContraventionStats" | "appealPattern" | "pendingIssuer" | "pendingChallenge" | "pendingTicket" | "issuerHealthCheck" | "tribunalCaseVideo" | "newsVideo" | "highwayCodeSign" | "highwayCodeQuizPost" | "onboardingSequence"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -2728,6 +2729,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    OnboardingSequence: {
+      payload: Prisma.$OnboardingSequencePayload<ExtArgs>
+      fields: Prisma.OnboardingSequenceFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.OnboardingSequenceFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OnboardingSequencePayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.OnboardingSequenceFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OnboardingSequencePayload>
+        }
+        findFirst: {
+          args: Prisma.OnboardingSequenceFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OnboardingSequencePayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.OnboardingSequenceFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OnboardingSequencePayload>
+        }
+        findMany: {
+          args: Prisma.OnboardingSequenceFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OnboardingSequencePayload>[]
+        }
+        create: {
+          args: Prisma.OnboardingSequenceCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OnboardingSequencePayload>
+        }
+        createMany: {
+          args: Prisma.OnboardingSequenceCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.OnboardingSequenceCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OnboardingSequencePayload>[]
+        }
+        delete: {
+          args: Prisma.OnboardingSequenceDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OnboardingSequencePayload>
+        }
+        update: {
+          args: Prisma.OnboardingSequenceUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OnboardingSequencePayload>
+        }
+        deleteMany: {
+          args: Prisma.OnboardingSequenceDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.OnboardingSequenceUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.OnboardingSequenceUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OnboardingSequencePayload>[]
+        }
+        upsert: {
+          args: Prisma.OnboardingSequenceUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OnboardingSequencePayload>
+        }
+        aggregate: {
+          args: Prisma.OnboardingSequenceAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateOnboardingSequence>
+        }
+        groupBy: {
+          args: Prisma.OnboardingSequenceGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.OnboardingSequenceGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.OnboardingSequenceCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.OnboardingSequenceCountAggregateOutputType> | number
+        }
+      }
+    }
   }
 } & {
   other: {
@@ -3303,6 +3378,21 @@ export const HighwayCodeQuizPostScalarFieldEnum = {
 export type HighwayCodeQuizPostScalarFieldEnum = (typeof HighwayCodeQuizPostScalarFieldEnum)[keyof typeof HighwayCodeQuizPostScalarFieldEnum]
 
 
+export const OnboardingSequenceScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  ticketId: 'ticketId',
+  currentStep: 'currentStep',
+  nextSendAt: 'nextSendAt',
+  completedAt: 'completedAt',
+  exitReason: 'exitReason',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type OnboardingSequenceScalarFieldEnum = (typeof OnboardingSequenceScalarFieldEnum)[keyof typeof OnboardingSequenceScalarFieldEnum]
+
+
 export const SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -3867,6 +3957,20 @@ export type EnumVideoStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$Pris
 export type ListEnumVideoStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'VideoStatus[]'>
     
 
+
+/**
+ * Reference to a field of type 'OnboardingExitReason'
+ */
+export type EnumOnboardingExitReasonFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'OnboardingExitReason'>
+    
+
+
+/**
+ * Reference to a field of type 'OnboardingExitReason[]'
+ */
+export type ListEnumOnboardingExitReasonFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'OnboardingExitReason[]'>
+    
+
 /**
  * Batch Payload for updateMany & deleteMany & createMany
  */
@@ -3993,6 +4097,7 @@ export type GlobalOmitConfig = {
   newsVideo?: Prisma.NewsVideoOmit
   highwayCodeSign?: Prisma.HighwayCodeSignOmit
   highwayCodeQuizPost?: Prisma.HighwayCodeQuizPostOmit
+  onboardingSequence?: Prisma.OnboardingSequenceOmit
 }
 
 /* Types for Logging */

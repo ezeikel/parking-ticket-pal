@@ -118,4 +118,10 @@ export const TRACKING_EVENTS = {
   CONTRAVENTION_CODE_VIEWED: 'contravention_code_viewed',
   ISSUER_SEARCHED: 'issuer_searched',
   ISSUER_VIEWED: 'issuer_viewed',
+
+  // Onboarding Sequence
+  ONBOARDING_EMAIL_SENT: 'onboarding_email_sent',
+  ONBOARDING_SEQUENCE_STARTED: 'onboarding_sequence_started',
+  ONBOARDING_SEQUENCE_COMPLETED: 'onboarding_sequence_completed',
+  ONBOARDING_SEQUENCE_EXITED: 'onboarding_sequence_exited',
 } as const;

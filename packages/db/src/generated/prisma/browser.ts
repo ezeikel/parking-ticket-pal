@@ -172,3 +172,8 @@ export type HighwayCodeSign = Prisma.HighwayCodeSignModel
  * 
  */
 export type HighwayCodeQuizPost = Prisma.HighwayCodeQuizPostModel
+/**
+ * Model OnboardingSequence
+ * 
+ */
+export type OnboardingSequence = Prisma.OnboardingSequenceModel

@@ -345,3 +345,15 @@ export const VideoStatus = {
 } as const
 
 export type VideoStatus = (typeof VideoStatus)[keyof typeof VideoStatus]
+
+
+export const OnboardingExitReason = {
+  UPGRADED: 'UPGRADED',
+  SEQUENCE_COMPLETE: 'SEQUENCE_COMPLETE',
+  UNSUBSCRIBED: 'UNSUBSCRIBED',
+  TICKET_DELETED: 'TICKET_DELETED',
+  TICKET_PAID: 'TICKET_PAID',
+  DEADLINE_PASSED: 'DEADLINE_PASSED'
+} as const
+
+export type OnboardingExitReason = (typeof OnboardingExitReason)[keyof typeof OnboardingExitReason]

@@ -4,6 +4,7 @@ import {
   SubscriptionType,
   SubscriptionSource,
   TicketTier,
+  OnboardingExitReason,
 } from '@parking-ticket-pal/db';
 import {
   STRIPE_API_VERSION,
@@ -13,6 +14,7 @@ import {
 } from '@/constants';
 import { revalidatePath } from 'next/cache';
 import { createServerLogger } from '@/lib/logger';
+import { exitOnboardingSequenceForTicket } from '@/services/onboarding-sequence';
 
 const log = createServerLogger({ action: 'stripe-webhook' });
 
@@ -146,6 +148,18 @@ export const POST = async (req: Request) => {
               data: { tier: tier as TicketTier },
             });
 
+            // Exit onboarding sequence on tier upgrade
+            await exitOnboardingSequenceForTicket(
+              ticketId,
+              OnboardingExitReason.UPGRADED,
+            ).catch((err) =>
+              log.error(
+                'Failed to exit onboarding on upgrade',
+                undefined,
+                err instanceof Error ? err : undefined,
+              ),
+            );
+
             // if this created a new customer, store the customer ID for future payments
             if (customerId) {
               await db.user.updateMany({
@@ -176,6 +190,18 @@ export const POST = async (req: Request) => {
               where: { id: ticketId },
               data: { tier: tier as TicketTier },
             });
+
+            // Exit onboarding sequence on tier upgrade (fallback path)
+            await exitOnboardingSequenceForTicket(
+              ticketId,
+              OnboardingExitReason.UPGRADED,
+            ).catch((err) =>
+              log.error(
+                'Failed to exit onboarding on upgrade (fallback)',
+                undefined,
+                err instanceof Error ? err : undefined,
+              ),
+            );
 
             // if this created a new customer, store the customer ID for future payments
             if (customerId) {

@@ -11,6 +11,7 @@ import { getUserId, getCurrentUser } from '@/utils/user';
 import { createServerLogger } from '@/lib/logger';
 import createUTCDate from '@/utils/createUTCDate';
 import getVehicleInfo from '@/utils/getVehicleInfo';
+import { createOnboardingSequence } from '@/services/onboarding-sequence';
 
 const logger = createServerLogger({ action: 'guest' });
 
@@ -154,7 +155,15 @@ export const claimPendingTicket = async (
     // Lookup vehicle info from registration number
     const vehicleInfo = await getVehicleInfo(pendingTicket.vehicleReg);
 
+    // Map pending ticket tier to input tier
+    const tierMap: Record<string, 'standard' | 'premium' | null> = {
+      PREMIUM: 'premium',
+      STANDARD: 'standard',
+    };
+    const mappedTier = tierMap[pendingTicket.tier] ?? null;
+
     // Create the ticket using existing logic
+    // eslint-disable-next-line @typescript-eslint/no-use-before-define
     const result = await createTicketFromGuestData({
       pcnNumber: pendingTicket.pcnNumber,
       vehicleReg: pendingTicket.vehicleReg,
@@ -165,12 +174,7 @@ export const claimPendingTicket = async (
         | 'rejection'
         | 'charge_cert'
         | null,
-      tier:
-        pendingTicket.tier === 'PREMIUM'
-          ? 'premium'
-          : pendingTicket.tier === 'STANDARD'
-            ? 'standard'
-            : null,
+      tier: mappedTier,
       tempImagePath: pendingTicket.tempImagePath || undefined,
       initialAmount: pendingTicket.initialAmount || undefined,
       issuer: pendingTicket.issuer || undefined,
@@ -326,12 +330,12 @@ export const createTicketFromGuestData = async (
 
     // Map tier to TicketTier
     // null tier (track flow) creates a FREE ticket
+    const tierInputMap: Record<string, TicketTier> = {
+      premium: 'PREMIUM',
+      standard: 'STANDARD',
+    };
     const ticketTier: TicketTier =
-      input.tier === 'premium'
-        ? 'PREMIUM'
-        : input.tier === 'standard'
-          ? 'STANDARD'
-          : 'FREE';
+      (input.tier && tierInputMap[input.tier]) || 'FREE';
 
     // Create the ticket
     const ticket = await db.ticket.create({
@@ -363,6 +367,17 @@ export const createTicketFromGuestData = async (
       userId,
       pcnNumber: input.pcnNumber,
     });
+
+    // Start onboarding email sequence for FREE tier tickets
+    if (ticketTier === 'FREE') {
+      await createOnboardingSequence(userId, ticket.id).catch((err) =>
+        logger.error(
+          'Failed to create onboarding sequence',
+          { ticketId: ticket.id },
+          err instanceof Error ? err : new Error(String(err)),
+        ),
+      );
+    }
 
     return { success: true, ticketId: ticket.id };
   } catch (error) {

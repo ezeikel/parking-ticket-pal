@@ -583,6 +583,26 @@ export type EventProperties = {
     issuerId: string;
     issuerType: 'council' | 'private' | 'tfl';
   };
+
+  // Onboarding Sequence
+  [TRACKING_EVENTS.ONBOARDING_EMAIL_SENT]: {
+    ticketId: string;
+    step: number;
+    pcnNumber?: string;
+  };
+  [TRACKING_EVENTS.ONBOARDING_SEQUENCE_STARTED]: {
+    ticketId: string;
+    pcnNumber?: string;
+  };
+  [TRACKING_EVENTS.ONBOARDING_SEQUENCE_COMPLETED]: {
+    ticketId: string;
+    step: number;
+  };
+  [TRACKING_EVENTS.ONBOARDING_SEQUENCE_EXITED]: {
+    ticketId: string;
+    step: number;
+    exitReason: string;
+  };
 };
 
 export type PostAuthor = {
