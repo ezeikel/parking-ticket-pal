@@ -54,6 +54,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function AlternativesDetailPage({ params }: Props) {
   const { slug } = await params;
+  const year = new Date().getFullYear();
   const competitor = getCompetitorByAlternativeSlug(slug);
 
   if (!competitor) {
@@ -94,7 +95,7 @@ export default async function AlternativesDetailPage({ params }: Props) {
           </div>
 
           <h1 className="text-2xl font-bold text-dark md:text-4xl">
-            Best {competitor.name} Alternatives ({new Date().getFullYear()})
+            Best {competitor.name} Alternatives ({year})
           </h1>
           <p className="mt-4 max-w-3xl text-gray">
             Looking for an alternative to {competitor.name} for your UK parking
