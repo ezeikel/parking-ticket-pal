@@ -1,7 +1,7 @@
 /* eslint-disable no-underscore-dangle, no-restricted-syntax, no-continue, no-await-in-loop, no-plusplus, no-promise-executor-return */
 'use server';
 
-import { generateText, generateObject } from 'ai';
+import { generateText, Output } from 'ai';
 import { z } from 'zod';
 import { models, getTracedModel } from '@/lib/ai/models';
 import {
@@ -99,11 +99,11 @@ const generateSlug = (title: string): string =>
 const generateBlogMeta = async (topic: string): Promise<BlogPostMeta> => {
   const prompt = BLOG_META_PROMPT.replace('{{TOPIC}}', topic);
 
-  const { object: meta } = await generateObject({
+  const { output: meta } = await generateText({
     model: getTracedModel(models.text, {
       properties: { feature: 'blog_meta_generation', topic },
     }),
-    schema: BlogMetaSchema,
+    output: Output.object({ schema: BlogMetaSchema }),
     prompt,
     temperature: 0.7,
   });
@@ -126,11 +126,11 @@ const generateImageSearchTerms = async (
     .replace('{{EXCERPT}}', excerpt)
     .replace('{{CATEGORY}}', category);
 
-  const { object: searchTerms } = await generateObject({
+  const { output: searchTerms } = await generateText({
     model: getTracedModel(models.textFast, {
       properties: { feature: 'blog_image_search', title },
     }),
-    schema: ImageSearchSchema,
+    output: Output.object({ schema: ImageSearchSchema }),
     prompt,
     temperature: 0.7,
   });

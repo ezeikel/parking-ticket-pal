@@ -1,4 +1,4 @@
-import { generateText, generateObject } from 'ai';
+import { generateText, Output } from 'ai';
 import { CHALLENGE_WRITER_PROMPT, CHALLENGE_LETTER_PROMPT } from '@/constants';
 import { ChallengeLetterSchema, ChallengeLetter } from '@/types';
 import { models, getTracedModel } from '@/lib/ai/models';
@@ -99,13 +99,8 @@ async function generateChallengeContent(
 async function generateChallengeContent(
   params: GenerateChallengeContentParams,
 ): Promise<string | null | ChallengeLetter> {
-  const {
-    pcnNumber,
-    challengeReason,
-    additionalDetails,
-    contentType,
-    userId,
-  } = params;
+  const { pcnNumber, challengeReason, additionalDetails, contentType, userId } =
+    params;
   // Build the combined challenge reason text
   let combinedReasonText = challengeReason;
 
@@ -118,7 +113,7 @@ async function generateChallengeContent(
       formFieldPlaceholderText,
       userEvidenceImageUrls = [],
       issuerEvidenceImageUrls = [],
-    } = params as FormFieldParams;
+    } = params;
 
     // Generate text for form field input using Vercel AI SDK
     const tracedModel = getTracedModel(models.text, {
@@ -128,10 +123,10 @@ async function generateChallengeContent(
 
     try {
       // Build user content with text and images
-      const userContent: Array<
+      const userContent: (
         | { type: 'text'; text: string }
         | { type: 'image'; image: URL }
-      > = [
+      )[] = [
         {
           type: 'text',
           text: `Analyze these images and write a challenge for PCN ${pcnNumber}.
@@ -167,7 +162,7 @@ async function generateChallengeContent(
       return null;
     }
   } else if (contentType === 'letter') {
-    const { ticket, user, contraventionCodes } = params as LetterParams;
+    const { ticket, user, contraventionCodes } = params;
 
     // Generate structured letter content using Vercel AI SDK
     const tracedModel = getTracedModel(models.text, {
@@ -175,11 +170,13 @@ async function generateChallengeContent(
       properties: { feature: 'challenge_letter', pcnNumber },
     });
 
-    const { object: letter } = await generateObject({
+    const { output: letter } = await generateText({
       model: tracedModel,
-      schema: ChallengeLetterSchema,
-      schemaName: 'letter',
-      schemaDescription: 'A formal challenge letter for a parking penalty notice',
+      output: Output.object({
+        schema: ChallengeLetterSchema,
+        name: 'letter',
+        description: 'A formal challenge letter for a parking penalty notice',
+      }),
       system: CHALLENGE_LETTER_PROMPT,
       prompt: generateChallengeLetterPrompt(
         ticket,
@@ -193,6 +190,6 @@ async function generateChallengeContent(
   }
 
   throw new Error(`Unsupported content type: ${contentType}`);
-};
+}
 
 export default generateChallengeContent;

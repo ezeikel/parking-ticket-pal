@@ -1,7 +1,7 @@
 /* eslint-disable no-plusplus, import-x/prefer-default-export */
 'use server';
 
-import { generateObject, generateText } from 'ai';
+import { generateText, Output } from 'ai';
 import { z } from 'zod';
 import { ElevenLabsClient } from 'elevenlabs';
 import { db } from '@parking-ticket-pal/db';
@@ -76,17 +76,19 @@ const selectInterestingCase = async () => {
   logger.info(`Found ${candidates.length} candidate cases, scoring...`);
 
   // Score candidates with Gemini Flash (fast & cheap)
-  const { object: scored } = await generateObject({
+  const { output: scored } = await generateText({
     model: getTracedModel(models.analytics, {
       properties: { feature: 'tribunal_video_scoring' },
     }),
-    schema: z.object({
-      scores: z.array(
-        z.object({
-          id: z.string(),
-          score: z.number().min(0).max(1),
-        }),
-      ),
+    output: Output.object({
+      schema: z.object({
+        scores: z.array(
+          z.object({
+            id: z.string(),
+            score: z.number().min(0).max(1),
+          }),
+        ),
+      }),
     }),
     prompt: `You are scoring parking tribunal cases for how interesting they would be as short social media videos.
 
@@ -218,11 +220,11 @@ const generateScript = async (tribunalCase: {
 }): Promise<ScriptSegments> => {
   logger.info('Generating script with Claude Sonnet 4.5');
 
-  const { object: script } = await generateObject({
+  const { output: script } = await generateText({
     model: getTracedModel(models.creative, {
       properties: { feature: 'tribunal_video_script' },
     }),
-    schema: scriptSchema,
+    output: Output.object({ schema: scriptSchema }),
     prompt: `You are writing a script for a 60-90 second social media video (Instagram Reel / TikTok / YouTube Short) about a real parking tribunal case.
 
 The video tells the story of the case in an educational, engaging way — like a knowledgeable friend explaining what happened and what we can learn from it.

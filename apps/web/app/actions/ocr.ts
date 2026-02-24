@@ -1,6 +1,6 @@
 'use server';
 
-import { generateObject } from 'ai';
+import { generateText, Output } from 'ai';
 import vision from '@google-cloud/vision';
 import { getUserId } from '@/utils/user';
 import createUTCDate from '@/utils/createUTCDate';
@@ -132,12 +132,14 @@ export const extractOCRTextWithOpenAI = async (
     properties: { feature: 'ocr_openai_direct' },
   });
 
-  // @ts-expect-error - Type instantiation is excessively deep with complex Zod schemas + generateObject
-  const { object: parsed } = await generateObject({
+  const { output: parsed } = (await generateText({
     model: tracedModel,
-    schema: DocumentSchema,
-    schemaName: 'document',
-    schemaDescription: 'Structured parking ticket or letter document',
+    // @ts-expect-error - DocumentSchema is too deeply nested for TS to infer Output.object() generics
+    output: Output.object({
+      schema: DocumentSchema,
+      name: 'document',
+      description: 'Structured parking ticket or letter document',
+    }),
     system: IMAGE_ANALYSIS_PROMPT,
     messages: [
       {
@@ -160,7 +162,7 @@ export const extractOCRTextWithOpenAI = async (
         ],
       },
     ],
-  });
+  })) as any;
 
   if (!parsed) {
     logger.error('OpenAI returned invalid document data', {
@@ -322,7 +324,9 @@ export const extractOCRTextWithOpenAI = async (
       sentAt: sentAt ? createUTCDate(new Date(sentAt)) : null,
       extractedText,
       letterType: letterType || null,
-      currentAmount: currentAmount ? Math.round(Number(currentAmount) * 100) : null,
+      currentAmount: currentAmount
+        ? Math.round(Number(currentAmount) * 100)
+        : null,
     },
     image: base64Image,
     imageUrl: blobStorageUrl,
@@ -462,16 +466,17 @@ export const extractOCRTextWithVision = async (
 
   let parsed;
   try {
-    // @ts-expect-error - Type instantiation is excessively deep with complex Zod schemas + generateObject
-    const result = await generateObject({
+    const result = (await generateText({
       model: tracedModel,
-      schema: DocumentSchema,
-      schemaName: 'document',
-      schemaDescription: 'Structured parking ticket or letter document',
+      output: Output.object({
+        schema: DocumentSchema,
+        name: 'document',
+        description: 'Structured parking ticket or letter document',
+      }),
       system: IMAGE_ANALYSIS_PROMPT,
       prompt: generateOcrAnalysisPrompt(googleOcrText),
-    });
-    parsed = result.object;
+    })) as any;
+    parsed = result.output;
   } catch (error) {
     logger.error('OpenAI returned invalid document data', {
       userId: effectiveUserId,
@@ -654,7 +659,9 @@ export const extractOCRTextWithVision = async (
       sentAt: sentAt ? createUTCDate(new Date(sentAt)) : null,
       extractedText,
       letterType: letterType || null,
-      currentAmount: currentAmount ? Math.round(Number(currentAmount) * 100) : null,
+      currentAmount: currentAmount
+        ? Math.round(Number(currentAmount) * 100)
+        : null,
     },
     image: base64Image,
     imageUrl: blobStorageUrl,

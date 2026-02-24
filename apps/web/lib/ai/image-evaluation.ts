@@ -5,7 +5,7 @@
  * are relevant and appropriate for blog post content.
  */
 
-import { generateObject } from 'ai';
+import { generateText, Output } from 'ai';
 import { z } from 'zod';
 import { models, getTracedModel } from './models';
 
@@ -25,7 +25,7 @@ const ImageEvaluationSchema = z.object({
 
 export type ImageEvaluation = z.infer<typeof ImageEvaluationSchema>;
 
-export interface EvaluateImageOptions {
+export type EvaluateImageOptions = {
   /** Blog post title */
   title: string;
   /** Blog post excerpt/summary */
@@ -38,7 +38,7 @@ export interface EvaluateImageOptions {
   searchTerm: string;
   /** Minimum confidence threshold (default: 60) */
   minConfidence?: number;
-}
+};
 
 /**
  * Evaluate whether a stock photo is suitable for a blog post
@@ -84,11 +84,11 @@ Poor images would be:
 Analyze the attached image and determine if it's a good match for this blog post.`;
 
   try {
-    const { object: evaluation } = await generateObject({
+    const { output: evaluation } = await generateText({
       model: getTracedModel(models.vision, {
         properties: { feature: 'image_evaluation', title, searchTerm },
       }),
-      schema: ImageEvaluationSchema,
+      output: Output.object({ schema: ImageEvaluationSchema }),
       messages: [
         {
           role: 'user',
@@ -120,9 +120,9 @@ Analyze the attached image and determine if it's a good match for this blog post
  * that meets the minimum threshold, or null if none qualify.
  */
 export async function findBestImage(
-  images: Array<{ url: string; searchTerm: string }>,
+  images: { url: string; searchTerm: string }[],
   context: { title: string; excerpt: string; category: string },
-  minConfidence: number = 60,
+  minConfidence = 60,
 ): Promise<{
   selectedIndex: number | null;
   evaluations: ImageEvaluation[];

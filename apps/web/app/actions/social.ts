@@ -1,9 +1,9 @@
-/* eslint-disable import/prefer-default-export */
+/* eslint-disable no-restricted-syntax, no-plusplus, no-await-in-loop, no-promise-executor-return, import-x/prefer-default-export */
 
 'use server';
 
 import sharp from 'sharp';
-import { generateText, generateObject } from 'ai';
+import { generateText, Output } from 'ai';
 import { z } from 'zod';
 import { ElevenLabsClient } from 'elevenlabs';
 import { PostPlatform, type Post } from '@/types';
@@ -16,14 +16,15 @@ import { getRandomMusicTrack } from '@/lib/music';
 const logger = createServerLogger({ action: 'social' });
 
 // Worker API configuration
-const WORKER_URL = process.env.WORKER_URL;
-const WORKER_SECRET = process.env.WORKER_SECRET;
+const { WORKER_URL } = process.env;
+const { WORKER_SECRET } = process.env;
 
 // ElevenLabs configuration
 const elevenlabs = process.env.ELEVENLABS_API_KEY
   ? new ElevenLabsClient({ apiKey: process.env.ELEVENLABS_API_KEY })
   : null;
-const ELEVENLABS_VOICE_ID = process.env.ELEVENLABS_VOICE_ID || 'P6bTNc9ZMZitpFPNJFbo'; // Default: Custom voice
+const ELEVENLABS_VOICE_ID =
+  process.env.ELEVENLABS_VOICE_ID || 'P6bTNc9ZMZitpFPNJFbo'; // Default: Custom voice
 
 /**
  * Generate Instagram image by calling the OG image endpoint
@@ -367,7 +368,10 @@ Blog URL: ${blogUrl}`;
 
   try {
     const tracedModel = getTracedModel(models.text, {
-      properties: { feature: 'social_facebook_reel_caption', slug: post.meta.slug },
+      properties: {
+        feature: 'social_facebook_reel_caption',
+        slug: post.meta.slug,
+      },
     });
 
     const { text } = await generateText({
@@ -436,7 +440,9 @@ Summary: ${post.meta.summary}`;
 // Schema for YouTube Shorts caption
 const YouTubeShortsSchema = z.object({
   title: z.string().describe('SEO-optimized title under 100 characters'),
-  description: z.string().describe('Description with blog URL, keywords, and hashtags'),
+  description: z
+    .string()
+    .describe('Description with blog URL, keywords, and hashtags'),
 });
 
 /**
@@ -462,21 +468,26 @@ Blog URL: ${blogUrl}`;
 
   try {
     const tracedModel = getTracedModel(models.text, {
-      properties: { feature: 'social_youtube_shorts_caption', slug: post.meta.slug },
+      properties: {
+        feature: 'social_youtube_shorts_caption',
+        slug: post.meta.slug,
+      },
     });
 
-    const { object } = await generateObject({
+    const { output } = await generateText({
       model: tracedModel,
-      schema: YouTubeShortsSchema,
-      schemaName: 'youtube_shorts',
-      schemaDescription: 'YouTube Shorts title and description',
+      output: Output.object({
+        schema: YouTubeShortsSchema,
+        name: 'youtube_shorts',
+        description: 'YouTube Shorts title and description',
+      }),
       system: systemPrompt,
       prompt: 'Generate the YouTube Shorts title and description.',
     });
 
     return {
-      title: object.title || post.meta.title,
-      description: object.description || post.meta.summary,
+      title: output?.title || post.meta.title,
+      description: output?.description || post.meta.summary,
     };
   } catch (error) {
     logger.error(
@@ -635,7 +646,8 @@ const generateVoiceover = async (text: string): Promise<string | null> => {
     logger.info('Voiceover generated and uploaded', { url });
     return url;
   } catch (error) {
-    const errorInstance = error instanceof Error ? error : new Error(String(error));
+    const errorInstance =
+      error instanceof Error ? error : new Error(String(error));
     logger.error(
       'Error generating voiceover',
       {
@@ -668,7 +680,10 @@ Summary: ${post.meta.summary}`;
 
   try {
     const tracedModel = getTracedModel(models.text, {
-      properties: { feature: 'social_instagram_reel_caption', slug: post.meta.slug },
+      properties: {
+        feature: 'social_instagram_reel_caption',
+        slug: post.meta.slug,
+      },
     });
 
     const { text } = await generateText({
@@ -797,7 +812,9 @@ const checkInstagramMediaStatus = async (
  * Wait for Instagram media container to be ready
  * Polls every 2 seconds for up to 30 seconds
  */
-const waitForInstagramMediaReady = async (creationId: string): Promise<void> => {
+const waitForInstagramMediaReady = async (
+  creationId: string,
+): Promise<void> => {
   const maxAttempts = 15;
   const delayMs = 2000;
 
@@ -1028,7 +1045,9 @@ const postVideoToFacebookPage = async (
 
   const data = await response.json();
   if (!data.id) {
-    throw new Error(`Failed to post video to Facebook: ${JSON.stringify(data)}`);
+    throw new Error(
+      `Failed to post video to Facebook: ${JSON.stringify(data)}`,
+    );
   }
   return data.id;
 };
@@ -1396,36 +1415,56 @@ export const postToSocialMedia = async (params: {
 
     // Generate captions for manual platforms (TikTok, YouTube Shorts, Threads)
     // These are not auto-posted but included in the digest email
-    const manualCaptions: Record<string, string | { title: string; description: string }> = {};
+    const manualCaptions: Record<
+      string,
+      string | { title: string; description: string }
+    > = {};
 
     logger.info('Generating captions for manual platforms', {
       slug: post.meta.slug,
     });
 
     // Generate all manual captions in parallel
-    const [tiktokCaption, youtubeShortsCaption, threadsCaption] = await Promise.all([
-      generateTikTokCaption(post).catch((error) => {
-        logger.error('Error generating TikTok caption', { slug: post.meta.slug }, error);
-        return null;
-      }),
-      generateYouTubeShortsCaption(post, blogUrl).catch((error) => {
-        logger.error('Error generating YouTube Shorts caption', { slug: post.meta.slug }, error);
-        return null;
-      }),
-      generateThreadsCaption(post, blogUrl).catch((error) => {
-        logger.error('Error generating Threads caption', { slug: post.meta.slug }, error);
-        return null;
-      }),
-    ]);
+    const [tiktokCaption, youtubeShortsCaption, threadsCaption] =
+      await Promise.all([
+        generateTikTokCaption(post).catch((error) => {
+          logger.error(
+            'Error generating TikTok caption',
+            { slug: post.meta.slug },
+            error,
+          );
+          return null;
+        }),
+        generateYouTubeShortsCaption(post, blogUrl).catch((error) => {
+          logger.error(
+            'Error generating YouTube Shorts caption',
+            { slug: post.meta.slug },
+            error,
+          );
+          return null;
+        }),
+        generateThreadsCaption(post, blogUrl).catch((error) => {
+          logger.error(
+            'Error generating Threads caption',
+            { slug: post.meta.slug },
+            error,
+          );
+          return null;
+        }),
+      ]);
 
     if (tiktokCaption) manualCaptions.tiktok = tiktokCaption;
-    if (youtubeShortsCaption) manualCaptions.youtubeShorts = youtubeShortsCaption;
+    if (youtubeShortsCaption)
+      manualCaptions.youtubeShorts = youtubeShortsCaption;
     if (threadsCaption) manualCaptions.threads = threadsCaption;
 
     // Get LinkedIn caption if we didn't auto-post (for digest)
     if (!results.linkedin?.caption) {
       try {
-        const linkedinCaptionForDigest = await generateLinkedInCaption(post, blogUrl);
+        const linkedinCaptionForDigest = await generateLinkedInCaption(
+          post,
+          blogUrl,
+        );
         manualCaptions.linkedin = linkedinCaptionForDigest;
       } catch (error) {
         logger.error(
@@ -1505,7 +1544,10 @@ export const postToSocialMedia = async (params: {
           assetType: 'video',
         });
       }
-      if (manualCaptions.youtubeShorts && typeof manualCaptions.youtubeShorts === 'object') {
+      if (
+        manualCaptions.youtubeShorts &&
+        typeof manualCaptions.youtubeShorts === 'object'
+      ) {
         digestCaptions.push({
           platform: 'youtubeShorts',
           caption: '',
@@ -1525,7 +1567,8 @@ export const postToSocialMedia = async (params: {
       }
 
       // Get asset URLs (use Instagram image as the main image, R2 video URL for download)
-      const imageAssetUrl = instagramImageUrl || facebookImageUrl || linkedinImageUrl || '';
+      const imageAssetUrl =
+        instagramImageUrl || facebookImageUrl || linkedinImageUrl || '';
       const videoAssetUrl = reelVideoR2Url || '';
 
       try {

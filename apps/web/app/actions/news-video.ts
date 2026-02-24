@@ -1,7 +1,7 @@
 /* eslint-disable no-plusplus, no-restricted-syntax, import-x/prefer-default-export */
 'use server';
 
-import { generateObject, generateText } from 'ai';
+import { generateText, Output } from 'ai';
 import { z } from 'zod';
 import { createHash } from 'crypto';
 import { ElevenLabsClient } from 'elevenlabs';
@@ -162,33 +162,35 @@ const discoverNews = async (): Promise<DiscoveryResult> => {
   }
 
   // 2. Parse combined results into structured articles
-  const { object: parsed } = await generateObject({
+  const { output: parsed } = await generateText({
     model: getTracedModel(models.textFast, {
       properties: { feature: 'news_video_parse' },
     }),
-    schema: z.object({
-      articles: z.array(
-        z.object({
-          url: z.string(),
-          source: z.string(),
-          headline: z.string(),
-          category: z.enum([
-            'PARKING',
-            'DRIVING',
-            'CONGESTION',
-            'EV',
-            'INSURANCE',
-            'TAX',
-            'TRAFFIC',
-          ]),
-          summary: z.string(),
-          publishedDate: z
-            .string()
-            .describe(
-              'The article publication date in YYYY-MM-DD format, or empty string if unknown',
-            ),
-        }),
-      ),
+    output: Output.object({
+      schema: z.object({
+        articles: z.array(
+          z.object({
+            url: z.string(),
+            source: z.string(),
+            headline: z.string(),
+            category: z.enum([
+              'PARKING',
+              'DRIVING',
+              'CONGESTION',
+              'EV',
+              'INSURANCE',
+              'TAX',
+              'TRAFFIC',
+            ]),
+            summary: z.string(),
+            publishedDate: z
+              .string()
+              .describe(
+                'The article publication date in YYYY-MM-DD format, or empty string if unknown',
+              ),
+          }),
+        ),
+      }),
     }),
     prompt: `Extract structured article data from the following search results. Return each DISTINCT article (deduplicate by story — if the same story appears from multiple searches, keep the best source).
 
@@ -324,22 +326,24 @@ ${combinedResults}`,
       `Running semantic dedup: ${newArticles.length} candidates vs ${existingVideos.length} existing`,
     );
 
-    const { object: dedup } = await generateObject({
+    const { output: dedup } = await generateText({
       model: getTracedModel(models.textFast, {
         properties: { feature: 'news_video_semantic_dedup' },
       }),
-      schema: z.object({
-        results: z.array(
-          z.object({
-            url: z.string(),
-            isDuplicate: z.boolean(),
-            matchedExistingHeadline: z
-              .string()
-              .describe(
-                'The headline of the existing article it duplicates, or empty string if not a duplicate',
-              ),
-          }),
-        ),
+      output: Output.object({
+        schema: z.object({
+          results: z.array(
+            z.object({
+              url: z.string(),
+              isDuplicate: z.boolean(),
+              matchedExistingHeadline: z
+                .string()
+                .describe(
+                  'The headline of the existing article it duplicates, or empty string if not a duplicate',
+                ),
+            }),
+          ),
+        }),
       }),
       prompt: `You are a strict news editor checking for duplicate story coverage. Your job is to AVOID false positives — only mark something as a duplicate if you are very confident it is the exact same story.
 
@@ -392,17 +396,19 @@ Return results for ALL candidate articles.`,
   logger.info(`${semanticFiltered.length} new articles found, scoring`);
 
   // 4. Score articles for engagement potential
-  const { object: scored } = await generateObject({
+  const { output: scored } = await generateText({
     model: getTracedModel(models.analytics, {
       properties: { feature: 'news_video_scoring' },
     }),
-    schema: z.object({
-      scores: z.array(
-        z.object({
-          url: z.string(),
-          score: z.number().min(0).max(1),
-        }),
-      ),
+    output: Output.object({
+      schema: z.object({
+        scores: z.array(
+          z.object({
+            url: z.string(),
+            score: z.number().min(0).max(1),
+          }),
+        ),
+      }),
     }),
     prompt: `Score each news article for how engaging it would be as a short social media video for UK motorists.
 
@@ -563,11 +569,11 @@ For each segment, write a short image prompt (1-2 sentences) describing a specif
   try {
     logger.info('Generating news script with Claude Sonnet 4.5');
 
-    const { object: script } = await generateObject({
+    const { output: script } = await generateText({
       model: getTracedModel(models.creative, {
         properties: { feature: 'news_video_script' },
       }),
-      schema: newsScriptSchema,
+      output: Output.object({ schema: newsScriptSchema }),
       maxRetries: 5,
       prompt: scriptPrompt,
     });
@@ -587,11 +593,11 @@ For each segment, write a short image prompt (1-2 sentences) describing a specif
   // Fallback to GPT-4o
   logger.info('Generating news script with GPT-4o (fallback)');
 
-  const { object: script } = await generateObject({
+  const { output: script } = await generateText({
     model: getTracedModel(models.text, {
       properties: { feature: 'news_video_script_fallback' },
     }),
-    schema: newsScriptSchema,
+    output: Output.object({ schema: newsScriptSchema }),
     maxRetries: 3,
     prompt: scriptPrompt,
   });
