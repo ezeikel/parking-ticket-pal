@@ -34,7 +34,9 @@ const SuccessState = ({
   const successMessage = isLetter
     ? 'Your letter has been linked to the ticket.'
     : 'Your ticket has been saved.';
-  const buttonText = isLetter ? 'View Ticket' : 'View Ticket';
+  const buttonText = isLetter
+    ? 'View Ticket & Deadlines'
+    : 'View Ticket & Deadlines';
   const addAnotherText = isLetter
     ? 'Add Another Document'
     : 'Add Another Ticket';
@@ -98,6 +100,10 @@ const SuccessState = ({
         <p className="mt-2 text-gray">
           {successMessage}{' '}
           <span className="font-semibold text-dark">{pcnNumber}</span>
+        </p>
+        <p className="mt-2 text-sm text-gray">
+          We&apos;ll track your deadlines and send reminders so your fine never
+          increases unnecessarily.
         </p>
       </motion.div>
 

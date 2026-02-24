@@ -60,7 +60,6 @@ const oneTimeTiers: PricingTier[] = [
     features: [
       'Everything in Standard',
       'AI appeal letter generation',
-      'Success prediction score',
       'Automatic challenge submission',
       'Priority support',
     ],
@@ -295,7 +294,7 @@ const PricingPage = () => {
             variants={fadeUpVariants}
             className="text-4xl font-bold text-dark md:text-5xl"
           >
-            Pricing
+            Plans that pay for themselves
           </motion.h1>
           <motion.p
             initial="hidden"
@@ -304,8 +303,8 @@ const PricingPage = () => {
             transition={{ delay: 0.1 }}
             className="mx-auto mt-4 max-w-2xl text-lg text-gray"
           >
-            Pay per ticket, subscribe for peace of mind, or talk to us about
-            fleets.
+            One cancelled ticket covers the cost. Pay per ticket, subscribe
+            monthly, or talk to us about fleets.
           </motion.p>
         </div>
       </section>
@@ -431,6 +430,13 @@ const PricingPage = () => {
                     </p>
                   )}
                 </div>
+
+                {/* Price anchoring */}
+                {activeTab === 'one-time' && tier.name === 'Premium' && (
+                  <p className="mb-2 text-xs font-medium text-teal">
+                    One cancelled ticket and Premium pays for itself.
+                  </p>
+                )}
 
                 {/* Features */}
                 <ul className="mb-8 flex-1 space-y-3">
@@ -589,6 +595,39 @@ const PricingPage = () => {
                   </tr>
                 ))}
               </tbody>
+              <tfoot>
+                <tr className="border-t border-border">
+                  <td className="pt-6" />
+                  <td className="pt-6 text-center">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="text-sm font-semibold"
+                      asChild
+                    >
+                      <Link href="/new">Start Free</Link>
+                    </Button>
+                  </td>
+                  <td className="pt-6 text-center">
+                    <Button
+                      size="sm"
+                      className="bg-dark text-sm font-semibold text-white hover:bg-dark/90"
+                      asChild
+                    >
+                      <Link href="/new?tier=standard">Get Standard</Link>
+                    </Button>
+                  </td>
+                  <td className="pt-6 text-center">
+                    <Button
+                      size="sm"
+                      className="bg-dark text-sm font-semibold text-white hover:bg-dark/90"
+                      asChild
+                    >
+                      <Link href="/new?tier=premium">Get Premium</Link>
+                    </Button>
+                  </td>
+                </tr>
+              </tfoot>
             </table>
           </motion.div>
         </div>

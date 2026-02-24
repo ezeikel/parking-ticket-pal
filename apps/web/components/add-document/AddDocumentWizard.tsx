@@ -11,8 +11,8 @@ import {
   faLightbulb,
   faCircleInfo,
   faSpinnerThird,
+  faP,
 } from '@fortawesome/pro-solid-svg-icons';
-import { faP } from '@fortawesome/pro-solid-svg-icons';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -110,9 +110,7 @@ const AddDocumentWizard = ({
   );
   const [pcnNumber, setPcnNumber] = useState(extractedData?.pcnNumber || '');
   const [vehicleReg, setVehicleReg] = useState(extractedData?.vehicleReg || '');
-  const [issuedAt, _setIssuedAt] = useState<Date | undefined>(
-    extractedData?.issuedAt,
-  );
+  const [issuedAt] = useState<Date | undefined>(extractedData?.issuedAt);
   const [location, setLocation] = useState<Address | undefined>(
     extractedData?.location,
   );
@@ -219,6 +217,10 @@ const AddDocumentWizard = ({
                 <p className="mt-1 text-sm text-gray">
                   Check the top of your letter or ticket.
                 </p>
+                <p className="mt-1 text-xs text-gray/70">
+                  This helps us find the right appeal process and deadlines for
+                  you.
+                </p>
 
                 <div className="mt-6 flex flex-col gap-3">
                   <button
@@ -319,6 +321,10 @@ const AddDocumentWizard = ({
                 <h2 className="text-xl font-bold text-dark">
                   What stage are you at?
                 </h2>
+                <p className="mt-1 text-sm text-gray">
+                  Different stages have different deadlines and options —
+                  we&apos;ll tailor your next steps.
+                </p>
 
                 <div className="mt-6 flex flex-col gap-3">
                   <button
@@ -440,7 +446,8 @@ const AddDocumentWizard = ({
                   Enter your ticket details
                 </h2>
                 <p className="mt-1 text-sm text-gray">
-                  You can find these on your ticket or letter.
+                  We use these to track your specific ticket and check for
+                  updates.
                 </p>
 
                 <div className="mt-6 flex flex-col gap-4">
@@ -503,6 +510,10 @@ const AddDocumentWizard = ({
                 </h2>
                 <p className="mt-1 text-sm text-gray">
                   Please check these are correct.
+                </p>
+                <p className="mt-1 text-xs text-gray/70">
+                  Accurate details help us track your deadlines and calculate
+                  your appeal chances.
                 </p>
 
                 <div className="mt-6 flex flex-col gap-4">
@@ -626,7 +637,8 @@ const AddDocumentWizard = ({
                   Additional details
                 </h2>
                 <p className="mt-1 text-sm text-gray">
-                  These help us track your ticket accurately (optional).
+                  These help us calculate your appeal success score and track
+                  your ticket accurately (all optional).
                 </p>
 
                 <div className="mt-6 flex flex-col gap-4 max-h-[280px] overflow-y-auto pr-2">

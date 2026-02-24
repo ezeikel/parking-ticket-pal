@@ -36,7 +36,9 @@ const SignupContent = () => {
   const [hasTicketData, setHasTicketData] = useState(false);
   const [email, setEmail] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [guestIntent, setGuestIntent] = useState<'track' | 'challenge' | undefined>(undefined);
+  const [guestIntent, setGuestIntent] = useState<
+    'track' | 'challenge' | undefined
+  >(undefined);
   const [ticketInfo, setTicketInfo] = useState<{
     pcnNumber: string;
     vehicleReg: string;
@@ -58,7 +60,7 @@ const SignupContent = () => {
       }
 
       // Capture intent from guest data
-      const intent = guestData.intent as 'track' | 'challenge' | undefined;
+      const { intent } = guestData;
       setGuestIntent(intent);
 
       // Mark as track flow (no payment needed)
@@ -191,9 +193,10 @@ const SignupContent = () => {
             <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-teal/10">
               <FontAwesomeIcon icon={faTicket} className="h-8 w-8 text-teal" />
             </div>
-            <CardTitle>Create Your Free Account</CardTitle>
+            <CardTitle>Almost done — sign up to save your ticket</CardTitle>
             <CardDescription>
-              Sign up to save your ticket and get deadline reminders.
+              Create a free account to track your deadline and get reminded
+              before your fine increases.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
@@ -232,21 +235,21 @@ const SignupContent = () => {
                         icon={faCheckCircle}
                         className="text-xs text-teal"
                       />
-                      Deadline reminders
+                      SMS + email before your fine doubles
                     </li>
                     <li className="flex items-center gap-1.5">
                       <FontAwesomeIcon
                         icon={faCheckCircle}
                         className="text-xs text-teal"
                       />
-                      All tickets in one place
+                      Track this ticket and any future ones
                     </li>
                     <li className="flex items-center gap-1.5">
                       <FontAwesomeIcon
                         icon={faCheckCircle}
                         className="text-xs text-teal"
                       />
-                      Challenge later if needed
+                      See your appeal success score
                     </li>
                   </ul>
                 </div>

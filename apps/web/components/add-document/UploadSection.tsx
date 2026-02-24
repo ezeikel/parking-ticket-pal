@@ -156,6 +156,9 @@ const UploadSection = ({
         <p className="mt-6 text-center text-xs text-gray">
           Your data is encrypted and secure. We never share your information.
         </p>
+        <p className="mt-1 text-center text-xs text-gray">
+          Free to upload. No credit card required.
+        </p>
       </div>
     </motion.div>
   );

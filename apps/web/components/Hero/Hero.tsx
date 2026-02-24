@@ -386,9 +386,9 @@ const Hero = () => {
               variants={fadeUpVariants}
               className="text-4xl font-extrabold leading-tight text-white md:text-5xl lg:text-[56px]"
             >
-              Sort your ticket in minutes,
+              Don&apos;t let a parking ticket
               <br />
-              without the hassle.
+              cost you double.
             </motion.h1>
 
             {/* Subheadline */}
@@ -396,8 +396,8 @@ const Hero = () => {
               variants={fadeUpVariants}
               className="mt-6 max-w-lg text-lg text-white/90 md:text-xl"
             >
-              Upload your ticket to track deadlines, get payment links, and
-              generate a challenge letter when it&apos;s worth it.
+              Most fines double after 14 days. Upload your ticket to track
+              deadlines, get reminders, and challenge when it&apos;s worth it.
             </motion.p>
 
             {/* CTA Button - Mobile Only */}
