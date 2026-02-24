@@ -3,8 +3,10 @@ import { useEffect, useState } from 'react';
 import Animated, { FadeIn, FadeInUp } from 'react-native-reanimated';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { faCircleExclamation } from '@fortawesome/pro-solid-svg-icons';
+import * as Notifications from 'expo-notifications';
 import useCreateTicket from '@/hooks/api/useUploadTicket';
 import { useAnalytics } from '@/lib/analytics';
+import { registerForPushNotifications } from '@/lib/notifications';
 import Loader from '@/components/Loader/Loader';
 import SquishyPressable from '@/components/SquishyPressable/SquishyPressable';
 import type { WizardData, WizardResult } from '../types';
@@ -52,6 +54,12 @@ const CreatingStep = ({ wizardData, onComplete }: CreatingStepProps) => {
           ticket_id: result.ticket.id,
           intent: wizardData.intent,
         });
+
+        // Prompt for push notifications after first ticket creation
+        const { status } = await Notifications.getPermissionsAsync();
+        if (status !== 'granted') {
+          registerForPushNotifications();
+        }
 
         onComplete({
           ticketId: result.ticket.id,

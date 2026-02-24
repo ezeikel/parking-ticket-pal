@@ -11,6 +11,7 @@ import Providers from "@/providers";
 import { PostHogNavigationTracker } from "@/components/PostHogNavigationTracker";
 import OfflineBanner from "@/components/OfflineBanner";
 import { purchaseService } from '@/services/PurchaseService';
+import * as Notifications from 'expo-notifications';
 import { registerForPushNotifications, setupNotificationListeners } from '@/lib/notifications';
 import "../global.css";
 
@@ -58,8 +59,11 @@ const RootLayout = () => {
       // Initialize RevenueCat when app starts, before any providers
       purchaseService.initialize();
 
-      // Initialize push notifications
-      registerForPushNotifications();
+      // Re-register push token silently if permission already granted (e.g. reinstall)
+      const { status: notificationStatus } = await Notifications.getPermissionsAsync();
+      if (notificationStatus === 'granted') {
+        registerForPushNotifications();
+      }
     })();
 
     // Setup notification listeners

@@ -10,6 +10,7 @@ import TicketReminderEmail from '@/components/emails/TicketReminderEmail';
 import SocialDigestEmail from '@/emails/SocialDigestEmail';
 import NewsVideoSkippedEmail from '@/emails/NewsVideoSkippedEmail';
 import NewsVideoFailedEmail from '@/emails/NewsVideoFailedEmail';
+import WelcomeEmail from '@/emails/WelcomeEmail';
 
 const AttachmentSchema = z.object({
   filename: z.string(),
@@ -414,5 +415,23 @@ export const sendNewsVideoFailed = async (
     subject: `News Video Pipeline FAILED: ${data.errorMessage.slice(0, 60)}`,
     html: emailHtml,
     text: `News Video Pipeline FAILED\n\nThe pipeline encountered an error:\n${data.errorMessage}\n\n${data.headline ? `Article: ${data.headline}\n` : ''}${data.videoId ? `Video ID: ${data.videoId}\n` : ''}${data.stage ? `Stage: ${data.stage}\n` : ''}\nFailed at: ${data.failedAt}`,
+  });
+};
+
+export const sendWelcomeEmail = async (
+  to: string,
+  data: { name?: string },
+): Promise<{
+  success: boolean;
+  messageId?: string;
+  error?: string;
+}> => {
+  const emailHtml = await render(WelcomeEmail({ name: data.name }));
+
+  return sendEmail({
+    to,
+    subject: 'Welcome to Parking Ticket Pal',
+    html: emailHtml,
+    text: `Welcome to Parking Ticket Pal!\n\nHi ${data.name || 'there'},\n\nYou're all set! Here's how Parking Ticket Pal helps you fight unfair parking tickets:\n\n- Scan or upload your parking ticket\n- Get an AI-powered Success Score\n- Generate appeal letters in minutes\n\nUpload your first ticket: ${process.env.NEXT_PUBLIC_APP_URL || 'https://parkingticketpal.com'}/new\n\nNeed help? Reply to this email or visit our support page.`,
   });
 };

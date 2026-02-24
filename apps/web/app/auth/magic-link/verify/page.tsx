@@ -34,7 +34,7 @@ const MagicLinkVerifyContent = () => {
       try {
         // This is for web-based magic link verification (NextAuth Resend provider)
         // The verification is handled automatically by NextAuth
-        const callbackUrl = searchParams.get('callbackUrl') || '/';
+        const callbackUrl = searchParams.get('callbackUrl') || '/dashboard';
 
         setStatus('success');
         setMessage('Successfully verified! Redirecting...');

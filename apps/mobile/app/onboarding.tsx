@@ -2,6 +2,7 @@ import { router } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import OnboardingCarousel from '@/components/OnboardingCarousel/OnboardingCarousel';
 import { useAnalytics } from '@/lib/analytics';
+import { registerForPushNotifications } from '@/lib/notifications';
 
 const ONBOARDING_COMPLETED_KEY = '@parking_ticket_pal_onboarding_completed';
 
@@ -26,9 +27,10 @@ const OnboardingScreen = () => {
   return (
     <OnboardingCarousel
       onComplete={handleOnboardingComplete}
-      onTicketCreated={(ticketId: string) =>
-        trackEvent('onboarding_ticket_created', { ticketId })
-      }
+      onTicketCreated={(ticketId: string) => {
+        trackEvent('onboarding_ticket_created', { ticketId });
+        registerForPushNotifications();
+      }}
     />
   );
 };

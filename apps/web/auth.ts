@@ -10,6 +10,7 @@ import { createServerLogger } from '@/lib/logger';
 import { generateAppleClientSecret } from '@/lib/apple';
 import { render } from '@react-email/render';
 import MagicLinkEmail from '@/components/emails/MagicLinkEmail';
+import WelcomeEmail from '@/emails/WelcomeEmail';
 import resendClient from '@/lib/resend';
 
 type AppleProfile = Profile & {
@@ -27,6 +28,25 @@ const clientSecret = await generateAppleClientSecret({
 });
 
 const logger = createServerLogger({ action: 'auth' });
+
+const sendWelcomeEmail = async (email: string, name?: string) => {
+  try {
+    const emailHtml = await render(WelcomeEmail({ name }));
+
+    await resendClient.emails.send({
+      from: `Parking Ticket Pal <${process.env.DEFAULT_FROM_EMAIL}>`,
+      to: email,
+      subject: 'Welcome to Parking Ticket Pal',
+      html: emailHtml,
+    });
+  } catch (error) {
+    logger.error(
+      'Failed to send welcome email',
+      { email },
+      error instanceof Error ? error : undefined,
+    );
+  }
+};
 
 const config = {
   adapter: PrismaAdapter(db),
@@ -84,6 +104,14 @@ const config = {
     }),
   ],
   callbacks: {
+    async redirect({ url, baseUrl }: { url: string; baseUrl: string }) {
+      // If the url is relative, prefix with baseUrl
+      if (url.startsWith('/')) return `${baseUrl}${url}`;
+      // If same origin, allow
+      if (new URL(url).origin === baseUrl) return url;
+      // Default: send to dashboard
+      return `${baseUrl}/dashboard`;
+    },
     async signIn({
       account,
       profile,
@@ -132,6 +160,10 @@ const config = {
           },
         });
 
+        sendWelcomeEmail(profile?.email as string, name as string).catch(
+          () => {},
+        );
+
         return true;
       }
 
@@ -153,6 +185,8 @@ const config = {
             email: userEmail,
           },
         });
+
+        sendWelcomeEmail(userEmail).catch(() => {});
 
         return true;
       }
