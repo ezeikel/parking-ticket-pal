@@ -38,6 +38,7 @@ const resourceLinks: FooterLink[] = [
     label: 'Contravention Codes',
     href: '/tools/reference/contravention-codes',
   },
+  { label: 'Compare', href: '/compare' },
 ];
 
 const companyLinks: FooterLink[] = [
