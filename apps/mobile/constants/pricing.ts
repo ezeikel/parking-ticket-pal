@@ -18,7 +18,7 @@ export const ONE_TIME_PLANS: PricingPlan[] = [
   {
     id: "standard_ticket",
     name: "Standard",
-    subtitle: "Track & never miss a deadline",
+    subtitle: "Stay on top of every deadline",
     rcProductPrefix: "standard_ticket",
     popular: false,
     features: [
@@ -34,7 +34,7 @@ export const ONE_TIME_PLANS: PricingPlan[] = [
   {
     id: "premium_ticket",
     name: "Premium",
-    subtitle: "Full tools to manage and challenge",
+    subtitle: "Challenge with AI — maximise your chances",
     rcProductPrefix: "premium_ticket",
     badge: "Most Popular",
     popular: true,
@@ -52,7 +52,7 @@ export const SUBSCRIPTION_PLANS: PricingPlan[] = [
   {
     id: "standard_sub",
     name: "Standard Plan",
-    subtitle: "Up to 5 tickets per month",
+    subtitle: "Track deadlines & never pay double",
     rcProductPrefix: "standard_sub",
     popular: false,
     features: [
@@ -70,7 +70,7 @@ export const SUBSCRIPTION_PLANS: PricingPlan[] = [
   {
     id: "premium_sub",
     name: "Premium Plan",
-    subtitle: "Up to 10 tickets per month",
+    subtitle: "Full challenge support — AI letters, auto-submit",
     rcProductPrefix: "premium_sub",
     badge: "Best Value",
     popular: true,

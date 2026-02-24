@@ -10,9 +10,10 @@ interface PlanCardProps {
   isSelected: boolean;
   onSelect: () => void;
   formatPrice: (pkg: PurchasesPackage | null) => string;
+  trialDuration?: string | null;
 }
 
-export function PlanCard({ plan, pkg, isSelected, onSelect, formatPrice }: PlanCardProps) {
+export function PlanCard({ plan, pkg, isSelected, onSelect, formatPrice, trialDuration }: PlanCardProps) {
   const price = formatPrice(pkg);
 
   return (
@@ -31,6 +32,14 @@ export function PlanCard({ plan, pkg, isSelected, onSelect, formatPrice }: PlanC
 
         <Text className="font-jakarta-bold text-xl text-dark">{plan.name}</Text>
         <Text className="font-jakarta text-sm text-gray mt-1">{plan.subtitle}</Text>
+
+        {trialDuration && (
+          <View className="bg-teal/10 self-start px-3 py-1 rounded-full mt-2">
+            <Text className="font-jakarta-semibold text-xs text-teal">
+              {trialDuration} free trial
+            </Text>
+          </View>
+        )}
 
         <View className="flex-row items-baseline mt-4 mb-4">
           <Text className="font-jakarta-extrabold text-4xl text-dark">{price}</Text>

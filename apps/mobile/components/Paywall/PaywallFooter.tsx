@@ -3,30 +3,33 @@ import { View, Text, Pressable, Linking } from 'react-native';
 interface PaywallFooterProps {
   onRestore: () => void;
   isRestoring: boolean;
+  hasTrialEligible?: boolean;
 }
 
-export function PaywallFooter({ onRestore, isRestoring }: PaywallFooterProps) {
+export function PaywallFooter({ onRestore, isRestoring, hasTrialEligible }: PaywallFooterProps) {
   return (
-    <View className="px-6 pb-6 pt-2">
-      <Pressable onPress={onRestore} disabled={isRestoring} className="items-center py-3">
-        <Text className="font-jakarta-medium text-sm text-teal">
-          {isRestoring ? 'Restoring...' : 'Restore Purchases'}
-        </Text>
-      </Pressable>
-
-      <View className="flex-row justify-center gap-4 mt-2">
-        <Pressable onPress={() => Linking.openURL('https://parkingticketpal.com/terms')}>
-          <Text className="font-jakarta text-xs text-gray">Terms of Use</Text>
+    <View className="pt-2 pb-1">
+      {/* Restore + Terms + Privacy in one row */}
+      <View className="flex-row items-center justify-center gap-3">
+        <Pressable onPress={onRestore} disabled={isRestoring} hitSlop={8}>
+          <Text className="font-jakarta-medium text-xs text-teal">
+            {isRestoring ? 'Restoring...' : 'Restore Purchases'}
+          </Text>
         </Pressable>
-        <Pressable onPress={() => Linking.openURL('https://parkingticketpal.com/privacy')}>
-          <Text className="font-jakarta text-xs text-gray">Privacy Policy</Text>
+        <Text className="text-gray text-xs">·</Text>
+        <Pressable onPress={() => Linking.openURL('https://parkingticketpal.com/terms')} hitSlop={8}>
+          <Text className="font-jakarta text-xs text-gray">Terms</Text>
+        </Pressable>
+        <Text className="text-gray text-xs">·</Text>
+        <Pressable onPress={() => Linking.openURL('https://parkingticketpal.com/privacy')} hitSlop={8}>
+          <Text className="font-jakarta text-xs text-gray">Privacy</Text>
         </Pressable>
       </View>
 
-      <Text className="font-jakarta text-xs text-gray text-center mt-3">
-        Payment will be charged to your Apple ID account at confirmation of purchase.
-        Subscriptions automatically renew unless auto-renew is turned off at least 24 hours
-        before the end of the current period.
+      {/* Condensed legal text */}
+      <Text className="font-jakarta text-[10px] text-gray text-center mt-1.5 leading-3">
+        Auto-renews unless cancelled 24h before period ends.
+        {hasTrialEligible ? ' Trial converts to paid subscription — cancel anytime.' : ''}
       </Text>
     </View>
   );

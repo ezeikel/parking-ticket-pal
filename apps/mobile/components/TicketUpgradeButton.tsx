@@ -21,7 +21,7 @@ export function TicketUpgradeButton({
   const handlePress = () => {
     push({
       pathname: '/(authenticated)/paywall',
-      params: { mode: 'ticket_upgrades', ticketId },
+      params: { mode: 'ticket_upgrades', ticketId, source: 'feature_gate' },
     });
   };
 

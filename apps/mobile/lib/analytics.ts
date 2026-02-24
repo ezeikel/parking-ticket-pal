@@ -93,6 +93,8 @@ export type AnalyticsEvent =
   | "paywall_purchase_success"
   | "paywall_purchase_cancelled"
   | "paywall_restore_success"
+  | "paywall_trial_started"
+  | "paywall_closed_without_purchase"
 
   // Wizard events
   | "camera_wizard_completed"
@@ -195,6 +197,8 @@ export type AnalyticsProperties = {
   product_id?: string
   price?: string
   billing_period?: string
+  is_trial?: boolean
+  trial_duration?: string | null
 }
 
 /**

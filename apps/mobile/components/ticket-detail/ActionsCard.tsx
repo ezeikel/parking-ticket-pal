@@ -25,6 +25,7 @@ import SquishyPressable from '@/components/SquishyPressable/SquishyPressable';
 type ActionsCardProps = {
   ticket: Ticket;
   isPremium: boolean;
+  isStandardOnly?: boolean;
   onOpenPremiumActions: () => void;
   onOpenChallengeLetter: () => void;
   onRefetch: () => void;
@@ -33,6 +34,7 @@ type ActionsCardProps = {
 export default function ActionsCard({
   ticket,
   isPremium,
+  isStandardOnly,
   onOpenPremiumActions,
   onOpenChallengeLetter,
   onRefetch,
@@ -151,30 +153,66 @@ export default function ActionsCard({
           </SquishyPressable>
         </View>
       ) : !isPremium && !isTerminal ? (
-        <View className="mb-4">
-          <SquishyPressable
-            onPress={() =>
-              router.push({
-                pathname: '/(authenticated)/paywall' as any,
-                params: {
-                  mode: 'ticket_upgrades',
-                  ticketId: ticket.id,
-                },
-              })
-            }
-          >
-            <View className="bg-teal rounded-xl p-3.5 flex-row items-center justify-center">
-              <FontAwesomeIcon
-                icon={faLock}
-                size={14}
-                color="#ffffff"
-                style={{ marginRight: 8 }}
-              />
-              <Text className="font-jakarta-semibold text-sm text-white">
-                Upgrade to Challenge Ticket
-              </Text>
-            </View>
-          </SquishyPressable>
+        <View className="gap-3 mb-4">
+          {isStandardOnly ? (
+            <>
+              <SquishyPressable
+                onPress={() =>
+                  router.push({
+                    pathname: '/(authenticated)/paywall' as any,
+                    params: {
+                      mode: 'ticket_upgrades',
+                      ticketId: ticket.id,
+                    },
+                  })
+                }
+              >
+                <View className="bg-teal rounded-xl p-3.5 flex-row items-center justify-center">
+                  <FontAwesomeIcon icon={faLock} size={14} color="#ffffff" style={{ marginRight: 8 }} />
+                  <Text className="font-jakarta-semibold text-sm text-white">
+                    Unlock AI Appeal Letters
+                  </Text>
+                </View>
+              </SquishyPressable>
+              <SquishyPressable
+                onPress={() =>
+                  router.push({
+                    pathname: '/(authenticated)/paywall' as any,
+                    params: {
+                      mode: 'ticket_upgrades',
+                      ticketId: ticket.id,
+                    },
+                  })
+                }
+              >
+                <View className="rounded-xl p-3.5 flex-row items-center justify-center border border-teal">
+                  <FontAwesomeIcon icon={faRobot} size={14} color="#1abc9c" style={{ marginRight: 8 }} />
+                  <Text className="font-jakarta-semibold text-sm text-teal">
+                    Unlock Auto-Submit
+                  </Text>
+                </View>
+              </SquishyPressable>
+            </>
+          ) : (
+            <SquishyPressable
+              onPress={() =>
+                router.push({
+                  pathname: '/(authenticated)/paywall' as any,
+                  params: {
+                    mode: 'ticket_upgrades',
+                    ticketId: ticket.id,
+                  },
+                })
+              }
+            >
+              <View className="bg-teal rounded-xl p-3.5 flex-row items-center justify-center">
+                <FontAwesomeIcon icon={faLock} size={14} color="#ffffff" style={{ marginRight: 8 }} />
+                <Text className="font-jakarta-semibold text-sm text-white">
+                  Upgrade to Challenge Ticket
+                </Text>
+              </View>
+            </SquishyPressable>
+          )}
         </View>
       ) : null}
 

@@ -74,6 +74,31 @@ export function usePaywall({ mode, ticketId, onPurchaseComplete }: UsePaywallOpt
     return pkg.product.priceString;
   }, []);
 
+  const hasTrialForPlan = useCallback(
+    (plan: PricingPlan): boolean => {
+      const pkg = getPackageForPlan(plan);
+      if (!pkg) return false;
+      const intro = pkg.product.introPrice;
+      return intro != null && intro.price === 0;
+    },
+    [getPackageForPlan],
+  );
+
+  const getTrialDuration = useCallback(
+    (plan: PricingPlan): string | null => {
+      const pkg = getPackageForPlan(plan);
+      if (!pkg) return null;
+      const intro = pkg.product.introPrice;
+      if (!intro || intro.price !== 0) return null;
+      const count = intro.periodNumberOfUnits;
+      const unit = intro.periodUnit;
+      const unitLabel =
+        unit === 'DAY' ? 'day' : unit === 'WEEK' ? 'week' : unit === 'MONTH' ? 'month' : 'day';
+      return `${count}-${unitLabel}`;
+    },
+    [getPackageForPlan],
+  );
+
   const purchasePackage = useCallback(
     async (plan: PricingPlan) => {
       const pkg = getPackageForPlan(plan);
@@ -87,12 +112,23 @@ export function usePaywall({ mode, ticketId, onPurchaseComplete }: UsePaywallOpt
       try {
         const { customerInfo } = await contextPurchasePackage(pkg, ticketId);
 
+        const isTrial = hasTrialForPlan(plan);
+
         trackEvent('paywall_purchase_success', {
           product_id: pkg.product.identifier,
           price: pkg.product.priceString,
           plan_id: plan.id,
           mode,
+          is_trial: isTrial,
         });
+
+        if (isTrial) {
+          trackEvent('paywall_trial_started', {
+            product_id: pkg.product.identifier,
+            plan_id: plan.id,
+            trial_duration: getTrialDuration(plan),
+          });
+        }
 
         await refreshCustomerInfo();
 
@@ -117,7 +153,7 @@ export function usePaywall({ mode, ticketId, onPurchaseComplete }: UsePaywallOpt
         setIsPurchasing(false);
       }
     },
-    [getPackageForPlan, contextPurchasePackage, ticketId, mode, refreshCustomerInfo, onPurchaseComplete, trackEvent]
+    [getPackageForPlan, contextPurchasePackage, ticketId, mode, refreshCustomerInfo, onPurchaseComplete, trackEvent, hasTrialForPlan, getTrialDuration]
   );
 
   const restorePurchases = useCallback(async () => {
@@ -168,5 +204,7 @@ export function usePaywall({ mode, ticketId, onPurchaseComplete }: UsePaywallOpt
     restorePurchases,
     getPackageForPlan,
     formatPrice,
+    hasTrialForPlan,
+    getTrialDuration,
   };
 }

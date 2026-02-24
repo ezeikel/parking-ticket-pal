@@ -1,25 +1,26 @@
-import { View, ScrollView } from 'react-native';
+import { useCallback, useEffect } from 'react';
+import { View, ScrollView, Text } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { usePaywall } from '@/hooks/usePaywall';
 import { useAnalytics } from '@/lib/analytics';
 import { MAX_CONTENT_WIDTH } from '@/constants/layout';
-import { useEffect } from 'react';
 import Loader from '@/components/Loader/Loader';
 import SquishyPressable from '@/components/SquishyPressable/SquishyPressable';
-import { Text } from 'react-native';
 import { PaywallHeader } from './PaywallHeader';
 import { PaywallFooter } from './PaywallFooter';
+import { PaywallSocialProof } from './PaywallSocialProof';
 import { BillingToggle } from './BillingToggle';
 import { PlanCard } from './PlanCard';
 
 interface PaywallProps {
   mode: 'subscriptions' | 'ticket_upgrades';
   ticketId?: string;
+  source?: 'onboarding' | 'feature_gate' | 'settings';
   onClose: () => void;
   onPurchaseComplete?: () => void;
 }
 
-export function Paywall({ mode, ticketId, onClose, onPurchaseComplete }: PaywallProps) {
+export function Paywall({ mode, ticketId, source, onClose, onPurchaseComplete }: PaywallProps) {
   const insets = useSafeAreaInsets();
   const { trackEvent } = useAnalytics();
 
@@ -35,6 +36,8 @@ export function Paywall({ mode, ticketId, onClose, onPurchaseComplete }: Paywall
     restorePurchases,
     getPackageForPlan,
     formatPrice,
+    hasTrialForPlan,
+    getTrialDuration,
   } = usePaywall({
     mode,
     ticketId,
@@ -45,10 +48,18 @@ export function Paywall({ mode, ticketId, onClose, onPurchaseComplete }: Paywall
   });
 
   useEffect(() => {
-    trackEvent('paywall_opened', { mode });
+    trackEvent('paywall_opened', { mode, source });
   }, []);
 
   const selectedPlan = plans.find((p) => p.id === selectedPlanId);
+  const selectedPlanHasTrial = selectedPlan ? hasTrialForPlan(selectedPlan) : false;
+  const selectedPlanTrialDuration = selectedPlan ? getTrialDuration(selectedPlan) : null;
+  const anyPlanHasTrial = plans.some((p) => hasTrialForPlan(p));
+
+  const handleClose = useCallback(() => {
+    trackEvent('paywall_closed_without_purchase', { mode, source });
+    onClose();
+  }, [mode, source, onClose, trackEvent]);
 
   const handleContinue = () => {
     if (selectedPlan) {
@@ -56,11 +67,24 @@ export function Paywall({ mode, ticketId, onClose, onPurchaseComplete }: Paywall
     }
   };
 
-  const title = mode === 'subscriptions' ? 'Choose Your Plan' : 'Upgrade Your Ticket';
+  const getCtaText = () => {
+    if (selectedPlanHasTrial && selectedPlanTrialDuration) {
+      return `Start ${selectedPlanTrialDuration} Free Trial`;
+    }
+    if (mode === 'ticket_upgrades') {
+      return 'Unlock This Ticket';
+    }
+    return 'Subscribe Now';
+  };
+
+  const title =
+    mode === 'subscriptions'
+      ? 'Never Overpay a Parking Ticket'
+      : 'Get the Full Picture';
   const subtitle =
     mode === 'subscriptions'
-      ? 'Subscribe for peace of mind with every ticket.'
-      : 'Unlock premium features for this ticket.';
+      ? 'Fines double after 14 days. We make sure you never miss a deadline — and help you challenge when you can win.'
+      : 'See your chances of winning, get an AI-drafted appeal, and let us submit it for you.';
 
   if (isLoadingOfferings) {
     return (
@@ -72,7 +96,9 @@ export function Paywall({ mode, ticketId, onClose, onPurchaseComplete }: Paywall
 
   return (
     <View className="flex-1 bg-white" style={{ paddingTop: insets.top, maxWidth: MAX_CONTENT_WIDTH, width: '100%', alignSelf: 'center' as const }}>
-      <PaywallHeader title={title} subtitle={subtitle} onClose={onClose} />
+      <PaywallHeader title={title} subtitle={subtitle} onClose={handleClose} />
+
+      <PaywallSocialProof />
 
       {mode === 'subscriptions' && (
         <View className="px-6 py-4">
@@ -100,29 +126,34 @@ export function Paywall({ mode, ticketId, onClose, onPurchaseComplete }: Paywall
               });
             }}
             formatPrice={formatPrice}
+            trialDuration={getTrialDuration(plan)}
           />
         ))}
       </ScrollView>
 
       <View
         className="px-6 border-t border-border"
-        style={{ paddingBottom: insets.bottom || 16 }}
+        style={{ paddingBottom: insets.bottom || 8 }}
       >
         <SquishyPressable
           onPress={handleContinue}
           disabled={!selectedPlan || isPurchasing}
-          className="bg-dark rounded-xl p-4 mt-4"
+          className={`rounded-xl py-3.5 mt-3 ${selectedPlanHasTrial ? 'bg-teal' : 'bg-dark'}`}
         >
           {isPurchasing ? (
             <Loader size={20} color="#ffffff" />
           ) : (
             <Text className="font-jakarta-semibold text-white text-center text-base">
-              {mode === 'ticket_upgrades' ? 'Upgrade Ticket' : 'Continue'}
+              {getCtaText()}
             </Text>
           )}
         </SquishyPressable>
 
-        <PaywallFooter onRestore={restorePurchases} isRestoring={isPurchasing} />
+        <PaywallFooter
+          onRestore={restorePurchases}
+          isRestoring={isPurchasing}
+          hasTrialEligible={anyPlanHasTrial}
+        />
       </View>
     </View>
   );

@@ -170,7 +170,8 @@ export const POST = async (req: Request) => {
         );
 
         if (subscriptionType) {
-          // This is a subscription purchase/renewal
+          // This is a subscription purchase/renewal — create record so user gets access
+          // (including during trial period)
           await db.subscription.upsert({
             where: { userId },
             create: {
@@ -186,9 +187,15 @@ export const POST = async (req: Request) => {
             },
           });
 
-          log.info(
-            `Subscription updated: ${subscriptionType} for user ${userId}`,
-          );
+          if (event.period_type === 'TRIAL') {
+            log.info(
+              `Trial started: ${subscriptionType} for user ${userId} (product: ${event.product_id})`,
+            );
+          } else {
+            log.info(
+              `Subscription updated: ${subscriptionType} for user ${userId}`,
+            );
+          }
 
           // Revalidate relevant paths
           revalidatePath('/dashboard');

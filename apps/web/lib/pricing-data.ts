@@ -54,7 +54,7 @@ export const SUBSCRIPTION_PRICING = {
   monthly: [
     {
       title: 'Standard Plan',
-      subtitle: 'For regular users',
+      subtitle: 'For regular users — 7-day free trial',
       price: '£6.99',
       period: 'month',
       features: [
@@ -70,7 +70,7 @@ export const SUBSCRIPTION_PRICING = {
     },
     {
       title: 'Premium Plan',
-      subtitle: 'Full support every month',
+      subtitle: 'Full support every month — 7-day free trial',
       price: '£14.99',
       period: 'month',
       features: [
@@ -91,7 +91,7 @@ export const SUBSCRIPTION_PRICING = {
   yearly: [
     {
       title: 'Standard Plan',
-      subtitle: 'For regular users',
+      subtitle: 'For regular users — 7-day free trial',
       price: '£69.99',
       period: 'year',
       originalPrice: '£83.88/year',
@@ -109,7 +109,7 @@ export const SUBSCRIPTION_PRICING = {
     },
     {
       title: 'Premium Plan',
-      subtitle: 'Full support every month',
+      subtitle: 'Full support every month — 7-day free trial',
       price: '£149.99',
       period: 'year',
       originalPrice: '£179.88/year',
@@ -269,7 +269,7 @@ export const FAQ_ITEMS = [
   {
     question: 'Is there a free tier?',
     answer:
-      'Yes! You can add and view tickets for free. You only pay when you want reminders (Standard) or full appeal support (Premium).',
+      'Yes! You can add and view tickets for free. You only pay when you want reminders (Standard) or full appeal support (Premium). All subscriptions include a 7-day free trial.',
   },
 ];
 

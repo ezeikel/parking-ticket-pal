@@ -346,7 +346,14 @@ export const POST = async (req: Request) => {
         });
       }
 
-      log.info(`Subscription created: ${type} for user ${user.id}`);
+      const subscriptionStatus = createdCustomerSubscription.status;
+      if (subscriptionStatus === 'trialing') {
+        log.info(
+          `Trial subscription created: ${type} for user ${user.id} — user gets immediate access during trial`,
+        );
+      } else {
+        log.info(`Subscription created: ${type} for user ${user.id}`);
+      }
 
       // revalidate subscription-related routes
       revalidatePath('/dashboard');

@@ -661,6 +661,11 @@ export const createSubscriptionCheckoutSession = async (
     client_reference_id: userId,
     customer: customerId,
 
+    // 7-day free trial — Stripe collects payment method but won't charge for 7 days
+    subscription_data: {
+      trial_period_days: 7,
+    },
+
     // Include subscription metadata
     metadata: {
       tier,

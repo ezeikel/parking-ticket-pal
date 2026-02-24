@@ -387,7 +387,7 @@ const SettingsScreen = () => {
   }, [trackEvent]);
 
   const handleOpenSubscription = useCallback(() => {
-    router.push({ pathname: '/(authenticated)/paywall', params: { mode: 'subscriptions' } });
+    router.push({ pathname: '/(authenticated)/paywall', params: { mode: 'subscriptions', source: 'settings' } });
   }, []);
 
   const SettingRow = ({ icon, title, value, onPress, destructive = false }: {

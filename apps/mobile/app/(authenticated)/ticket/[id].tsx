@@ -287,6 +287,11 @@ export default function TicketDetailScreen() {
         <ActionsCard
           ticket={ticket}
           isPremium={hasPremiumFeatures}
+          isStandardOnly={
+            (hasStandardAccess || ticketData.tier === 'STANDARD') &&
+            !hasPremiumAccess &&
+            !hasActiveSubscription
+          }
           onOpenPremiumActions={() =>
             setIsPremiumActionsVisible(true)
           }

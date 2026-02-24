@@ -19,7 +19,7 @@ export function UpgradeButton({
   const handlePress = () => {
     push({
       pathname: '/(authenticated)/paywall',
-      params: { mode: 'subscriptions' },
+      params: { mode: 'subscriptions', source: 'feature_gate' },
     });
   };
 
