@@ -8,9 +8,6 @@ import {
   faCar,
   faGauge,
   faCarBattery,
-  faMoneyBillWave,
-  faTire,
-  faOilCan,
   faArrowLeft,
   faArrowRight,
 } from '@fortawesome/pro-solid-svg-icons';
@@ -21,7 +18,6 @@ type VehicleTool = {
   description: string;
   icon: IconDefinition;
   href: string;
-  available: boolean;
   badge?: string;
 };
 
@@ -32,7 +28,6 @@ const tools: VehicleTool[] = [
       'Check the full MOT history including test results, advisories, mileage records, and expiry dates.',
     icon: faGauge,
     href: '/tools/vehicle/mot-check',
-    available: true,
     badge: 'Popular',
   },
   {
@@ -41,34 +36,6 @@ const tools: VehicleTool[] = [
       'Get tax status, MOT status, emissions, make, model, and full vehicle details.',
     icon: faCarBattery,
     href: '/tools/vehicle/reg-lookup',
-    available: true,
-  },
-  {
-    title: 'Car Valuation',
-    description:
-      'Find out how much your car is worth based on make, model, age, and mileage.',
-    icon: faMoneyBillWave,
-    href: '/tools/vehicle/valuation',
-    available: false,
-    badge: 'Coming Soon',
-  },
-  {
-    title: 'Tyre Pressure Lookup',
-    description:
-      'Find the recommended tyre pressure (PSI) for your specific car model.',
-    icon: faTire,
-    href: '/tools/vehicle/tyre-pressure',
-    available: false,
-    badge: 'Coming Soon',
-  },
-  {
-    title: 'Oil Type Finder',
-    description:
-      'Find out what type of oil your car needs based on make, model, and engine.',
-    icon: faOilCan,
-    href: '/tools/vehicle/oil-type',
-    available: false,
-    badge: 'Coming Soon',
   },
 ];
 
@@ -128,8 +95,8 @@ const VehicleToolsPage = () => {
               Vehicle Tools
             </h1>
             <p className="mx-auto mt-4 max-w-xl text-gray">
-              Free tools to check MOT history, vehicle tax status, valuations,
-              and more. All data from official DVLA sources.
+              Free tools to check MOT history, vehicle tax status, and more. All
+              data from official DVLA sources.
             </p>
           </motion.div>
         </div>
@@ -146,62 +113,39 @@ const VehicleToolsPage = () => {
                 animate={toolsInView ? 'visible' : 'hidden'}
                 variants={fadeUpVariants}
                 transition={{ delay: index * 0.1 }}
-                whileHover={tool.available ? cardHover : undefined}
+                whileHover={cardHover}
               >
-                {tool.available ? (
-                  <Link
-                    href={tool.href}
-                    className="group block h-full rounded-2xl border border-border bg-white p-6 transition-colors hover:border-dark/20"
-                  >
-                    <div className="flex items-start justify-between">
-                      <div className="inline-flex h-12 w-12 items-center justify-center rounded-xl bg-light">
-                        <FontAwesomeIcon
-                          icon={tool.icon}
-                          className="text-xl text-dark"
-                        />
-                      </div>
-                      {tool.badge && (
-                        <span className="rounded-full bg-dark px-2.5 py-1 text-xs font-medium text-white">
-                          {tool.badge}
-                        </span>
-                      )}
-                    </div>
-
-                    <h3 className="mt-4 text-lg font-bold text-dark">
-                      {tool.title}
-                    </h3>
-                    <p className="mt-2 text-sm text-gray">{tool.description}</p>
-
-                    <div className="mt-4 flex items-center gap-1 text-sm font-medium text-teal">
-                      Use tool
+                <Link
+                  href={tool.href}
+                  className="group block h-full rounded-2xl border border-border bg-white p-6 transition-colors hover:border-dark/20"
+                >
+                  <div className="flex items-start justify-between">
+                    <div className="inline-flex h-12 w-12 items-center justify-center rounded-xl bg-light">
                       <FontAwesomeIcon
-                        icon={faArrowRight}
-                        className="text-xs transition-transform group-hover:translate-x-1"
+                        icon={tool.icon}
+                        className="text-xl text-dark"
                       />
                     </div>
-                  </Link>
-                ) : (
-                  <div className="h-full rounded-2xl border border-border bg-white p-6 opacity-50">
-                    <div className="flex items-start justify-between">
-                      <div className="inline-flex h-12 w-12 items-center justify-center rounded-xl bg-light">
-                        <FontAwesomeIcon
-                          icon={tool.icon}
-                          className="text-xl text-gray"
-                        />
-                      </div>
-                      {tool.badge && (
-                        <span className="rounded-full border border-border px-2.5 py-1 text-xs font-medium text-gray">
-                          {tool.badge}
-                        </span>
-                      )}
-                    </div>
-
-                    <h3 className="mt-4 text-lg font-bold text-dark">
-                      {tool.title}
-                    </h3>
-                    <p className="mt-2 text-sm text-gray">{tool.description}</p>
+                    {tool.badge && (
+                      <span className="rounded-full bg-dark px-2.5 py-1 text-xs font-medium text-white">
+                        {tool.badge}
+                      </span>
+                    )}
                   </div>
-                )}
+
+                  <h3 className="mt-4 text-lg font-bold text-dark">
+                    {tool.title}
+                  </h3>
+                  <p className="mt-2 text-sm text-gray">{tool.description}</p>
+
+                  <div className="mt-4 flex items-center gap-1 text-sm font-medium text-teal">
+                    Use tool
+                    <FontAwesomeIcon
+                      icon={faArrowRight}
+                      className="text-xs transition-transform group-hover:translate-x-1"
+                    />
+                  </div>
+                </Link>
               </motion.div>
             ))}
           </div>

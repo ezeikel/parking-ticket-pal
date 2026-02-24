@@ -10,7 +10,6 @@ import {
   faBook,
   faGauge,
   faCarBattery,
-  faMoneyBillWave,
   faGavel,
   faScaleBalanced,
   faEnvelope,
@@ -39,7 +38,7 @@ const categories: ToolCategory[] = [
       'Check MOT history, vehicle tax status, and get valuations for any UK vehicle.',
     icon: faCar,
     href: '/tools/vehicle',
-    tools: ['MOT History Check', 'Vehicle Info Lookup', 'Car Valuation'],
+    tools: ['MOT History Check', 'Vehicle Info Lookup'],
     badge: 'Popular',
   },
   {
@@ -57,7 +56,10 @@ const categories: ToolCategory[] = [
     icon: faBook,
     href: null, // Individual tool links
     tools: [
-      { name: 'Contravention Codes', href: '/tools/reference/contravention-codes' },
+      {
+        name: 'Contravention Codes',
+        href: '/tools/reference/contravention-codes',
+      },
       { name: 'Issuers Directory', href: '/tools/reference/issuers' },
     ],
   },
@@ -82,12 +84,6 @@ const quickTools: QuickTool[] = [
     description: 'Get tax status, emissions, and vehicle details',
     icon: faCarBattery,
     href: '/tools/vehicle/reg-lookup',
-  },
-  {
-    title: 'Car Valuation',
-    description: 'Find out how much your car is worth',
-    icon: faMoneyBillWave,
-    href: '/tools/vehicle/valuation',
   },
   {
     title: 'Parking Appeal Letters',
@@ -200,12 +196,15 @@ const ToolsPage = () => {
                   <h3 className="mt-4 text-lg font-bold text-dark">
                     {category.title}
                   </h3>
-                  <p className="mt-2 text-sm text-gray">{category.description}</p>
+                  <p className="mt-2 text-sm text-gray">
+                    {category.description}
+                  </p>
 
                   <div className="mt-4 flex flex-wrap gap-2">
                     {category.tools.map((tool) => {
                       // Check if tools are ToolLink objects or plain strings
-                      const isToolLink = typeof tool === 'object' && 'href' in tool;
+                      const isToolLink =
+                        typeof tool === 'object' && 'href' in tool;
 
                       if (isToolLink) {
                         return (
@@ -270,7 +269,9 @@ const ToolsPage = () => {
             className="mb-12 text-center"
           >
             <h2 className="text-3xl font-bold text-dark">Quick Access</h2>
-            <p className="mt-2 text-gray">Jump straight to our most popular tools</p>
+            <p className="mt-2 text-gray">
+              Jump straight to our most popular tools
+            </p>
           </motion.div>
 
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -294,9 +295,7 @@ const ToolsPage = () => {
                     />
                   </div>
                   <div>
-                    <h3 className="font-bold text-dark">
-                      {tool.title}
-                    </h3>
+                    <h3 className="font-bold text-dark">{tool.title}</h3>
                     <p className="mt-1 text-sm text-gray">{tool.description}</p>
                   </div>
                 </Link>

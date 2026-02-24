@@ -1,5 +1,10 @@
 import type { Metadata } from 'next';
 import { bailiffTemplates } from '@/data/templates';
+import JsonLd, {
+  createFAQSchema,
+  createHowToSchema,
+  createBreadcrumbSchema,
+} from '@/components/JsonLd/JsonLd';
 import BailiffTemplateClient from './BailiffTemplateClient';
 
 type BailiffTemplatePageProps = {
@@ -44,7 +49,85 @@ export function generateStaticParams() {
 
 const BailiffTemplatePage = async ({ params }: BailiffTemplatePageProps) => {
   const { templateId } = await params;
-  return <BailiffTemplateClient templateId={templateId} />;
+  const template = bailiffTemplates.find((t) => t.id === templateId);
+
+  const faqs = template
+    ? [
+        {
+          question: `Is the ${template.title} free?`,
+          answer:
+            'Yes, this letter template is completely free to use. Fill in your details, preview the letter, and get it sent to your email as a PDF.',
+        },
+        {
+          question: `How do I use the ${template.title}?`,
+          answer:
+            'Fill in the required fields with your details, preview the completed letter, then click "Get Letter via Email" to receive a ready-to-send PDF.',
+        },
+        {
+          question: 'Will this template work for my situation?',
+          answer: template.whenToUse.join(' '),
+        },
+      ]
+    : [];
+
+  const howToSteps = template
+    ? [
+        {
+          name: 'Fill in your details',
+          text: 'Enter your personal details and the specifics of your bailiff situation into the template fields.',
+        },
+        {
+          name: 'Preview the letter',
+          text: 'Review the completed letter to ensure all details are accurate and relevant to your case.',
+        },
+        {
+          name: 'Get it via email',
+          text: 'Click "Get Letter via Email", enter your email address, and receive a professionally formatted PDF.',
+        },
+        {
+          name: 'Print and send',
+          text: 'Print the letter and send it to the enforcement company by recorded delivery, keeping a copy for your records.',
+        },
+      ]
+    : [];
+
+  const breadcrumbs = template
+    ? [
+        { name: 'Home', url: 'https://parkingticketpal.co.uk' },
+        { name: 'Tools', url: 'https://parkingticketpal.co.uk/tools' },
+        {
+          name: 'Letter Templates',
+          url: 'https://parkingticketpal.co.uk/tools/letters',
+        },
+        {
+          name: 'Bailiff Response',
+          url: 'https://parkingticketpal.co.uk/tools/letters/bailiff',
+        },
+        {
+          name: template.title,
+          url: `https://parkingticketpal.co.uk/tools/letters/bailiff/${template.id}`,
+        },
+      ]
+    : [];
+
+  return (
+    <>
+      {template && (
+        <>
+          <JsonLd data={createFAQSchema(faqs)} />
+          <JsonLd
+            data={createHowToSchema(
+              `How to use the ${template.title}`,
+              `Step-by-step guide to using the free ${template.title} to respond to bailiffs.`,
+              howToSteps,
+            )}
+          />
+          <JsonLd data={createBreadcrumbSchema(breadcrumbs)} />
+        </>
+      )}
+      <BailiffTemplateClient templateId={templateId} />
+    </>
+  );
 };
 
 export default BailiffTemplatePage;

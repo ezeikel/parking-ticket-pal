@@ -21,6 +21,7 @@ import {
   AUTOMATIONS,
 } from '@/constants';
 import type { Metadata } from 'next';
+import JsonLd, { createBreadcrumbSchema } from '@/components/JsonLd/JsonLd';
 
 type Props = {
   params: Promise<{ issuer: string }>;
@@ -52,7 +53,11 @@ const slugToDisplayName = (slug: string): string => {
 // Get issuer info
 const getIssuerInfo = (issuerId: string): IssuerInfo | null => {
   // Check local authorities
-  if (LOCAL_AUTHORITY_IDS.includes(issuerId as (typeof LOCAL_AUTHORITY_IDS)[number])) {
+  if (
+    LOCAL_AUTHORITY_IDS.includes(
+      issuerId as (typeof LOCAL_AUTHORITY_IDS)[number],
+    )
+  ) {
     const fullEntry = LOCAL_AUTHORITIES.find((la) => la.id === issuerId);
     return {
       id: issuerId,
@@ -108,12 +113,12 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     };
   }
 
-  const typeLabel =
-    issuer.type === 'council'
-      ? 'Council'
-      : issuer.type === 'private'
-        ? 'Private Parking Company'
-        : 'Transport Authority';
+  const typeLabels: Record<string, string> = {
+    council: 'Council',
+    private: 'Private Parking Company',
+    tfl: 'Transport Authority',
+  };
+  const typeLabel = typeLabels[issuer.type] ?? 'Authority';
 
   const title = `${issuer.name} Parking Tickets | How to Appeal | Parking Ticket Pal`;
   const description = `Got a parking ticket from ${issuer.name}? Learn how to appeal ${typeLabel.toLowerCase()} parking tickets. Find appeal deadlines, contact information, and tips for challenging your PCN.`;
@@ -186,16 +191,32 @@ export default async function IssuerPage({ params }: Props) {
         name: pc.name,
       }));
     }
-    return TRANSPORT_AUTHORITIES.filter((ta) => ta.id !== issuerId).map((ta) => ({
-      id: ta.id,
-      name: ta.name,
-    }));
+    return TRANSPORT_AUTHORITIES.filter((ta) => ta.id !== issuerId).map(
+      (ta) => ({
+        id: ta.id,
+        name: ta.name,
+      }),
+    );
   };
 
   const relatedIssuers = getRelatedIssuers();
 
+  const breadcrumbs = [
+    { name: 'Home', url: 'https://parkingticketpal.co.uk' },
+    { name: 'Tools', url: 'https://parkingticketpal.co.uk/tools' },
+    {
+      name: 'Issuer Directory',
+      url: 'https://parkingticketpal.co.uk/tools/reference/issuers',
+    },
+    {
+      name: issuer.name,
+      url: `https://parkingticketpal.co.uk/tools/reference/issuers/${issuerId}`,
+    },
+  ];
+
   return (
     <div className="min-h-screen bg-white">
+      <JsonLd data={createBreadcrumbSchema(breadcrumbs)} />
       {/* Hero Section */}
       <section className="bg-light py-12 md:py-16">
         <div className="mx-auto max-w-[1280px] px-6">
@@ -288,9 +309,12 @@ export default async function IssuerPage({ params }: Props) {
                           1
                         </div>
                         <div>
-                          <p className="font-medium text-dark">Informal Challenge</p>
+                          <p className="font-medium text-dark">
+                            Informal Challenge
+                          </p>
                           <p className="text-sm text-gray">
-                            Within 14 days to keep your 50% discount while challenging
+                            Within 14 days to keep your 50% discount while
+                            challenging
                           </p>
                         </div>
                       </div>
@@ -299,7 +323,9 @@ export default async function IssuerPage({ params }: Props) {
                           2
                         </div>
                         <div>
-                          <p className="font-medium text-dark">Formal Representation</p>
+                          <p className="font-medium text-dark">
+                            Formal Representation
+                          </p>
                           <p className="text-sm text-gray">
                             Within 28 days of receiving Notice to Owner (NTO)
                           </p>
@@ -310,7 +336,9 @@ export default async function IssuerPage({ params }: Props) {
                           3
                         </div>
                         <div>
-                          <p className="font-medium text-dark">Tribunal Appeal</p>
+                          <p className="font-medium text-dark">
+                            Tribunal Appeal
+                          </p>
                           <p className="text-sm text-gray">
                             Within 28 days of receiving Notice of Rejection
                           </p>
@@ -324,9 +352,12 @@ export default async function IssuerPage({ params }: Props) {
                           1
                         </div>
                         <div>
-                          <p className="font-medium text-dark">Initial Appeal</p>
+                          <p className="font-medium text-dark">
+                            Initial Appeal
+                          </p>
                           <p className="text-sm text-gray">
-                            Within 28 days of receiving the parking charge notice
+                            Within 28 days of receiving the parking charge
+                            notice
                           </p>
                         </div>
                       </div>
@@ -335,9 +366,12 @@ export default async function IssuerPage({ params }: Props) {
                           2
                         </div>
                         <div>
-                          <p className="font-medium text-dark">POPLA/IAS Appeal</p>
+                          <p className="font-medium text-dark">
+                            POPLA/IAS Appeal
+                          </p>
                           <p className="text-sm text-gray">
-                            If rejected, appeal to independent adjudicator within 28 days
+                            If rejected, appeal to independent adjudicator
+                            within 28 days
                           </p>
                         </div>
                       </div>
@@ -358,7 +392,8 @@ export default async function IssuerPage({ params }: Props) {
                       <li className="flex items-start gap-2">
                         <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-teal" />
                         <span>
-                          Check that all signs and road markings were clearly visible
+                          Check that all signs and road markings were clearly
+                          visible
                         </span>
                       </li>
                       <li className="flex items-start gap-2">
@@ -370,7 +405,8 @@ export default async function IssuerPage({ params }: Props) {
                       <li className="flex items-start gap-2">
                         <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-teal" />
                         <span>
-                          Request CEO witness statements if CCTV wasn&apos;t used
+                          Request CEO witness statements if CCTV wasn&apos;t
+                          used
                         </span>
                       </li>
                       <li className="flex items-start gap-2">
@@ -397,7 +433,8 @@ export default async function IssuerPage({ params }: Props) {
                       <li className="flex items-start gap-2">
                         <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-coral" />
                         <span>
-                          Ensure the charge reflects genuine pre-estimate of loss
+                          Ensure the charge reflects genuine pre-estimate of
+                          loss
                         </span>
                       </li>
                       <li className="flex items-start gap-2">
@@ -414,15 +451,18 @@ export default async function IssuerPage({ params }: Props) {
               {/* Your Rights */}
               <div className="rounded-xl border border-border bg-light/50 p-6">
                 <h2 className="flex items-center gap-2 text-lg font-bold text-dark">
-                  <FontAwesomeIcon icon={faScaleBalanced} className="text-teal" />
+                  <FontAwesomeIcon
+                    icon={faScaleBalanced}
+                    className="text-teal"
+                  />
                   Your Rights
                 </h2>
                 <div className="mt-4 space-y-3 text-gray">
                   {issuer.type === 'council' || issuer.type === 'tfl' ? (
                     <>
                       <p>
-                        Council parking tickets (PCNs) are issued under the Traffic
-                        Management Act 2004. You have the right to:
+                        Council parking tickets (PCNs) are issued under the
+                        Traffic Management Act 2004. You have the right to:
                       </p>
                       <ul className="list-disc pl-5 space-y-1">
                         <li>Challenge the ticket at any stage</li>
@@ -434,8 +474,8 @@ export default async function IssuerPage({ params }: Props) {
                   ) : (
                     <>
                       <p>
-                        Private parking charges are civil matters, not criminal offences.
-                        Key protections include:
+                        Private parking charges are civil matters, not criminal
+                        offences. Key protections include:
                       </p>
                       <ul className="list-disc pl-5 space-y-1">
                         <li>Charges must be a genuine pre-estimate of loss</li>
@@ -490,9 +530,7 @@ export default async function IssuerPage({ params }: Props) {
               {/* Related Issuers */}
               {relatedIssuers.length > 0 && (
                 <div className="rounded-xl border border-border p-6">
-                  <h3 className="font-bold text-dark">
-                    Other {config.label}s
-                  </h3>
+                  <h3 className="font-bold text-dark">Other {config.label}s</h3>
                   <div className="mt-4 space-y-2">
                     {relatedIssuers.slice(0, 5).map((related) => (
                       <Link
@@ -504,7 +542,9 @@ export default async function IssuerPage({ params }: Props) {
                           icon={config.icon}
                           className={`text-xs ${config.color}`}
                         />
-                        <span className="truncate text-gray">{related.name}</span>
+                        <span className="truncate text-gray">
+                          {related.name}
+                        </span>
                       </Link>
                     ))}
                   </div>
