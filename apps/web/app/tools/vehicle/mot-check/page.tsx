@@ -130,6 +130,40 @@ const MOTCheckPage = () => {
         </div>
       </section>
 
+      {/* Loading State */}
+      {isLoading && (
+        <section className="bg-white py-12 md:py-16">
+          <div className="mx-auto max-w-[1280px] px-6">
+            {/* Vehicle card skeleton */}
+            <div className="mb-8 animate-pulse rounded-2xl bg-light p-6">
+              <div className="mb-4 flex items-center gap-4">
+                <div className="h-10 w-28 rounded-lg bg-gray/10" />
+                <div className="h-6 w-48 rounded bg-gray/10" />
+              </div>
+              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                <div className="h-14 rounded-lg bg-gray/10" />
+                <div className="h-14 rounded-lg bg-gray/10" />
+              </div>
+            </div>
+            {/* Timeline skeleton */}
+            <div className="space-y-4">
+              {[1, 2, 3].map((i) => (
+                <div key={i} className="animate-pulse rounded-xl bg-light p-4">
+                  <div className="mb-3 flex items-center gap-3">
+                    <div className="h-6 w-16 rounded-full bg-gray/10" />
+                    <div className="h-4 w-32 rounded bg-gray/10" />
+                  </div>
+                  <div className="flex gap-4">
+                    <div className="h-4 w-24 rounded bg-gray/10" />
+                    <div className="h-4 w-28 rounded bg-gray/10" />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
       {/* Results Section */}
       {result && (
         <section className="bg-white py-12 md:py-16">

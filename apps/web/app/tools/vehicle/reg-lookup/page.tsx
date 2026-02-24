@@ -130,6 +130,29 @@ const VehicleLookupPage = () => {
         </div>
       </section>
 
+      {/* Loading State */}
+      {isLoading && (
+        <section className="bg-white py-12 md:py-16">
+          <div className="mx-auto max-w-[800px] px-6">
+            <div className="animate-pulse rounded-2xl bg-light p-6">
+              <div className="mb-4 flex items-center gap-4">
+                <div className="h-10 w-28 rounded-lg bg-gray/10" />
+                <div className="h-6 w-48 rounded bg-gray/10" />
+              </div>
+              <div className="mb-4 grid gap-4 sm:grid-cols-2">
+                <div className="h-20 rounded-xl bg-gray/10" />
+                <div className="h-20 rounded-xl bg-gray/10" />
+              </div>
+              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                <div className="h-14 rounded-lg bg-gray/10" />
+                <div className="h-14 rounded-lg bg-gray/10" />
+                <div className="h-14 rounded-lg bg-gray/10" />
+              </div>
+            </div>
+          </div>
+        </section>
+      )}
+
       {/* Results Section */}
       {result && (
         <section className="bg-white py-12 md:py-16">
