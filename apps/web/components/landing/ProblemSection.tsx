@@ -27,9 +27,9 @@ const problems: Problem[] = [
     icon: faClock,
     iconBg: 'bg-amber/10',
     iconColor: 'text-amber',
-    title: 'Tight Deadlines That Double Your Fine',
+    title: 'Tight Deadlines That Increase Your Fine',
     description:
-      'Miss 14 days and your fine increases by 50%. Miss 28 days and you lose your right to appeal entirely.',
+      'Miss the early payment window and your fine jumps — often by 50%. Miss later deadlines and you risk losing your right to a formal appeal. Every ticket type has different rules.',
   },
   {
     icon: faGavel,
@@ -37,7 +37,7 @@ const problems: Problem[] = [
     iconColor: 'text-gray',
     title: 'Intimidating Legal Paperwork',
     description:
-      "PE2, PE3, TE7, TE9 forms. Order for Recovery. Charge Certificates. It's designed to make you just pay up.",
+      'PE2, PE3, TE7, TE9 forms. Order for Recovery. Charge Certificates. The process is complicated enough that most people just pay up.',
   },
 ];
 
@@ -71,7 +71,7 @@ const ProblemSection = () => {
           className="mb-16 text-center"
         >
           <h2 className="text-3xl font-bold text-dark md:text-4xl">
-            Sound familiar?
+            The system isn&apos;t on your side
           </h2>
           <p className="mx-auto mt-4 max-w-2xl text-lg text-gray">
             {

@@ -56,7 +56,7 @@ const oneTimeTiers: PricingTier[] = [
     name: 'Premium',
     price: '£9.99',
     period: '/ticket',
-    subtitle: 'Challenge your ticket the smart way',
+    subtitle: 'AI letters, success scores, and auto-submit',
     features: [
       'Everything in Standard',
       'AI appeal letter generation',
@@ -77,7 +77,7 @@ const subscriptionTiers: PricingTier[] = [
     yearlyPrice: '£69.99',
     originalYearlyPrice: '£83.88',
     period: '/month',
-    subtitle: 'For regular users',
+    subtitle: 'For drivers who get tickets regularly',
     features: [
       'Up to 5 tickets per month',
       'Email + SMS reminders',
@@ -94,7 +94,7 @@ const subscriptionTiers: PricingTier[] = [
     yearlyPrice: '£149.99',
     originalYearlyPrice: '£179.88',
     period: '/month',
-    subtitle: 'Full support every month',
+    subtitle: 'Full AI toolkit for every ticket, every month',
     features: [
       'Up to 10 tickets per month',
       'Everything in Standard',
@@ -117,7 +117,7 @@ const businessTiers: PricingTier[] = [
     yearlyPrice: '£499',
     originalYearlyPrice: '£588',
     period: '/year',
-    subtitle: 'Perfect for small businesses',
+    subtitle: 'For businesses managing 5-25 vehicles',
     features: [
       'Up to 50 tickets per month',
       'Shared dashboard',
@@ -135,7 +135,7 @@ const businessTiers: PricingTier[] = [
     yearlyPrice: '£1,499',
     originalYearlyPrice: '£1,788',
     period: '/year',
-    subtitle: 'For growing fleets',
+    subtitle: 'For fleets of 25-100 vehicles',
     features: [
       'Up to 200 tickets per month',
       'All Starter features',
@@ -294,7 +294,7 @@ const PricingPage = () => {
             variants={fadeUpVariants}
             className="text-4xl font-bold text-dark md:text-5xl"
           >
-            Plans that pay for themselves
+            One successful challenge pays for itself
           </motion.h1>
           <motion.p
             initial="hidden"
@@ -688,8 +688,7 @@ const PricingPage = () => {
             transition={{ delay: 0.1 }}
             className="mx-auto mt-4 max-w-xl text-lg text-white/70"
           >
-            Join thousands of drivers who have successfully appealed their
-            parking tickets.
+            Upload your first ticket for free. Only pay when you need more.
           </motion.p>
           <motion.div
             initial="hidden"
@@ -704,7 +703,7 @@ const PricingPage = () => {
               className="h-12 bg-teal px-8 text-base font-semibold text-white hover:bg-teal-dark"
               asChild
             >
-              <Link href="/new">Start My Appeal</Link>
+              <Link href="/new">Upload Your First Ticket Free</Link>
             </Button>
             <Button
               size="lg"

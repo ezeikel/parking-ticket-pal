@@ -13,7 +13,7 @@
 ## App Description (4000 chars max)
 
 ```
-Got a parking ticket? Stay on top of it.
+Got a parking ticket? Don't let it cost you more than it should.
 
 Parking Ticket Pal helps you track, manage, and take action on UK parking tickets — so you never miss a deadline or pay more than you need to.
 
@@ -31,7 +31,7 @@ TRACK & MANAGE YOUR TICKETS
 
 CHALLENGE IF YOU CHOOSE TO
 
-Not every ticket needs to be paid. If you believe your ticket was issued unfairly, Parking Ticket Pal gives you tools to take action:
+Not every ticket is fair. If yours wasn't, you have options. If you believe your ticket was issued unfairly, Parking Ticket Pal gives you tools to take action:
 
 • Success Score — See how likely a challenge is to succeed, based on real UK tribunal decision data we've analysed. This helps you make an informed decision before you act.
 
@@ -65,7 +65,7 @@ IMPORTANT NOTES
 • Success scores are estimates based on historical tribunal data and do not guarantee outcomes.
 • Available for UK parking tickets (PCNs, FPNs, and private parking charges).
 
-Download Parking Ticket Pal and take control of your parking tickets.
+Download Parking Ticket Pal — because a parking ticket shouldn't ruin your week.
 ```
 
 ---
@@ -73,7 +73,7 @@ Download Parking Ticket Pal and take control of your parking tickets.
 ## Keywords (100 chars max)
 
 ```
-parking ticket,PCN,parking fine,penalty charge notice,manage,track,appeal,challenge,UK,deadline
+PCN,penalty charge notice,parking fine,appeal,challenge,council,TfL,private parking,deadline
 ```
 
 ---

@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { motion, AnimatePresence, type Variants } from 'framer-motion';
-import { faApple, faGooglePlay } from '@fortawesome/free-brands-svg-icons';
 import { faBolt, faCamera } from '@fortawesome/pro-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import Image from 'next/image';
@@ -384,11 +383,9 @@ const Hero = () => {
             {/* Main Headline */}
             <motion.h1
               variants={fadeUpVariants}
-              className="text-4xl font-extrabold leading-tight text-white md:text-5xl lg:text-[56px]"
+              className="text-4xl font-extrabold leading-tight text-white [text-wrap:balance] md:text-5xl lg:text-[56px]"
             >
-              Don&apos;t let a parking ticket
-              <br />
-              cost you double.
+              That parking ticket doesn&apos;t have to cost you a penny more.
             </motion.h1>
 
             {/* Subheadline */}
@@ -396,8 +393,9 @@ const Hero = () => {
               variants={fadeUpVariants}
               className="mt-6 max-w-lg text-lg text-white/90 md:text-xl"
             >
-              Most fines double after 14 days. Upload your ticket to track
-              deadlines, get reminders, and challenge when it&apos;s worth it.
+              Most fines jump 50% after just 14 days. Upload your ticket now —
+              we&apos;ll track every deadline and show you exactly what to do
+              next.
             </motion.p>
 
             {/* CTA Button - Mobile Only */}
@@ -416,66 +414,7 @@ const Hero = () => {
               </Button>
             </motion.div>
 
-            {/* App Store Buttons */}
-            <motion.div
-              variants={fadeUpVariants}
-              className="mt-6 flex flex-wrap justify-center gap-3 lg:justify-start"
-            >
-              <button
-                type="button"
-                onClick={() => {
-                  track(TRACKING_EVENTS.APP_STORE_BUTTON_CLICKED, {
-                    platform: 'ios',
-                    location: 'hero',
-                  });
-                  // TODO: Replace with actual App Store URL when available
-                  toast.info('iOS app coming soon!');
-                }}
-                className="opacity-90 transition-opacity hover:opacity-100"
-              >
-                <div className="flex h-11 items-center gap-2 rounded-lg border border-white/30 bg-white/10 px-4">
-                  <FontAwesomeIcon
-                    icon={faApple}
-                    className="text-xl text-white"
-                  />
-                  <div className="flex flex-col text-left">
-                    <span className="text-[9px] leading-tight text-white/60">
-                      Download on the
-                    </span>
-                    <span className="text-xs font-semibold leading-tight text-white">
-                      App Store
-                    </span>
-                  </div>
-                </div>
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  track(TRACKING_EVENTS.APP_STORE_BUTTON_CLICKED, {
-                    platform: 'android',
-                    location: 'hero',
-                  });
-                  // TODO: Replace with actual Play Store URL when available
-                  toast.info('Android app coming soon!');
-                }}
-                className="opacity-90 transition-opacity hover:opacity-100"
-              >
-                <div className="flex h-11 items-center gap-2 rounded-lg border border-white/30 bg-white/10 px-4">
-                  <FontAwesomeIcon
-                    icon={faGooglePlay}
-                    className="text-lg text-white"
-                  />
-                  <div className="flex flex-col text-left">
-                    <span className="text-[9px] leading-tight text-white/60">
-                      GET IT ON
-                    </span>
-                    <span className="text-xs font-semibold leading-tight text-white">
-                      Google Play
-                    </span>
-                  </div>
-                </div>
-              </button>
-            </motion.div>
+            {/* TODO: Add App Store + Google Play buttons back when apps are live */}
           </motion.div>
 
           {/* Right Column - Upload Card (Desktop) */}
@@ -522,7 +461,7 @@ const Hero = () => {
                   <p className="mt-4 text-center text-sm font-medium text-dark">
                     {isDragging
                       ? 'Drop your ticket here'
-                      : 'Drop your ticket here'}
+                      : 'Upload your ticket photo or PDF'}
                   </p>
                   <p className="mt-1 text-center text-xs text-gray">
                     JPG, PNG, or PDF
@@ -547,7 +486,7 @@ const Hero = () => {
               </div>
 
               <p className="mt-4 text-center text-xs text-gray">
-                Free to upload. No credit card required.
+                Free to upload and track. No credit card. No commitment.
               </p>
             </div>
           </motion.div>

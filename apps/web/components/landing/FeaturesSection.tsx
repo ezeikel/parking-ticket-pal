@@ -27,9 +27,9 @@ type Feature = {
 const features: Feature[] = [
   {
     icon: faTimeline,
-    title: 'Full Lifecycle Tracking',
+    title: 'Deadline-to-Resolution Tracking',
     description:
-      'From PCN to Notice to Owner to Bailiff stage — we track every step, remind you of deadlines, and tell you exactly what to do next so your fine never increases unnecessarily.',
+      "From PCN to Notice to Owner to Bailiff stage — we track every step, remind you of deadlines, and tell you exactly what to do next so you're never caught off guard by a fine increase.",
     size: 'large',
     visual: 'letter',
   },
@@ -43,11 +43,11 @@ const features: Feature[] = [
   },
   {
     icon: faRobot,
-    title: 'Auto-Submit to 40+ Councils',
+    title: 'Auto-Submit to 40+ Issuers',
     description:
-      'For supported councils like Lewisham and Horizon Parking authorities, we can submit your challenge directly - no manual form filling needed.',
+      'For supported councils like Lewisham and Camden — plus private operators like Horizon Parking — we submit your challenge directly. No manual form filling.',
     size: 'medium',
-    badge: 'Lewisham, Westminster, TfL + more',
+    badge: 'Lewisham, Camden, Westminster, TfL + more',
   },
   {
     icon: faFileLines,
@@ -59,16 +59,16 @@ const features: Feature[] = [
   },
   {
     icon: faCar,
-    title: 'Multi-Vehicle Support',
+    title: 'All Your Vehicles, One Dashboard',
     description:
       'Track tickets across all your vehicles. We auto-detect registration from ticket photos.',
     size: 'small',
   },
   {
     icon: faBrain,
-    title: 'Challenge Letters',
+    title: 'AI-Drafted Appeal Letters',
     description:
-      'Generate appeal letters with optional AI assistance, tailored to your specific ticket and signed with your signature.',
+      'Tell us what happened. Our AI drafts a formal appeal letter tailored to your specific contravention, issuer, and circumstances — ready to review, sign, and send.',
     size: 'small',
   },
 ];
@@ -224,7 +224,7 @@ const FeaturesSection = () => {
           className="mb-16 text-center"
         >
           <h2 className="text-3xl font-bold text-dark md:text-4xl">
-            Everything You Need to Manage Your Tickets
+            Built for every stage of a UK parking ticket
           </h2>
         </motion.div>
 

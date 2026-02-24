@@ -40,9 +40,9 @@ const steps: Step[] = [
   {
     number: 3,
     icon: faPaperPlane,
-    title: 'Challenge If You Choose To',
+    title: 'Challenge With Confidence',
     description:
-      'Check your success score, generate an appeal letter with AI assistance, or fill in official forms. We can even auto-submit to supported councils.',
+      'See your data-backed success score, generate a tailored appeal letter, and fill in the right official forms — pre-populated with your details. For 40+ supported issuers, we submit directly on your behalf.',
     visual: faCircleCheck,
   },
 ];
@@ -74,7 +74,7 @@ const HowItWorksSection = () => {
             How Parking Ticket Pal Works
           </h2>
           <p className="mx-auto mt-4 max-w-2xl text-lg text-gray">
-            From ticket to sorted in minutes, not hours
+            From ticket to action plan in under two minutes
           </p>
         </motion.div>
 

@@ -5,9 +5,9 @@ import { motion, useInView, useSpring, useTransform } from 'framer-motion';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
   faTicket,
-  faSterlingSign,
-  faChartLine,
-  faStar,
+  faArrowUp,
+  faBuilding,
+  faDatabase,
 } from '@fortawesome/pro-solid-svg-icons';
 import type { IconDefinition } from '@fortawesome/fontawesome-svg-core';
 
@@ -21,32 +21,32 @@ type StatItem = {
 
 const stats: StatItem[] = [
   {
-    value: 12847,
-    suffix: '',
+    value: 8,
+    suffix: 'M+',
     prefix: '',
-    label: 'Tickets Uploaded',
+    label: 'UK Parking Tickets Per Year',
     icon: faTicket,
   },
   {
-    value: 2.4,
-    suffix: 'M',
-    prefix: '£',
-    label: 'Saved by Drivers',
-    icon: faSterlingSign,
-  },
-  {
-    value: 73,
+    value: 50,
     suffix: '%',
     prefix: '',
-    label: 'Appeal Success Rate',
-    icon: faChartLine,
+    label: 'Average PCN Fine Increase',
+    icon: faArrowUp,
   },
   {
-    value: 4.9,
-    suffix: '/5',
+    value: 40,
+    suffix: '+',
     prefix: '',
-    label: 'App Store Rating',
-    icon: faStar,
+    label: 'Issuers Supported',
+    icon: faBuilding,
+  },
+  {
+    value: 10000,
+    suffix: '+',
+    prefix: '',
+    label: 'Tribunal Decisions Analysed',
+    icon: faDatabase,
   },
 ];
 

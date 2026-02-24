@@ -4,7 +4,9 @@ import ProblemSection from '@/components/landing/ProblemSection';
 import HowItWorksSection from '@/components/landing/HowItWorksSection';
 import FeaturesSection from '@/components/landing/FeaturesSection';
 import NotificationSection from '@/components/landing/NotificationSection';
-import Testimonials from '@/components/landing/Testimonials';
+// TODO: Add <Testimonials /> back once we have real user reviews
+// import Testimonials from '@/components/landing/Testimonials';
+import UseCases from '@/components/landing/UseCases';
 import Authorities from '@/components/landing/Authorities';
 import FAQSection from '@/components/landing/FAQSection';
 import Newsletter from '@/components/landing/Newsletter';
@@ -19,7 +21,7 @@ const HomePage = () => (
     <HowItWorksSection />
     <FeaturesSection />
     <NotificationSection />
-    <Testimonials />
+    <UseCases />
     <Authorities />
     <FAQSection />
     <Newsletter />
