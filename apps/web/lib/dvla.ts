@@ -1,16 +1,79 @@
 /**
  * DVLA API wrapper for MOT History and Vehicle Enquiry Service
  *
- * MOT History API: https://beta.check-mot.service.gov.uk
+ * MOT History API: https://history.mot.api.gov.uk (OAuth2 + API Key)
  * Vehicle Enquiry Service: https://driver-vehicle-licensing.api.gov.uk
  */
 
-const DVLA_MOT_API_BASE = 'https://beta.check-mot.service.gov.uk';
+const DVLA_MOT_API_BASE = 'https://history.mot.api.gov.uk';
+
+// OAuth2 token cache for MOT History API
+let cachedToken: string | null = null;
+let tokenExpiry = 0;
+
+/**
+ * Get an OAuth2 access token for the MOT History API.
+ * Caches the token in-memory and refreshes 5 minutes before expiry.
+ */
+async function getAccessToken(): Promise<string> {
+  const now = Date.now();
+
+  if (cachedToken && now < tokenExpiry) {
+    return cachedToken;
+  }
+
+  const tokenUrl = process.env.DVSA_MOT_TOKEN_URL;
+  const clientId = process.env.DVSA_MOT_CLIENT_ID;
+  const clientSecret = process.env.DVSA_MOT_CLIENT_SECRET;
+
+  if (!tokenUrl || !clientId || !clientSecret) {
+    throw new Error('MOT OAuth2 credentials not configured');
+  }
+
+  const body = new URLSearchParams({
+    grant_type: 'client_credentials',
+    client_id: clientId,
+    client_secret: clientSecret,
+    scope: 'https://tapi.dvsa.gov.uk/.default',
+  });
+
+  const response = await fetch(tokenUrl, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: body.toString(),
+  });
+
+  if (!response.ok) {
+    throw new Error(`Failed to obtain access token: ${response.status}`);
+  }
+
+  const data = await response.json();
+  cachedToken = data.access_token;
+  // Cache with 5-minute buffer before actual expiry
+  tokenExpiry = now + (data.expires_in - 300) * 1000;
+
+  return cachedToken!;
+}
+
+/** Clear the cached token (used on auth errors to force refresh) */
+function clearTokenCache() {
+  cachedToken = null;
+  tokenExpiry = 0;
+}
 
 // Types for MOT History API
 export type MOTDefect = {
   text: string;
-  type: 'ADVISORY' | 'MINOR' | 'MAJOR' | 'DANGEROUS' | 'PRS' | 'FAIL';
+  type:
+    | 'ADVISORY'
+    | 'MINOR'
+    | 'MAJOR'
+    | 'DANGEROUS'
+    | 'PRS'
+    | 'FAIL'
+    | 'NON SPECIFIC'
+    | 'SYSTEM GENERATED'
+    | 'USER ENTERED';
   dangerous?: boolean;
 };
 
@@ -22,6 +85,8 @@ export type MOTTest = {
   odometerUnit: string;
   odometerResultType: string;
   motTestNumber: string;
+  dataSource?: string;
+  registrationAtTimeOfTest?: string;
   defects?: MOTDefect[];
   rfrAndComments?: MOTDefect[];
 };
@@ -37,6 +102,7 @@ export type MOTVehicle = {
   registrationDate?: string;
   manufactureDate?: string;
   engineSize?: string;
+  hasOutstandingRecall?: string;
   motTests?: MOTTest[];
   motTestExpiryDate?: string;
 };
@@ -115,10 +181,11 @@ export function isValidRegistration(registration: string): boolean {
 
 /**
  * Get MOT history for a vehicle
- * Uses the DVLA MOT History API
+ * Uses the DVSA MOT History API (OAuth2 + API Key)
  */
 export async function getMOTHistory(
   registration: string,
+  _retry = false,
 ): Promise<MOTHistoryResponse> {
   const apiKey = process.env.DVSA_MOT_API_KEY;
 
@@ -139,12 +206,15 @@ export async function getMOTHistory(
   }
 
   try {
+    const accessToken = await getAccessToken();
+
     const response = await fetch(
-      `${DVLA_MOT_API_BASE}/trade/vehicles/mot-tests?registration=${normalized}`,
+      `${DVLA_MOT_API_BASE}/v1/trade/vehicles/registration/${normalized}`,
       {
         headers: {
-          Accept: 'application/json+v6',
-          'x-api-key': apiKey,
+          Accept: 'application/json',
+          Authorization: `Bearer ${accessToken}`,
+          'X-API-Key': apiKey,
         },
         next: {
           revalidate: 86400, // Cache for 24 hours
@@ -152,21 +222,37 @@ export async function getMOTHistory(
       },
     );
 
-    if (response.status === 404) {
-      return {
-        success: false,
-        error: 'Vehicle not found. Please check the registration number.',
-      };
-    }
-
-    if (response.status === 400) {
-      return {
-        success: false,
-        error: 'Invalid registration number format.',
-      };
-    }
-
     if (!response.ok) {
+      const errorData = await response.json().catch(() => null);
+      const errorCode = errorData?.errorCode || errorData?.errorMessage || '';
+
+      // Auth error — clear token cache and retry once
+      if ((response.status === 401 || errorCode === 'MOTH-FB-02') && !_retry) {
+        clearTokenCache();
+        return await getMOTHistory(registration, true);
+      }
+
+      if (errorCode === 'MOTH-NF-01' || response.status === 404) {
+        return {
+          success: false,
+          error: 'Vehicle not found. Please check the registration number.',
+        };
+      }
+
+      if (errorCode === 'MOTH-IV-03' || response.status === 400) {
+        return {
+          success: false,
+          error: 'Invalid registration number format.',
+        };
+      }
+
+      if (errorCode === 'MOTH-RL-01' || errorCode === 'MOTH-RL-02') {
+        return {
+          success: false,
+          error: 'Too many requests. Please try again later.',
+        };
+      }
+
       return {
         success: false,
         error: `API error: ${response.status}`,
@@ -175,17 +261,39 @@ export async function getMOTHistory(
 
     const data = await response.json();
 
-    // API returns an array of vehicles (usually just one)
-    if (Array.isArray(data) && data.length > 0) {
-      return {
-        success: true,
-        data: data[0] as MOTVehicle,
-      };
-    }
+    // Map the new API response to our MOTVehicle type
+    const vehicle: MOTVehicle = {
+      registration: data.registration,
+      make: data.make,
+      model: data.model,
+      firstUsedDate: data.firstUsedDate,
+      fuelType: data.fuelType,
+      primaryColour: data.primaryColour,
+      registrationDate: data.registrationDate,
+      manufactureDate: data.manufactureDate,
+      engineSize: data.engineSize,
+      hasOutstandingRecall: data.hasOutstandingRecall,
+      motTests: (data.motTests || []).map((test: Record<string, unknown>) => ({
+        completedDate: test.completedDate,
+        testResult: test.testResult,
+        expiryDate: test.expiryDate,
+        odometerValue: test.odometerValue,
+        // Normalize to lowercase for formatMileage compatibility
+        odometerUnit:
+          typeof test.odometerUnit === 'string'
+            ? test.odometerUnit.toLowerCase()
+            : test.odometerUnit,
+        odometerResultType: test.odometerResultType,
+        motTestNumber: test.motTestNumber,
+        dataSource: test.dataSource,
+        registrationAtTimeOfTest: test.registrationAtTimeOfTest,
+        defects: test.defects,
+      })),
+    };
 
     return {
-      success: false,
-      error: 'No MOT data found for this vehicle.',
+      success: true,
+      data: vehicle,
     };
   } catch (error) {
     console.error('MOT History API error:', error);
