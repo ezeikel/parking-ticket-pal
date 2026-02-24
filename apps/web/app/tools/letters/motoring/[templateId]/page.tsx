@@ -65,7 +65,7 @@ const MotoringTemplatePage = async ({ params }: MotoringTemplatePageProps) => {
         },
         {
           question: 'Will this template work for my situation?',
-          answer: template.whenToUse.join(' '),
+          answer: `${template.whenToUse.join('. ')}.`,
         },
       ]
     : [];

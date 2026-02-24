@@ -65,7 +65,7 @@ const BailiffTemplatePage = async ({ params }: BailiffTemplatePageProps) => {
         },
         {
           question: 'Will this template work for my situation?',
-          answer: template.whenToUse.join(' '),
+          answer: `${template.whenToUse.join('. ')}.`,
         },
       ]
     : [];

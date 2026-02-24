@@ -65,7 +65,7 @@ const ParkingTemplatePage = async ({ params }: ParkingTemplatePageProps) => {
         },
         {
           question: 'Will this template work for my parking ticket?',
-          answer: template.whenToUse.join(' '),
+          answer: `${template.whenToUse.join('. ')}.`,
         },
       ]
     : [];
