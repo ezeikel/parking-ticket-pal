@@ -21,7 +21,17 @@ import {
   AUTOMATIONS,
 } from '@/constants';
 import type { Metadata } from 'next';
-import JsonLd, { createBreadcrumbSchema } from '@/components/JsonLd/JsonLd';
+import JsonLd, {
+  createBreadcrumbSchema,
+  createFAQSchema,
+} from '@/components/JsonLd/JsonLd';
+import {
+  getRegionForCouncil,
+  getCouncilsByRegion,
+  getRegionBySlug,
+} from '@/data/regions';
+import { getEducationalContentForIssuerType } from '@/data/issuers/educational-content';
+import { getTribunalCaseCountByIssuer } from '@/lib/queries/tribunal-counts';
 
 type Props = {
   params: Promise<{ issuer: string }>;
@@ -174,6 +184,8 @@ export default async function IssuerPage({ params }: Props) {
   }
 
   const config = issuerTypeConfig[issuer.type];
+  const educational = getEducationalContentForIssuerType(issuer.type);
+  const tribunalCount = await getTribunalCaseCountByIssuer(issuerId);
 
   // Get related issuers (same type)
   const getRelatedIssuers = () => {
@@ -217,6 +229,7 @@ export default async function IssuerPage({ params }: Props) {
   return (
     <div className="min-h-screen bg-white">
       <JsonLd data={createBreadcrumbSchema(breadcrumbs)} />
+      <JsonLd data={createFAQSchema(educational.faqItems)} />
       {/* Hero Section */}
       <section className="bg-light py-12 md:py-16">
         <div className="mx-auto max-w-[1280px] px-6">
@@ -258,11 +271,25 @@ export default async function IssuerPage({ params }: Props) {
                 </span>
 
                 {/* Region badge (for councils) */}
-                {issuer.region && (
-                  <span className="rounded-full border border-border bg-white px-3 py-1 text-sm text-gray">
-                    {issuer.region}
-                  </span>
-                )}
+                {issuer.region &&
+                  (() => {
+                    const regionSlug = getRegionForCouncil(issuerId);
+                    if (regionSlug) {
+                      return (
+                        <Link
+                          href={`/tools/reference/issuers/region/${regionSlug}`}
+                          className="rounded-full border border-border bg-white px-3 py-1 text-sm text-gray hover:border-dark/20 hover:text-dark transition-colors"
+                        >
+                          {issuer.region}
+                        </Link>
+                      );
+                    }
+                    return (
+                      <span className="rounded-full border border-border bg-white px-3 py-1 text-sm text-gray">
+                        {issuer.region}
+                      </span>
+                    );
+                  })()}
 
                 {/* Automation badge */}
                 {issuer.hasAutomation && (
@@ -487,6 +514,124 @@ export default async function IssuerPage({ params }: Props) {
                   )}
                 </div>
               </div>
+
+              {/* Tribunal Authority Teaser */}
+              {tribunalCount > 0 && (
+                <div className="rounded-xl border-2 border-teal/20 bg-teal/5 p-6">
+                  <h2 className="text-lg font-bold text-dark">
+                    Tribunal Case Data
+                  </h2>
+                  <p className="mt-2 text-gray">
+                    We&apos;ve analysed{' '}
+                    <span className="font-semibold text-teal">
+                      {tribunalCount.toLocaleString()}
+                    </span>{' '}
+                    tribunal cases involving {issuer.name}. Upload your ticket
+                    to get a personalised analysis based on real outcomes.
+                  </p>
+                  <Link
+                    href="/"
+                    className="mt-4 inline-flex items-center gap-2 rounded-lg bg-teal px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-teal-dark"
+                  >
+                    Get Your Personalised Analysis
+                    <FontAwesomeIcon icon={faArrowRight} className="text-xs" />
+                  </Link>
+                </div>
+              )}
+
+              {/* Common Contravention Codes */}
+              <div className="rounded-xl border border-border p-6">
+                <h2 className="text-lg font-bold text-dark">
+                  Common Contravention Codes
+                </h2>
+                <p className="mt-2 text-sm text-gray">
+                  Codes frequently issued by{' '}
+                  {(() => {
+                    if (issuer.type === 'private') return 'private operators';
+                    if (issuer.type === 'tfl') return 'TfL';
+                    return 'councils';
+                  })()}{' '}
+                  like {issuer.name}:
+                </p>
+                <div className="mt-4 space-y-2">
+                  {educational.commonCodes.map((item) => (
+                    <Link
+                      key={item.code}
+                      href={`/tools/reference/contravention-codes/${item.code}`}
+                      className="flex items-center gap-3 rounded-lg border border-border p-3 transition-colors hover:bg-light"
+                    >
+                      <span className="flex h-8 w-10 shrink-0 items-center justify-center rounded bg-light text-sm font-bold text-dark">
+                        {item.code}
+                      </span>
+                      <span className="flex-1 text-sm text-gray truncate">
+                        {item.description}
+                      </span>
+                    </Link>
+                  ))}
+                </div>
+                <Link
+                  href="/tools/reference/contravention-codes"
+                  className="mt-4 inline-flex items-center gap-1 text-sm font-medium text-teal hover:underline"
+                >
+                  View all contravention codes
+                  <FontAwesomeIcon icon={faArrowRight} className="text-xs" />
+                </Link>
+              </div>
+
+              {/* Penalty Charge Amounts */}
+              <div className="rounded-xl border border-border p-6">
+                <h2 className="text-lg font-bold text-dark">
+                  Penalty Charge Amounts
+                </h2>
+                <div className="mt-4 space-y-3">
+                  <div className="flex justify-between border-b border-border pb-3">
+                    <span className="text-gray">Higher level</span>
+                    <span className="font-semibold text-dark">
+                      {educational.penaltyInfo.higherLevel}
+                    </span>
+                  </div>
+                  <div className="flex justify-between border-b border-border pb-3">
+                    <span className="text-gray">Lower level</span>
+                    <span className="font-semibold text-dark">
+                      {educational.penaltyInfo.lowerLevel}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray">Early payment discount</span>
+                    <span className="font-semibold text-teal">
+                      50% within {educational.penaltyInfo.discountPeriod}
+                    </span>
+                  </div>
+                </div>
+                <p className="mt-4 text-sm text-gray">
+                  {educational.penaltyInfo.discountNote}
+                </p>
+              </div>
+
+              {/* FAQ Section */}
+              <div className="rounded-xl border border-border p-6">
+                <h2 className="text-lg font-bold text-dark">
+                  Frequently Asked Questions
+                </h2>
+                <div className="mt-4 divide-y divide-border">
+                  {educational.faqItems.map((faq, index) => (
+                    <details
+                      key={index}
+                      className="group py-4 first:pt-0 last:pb-0"
+                    >
+                      <summary className="flex cursor-pointer items-center justify-between font-medium text-dark">
+                        {faq.question}
+                        <span className="ml-2 shrink-0 text-gray transition-transform group-open:rotate-180">
+                          &#9662;
+                        </span>
+                      </summary>
+                      <p className="mt-3 text-sm text-gray leading-relaxed">
+                        {faq.answer}
+                      </p>
+                    </details>
+                  ))}
+                </div>
+              </div>
             </div>
 
             {/* Right Column - Sidebar */}
@@ -526,6 +671,54 @@ export default async function IssuerPage({ params }: Props) {
                   <FontAwesomeIcon icon={faArrowRight} className="text-xs" />
                 </Link>
               </div>
+
+              {/* Other councils in region */}
+              {issuer.type === 'council' &&
+                (() => {
+                  const regionSlug = getRegionForCouncil(issuerId);
+                  if (!regionSlug) return null;
+                  const region = getRegionBySlug(regionSlug);
+                  if (!region) return null;
+                  const regionCouncils = getCouncilsByRegion(regionSlug)
+                    .filter((id) => id !== issuerId)
+                    .slice(0, 5)
+                    .map((id) => ({ id, name: slugToDisplayName(id) }));
+                  if (regionCouncils.length === 0) return null;
+                  return (
+                    <div className="rounded-xl border border-border p-6">
+                      <h3 className="font-bold text-dark">
+                        Other councils in {region.name}
+                      </h3>
+                      <div className="mt-4 space-y-2">
+                        {regionCouncils.map((council) => (
+                          <Link
+                            key={council.id}
+                            href={`/tools/reference/issuers/${council.id}`}
+                            className="flex items-center gap-2 rounded-lg border border-border p-2 text-sm transition-colors hover:bg-light"
+                          >
+                            <FontAwesomeIcon
+                              icon={faBuilding}
+                              className="text-xs text-teal"
+                            />
+                            <span className="truncate text-gray">
+                              {council.name}
+                            </span>
+                          </Link>
+                        ))}
+                      </div>
+                      <Link
+                        href={`/tools/reference/issuers/region/${regionSlug}`}
+                        className="mt-4 inline-flex items-center gap-1 text-sm font-medium text-teal hover:underline"
+                      >
+                        View all in {region.name}
+                        <FontAwesomeIcon
+                          icon={faArrowRight}
+                          className="text-xs"
+                        />
+                      </Link>
+                    </div>
+                  );
+                })()}
 
               {/* Related Issuers */}
               {relatedIssuers.length > 0 && (

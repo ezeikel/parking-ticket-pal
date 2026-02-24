@@ -11,6 +11,8 @@ import {
 import { client } from '@/lib/sanity/client';
 import { sitemapPostsQuery } from '@/lib/sanity/queries';
 import { competitors } from '@/data/competitors';
+import { getAllRegionSlugs } from '@/data/regions';
+import { getAllGuideSlugs } from '@/data/guides';
 
 const BASE_URL = 'https://www.parkingticketpal.com';
 
@@ -131,6 +133,22 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.8,
     },
 
+    // Region hub page
+    {
+      url: `${BASE_URL}/tools/reference/issuers/region`,
+      lastModified: now,
+      changeFrequency: 'monthly',
+      priority: 0.8,
+    },
+
+    // Guides hub page
+    {
+      url: `${BASE_URL}/guides`,
+      lastModified: now,
+      changeFrequency: 'monthly',
+      priority: 0.8,
+    },
+
     // Comparison & alternatives hub pages
     {
       url: `${BASE_URL}/compare`,
@@ -216,6 +234,24 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     }),
   );
 
+  // Dynamic guide pages
+  const guidePages: MetadataRoute.Sitemap = getAllGuideSlugs().map((slug) => ({
+    url: `${BASE_URL}/guides/${slug}`,
+    lastModified: now,
+    changeFrequency: 'monthly' as const,
+    priority: 0.8,
+  }));
+
+  // Dynamic region pages
+  const regionPages: MetadataRoute.Sitemap = getAllRegionSlugs().map(
+    (slug) => ({
+      url: `${BASE_URL}/tools/reference/issuers/region/${slug}`,
+      lastModified: now,
+      changeFrequency: 'monthly' as const,
+      priority: 0.7,
+    }),
+  );
+
   // Dynamic blog post pages
   const blogPosts = await getAllBlogPosts();
   const blogPostPages: MetadataRoute.Sitemap = blogPosts.map((post) => ({
@@ -233,6 +269,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     ...motoringTemplatePages,
     ...contraventionCodePages,
     ...issuerPages,
+    ...regionPages,
+    ...guidePages,
     ...comparePages,
     ...alternativesPages,
     ...blogPostPages,

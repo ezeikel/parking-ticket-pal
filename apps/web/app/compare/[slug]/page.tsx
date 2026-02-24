@@ -37,7 +37,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     return { title: 'Comparison Not Found | Parking Ticket Pal' };
   }
 
-  const year = new Date().getFullYear();
+  const year = 2025;
   const title = `Parking Ticket Pal vs ${competitor.name} (${year}) | Honest Comparison`;
   const description = `Compare Parking Ticket Pal with ${competitor.name} for UK parking ticket appeals. See features, pros, cons, and which is better for fighting your parking fine.`;
 

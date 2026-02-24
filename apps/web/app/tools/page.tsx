@@ -8,6 +8,7 @@ import {
   faCar,
   faFileLines,
   faBook,
+  faBookOpen,
   faGauge,
   faCarBattery,
   faGavel,
@@ -63,6 +64,20 @@ const categories: ToolCategory[] = [
       { name: 'Issuers Directory', href: '/tools/reference/issuers' },
     ],
   },
+  {
+    title: 'Appeal Guides',
+    description:
+      'Free comprehensive guides on how to appeal parking tickets, understand your rights, and navigate the tribunal process.',
+    icon: faBookOpen,
+    href: '/guides',
+    tools: [
+      'How to Appeal',
+      'Bus Lane PCNs',
+      'Private Parking',
+      'Tribunal Guide',
+    ],
+    badge: 'New',
+  },
 ];
 
 type QuickTool = {
@@ -108,6 +123,12 @@ const quickTools: QuickTool[] = [
     description: 'Find info about councils & parking companies',
     icon: faBuilding,
     href: '/tools/reference/issuers',
+  },
+  {
+    title: 'Appeal Guides',
+    description: 'Step-by-step guides for appealing parking tickets',
+    icon: faBookOpen,
+    href: '/guides',
   },
 ];
 

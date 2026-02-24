@@ -36,7 +36,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     return { title: 'Alternatives Not Found | Parking Ticket Pal' };
   }
 
-  const year = new Date().getFullYear();
+  const year = 2025;
   const title = `Best ${competitor.name} Alternatives for UK Parking Tickets (${year})`;
   const description = `Looking for alternatives to ${competitor.name}? Compare the best options for appealing UK parking tickets, including Parking Ticket Pal's AI-powered approach.`;
 
@@ -54,7 +54,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function AlternativesDetailPage({ params }: Props) {
   const { slug } = await params;
-  const year = new Date().getFullYear();
+  const year = 2025;
   const competitor = getCompetitorByAlternativeSlug(slug);
 
   if (!competitor) {

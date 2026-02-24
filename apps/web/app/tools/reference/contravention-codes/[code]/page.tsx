@@ -24,6 +24,8 @@ import JsonLd, {
   createFAQSchema,
   createBreadcrumbSchema,
 } from '@/components/JsonLd/JsonLd';
+import { getEducationalContentForCode } from '@/data/contravention-codes/educational-content';
+import { getTribunalCaseCountByCode } from '@/lib/queries/tribunal-counts';
 
 type Props = {
   params: Promise<{ code: string }>;
@@ -129,6 +131,12 @@ export default async function ContraventionCodePage({ params }: Props) {
     relevantTemplateIds.includes(t.id),
   );
 
+  const educational = getEducationalContentForCode(
+    codeData.code,
+    codeData.category,
+  );
+  const tribunalCount = await getTribunalCaseCountByCode(codeData.code);
+
   // FAQ schema
   const faqs = [
     {
@@ -149,6 +157,7 @@ export default async function ContraventionCodePage({ params }: Props) {
       answer:
         'You have 14 days for an informal challenge (recommended to preserve the early payment discount), 28 days from the Notice to Owner (NTO) for a formal representation, and 28 days from the Notice of Rejection to appeal to the independent tribunal.',
     },
+    ...educational.additionalFaqItems,
   ];
 
   // Breadcrumb schema
@@ -297,48 +306,90 @@ export default async function ContraventionCodePage({ params }: Props) {
                 </div>
               )}
 
+              {/* Common Scenarios */}
+              <div className="rounded-xl border border-border p-6">
+                <h2 className="flex items-center gap-2 text-lg font-bold text-dark">
+                  <FontAwesomeIcon icon={faCircleInfo} className="text-teal" />
+                  When Is Code {codeData.code} Typically Issued?
+                </h2>
+                <ul className="mt-4 space-y-3 text-gray">
+                  {educational.commonScenarios.map((scenario, index) => (
+                    <li key={index} className="flex items-start gap-2">
+                      <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-teal" />
+                      <span>{scenario}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              {/* Tribunal Authority Teaser */}
+              {tribunalCount > 0 && (
+                <div className="rounded-xl border-2 border-teal/20 bg-teal/5 p-6">
+                  <h2 className="text-lg font-bold text-dark">
+                    Tribunal Case Data
+                  </h2>
+                  <p className="mt-2 text-gray">
+                    We&apos;ve analysed{' '}
+                    <span className="font-semibold text-teal">
+                      {tribunalCount.toLocaleString()}
+                    </span>{' '}
+                    tribunal cases for Code {codeData.code}. Upload your ticket
+                    to get a personalised analysis based on real outcomes.
+                  </p>
+                  <Link
+                    href="/"
+                    className="mt-4 inline-flex items-center gap-2 rounded-lg bg-teal px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-teal-dark"
+                  >
+                    Get Your Personalised Analysis
+                    <FontAwesomeIcon icon={faArrowRight} className="text-xs" />
+                  </Link>
+                </div>
+              )}
+
               {/* Appeal Tips */}
               <div className="rounded-xl border border-border p-6">
                 <h2 className="flex items-center gap-2 text-lg font-bold text-dark">
                   <FontAwesomeIcon icon={faLightbulb} className="text-amber" />
-                  Common Grounds for Appeal
+                  Tips for Appealing Code {codeData.code}
                 </h2>
                 <ul className="mt-4 space-y-3 text-gray">
-                  <li className="flex items-start gap-2">
-                    <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-teal" />
-                    <span>Signs were missing, obscured, or unclear</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-teal" />
-                    <span>Road markings were worn or not visible</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-teal" />
-                    <span>
-                      You had a valid permit or payment that wasn&apos;t
-                      recorded correctly
-                    </span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-teal" />
-                    <span>
-                      There were mitigating circumstances (medical emergency,
-                      breakdown)
-                    </span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-teal" />
-                    <span>
-                      The PCN contains errors (wrong date, time, location,
-                      vehicle)
-                    </span>
-                  </li>
+                  {educational.appealApproach.map((tip, index) => (
+                    <li key={index} className="flex items-start gap-2">
+                      <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-teal" />
+                      <span>{tip}</span>
+                    </li>
+                  ))}
                 </ul>
                 <p className="mt-4 text-sm text-gray">
                   The specific grounds that apply depend on your circumstances.
                   Our AI can help identify the strongest arguments for your
                   case.
                 </p>
+              </div>
+
+              {/* Enhanced FAQ */}
+              <div className="rounded-xl border border-border p-6">
+                <h2 className="text-lg font-bold text-dark">
+                  Frequently Asked Questions
+                </h2>
+                <div className="mt-4 divide-y divide-border">
+                  {faqs.map((faq, index) => (
+                    <details
+                      key={index}
+                      className="group py-4 first:pt-0 last:pb-0"
+                    >
+                      <summary className="flex cursor-pointer items-center justify-between font-medium text-dark">
+                        {faq.question}
+                        <span className="ml-2 shrink-0 text-gray transition-transform group-open:rotate-180">
+                          &#9662;
+                        </span>
+                      </summary>
+                      <p className="mt-3 text-sm text-gray leading-relaxed">
+                        {faq.answer}
+                      </p>
+                    </details>
+                  ))}
+                </div>
               </div>
             </div>
 

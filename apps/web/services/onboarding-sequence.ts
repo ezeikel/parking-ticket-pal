@@ -161,7 +161,7 @@ export const checkExitConditions = async (sequence: {
  * Calculates when the next email should be sent.
  * Compresses schedule if the 14-day deadline is approaching.
  */
-export const calculateNextSendAt = (
+const calculateNextSendAt = (
   sequenceCreatedAt: Date,
   nextStep: number,
   ticketIssuedAt: Date,
@@ -412,10 +412,10 @@ export const buildOnboardingEmailData = async (
 /**
  * Determines if step 6 should fire early because the deadline is <=2 days away.
  */
-export const shouldJumpToFinalStep = (
+export const shouldJumpToFinalStep = async (
   currentStep: number,
   ticketIssuedAt: Date,
-): boolean => {
+): Promise<boolean> => {
   if (currentStep >= 6) return false;
   const deadline = addDays(ticketIssuedAt, 14);
   const daysUntilDeadline = differenceInDays(deadline, new Date());

@@ -32,12 +32,14 @@ const productLinks: FooterLink[] = [
 
 const resourceLinks: FooterLink[] = [
   { label: 'Blog', href: '/blog' },
-  { label: 'FAQ', href: '/#faq' },
-  { label: 'Success Stories', href: '/#testimonials' },
+  { label: 'Appeal Guides', href: '/guides' },
+  { label: 'Free Tools', href: '/tools' },
+  { label: 'Letter Templates', href: '/tools/letters' },
   {
     label: 'Contravention Codes',
     href: '/tools/reference/contravention-codes',
   },
+  { label: 'Issuer Directory', href: '/tools/reference/issuers' },
   { label: 'Compare', href: '/compare' },
 ];
 

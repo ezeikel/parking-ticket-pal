@@ -10,6 +10,7 @@ import {
   faTrain,
   faLock,
   faArrowRight,
+  faMapLocationDot,
 } from '@fortawesome/pro-solid-svg-icons';
 import {
   LOCAL_AUTHORITY_IDS,
@@ -82,34 +83,37 @@ export default function IssuersPage() {
 
   const allIssuers = useMemo(() => getAllIssuers(), []);
 
-  const filteredIssuers = useMemo(() => {
-    return allIssuers.filter((issuer) => {
-      // Search filter
-      if (
-        searchQuery &&
-        !issuer.name.toLowerCase().includes(searchQuery.toLowerCase()) &&
-        !issuer.id.toLowerCase().includes(searchQuery.toLowerCase())
-      ) {
-        return false;
-      }
+  const filteredIssuers = useMemo(
+    () =>
+      allIssuers.filter((issuer) => {
+        // Search filter
+        if (
+          searchQuery &&
+          !issuer.name.toLowerCase().includes(searchQuery.toLowerCase()) &&
+          !issuer.id.toLowerCase().includes(searchQuery.toLowerCase())
+        ) {
+          return false;
+        }
 
-      // Type filter
-      if (typeFilter !== 'all' && issuer.type !== typeFilter) {
-        return false;
-      }
+        // Type filter
+        if (typeFilter !== 'all' && issuer.type !== typeFilter) {
+          return false;
+        }
 
-      return true;
-    });
-  }, [allIssuers, searchQuery, typeFilter]);
+        return true;
+      }),
+    [allIssuers, searchQuery, typeFilter],
+  );
 
-  const stats = useMemo(() => {
-    return {
+  const stats = useMemo(
+    () => ({
       total: allIssuers.length,
       councils: allIssuers.filter((i) => i.type === 'council').length,
       private: allIssuers.filter((i) => i.type === 'private').length,
       tfl: allIssuers.filter((i) => i.type === 'tfl').length,
-    };
-  }, [allIssuers]);
+    }),
+    [allIssuers],
+  );
 
   return (
     <div className="min-h-screen bg-white">
@@ -129,14 +133,18 @@ export default function IssuersPage() {
 
           <div className="text-center">
             <div className="mb-4 inline-flex h-16 w-16 items-center justify-center rounded-2xl border border-border bg-white">
-              <FontAwesomeIcon icon={faBuilding} className="text-2xl text-dark" />
+              <FontAwesomeIcon
+                icon={faBuilding}
+                className="text-2xl text-dark"
+              />
             </div>
             <h1 className="text-3xl font-bold text-dark md:text-4xl">
               UK Parking Ticket Issuers
             </h1>
             <p className="mx-auto mt-4 max-w-xl text-gray">
-              Find information about {stats.total} councils, private parking companies,
-              and transport authorities that issue parking tickets in the UK.
+              Find information about {stats.total} councils, private parking
+              companies, and transport authorities that issue parking tickets in
+              the UK.
             </p>
           </div>
 
@@ -180,7 +188,9 @@ export default function IssuersPage() {
             {/* Type Filter */}
             <select
               value={typeFilter}
-              onChange={(e) => setTypeFilter(e.target.value as IssuerTypeFilter)}
+              onChange={(e) =>
+                setTypeFilter(e.target.value as IssuerTypeFilter)
+              }
               className="rounded-lg border border-border bg-white px-3 py-2 text-sm focus:border-dark/20 focus:outline-none"
             >
               <option value="all">All Types</option>
@@ -197,12 +207,57 @@ export default function IssuersPage() {
         </div>
       </section>
 
+      {/* Browse by Region */}
+      <section className="bg-white py-8 md:py-10 border-b border-border">
+        <div className="mx-auto max-w-[1280px] px-6">
+          <div className="flex items-center justify-between">
+            <h2 className="text-lg font-bold text-dark">Browse by Region</h2>
+            <Link
+              href="/tools/reference/issuers/region"
+              className="inline-flex items-center gap-1 text-sm font-medium text-teal hover:underline"
+            >
+              View all regions
+              <FontAwesomeIcon icon={faArrowRight} className="text-xs" />
+            </Link>
+          </div>
+          <div className="mt-4 grid gap-3 sm:grid-cols-3 lg:grid-cols-5">
+            {[
+              { slug: 'london', name: 'London' },
+              { slug: 'south-east', name: 'South East' },
+              { slug: 'south-west', name: 'South West' },
+              { slug: 'north-west', name: 'North West' },
+              { slug: 'west-midlands', name: 'West Midlands' },
+              { slug: 'east-of-england', name: 'East of England' },
+              { slug: 'east-midlands', name: 'East Midlands' },
+              { slug: 'north-east', name: 'North East' },
+              { slug: 'yorkshire-and-the-humber', name: 'Yorkshire & Humber' },
+            ].map((region) => (
+              <Link
+                key={region.slug}
+                href={`/tools/reference/issuers/region/${region.slug}`}
+                className="group flex items-center gap-2 rounded-lg border border-border p-3 transition-colors hover:border-dark/20"
+              >
+                <FontAwesomeIcon
+                  icon={faMapLocationDot}
+                  className="text-xs text-teal"
+                />
+                <span className="text-sm font-medium text-dark group-hover:text-teal">
+                  {region.name}
+                </span>
+              </Link>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* Issuers List */}
       <section className="bg-white py-8 md:py-12">
         <div className="mx-auto max-w-[1280px] px-6">
           {filteredIssuers.length === 0 ? (
             <div className="py-12 text-center">
-              <p className="text-gray">No issuers found matching your search.</p>
+              <p className="text-gray">
+                No issuers found matching your search.
+              </p>
             </div>
           ) : (
             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">

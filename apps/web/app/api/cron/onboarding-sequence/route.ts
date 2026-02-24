@@ -114,7 +114,7 @@ export async function POST(request: Request) {
 
         // Determine step to send — jump to step 6 if deadline is <=2 days away
         let stepToSend = sequence.currentStep;
-        if (shouldJumpToFinalStep(stepToSend, sequence.ticket.issuedAt)) {
+        if (await shouldJumpToFinalStep(stepToSend, sequence.ticket.issuedAt)) {
           stepToSend = 6;
         }
 

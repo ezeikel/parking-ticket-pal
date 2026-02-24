@@ -2,14 +2,12 @@ type JsonLdProps = {
   data: Record<string, unknown>;
 };
 
-const JsonLd = ({ data }: JsonLdProps) => {
-  return (
-    <script
-      type="application/ld+json"
-      dangerouslySetInnerHTML={{ __html: JSON.stringify(data) }}
-    />
-  );
-};
+const JsonLd = ({ data }: JsonLdProps) => (
+  <script
+    type="application/ld+json"
+    dangerouslySetInnerHTML={{ __html: JSON.stringify(data) }}
+  />
+);
 
 export default JsonLd;
 
@@ -21,7 +19,8 @@ export const organizationSchema = {
   name: 'Parking Ticket Pal',
   url: 'https://parkingticketpal.co.uk',
   logo: 'https://parkingticketpal.co.uk/images/logo.png',
-  description: 'AI-powered parking ticket appeal service helping UK motorists challenge unfair PCNs.',
+  description:
+    'AI-powered parking ticket appeal service helping UK motorists challenge unfair PCNs.',
   sameAs: [
     'https://twitter.com/parkingticketpal',
     'https://www.facebook.com/parkingticketpal',
@@ -35,12 +34,15 @@ export const websiteSchema = {
   url: 'https://parkingticketpal.co.uk',
   potentialAction: {
     '@type': 'SearchAction',
-    target: 'https://parkingticketpal.co.uk/tools/reference/contravention-codes?search={search_term_string}',
+    target:
+      'https://parkingticketpal.co.uk/tools/reference/contravention-codes?search={search_term_string}',
     'query-input': 'required name=search_term_string',
   },
 };
 
-export const createFAQSchema = (faqs: { question: string; answer: string }[]) => ({
+export const createFAQSchema = (
+  faqs: { question: string; answer: string }[],
+) => ({
   '@context': 'https://schema.org',
   '@type': 'FAQPage',
   mainEntity: faqs.map((faq) => ({
@@ -81,6 +83,42 @@ export const createBreadcrumbSchema = (
     name: item.name,
     item: item.url,
   })),
+});
+
+export const createArticleSchema = ({
+  title,
+  description,
+  url,
+  datePublished,
+  dateModified,
+}: {
+  title: string;
+  description: string;
+  url: string;
+  datePublished: string;
+  dateModified: string;
+}) => ({
+  '@context': 'https://schema.org',
+  '@type': 'Article',
+  headline: title,
+  description,
+  url,
+  datePublished,
+  dateModified,
+  author: {
+    '@type': 'Organization',
+    name: 'Parking Ticket Pal',
+    url: 'https://parkingticketpal.co.uk',
+  },
+  publisher: {
+    '@type': 'Organization',
+    name: 'Parking Ticket Pal',
+    url: 'https://parkingticketpal.co.uk',
+    logo: {
+      '@type': 'ImageObject',
+      url: 'https://parkingticketpal.co.uk/images/logo.png',
+    },
+  },
 });
 
 export const createSoftwareApplicationSchema = () => ({
