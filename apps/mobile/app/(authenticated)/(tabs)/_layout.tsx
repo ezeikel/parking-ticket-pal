@@ -3,11 +3,11 @@ import { View, StyleSheet } from 'react-native';
 import { Tabs } from 'expo-router';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import {
-  faHouse as faHouseSolid,
+  faCardsBlank as faCardsBlankSolid,
   faGear as faGearSolid,
 } from '@fortawesome/pro-solid-svg-icons';
 import {
-  faHouse as faHouseRegular,
+  faCardsBlank as faCardsBlankRegular,
   faGear as faGearRegular,
 } from '@fortawesome/pro-regular-svg-icons';
 import HapticTab from '@/components/HapticTab/HapticTab';
@@ -43,7 +43,7 @@ function TabLayoutInner() {
             title: 'Tickets',
             tabBarIcon: ({ focused, color }) => (
               <FontAwesomeIcon
-                icon={focused ? faHouseSolid : faHouseRegular}
+                icon={focused ? faCardsBlankSolid : faCardsBlankRegular}
                 size={22}
                 color={color}
               />
