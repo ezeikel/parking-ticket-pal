@@ -16,7 +16,6 @@ import { initiateAutoChallenge } from '@/app/actions/autoChallenge';
 import { generateChallengeLetter } from '@/app/actions/letter';
 import AddressPromptBanner from '@/components/AddressPromptBanner/AddressPromptBanner';
 import AdBanner from '@/components/AdBanner/AdBanner';
-import { ChallengeStatus } from '@parking-ticket-pal/db';
 import { getDisplayAmount } from '@/utils/getCurrentAmountDue';
 import TicketDetailHeader from './TicketDetailHeader';
 import TicketPhotoCard from './TicketPhotoCard';
