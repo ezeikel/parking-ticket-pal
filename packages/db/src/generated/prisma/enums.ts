@@ -368,3 +368,12 @@ export const OnboardingExitReason = {
 } as const
 
 export type OnboardingExitReason = (typeof OnboardingExitReason)[keyof typeof OnboardingExitReason]
+
+
+export const WaitlistExitReason = {
+  SEQUENCE_COMPLETE: 'SEQUENCE_COMPLETE',
+  UNSUBSCRIBED: 'UNSUBSCRIBED',
+  APP_LAUNCHED: 'APP_LAUNCHED'
+} as const
+
+export type WaitlistExitReason = (typeof WaitlistExitReason)[keyof typeof WaitlistExitReason]

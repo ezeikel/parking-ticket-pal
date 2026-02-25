@@ -149,4 +149,10 @@ export const TRACKING_EVENTS = {
   // Content Attribution
   BLOG_POST_VIEWED: 'blog_post_viewed',
   VIDEO_VIEWED: 'video_viewed',
+
+  // Mobile App Waitlist
+  WAITLIST_PAGE_VIEWED: 'waitlist_page_viewed',
+  WAITLIST_SIGNUP_SUBMITTED: 'waitlist_signup_submitted',
+  WAITLIST_SIGNUP_COMPLETED: 'waitlist_signup_completed',
+  WAITLIST_SIGNUP_FAILED: 'waitlist_signup_failed',
 } as const;

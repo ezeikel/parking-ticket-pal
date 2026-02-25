@@ -1000,3 +1000,28 @@ model OnboardingSequence {
   @@index([userId])
   @@map("onboarding_sequences")
 }
+
+// ============================================================================
+// Mobile App Waitlist
+// ============================================================================
+
+enum WaitlistExitReason {
+  SEQUENCE_COMPLETE
+  UNSUBSCRIBED
+  APP_LAUNCHED
+}
+
+model WaitlistSignup {
+  id          String              @id @default(cuid())
+  email       String              @unique
+  currentStep Int                 @default(1)
+  nextSendAt  DateTime
+  completedAt DateTime?
+  exitReason  WaitlistExitReason?
+  createdAt   DateTime            @default(now())
+  updatedAt   DateTime            @updatedAt
+
+  @@index([nextSendAt, completedAt])
+  @@index([email])
+  @@map("waitlist_signups")
+}

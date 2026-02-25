@@ -946,6 +946,23 @@ export type EnumOnboardingExitReasonNullableWithAggregatesFilter<$PrismaModel = 
   _max?: Prisma.NestedEnumOnboardingExitReasonNullableFilter<$PrismaModel>
 }
 
+export type EnumWaitlistExitReasonNullableFilter<$PrismaModel = never> = {
+  equals?: $Enums.WaitlistExitReason | Prisma.EnumWaitlistExitReasonFieldRefInput<$PrismaModel> | null
+  in?: $Enums.WaitlistExitReason[] | Prisma.ListEnumWaitlistExitReasonFieldRefInput<$PrismaModel> | null
+  notIn?: $Enums.WaitlistExitReason[] | Prisma.ListEnumWaitlistExitReasonFieldRefInput<$PrismaModel> | null
+  not?: Prisma.NestedEnumWaitlistExitReasonNullableFilter<$PrismaModel> | $Enums.WaitlistExitReason | null
+}
+
+export type EnumWaitlistExitReasonNullableWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.WaitlistExitReason | Prisma.EnumWaitlistExitReasonFieldRefInput<$PrismaModel> | null
+  in?: $Enums.WaitlistExitReason[] | Prisma.ListEnumWaitlistExitReasonFieldRefInput<$PrismaModel> | null
+  notIn?: $Enums.WaitlistExitReason[] | Prisma.ListEnumWaitlistExitReasonFieldRefInput<$PrismaModel> | null
+  not?: Prisma.NestedEnumWaitlistExitReasonNullableWithAggregatesFilter<$PrismaModel> | $Enums.WaitlistExitReason | null
+  _count?: Prisma.NestedIntNullableFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumWaitlistExitReasonNullableFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumWaitlistExitReasonNullableFilter<$PrismaModel>
+}
+
 export type NestedStringFilter<$PrismaModel = never> = {
   equals?: string | Prisma.StringFieldRefInput<$PrismaModel>
   in?: string[] | Prisma.ListStringFieldRefInput<$PrismaModel>
@@ -1813,6 +1830,23 @@ export type NestedEnumOnboardingExitReasonNullableWithAggregatesFilter<$PrismaMo
   _count?: Prisma.NestedIntNullableFilter<$PrismaModel>
   _min?: Prisma.NestedEnumOnboardingExitReasonNullableFilter<$PrismaModel>
   _max?: Prisma.NestedEnumOnboardingExitReasonNullableFilter<$PrismaModel>
+}
+
+export type NestedEnumWaitlistExitReasonNullableFilter<$PrismaModel = never> = {
+  equals?: $Enums.WaitlistExitReason | Prisma.EnumWaitlistExitReasonFieldRefInput<$PrismaModel> | null
+  in?: $Enums.WaitlistExitReason[] | Prisma.ListEnumWaitlistExitReasonFieldRefInput<$PrismaModel> | null
+  notIn?: $Enums.WaitlistExitReason[] | Prisma.ListEnumWaitlistExitReasonFieldRefInput<$PrismaModel> | null
+  not?: Prisma.NestedEnumWaitlistExitReasonNullableFilter<$PrismaModel> | $Enums.WaitlistExitReason | null
+}
+
+export type NestedEnumWaitlistExitReasonNullableWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.WaitlistExitReason | Prisma.EnumWaitlistExitReasonFieldRefInput<$PrismaModel> | null
+  in?: $Enums.WaitlistExitReason[] | Prisma.ListEnumWaitlistExitReasonFieldRefInput<$PrismaModel> | null
+  notIn?: $Enums.WaitlistExitReason[] | Prisma.ListEnumWaitlistExitReasonFieldRefInput<$PrismaModel> | null
+  not?: Prisma.NestedEnumWaitlistExitReasonNullableWithAggregatesFilter<$PrismaModel> | $Enums.WaitlistExitReason | null
+  _count?: Prisma.NestedIntNullableFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumWaitlistExitReasonNullableFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumWaitlistExitReasonNullableFilter<$PrismaModel>
 }
 
 

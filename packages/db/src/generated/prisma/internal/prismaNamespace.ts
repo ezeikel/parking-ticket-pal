@@ -417,7 +417,8 @@ export const ModelName = {
   NewsVideo: 'NewsVideo',
   HighwayCodeSign: 'HighwayCodeSign',
   HighwayCodeQuizPost: 'HighwayCodeQuizPost',
-  OnboardingSequence: 'OnboardingSequence'
+  OnboardingSequence: 'OnboardingSequence',
+  WaitlistSignup: 'WaitlistSignup'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -433,7 +434,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "mobileDeviceSession" | "vehicle" | "ticket" | "media" | "letter" | "reminder" | "form" | "prediction" | "amountIncrease" | "verification" | "challenge" | "notification" | "pushToken" | "account" | "session" | "verificationToken" | "referralCode" | "referral" | "referralCredit" | "londonTribunalCase" | "appealDataSource" | "contraventionStats" | "issuerContraventionStats" | "appealPattern" | "pendingIssuer" | "pendingChallenge" | "pendingTicket" | "issuerHealthCheck" | "tribunalCaseVideo" | "newsVideo" | "highwayCodeSign" | "highwayCodeQuizPost" | "onboardingSequence"
+    modelProps: "user" | "mobileDeviceSession" | "vehicle" | "ticket" | "media" | "letter" | "reminder" | "form" | "prediction" | "amountIncrease" | "verification" | "challenge" | "notification" | "pushToken" | "account" | "session" | "verificationToken" | "referralCode" | "referral" | "referralCredit" | "londonTribunalCase" | "appealDataSource" | "contraventionStats" | "issuerContraventionStats" | "appealPattern" | "pendingIssuer" | "pendingChallenge" | "pendingTicket" | "issuerHealthCheck" | "tribunalCaseVideo" | "newsVideo" | "highwayCodeSign" | "highwayCodeQuizPost" | "onboardingSequence" | "waitlistSignup"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -2953,6 +2954,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    WaitlistSignup: {
+      payload: Prisma.$WaitlistSignupPayload<ExtArgs>
+      fields: Prisma.WaitlistSignupFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.WaitlistSignupFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$WaitlistSignupPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.WaitlistSignupFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$WaitlistSignupPayload>
+        }
+        findFirst: {
+          args: Prisma.WaitlistSignupFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$WaitlistSignupPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.WaitlistSignupFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$WaitlistSignupPayload>
+        }
+        findMany: {
+          args: Prisma.WaitlistSignupFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$WaitlistSignupPayload>[]
+        }
+        create: {
+          args: Prisma.WaitlistSignupCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$WaitlistSignupPayload>
+        }
+        createMany: {
+          args: Prisma.WaitlistSignupCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.WaitlistSignupCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$WaitlistSignupPayload>[]
+        }
+        delete: {
+          args: Prisma.WaitlistSignupDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$WaitlistSignupPayload>
+        }
+        update: {
+          args: Prisma.WaitlistSignupUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$WaitlistSignupPayload>
+        }
+        deleteMany: {
+          args: Prisma.WaitlistSignupDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.WaitlistSignupUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.WaitlistSignupUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$WaitlistSignupPayload>[]
+        }
+        upsert: {
+          args: Prisma.WaitlistSignupUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$WaitlistSignupPayload>
+        }
+        aggregate: {
+          args: Prisma.WaitlistSignupAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateWaitlistSignup>
+        }
+        groupBy: {
+          args: Prisma.WaitlistSignupGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.WaitlistSignupGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.WaitlistSignupCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.WaitlistSignupCountAggregateOutputType> | number
+        }
+      }
+    }
   }
 } & {
   other: {
@@ -3573,6 +3648,20 @@ export const OnboardingSequenceScalarFieldEnum = {
 export type OnboardingSequenceScalarFieldEnum = (typeof OnboardingSequenceScalarFieldEnum)[keyof typeof OnboardingSequenceScalarFieldEnum]
 
 
+export const WaitlistSignupScalarFieldEnum = {
+  id: 'id',
+  email: 'email',
+  currentStep: 'currentStep',
+  nextSendAt: 'nextSendAt',
+  completedAt: 'completedAt',
+  exitReason: 'exitReason',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type WaitlistSignupScalarFieldEnum = (typeof WaitlistSignupScalarFieldEnum)[keyof typeof WaitlistSignupScalarFieldEnum]
+
+
 export const SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -4165,6 +4254,20 @@ export type EnumOnboardingExitReasonFieldRefInput<$PrismaModel> = FieldRefInputT
 export type ListEnumOnboardingExitReasonFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'OnboardingExitReason[]'>
     
 
+
+/**
+ * Reference to a field of type 'WaitlistExitReason'
+ */
+export type EnumWaitlistExitReasonFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'WaitlistExitReason'>
+    
+
+
+/**
+ * Reference to a field of type 'WaitlistExitReason[]'
+ */
+export type ListEnumWaitlistExitReasonFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'WaitlistExitReason[]'>
+    
+
 /**
  * Batch Payload for updateMany & deleteMany & createMany
  */
@@ -4294,6 +4397,7 @@ export type GlobalOmitConfig = {
   highwayCodeSign?: Prisma.HighwayCodeSignOmit
   highwayCodeQuizPost?: Prisma.HighwayCodeQuizPostOmit
   onboardingSequence?: Prisma.OnboardingSequenceOmit
+  waitlistSignup?: Prisma.WaitlistSignupOmit
 }
 
 /* Types for Logging */

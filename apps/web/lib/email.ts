@@ -17,6 +17,9 @@ import OnboardingSocialProofEmail from '@/emails/onboarding/OnboardingSocialProo
 import OnboardingHowItWorksEmail from '@/emails/onboarding/OnboardingHowItWorksEmail';
 import OnboardingMathsEmail from '@/emails/onboarding/OnboardingMathsEmail';
 import OnboardingFinalWarningEmail from '@/emails/onboarding/OnboardingFinalWarningEmail';
+import WaitlistWelcomeEmail from '@/emails/waitlist/WaitlistWelcomeEmail';
+import WaitlistValueEmail from '@/emails/waitlist/WaitlistValueEmail';
+import WaitlistLaunchEmail from '@/emails/waitlist/WaitlistLaunchEmail';
 
 const AttachmentSchema = z.object({
   filename: z.string(),
@@ -555,6 +558,58 @@ export const sendOnboardingEmail = async (
 }> => {
   const subject = getOnboardingSubject(email);
   const emailHtml = await renderOnboardingTemplate(email);
+
+  return sendEmail({
+    to,
+    subject,
+    html: emailHtml,
+  });
+};
+
+// ============================================================================
+// Waitlist Emails
+// ============================================================================
+
+type WaitlistStep = 1 | 2 | 3;
+
+const WAITLIST_SUBJECTS: Record<WaitlistStep, string> = {
+  1: "You're on the list",
+  2: "Most parking ticket appeals don't need a solicitor",
+  3: 'The app is here — download now',
+};
+
+/* eslint-disable consistent-return, default-case */
+const renderWaitlistTemplate = (
+  step: WaitlistStep,
+  options?: { appStoreUrl?: string; playStoreUrl?: string },
+): Promise<string> => {
+  switch (step) {
+    case 1:
+      return render(WaitlistWelcomeEmail());
+    case 2:
+      return render(WaitlistValueEmail());
+    case 3:
+      return render(
+        WaitlistLaunchEmail({
+          appStoreUrl: options?.appStoreUrl,
+          playStoreUrl: options?.playStoreUrl,
+        }),
+      );
+  }
+};
+/* eslint-enable consistent-return, default-case */
+
+export const sendWaitlistEmail = async (
+  to: string,
+  step: WaitlistStep,
+  options?: { appStoreUrl?: string; playStoreUrl?: string },
+): Promise<{
+  success: boolean;
+  messageId?: string;
+  error?: string;
+}> => {
+  const subject = WAITLIST_SUBJECTS[step];
+  const emailHtml = await renderWaitlistTemplate(step, options);
 
   return sendEmail({
     to,

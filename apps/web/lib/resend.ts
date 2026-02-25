@@ -70,4 +70,17 @@ export async function addNewsletterContact(email: string) {
   return addContactToSegment(email, segmentId);
 }
 
+/**
+ * Add a contact to the PTP mobile app waitlist segment.
+ */
+export async function addWaitlistContact(email: string) {
+  const segmentId = process.env.RESEND_WAITLIST_SEGMENT_ID;
+
+  if (!segmentId) {
+    throw new Error('RESEND_WAITLIST_SEGMENT_ID is not configured');
+  }
+
+  return addContactToSegment(email, segmentId);
+}
+
 export default resend;

@@ -703,6 +703,12 @@ export type EventProperties = {
     utm_medium?: string;
     utm_campaign?: string;
   };
+
+  // Mobile App Waitlist
+  [TRACKING_EVENTS.WAITLIST_PAGE_VIEWED]: Record<string, never>;
+  [TRACKING_EVENTS.WAITLIST_SIGNUP_SUBMITTED]: { email: string };
+  [TRACKING_EVENTS.WAITLIST_SIGNUP_COMPLETED]: { email: string };
+  [TRACKING_EVENTS.WAITLIST_SIGNUP_FAILED]: { email: string };
 };
 
 export type PostAuthor = {

@@ -84,7 +84,8 @@ export const ModelName = {
   NewsVideo: 'NewsVideo',
   HighwayCodeSign: 'HighwayCodeSign',
   HighwayCodeQuizPost: 'HighwayCodeQuizPost',
-  OnboardingSequence: 'OnboardingSequence'
+  OnboardingSequence: 'OnboardingSequence',
+  WaitlistSignup: 'WaitlistSignup'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -682,6 +683,20 @@ export const OnboardingSequenceScalarFieldEnum = {
 } as const
 
 export type OnboardingSequenceScalarFieldEnum = (typeof OnboardingSequenceScalarFieldEnum)[keyof typeof OnboardingSequenceScalarFieldEnum]
+
+
+export const WaitlistSignupScalarFieldEnum = {
+  id: 'id',
+  email: 'email',
+  currentStep: 'currentStep',
+  nextSendAt: 'nextSendAt',
+  completedAt: 'completedAt',
+  exitReason: 'exitReason',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type WaitlistSignupScalarFieldEnum = (typeof WaitlistSignupScalarFieldEnum)[keyof typeof WaitlistSignupScalarFieldEnum]
 
 
 export const SortOrder = {
