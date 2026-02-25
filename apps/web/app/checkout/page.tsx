@@ -73,7 +73,7 @@ const CheckoutContent = () => {
 
           // Track guest checkout initiation
           await track(TRACKING_EVENTS.CHECKOUT_SESSION_CREATED, {
-            productType: ProductType.PAY_PER_TICKET,
+            product_type: ProductType.PAY_PER_TICKET,
             tier: guestTier.toUpperCase() as TicketTier,
           });
           trackInitiateCheckout({
@@ -118,8 +118,8 @@ const CheckoutContent = () => {
 
         // Track checkout initiation
         await track(TRACKING_EVENTS.CHECKOUT_SESSION_CREATED, {
-          productType: ProductType.PAY_PER_TICKET,
-          ticketId,
+          product_type: ProductType.PAY_PER_TICKET,
+          ticket_id: ticketId,
           tier: ticketTier,
         });
         trackInitiateCheckout({

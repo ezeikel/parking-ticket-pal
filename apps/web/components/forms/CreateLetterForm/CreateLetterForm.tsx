@@ -79,8 +79,8 @@ const CreateLetterForm = () => {
         }
 
         await track(TRACKING_EVENTS.LETTER_CREATED, {
-          letterType: letter.type,
-          ticketId: letter.ticketId,
+          letter_type: letter.type,
+          ticket_id: letter.ticketId,
         });
 
         toast.success('Letter created successfully');

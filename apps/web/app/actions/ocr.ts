@@ -640,7 +640,7 @@ export const extractOCRTextWithVision = async (
   // Track OCR success
   await track(TRACKING_EVENTS.OCR_PROCESSING_SUCCESS, {
     source: 'web',
-    fieldsExtracted,
+    fields_extracted: fieldsExtracted,
   });
 
   // return the parsed data

@@ -18,6 +18,8 @@ import {
   isIssuerSupported,
   type Address,
 } from '@/utils/automation/workerClient';
+import { track } from '@/utils/analytics-server';
+import { TRACKING_EVENTS } from '@/constants/events';
 
 const logger = createServerLogger({ action: 'autoChallenge' });
 
@@ -138,13 +140,19 @@ export async function initiateAutoChallenge(
       const statusMessages: Record<TicketStatus, string> = {
         [TicketStatus.PAID]: 'This ticket has been paid.',
         [TicketStatus.CANCELLED]: 'This ticket has been cancelled.',
-        [TicketStatus.REPRESENTATION_ACCEPTED]: 'Your challenge has already been accepted.',
+        [TicketStatus.REPRESENTATION_ACCEPTED]:
+          'Your challenge has already been accepted.',
         [TicketStatus.APPEAL_UPHELD]: 'Your appeal has already been upheld.',
-        [TicketStatus.CHARGE_CERTIFICATE]: 'This ticket has progressed to a charge certificate. Challenge is no longer available.',
-        [TicketStatus.ORDER_FOR_RECOVERY]: 'This ticket is in debt recovery. Challenge is no longer available.',
-        [TicketStatus.ENFORCEMENT_BAILIFF_STAGE]: 'This ticket is at enforcement stage. Challenge is no longer available.',
-        [TicketStatus.COURT_PROCEEDINGS]: 'This ticket is in court proceedings. Challenge is no longer available.',
-        [TicketStatus.CCJ_ISSUED]: 'A CCJ has been issued. Challenge is no longer available.',
+        [TicketStatus.CHARGE_CERTIFICATE]:
+          'This ticket has progressed to a charge certificate. Challenge is no longer available.',
+        [TicketStatus.ORDER_FOR_RECOVERY]:
+          'This ticket is in debt recovery. Challenge is no longer available.',
+        [TicketStatus.ENFORCEMENT_BAILIFF_STAGE]:
+          'This ticket is at enforcement stage. Challenge is no longer available.',
+        [TicketStatus.COURT_PROCEEDINGS]:
+          'This ticket is in court proceedings. Challenge is no longer available.',
+        [TicketStatus.CCJ_ISSUED]:
+          'A CCJ has been issued. Challenge is no longer available.',
         // Default for any other status (shouldn't reach here)
         [TicketStatus.ISSUED_DISCOUNT_PERIOD]: '',
         [TicketStatus.ISSUED_FULL_CHARGE]: '',
@@ -166,7 +174,9 @@ export async function initiateAutoChallenge(
       return {
         success: false,
         status: 'error',
-        message: statusMessages[ticket.status] || 'This ticket cannot be challenged in its current state.',
+        message:
+          statusMessages[ticket.status] ||
+          'This ticket cannot be challenged in its current state.',
       };
     }
 
@@ -186,7 +196,8 @@ export async function initiateAutoChallenge(
       return {
         success: false,
         status: 'error',
-        message: 'An email address is required to challenge a ticket. Please update your profile.',
+        message:
+          'An email address is required to challenge a ticket. Please update your profile.',
       };
     }
 
@@ -223,6 +234,7 @@ export async function initiateAutoChallenge(
       if (dryRun) {
         // Dry run: no DB record needed - use legacy sync mode
         // TODO: Consider supporting async dry runs in the future
+        // eslint-disable-next-line @typescript-eslint/no-use-before-define
         return await runWorkerChallengeLegacy(
           ticketForChallenge,
           issuerId,
@@ -259,6 +271,7 @@ export async function initiateAutoChallenge(
         });
       }
 
+      // eslint-disable-next-line @typescript-eslint/no-use-before-define
       return await runWorkerChallengeAsync(
         ticketForChallenge,
         issuerId,
@@ -347,6 +360,7 @@ export async function initiateAutoChallenge(
         },
       });
 
+      // eslint-disable-next-line @typescript-eslint/no-use-before-define
       return await triggerIssuerGeneration(
         pendingIssuer.id,
         issuerId,
@@ -371,6 +385,7 @@ export async function initiateAutoChallenge(
       },
     });
 
+    // eslint-disable-next-line @typescript-eslint/no-use-before-define
     return await triggerIssuerGeneration(
       newPendingIssuer.id,
       issuerId,
@@ -442,6 +457,13 @@ async function runWorkerChallengeAsync(
   customReason: string | undefined,
   challengeId: string,
 ): Promise<AutoChallengeResult> {
+  const startTime = Date.now();
+  await track(TRACKING_EVENTS.AUTOMATION_STARTED, {
+    ticket_id: ticket.id,
+    issuer: issuerId,
+    action: 'challenge',
+  });
+
   try {
     // Build user address with fallback defaults
     const userAddress: Address = {
@@ -483,6 +505,13 @@ async function runWorkerChallengeAsync(
 
       revalidatePath('/tickets/[id]', 'page');
 
+      await track(TRACKING_EVENTS.AUTOMATION_COMPLETED, {
+        ticket_id: ticket.id,
+        issuer: issuerId,
+        action: 'challenge',
+        duration_ms: Date.now() - startTime,
+      });
+
       return {
         success: true,
         challengeId,
@@ -503,6 +532,14 @@ async function runWorkerChallengeAsync(
       },
     });
 
+    await track(TRACKING_EVENTS.AUTOMATION_FAILED, {
+      ticket_id: ticket.id,
+      issuer: issuerId,
+      action: 'challenge',
+      error: result.error || 'Failed to start challenge job',
+      duration_ms: Date.now() - startTime,
+    });
+
     return {
       success: false,
       challengeId,
@@ -519,6 +556,14 @@ async function runWorkerChallengeAsync(
           error: error instanceof Error ? error.message : 'Unknown error',
         },
       },
+    });
+
+    await track(TRACKING_EVENTS.AUTOMATION_FAILED, {
+      ticket_id: ticket.id,
+      issuer: issuerId,
+      action: 'challenge',
+      error: error instanceof Error ? error.message : 'Unknown error',
+      duration_ms: Date.now() - startTime,
     });
 
     throw error;

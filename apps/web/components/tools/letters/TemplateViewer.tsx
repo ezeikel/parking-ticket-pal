@@ -15,7 +15,6 @@ import type {
   TemplatePlaceholder,
   PlaceholderInputType,
 } from '@/data/templates';
-import EmailCaptureModal from './EmailCaptureModal';
 import { sendFreeLetterEmail } from '@/app/actions/tools';
 import { Calendar } from '@/components/ui/calendar';
 import {
@@ -30,6 +29,7 @@ import { useAnalytics } from '@/utils/analytics-client';
 import { TRACKING_EVENTS } from '@/constants/events';
 import type { Address } from '@parking-ticket-pal/types';
 import cn from '@/utils/cn';
+import EmailCaptureModal from './EmailCaptureModal';
 
 type TemplateViewerProps = {
   template: LetterTemplate;
@@ -38,14 +38,14 @@ type TemplateViewerProps = {
 // Helper to format UK date with ordinal suffix
 const formatDateWithOrdinal = (date: Date): string => {
   const day = date.getDate();
-  const suffix =
-    day === 1 || day === 21 || day === 31
-      ? 'st'
-      : day === 2 || day === 22
-        ? 'nd'
-        : day === 3 || day === 23
-          ? 'rd'
-          : 'th';
+  let suffix = 'th';
+  if (day === 1 || day === 21 || day === 31) {
+    suffix = 'st';
+  } else if (day === 2 || day === 22) {
+    suffix = 'nd';
+  } else if (day === 3 || day === 23) {
+    suffix = 'rd';
+  }
   return `${day}${suffix} ${format(date, 'MMMM yyyy')}`;
 };
 
@@ -170,7 +170,7 @@ const DateInput = ({
     if (!value) return undefined;
     // Try to parse the formatted date string
     const parsed = new Date(value);
-    return isNaN(parsed.getTime()) ? undefined : parsed;
+    return Number.isNaN(parsed.getTime()) ? undefined : parsed;
   }, [value]);
 
   return (
@@ -315,7 +315,11 @@ const PlaceholderInput = ({
       );
     case 'date':
       return (
-        <DateInput placeholder={placeholder} value={value} onChange={onChange} />
+        <DateInput
+          placeholder={placeholder}
+          value={value}
+          onChange={onChange}
+        />
       );
     case 'textarea':
       return (
@@ -343,7 +347,11 @@ const PlaceholderInput = ({
       );
     default:
       return (
-        <TextInput placeholder={placeholder} value={value} onChange={onChange} />
+        <TextInput
+          placeholder={placeholder}
+          value={value}
+          onChange={onChange}
+        />
       );
   }
 };
@@ -356,8 +364,8 @@ const TemplateViewer = ({ template }: TemplateViewerProps) => {
   // Track template view on mount
   useEffect(() => {
     track(TRACKING_EVENTS.LETTER_TEMPLATE_VIEWED, {
-      templateId: template.id,
-      templateCategory: template.category,
+      template_id: template.id,
+      template_category: template.category,
     });
   }, [template.id, template.category, track]);
 
@@ -366,7 +374,7 @@ const TemplateViewer = ({ template }: TemplateViewerProps) => {
   }, []);
 
   const getFilledContent = useCallback(() => {
-    let content = template.content;
+    let { content } = template;
     template.placeholders.forEach((p) => {
       const value = values[p.key] || `[${p.key}]`;
       content = content.replace(new RegExp(`\\[${p.key}\\]`, 'g'), value);
@@ -377,8 +385,8 @@ const TemplateViewer = ({ template }: TemplateViewerProps) => {
   const handleEmailSubmit = useCallback(
     async (email: string, firstName: string) => {
       track(TRACKING_EVENTS.LETTER_TEMPLATE_EMAIL_SUBMITTED, {
-        templateId: template.id,
-        templateCategory: template.category,
+        template_id: template.id,
+        template_category: template.category,
       });
 
       const result = await sendFreeLetterEmail(

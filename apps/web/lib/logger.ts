@@ -1,4 +1,6 @@
 import * as Sentry from '@sentry/nextjs';
+import { SeverityNumber } from '@opentelemetry/api-logs';
+import type { Logger as OtelLogger } from '@opentelemetry/api-logs';
 
 // Lazy-loaded server-side PostHog — avoids importing posthog-node in client bundles
 type PostHogServerLike = {
@@ -25,6 +27,33 @@ const getPostHogServer = () => {
     posthogServerCache = null;
   }
   return posthogServerCache;
+};
+
+// Lazy-loaded OTLP logger — sends structured logs to PostHog Logs product
+let otelLoggerCache: OtelLogger | null = null;
+let otelLoggerInitialized = false;
+const getOtelLogger = (): OtelLogger | null => {
+  if (otelLoggerInitialized) return otelLoggerCache;
+  otelLoggerInitialized = true;
+  if (typeof window !== 'undefined') {
+    otelLoggerCache = null;
+    return null;
+  }
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const { loggerProvider } = require('@/instrumentation');
+    otelLoggerCache = loggerProvider?.getLogger?.('ptp-web') ?? null;
+  } catch {
+    otelLoggerCache = null;
+  }
+  return otelLoggerCache;
+};
+
+const LOG_LEVEL_TO_SEVERITY: Record<string, SeverityNumber> = {
+  debug: SeverityNumber.DEBUG,
+  info: SeverityNumber.INFO,
+  warn: SeverityNumber.WARN,
+  error: SeverityNumber.ERROR,
 };
 
 export type LogLevel = 'debug' | 'info' | 'warn' | 'error';
@@ -208,27 +237,74 @@ class Logger {
     }
   }
 
-  // Logging strategy (aligned with chunky-crayon):
+  /**
+   * Send structured log to PostHog Logs product via OTLP.
+   * Server-side only — provides proper log severity, filtering, and
+   * integration with PostHog's Logs UI (separate from analytics events).
+   */
+  // eslint-disable-next-line class-methods-use-this
+  private logToOtel(entry: LogEntry) {
+    if (typeof window !== 'undefined') return;
+    try {
+      const otelLogger = getOtelLogger();
+      if (!otelLogger) return;
+
+      const attributes: Record<string, string | number | boolean> = {
+        'log.page': entry.context?.page || '',
+        'log.action': entry.context?.action || '',
+        'log.session_id': entry.context?.sessionId || '',
+      };
+
+      if (entry.context?.userId) {
+        attributes['user.id'] = entry.context.userId;
+      }
+      if (entry.error?.message) {
+        attributes['error.message'] = entry.error.message;
+      }
+      if (entry.error?.stack) {
+        attributes['error.stack'] = entry.error.stack;
+      }
+
+      otelLogger.emit({
+        body: entry.message,
+        severityNumber:
+          LOG_LEVEL_TO_SEVERITY[entry.level] ?? SeverityNumber.INFO,
+        severityText: entry.level.toUpperCase(),
+        attributes,
+      });
+    } catch (err) {
+      if (process.env.NODE_ENV === 'development') {
+        // eslint-disable-next-line no-console
+        console.error('Failed to log to OTLP:', err);
+      }
+    }
+  }
+
+  // Logging strategy:
   // - Console: All levels (captured by Vercel Logs on server)
   // - Sentry: Errors only (creates issues for investigation)
-  // - PostHog: All levels for analytics and behavior tracking
+  // - PostHog Events: All levels as `log_entry` event (analytics/behavior)
+  // - PostHog Logs (OTLP): All levels as structured logs (debugging/investigation)
 
   debug(message: string, context?: LogContext) {
     const entry = this.createLogEntry('debug', message, context);
     this.logToConsole(entry);
     this.logToPostHog(entry);
+    this.logToOtel(entry);
   }
 
   info(message: string, context?: LogContext) {
     const entry = this.createLogEntry('info', message, context);
     this.logToConsole(entry);
     this.logToPostHog(entry);
+    this.logToOtel(entry);
   }
 
   warn(message: string, context?: LogContext, error?: Error) {
     const entry = this.createLogEntry('warn', message, context, error);
     this.logToConsole(entry);
     this.logToPostHog(entry);
+    this.logToOtel(entry);
   }
 
   error(message: string, context?: LogContext, error?: Error) {
@@ -236,6 +312,7 @@ class Logger {
     this.logToConsole(entry);
     this.logToSentry(entry.message, entry.context, entry.error);
     this.logToPostHog(entry);
+    this.logToOtel(entry);
   }
 
   // Specialized methods for common scenarios
@@ -333,11 +410,20 @@ export function createServerLogger(context?: Partial<LogContext>) {
       logger.warn(message, { ...baseContext, ...additionalContext }, error),
     error: (message: string, additionalContext?: LogContext, error?: Error) =>
       logger.error(message, { ...baseContext, ...additionalContext }, error),
-    /** Flush queued PostHog events — call before serverless function exits */
+    /** Flush queued PostHog events and OTLP logs — call before serverless function exits */
     flush: async () => {
       const phServer = getPostHogServer();
       if (phServer) {
         await phServer.shutdown();
+      }
+      try {
+        // eslint-disable-next-line @typescript-eslint/no-require-imports
+        const { loggerProvider } = require('@/instrumentation');
+        if (loggerProvider?.forceFlush) {
+          await loggerProvider.forceFlush();
+        }
+      } catch {
+        // OTLP logger not available
       }
     },
   };

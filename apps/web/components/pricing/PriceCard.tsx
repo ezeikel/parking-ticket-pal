@@ -56,8 +56,8 @@ const PriceCard = ({
 
   const handleClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
     track(TRACKING_EVENTS.PRICING_PLAN_CLICKED, {
-      planName: title,
-      planType: 'one-time',
+      plan_name: title,
+      plan_type: 'one-time',
       price,
       location,
     });

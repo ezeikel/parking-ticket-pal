@@ -174,7 +174,7 @@ const TicketWizard = ({
       hasTrackedOpen.current = true;
       track(TRACKING_EVENTS.WIZARD_OPENED, {
         source: hasExtractedData ? 'ocr' : 'manual',
-        hasImage: !!extractedData?.imageUrl,
+        has_image: !!extractedData?.imageUrl,
         path: typeof window !== 'undefined' ? window.location.pathname : '',
       });
     }
@@ -226,12 +226,13 @@ const TicketWizard = ({
     if (isOpen && currentStep !== lastTrackedStep.current) {
       lastTrackedStep.current = currentStep;
       track(TRACKING_EVENTS.WIZARD_STEP_VIEWED, {
-        stepName: currentStep,
-        stepNumber: getStepNumber(),
-        totalSteps: getTotalSteps(),
+        step_name: currentStep,
+        step_number: getStepNumber(),
+        total_steps: getTotalSteps(),
         path: typeof window !== 'undefined' ? window.location.pathname : '',
       });
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen, currentStep, track]);
 
   const goToStep = (
@@ -263,7 +264,7 @@ const TicketWizard = ({
     // Track step completion when moving forward
     if (isForward) {
       track(TRACKING_EVENTS.WIZARD_STEP_COMPLETED, {
-        stepName: currentStep,
+        step_name: currentStep,
         selection: selection || null,
       });
     }
@@ -276,9 +277,9 @@ const TicketWizard = ({
     track(TRACKING_EVENTS.WIZARD_COMPLETED, {
       intent: 'challenge',
       tier: 'premium',
-      totalSteps: getTotalSteps(),
+      total_steps: getTotalSteps(),
       path: typeof window !== 'undefined' ? window.location.pathname : '',
-      challengeReason,
+      challenge_reason: challengeReason,
     });
 
     if (onComplete) {
@@ -299,9 +300,9 @@ const TicketWizard = ({
     track(TRACKING_EVENTS.WIZARD_COMPLETED, {
       intent: 'track',
       tier: null,
-      totalSteps: getTotalSteps(),
+      total_steps: getTotalSteps(),
       path: typeof window !== 'undefined' ? window.location.pathname : '',
-      challengeReason: null,
+      challenge_reason: null,
     });
 
     if (onComplete) {
@@ -321,9 +322,9 @@ const TicketWizard = ({
   const handleClose = () => {
     // Track abandonment if wizard wasn't completed
     track(TRACKING_EVENTS.WIZARD_ABANDONED, {
-      lastStep: currentStep,
+      last_step: currentStep,
       intent: userIntent,
-      stepNumber: getStepNumber(),
+      step_number: getStepNumber(),
     });
     onClose();
   };

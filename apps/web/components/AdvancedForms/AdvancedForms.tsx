@@ -315,8 +315,8 @@ const AdvancedForms = ({ ticket, hasSignature }: AdvancedFormsProps) => {
     }
 
     await track(TRACKING_EVENTS.FORM_GENERATED, {
-      ticketId: ticket.id,
-      formType: selectedForm as FormType,
+      ticket_id: ticket.id,
+      form_type: selectedForm as FormType,
     });
 
     setIsGenerating(true);

@@ -8,6 +8,8 @@ import {
 import { createServerLogger } from '@/lib/logger';
 import { subDays } from 'date-fns';
 import { createAndSendNotification } from '@/lib/notifications/create';
+import { track } from '@/utils/analytics-server';
+import { TRACKING_EVENTS } from '@/constants/events';
 
 const logger = createServerLogger({ action: 'cron-escalate-tickets' });
 
@@ -73,13 +75,25 @@ export async function POST(request: Request) {
           },
         });
 
+        const daysSinceIssued = Math.floor(
+          (Date.now() - ticket.issuedAt.getTime()) / (1000 * 60 * 60 * 24),
+        );
+
         logger.info('Ticket escalated to full charge', {
           ticketId: ticket.id,
           pcnNumber: ticket.pcnNumber,
           issuedAt: ticket.issuedAt,
-          daysSinceIssued: Math.floor(
-            (Date.now() - ticket.issuedAt.getTime()) / (1000 * 60 * 60 * 24),
-          ),
+          daysSinceIssued,
+        });
+
+        const challengeCount = await db.challenge.count({
+          where: { ticketId: ticket.id },
+        });
+
+        await track(TRACKING_EVENTS.TICKET_DEADLINE_APPROACHING, {
+          ticket_id: ticket.id,
+          days_remaining: 0,
+          has_challenged: challengeCount > 0,
         });
 
         // Send notification to user about status escalation
@@ -180,6 +194,16 @@ export async function POST(request: Request) {
                   (1000 * 60 * 60 * 24),
               )
             : null,
+        });
+
+        const ntoChallengeCount = await db.challenge.count({
+          where: { ticketId: ticket.id },
+        });
+
+        await track(TRACKING_EVENTS.TICKET_DEADLINE_APPROACHING, {
+          ticket_id: ticket.id,
+          days_remaining: 0,
+          has_challenged: ntoChallengeCount > 0,
         });
 
         // Send notification to user about NtO stage

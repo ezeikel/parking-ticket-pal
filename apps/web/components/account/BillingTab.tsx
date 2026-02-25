@@ -46,7 +46,7 @@ const BillingTab = ({ user }: BillingTabProps) => {
   // Track billing page view on mount
   useEffect(() => {
     track(TRACKING_EVENTS.BILLING_PAGE_VISITED, {
-      hasStripeCustomer: !!user.stripeCustomerId,
+      has_stripe_customer: !!user.stripeCustomerId,
     });
   }, [track, user.stripeCustomerId]);
 
@@ -93,7 +93,7 @@ const BillingTab = ({ user }: BillingTabProps) => {
       } else {
         toast.error('Unable to open billing portal. Please try again.');
       }
-    } catch (_error) {
+    } catch {
       toast.error('Something went wrong. Please try again.');
     } finally {
       setIsLoadingPortal(false);

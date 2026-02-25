@@ -6,11 +6,12 @@ import { TRACKING_EVENTS } from '@/constants/events';
 
 type ScrollDepthThreshold = 25 | 50 | 75 | 100;
 
-interface UseScrollDepthTrackingOptions {
+type UseScrollDepthTrackingOptions = {
   pageName: string;
   thresholds?: ScrollDepthThreshold[];
-}
+};
 
+// eslint-disable-next-line import-x/prefer-default-export
 export function useScrollDepthTracking({
   pageName,
   thresholds = [25, 50, 75, 100],
@@ -20,7 +21,8 @@ export function useScrollDepthTracking({
 
   const handleScroll = useCallback(() => {
     const scrollTop = window.scrollY;
-    const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+    const docHeight =
+      document.documentElement.scrollHeight - window.innerHeight;
 
     if (docHeight <= 0) return;
 
@@ -35,7 +37,7 @@ export function useScrollDepthTracking({
         track(TRACKING_EVENTS.SCROLL_DEPTH_REACHED, {
           page: pageName,
           depth: threshold,
-          depthLabel: `${threshold}%`,
+          depth_label: `${threshold}%`,
         });
       }
     });

@@ -83,7 +83,7 @@ const SignupContent = () => {
         hasTrackedPageView.current = true;
         track(TRACKING_EVENTS.GUEST_SIGNUP_PAGE_VIEWED, {
           intent,
-          hasPcn: !!guestData.pcnNumber,
+          has_pcn: !!guestData.pcnNumber,
           source: 'wizard',
         });
       }

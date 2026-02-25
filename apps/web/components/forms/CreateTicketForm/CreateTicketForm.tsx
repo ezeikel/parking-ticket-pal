@@ -90,17 +90,17 @@ const CreateTicketForm = ({ tier, source }: CreateTicketFormProps) => {
 
         if (ticket) {
           await track(TRACKING_EVENTS.TICKET_CREATED, {
-            ticketId: ticket.id,
-            pcnNumber: ticket.pcnNumber,
+            ticket_id: ticket.id,
+            pcn_number: ticket.pcnNumber,
             issuer: ticket.issuer,
-            issuerType: ticket.issuerType,
+            issuer_type: ticket.issuerType,
             prefilled: !!ticket.extractedText,
           });
 
           // Track if ticket was created with a tier from pricing page
           if (tier && source) {
             await track(TRACKING_EVENTS.PRICING_TICKET_CREATED_WITH_TIER, {
-              ticketId: ticket.id,
+              ticket_id: ticket.id,
               tier,
               source,
             });

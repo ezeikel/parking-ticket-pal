@@ -22,12 +22,7 @@ import DuplicateTicketState from './DuplicateTicketState';
 
 type DocumentType = 'ticket' | 'letter' | 'unknown';
 
-type PageState =
-  | 'upload'
-  | 'processing'
-  | 'wizard'
-  | 'success'
-  | 'duplicate';
+type PageState = 'upload' | 'processing' | 'wizard' | 'success' | 'duplicate';
 
 type SuccessData = {
   ticketId: string;
@@ -115,7 +110,9 @@ const AddDocumentPage = () => {
                 const detectedLetterType =
                   (result.data.letterType as keyof typeof LetterType) &&
                   LetterType[result.data.letterType as keyof typeof LetterType]
-                    ? LetterType[result.data.letterType as keyof typeof LetterType]
+                    ? LetterType[
+                        result.data.letterType as keyof typeof LetterType
+                      ]
                     : LetterType.GENERIC;
 
                 try {
@@ -135,8 +132,8 @@ const AddDocumentPage = () => {
 
                   if (letter) {
                     await track(TRACKING_EVENTS.LETTER_UPLOADED, {
-                      ticketId: existingTicketData.id,
-                      letterType: letter.type,
+                      ticket_id: existingTicketData.id,
+                      letter_type: letter.type,
                     });
 
                     toast.success('Letter added to ticket');
@@ -159,11 +156,11 @@ const AddDocumentPage = () => {
                   setPageState('upload');
                 }
                 return;
-              } else {
-                // It's a ticket - show duplicate warning
-                setPageState('duplicate');
-                toast.info('This ticket is already in your account');
               }
+              // It's a ticket - show duplicate warning
+              setPageState('duplicate');
+              toast.info('This ticket is already in your account');
+
               return;
             }
           }
@@ -256,10 +253,10 @@ const AddDocumentPage = () => {
 
         if (ticket) {
           await track(TRACKING_EVENTS.TICKET_CREATED, {
-            ticketId: ticket.id,
-            pcnNumber: ticket.pcnNumber,
+            ticket_id: ticket.id,
+            pcn_number: ticket.pcnNumber,
             issuer: ticket.issuer,
-            issuerType: ticket.issuerType,
+            issuer_type: ticket.issuerType,
             prefilled: !!data.extractedText,
           });
 
@@ -355,7 +352,6 @@ const AddDocumentPage = () => {
               />
             </motion.div>
           )}
-
         </AnimatePresence>
 
         {/* Wizard Modal */}

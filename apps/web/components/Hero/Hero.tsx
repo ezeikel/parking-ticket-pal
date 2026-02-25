@@ -161,11 +161,11 @@ const Hero = () => {
 
       // Track upload started
       track(TRACKING_EVENTS.HERO_UPLOAD_STARTED, {
-        fileType: file.type,
-        fileSize: file.size,
-        compressedFileSize,
-        wasCompressed,
-        compressionRatio,
+        file_type: file.type,
+        file_size: file.size,
+        compressed_file_size: compressedFileSize,
+        was_compressed: wasCompressed,
+        compression_ratio: compressionRatio,
       });
 
       try {
@@ -177,11 +177,11 @@ const Hero = () => {
         if (result.success && result.data) {
           // Track upload completed with OCR success
           track(TRACKING_EVENTS.HERO_UPLOAD_COMPLETED, {
-            fileType: file.type,
-            fileSize: file.size,
-            durationMs: Date.now() - startTime,
-            ocrSuccess: true,
-            fieldsExtracted: [
+            file_type: file.type,
+            file_size: file.size,
+            duration_ms: Date.now() - startTime,
+            ocr_success: true,
+            fields_extracted: [
               result.data.pcnNumber ? 'pcnNumber' : null,
               result.data.vehicleReg ? 'vehicleReg' : null,
               result.data.issuer ? 'issuer' : null,
@@ -203,11 +203,11 @@ const Hero = () => {
         } else {
           // Track upload completed but OCR failed
           track(TRACKING_EVENTS.HERO_UPLOAD_COMPLETED, {
-            fileType: file.type,
-            fileSize: file.size,
-            durationMs: Date.now() - startTime,
-            ocrSuccess: false,
-            ocrError: result.message || 'Unknown OCR error',
+            file_type: file.type,
+            file_size: file.size,
+            duration_ms: Date.now() - startTime,
+            ocr_success: false,
+            ocr_error: result.message || 'Unknown OCR error',
           });
 
           toast.error(result.message || 'Failed to extract ticket details');
@@ -218,7 +218,7 @@ const Hero = () => {
       } catch (error) {
         // Track upload failed
         track(TRACKING_EVENTS.HERO_UPLOAD_FAILED, {
-          fileType: file.type,
+          file_type: file.type,
           error: error instanceof Error ? error.message : 'Unknown error',
         });
 

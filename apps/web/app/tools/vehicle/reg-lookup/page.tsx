@@ -51,13 +51,13 @@ const VehicleLookupPage = () => {
         track(TRACKING_EVENTS.VEHICLE_LOOKUP_RESULT_VIEWED, {
           registration,
           make: response.data.make ?? null,
-          taxStatus: response.data.taxStatus ?? null,
-          motStatus: response.data.motStatus ?? null,
+          tax_status: response.data.taxStatus ?? null,
+          mot_status: response.data.motStatus ?? null,
         });
       } else {
         setError(response.error || 'Failed to fetch vehicle details');
       }
-    } catch (err) {
+    } catch (_err) {
       setError('An unexpected error occurred. Please try again.');
     } finally {
       setIsLoading(false);

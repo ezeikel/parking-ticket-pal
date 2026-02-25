@@ -1,10 +1,9 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
-import { ChallengeStatus, ChallengeType } from '@parking-ticket-pal/db';
+import { ChallengeStatus, ChallengeType, db } from '@parking-ticket-pal/db';
 import { z } from 'zod';
 import { track } from '@/utils/analytics-server';
-import { db } from '@parking-ticket-pal/db';
 import { TRACKING_EVENTS } from '@/constants/events';
 import { getUserId } from '@/utils/user';
 import { createServerLogger } from '@/lib/logger';
@@ -55,8 +54,8 @@ export const createChallenge = async (
     });
 
     await track(TRACKING_EVENTS.CHALLENGE_CREATED, {
-      ticketId: challenge.ticketId,
-      challengeType: challenge.type,
+      ticket_id: challenge.ticketId,
+      challenge_type: challenge.type,
       reason: challenge.reason,
     });
 

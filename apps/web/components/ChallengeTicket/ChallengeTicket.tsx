@@ -281,8 +281,8 @@ const ChallengeTicket = ({ ticket, issuerType }: ChallengeTicketProps) => {
     const challengeReasonLabel = challengeReasonEntry.label;
 
     await track(TRACKING_EVENTS.CHALLENGE_LETTER_GENERATED, {
-      ticketId: ticket.id,
-      challengeType: ChallengeType.LETTER,
+      ticket_id: ticket.id,
+      challenge_type: ChallengeType.LETTER,
     });
 
     handleAction(
@@ -295,6 +295,7 @@ const ChallengeTicket = ({ ticket, issuerType }: ChallengeTicketProps) => {
         ),
       setIsGeneratingLetter,
     );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [challengeReasons, selectedReason, customReason, ticket.id, track]);
 
   const handleGenerateLetter = async () => {
@@ -326,8 +327,8 @@ const ChallengeTicket = ({ ticket, issuerType }: ChallengeTicketProps) => {
     const challengeReasonLabel = challengeReasonEntry.label;
 
     await track(TRACKING_EVENTS.CHALLENGE_SUBMITTED, {
-      ticketId: ticket.id,
-      challengeId: '', // TODO: figure out how to get the challenge id
+      ticket_id: ticket.id,
+      challenge_id: '', // TODO: figure out how to get the challenge id
     });
 
     handleAction(
@@ -336,6 +337,7 @@ const ChallengeTicket = ({ ticket, issuerType }: ChallengeTicketProps) => {
         challengeTicket(ticket.pcnNumber, challengeReasonLabel, customReason),
       setIsAutoChallenging,
     );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     challengeReasons,
     selectedReason,

@@ -5,10 +5,10 @@ import {
   Prisma,
   VerificationStatus,
   VerificationType,
+  db,
 } from '@parking-ticket-pal/db';
 import getVehicleInfo from '@/utils/getVehicleInfo';
 import { track } from '@/utils/analytics-server';
-import { db } from '@parking-ticket-pal/db';
 import { TRACKING_EVENTS } from '@/constants/events';
 import { getUserId } from '@/utils/user';
 import type { VehicleInfo } from '@/utils/getVehicleInfo';
@@ -95,8 +95,8 @@ export const createVehicle = async (
     }
 
     await track(TRACKING_EVENTS.VEHICLE_ADDED, {
-      vehicleId: vehicle.id,
-      registrationNumber: vehicle.registrationNumber,
+      vehicle_id: vehicle.id,
+      registration_number: vehicle.registrationNumber,
       make: vehicle.make,
       model: vehicle.model,
       year: vehicle.year,
@@ -105,10 +105,10 @@ export const createVehicle = async (
 
     if (vehicleVerified) {
       await track(TRACKING_EVENTS.VEHICLE_VERIFIED, {
-        vehicleId: vehicle.id,
-        registrationNumber: vehicle.registrationNumber,
+        vehicle_id: vehicle.id,
+        registration_number: vehicle.registrationNumber,
         automated: true,
-        lookupSuccess: true,
+        lookup_success: true,
       });
     }
 
@@ -190,12 +190,12 @@ export const updateVehicle = async (
     );
 
     await track(TRACKING_EVENTS.VEHICLE_UPDATED, {
-      vehicleId: vehicle.id,
-      registrationNumber: vehicle.registrationNumber,
+      vehicle_id: vehicle.id,
+      registration_number: vehicle.registrationNumber,
       make: vehicle.make,
       model: vehicle.model,
       year: vehicle.year,
-      hasNotes: !!vehicle.notes,
+      has_notes: !!vehicle.notes,
     });
 
     revalidatePath('/vehicles');
@@ -250,11 +250,11 @@ export const deleteVehicle = async (
     });
 
     await track(TRACKING_EVENTS.VEHICLE_DELETED, {
-      vehicleId: vehicle.id,
-      registrationNumber: vehicle.registrationNumber,
+      vehicle_id: vehicle.id,
+      registration_number: vehicle.registrationNumber,
       make: vehicle.make,
       model: vehicle.model,
-      ticketCount: vehicleToDelete.tickets.length,
+      ticket_count: vehicleToDelete.tickets.length,
     });
 
     revalidatePath('/vehicles');
@@ -359,9 +359,9 @@ export const getVehicleDetails = async (
   const vehicleInfo = await getVehicleInfo(registrationNumber);
 
   await track(TRACKING_EVENTS.VEHICLE_VERIFIED, {
-    registrationNumber: registrationNumber.toUpperCase(),
+    registration_number: registrationNumber.toUpperCase(),
     automated: false,
-    lookupSuccess:
+    lookup_success:
       vehicleInfo.verification.status === VerificationStatus.VERIFIED,
   });
 

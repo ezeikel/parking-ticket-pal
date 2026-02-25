@@ -48,8 +48,8 @@ const PricingTeaser = () => {
 
   const handlePlanClick = (planName: string, price: string) => {
     track(TRACKING_EVENTS.PRICING_PLAN_CLICKED, {
-      planName,
-      planType: 'one-time',
+      plan_name: planName,
+      plan_type: 'one-time',
       price,
       location: 'homepage',
     });

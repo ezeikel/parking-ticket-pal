@@ -2,9 +2,9 @@
 export const TRACKING_EVENTS = {
   // Authentication & User Management
   AUTH_METHOD_SELECTED: 'auth_method_selected',
-  USER_SIGNED_UP: 'user_signed_up',
-  USER_SIGNED_IN: 'user_signed_in',
-  USER_SIGNED_OUT: 'user_signed_out',
+  USER_SIGNED_UP: 'auth_sign_up_completed',
+  USER_SIGNED_IN: 'auth_sign_in_completed',
+  USER_SIGNED_OUT: 'auth_sign_out',
   USER_PROFILE_UPDATED: 'user_profile_updated',
   USER_SIGNATURE_ADDED: 'user_signature_added',
   USER_ACCOUNT_DELETED: 'user_account_deleted',
@@ -122,4 +122,23 @@ export const TRACKING_EVENTS = {
   ONBOARDING_SEQUENCE_STARTED: 'onboarding_sequence_started',
   ONBOARDING_SEQUENCE_COMPLETED: 'onboarding_sequence_completed',
   ONBOARDING_SEQUENCE_EXITED: 'onboarding_sequence_exited',
+
+  // Activation
+  FIRST_TICKET_CREATED: 'first_ticket_created',
+
+  // Sharing & Referral
+  SHARE_INITIATED: 'share_initiated',
+  SHARE_COMPLETED: 'share_completed',
+
+  // Automation
+  AUTOMATION_STARTED: 'automation_started',
+  AUTOMATION_COMPLETED: 'automation_completed',
+  AUTOMATION_FAILED: 'automation_failed',
+
+  // Deadline Tracking
+  TICKET_DEADLINE_APPROACHING: 'ticket_deadline_approaching',
+
+  // Content Attribution
+  BLOG_POST_VIEWED: 'blog_post_viewed',
+  VIDEO_VIEWED: 'video_viewed',
 } as const;

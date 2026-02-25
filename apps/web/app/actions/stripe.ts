@@ -54,8 +54,8 @@ export const createCustomerPortalSession = async () => {
   }
 
   await track(TRACKING_EVENTS.CUSTOMER_PORTAL_CREATED, {
-    userId,
-    stripeCustomerId: user.stripeCustomerId,
+    user_id: userId,
+    stripe_customer_id: user.stripeCustomerId,
   });
 
   const portalSession = await stripe.billingPortal.sessions.create({
@@ -221,8 +221,8 @@ export const createTicketCheckoutSession = async (
   }
 
   await track(TRACKING_EVENTS.CHECKOUT_SESSION_CREATED, {
-    productType: ProductType.PAY_PER_TICKET,
-    ticketId,
+    product_type: ProductType.PAY_PER_TICKET,
+    ticket_id: ticketId,
     tier: TicketTier.PREMIUM,
   });
 
@@ -302,7 +302,7 @@ export const createGuestCheckoutSession = async (
   }
 
   await track(TRACKING_EVENTS.CHECKOUT_SESSION_CREATED, {
-    productType: ProductType.PAY_PER_TICKET,
+    product_type: ProductType.PAY_PER_TICKET,
     tier: TicketTier.PREMIUM,
   });
 

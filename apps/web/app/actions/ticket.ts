@@ -189,12 +189,29 @@ export const createTicket = async (
     });
 
     await track(TRACKING_EVENTS.TICKET_CREATED, {
-      ticketId: ticket.id,
-      pcnNumber: ticket.pcnNumber,
+      ticket_id: ticket.id,
+      pcn_number: ticket.pcnNumber,
       issuer: ticket.issuer,
-      issuerType: ticket.issuerType,
+      issuer_type: ticket.issuerType,
       prefilled: !!ticket.extractedText,
     });
+
+    // Check if this is the user's first ticket
+    const ticketCount = await db.ticket.count({
+      where: { vehicle: { userId } },
+    });
+    if (ticketCount === 1) {
+      const user = await db.user.findUnique({
+        where: { id: userId },
+        select: { createdAt: true },
+      });
+      await track(TRACKING_EVENTS.FIRST_TICKET_CREATED, {
+        ticket_id: ticket.id,
+        time_since_signup_ms: user ? Date.now() - user.createdAt.getTime() : 0,
+        method: ticket.extractedText ? 'camera' : 'manual',
+        platform: 'web',
+      });
+    }
 
     // handle post-creation tasks e.g create prediction
     await afterTicketCreation(ticket);

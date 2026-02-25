@@ -232,11 +232,11 @@ export type TrackingEvent =
 
 // Event property types for type safety
 export type BaseEventProperties = {
-  userId?: string;
-  sessionId?: string;
+  user_id?: string;
+  session_id?: string;
   timestamp?: number;
   url?: string;
-  userAgent?: string;
+  user_agent?: string;
 };
 
 export enum SignInMethod {
@@ -258,32 +258,32 @@ export type EventProperties = {
   [TRACKING_EVENTS.USER_SIGNED_OUT]: Record<string, never>;
   [TRACKING_EVENTS.USER_PROFILE_UPDATED]: {
     name: boolean;
-    phoneNumber: boolean;
+    phone_number: boolean;
     address: boolean;
     signature: boolean;
   };
   [TRACKING_EVENTS.USER_SIGNATURE_ADDED]: Record<string, never>;
-  [TRACKING_EVENTS.USER_ACCOUNT_DELETED]: { userId: string };
+  [TRACKING_EVENTS.USER_ACCOUNT_DELETED]: { user_id: string };
 
   // Hero (Web Homepage)
   [TRACKING_EVENTS.HERO_VIEWED]: { source: string };
   [TRACKING_EVENTS.HERO_UPLOAD_STARTED]: {
-    fileType: string;
-    fileSize: number;
-    compressedFileSize?: number;
-    wasCompressed?: boolean;
-    compressionRatio?: number;
+    file_type: string;
+    file_size: number;
+    compressed_file_size?: number;
+    was_compressed?: boolean;
+    compression_ratio?: number;
   };
   [TRACKING_EVENTS.HERO_UPLOAD_COMPLETED]: {
-    fileType: string;
-    fileSize: number;
-    durationMs: number;
-    ocrSuccess: boolean;
-    fieldsExtracted?: (string | null)[];
-    ocrError?: string;
+    file_type: string;
+    file_size: number;
+    duration_ms: number;
+    ocr_success: boolean;
+    fields_extracted?: (string | null)[];
+    ocr_error?: string;
   };
   [TRACKING_EVENTS.HERO_UPLOAD_FAILED]: {
-    fileType: string;
+    file_type: string;
     error: string;
   };
   [TRACKING_EVENTS.HERO_MANUAL_ENTRY_CLICKED]: Record<string, never>;
@@ -292,7 +292,7 @@ export type EventProperties = {
   [TRACKING_EVENTS.OCR_PROCESSING_STARTED]: { source: 'web' | 'mobile' };
   [TRACKING_EVENTS.OCR_PROCESSING_SUCCESS]: {
     source: 'web' | 'mobile';
-    fieldsExtracted: string[];
+    fields_extracted: string[];
   };
   [TRACKING_EVENTS.OCR_PROCESSING_FAILED]: {
     source: 'web' | 'mobile';
@@ -303,17 +303,17 @@ export type EventProperties = {
   // Ticket Wizard
   [TRACKING_EVENTS.WIZARD_OPENED]: {
     source: 'ocr' | 'manual';
-    hasImage: boolean;
+    has_image: boolean;
     path: string;
   };
   [TRACKING_EVENTS.WIZARD_STEP_VIEWED]: {
-    stepName: string;
-    stepNumber: number;
-    totalSteps: number;
+    step_name: string;
+    step_number: number;
+    total_steps: number;
     path: string;
   };
   [TRACKING_EVENTS.WIZARD_STEP_COMPLETED]: {
-    stepName: string;
+    step_name: string;
     selection: string | null;
   };
   [TRACKING_EVENTS.WIZARD_INTENT_SELECTED]: {
@@ -325,20 +325,20 @@ export type EventProperties = {
   [TRACKING_EVENTS.WIZARD_COMPLETED]: {
     intent: 'track' | 'challenge';
     tier: 'premium' | null;
-    totalSteps: number;
+    total_steps: number;
     path: string;
-    challengeReason: string | null;
+    challenge_reason: string | null;
   };
   [TRACKING_EVENTS.WIZARD_ABANDONED]: {
-    lastStep: string;
-    stepNumber: number;
+    last_step: string;
+    step_number: number;
     intent: 'track' | 'challenge' | null;
   };
 
   // Guest Flow
   [TRACKING_EVENTS.GUEST_SIGNUP_PAGE_VIEWED]: {
     intent?: 'track' | 'challenge';
-    hasPcn: boolean;
+    has_pcn: boolean;
     source?: string;
   };
   [TRACKING_EVENTS.GUEST_SIGNUP_STARTED]: {
@@ -350,142 +350,145 @@ export type EventProperties = {
     intent?: 'track' | 'challenge';
   };
   [TRACKING_EVENTS.GUEST_CLAIM_PAGE_VIEWED]: {
-    hasSessionId: boolean;
+    has_session_id: boolean;
     tier?: 'premium' | null;
   };
 
   // Ticket Management
   [TRACKING_EVENTS.TICKET_CREATED]: {
-    ticketId: string;
-    pcnNumber: string;
+    ticket_id: string;
+    pcn_number: string;
     issuer: string;
-    issuerType: IssuerType;
+    issuer_type: IssuerType;
     prefilled: boolean;
   };
-  [TRACKING_EVENTS.TICKET_UPDATED]: { ticketId: string; fields: string[] };
-  [TRACKING_EVENTS.TICKET_DELETED]: { ticketId: string };
+  [TRACKING_EVENTS.TICKET_UPDATED]: { ticket_id: string; fields: string[] };
+  [TRACKING_EVENTS.TICKET_DELETED]: { ticket_id: string };
   [TRACKING_EVENTS.TICKET_STATUS_CHANGED]: {
-    ticketId: string;
-    fromStatus: TicketStatus;
-    toStatus: TicketStatus;
+    ticket_id: string;
+    from_status: TicketStatus;
+    to_status: TicketStatus;
   };
   [TRACKING_EVENTS.TICKET_IMAGE_UPLOADED]: {
-    ticketId: string;
-    imageCount: number;
+    ticket_id: string;
+    image_count: number;
   };
   [TRACKING_EVENTS.TICKET_OCR_PROCESSED]: {
-    ticketId: string;
+    ticket_id: string;
     success: boolean;
-    durationMs: number;
+    duration_ms: number;
   };
 
   // Challenge & Appeal Process
   [TRACKING_EVENTS.CHALLENGE_CREATED]: {
-    ticketId: string;
-    challengeType: ChallengeType;
+    ticket_id: string;
+    challenge_type: ChallengeType;
     reason: string;
   };
   [TRACKING_EVENTS.CHALLENGE_SUBMITTED]: {
-    ticketId: string;
-    challengeId: string;
+    ticket_id: string;
+    challenge_id: string;
   };
   [TRACKING_EVENTS.CHALLENGE_LETTER_GENERATED]: {
-    ticketId: string;
-    challengeType: 'LETTER' | 'AUTO_CHALLENGE';
+    ticket_id: string;
+    challenge_type: 'LETTER' | 'AUTO_CHALLENGE';
   };
   [TRACKING_EVENTS.CHALLENGE_STATUS_UPDATED]: {
-    ticketId: string;
-    challengeId: string;
+    ticket_id: string;
+    challenge_id: string;
     status: string;
   };
-  [TRACKING_EVENTS.AUTO_CHALLENGE_STARTED]: { ticketId: string };
+  [TRACKING_EVENTS.AUTO_CHALLENGE_STARTED]: { ticket_id: string };
   [TRACKING_EVENTS.AUTO_CHALLENGE_COMPLETED]: {
-    ticketId: string;
+    ticket_id: string;
     success: boolean;
   };
 
   // Vehicle Management
   [TRACKING_EVENTS.VEHICLE_ADDED]: {
-    vehicleId: string;
-    registrationNumber: string;
+    vehicle_id: string;
+    registration_number: string;
     make: string;
     model: string;
     year: number;
     verified: boolean;
   };
   [TRACKING_EVENTS.VEHICLE_UPDATED]: {
-    vehicleId: string;
-    registrationNumber: string;
+    vehicle_id: string;
+    registration_number: string;
     make: string;
     model: string;
     year: number;
-    hasNotes: boolean;
+    has_notes: boolean;
   };
   [TRACKING_EVENTS.VEHICLE_DELETED]: {
-    vehicleId: string;
-    registrationNumber: string;
+    vehicle_id: string;
+    registration_number: string;
     make: string;
     model: string;
-    ticketCount: number;
+    ticket_count: number;
   };
   [TRACKING_EVENTS.VEHICLE_VERIFIED]: {
-    vehicleId?: string;
-    registrationNumber: string;
+    vehicle_id?: string;
+    registration_number: string;
     automated: boolean;
-    lookupSuccess: boolean;
+    lookup_success: boolean;
   };
 
   // Forms & Documents
-  [TRACKING_EVENTS.FORM_GENERATED]: { ticketId: string; formType: FormType };
+  [TRACKING_EVENTS.FORM_GENERATED]: { ticket_id: string; form_type: FormType };
   [TRACKING_EVENTS.FORM_DOWNLOADED]: {
-    ticketId: string;
-    formId: string;
-    formType: FormType;
+    ticket_id: string;
+    form_id: string;
+    form_type: FormType;
   };
   [TRACKING_EVENTS.LETTER_CREATED]: {
-    ticketId: string;
-    letterType: LetterType;
+    ticket_id: string;
+    letter_type: LetterType;
   };
   [TRACKING_EVENTS.LETTER_UPLOADED]: {
-    ticketId: string;
-    letterType: LetterType;
+    ticket_id: string;
+    letter_type: LetterType;
   };
   [TRACKING_EVENTS.EVIDENCE_UPLOADED]: {
-    ticketId: string;
-    evidenceType: EvidenceType;
+    ticket_id: string;
+    evidence_type: EvidenceType;
     count: number;
   };
 
   // Payment & Subscription
   [TRACKING_EVENTS.CHECKOUT_SESSION_CREATED]: {
-    productType: ProductType;
-    ticketId?: string;
+    product_type: ProductType;
+    ticket_id?: string;
     tier?: TicketTier;
   };
   [TRACKING_EVENTS.CUSTOMER_PORTAL_CREATED]: {
-    userId: string;
-    stripeCustomerId: string;
+    user_id: string;
+    stripe_customer_id: string;
   };
   [TRACKING_EVENTS.PAYMENT_COMPLETED]: {
     tier: 'FREE' | 'PREMIUM';
     amount: number;
+    utm_source?: string;
+    utm_medium?: string;
+    utm_campaign?: string;
   };
   [TRACKING_EVENTS.TICKET_TIER_UPGRADED]: {
-    ticketId: string;
-    fromTier: 'FREE';
-    toTier: 'PREMIUM';
+    ticket_id: string;
+    from_tier: 'FREE';
+    to_tier: 'PREMIUM';
   };
   [TRACKING_EVENTS.BILLING_PAGE_VISITED]: {
-    hasStripeCustomer: boolean;
+    has_stripe_customer: boolean;
   };
 
   // Navigation & Engagement
-  [TRACKING_EVENTS.CTA_CLICKED]: { ctaName: string; location: string };
+  [TRACKING_EVENTS.CTA_CLICKED]: { cta_name: string; location: string };
   [TRACKING_EVENTS.QUICK_ACTION_CLICKED]: {
     action: string;
     destination: string;
   };
-  [TRACKING_EVENTS.FEATURE_LOCKED_VIEWED]: { featureName: string };
+  [TRACKING_EVENTS.FEATURE_LOCKED_VIEWED]: { feature_name: string };
   [TRACKING_EVENTS.APP_STORE_BUTTON_CLICKED]: {
     platform: 'ios' | 'android';
     location: string;
@@ -494,22 +497,22 @@ export type EventProperties = {
   [TRACKING_EVENTS.SCROLL_DEPTH_REACHED]: {
     page: string;
     depth: 25 | 50 | 75 | 100;
-    depthLabel: string;
+    depth_label: string;
   };
 
   // Pricing & Plans
   [TRACKING_EVENTS.PRICING_PAGE_VIEWED]: Record<string, never>;
   [TRACKING_EVENTS.PRICING_TAB_CHANGED]: {
-    fromTab: string;
-    toTab: string;
+    from_tab: string;
+    to_tab: string;
   };
   [TRACKING_EVENTS.PRICING_BILLING_TOGGLE_CHANGED]: {
-    billingPeriod: string;
+    billing_period: string;
     tab: string;
   };
   [TRACKING_EVENTS.PRICING_PLAN_CLICKED]: {
-    planName: string;
-    planType: 'one-time';
+    plan_name: string;
+    plan_type: 'one-time';
     price: string;
     location: 'pricing_page' | 'homepage';
   };
@@ -519,23 +522,26 @@ export type EventProperties = {
     source: string;
   };
   [TRACKING_EVENTS.PRICING_TICKET_CREATED_WITH_TIER]: {
-    ticketId: string;
+    ticket_id: string;
     tier: 'premium';
     source: string;
   };
 
   // Reminders & Notifications
-  [TRACKING_EVENTS.REMINDER_SENT]: { ticketId: string; reminderType: string };
-  [TRACKING_EVENTS.REMINDER_CLICKED]: { ticketId: string; reminderId: string };
-  [TRACKING_EVENTS.NOTIFICATION_SENT]: { notificationType: string };
+  [TRACKING_EVENTS.REMINDER_SENT]: { ticket_id: string; reminder_type: string };
+  [TRACKING_EVENTS.REMINDER_CLICKED]: {
+    ticket_id: string;
+    reminder_id: string;
+  };
+  [TRACKING_EVENTS.NOTIFICATION_SENT]: { notification_type: string };
 
   // Support & Feedback
   [TRACKING_EVENTS.FEEDBACK_SUBMITTED]: {
     category: 'issue' | 'idea' | 'other';
-    hasImage: boolean;
+    has_image: boolean;
   };
   [TRACKING_EVENTS.SUPPORT_CONTACTED]: { method: 'email' | 'form' };
-  [TRACKING_EVENTS.HELP_ARTICLE_VIEWED]: { articleId: string };
+  [TRACKING_EVENTS.HELP_ARTICLE_VIEWED]: { article_id: string };
 
   // Demo Features
   [TRACKING_EVENTS.NOTIFICATION_DEMO_STARTED]: Record<string, never>;
@@ -546,60 +552,121 @@ export type EventProperties = {
   [TRACKING_EVENTS.MOT_CHECK_SEARCHED]: { registration: string };
   [TRACKING_EVENTS.MOT_CHECK_RESULT_VIEWED]: {
     registration: string;
-    hasHistory: boolean;
-    testCount: number;
+    has_history: boolean;
+    test_count: number;
   };
   [TRACKING_EVENTS.VEHICLE_LOOKUP_SEARCHED]: { registration: string };
   [TRACKING_EVENTS.VEHICLE_LOOKUP_RESULT_VIEWED]: {
     registration: string;
     make: string | null;
-    taxStatus: string | null;
-    motStatus: string | null;
+    tax_status: string | null;
+    mot_status: string | null;
   };
   [TRACKING_EVENTS.LETTER_TEMPLATE_VIEWED]: {
-    templateId: string;
-    templateCategory: 'parking' | 'bailiff' | 'motoring';
+    template_id: string;
+    template_category: 'parking' | 'bailiff' | 'motoring';
   };
   [TRACKING_EVENTS.LETTER_TEMPLATE_FILLED]: {
-    templateId: string;
-    templateCategory: 'parking' | 'bailiff' | 'motoring';
-    fieldsCompleted: number;
-    totalFields: number;
+    template_id: string;
+    template_category: 'parking' | 'bailiff' | 'motoring';
+    fields_completed: number;
+    total_fields: number;
   };
   [TRACKING_EVENTS.LETTER_TEMPLATE_EMAIL_SUBMITTED]: {
-    templateId: string;
-    templateCategory: 'parking' | 'bailiff' | 'motoring';
+    template_id: string;
+    template_category: 'parking' | 'bailiff' | 'motoring';
   };
   [TRACKING_EVENTS.CONTRAVENTION_CODE_SEARCHED]: { query: string };
   [TRACKING_EVENTS.CONTRAVENTION_CODE_VIEWED]: {
     code: string;
     category: 'on-street' | 'off-street' | 'moving-traffic';
-    penaltyLevel: 'higher' | 'lower' | 'n/a';
+    penalty_level: 'higher' | 'lower' | 'n/a';
   };
   [TRACKING_EVENTS.ISSUER_SEARCHED]: { query: string };
   [TRACKING_EVENTS.ISSUER_VIEWED]: {
-    issuerId: string;
-    issuerType: 'council' | 'private' | 'tfl';
+    issuer_id: string;
+    issuer_type: 'council' | 'private' | 'tfl';
   };
 
   // Onboarding Sequence
   [TRACKING_EVENTS.ONBOARDING_EMAIL_SENT]: {
-    ticketId: string;
+    ticket_id: string;
     step: number;
-    pcnNumber?: string;
+    pcn_number?: string;
   };
   [TRACKING_EVENTS.ONBOARDING_SEQUENCE_STARTED]: {
-    ticketId: string;
-    pcnNumber?: string;
+    ticket_id: string;
+    pcn_number?: string;
   };
   [TRACKING_EVENTS.ONBOARDING_SEQUENCE_COMPLETED]: {
-    ticketId: string;
+    ticket_id: string;
     step: number;
   };
   [TRACKING_EVENTS.ONBOARDING_SEQUENCE_EXITED]: {
-    ticketId: string;
+    ticket_id: string;
     step: number;
-    exitReason: string;
+    exit_reason: string;
+  };
+
+  // Activation
+  [TRACKING_EVENTS.FIRST_TICKET_CREATED]: {
+    ticket_id: string;
+    time_since_signup_ms: number;
+    method: 'camera' | 'manual';
+    platform: 'web' | 'mobile';
+  };
+
+  // Sharing & Referral
+  [TRACKING_EVENTS.SHARE_INITIATED]: {
+    share_method: 'native' | 'copy_link' | 'email' | 'social';
+    content_type: 'ticket' | 'result' | 'app' | 'tool';
+  };
+  [TRACKING_EVENTS.SHARE_COMPLETED]: {
+    share_method: 'native' | 'copy_link' | 'email' | 'social';
+    content_type: 'ticket' | 'result' | 'app' | 'tool';
+  };
+
+  // Automation
+  [TRACKING_EVENTS.AUTOMATION_STARTED]: {
+    ticket_id: string;
+    issuer: string;
+    action: 'verify' | 'challenge';
+  };
+  [TRACKING_EVENTS.AUTOMATION_COMPLETED]: {
+    ticket_id: string;
+    issuer: string;
+    action: 'verify' | 'challenge';
+    duration_ms: number;
+  };
+  [TRACKING_EVENTS.AUTOMATION_FAILED]: {
+    ticket_id: string;
+    issuer: string;
+    action: 'verify' | 'challenge';
+    error: string;
+    duration_ms: number;
+  };
+
+  // Deadline Tracking
+  [TRACKING_EVENTS.TICKET_DEADLINE_APPROACHING]: {
+    ticket_id: string;
+    days_remaining: number;
+    has_challenged: boolean;
+  };
+
+  // Content Attribution
+  [TRACKING_EVENTS.BLOG_POST_VIEWED]: {
+    slug: string;
+    category: string;
+    utm_source?: string;
+    utm_medium?: string;
+    utm_campaign?: string;
+  };
+  [TRACKING_EVENTS.VIDEO_VIEWED]: {
+    video_type: 'news' | 'tribunal';
+    video_id: string;
+    utm_source?: string;
+    utm_medium?: string;
+    utm_campaign?: string;
   };
 };
 

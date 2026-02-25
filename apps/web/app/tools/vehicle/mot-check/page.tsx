@@ -51,13 +51,13 @@ const MOTCheckPage = () => {
         setResult(response.data);
         track(TRACKING_EVENTS.MOT_CHECK_RESULT_VIEWED, {
           registration,
-          hasHistory: (response.data.motTests?.length ?? 0) > 0,
-          testCount: response.data.motTests?.length ?? 0,
+          has_history: (response.data.motTests?.length ?? 0) > 0,
+          test_count: response.data.motTests?.length ?? 0,
         });
       } else {
         setError(response.error || 'Failed to fetch MOT history');
       }
-    } catch (err) {
+    } catch (_err) {
       setError('An unexpected error occurred. Please try again.');
     } finally {
       setIsLoading(false);

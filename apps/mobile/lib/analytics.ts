@@ -99,6 +99,39 @@ export type AnalyticsEvent =
   // Wizard events
   | "camera_wizard_completed"
   | "manual_entry_wizard_completed"
+  | "wizard_step_viewed"
+  | "wizard_step_completed"
+  | "wizard_abandoned"
+  | "wizard_completed"
+  | "wizard_creating_ticket"
+  | "wizard_ticket_created"
+
+  // Onboarding events
+  | "onboarding_completed"
+  | "onboarding_ticket_created"
+  | "onboarding_scan_now_tapped"
+  | "onboarding_manual_entry_tapped"
+  | "onboarding_scan_skipped"
+  | "onboarding_skipped"
+  | "onboarding_next_clicked"
+  | "onboarding_viewed_from_settings"
+
+  // Account linking
+  | "link_account_started"
+  | "link_account_success"
+  | "link_account_failed"
+
+  // Activation
+  | "first_ticket_created"
+
+  // Sharing & Referral
+  | "share_initiated"
+  | "share_completed"
+
+  // Settings actions
+  | "restore_purchases_tapped"
+  | "account_delete_tapped"
+  | "dev_clear_app_data"
 
   // Error events
   | "error_occurred"
@@ -199,6 +232,27 @@ export type AnalyticsProperties = {
   billing_period?: string
   is_trial?: boolean
   trial_duration?: string | null
+
+  // Wizard properties
+  step_name?: string
+  step_number?: number
+  last_step?: string
+
+  // Onboarding properties
+  slide?: number
+  current_slide?: number
+  skipped_at_slide?: number
+  ticketId?: string
+
+  // Account linking properties
+  method?: string
+
+  // Activation properties
+  time_since_signup_ms?: number
+
+  // Sharing properties
+  share_method?: 'native' | 'copy_link' | 'email' | 'social'
+  content_type?: 'ticket' | 'result' | 'app' | 'tool'
 }
 
 /**

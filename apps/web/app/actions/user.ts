@@ -137,7 +137,7 @@ const updateUserProfileInternal = async (
 
     await track(TRACKING_EVENTS.USER_PROFILE_UPDATED, {
       name: !!name,
-      phoneNumber: !!phoneNumber,
+      phone_number: !!phoneNumber,
       address: !!(addressLine1 || addressLine2 || city || county || postcode),
       signature: !!signatureUrl,
     });
@@ -293,7 +293,7 @@ export const deleteUserById = async (
     });
 
     await track(TRACKING_EVENTS.USER_ACCOUNT_DELETED, {
-      userId: requestedUserId,
+      user_id: requestedUserId,
     });
 
     logger.info('User account deleted successfully', {

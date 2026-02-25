@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect } from 'react';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -21,6 +22,8 @@ import AdBanner from '@/components/AdBanner/AdBanner';
 import type { Post } from '@/types';
 import type { PortableTextBlock } from '@portabletext/types';
 import { PLACEHOLDER_AVATAR_IMAGE } from '@/constants';
+import { useAnalytics } from '@/utils/analytics-client';
+import { TRACKING_EVENTS } from '@/constants/events';
 
 type RelatedPost = {
   slug: string;
@@ -95,6 +98,23 @@ const shareOnFacebook = () => {
 
 const BlogPostClient = ({ post, relatedPosts = [] }: BlogPostClientProps) => {
   const { meta, bodyBlocks, readingTime } = post;
+  const { track } = useAnalytics();
+
+  useEffect(() => {
+    track(TRACKING_EVENTS.BLOG_POST_VIEWED, {
+      slug: meta.slug,
+      category: meta.tags[0] || 'uncategorized',
+    });
+  }, [meta.slug, meta.tags, track]);
+
+  const handleShare = (
+    method: 'twitter' | 'linkedin' | 'facebook' | 'copy_link',
+  ) => {
+    track(TRACKING_EVENTS.SHARE_INITIATED, {
+      share_method: method === 'copy_link' ? 'copy_link' : 'social',
+      content_type: 'app',
+    });
+  };
 
   return (
     <div className="min-h-screen bg-white">
@@ -194,28 +214,40 @@ const BlogPostClient = ({ post, relatedPosts = [] }: BlogPostClientProps) => {
             <div className="flex gap-2">
               <button
                 type="button"
-                onClick={() => shareOnTwitter(meta.title)}
+                onClick={() => {
+                  handleShare('twitter');
+                  shareOnTwitter(meta.title);
+                }}
                 className="flex h-9 w-9 items-center justify-center rounded-lg bg-light text-gray transition-colors hover:bg-dark hover:text-white"
               >
                 <FontAwesomeIcon icon={faXTwitter} className="text-sm" />
               </button>
               <button
                 type="button"
-                onClick={shareOnLinkedIn}
+                onClick={() => {
+                  handleShare('linkedin');
+                  shareOnLinkedIn();
+                }}
                 className="flex h-9 w-9 items-center justify-center rounded-lg bg-light text-gray transition-colors hover:bg-dark hover:text-white"
               >
                 <FontAwesomeIcon icon={faLinkedinIn} className="text-sm" />
               </button>
               <button
                 type="button"
-                onClick={shareOnFacebook}
+                onClick={() => {
+                  handleShare('facebook');
+                  shareOnFacebook();
+                }}
                 className="flex h-9 w-9 items-center justify-center rounded-lg bg-light text-gray transition-colors hover:bg-dark hover:text-white"
               >
                 <FontAwesomeIcon icon={faFacebookF} className="text-sm" />
               </button>
               <button
                 type="button"
-                onClick={copyToClipboard}
+                onClick={() => {
+                  handleShare('copy_link');
+                  copyToClipboard();
+                }}
                 className="flex h-9 w-9 items-center justify-center rounded-lg bg-light text-gray transition-colors hover:bg-dark hover:text-white"
               >
                 <FontAwesomeIcon icon={faLink} className="text-sm" />

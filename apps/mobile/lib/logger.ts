@@ -2,6 +2,7 @@ import { Platform } from 'react-native'
 import * as Sentry from '@sentry/react-native'
 import { usePostHog } from 'posthog-react-native'
 import Constants from 'expo-constants'
+import { emitLog } from './posthog-logs'
 
 export type LogLevel = 'debug' | 'info' | 'warn' | 'error'
 
@@ -177,16 +178,42 @@ class Logger {
     }
   }
 
+  /**
+   * Send structured log to PostHog Logs product via OTLP.
+   * Works in all environments (dev, preview, production).
+   * Logs appear in PostHog's Logs UI with severity filtering.
+   */
+  // eslint-disable-next-line class-methods-use-this
+  private logToOtel(entry: LogEntry) {
+    const attributes: Record<string, string | number | boolean | undefined> = {
+      'log.screen': entry.context?.screen,
+      'log.action': entry.context?.action,
+      'log.session_id': entry.context?.sessionId,
+    }
+    if (entry.context?.userId) {
+      attributes['user.id'] = entry.context.userId as string
+    }
+    if (entry.error?.message) {
+      attributes['error.message'] = entry.error.message
+    }
+    if (entry.error?.stack) {
+      attributes['error.stack'] = entry.error.stack
+    }
+    emitLog(entry.level, entry.message, attributes)
+  }
+
   // Logging strategy:
   // - Console: All levels in dev, none in production
   // - Sentry: Breadcrumbs for debug/info, reports for warn/error
-  // - PostHog: All levels for analytics and behavior tracking
+  // - PostHog Events: All levels as `log_entry` event (analytics/behavior)
+  // - PostHog Logs (OTLP): All levels as structured logs (debugging/investigation)
 
   debug(message: string, context?: LogContext) {
     const entry = this.createLogEntry('debug', message, context)
     this.logToConsole(entry)
     this.logToSentry(entry) // Breadcrumb only
     this.logToPostHog(entry) // Full analytics
+    this.logToOtel(entry) // PostHog Logs product
   }
 
   info(message: string, context?: LogContext) {
@@ -194,6 +221,7 @@ class Logger {
     this.logToConsole(entry)
     this.logToSentry(entry) // Breadcrumb only
     this.logToPostHog(entry) // Full analytics
+    this.logToOtel(entry) // PostHog Logs product
   }
 
   warn(message: string, context?: LogContext, error?: Error) {
@@ -201,6 +229,7 @@ class Logger {
     this.logToConsole(entry)
     this.logToSentry(entry) // Reported as warning
     this.logToPostHog(entry) // Full analytics
+    this.logToOtel(entry) // PostHog Logs product
   }
 
   error(message: string, context?: LogContext, error?: Error) {
@@ -208,6 +237,7 @@ class Logger {
     this.logToConsole(entry)
     this.logToSentry(entry) // Reported as error/exception
     this.logToPostHog(entry) // Full analytics
+    this.logToOtel(entry) // PostHog Logs product
   }
 
   // Specialized methods for common scenarios

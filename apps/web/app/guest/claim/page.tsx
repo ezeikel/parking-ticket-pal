@@ -70,7 +70,7 @@ const ClaimContent = () => {
       if (!hasTrackedPageView.current) {
         hasTrackedPageView.current = true;
         track(TRACKING_EVENTS.GUEST_CLAIM_PAGE_VIEWED, {
-          hasSessionId: !!sessionId,
+          has_session_id: !!sessionId,
           tier: guestData?.tier,
         });
       }
