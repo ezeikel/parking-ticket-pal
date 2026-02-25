@@ -7,7 +7,6 @@ on:
 
 env:
   NODE_VERSION: '20'
-  FONTAWESOME_NPM_AUTH_TOKEN: ${{ secrets.FONTAWESOME_NPM_AUTH_TOKEN }}
 
 jobs:
   validate-schema:
@@ -28,6 +27,8 @@ jobs:
           cache: 'pnpm'
 
       - name: Install dependencies
+        env:
+          FONTAWESOME_NPM_AUTH_TOKEN: ${{ secrets.FONTAWESOME_NPM_AUTH_TOKEN }}
         run: pnpm install --frozen-lockfile
 
       - name: Validate Prisma schema
@@ -63,6 +64,8 @@ jobs:
           cache: 'pnpm'
 
       - name: Install dependencies
+        env:
+          FONTAWESOME_NPM_AUTH_TOKEN: ${{ secrets.FONTAWESOME_NPM_AUTH_TOKEN }}
         run: pnpm install --frozen-lockfile
 
       - name: Generate Prisma client
