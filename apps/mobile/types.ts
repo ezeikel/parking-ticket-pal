@@ -94,6 +94,7 @@ export type User = {
   signatureUrl?: string;
   vehicles: Vehicle[];
   lastPremiumPurchaseAt?: string;
+  referralCreditBalance?: number;
   createdAt: string;
   updatedAt: string;
 }

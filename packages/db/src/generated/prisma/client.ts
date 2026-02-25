@@ -125,6 +125,21 @@ export type Session = Prisma.SessionModel
  */
 export type VerificationToken = Prisma.VerificationTokenModel
 /**
+ * Model ReferralCode
+ * 
+ */
+export type ReferralCode = Prisma.ReferralCodeModel
+/**
+ * Model Referral
+ * 
+ */
+export type Referral = Prisma.ReferralModel
+/**
+ * Model ReferralCredit
+ * 
+ */
+export type ReferralCredit = Prisma.ReferralCreditModel
+/**
  * Model LondonTribunalCase
  * 
  */

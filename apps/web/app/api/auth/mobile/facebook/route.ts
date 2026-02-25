@@ -6,7 +6,7 @@ const log = createServerLogger({ action: 'auth-facebook' });
 
 // eslint-disable-next-line import-x/prefer-default-export
 export const POST = async (req: Request) => {
-  const { accessToken, deviceId } = await req.json();
+  const { accessToken, deviceId, referralCode } = await req.json();
 
   try {
     // Verify Facebook access token
@@ -33,6 +33,7 @@ export const POST = async (req: Request) => {
       deviceId,
       payload.email,
       payload.name,
+      referralCode,
     );
 
     const sessionToken = await encrypt({

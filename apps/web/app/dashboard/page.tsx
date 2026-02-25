@@ -1,7 +1,7 @@
 import { Suspense } from 'react';
 import Link from 'next/link';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faPlus } from '@fortawesome/pro-solid-svg-icons';
+import { faPlus, faGift } from '@fortawesome/pro-solid-svg-icons';
 import { getCachedTickets } from '@/app/actions/ticket';
 import { getVehicles } from '@/app/actions/vehicle';
 import { getCurrentUser } from '@/utils/user';
@@ -409,6 +409,27 @@ const DashboardPage = async () => {
           >
             <AnalyticsChartsWrapper />
           </Suspense>
+        </div>
+
+        {/* Referral CTA */}
+        <div className="mt-10">
+          <Link href="/referrals">
+            <div className="flex items-center justify-between rounded-2xl bg-teal/5 p-6 transition-colors hover:bg-teal/10">
+              <div>
+                <h3 className="text-lg font-semibold text-dark">
+                  Invite Friends, Get £5 Credit
+                </h3>
+                <p className="mt-1 text-sm text-gray">
+                  Share your referral link and earn credit for each friend who
+                  signs up.
+                </p>
+              </div>
+              <FontAwesomeIcon
+                icon={faGift}
+                className="shrink-0 text-2xl text-teal"
+              />
+            </div>
+          </Link>
         </div>
 
         {/* Quick Actions */}

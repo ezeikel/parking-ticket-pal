@@ -68,6 +68,9 @@ export const ModelName = {
   Account: 'Account',
   Session: 'Session',
   VerificationToken: 'VerificationToken',
+  ReferralCode: 'ReferralCode',
+  Referral: 'Referral',
+  ReferralCredit: 'ReferralCredit',
   LondonTribunalCase: 'LondonTribunalCase',
   AppealDataSource: 'AppealDataSource',
   ContraventionStats: 'ContraventionStats',
@@ -116,7 +119,9 @@ export const UserScalarFieldEnum = {
   lastPremiumPurchaseAt: 'lastPremiumPurchaseAt',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
-  signatureUrl: 'signatureUrl'
+  signatureUrl: 'signatureUrl',
+  referralCreditBalance: 'referralCreditBalance',
+  referredBy: 'referredBy'
 } as const
 
 export type UserScalarFieldEnum = (typeof UserScalarFieldEnum)[keyof typeof UserScalarFieldEnum]
@@ -369,6 +374,47 @@ export const VerificationTokenScalarFieldEnum = {
 } as const
 
 export type VerificationTokenScalarFieldEnum = (typeof VerificationTokenScalarFieldEnum)[keyof typeof VerificationTokenScalarFieldEnum]
+
+
+export const ReferralCodeScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  code: 'code',
+  createdAt: 'createdAt'
+} as const
+
+export type ReferralCodeScalarFieldEnum = (typeof ReferralCodeScalarFieldEnum)[keyof typeof ReferralCodeScalarFieldEnum]
+
+
+export const ReferralScalarFieldEnum = {
+  id: 'id',
+  referralCodeId: 'referralCodeId',
+  referrerId: 'referrerId',
+  refereeId: 'refereeId',
+  status: 'status',
+  capturedAt: 'capturedAt',
+  completedAt: 'completedAt',
+  creditIssuedAt: 'creditIssuedAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type ReferralScalarFieldEnum = (typeof ReferralScalarFieldEnum)[keyof typeof ReferralScalarFieldEnum]
+
+
+export const ReferralCreditScalarFieldEnum = {
+  id: 'id',
+  referralId: 'referralId',
+  userId: 'userId',
+  amount: 'amount',
+  type: 'type',
+  status: 'status',
+  appliedAt: 'appliedAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type ReferralCreditScalarFieldEnum = (typeof ReferralCreditScalarFieldEnum)[keyof typeof ReferralCreditScalarFieldEnum]
 
 
 export const LondonTribunalCaseScalarFieldEnum = {

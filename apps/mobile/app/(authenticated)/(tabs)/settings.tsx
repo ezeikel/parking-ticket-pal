@@ -1,4 +1,4 @@
-import { Text, View, ScrollView, Alert, useWindowDimensions, Linking, Platform } from 'react-native';
+import { Text, View, ScrollView, Alert, useWindowDimensions, Linking, Platform, Share } from 'react-native';
 import { toast } from '@/lib/toast';
 import Switch from '@/components/Switch/Switch';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -6,7 +6,7 @@ import SquishyPressable from '@/components/SquishyPressable/SquishyPressable';
 import { useState, useRef, useCallback } from 'react';
 import { router } from 'expo-router';
 import { FontAwesomeIcon } from "@fortawesome/react-native-fontawesome";
-import { faSignOut, faUser, faEnvelope, faInfoCircle, faHeart, faBookOpen, faTrashCan, faCrown, faRotateRight, faPencil, faSignature, faBell as faBellRegular, faComment, faCircleQuestion, faStar, faShieldCheck, faFileLines } from "@fortawesome/pro-regular-svg-icons";
+import { faSignOut, faUser, faEnvelope, faInfoCircle, faHeart, faBookOpen, faTrashCan, faCrown, faRotateRight, faPencil, faSignature, faBell as faBellRegular, faComment, faCircleQuestion, faStar, faShieldCheck, faFileLines, faGift, faUserPlus } from "@fortawesome/pro-regular-svg-icons";
 import SocialAuthButtons from '@/components/SocialAuthButtons/SocialAuthButtons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import BottomSheet from '@gorhom/bottom-sheet';
@@ -325,6 +325,31 @@ const SettingsScreen = () => {
     );
   };
 
+  const handleInviteFriends = async () => {
+    try {
+      trackEvent("referral_invite_tapped", { screen: "settings" });
+
+      const token = await import('@/lib/auth').then(m => m.getSessionToken());
+      const apiUrl = process.env.EXPO_PUBLIC_API_URL;
+      const response = await fetch(`${apiUrl}/api/referral/code`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      if (!response.ok) throw new Error('Failed to get referral code');
+
+      const { code } = await response.json();
+      const referralLink = `https://www.parkingticketpal.com/r/${code}`;
+
+      await Share.share({
+        message: `Join Parking Ticket Pal and get £3 off your first ticket challenge! ${referralLink}`,
+      });
+    } catch (error) {
+      if ((error as any)?.message !== 'User did not share') {
+        toast.error('Error', 'Could not share referral link');
+      }
+    }
+  };
+
   const getSubscriptionStatus = () => {
     if (hasPremiumAccess) {
       return 'Premium';
@@ -554,6 +579,25 @@ const SettingsScreen = () => {
                 {isRestoring ? 'Restoring...' : 'Restore Purchases'}
               </Text>
             </SquishyPressable>
+
+            {/* Referral Credit */}
+            {(user?.referralCreditBalance ?? 0) > 0 && (
+              <SettingRow
+                icon={faGift}
+                title="Referral Credit"
+                value={`£${((user?.referralCreditBalance ?? 0) / 100).toFixed(2)} — Use web checkout to apply`}
+              />
+            )}
+
+            {/* Invite Friends */}
+            {isLinked && (
+              <SettingRow
+                icon={faUserPlus}
+                title="Invite Friends"
+                value="Get £5 credit for each friend"
+                onPress={handleInviteFriends}
+              />
+            )}
 
             {isLinked && (
               <SettingRow

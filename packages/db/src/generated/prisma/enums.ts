@@ -21,6 +21,34 @@ export const ChallengeResponseStatus = {
 export type ChallengeResponseStatus = (typeof ChallengeResponseStatus)[keyof typeof ChallengeResponseStatus]
 
 
+export const ReferralStatus = {
+  PENDING: 'PENDING',
+  COMPLETED: 'COMPLETED',
+  CREDITED: 'CREDITED',
+  FAILED: 'FAILED',
+  EXPIRED: 'EXPIRED'
+} as const
+
+export type ReferralStatus = (typeof ReferralStatus)[keyof typeof ReferralStatus]
+
+
+export const ReferralCreditType = {
+  REFERRER_REWARD: 'REFERRER_REWARD',
+  REFEREE_REWARD: 'REFEREE_REWARD'
+} as const
+
+export type ReferralCreditType = (typeof ReferralCreditType)[keyof typeof ReferralCreditType]
+
+
+export const ReferralCreditStatus = {
+  PENDING: 'PENDING',
+  APPLIED: 'APPLIED',
+  EXPIRED: 'EXPIRED'
+} as const
+
+export type ReferralCreditStatus = (typeof ReferralCreditStatus)[keyof typeof ReferralCreditStatus]
+
+
 export const TicketType = {
   PARKING_CHARGE_NOTICE: 'PARKING_CHARGE_NOTICE',
   PENALTY_CHARGE_NOTICE: 'PENALTY_CHARGE_NOTICE'

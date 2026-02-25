@@ -11,6 +11,7 @@ import {
   faUser,
   faCommentDots,
   faBars,
+  faGift,
 } from '@fortawesome/pro-regular-svg-icons';
 import {
   DropdownMenu,
@@ -36,6 +37,7 @@ type DropdownItem = {
 const DROPDOWN_ITEMS: DropdownItem[] = [
   { icon: faUser, label: 'Account', href: '/account' },
   { icon: faCreditCard, label: 'Billing', href: '/account?tab=billing' },
+  { icon: faGift, label: 'Refer a Friend', href: '/referrals' },
   {
     icon: faCommentDots,
     label: 'Help & Feedback',

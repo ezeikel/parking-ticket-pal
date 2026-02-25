@@ -45,6 +45,14 @@ model User {
   mobileDeviceSessions    MobileDeviceSession[]
   onboardingSequences     OnboardingSequence[]
 
+  // Referral program
+  referralCreditBalance Int              @default(0) // balance in pence
+  referredBy            String? // userId of referrer
+  referrer              User?            @relation("UserReferrals", fields: [referredBy], references: [id])
+  referrals             User[]           @relation("UserReferrals")
+  referralCode          ReferralCode?
+  referralCredits       ReferralCredit[]
+
   @@map("users")
 }
 
@@ -356,6 +364,77 @@ model VerificationToken {
 
   @@unique([identifier, token])
   @@map("verification_tokens")
+}
+
+// ============================================================================
+// Referral Program
+// ============================================================================
+
+model ReferralCode {
+  id        String     @id @default(cuid())
+  userId    String     @unique
+  code      String     @unique // 8-char alphanumeric code
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  referrals Referral[]
+  createdAt DateTime   @default(now())
+
+  @@map("referral_codes")
+}
+
+model Referral {
+  id             String           @id @default(cuid())
+  referralCodeId String
+  referralCode   ReferralCode     @relation(fields: [referralCodeId], references: [id])
+  referrerId     String
+  refereeId      String           @unique // each user can only be referred once
+  status         ReferralStatus   @default(PENDING)
+  capturedAt     DateTime? // when the referral link was clicked
+  completedAt    DateTime? // when the referred user signed up
+  creditIssuedAt DateTime? // when credits were issued
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+  credits        ReferralCredit[]
+
+  @@index([referrerId])
+  @@index([referralCodeId])
+  @@map("referrals")
+}
+
+model ReferralCredit {
+  id         String               @id @default(cuid())
+  referralId String
+  referral   Referral             @relation(fields: [referralId], references: [id])
+  userId     String
+  user       User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  amount     Int // amount in pence
+  type       ReferralCreditType
+  status     ReferralCreditStatus @default(PENDING)
+  appliedAt  DateTime?
+  createdAt  DateTime             @default(now())
+  updatedAt  DateTime             @updatedAt
+
+  @@index([userId])
+  @@index([referralId])
+  @@map("referral_credits")
+}
+
+enum ReferralStatus {
+  PENDING
+  COMPLETED
+  CREDITED
+  FAILED
+  EXPIRED
+}
+
+enum ReferralCreditType {
+  REFERRER_REWARD
+  REFEREE_REWARD
+}
+
+enum ReferralCreditStatus {
+  PENDING
+  APPLIED
+  EXPIRED
 }
 
 enum TicketType {

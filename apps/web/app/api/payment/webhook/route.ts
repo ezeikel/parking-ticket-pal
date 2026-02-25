@@ -4,6 +4,10 @@ import { STRIPE_API_VERSION, isOneTimePrice } from '@/constants';
 import { revalidatePath } from 'next/cache';
 import { createServerLogger } from '@/lib/logger';
 import { exitOnboardingSequenceForTicket } from '@/services/onboarding-sequence';
+import {
+  applyReferralCredits,
+  deleteCouponAfterUse,
+} from '@/lib/referral-stripe';
 
 const log = createServerLogger({ action: 'stripe-webhook' });
 
@@ -159,6 +163,45 @@ export const POST = async (req: Request) => {
             revalidatePath(`/tickets/${ticketId}`);
             revalidatePath('/tickets');
             revalidatePath('/dashboard');
+
+            // Process referral credit usage
+            const discountAmount =
+              completedCheckoutSession.total_details?.amount_discount;
+            if (discountAmount && discountAmount > 0) {
+              const session = await stripe.checkout.sessions.retrieve(
+                completedCheckoutSession.id,
+                { expand: ['discounts'] },
+              );
+              const discounts = session.discounts || [];
+              const referralDiscounts = discounts
+                .map((discount) => {
+                  const couponId =
+                    typeof discount.coupon === 'string'
+                      ? discount.coupon
+                      : discount.coupon?.id;
+                  const couponMeta =
+                    typeof discount.coupon === 'object'
+                      ? discount.coupon?.metadata
+                      : null;
+                  return { couponId, couponMeta };
+                })
+                .filter(
+                  ({ couponMeta }) =>
+                    couponMeta?.type === 'referral_credit' && couponMeta.userId,
+                );
+
+              await Promise.all(
+                referralDiscounts.map(async ({ couponId, couponMeta }) => {
+                  await applyReferralCredits(
+                    couponMeta!.userId,
+                    parseInt(couponMeta!.amount, 10),
+                  );
+                  if (couponId) {
+                    await deleteCouponAfterUse(couponId);
+                  }
+                }),
+              );
+            }
           }
         } catch (error) {
           log.error(

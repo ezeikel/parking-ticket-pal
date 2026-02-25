@@ -17,7 +17,7 @@ const VALID_AUDIENCES = [GOOGLE_WEB_CLIENT_ID, GOOGLE_IOS_CLIENT_ID].filter(
 
 // eslint-disable-next-line import-x/prefer-default-export
 export const POST = async (req: Request) => {
-  const { idToken, deviceId } = await req.json();
+  const { idToken, deviceId, referralCode } = await req.json();
 
   try {
     const ticket = await client.verifyIdToken({
@@ -35,6 +35,7 @@ export const POST = async (req: Request) => {
       deviceId,
       payload.email,
       payload.name,
+      referralCode,
     );
 
     const sessionToken = await encrypt({

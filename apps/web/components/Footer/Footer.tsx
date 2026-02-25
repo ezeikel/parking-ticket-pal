@@ -28,6 +28,7 @@ const productLinks: FooterLink[] = [
   { label: 'Pricing', href: '/pricing' },
   { label: 'How It Works', href: '/#how-it-works' },
   { label: 'Dashboard', href: '/dashboard' },
+  { label: 'Refer a Friend', href: '/referrals' },
 ];
 
 const resourceLinks: FooterLink[] = [

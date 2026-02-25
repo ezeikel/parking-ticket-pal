@@ -5,6 +5,7 @@ import FacebookProvider from 'next-auth/providers/facebook';
 import AppleProvider from 'next-auth/providers/apple';
 import Resend from 'next-auth/providers/resend';
 import { PrismaAdapter } from '@auth/prisma-adapter';
+import { cookies } from 'next/headers';
 import { db } from '@parking-ticket-pal/db';
 import { createServerLogger } from '@/lib/logger';
 import { generateAppleClientSecret } from '@/lib/apple';
@@ -12,6 +13,10 @@ import { render } from '@react-email/render';
 import MagicLinkEmail from '@/components/emails/MagicLinkEmail';
 import WelcomeEmail from '@/emails/WelcomeEmail';
 import resendClient from '@/lib/resend';
+import {
+  attributeReferral,
+  issueReferralCredits,
+} from '@/lib/referral-attribution';
 
 type AppleProfile = Profile & {
   user?: {
@@ -43,6 +48,41 @@ const sendWelcomeEmail = async (email: string, name?: string) => {
     logger.error(
       'Failed to send welcome email',
       { email },
+      error instanceof Error ? error : undefined,
+    );
+  }
+};
+
+const handleReferralAttribution = async (
+  userId: string,
+  userEmail: string | null,
+) => {
+  try {
+    const cookieStore = await cookies();
+    const referralCode = cookieStore.get('ptp_referral_code')?.value;
+    const capturedAt = cookieStore.get('ptp_referral_captured_at')?.value;
+
+    if (!referralCode) return;
+
+    const referralId = await attributeReferral(
+      userId,
+      userEmail,
+      referralCode,
+      capturedAt,
+    );
+
+    if (referralId) {
+      // OAuth and magic link users have verified emails — issue credits immediately
+      await issueReferralCredits(referralId);
+    }
+
+    // Delete referral cookies after attribution attempt
+    cookieStore.delete('ptp_referral_code');
+    cookieStore.delete('ptp_referral_captured_at');
+  } catch (error) {
+    logger.error(
+      'Error during referral attribution',
+      { userId },
       error instanceof Error ? error : undefined,
     );
   }
@@ -153,7 +193,7 @@ const config = {
           name = `${appleProfile.user.firstName} ${appleProfile.user.lastName}`;
         }
 
-        await db.user.create({
+        const newUser = await db.user.create({
           data: {
             email: profile?.email as string,
             name: name as string,
@@ -161,6 +201,11 @@ const config = {
         });
 
         sendWelcomeEmail(profile?.email as string, name as string).catch(
+          () => {},
+        );
+
+        // Referral attribution for OAuth signups
+        handleReferralAttribution(newUser.id, profile?.email as string).catch(
           () => {},
         );
 
@@ -180,13 +225,18 @@ const config = {
           return true;
         }
 
-        await db.user.create({
+        const newMagicLinkUser = await db.user.create({
           data: {
             email: userEmail,
           },
         });
 
         sendWelcomeEmail(userEmail).catch(() => {});
+
+        // Referral attribution for magic link signups
+        handleReferralAttribution(newMagicLinkUser.id, userEmail).catch(
+          () => {},
+        );
 
         return true;
       }

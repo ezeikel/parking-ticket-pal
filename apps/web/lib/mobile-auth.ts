@@ -3,6 +3,10 @@ import 'server-only';
 import { SignJWT, jwtVerify } from 'jose';
 import { db } from '@parking-ticket-pal/db';
 import { createServerLogger } from '@/lib/logger';
+import {
+  attributeReferral,
+  issueReferralCredits,
+} from '@/lib/referral-attribution';
 
 const logger = createServerLogger({ action: 'mobile-auth' });
 
@@ -154,7 +158,7 @@ export async function mergeAnonymousUserIntoTarget(
             where: { id: ticket.id },
             data: { vehicleId: targetVehicle.id },
           });
-        } catch (_error) {
+        } catch {
           // Handle pcnNumber unique constraint — skip duplicate tickets
           logger.warn('Skipping duplicate ticket during merge', {
             pcnNumber: ticket.pcnNumber,
@@ -214,6 +218,7 @@ export async function handleMobileOAuthSignIn(
   deviceId: string | null | undefined,
   email: string,
   name?: string,
+  referralCode?: string | null,
 ): Promise<{
   userId: string;
   isNewUser: boolean;
@@ -241,6 +246,15 @@ export async function handleMobileOAuthSignIn(
         ...(deviceId ? { mobileDeviceSessions: { create: { deviceId } } } : {}),
       },
     });
+
+    // Referral attribution for new mobile user
+    if (referralCode) {
+      const referralId = await attributeReferral(user.id, email, referralCode);
+      if (referralId) {
+        await issueReferralCredits(referralId);
+      }
+    }
+
     return { userId: user.id, isNewUser: true, wasMerged: false };
   }
 
@@ -264,6 +278,19 @@ export async function handleMobileOAuthSignIn(
       where: { id: deviceSession.userId },
       data: { email, name: name || email.split('@')[0] },
     });
+
+    // Referral attribution for anonymous→linked user
+    if (referralCode) {
+      const referralId = await attributeReferral(
+        deviceSession.userId,
+        email,
+        referralCode,
+      );
+      if (referralId) {
+        await issueReferralCredits(referralId);
+      }
+    }
+
     return {
       userId: deviceSession.userId,
       isNewUser: false,

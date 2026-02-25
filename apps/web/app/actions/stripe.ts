@@ -9,6 +9,7 @@ import { TRACKING_EVENTS } from '@/constants/events';
 import stripe from '@/lib/stripe';
 import { getUserId } from '@/utils/user';
 import { createServerLogger } from '@/lib/logger';
+import { createReferralCoupon } from '@/lib/referral-stripe';
 
 const logger = createServerLogger({ action: 'stripe' });
 
@@ -263,6 +264,12 @@ export const createTicketCheckoutSession = async (
         coupon: process.env.STRIPE_ADMIN_COUPON_ID,
       },
     ];
+  } else {
+    // Apply referral credit coupon if user has balance
+    const referralCouponId = await createReferralCoupon(userId);
+    if (referralCouponId) {
+      sessionOptions.discounts = [{ coupon: referralCouponId }];
+    }
   }
 
   const stripeSession = await stripe.checkout.sessions.create(sessionOptions);

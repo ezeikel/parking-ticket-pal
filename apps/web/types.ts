@@ -625,6 +625,41 @@ export type EventProperties = {
     share_method: 'native' | 'copy_link' | 'email' | 'social';
     content_type: 'ticket' | 'result' | 'app' | 'tool';
   };
+  [TRACKING_EVENTS.REFERRAL_CODE_GENERATED]: {
+    code: string;
+  };
+  [TRACKING_EVENTS.REFERRAL_LANDING_VIEWED]: {
+    code: string;
+    referrer_name?: string;
+  };
+  [TRACKING_EVENTS.REFERRAL_SIGNUP_CLICKED]: {
+    code: string;
+  };
+  [TRACKING_EVENTS.REFERRAL_ATTRIBUTED]: {
+    referral_id: string;
+    referrer_id: string;
+    referee_id: string;
+    code: string;
+  };
+  [TRACKING_EVENTS.REFERRAL_CREDITS_ISSUED]: {
+    referral_id: string;
+    referrer_id: string;
+    referee_id: string;
+    referrer_amount: number;
+    referee_amount: number;
+  };
+  [TRACKING_EVENTS.REFERRAL_LINK_COPIED]: {
+    code: string;
+  };
+  [TRACKING_EVENTS.REFERRAL_LINK_SHARED]: {
+    code: string;
+    share_method: string;
+  };
+  [TRACKING_EVENTS.REFERRAL_CREDIT_APPLIED]: {
+    user_id: string;
+    amount: number;
+    coupon_id: string;
+  };
 
   // Automation
   [TRACKING_EVENTS.AUTOMATION_STARTED]: {

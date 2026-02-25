@@ -160,7 +160,7 @@ export const getVehicles = async () => {
   return response.data;
 };
 
-export const signIn = async (deviceId?: string) => {
+export const signIn = async (deviceId?: string, referralCode?: string | null) => {
   await GoogleSignin.hasPlayServices();
   const userInfo = await GoogleSignin.signIn();
 
@@ -171,15 +171,17 @@ export const signIn = async (deviceId?: string) => {
   const response = await axios.post(`${apiUrlFromEnv}/auth/mobile`, {
     idToken: userInfo.data.idToken,
     deviceId,
+    ...(referralCode ? { referralCode } : {}),
   });
 
   return response.data;
 };
 
-export const signInWithFacebook = async (accessToken: string, deviceId?: string) => {
+export const signInWithFacebook = async (accessToken: string, deviceId?: string, referralCode?: string | null) => {
   const response = await axios.post(`${apiUrlFromEnv}/auth/mobile/facebook`, {
     accessToken,
     deviceId,
+    ...(referralCode ? { referralCode } : {}),
   });
 
   return response.data;
@@ -189,11 +191,13 @@ export const signInWithApple = async (
   identityToken: string,
   authorizationCode: string,
   deviceId?: string,
+  referralCode?: string | null,
 ) => {
   const response = await axios.post(`${apiUrlFromEnv}/auth/mobile/apple`, {
     identityToken,
     authorizationCode,
     deviceId,
+    ...(referralCode ? { referralCode } : {}),
   });
 
   return response.data;

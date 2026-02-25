@@ -7,7 +7,7 @@ const log = createServerLogger({ action: 'auth-apple' });
 
 // eslint-disable-next-line import-x/prefer-default-export
 export const POST = async (req: Request) => {
-  const { identityToken, deviceId } = await req.json();
+  const { identityToken, deviceId, referralCode } = await req.json();
 
   try {
     // Decode the Apple identity token (without verification for simplicity)
@@ -22,6 +22,7 @@ export const POST = async (req: Request) => {
       deviceId,
       decoded.email,
       decoded.email.split('@')[0],
+      referralCode,
     );
 
     const sessionToken = await encrypt({

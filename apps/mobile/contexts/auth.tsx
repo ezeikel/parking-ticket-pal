@@ -5,6 +5,7 @@ import appleAuth from '@invertase/react-native-apple-authentication';
 import Purchases from 'react-native-purchases';
 import { usePostHog } from 'posthog-react-native';
 import * as Sentry from '@sentry/react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
   getCurrentUser,
   signIn as signInApi,
@@ -22,6 +23,8 @@ import {
 } from '@/lib/auth';
 import { logger } from '@/lib/logger';
 import { usePurchases } from './purchases';
+
+const REFERRAL_CODE_KEY = 'ptp_referral_code';
 
 type User = {
   id: string;
@@ -184,10 +187,23 @@ export const AuthContextProvider = ({ children }: AuthContextProviderProps) => {
     }
   };
 
+  const getAndClearReferralCode = async (): Promise<string | null> => {
+    try {
+      const code = await AsyncStorage.getItem(REFERRAL_CODE_KEY);
+      if (code) {
+        await AsyncStorage.removeItem(REFERRAL_CODE_KEY);
+      }
+      return code;
+    } catch {
+      return null;
+    }
+  };
+
   const signIn = async () => {
     try {
       const deviceId = await getDeviceId();
-      const { sessionToken } = await signInApi(deviceId);
+      const referralCode = await getAndClearReferralCode();
+      const { sessionToken } = await signInApi(deviceId, referralCode);
       await handlePostSignIn(sessionToken);
     } catch (error) {
       if (
@@ -222,9 +238,11 @@ export const AuthContextProvider = ({ children }: AuthContextProviderProps) => {
       }
 
       const deviceId = await getDeviceId();
+      const referralCode = await getAndClearReferralCode();
       const { sessionToken } = await signInWithFacebook(
         data.accessToken,
         deviceId,
+        referralCode,
       );
       await handlePostSignIn(sessionToken);
     } catch (error) {
@@ -246,10 +264,12 @@ export const AuthContextProvider = ({ children }: AuthContextProviderProps) => {
 
       if (credentialState === appleAuth.State.AUTHORIZED) {
         const deviceId = await getDeviceId();
+        const referralCode = await getAndClearReferralCode();
         const { sessionToken } = await signInWithApple(
           appleAuthRequestResponse.identityToken || '',
           appleAuthRequestResponse.authorizationCode || '',
           deviceId,
+          referralCode,
         );
         await handlePostSignIn(sessionToken);
       }

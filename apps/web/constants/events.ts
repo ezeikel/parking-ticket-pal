@@ -129,6 +129,14 @@ export const TRACKING_EVENTS = {
   // Sharing & Referral
   SHARE_INITIATED: 'share_initiated',
   SHARE_COMPLETED: 'share_completed',
+  REFERRAL_CODE_GENERATED: 'referral_code_generated',
+  REFERRAL_LANDING_VIEWED: 'referral_landing_viewed',
+  REFERRAL_SIGNUP_CLICKED: 'referral_signup_clicked',
+  REFERRAL_ATTRIBUTED: 'referral_attributed',
+  REFERRAL_CREDITS_ISSUED: 'referral_credits_issued',
+  REFERRAL_LINK_COPIED: 'referral_link_copied',
+  REFERRAL_LINK_SHARED: 'referral_link_shared',
+  REFERRAL_CREDIT_APPLIED: 'referral_credit_applied',
 
   // Automation
   AUTOMATION_STARTED: 'automation_started',

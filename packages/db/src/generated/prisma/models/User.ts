@@ -20,8 +20,18 @@ export type UserModel = runtime.Types.Result.DefaultSelection<Prisma.$UserPayloa
 
 export type AggregateUser = {
   _count: UserCountAggregateOutputType | null
+  _avg: UserAvgAggregateOutputType | null
+  _sum: UserSumAggregateOutputType | null
   _min: UserMinAggregateOutputType | null
   _max: UserMaxAggregateOutputType | null
+}
+
+export type UserAvgAggregateOutputType = {
+  referralCreditBalance: number | null
+}
+
+export type UserSumAggregateOutputType = {
+  referralCreditBalance: number | null
 }
 
 export type UserMinAggregateOutputType = {
@@ -39,6 +49,8 @@ export type UserMinAggregateOutputType = {
   createdAt: Date | null
   updatedAt: Date | null
   signatureUrl: string | null
+  referralCreditBalance: number | null
+  referredBy: string | null
 }
 
 export type UserMaxAggregateOutputType = {
@@ -56,6 +68,8 @@ export type UserMaxAggregateOutputType = {
   createdAt: Date | null
   updatedAt: Date | null
   signatureUrl: string | null
+  referralCreditBalance: number | null
+  referredBy: string | null
 }
 
 export type UserCountAggregateOutputType = {
@@ -75,9 +89,19 @@ export type UserCountAggregateOutputType = {
   createdAt: number
   updatedAt: number
   signatureUrl: number
+  referralCreditBalance: number
+  referredBy: number
   _all: number
 }
 
+
+export type UserAvgAggregateInputType = {
+  referralCreditBalance?: true
+}
+
+export type UserSumAggregateInputType = {
+  referralCreditBalance?: true
+}
 
 export type UserMinAggregateInputType = {
   id?: true
@@ -94,6 +118,8 @@ export type UserMinAggregateInputType = {
   createdAt?: true
   updatedAt?: true
   signatureUrl?: true
+  referralCreditBalance?: true
+  referredBy?: true
 }
 
 export type UserMaxAggregateInputType = {
@@ -111,6 +137,8 @@ export type UserMaxAggregateInputType = {
   createdAt?: true
   updatedAt?: true
   signatureUrl?: true
+  referralCreditBalance?: true
+  referredBy?: true
 }
 
 export type UserCountAggregateInputType = {
@@ -130,6 +158,8 @@ export type UserCountAggregateInputType = {
   createdAt?: true
   updatedAt?: true
   signatureUrl?: true
+  referralCreditBalance?: true
+  referredBy?: true
   _all?: true
 }
 
@@ -171,6 +201,18 @@ export type UserAggregateArgs<ExtArgs extends runtime.Types.Extensions.InternalA
   /**
    * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
    * 
+   * Select which fields to average
+  **/
+  _avg?: UserAvgAggregateInputType
+  /**
+   * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+   * 
+   * Select which fields to sum
+  **/
+  _sum?: UserSumAggregateInputType
+  /**
+   * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+   * 
    * Select which fields to find the minimum value
   **/
   _min?: UserMinAggregateInputType
@@ -201,6 +243,8 @@ export type UserGroupByArgs<ExtArgs extends runtime.Types.Extensions.InternalArg
   take?: number
   skip?: number
   _count?: UserCountAggregateInputType | true
+  _avg?: UserAvgAggregateInputType
+  _sum?: UserSumAggregateInputType
   _min?: UserMinAggregateInputType
   _max?: UserMaxAggregateInputType
 }
@@ -222,7 +266,11 @@ export type UserGroupByOutputType = {
   createdAt: Date
   updatedAt: Date
   signatureUrl: string | null
+  referralCreditBalance: number
+  referredBy: string | null
   _count: UserCountAggregateOutputType | null
+  _avg: UserAvgAggregateOutputType | null
+  _sum: UserSumAggregateOutputType | null
   _min: UserMinAggregateOutputType | null
   _max: UserMaxAggregateOutputType | null
 }
@@ -262,6 +310,8 @@ export type UserWhereInput = {
   createdAt?: Prisma.DateTimeFilter<"User"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"User"> | Date | string
   signatureUrl?: Prisma.StringNullableFilter<"User"> | string | null
+  referralCreditBalance?: Prisma.IntFilter<"User"> | number
+  referredBy?: Prisma.StringNullableFilter<"User"> | string | null
   vehicles?: Prisma.VehicleListRelationFilter
   accounts?: Prisma.AccountListRelationFilter
   sessions?: Prisma.SessionListRelationFilter
@@ -269,6 +319,10 @@ export type UserWhereInput = {
   notifications?: Prisma.NotificationListRelationFilter
   mobileDeviceSessions?: Prisma.MobileDeviceSessionListRelationFilter
   onboardingSequences?: Prisma.OnboardingSequenceListRelationFilter
+  referrer?: Prisma.XOR<Prisma.UserNullableScalarRelationFilter, Prisma.UserWhereInput> | null
+  referrals?: Prisma.UserListRelationFilter
+  referralCode?: Prisma.XOR<Prisma.ReferralCodeNullableScalarRelationFilter, Prisma.ReferralCodeWhereInput> | null
+  referralCredits?: Prisma.ReferralCreditListRelationFilter
 }
 
 export type UserOrderByWithRelationInput = {
@@ -288,6 +342,8 @@ export type UserOrderByWithRelationInput = {
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   signatureUrl?: Prisma.SortOrderInput | Prisma.SortOrder
+  referralCreditBalance?: Prisma.SortOrder
+  referredBy?: Prisma.SortOrderInput | Prisma.SortOrder
   vehicles?: Prisma.VehicleOrderByRelationAggregateInput
   accounts?: Prisma.AccountOrderByRelationAggregateInput
   sessions?: Prisma.SessionOrderByRelationAggregateInput
@@ -295,6 +351,10 @@ export type UserOrderByWithRelationInput = {
   notifications?: Prisma.NotificationOrderByRelationAggregateInput
   mobileDeviceSessions?: Prisma.MobileDeviceSessionOrderByRelationAggregateInput
   onboardingSequences?: Prisma.OnboardingSequenceOrderByRelationAggregateInput
+  referrer?: Prisma.UserOrderByWithRelationInput
+  referrals?: Prisma.UserOrderByRelationAggregateInput
+  referralCode?: Prisma.ReferralCodeOrderByWithRelationInput
+  referralCredits?: Prisma.ReferralCreditOrderByRelationAggregateInput
 }
 
 export type UserWhereUniqueInput = Prisma.AtLeast<{
@@ -317,6 +377,8 @@ export type UserWhereUniqueInput = Prisma.AtLeast<{
   createdAt?: Prisma.DateTimeFilter<"User"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"User"> | Date | string
   signatureUrl?: Prisma.StringNullableFilter<"User"> | string | null
+  referralCreditBalance?: Prisma.IntFilter<"User"> | number
+  referredBy?: Prisma.StringNullableFilter<"User"> | string | null
   vehicles?: Prisma.VehicleListRelationFilter
   accounts?: Prisma.AccountListRelationFilter
   sessions?: Prisma.SessionListRelationFilter
@@ -324,6 +386,10 @@ export type UserWhereUniqueInput = Prisma.AtLeast<{
   notifications?: Prisma.NotificationListRelationFilter
   mobileDeviceSessions?: Prisma.MobileDeviceSessionListRelationFilter
   onboardingSequences?: Prisma.OnboardingSequenceListRelationFilter
+  referrer?: Prisma.XOR<Prisma.UserNullableScalarRelationFilter, Prisma.UserWhereInput> | null
+  referrals?: Prisma.UserListRelationFilter
+  referralCode?: Prisma.XOR<Prisma.ReferralCodeNullableScalarRelationFilter, Prisma.ReferralCodeWhereInput> | null
+  referralCredits?: Prisma.ReferralCreditListRelationFilter
 }, "id" | "email">
 
 export type UserOrderByWithAggregationInput = {
@@ -343,9 +409,13 @@ export type UserOrderByWithAggregationInput = {
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   signatureUrl?: Prisma.SortOrderInput | Prisma.SortOrder
+  referralCreditBalance?: Prisma.SortOrder
+  referredBy?: Prisma.SortOrderInput | Prisma.SortOrder
   _count?: Prisma.UserCountOrderByAggregateInput
+  _avg?: Prisma.UserAvgOrderByAggregateInput
   _max?: Prisma.UserMaxOrderByAggregateInput
   _min?: Prisma.UserMinOrderByAggregateInput
+  _sum?: Prisma.UserSumOrderByAggregateInput
 }
 
 export type UserScalarWhereWithAggregatesInput = {
@@ -368,6 +438,8 @@ export type UserScalarWhereWithAggregatesInput = {
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"User"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"User"> | Date | string
   signatureUrl?: Prisma.StringNullableWithAggregatesFilter<"User"> | string | null
+  referralCreditBalance?: Prisma.IntWithAggregatesFilter<"User"> | number
+  referredBy?: Prisma.StringNullableWithAggregatesFilter<"User"> | string | null
 }
 
 export type UserCreateInput = {
@@ -387,6 +459,7 @@ export type UserCreateInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   signatureUrl?: string | null
+  referralCreditBalance?: number
   vehicles?: Prisma.VehicleCreateNestedManyWithoutUserInput
   accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
   sessions?: Prisma.SessionCreateNestedManyWithoutUserInput
@@ -394,6 +467,10 @@ export type UserCreateInput = {
   notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
   mobileDeviceSessions?: Prisma.MobileDeviceSessionCreateNestedManyWithoutUserInput
   onboardingSequences?: Prisma.OnboardingSequenceCreateNestedManyWithoutUserInput
+  referrer?: Prisma.UserCreateNestedOneWithoutReferralsInput
+  referrals?: Prisma.UserCreateNestedManyWithoutReferrerInput
+  referralCode?: Prisma.ReferralCodeCreateNestedOneWithoutUserInput
+  referralCredits?: Prisma.ReferralCreditCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateInput = {
@@ -413,6 +490,8 @@ export type UserUncheckedCreateInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   signatureUrl?: string | null
+  referralCreditBalance?: number
+  referredBy?: string | null
   vehicles?: Prisma.VehicleUncheckedCreateNestedManyWithoutUserInput
   accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
   sessions?: Prisma.SessionUncheckedCreateNestedManyWithoutUserInput
@@ -420,6 +499,9 @@ export type UserUncheckedCreateInput = {
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
   mobileDeviceSessions?: Prisma.MobileDeviceSessionUncheckedCreateNestedManyWithoutUserInput
   onboardingSequences?: Prisma.OnboardingSequenceUncheckedCreateNestedManyWithoutUserInput
+  referrals?: Prisma.UserUncheckedCreateNestedManyWithoutReferrerInput
+  referralCode?: Prisma.ReferralCodeUncheckedCreateNestedOneWithoutUserInput
+  referralCredits?: Prisma.ReferralCreditUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserUpdateInput = {
@@ -439,6 +521,7 @@ export type UserUpdateInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   signatureUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  referralCreditBalance?: Prisma.IntFieldUpdateOperationsInput | number
   vehicles?: Prisma.VehicleUpdateManyWithoutUserNestedInput
   accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
   sessions?: Prisma.SessionUpdateManyWithoutUserNestedInput
@@ -446,6 +529,10 @@ export type UserUpdateInput = {
   notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
   mobileDeviceSessions?: Prisma.MobileDeviceSessionUpdateManyWithoutUserNestedInput
   onboardingSequences?: Prisma.OnboardingSequenceUpdateManyWithoutUserNestedInput
+  referrer?: Prisma.UserUpdateOneWithoutReferralsNestedInput
+  referrals?: Prisma.UserUpdateManyWithoutReferrerNestedInput
+  referralCode?: Prisma.ReferralCodeUpdateOneWithoutUserNestedInput
+  referralCredits?: Prisma.ReferralCreditUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateInput = {
@@ -465,6 +552,8 @@ export type UserUncheckedUpdateInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   signatureUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  referralCreditBalance?: Prisma.IntFieldUpdateOperationsInput | number
+  referredBy?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   vehicles?: Prisma.VehicleUncheckedUpdateManyWithoutUserNestedInput
   accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
   sessions?: Prisma.SessionUncheckedUpdateManyWithoutUserNestedInput
@@ -472,6 +561,9 @@ export type UserUncheckedUpdateInput = {
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
   mobileDeviceSessions?: Prisma.MobileDeviceSessionUncheckedUpdateManyWithoutUserNestedInput
   onboardingSequences?: Prisma.OnboardingSequenceUncheckedUpdateManyWithoutUserNestedInput
+  referrals?: Prisma.UserUncheckedUpdateManyWithoutReferrerNestedInput
+  referralCode?: Prisma.ReferralCodeUncheckedUpdateOneWithoutUserNestedInput
+  referralCredits?: Prisma.ReferralCreditUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateManyInput = {
@@ -491,6 +583,8 @@ export type UserCreateManyInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   signatureUrl?: string | null
+  referralCreditBalance?: number
+  referredBy?: string | null
 }
 
 export type UserUpdateManyMutationInput = {
@@ -510,6 +604,7 @@ export type UserUpdateManyMutationInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   signatureUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  referralCreditBalance?: Prisma.IntFieldUpdateOperationsInput | number
 }
 
 export type UserUncheckedUpdateManyInput = {
@@ -529,6 +624,23 @@ export type UserUncheckedUpdateManyInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   signatureUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  referralCreditBalance?: Prisma.IntFieldUpdateOperationsInput | number
+  referredBy?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+}
+
+export type UserNullableScalarRelationFilter = {
+  is?: Prisma.UserWhereInput | null
+  isNot?: Prisma.UserWhereInput | null
+}
+
+export type UserListRelationFilter = {
+  every?: Prisma.UserWhereInput
+  some?: Prisma.UserWhereInput
+  none?: Prisma.UserWhereInput
+}
+
+export type UserOrderByRelationAggregateInput = {
+  _count?: Prisma.SortOrder
 }
 
 export type UserCountOrderByAggregateInput = {
@@ -548,6 +660,12 @@ export type UserCountOrderByAggregateInput = {
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   signatureUrl?: Prisma.SortOrder
+  referralCreditBalance?: Prisma.SortOrder
+  referredBy?: Prisma.SortOrder
+}
+
+export type UserAvgOrderByAggregateInput = {
+  referralCreditBalance?: Prisma.SortOrder
 }
 
 export type UserMaxOrderByAggregateInput = {
@@ -565,6 +683,8 @@ export type UserMaxOrderByAggregateInput = {
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   signatureUrl?: Prisma.SortOrder
+  referralCreditBalance?: Prisma.SortOrder
+  referredBy?: Prisma.SortOrder
 }
 
 export type UserMinOrderByAggregateInput = {
@@ -582,11 +702,37 @@ export type UserMinOrderByAggregateInput = {
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   signatureUrl?: Prisma.SortOrder
+  referralCreditBalance?: Prisma.SortOrder
+  referredBy?: Prisma.SortOrder
+}
+
+export type UserSumOrderByAggregateInput = {
+  referralCreditBalance?: Prisma.SortOrder
 }
 
 export type UserScalarRelationFilter = {
   is?: Prisma.UserWhereInput
   isNot?: Prisma.UserWhereInput
+}
+
+export type UserCreateNestedOneWithoutReferralsInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutReferralsInput, Prisma.UserUncheckedCreateWithoutReferralsInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutReferralsInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
+export type UserCreateNestedManyWithoutReferrerInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutReferrerInput, Prisma.UserUncheckedCreateWithoutReferrerInput> | Prisma.UserCreateWithoutReferrerInput[] | Prisma.UserUncheckedCreateWithoutReferrerInput[]
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutReferrerInput | Prisma.UserCreateOrConnectWithoutReferrerInput[]
+  createMany?: Prisma.UserCreateManyReferrerInputEnvelope
+  connect?: Prisma.UserWhereUniqueInput | Prisma.UserWhereUniqueInput[]
+}
+
+export type UserUncheckedCreateNestedManyWithoutReferrerInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutReferrerInput, Prisma.UserUncheckedCreateWithoutReferrerInput> | Prisma.UserCreateWithoutReferrerInput[] | Prisma.UserUncheckedCreateWithoutReferrerInput[]
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutReferrerInput | Prisma.UserCreateOrConnectWithoutReferrerInput[]
+  createMany?: Prisma.UserCreateManyReferrerInputEnvelope
+  connect?: Prisma.UserWhereUniqueInput | Prisma.UserWhereUniqueInput[]
 }
 
 export type StringFieldUpdateOperationsInput = {
@@ -611,6 +757,52 @@ export type EnumUserRoleFieldUpdateOperationsInput = {
 
 export type DateTimeFieldUpdateOperationsInput = {
   set?: Date | string
+}
+
+export type IntFieldUpdateOperationsInput = {
+  set?: number
+  increment?: number
+  decrement?: number
+  multiply?: number
+  divide?: number
+}
+
+export type UserUpdateOneWithoutReferralsNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutReferralsInput, Prisma.UserUncheckedCreateWithoutReferralsInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutReferralsInput
+  upsert?: Prisma.UserUpsertWithoutReferralsInput
+  disconnect?: Prisma.UserWhereInput | boolean
+  delete?: Prisma.UserWhereInput | boolean
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutReferralsInput, Prisma.UserUpdateWithoutReferralsInput>, Prisma.UserUncheckedUpdateWithoutReferralsInput>
+}
+
+export type UserUpdateManyWithoutReferrerNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutReferrerInput, Prisma.UserUncheckedCreateWithoutReferrerInput> | Prisma.UserCreateWithoutReferrerInput[] | Prisma.UserUncheckedCreateWithoutReferrerInput[]
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutReferrerInput | Prisma.UserCreateOrConnectWithoutReferrerInput[]
+  upsert?: Prisma.UserUpsertWithWhereUniqueWithoutReferrerInput | Prisma.UserUpsertWithWhereUniqueWithoutReferrerInput[]
+  createMany?: Prisma.UserCreateManyReferrerInputEnvelope
+  set?: Prisma.UserWhereUniqueInput | Prisma.UserWhereUniqueInput[]
+  disconnect?: Prisma.UserWhereUniqueInput | Prisma.UserWhereUniqueInput[]
+  delete?: Prisma.UserWhereUniqueInput | Prisma.UserWhereUniqueInput[]
+  connect?: Prisma.UserWhereUniqueInput | Prisma.UserWhereUniqueInput[]
+  update?: Prisma.UserUpdateWithWhereUniqueWithoutReferrerInput | Prisma.UserUpdateWithWhereUniqueWithoutReferrerInput[]
+  updateMany?: Prisma.UserUpdateManyWithWhereWithoutReferrerInput | Prisma.UserUpdateManyWithWhereWithoutReferrerInput[]
+  deleteMany?: Prisma.UserScalarWhereInput | Prisma.UserScalarWhereInput[]
+}
+
+export type UserUncheckedUpdateManyWithoutReferrerNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutReferrerInput, Prisma.UserUncheckedCreateWithoutReferrerInput> | Prisma.UserCreateWithoutReferrerInput[] | Prisma.UserUncheckedCreateWithoutReferrerInput[]
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutReferrerInput | Prisma.UserCreateOrConnectWithoutReferrerInput[]
+  upsert?: Prisma.UserUpsertWithWhereUniqueWithoutReferrerInput | Prisma.UserUpsertWithWhereUniqueWithoutReferrerInput[]
+  createMany?: Prisma.UserCreateManyReferrerInputEnvelope
+  set?: Prisma.UserWhereUniqueInput | Prisma.UserWhereUniqueInput[]
+  disconnect?: Prisma.UserWhereUniqueInput | Prisma.UserWhereUniqueInput[]
+  delete?: Prisma.UserWhereUniqueInput | Prisma.UserWhereUniqueInput[]
+  connect?: Prisma.UserWhereUniqueInput | Prisma.UserWhereUniqueInput[]
+  update?: Prisma.UserUpdateWithWhereUniqueWithoutReferrerInput | Prisma.UserUpdateWithWhereUniqueWithoutReferrerInput[]
+  updateMany?: Prisma.UserUpdateManyWithWhereWithoutReferrerInput | Prisma.UserUpdateManyWithWhereWithoutReferrerInput[]
+  deleteMany?: Prisma.UserScalarWhereInput | Prisma.UserScalarWhereInput[]
 }
 
 export type UserCreateNestedOneWithoutMobileDeviceSessionsInput = {
@@ -697,6 +889,34 @@ export type UserUpdateOneRequiredWithoutSessionsNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutSessionsInput, Prisma.UserUpdateWithoutSessionsInput>, Prisma.UserUncheckedUpdateWithoutSessionsInput>
 }
 
+export type UserCreateNestedOneWithoutReferralCodeInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutReferralCodeInput, Prisma.UserUncheckedCreateWithoutReferralCodeInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutReferralCodeInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
+export type UserUpdateOneRequiredWithoutReferralCodeNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutReferralCodeInput, Prisma.UserUncheckedCreateWithoutReferralCodeInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutReferralCodeInput
+  upsert?: Prisma.UserUpsertWithoutReferralCodeInput
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutReferralCodeInput, Prisma.UserUpdateWithoutReferralCodeInput>, Prisma.UserUncheckedUpdateWithoutReferralCodeInput>
+}
+
+export type UserCreateNestedOneWithoutReferralCreditsInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutReferralCreditsInput, Prisma.UserUncheckedCreateWithoutReferralCreditsInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutReferralCreditsInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
+export type UserUpdateOneRequiredWithoutReferralCreditsNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutReferralCreditsInput, Prisma.UserUncheckedCreateWithoutReferralCreditsInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutReferralCreditsInput
+  upsert?: Prisma.UserUpsertWithoutReferralCreditsInput
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutReferralCreditsInput, Prisma.UserUpdateWithoutReferralCreditsInput>, Prisma.UserUncheckedUpdateWithoutReferralCreditsInput>
+}
+
 export type UserCreateNestedOneWithoutOnboardingSequencesInput = {
   create?: Prisma.XOR<Prisma.UserCreateWithoutOnboardingSequencesInput, Prisma.UserUncheckedCreateWithoutOnboardingSequencesInput>
   connectOrCreate?: Prisma.UserCreateOrConnectWithoutOnboardingSequencesInput
@@ -709,6 +929,252 @@ export type UserUpdateOneRequiredWithoutOnboardingSequencesNestedInput = {
   upsert?: Prisma.UserUpsertWithoutOnboardingSequencesInput
   connect?: Prisma.UserWhereUniqueInput
   update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutOnboardingSequencesInput, Prisma.UserUpdateWithoutOnboardingSequencesInput>, Prisma.UserUncheckedUpdateWithoutOnboardingSequencesInput>
+}
+
+export type UserCreateWithoutReferralsInput = {
+  id?: string
+  email?: string | null
+  name?: string | null
+  emailVerified?: Date | string | null
+  image?: string | null
+  title?: $Enums.UserTitle | null
+  phoneNumber?: string | null
+  address?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  role?: $Enums.UserRole
+  stripeCustomerId?: string | null
+  revenueCatCustomerId?: string | null
+  notificationPreferences?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  lastPremiumPurchaseAt?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  signatureUrl?: string | null
+  referralCreditBalance?: number
+  vehicles?: Prisma.VehicleCreateNestedManyWithoutUserInput
+  accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
+  sessions?: Prisma.SessionCreateNestedManyWithoutUserInput
+  pushTokens?: Prisma.PushTokenCreateNestedManyWithoutUserInput
+  notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
+  mobileDeviceSessions?: Prisma.MobileDeviceSessionCreateNestedManyWithoutUserInput
+  onboardingSequences?: Prisma.OnboardingSequenceCreateNestedManyWithoutUserInput
+  referrer?: Prisma.UserCreateNestedOneWithoutReferralsInput
+  referralCode?: Prisma.ReferralCodeCreateNestedOneWithoutUserInput
+  referralCredits?: Prisma.ReferralCreditCreateNestedManyWithoutUserInput
+}
+
+export type UserUncheckedCreateWithoutReferralsInput = {
+  id?: string
+  email?: string | null
+  name?: string | null
+  emailVerified?: Date | string | null
+  image?: string | null
+  title?: $Enums.UserTitle | null
+  phoneNumber?: string | null
+  address?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  role?: $Enums.UserRole
+  stripeCustomerId?: string | null
+  revenueCatCustomerId?: string | null
+  notificationPreferences?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  lastPremiumPurchaseAt?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  signatureUrl?: string | null
+  referralCreditBalance?: number
+  referredBy?: string | null
+  vehicles?: Prisma.VehicleUncheckedCreateNestedManyWithoutUserInput
+  accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
+  sessions?: Prisma.SessionUncheckedCreateNestedManyWithoutUserInput
+  pushTokens?: Prisma.PushTokenUncheckedCreateNestedManyWithoutUserInput
+  notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
+  mobileDeviceSessions?: Prisma.MobileDeviceSessionUncheckedCreateNestedManyWithoutUserInput
+  onboardingSequences?: Prisma.OnboardingSequenceUncheckedCreateNestedManyWithoutUserInput
+  referralCode?: Prisma.ReferralCodeUncheckedCreateNestedOneWithoutUserInput
+  referralCredits?: Prisma.ReferralCreditUncheckedCreateNestedManyWithoutUserInput
+}
+
+export type UserCreateOrConnectWithoutReferralsInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutReferralsInput, Prisma.UserUncheckedCreateWithoutReferralsInput>
+}
+
+export type UserCreateWithoutReferrerInput = {
+  id?: string
+  email?: string | null
+  name?: string | null
+  emailVerified?: Date | string | null
+  image?: string | null
+  title?: $Enums.UserTitle | null
+  phoneNumber?: string | null
+  address?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  role?: $Enums.UserRole
+  stripeCustomerId?: string | null
+  revenueCatCustomerId?: string | null
+  notificationPreferences?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  lastPremiumPurchaseAt?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  signatureUrl?: string | null
+  referralCreditBalance?: number
+  vehicles?: Prisma.VehicleCreateNestedManyWithoutUserInput
+  accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
+  sessions?: Prisma.SessionCreateNestedManyWithoutUserInput
+  pushTokens?: Prisma.PushTokenCreateNestedManyWithoutUserInput
+  notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
+  mobileDeviceSessions?: Prisma.MobileDeviceSessionCreateNestedManyWithoutUserInput
+  onboardingSequences?: Prisma.OnboardingSequenceCreateNestedManyWithoutUserInput
+  referrals?: Prisma.UserCreateNestedManyWithoutReferrerInput
+  referralCode?: Prisma.ReferralCodeCreateNestedOneWithoutUserInput
+  referralCredits?: Prisma.ReferralCreditCreateNestedManyWithoutUserInput
+}
+
+export type UserUncheckedCreateWithoutReferrerInput = {
+  id?: string
+  email?: string | null
+  name?: string | null
+  emailVerified?: Date | string | null
+  image?: string | null
+  title?: $Enums.UserTitle | null
+  phoneNumber?: string | null
+  address?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  role?: $Enums.UserRole
+  stripeCustomerId?: string | null
+  revenueCatCustomerId?: string | null
+  notificationPreferences?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  lastPremiumPurchaseAt?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  signatureUrl?: string | null
+  referralCreditBalance?: number
+  vehicles?: Prisma.VehicleUncheckedCreateNestedManyWithoutUserInput
+  accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
+  sessions?: Prisma.SessionUncheckedCreateNestedManyWithoutUserInput
+  pushTokens?: Prisma.PushTokenUncheckedCreateNestedManyWithoutUserInput
+  notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
+  mobileDeviceSessions?: Prisma.MobileDeviceSessionUncheckedCreateNestedManyWithoutUserInput
+  onboardingSequences?: Prisma.OnboardingSequenceUncheckedCreateNestedManyWithoutUserInput
+  referrals?: Prisma.UserUncheckedCreateNestedManyWithoutReferrerInput
+  referralCode?: Prisma.ReferralCodeUncheckedCreateNestedOneWithoutUserInput
+  referralCredits?: Prisma.ReferralCreditUncheckedCreateNestedManyWithoutUserInput
+}
+
+export type UserCreateOrConnectWithoutReferrerInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutReferrerInput, Prisma.UserUncheckedCreateWithoutReferrerInput>
+}
+
+export type UserCreateManyReferrerInputEnvelope = {
+  data: Prisma.UserCreateManyReferrerInput | Prisma.UserCreateManyReferrerInput[]
+  skipDuplicates?: boolean
+}
+
+export type UserUpsertWithoutReferralsInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutReferralsInput, Prisma.UserUncheckedUpdateWithoutReferralsInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutReferralsInput, Prisma.UserUncheckedCreateWithoutReferralsInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutReferralsInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutReferralsInput, Prisma.UserUncheckedUpdateWithoutReferralsInput>
+}
+
+export type UserUpdateWithoutReferralsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  emailVerified?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  title?: Prisma.NullableEnumUserTitleFieldUpdateOperationsInput | $Enums.UserTitle | null
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+  stripeCustomerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  revenueCatCustomerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  notificationPreferences?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  lastPremiumPurchaseAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  signatureUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  referralCreditBalance?: Prisma.IntFieldUpdateOperationsInput | number
+  vehicles?: Prisma.VehicleUpdateManyWithoutUserNestedInput
+  accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
+  sessions?: Prisma.SessionUpdateManyWithoutUserNestedInput
+  pushTokens?: Prisma.PushTokenUpdateManyWithoutUserNestedInput
+  notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
+  mobileDeviceSessions?: Prisma.MobileDeviceSessionUpdateManyWithoutUserNestedInput
+  onboardingSequences?: Prisma.OnboardingSequenceUpdateManyWithoutUserNestedInput
+  referrer?: Prisma.UserUpdateOneWithoutReferralsNestedInput
+  referralCode?: Prisma.ReferralCodeUpdateOneWithoutUserNestedInput
+  referralCredits?: Prisma.ReferralCreditUpdateManyWithoutUserNestedInput
+}
+
+export type UserUncheckedUpdateWithoutReferralsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  emailVerified?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  title?: Prisma.NullableEnumUserTitleFieldUpdateOperationsInput | $Enums.UserTitle | null
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+  stripeCustomerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  revenueCatCustomerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  notificationPreferences?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  lastPremiumPurchaseAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  signatureUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  referralCreditBalance?: Prisma.IntFieldUpdateOperationsInput | number
+  referredBy?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  vehicles?: Prisma.VehicleUncheckedUpdateManyWithoutUserNestedInput
+  accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
+  sessions?: Prisma.SessionUncheckedUpdateManyWithoutUserNestedInput
+  pushTokens?: Prisma.PushTokenUncheckedUpdateManyWithoutUserNestedInput
+  notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
+  mobileDeviceSessions?: Prisma.MobileDeviceSessionUncheckedUpdateManyWithoutUserNestedInput
+  onboardingSequences?: Prisma.OnboardingSequenceUncheckedUpdateManyWithoutUserNestedInput
+  referralCode?: Prisma.ReferralCodeUncheckedUpdateOneWithoutUserNestedInput
+  referralCredits?: Prisma.ReferralCreditUncheckedUpdateManyWithoutUserNestedInput
+}
+
+export type UserUpsertWithWhereUniqueWithoutReferrerInput = {
+  where: Prisma.UserWhereUniqueInput
+  update: Prisma.XOR<Prisma.UserUpdateWithoutReferrerInput, Prisma.UserUncheckedUpdateWithoutReferrerInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutReferrerInput, Prisma.UserUncheckedCreateWithoutReferrerInput>
+}
+
+export type UserUpdateWithWhereUniqueWithoutReferrerInput = {
+  where: Prisma.UserWhereUniqueInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutReferrerInput, Prisma.UserUncheckedUpdateWithoutReferrerInput>
+}
+
+export type UserUpdateManyWithWhereWithoutReferrerInput = {
+  where: Prisma.UserScalarWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateManyMutationInput, Prisma.UserUncheckedUpdateManyWithoutReferrerInput>
+}
+
+export type UserScalarWhereInput = {
+  AND?: Prisma.UserScalarWhereInput | Prisma.UserScalarWhereInput[]
+  OR?: Prisma.UserScalarWhereInput[]
+  NOT?: Prisma.UserScalarWhereInput | Prisma.UserScalarWhereInput[]
+  id?: Prisma.StringFilter<"User"> | string
+  email?: Prisma.StringNullableFilter<"User"> | string | null
+  name?: Prisma.StringNullableFilter<"User"> | string | null
+  emailVerified?: Prisma.DateTimeNullableFilter<"User"> | Date | string | null
+  image?: Prisma.StringNullableFilter<"User"> | string | null
+  title?: Prisma.EnumUserTitleNullableFilter<"User"> | $Enums.UserTitle | null
+  phoneNumber?: Prisma.StringNullableFilter<"User"> | string | null
+  address?: Prisma.JsonNullableFilter<"User">
+  role?: Prisma.EnumUserRoleFilter<"User"> | $Enums.UserRole
+  stripeCustomerId?: Prisma.StringNullableFilter<"User"> | string | null
+  revenueCatCustomerId?: Prisma.StringNullableFilter<"User"> | string | null
+  notificationPreferences?: Prisma.JsonNullableFilter<"User">
+  lastPremiumPurchaseAt?: Prisma.DateTimeNullableFilter<"User"> | Date | string | null
+  createdAt?: Prisma.DateTimeFilter<"User"> | Date | string
+  updatedAt?: Prisma.DateTimeFilter<"User"> | Date | string
+  signatureUrl?: Prisma.StringNullableFilter<"User"> | string | null
+  referralCreditBalance?: Prisma.IntFilter<"User"> | number
+  referredBy?: Prisma.StringNullableFilter<"User"> | string | null
 }
 
 export type UserCreateWithoutMobileDeviceSessionsInput = {
@@ -728,12 +1194,17 @@ export type UserCreateWithoutMobileDeviceSessionsInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   signatureUrl?: string | null
+  referralCreditBalance?: number
   vehicles?: Prisma.VehicleCreateNestedManyWithoutUserInput
   accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
   sessions?: Prisma.SessionCreateNestedManyWithoutUserInput
   pushTokens?: Prisma.PushTokenCreateNestedManyWithoutUserInput
   notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
   onboardingSequences?: Prisma.OnboardingSequenceCreateNestedManyWithoutUserInput
+  referrer?: Prisma.UserCreateNestedOneWithoutReferralsInput
+  referrals?: Prisma.UserCreateNestedManyWithoutReferrerInput
+  referralCode?: Prisma.ReferralCodeCreateNestedOneWithoutUserInput
+  referralCredits?: Prisma.ReferralCreditCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutMobileDeviceSessionsInput = {
@@ -753,12 +1224,17 @@ export type UserUncheckedCreateWithoutMobileDeviceSessionsInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   signatureUrl?: string | null
+  referralCreditBalance?: number
+  referredBy?: string | null
   vehicles?: Prisma.VehicleUncheckedCreateNestedManyWithoutUserInput
   accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
   sessions?: Prisma.SessionUncheckedCreateNestedManyWithoutUserInput
   pushTokens?: Prisma.PushTokenUncheckedCreateNestedManyWithoutUserInput
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
   onboardingSequences?: Prisma.OnboardingSequenceUncheckedCreateNestedManyWithoutUserInput
+  referrals?: Prisma.UserUncheckedCreateNestedManyWithoutReferrerInput
+  referralCode?: Prisma.ReferralCodeUncheckedCreateNestedOneWithoutUserInput
+  referralCredits?: Prisma.ReferralCreditUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutMobileDeviceSessionsInput = {
@@ -794,12 +1270,17 @@ export type UserUpdateWithoutMobileDeviceSessionsInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   signatureUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  referralCreditBalance?: Prisma.IntFieldUpdateOperationsInput | number
   vehicles?: Prisma.VehicleUpdateManyWithoutUserNestedInput
   accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
   sessions?: Prisma.SessionUpdateManyWithoutUserNestedInput
   pushTokens?: Prisma.PushTokenUpdateManyWithoutUserNestedInput
   notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
   onboardingSequences?: Prisma.OnboardingSequenceUpdateManyWithoutUserNestedInput
+  referrer?: Prisma.UserUpdateOneWithoutReferralsNestedInput
+  referrals?: Prisma.UserUpdateManyWithoutReferrerNestedInput
+  referralCode?: Prisma.ReferralCodeUpdateOneWithoutUserNestedInput
+  referralCredits?: Prisma.ReferralCreditUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutMobileDeviceSessionsInput = {
@@ -819,12 +1300,17 @@ export type UserUncheckedUpdateWithoutMobileDeviceSessionsInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   signatureUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  referralCreditBalance?: Prisma.IntFieldUpdateOperationsInput | number
+  referredBy?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   vehicles?: Prisma.VehicleUncheckedUpdateManyWithoutUserNestedInput
   accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
   sessions?: Prisma.SessionUncheckedUpdateManyWithoutUserNestedInput
   pushTokens?: Prisma.PushTokenUncheckedUpdateManyWithoutUserNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
   onboardingSequences?: Prisma.OnboardingSequenceUncheckedUpdateManyWithoutUserNestedInput
+  referrals?: Prisma.UserUncheckedUpdateManyWithoutReferrerNestedInput
+  referralCode?: Prisma.ReferralCodeUncheckedUpdateOneWithoutUserNestedInput
+  referralCredits?: Prisma.ReferralCreditUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutVehiclesInput = {
@@ -844,12 +1330,17 @@ export type UserCreateWithoutVehiclesInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   signatureUrl?: string | null
+  referralCreditBalance?: number
   accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
   sessions?: Prisma.SessionCreateNestedManyWithoutUserInput
   pushTokens?: Prisma.PushTokenCreateNestedManyWithoutUserInput
   notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
   mobileDeviceSessions?: Prisma.MobileDeviceSessionCreateNestedManyWithoutUserInput
   onboardingSequences?: Prisma.OnboardingSequenceCreateNestedManyWithoutUserInput
+  referrer?: Prisma.UserCreateNestedOneWithoutReferralsInput
+  referrals?: Prisma.UserCreateNestedManyWithoutReferrerInput
+  referralCode?: Prisma.ReferralCodeCreateNestedOneWithoutUserInput
+  referralCredits?: Prisma.ReferralCreditCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutVehiclesInput = {
@@ -869,12 +1360,17 @@ export type UserUncheckedCreateWithoutVehiclesInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   signatureUrl?: string | null
+  referralCreditBalance?: number
+  referredBy?: string | null
   accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
   sessions?: Prisma.SessionUncheckedCreateNestedManyWithoutUserInput
   pushTokens?: Prisma.PushTokenUncheckedCreateNestedManyWithoutUserInput
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
   mobileDeviceSessions?: Prisma.MobileDeviceSessionUncheckedCreateNestedManyWithoutUserInput
   onboardingSequences?: Prisma.OnboardingSequenceUncheckedCreateNestedManyWithoutUserInput
+  referrals?: Prisma.UserUncheckedCreateNestedManyWithoutReferrerInput
+  referralCode?: Prisma.ReferralCodeUncheckedCreateNestedOneWithoutUserInput
+  referralCredits?: Prisma.ReferralCreditUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutVehiclesInput = {
@@ -910,12 +1406,17 @@ export type UserUpdateWithoutVehiclesInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   signatureUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  referralCreditBalance?: Prisma.IntFieldUpdateOperationsInput | number
   accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
   sessions?: Prisma.SessionUpdateManyWithoutUserNestedInput
   pushTokens?: Prisma.PushTokenUpdateManyWithoutUserNestedInput
   notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
   mobileDeviceSessions?: Prisma.MobileDeviceSessionUpdateManyWithoutUserNestedInput
   onboardingSequences?: Prisma.OnboardingSequenceUpdateManyWithoutUserNestedInput
+  referrer?: Prisma.UserUpdateOneWithoutReferralsNestedInput
+  referrals?: Prisma.UserUpdateManyWithoutReferrerNestedInput
+  referralCode?: Prisma.ReferralCodeUpdateOneWithoutUserNestedInput
+  referralCredits?: Prisma.ReferralCreditUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutVehiclesInput = {
@@ -935,12 +1436,17 @@ export type UserUncheckedUpdateWithoutVehiclesInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   signatureUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  referralCreditBalance?: Prisma.IntFieldUpdateOperationsInput | number
+  referredBy?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
   sessions?: Prisma.SessionUncheckedUpdateManyWithoutUserNestedInput
   pushTokens?: Prisma.PushTokenUncheckedUpdateManyWithoutUserNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
   mobileDeviceSessions?: Prisma.MobileDeviceSessionUncheckedUpdateManyWithoutUserNestedInput
   onboardingSequences?: Prisma.OnboardingSequenceUncheckedUpdateManyWithoutUserNestedInput
+  referrals?: Prisma.UserUncheckedUpdateManyWithoutReferrerNestedInput
+  referralCode?: Prisma.ReferralCodeUncheckedUpdateOneWithoutUserNestedInput
+  referralCredits?: Prisma.ReferralCreditUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutNotificationsInput = {
@@ -960,12 +1466,17 @@ export type UserCreateWithoutNotificationsInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   signatureUrl?: string | null
+  referralCreditBalance?: number
   vehicles?: Prisma.VehicleCreateNestedManyWithoutUserInput
   accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
   sessions?: Prisma.SessionCreateNestedManyWithoutUserInput
   pushTokens?: Prisma.PushTokenCreateNestedManyWithoutUserInput
   mobileDeviceSessions?: Prisma.MobileDeviceSessionCreateNestedManyWithoutUserInput
   onboardingSequences?: Prisma.OnboardingSequenceCreateNestedManyWithoutUserInput
+  referrer?: Prisma.UserCreateNestedOneWithoutReferralsInput
+  referrals?: Prisma.UserCreateNestedManyWithoutReferrerInput
+  referralCode?: Prisma.ReferralCodeCreateNestedOneWithoutUserInput
+  referralCredits?: Prisma.ReferralCreditCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutNotificationsInput = {
@@ -985,12 +1496,17 @@ export type UserUncheckedCreateWithoutNotificationsInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   signatureUrl?: string | null
+  referralCreditBalance?: number
+  referredBy?: string | null
   vehicles?: Prisma.VehicleUncheckedCreateNestedManyWithoutUserInput
   accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
   sessions?: Prisma.SessionUncheckedCreateNestedManyWithoutUserInput
   pushTokens?: Prisma.PushTokenUncheckedCreateNestedManyWithoutUserInput
   mobileDeviceSessions?: Prisma.MobileDeviceSessionUncheckedCreateNestedManyWithoutUserInput
   onboardingSequences?: Prisma.OnboardingSequenceUncheckedCreateNestedManyWithoutUserInput
+  referrals?: Prisma.UserUncheckedCreateNestedManyWithoutReferrerInput
+  referralCode?: Prisma.ReferralCodeUncheckedCreateNestedOneWithoutUserInput
+  referralCredits?: Prisma.ReferralCreditUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutNotificationsInput = {
@@ -1026,12 +1542,17 @@ export type UserUpdateWithoutNotificationsInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   signatureUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  referralCreditBalance?: Prisma.IntFieldUpdateOperationsInput | number
   vehicles?: Prisma.VehicleUpdateManyWithoutUserNestedInput
   accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
   sessions?: Prisma.SessionUpdateManyWithoutUserNestedInput
   pushTokens?: Prisma.PushTokenUpdateManyWithoutUserNestedInput
   mobileDeviceSessions?: Prisma.MobileDeviceSessionUpdateManyWithoutUserNestedInput
   onboardingSequences?: Prisma.OnboardingSequenceUpdateManyWithoutUserNestedInput
+  referrer?: Prisma.UserUpdateOneWithoutReferralsNestedInput
+  referrals?: Prisma.UserUpdateManyWithoutReferrerNestedInput
+  referralCode?: Prisma.ReferralCodeUpdateOneWithoutUserNestedInput
+  referralCredits?: Prisma.ReferralCreditUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutNotificationsInput = {
@@ -1051,12 +1572,17 @@ export type UserUncheckedUpdateWithoutNotificationsInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   signatureUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  referralCreditBalance?: Prisma.IntFieldUpdateOperationsInput | number
+  referredBy?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   vehicles?: Prisma.VehicleUncheckedUpdateManyWithoutUserNestedInput
   accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
   sessions?: Prisma.SessionUncheckedUpdateManyWithoutUserNestedInput
   pushTokens?: Prisma.PushTokenUncheckedUpdateManyWithoutUserNestedInput
   mobileDeviceSessions?: Prisma.MobileDeviceSessionUncheckedUpdateManyWithoutUserNestedInput
   onboardingSequences?: Prisma.OnboardingSequenceUncheckedUpdateManyWithoutUserNestedInput
+  referrals?: Prisma.UserUncheckedUpdateManyWithoutReferrerNestedInput
+  referralCode?: Prisma.ReferralCodeUncheckedUpdateOneWithoutUserNestedInput
+  referralCredits?: Prisma.ReferralCreditUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutPushTokensInput = {
@@ -1076,12 +1602,17 @@ export type UserCreateWithoutPushTokensInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   signatureUrl?: string | null
+  referralCreditBalance?: number
   vehicles?: Prisma.VehicleCreateNestedManyWithoutUserInput
   accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
   sessions?: Prisma.SessionCreateNestedManyWithoutUserInput
   notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
   mobileDeviceSessions?: Prisma.MobileDeviceSessionCreateNestedManyWithoutUserInput
   onboardingSequences?: Prisma.OnboardingSequenceCreateNestedManyWithoutUserInput
+  referrer?: Prisma.UserCreateNestedOneWithoutReferralsInput
+  referrals?: Prisma.UserCreateNestedManyWithoutReferrerInput
+  referralCode?: Prisma.ReferralCodeCreateNestedOneWithoutUserInput
+  referralCredits?: Prisma.ReferralCreditCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutPushTokensInput = {
@@ -1101,12 +1632,17 @@ export type UserUncheckedCreateWithoutPushTokensInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   signatureUrl?: string | null
+  referralCreditBalance?: number
+  referredBy?: string | null
   vehicles?: Prisma.VehicleUncheckedCreateNestedManyWithoutUserInput
   accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
   sessions?: Prisma.SessionUncheckedCreateNestedManyWithoutUserInput
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
   mobileDeviceSessions?: Prisma.MobileDeviceSessionUncheckedCreateNestedManyWithoutUserInput
   onboardingSequences?: Prisma.OnboardingSequenceUncheckedCreateNestedManyWithoutUserInput
+  referrals?: Prisma.UserUncheckedCreateNestedManyWithoutReferrerInput
+  referralCode?: Prisma.ReferralCodeUncheckedCreateNestedOneWithoutUserInput
+  referralCredits?: Prisma.ReferralCreditUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutPushTokensInput = {
@@ -1142,12 +1678,17 @@ export type UserUpdateWithoutPushTokensInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   signatureUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  referralCreditBalance?: Prisma.IntFieldUpdateOperationsInput | number
   vehicles?: Prisma.VehicleUpdateManyWithoutUserNestedInput
   accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
   sessions?: Prisma.SessionUpdateManyWithoutUserNestedInput
   notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
   mobileDeviceSessions?: Prisma.MobileDeviceSessionUpdateManyWithoutUserNestedInput
   onboardingSequences?: Prisma.OnboardingSequenceUpdateManyWithoutUserNestedInput
+  referrer?: Prisma.UserUpdateOneWithoutReferralsNestedInput
+  referrals?: Prisma.UserUpdateManyWithoutReferrerNestedInput
+  referralCode?: Prisma.ReferralCodeUpdateOneWithoutUserNestedInput
+  referralCredits?: Prisma.ReferralCreditUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutPushTokensInput = {
@@ -1167,12 +1708,17 @@ export type UserUncheckedUpdateWithoutPushTokensInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   signatureUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  referralCreditBalance?: Prisma.IntFieldUpdateOperationsInput | number
+  referredBy?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   vehicles?: Prisma.VehicleUncheckedUpdateManyWithoutUserNestedInput
   accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
   sessions?: Prisma.SessionUncheckedUpdateManyWithoutUserNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
   mobileDeviceSessions?: Prisma.MobileDeviceSessionUncheckedUpdateManyWithoutUserNestedInput
   onboardingSequences?: Prisma.OnboardingSequenceUncheckedUpdateManyWithoutUserNestedInput
+  referrals?: Prisma.UserUncheckedUpdateManyWithoutReferrerNestedInput
+  referralCode?: Prisma.ReferralCodeUncheckedUpdateOneWithoutUserNestedInput
+  referralCredits?: Prisma.ReferralCreditUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutAccountsInput = {
@@ -1192,12 +1738,17 @@ export type UserCreateWithoutAccountsInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   signatureUrl?: string | null
+  referralCreditBalance?: number
   vehicles?: Prisma.VehicleCreateNestedManyWithoutUserInput
   sessions?: Prisma.SessionCreateNestedManyWithoutUserInput
   pushTokens?: Prisma.PushTokenCreateNestedManyWithoutUserInput
   notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
   mobileDeviceSessions?: Prisma.MobileDeviceSessionCreateNestedManyWithoutUserInput
   onboardingSequences?: Prisma.OnboardingSequenceCreateNestedManyWithoutUserInput
+  referrer?: Prisma.UserCreateNestedOneWithoutReferralsInput
+  referrals?: Prisma.UserCreateNestedManyWithoutReferrerInput
+  referralCode?: Prisma.ReferralCodeCreateNestedOneWithoutUserInput
+  referralCredits?: Prisma.ReferralCreditCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutAccountsInput = {
@@ -1217,12 +1768,17 @@ export type UserUncheckedCreateWithoutAccountsInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   signatureUrl?: string | null
+  referralCreditBalance?: number
+  referredBy?: string | null
   vehicles?: Prisma.VehicleUncheckedCreateNestedManyWithoutUserInput
   sessions?: Prisma.SessionUncheckedCreateNestedManyWithoutUserInput
   pushTokens?: Prisma.PushTokenUncheckedCreateNestedManyWithoutUserInput
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
   mobileDeviceSessions?: Prisma.MobileDeviceSessionUncheckedCreateNestedManyWithoutUserInput
   onboardingSequences?: Prisma.OnboardingSequenceUncheckedCreateNestedManyWithoutUserInput
+  referrals?: Prisma.UserUncheckedCreateNestedManyWithoutReferrerInput
+  referralCode?: Prisma.ReferralCodeUncheckedCreateNestedOneWithoutUserInput
+  referralCredits?: Prisma.ReferralCreditUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutAccountsInput = {
@@ -1258,12 +1814,17 @@ export type UserUpdateWithoutAccountsInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   signatureUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  referralCreditBalance?: Prisma.IntFieldUpdateOperationsInput | number
   vehicles?: Prisma.VehicleUpdateManyWithoutUserNestedInput
   sessions?: Prisma.SessionUpdateManyWithoutUserNestedInput
   pushTokens?: Prisma.PushTokenUpdateManyWithoutUserNestedInput
   notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
   mobileDeviceSessions?: Prisma.MobileDeviceSessionUpdateManyWithoutUserNestedInput
   onboardingSequences?: Prisma.OnboardingSequenceUpdateManyWithoutUserNestedInput
+  referrer?: Prisma.UserUpdateOneWithoutReferralsNestedInput
+  referrals?: Prisma.UserUpdateManyWithoutReferrerNestedInput
+  referralCode?: Prisma.ReferralCodeUpdateOneWithoutUserNestedInput
+  referralCredits?: Prisma.ReferralCreditUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutAccountsInput = {
@@ -1283,12 +1844,17 @@ export type UserUncheckedUpdateWithoutAccountsInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   signatureUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  referralCreditBalance?: Prisma.IntFieldUpdateOperationsInput | number
+  referredBy?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   vehicles?: Prisma.VehicleUncheckedUpdateManyWithoutUserNestedInput
   sessions?: Prisma.SessionUncheckedUpdateManyWithoutUserNestedInput
   pushTokens?: Prisma.PushTokenUncheckedUpdateManyWithoutUserNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
   mobileDeviceSessions?: Prisma.MobileDeviceSessionUncheckedUpdateManyWithoutUserNestedInput
   onboardingSequences?: Prisma.OnboardingSequenceUncheckedUpdateManyWithoutUserNestedInput
+  referrals?: Prisma.UserUncheckedUpdateManyWithoutReferrerNestedInput
+  referralCode?: Prisma.ReferralCodeUncheckedUpdateOneWithoutUserNestedInput
+  referralCredits?: Prisma.ReferralCreditUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutSessionsInput = {
@@ -1308,12 +1874,17 @@ export type UserCreateWithoutSessionsInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   signatureUrl?: string | null
+  referralCreditBalance?: number
   vehicles?: Prisma.VehicleCreateNestedManyWithoutUserInput
   accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
   pushTokens?: Prisma.PushTokenCreateNestedManyWithoutUserInput
   notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
   mobileDeviceSessions?: Prisma.MobileDeviceSessionCreateNestedManyWithoutUserInput
   onboardingSequences?: Prisma.OnboardingSequenceCreateNestedManyWithoutUserInput
+  referrer?: Prisma.UserCreateNestedOneWithoutReferralsInput
+  referrals?: Prisma.UserCreateNestedManyWithoutReferrerInput
+  referralCode?: Prisma.ReferralCodeCreateNestedOneWithoutUserInput
+  referralCredits?: Prisma.ReferralCreditCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutSessionsInput = {
@@ -1333,12 +1904,17 @@ export type UserUncheckedCreateWithoutSessionsInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   signatureUrl?: string | null
+  referralCreditBalance?: number
+  referredBy?: string | null
   vehicles?: Prisma.VehicleUncheckedCreateNestedManyWithoutUserInput
   accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
   pushTokens?: Prisma.PushTokenUncheckedCreateNestedManyWithoutUserInput
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
   mobileDeviceSessions?: Prisma.MobileDeviceSessionUncheckedCreateNestedManyWithoutUserInput
   onboardingSequences?: Prisma.OnboardingSequenceUncheckedCreateNestedManyWithoutUserInput
+  referrals?: Prisma.UserUncheckedCreateNestedManyWithoutReferrerInput
+  referralCode?: Prisma.ReferralCodeUncheckedCreateNestedOneWithoutUserInput
+  referralCredits?: Prisma.ReferralCreditUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutSessionsInput = {
@@ -1374,12 +1950,17 @@ export type UserUpdateWithoutSessionsInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   signatureUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  referralCreditBalance?: Prisma.IntFieldUpdateOperationsInput | number
   vehicles?: Prisma.VehicleUpdateManyWithoutUserNestedInput
   accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
   pushTokens?: Prisma.PushTokenUpdateManyWithoutUserNestedInput
   notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
   mobileDeviceSessions?: Prisma.MobileDeviceSessionUpdateManyWithoutUserNestedInput
   onboardingSequences?: Prisma.OnboardingSequenceUpdateManyWithoutUserNestedInput
+  referrer?: Prisma.UserUpdateOneWithoutReferralsNestedInput
+  referrals?: Prisma.UserUpdateManyWithoutReferrerNestedInput
+  referralCode?: Prisma.ReferralCodeUpdateOneWithoutUserNestedInput
+  referralCredits?: Prisma.ReferralCreditUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutSessionsInput = {
@@ -1399,12 +1980,289 @@ export type UserUncheckedUpdateWithoutSessionsInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   signatureUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  referralCreditBalance?: Prisma.IntFieldUpdateOperationsInput | number
+  referredBy?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   vehicles?: Prisma.VehicleUncheckedUpdateManyWithoutUserNestedInput
   accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
   pushTokens?: Prisma.PushTokenUncheckedUpdateManyWithoutUserNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
   mobileDeviceSessions?: Prisma.MobileDeviceSessionUncheckedUpdateManyWithoutUserNestedInput
   onboardingSequences?: Prisma.OnboardingSequenceUncheckedUpdateManyWithoutUserNestedInput
+  referrals?: Prisma.UserUncheckedUpdateManyWithoutReferrerNestedInput
+  referralCode?: Prisma.ReferralCodeUncheckedUpdateOneWithoutUserNestedInput
+  referralCredits?: Prisma.ReferralCreditUncheckedUpdateManyWithoutUserNestedInput
+}
+
+export type UserCreateWithoutReferralCodeInput = {
+  id?: string
+  email?: string | null
+  name?: string | null
+  emailVerified?: Date | string | null
+  image?: string | null
+  title?: $Enums.UserTitle | null
+  phoneNumber?: string | null
+  address?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  role?: $Enums.UserRole
+  stripeCustomerId?: string | null
+  revenueCatCustomerId?: string | null
+  notificationPreferences?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  lastPremiumPurchaseAt?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  signatureUrl?: string | null
+  referralCreditBalance?: number
+  vehicles?: Prisma.VehicleCreateNestedManyWithoutUserInput
+  accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
+  sessions?: Prisma.SessionCreateNestedManyWithoutUserInput
+  pushTokens?: Prisma.PushTokenCreateNestedManyWithoutUserInput
+  notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
+  mobileDeviceSessions?: Prisma.MobileDeviceSessionCreateNestedManyWithoutUserInput
+  onboardingSequences?: Prisma.OnboardingSequenceCreateNestedManyWithoutUserInput
+  referrer?: Prisma.UserCreateNestedOneWithoutReferralsInput
+  referrals?: Prisma.UserCreateNestedManyWithoutReferrerInput
+  referralCredits?: Prisma.ReferralCreditCreateNestedManyWithoutUserInput
+}
+
+export type UserUncheckedCreateWithoutReferralCodeInput = {
+  id?: string
+  email?: string | null
+  name?: string | null
+  emailVerified?: Date | string | null
+  image?: string | null
+  title?: $Enums.UserTitle | null
+  phoneNumber?: string | null
+  address?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  role?: $Enums.UserRole
+  stripeCustomerId?: string | null
+  revenueCatCustomerId?: string | null
+  notificationPreferences?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  lastPremiumPurchaseAt?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  signatureUrl?: string | null
+  referralCreditBalance?: number
+  referredBy?: string | null
+  vehicles?: Prisma.VehicleUncheckedCreateNestedManyWithoutUserInput
+  accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
+  sessions?: Prisma.SessionUncheckedCreateNestedManyWithoutUserInput
+  pushTokens?: Prisma.PushTokenUncheckedCreateNestedManyWithoutUserInput
+  notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
+  mobileDeviceSessions?: Prisma.MobileDeviceSessionUncheckedCreateNestedManyWithoutUserInput
+  onboardingSequences?: Prisma.OnboardingSequenceUncheckedCreateNestedManyWithoutUserInput
+  referrals?: Prisma.UserUncheckedCreateNestedManyWithoutReferrerInput
+  referralCredits?: Prisma.ReferralCreditUncheckedCreateNestedManyWithoutUserInput
+}
+
+export type UserCreateOrConnectWithoutReferralCodeInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutReferralCodeInput, Prisma.UserUncheckedCreateWithoutReferralCodeInput>
+}
+
+export type UserUpsertWithoutReferralCodeInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutReferralCodeInput, Prisma.UserUncheckedUpdateWithoutReferralCodeInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutReferralCodeInput, Prisma.UserUncheckedCreateWithoutReferralCodeInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutReferralCodeInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutReferralCodeInput, Prisma.UserUncheckedUpdateWithoutReferralCodeInput>
+}
+
+export type UserUpdateWithoutReferralCodeInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  emailVerified?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  title?: Prisma.NullableEnumUserTitleFieldUpdateOperationsInput | $Enums.UserTitle | null
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+  stripeCustomerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  revenueCatCustomerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  notificationPreferences?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  lastPremiumPurchaseAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  signatureUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  referralCreditBalance?: Prisma.IntFieldUpdateOperationsInput | number
+  vehicles?: Prisma.VehicleUpdateManyWithoutUserNestedInput
+  accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
+  sessions?: Prisma.SessionUpdateManyWithoutUserNestedInput
+  pushTokens?: Prisma.PushTokenUpdateManyWithoutUserNestedInput
+  notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
+  mobileDeviceSessions?: Prisma.MobileDeviceSessionUpdateManyWithoutUserNestedInput
+  onboardingSequences?: Prisma.OnboardingSequenceUpdateManyWithoutUserNestedInput
+  referrer?: Prisma.UserUpdateOneWithoutReferralsNestedInput
+  referrals?: Prisma.UserUpdateManyWithoutReferrerNestedInput
+  referralCredits?: Prisma.ReferralCreditUpdateManyWithoutUserNestedInput
+}
+
+export type UserUncheckedUpdateWithoutReferralCodeInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  emailVerified?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  title?: Prisma.NullableEnumUserTitleFieldUpdateOperationsInput | $Enums.UserTitle | null
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+  stripeCustomerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  revenueCatCustomerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  notificationPreferences?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  lastPremiumPurchaseAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  signatureUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  referralCreditBalance?: Prisma.IntFieldUpdateOperationsInput | number
+  referredBy?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  vehicles?: Prisma.VehicleUncheckedUpdateManyWithoutUserNestedInput
+  accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
+  sessions?: Prisma.SessionUncheckedUpdateManyWithoutUserNestedInput
+  pushTokens?: Prisma.PushTokenUncheckedUpdateManyWithoutUserNestedInput
+  notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
+  mobileDeviceSessions?: Prisma.MobileDeviceSessionUncheckedUpdateManyWithoutUserNestedInput
+  onboardingSequences?: Prisma.OnboardingSequenceUncheckedUpdateManyWithoutUserNestedInput
+  referrals?: Prisma.UserUncheckedUpdateManyWithoutReferrerNestedInput
+  referralCredits?: Prisma.ReferralCreditUncheckedUpdateManyWithoutUserNestedInput
+}
+
+export type UserCreateWithoutReferralCreditsInput = {
+  id?: string
+  email?: string | null
+  name?: string | null
+  emailVerified?: Date | string | null
+  image?: string | null
+  title?: $Enums.UserTitle | null
+  phoneNumber?: string | null
+  address?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  role?: $Enums.UserRole
+  stripeCustomerId?: string | null
+  revenueCatCustomerId?: string | null
+  notificationPreferences?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  lastPremiumPurchaseAt?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  signatureUrl?: string | null
+  referralCreditBalance?: number
+  vehicles?: Prisma.VehicleCreateNestedManyWithoutUserInput
+  accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
+  sessions?: Prisma.SessionCreateNestedManyWithoutUserInput
+  pushTokens?: Prisma.PushTokenCreateNestedManyWithoutUserInput
+  notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
+  mobileDeviceSessions?: Prisma.MobileDeviceSessionCreateNestedManyWithoutUserInput
+  onboardingSequences?: Prisma.OnboardingSequenceCreateNestedManyWithoutUserInput
+  referrer?: Prisma.UserCreateNestedOneWithoutReferralsInput
+  referrals?: Prisma.UserCreateNestedManyWithoutReferrerInput
+  referralCode?: Prisma.ReferralCodeCreateNestedOneWithoutUserInput
+}
+
+export type UserUncheckedCreateWithoutReferralCreditsInput = {
+  id?: string
+  email?: string | null
+  name?: string | null
+  emailVerified?: Date | string | null
+  image?: string | null
+  title?: $Enums.UserTitle | null
+  phoneNumber?: string | null
+  address?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  role?: $Enums.UserRole
+  stripeCustomerId?: string | null
+  revenueCatCustomerId?: string | null
+  notificationPreferences?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  lastPremiumPurchaseAt?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  signatureUrl?: string | null
+  referralCreditBalance?: number
+  referredBy?: string | null
+  vehicles?: Prisma.VehicleUncheckedCreateNestedManyWithoutUserInput
+  accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
+  sessions?: Prisma.SessionUncheckedCreateNestedManyWithoutUserInput
+  pushTokens?: Prisma.PushTokenUncheckedCreateNestedManyWithoutUserInput
+  notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
+  mobileDeviceSessions?: Prisma.MobileDeviceSessionUncheckedCreateNestedManyWithoutUserInput
+  onboardingSequences?: Prisma.OnboardingSequenceUncheckedCreateNestedManyWithoutUserInput
+  referrals?: Prisma.UserUncheckedCreateNestedManyWithoutReferrerInput
+  referralCode?: Prisma.ReferralCodeUncheckedCreateNestedOneWithoutUserInput
+}
+
+export type UserCreateOrConnectWithoutReferralCreditsInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutReferralCreditsInput, Prisma.UserUncheckedCreateWithoutReferralCreditsInput>
+}
+
+export type UserUpsertWithoutReferralCreditsInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutReferralCreditsInput, Prisma.UserUncheckedUpdateWithoutReferralCreditsInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutReferralCreditsInput, Prisma.UserUncheckedCreateWithoutReferralCreditsInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutReferralCreditsInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutReferralCreditsInput, Prisma.UserUncheckedUpdateWithoutReferralCreditsInput>
+}
+
+export type UserUpdateWithoutReferralCreditsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  emailVerified?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  title?: Prisma.NullableEnumUserTitleFieldUpdateOperationsInput | $Enums.UserTitle | null
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+  stripeCustomerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  revenueCatCustomerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  notificationPreferences?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  lastPremiumPurchaseAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  signatureUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  referralCreditBalance?: Prisma.IntFieldUpdateOperationsInput | number
+  vehicles?: Prisma.VehicleUpdateManyWithoutUserNestedInput
+  accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
+  sessions?: Prisma.SessionUpdateManyWithoutUserNestedInput
+  pushTokens?: Prisma.PushTokenUpdateManyWithoutUserNestedInput
+  notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
+  mobileDeviceSessions?: Prisma.MobileDeviceSessionUpdateManyWithoutUserNestedInput
+  onboardingSequences?: Prisma.OnboardingSequenceUpdateManyWithoutUserNestedInput
+  referrer?: Prisma.UserUpdateOneWithoutReferralsNestedInput
+  referrals?: Prisma.UserUpdateManyWithoutReferrerNestedInput
+  referralCode?: Prisma.ReferralCodeUpdateOneWithoutUserNestedInput
+}
+
+export type UserUncheckedUpdateWithoutReferralCreditsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  emailVerified?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  title?: Prisma.NullableEnumUserTitleFieldUpdateOperationsInput | $Enums.UserTitle | null
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+  stripeCustomerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  revenueCatCustomerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  notificationPreferences?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  lastPremiumPurchaseAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  signatureUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  referralCreditBalance?: Prisma.IntFieldUpdateOperationsInput | number
+  referredBy?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  vehicles?: Prisma.VehicleUncheckedUpdateManyWithoutUserNestedInput
+  accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
+  sessions?: Prisma.SessionUncheckedUpdateManyWithoutUserNestedInput
+  pushTokens?: Prisma.PushTokenUncheckedUpdateManyWithoutUserNestedInput
+  notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
+  mobileDeviceSessions?: Prisma.MobileDeviceSessionUncheckedUpdateManyWithoutUserNestedInput
+  onboardingSequences?: Prisma.OnboardingSequenceUncheckedUpdateManyWithoutUserNestedInput
+  referrals?: Prisma.UserUncheckedUpdateManyWithoutReferrerNestedInput
+  referralCode?: Prisma.ReferralCodeUncheckedUpdateOneWithoutUserNestedInput
 }
 
 export type UserCreateWithoutOnboardingSequencesInput = {
@@ -1424,12 +2282,17 @@ export type UserCreateWithoutOnboardingSequencesInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   signatureUrl?: string | null
+  referralCreditBalance?: number
   vehicles?: Prisma.VehicleCreateNestedManyWithoutUserInput
   accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
   sessions?: Prisma.SessionCreateNestedManyWithoutUserInput
   pushTokens?: Prisma.PushTokenCreateNestedManyWithoutUserInput
   notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
   mobileDeviceSessions?: Prisma.MobileDeviceSessionCreateNestedManyWithoutUserInput
+  referrer?: Prisma.UserCreateNestedOneWithoutReferralsInput
+  referrals?: Prisma.UserCreateNestedManyWithoutReferrerInput
+  referralCode?: Prisma.ReferralCodeCreateNestedOneWithoutUserInput
+  referralCredits?: Prisma.ReferralCreditCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutOnboardingSequencesInput = {
@@ -1449,12 +2312,17 @@ export type UserUncheckedCreateWithoutOnboardingSequencesInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   signatureUrl?: string | null
+  referralCreditBalance?: number
+  referredBy?: string | null
   vehicles?: Prisma.VehicleUncheckedCreateNestedManyWithoutUserInput
   accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
   sessions?: Prisma.SessionUncheckedCreateNestedManyWithoutUserInput
   pushTokens?: Prisma.PushTokenUncheckedCreateNestedManyWithoutUserInput
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
   mobileDeviceSessions?: Prisma.MobileDeviceSessionUncheckedCreateNestedManyWithoutUserInput
+  referrals?: Prisma.UserUncheckedCreateNestedManyWithoutReferrerInput
+  referralCode?: Prisma.ReferralCodeUncheckedCreateNestedOneWithoutUserInput
+  referralCredits?: Prisma.ReferralCreditUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutOnboardingSequencesInput = {
@@ -1490,12 +2358,17 @@ export type UserUpdateWithoutOnboardingSequencesInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   signatureUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  referralCreditBalance?: Prisma.IntFieldUpdateOperationsInput | number
   vehicles?: Prisma.VehicleUpdateManyWithoutUserNestedInput
   accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
   sessions?: Prisma.SessionUpdateManyWithoutUserNestedInput
   pushTokens?: Prisma.PushTokenUpdateManyWithoutUserNestedInput
   notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
   mobileDeviceSessions?: Prisma.MobileDeviceSessionUpdateManyWithoutUserNestedInput
+  referrer?: Prisma.UserUpdateOneWithoutReferralsNestedInput
+  referrals?: Prisma.UserUpdateManyWithoutReferrerNestedInput
+  referralCode?: Prisma.ReferralCodeUpdateOneWithoutUserNestedInput
+  referralCredits?: Prisma.ReferralCreditUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutOnboardingSequencesInput = {
@@ -1515,12 +2388,117 @@ export type UserUncheckedUpdateWithoutOnboardingSequencesInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   signatureUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  referralCreditBalance?: Prisma.IntFieldUpdateOperationsInput | number
+  referredBy?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   vehicles?: Prisma.VehicleUncheckedUpdateManyWithoutUserNestedInput
   accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
   sessions?: Prisma.SessionUncheckedUpdateManyWithoutUserNestedInput
   pushTokens?: Prisma.PushTokenUncheckedUpdateManyWithoutUserNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
   mobileDeviceSessions?: Prisma.MobileDeviceSessionUncheckedUpdateManyWithoutUserNestedInput
+  referrals?: Prisma.UserUncheckedUpdateManyWithoutReferrerNestedInput
+  referralCode?: Prisma.ReferralCodeUncheckedUpdateOneWithoutUserNestedInput
+  referralCredits?: Prisma.ReferralCreditUncheckedUpdateManyWithoutUserNestedInput
+}
+
+export type UserCreateManyReferrerInput = {
+  id?: string
+  email?: string | null
+  name?: string | null
+  emailVerified?: Date | string | null
+  image?: string | null
+  title?: $Enums.UserTitle | null
+  phoneNumber?: string | null
+  address?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  role?: $Enums.UserRole
+  stripeCustomerId?: string | null
+  revenueCatCustomerId?: string | null
+  notificationPreferences?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  lastPremiumPurchaseAt?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  signatureUrl?: string | null
+  referralCreditBalance?: number
+}
+
+export type UserUpdateWithoutReferrerInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  emailVerified?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  title?: Prisma.NullableEnumUserTitleFieldUpdateOperationsInput | $Enums.UserTitle | null
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+  stripeCustomerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  revenueCatCustomerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  notificationPreferences?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  lastPremiumPurchaseAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  signatureUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  referralCreditBalance?: Prisma.IntFieldUpdateOperationsInput | number
+  vehicles?: Prisma.VehicleUpdateManyWithoutUserNestedInput
+  accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
+  sessions?: Prisma.SessionUpdateManyWithoutUserNestedInput
+  pushTokens?: Prisma.PushTokenUpdateManyWithoutUserNestedInput
+  notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
+  mobileDeviceSessions?: Prisma.MobileDeviceSessionUpdateManyWithoutUserNestedInput
+  onboardingSequences?: Prisma.OnboardingSequenceUpdateManyWithoutUserNestedInput
+  referrals?: Prisma.UserUpdateManyWithoutReferrerNestedInput
+  referralCode?: Prisma.ReferralCodeUpdateOneWithoutUserNestedInput
+  referralCredits?: Prisma.ReferralCreditUpdateManyWithoutUserNestedInput
+}
+
+export type UserUncheckedUpdateWithoutReferrerInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  emailVerified?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  title?: Prisma.NullableEnumUserTitleFieldUpdateOperationsInput | $Enums.UserTitle | null
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+  stripeCustomerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  revenueCatCustomerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  notificationPreferences?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  lastPremiumPurchaseAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  signatureUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  referralCreditBalance?: Prisma.IntFieldUpdateOperationsInput | number
+  vehicles?: Prisma.VehicleUncheckedUpdateManyWithoutUserNestedInput
+  accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
+  sessions?: Prisma.SessionUncheckedUpdateManyWithoutUserNestedInput
+  pushTokens?: Prisma.PushTokenUncheckedUpdateManyWithoutUserNestedInput
+  notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
+  mobileDeviceSessions?: Prisma.MobileDeviceSessionUncheckedUpdateManyWithoutUserNestedInput
+  onboardingSequences?: Prisma.OnboardingSequenceUncheckedUpdateManyWithoutUserNestedInput
+  referrals?: Prisma.UserUncheckedUpdateManyWithoutReferrerNestedInput
+  referralCode?: Prisma.ReferralCodeUncheckedUpdateOneWithoutUserNestedInput
+  referralCredits?: Prisma.ReferralCreditUncheckedUpdateManyWithoutUserNestedInput
+}
+
+export type UserUncheckedUpdateManyWithoutReferrerInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  emailVerified?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  title?: Prisma.NullableEnumUserTitleFieldUpdateOperationsInput | $Enums.UserTitle | null
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+  stripeCustomerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  revenueCatCustomerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  notificationPreferences?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  lastPremiumPurchaseAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  signatureUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  referralCreditBalance?: Prisma.IntFieldUpdateOperationsInput | number
 }
 
 
@@ -1536,6 +2514,8 @@ export type UserCountOutputType = {
   notifications: number
   mobileDeviceSessions: number
   onboardingSequences: number
+  referrals: number
+  referralCredits: number
 }
 
 export type UserCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -1546,6 +2526,8 @@ export type UserCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.I
   notifications?: boolean | UserCountOutputTypeCountNotificationsArgs
   mobileDeviceSessions?: boolean | UserCountOutputTypeCountMobileDeviceSessionsArgs
   onboardingSequences?: boolean | UserCountOutputTypeCountOnboardingSequencesArgs
+  referrals?: boolean | UserCountOutputTypeCountReferralsArgs
+  referralCredits?: boolean | UserCountOutputTypeCountReferralCreditsArgs
 }
 
 /**
@@ -1607,6 +2589,20 @@ export type UserCountOutputTypeCountOnboardingSequencesArgs<ExtArgs extends runt
   where?: Prisma.OnboardingSequenceWhereInput
 }
 
+/**
+ * UserCountOutputType without action
+ */
+export type UserCountOutputTypeCountReferralsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.UserWhereInput
+}
+
+/**
+ * UserCountOutputType without action
+ */
+export type UserCountOutputTypeCountReferralCreditsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.ReferralCreditWhereInput
+}
+
 
 export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -1625,6 +2621,8 @@ export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   createdAt?: boolean
   updatedAt?: boolean
   signatureUrl?: boolean
+  referralCreditBalance?: boolean
+  referredBy?: boolean
   vehicles?: boolean | Prisma.User$vehiclesArgs<ExtArgs>
   accounts?: boolean | Prisma.User$accountsArgs<ExtArgs>
   sessions?: boolean | Prisma.User$sessionsArgs<ExtArgs>
@@ -1632,6 +2630,10 @@ export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   notifications?: boolean | Prisma.User$notificationsArgs<ExtArgs>
   mobileDeviceSessions?: boolean | Prisma.User$mobileDeviceSessionsArgs<ExtArgs>
   onboardingSequences?: boolean | Prisma.User$onboardingSequencesArgs<ExtArgs>
+  referrer?: boolean | Prisma.User$referrerArgs<ExtArgs>
+  referrals?: boolean | Prisma.User$referralsArgs<ExtArgs>
+  referralCode?: boolean | Prisma.User$referralCodeArgs<ExtArgs>
+  referralCredits?: boolean | Prisma.User$referralCreditsArgs<ExtArgs>
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["user"]>
 
@@ -1652,6 +2654,9 @@ export type UserSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensio
   createdAt?: boolean
   updatedAt?: boolean
   signatureUrl?: boolean
+  referralCreditBalance?: boolean
+  referredBy?: boolean
+  referrer?: boolean | Prisma.User$referrerArgs<ExtArgs>
 }, ExtArgs["result"]["user"]>
 
 export type UserSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -1671,6 +2676,9 @@ export type UserSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensio
   createdAt?: boolean
   updatedAt?: boolean
   signatureUrl?: boolean
+  referralCreditBalance?: boolean
+  referredBy?: boolean
+  referrer?: boolean | Prisma.User$referrerArgs<ExtArgs>
 }, ExtArgs["result"]["user"]>
 
 export type UserSelectScalar = {
@@ -1690,9 +2698,11 @@ export type UserSelectScalar = {
   createdAt?: boolean
   updatedAt?: boolean
   signatureUrl?: boolean
+  referralCreditBalance?: boolean
+  referredBy?: boolean
 }
 
-export type UserOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "email" | "name" | "emailVerified" | "image" | "title" | "phoneNumber" | "address" | "role" | "stripeCustomerId" | "revenueCatCustomerId" | "notificationPreferences" | "lastPremiumPurchaseAt" | "createdAt" | "updatedAt" | "signatureUrl", ExtArgs["result"]["user"]>
+export type UserOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "email" | "name" | "emailVerified" | "image" | "title" | "phoneNumber" | "address" | "role" | "stripeCustomerId" | "revenueCatCustomerId" | "notificationPreferences" | "lastPremiumPurchaseAt" | "createdAt" | "updatedAt" | "signatureUrl" | "referralCreditBalance" | "referredBy", ExtArgs["result"]["user"]>
 export type UserInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   vehicles?: boolean | Prisma.User$vehiclesArgs<ExtArgs>
   accounts?: boolean | Prisma.User$accountsArgs<ExtArgs>
@@ -1701,10 +2711,18 @@ export type UserInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   notifications?: boolean | Prisma.User$notificationsArgs<ExtArgs>
   mobileDeviceSessions?: boolean | Prisma.User$mobileDeviceSessionsArgs<ExtArgs>
   onboardingSequences?: boolean | Prisma.User$onboardingSequencesArgs<ExtArgs>
+  referrer?: boolean | Prisma.User$referrerArgs<ExtArgs>
+  referrals?: boolean | Prisma.User$referralsArgs<ExtArgs>
+  referralCode?: boolean | Prisma.User$referralCodeArgs<ExtArgs>
+  referralCredits?: boolean | Prisma.User$referralCreditsArgs<ExtArgs>
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>
 }
-export type UserIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {}
-export type UserIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {}
+export type UserIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  referrer?: boolean | Prisma.User$referrerArgs<ExtArgs>
+}
+export type UserIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  referrer?: boolean | Prisma.User$referrerArgs<ExtArgs>
+}
 
 export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "User"
@@ -1716,6 +2734,10 @@ export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     notifications: Prisma.$NotificationPayload<ExtArgs>[]
     mobileDeviceSessions: Prisma.$MobileDeviceSessionPayload<ExtArgs>[]
     onboardingSequences: Prisma.$OnboardingSequencePayload<ExtArgs>[]
+    referrer: Prisma.$UserPayload<ExtArgs> | null
+    referrals: Prisma.$UserPayload<ExtArgs>[]
+    referralCode: Prisma.$ReferralCodePayload<ExtArgs> | null
+    referralCredits: Prisma.$ReferralCreditPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -1734,6 +2756,8 @@ export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     createdAt: Date
     updatedAt: Date
     signatureUrl: string | null
+    referralCreditBalance: number
+    referredBy: string | null
   }, ExtArgs["result"]["user"]>
   composites: {}
 }
@@ -2135,6 +3159,10 @@ export interface Prisma__UserClient<T, Null = never, ExtArgs extends runtime.Typ
   notifications<T extends Prisma.User$notificationsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$notificationsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$NotificationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   mobileDeviceSessions<T extends Prisma.User$mobileDeviceSessionsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$mobileDeviceSessionsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$MobileDeviceSessionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   onboardingSequences<T extends Prisma.User$onboardingSequencesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$onboardingSequencesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$OnboardingSequencePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  referrer<T extends Prisma.User$referrerArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$referrerArgs<ExtArgs>>): Prisma.Prisma__UserClient<runtime.Types.Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+  referrals<T extends Prisma.User$referralsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$referralsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  referralCode<T extends Prisma.User$referralCodeArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$referralCodeArgs<ExtArgs>>): Prisma.Prisma__ReferralCodeClient<runtime.Types.Result.GetResult<Prisma.$ReferralCodePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+  referralCredits<T extends Prisma.User$referralCreditsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$referralCreditsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ReferralCreditPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -2180,6 +3208,8 @@ export interface UserFieldRefs {
   readonly createdAt: Prisma.FieldRef<"User", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"User", 'DateTime'>
   readonly signatureUrl: Prisma.FieldRef<"User", 'String'>
+  readonly referralCreditBalance: Prisma.FieldRef<"User", 'Int'>
+  readonly referredBy: Prisma.FieldRef<"User", 'String'>
 }
     
 
@@ -2429,6 +3459,10 @@ export type UserCreateManyAndReturnArgs<ExtArgs extends runtime.Types.Extensions
    */
   data: Prisma.UserCreateManyInput | Prisma.UserCreateManyInput[]
   skipDuplicates?: boolean
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.UserIncludeCreateManyAndReturn<ExtArgs> | null
 }
 
 /**
@@ -2499,6 +3533,10 @@ export type UserUpdateManyAndReturnArgs<ExtArgs extends runtime.Types.Extensions
    * Limit how many Users to update.
    */
   limit?: number
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.UserIncludeUpdateManyAndReturn<ExtArgs> | null
 }
 
 /**
@@ -2733,6 +3771,92 @@ export type User$onboardingSequencesArgs<ExtArgs extends runtime.Types.Extension
   take?: number
   skip?: number
   distinct?: Prisma.OnboardingSequenceScalarFieldEnum | Prisma.OnboardingSequenceScalarFieldEnum[]
+}
+
+/**
+ * User.referrer
+ */
+export type User$referrerArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the User
+   */
+  select?: Prisma.UserSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the User
+   */
+  omit?: Prisma.UserOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.UserInclude<ExtArgs> | null
+  where?: Prisma.UserWhereInput
+}
+
+/**
+ * User.referrals
+ */
+export type User$referralsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the User
+   */
+  select?: Prisma.UserSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the User
+   */
+  omit?: Prisma.UserOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.UserInclude<ExtArgs> | null
+  where?: Prisma.UserWhereInput
+  orderBy?: Prisma.UserOrderByWithRelationInput | Prisma.UserOrderByWithRelationInput[]
+  cursor?: Prisma.UserWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.UserScalarFieldEnum | Prisma.UserScalarFieldEnum[]
+}
+
+/**
+ * User.referralCode
+ */
+export type User$referralCodeArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the ReferralCode
+   */
+  select?: Prisma.ReferralCodeSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the ReferralCode
+   */
+  omit?: Prisma.ReferralCodeOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.ReferralCodeInclude<ExtArgs> | null
+  where?: Prisma.ReferralCodeWhereInput
+}
+
+/**
+ * User.referralCredits
+ */
+export type User$referralCreditsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the ReferralCredit
+   */
+  select?: Prisma.ReferralCreditSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the ReferralCredit
+   */
+  omit?: Prisma.ReferralCreditOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.ReferralCreditInclude<ExtArgs> | null
+  where?: Prisma.ReferralCreditWhereInput
+  orderBy?: Prisma.ReferralCreditOrderByWithRelationInput | Prisma.ReferralCreditOrderByWithRelationInput[]
+  cursor?: Prisma.ReferralCreditWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.ReferralCreditScalarFieldEnum | Prisma.ReferralCreditScalarFieldEnum[]
 }
 
 /**
