@@ -1,8 +1,10 @@
+import { Suspense } from 'react';
 import type { Metadata } from 'next';
 import JsonLd, {
   createBreadcrumbSchema,
   createSoftwareApplicationSchema,
 } from '@/components/JsonLd/JsonLd';
+import AdBannerServer from '@/components/AdBanner/AdBannerServer';
 
 export const metadata: Metadata = {
   title: 'Free Car Tools & Letter Templates | Parking Ticket Pal',
@@ -42,6 +44,12 @@ const ToolsLayout = ({ children }: ToolsLayoutProps) => {
       <JsonLd data={breadcrumbData} />
       <JsonLd data={appData} />
       {children}
+      <Suspense fallback={null}>
+        <AdBannerServer
+          placement="tools"
+          className="mx-auto max-w-[1280px] px-6 py-8"
+        />
+      </Suspense>
     </>
   );
 };

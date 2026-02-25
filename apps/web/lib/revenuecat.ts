@@ -5,7 +5,7 @@
 
 const REVENUECAT_API_BASE = 'https://api.revenuecat.com/v1';
 
-interface RevenueCatSubscriber {
+type RevenueCatSubscriber = {
   original_app_user_id: string;
   subscriptions: Record<
     string,
@@ -33,18 +33,18 @@ interface RevenueCatSubscriber {
   >;
   non_subscriptions: Record<
     string,
-    Array<{
+    {
       id: string;
       purchase_date: string;
       store: 'app_store' | 'play_store';
       is_sandbox: boolean;
-    }>
+    }[]
   >;
-}
+};
 
-interface RevenueCatResponse {
+type RevenueCatResponse = {
   subscriber: RevenueCatSubscriber;
-}
+};
 
 /**
  * Get subscriber information from RevenueCat
@@ -120,40 +120,26 @@ export async function hasActiveSubscription(
 }
 
 /**
- * Get the subscription type (STANDARD or PREMIUM) from RevenueCat entitlements
+ * Check if the user has premium access via RevenueCat entitlements
  */
-export async function getSubscriptionType(
-  appUserId: string,
-): Promise<'STANDARD' | 'PREMIUM' | null> {
+export async function hasPremiumAccess(appUserId: string): Promise<boolean> {
   const subscriber = await getSubscriber(appUserId);
 
   if (!subscriber) {
-    return null;
+    return false;
   }
 
-  // Check for premium entitlement first (higher tier)
   if (subscriber.entitlements.premium_access) {
     const entitlement = subscriber.entitlements.premium_access;
     if (
       !entitlement.expires_date ||
       new Date(entitlement.expires_date) > new Date()
     ) {
-      return 'PREMIUM';
+      return true;
     }
   }
 
-  // Check for standard entitlement
-  if (subscriber.entitlements.standard_access) {
-    const entitlement = subscriber.entitlements.standard_access;
-    if (
-      !entitlement.expires_date ||
-      new Date(entitlement.expires_date) > new Date()
-    ) {
-      return 'STANDARD';
-    }
-  }
-
-  return null;
+  return false;
 }
 
 /**
@@ -189,7 +175,7 @@ export async function verifyPurchase(
  */
 export async function getConsumablePurchases(
   appUserId: string,
-): Promise<Array<{ productId: string; purchaseDate: string; id: string }>> {
+): Promise<{ productId: string; purchaseDate: string; id: string }[]> {
   const subscriber = await getSubscriber(appUserId);
 
   if (!subscriber) {

@@ -75,67 +75,61 @@ const ActionsCard = ({
 
       <div className="mt-4 space-y-3">
         {/* Primary Actions - Conditional on status, tier, and letter existence */}
-        {isPremium ? (
-          // PREMIUM tier - show both challenge options
-          needsAction ? (
-            <>
-              {/* Auto-Submit Challenge - primary action */}
-              <Button
-                className="w-full gap-2 bg-teal text-white hover:bg-teal-dark"
-                onClick={onAutoChallenge}
-              >
-                <FontAwesomeIcon icon={faRobot} />
-                Auto-Submit Challenge
-              </Button>
-              {/* Generate Letter - secondary option */}
-              <Button
-                variant="outline"
-                className="w-full gap-2 bg-transparent"
-                onClick={onGenerateLetter}
-              >
-                <FontAwesomeIcon icon={faWandMagicSparkles} />
-                Generate Challenge Letter
-              </Button>
-              {/* Preview Letter if one exists */}
-              {hasLetter && (
-                <Button
-                  variant="outline"
-                  className="w-full gap-2 bg-transparent"
-                  onClick={onPreviewLetter}
-                >
-                  <FontAwesomeIcon icon={faEye} />
-                  Preview Letter
-                </Button>
-              )}
-            </>
-          ) : submitted ? (
-            // Already submitted - show tracking options
-            <>
-              <Button
-                className="w-full gap-2 bg-teal text-white hover:bg-teal-dark"
-                onClick={onTrackStatus}
-              >
-                <FontAwesomeIcon icon={faChartLine} />
-                Track Status
-              </Button>
+        {isPremium && needsAction && (
+          <>
+            <Button
+              className="w-full gap-2 bg-teal text-white hover:bg-teal-dark"
+              onClick={onAutoChallenge}
+            >
+              <FontAwesomeIcon icon={faRobot} />
+              Auto-Submit Challenge
+            </Button>
+            <Button
+              variant="outline"
+              className="w-full gap-2 bg-transparent"
+              onClick={onGenerateLetter}
+            >
+              <FontAwesomeIcon icon={faWandMagicSparkles} />
+              Generate Challenge Letter
+            </Button>
+            {hasLetter && (
               <Button
                 variant="outline"
                 className="w-full gap-2 bg-transparent"
-                onClick={onViewSubmission}
+                onClick={onPreviewLetter}
               >
-                <FontAwesomeIcon icon={faFileLines} />
-                View Submission
+                <FontAwesomeIcon icon={faEye} />
+                Preview Letter
               </Button>
-            </>
-          ) : null
-        ) : (
-          // Not PREMIUM - show upgrade button
+            )}
+          </>
+        )}
+        {isPremium && !needsAction && submitted && (
+          <>
+            <Button
+              className="w-full gap-2 bg-teal text-white hover:bg-teal-dark"
+              onClick={onTrackStatus}
+            >
+              <FontAwesomeIcon icon={faChartLine} />
+              Track Status
+            </Button>
+            <Button
+              variant="outline"
+              className="w-full gap-2 bg-transparent"
+              onClick={onViewSubmission}
+            >
+              <FontAwesomeIcon icon={faFileLines} />
+              View Submission
+            </Button>
+          </>
+        )}
+        {!isPremium && (
           <Button
             className="w-full gap-2 bg-teal text-white hover:bg-teal-dark"
             onClick={onUpgrade}
           >
             <FontAwesomeIcon icon={faLock} />
-            Upgrade to Challenge Ticket
+            Upgrade to Premium — £14.99
           </Button>
         )}
 

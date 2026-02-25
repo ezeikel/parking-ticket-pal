@@ -1,5 +1,7 @@
 import { Suspense } from 'react';
 import { getTicket } from '@/app/actions/ticket';
+import { getCurrentUser } from '@/utils/user';
+import { isAdFree } from '@/lib/subscription';
 import TicketDetailPage from '@/components/ticket-detail/TicketDetailPage';
 import PaymentRedirectHandler from '@/components/PaymentRedirectHandler/PaymentRedirectHandler';
 
@@ -9,7 +11,7 @@ type TicketPageProps = {
 
 const TicketPage = async ({ params }: TicketPageProps) => {
   const { id } = await params;
-  const ticket = await getTicket(id);
+  const [ticket, user] = await Promise.all([getTicket(id), getCurrentUser()]);
 
   if (!ticket) {
     return (
@@ -25,12 +27,14 @@ const TicketPage = async ({ params }: TicketPageProps) => {
     );
   }
 
+  const showAds = !user || !isAdFree(user);
+
   return (
     <>
       <Suspense fallback={null}>
         <PaymentRedirectHandler ticketId={id} />
       </Suspense>
-      <TicketDetailPage ticket={ticket} />
+      <TicketDetailPage ticket={ticket} showAds={showAds} />
     </>
   );
 };

@@ -9,7 +9,7 @@ export type GuestTicketData = {
   intent?: 'track' | 'challenge';
   challengeReason: string | null;
   // Tier is null for track flow (free)
-  tier: 'standard' | 'premium' | 'subscription' | null;
+  tier: 'premium' | null;
   imageUrl?: string;
   tempImagePath?: string;
   initialAmount?: number;
@@ -56,9 +56,7 @@ export const clearGuestTicketData = (): void => {
   localStorage.removeItem(GUEST_TICKET_KEY);
 };
 
-export const hasGuestTicketData = (): boolean => {
-  return getGuestTicketData() !== null;
-};
+export const hasGuestTicketData = (): boolean => getGuestTicketData() !== null;
 
 export const isGuestTicketExpired = (data: GuestTicketData): boolean => {
   const createdAt = new Date(data.createdAt);

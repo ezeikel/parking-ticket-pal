@@ -20,7 +20,7 @@ import { logger } from '@/lib/logger';
 import { toast } from 'sonner';
 
 // Use string literal type instead of importing from db package (Prisma can't run in browser)
-type TicketTier = 'FREE' | 'STANDARD' | 'PREMIUM';
+type TicketTier = 'FREE' | 'PREMIUM';
 
 type PollResponse = {
   status: 'running' | 'completed' | 'failed' | 'no_job' | 'unknown';

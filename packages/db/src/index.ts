@@ -10,7 +10,6 @@ export { Prisma } from "./generated/prisma/client";
 // Re-export specific model types with Db prefix for convenience
 export type {
   User as DbUserType,
-  Subscription as DbSubscriptionType,
   Vehicle as DbVehicleType,
   Ticket as DbTicketType,
   Media as DbMediaType,

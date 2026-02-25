@@ -287,12 +287,7 @@ export const deleteUserById = async (
       // Continue with deletion even if R2 cleanup fails
     }
 
-    // 2. Delete Subscription first (no cascade on User delete)
-    await db.subscription.deleteMany({
-      where: { userId: requestedUserId },
-    });
-
-    // 3. Delete User — all other relations cascade automatically
+    // 2. Delete User — all other relations cascade automatically
     await db.user.delete({
       where: { id: requestedUserId },
     });
@@ -321,39 +316,4 @@ export const deleteUserById = async (
 
 export const signOutAction = async () => {
   await signOut();
-};
-
-/**
- * Get user subscription status
- * Returns whether the user has an active subscription (STANDARD or PREMIUM)
- */
-export const getUserSubscriptionStatus = async (userId: string) => {
-  if (!userId) {
-    return { hasSubscription: false, subscriptionType: null };
-  }
-
-  try {
-    const user = await db.user.findUnique({
-      where: { id: userId },
-      include: { subscription: true },
-    });
-
-    if (!user || !user.subscription) {
-      return { hasSubscription: false, subscriptionType: null };
-    }
-
-    return {
-      hasSubscription: true,
-      subscriptionType: user.subscription.type,
-    };
-  } catch (error) {
-    logger.error(
-      'Error fetching user subscription',
-      {
-        userId,
-      },
-      error instanceof Error ? error : new Error(String(error)),
-    );
-    return { hasSubscription: false, subscriptionType: null };
-  }
 };

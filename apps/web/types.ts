@@ -207,6 +207,7 @@ export type CurrentUser = Pick<
   | 'phoneNumber'
   | 'signatureUrl'
   | 'stripeCustomerId'
+  | 'lastPremiumPurchaseAt'
 >;
 
 export type TicketForChallengeLetter = {
@@ -323,7 +324,7 @@ export type EventProperties = {
   };
   [TRACKING_EVENTS.WIZARD_COMPLETED]: {
     intent: 'track' | 'challenge';
-    tier: 'standard' | 'premium' | 'subscription' | null;
+    tier: 'premium' | null;
     totalSteps: number;
     path: string;
     challengeReason: string | null;
@@ -350,7 +351,7 @@ export type EventProperties = {
   };
   [TRACKING_EVENTS.GUEST_CLAIM_PAGE_VIEWED]: {
     hasSessionId: boolean;
-    tier?: 'standard' | 'premium' | 'subscription' | null;
+    tier?: 'premium' | null;
   };
 
   // Ticket Management
@@ -466,18 +467,16 @@ export type EventProperties = {
     stripeCustomerId: string;
   };
   [TRACKING_EVENTS.PAYMENT_COMPLETED]: {
-    tier: 'BASIC' | 'PRO';
+    tier: 'FREE' | 'PREMIUM';
     amount: number;
   };
-  [TRACKING_EVENTS.SUBSCRIPTION_STARTED]: { planId: string };
-  [TRACKING_EVENTS.SUBSCRIPTION_CANCELLED]: { planId: string };
   [TRACKING_EVENTS.TICKET_TIER_UPGRADED]: {
     ticketId: string;
     fromTier: 'FREE';
-    toTier: 'BASIC' | 'PRO';
+    toTier: 'PREMIUM';
   };
   [TRACKING_EVENTS.BILLING_PAGE_VISITED]: {
-    hasSubscription?: boolean;
+    hasStripeCustomer: boolean;
   };
 
   // Navigation & Engagement
@@ -501,28 +500,27 @@ export type EventProperties = {
   // Pricing & Plans
   [TRACKING_EVENTS.PRICING_PAGE_VIEWED]: Record<string, never>;
   [TRACKING_EVENTS.PRICING_TAB_CHANGED]: {
-    fromTab: 'one-time' | 'subscriptions' | 'business';
-    toTab: 'one-time' | 'subscriptions' | 'business';
+    fromTab: string;
+    toTab: string;
   };
   [TRACKING_EVENTS.PRICING_BILLING_TOGGLE_CHANGED]: {
-    billingPeriod: 'monthly' | 'yearly';
-    tab: 'subscriptions' | 'business';
+    billingPeriod: string;
+    tab: string;
   };
   [TRACKING_EVENTS.PRICING_PLAN_CLICKED]: {
     planName: string;
-    planType: 'one-time' | 'subscription' | 'business';
-    billingPeriod?: 'monthly' | 'yearly';
+    planType: 'one-time';
     price: string;
     location: 'pricing_page' | 'homepage';
   };
   [TRACKING_EVENTS.PRICING_COMPARE_PLANS_CLICKED]: Record<string, never>;
   [TRACKING_EVENTS.PRICING_TIER_SELECTED]: {
-    tier: 'standard' | 'premium';
+    tier: 'premium';
     source: string;
   };
   [TRACKING_EVENTS.PRICING_TICKET_CREATED_WITH_TIER]: {
     ticketId: string;
-    tier: 'standard' | 'premium';
+    tier: 'premium';
     source: string;
   };
 

@@ -107,21 +107,29 @@ class PurchaseService {
   }
 
   /**
-   * Check if user has any paid plan (Standard or Premium)
-   * Users with active entitlements get an ad-free experience
+   * Check if user is ad-free.
+   * Premium purchases grant 30 days of ad-free experience.
+   * Falls back to RevenueCat entitlements as a secondary check.
    */
-  async isAdFree(): Promise<boolean> {
+  async isAdFree(lastPremiumPurchaseAt?: string | null): Promise<boolean> {
+    // Check 30-day window from last Premium purchase
+    if (lastPremiumPurchaseAt) {
+      const thirtyDaysAgo = new Date();
+      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+      if (new Date(lastPremiumPurchaseAt) > thirtyDaysAgo) {
+        return true;
+      }
+    }
+
+    // Fallback: check RevenueCat entitlements
     try {
       const customerInfo = await this.getCustomerInfo();
       if (!customerInfo) {
         return false;
       }
 
-      // Check if user has any active entitlements
-      // Both Standard and Ultimate plans should have entitlements that make them ad-free
-      const hasActiveEntitlements = Object.keys(customerInfo.entitlements.active).length > 0;
-
-      return hasActiveEntitlements;
+      return Object.keys(customerInfo.entitlements.active).length > 0;
     } catch (error) {
       logger.error('Failed to check premium status', { action: 'purchases' }, error instanceof Error ? error : new Error(String(error)));
       return false;

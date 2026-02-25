@@ -28,7 +28,7 @@ type User = {
   email: string | null;
   name: string | null;
   createdAt: string;
-  subscription?: { type: string; source: string } | null;
+  lastPremiumPurchaseAt?: string | null;
   [key: string]: any;
 };
 
@@ -90,8 +90,7 @@ export const AuthContextProvider = ({ children }: AuthContextProviderProps) => {
             email: userData.email,
             name: userData.name,
             created_at: userData.createdAt,
-            subscription_type: userData.subscription?.type,
-            subscription_source: userData.subscription?.source,
+            has_premium_purchase: !!userData.lastPremiumPurchaseAt,
             is_anonymous: !userData.email,
           });
           logger.debug('User identified with PostHog', { action: 'auth', userId: userData.id });
@@ -108,8 +107,7 @@ export const AuthContextProvider = ({ children }: AuthContextProviderProps) => {
             email: userData.email || undefined,
             username: userData.name || undefined,
           });
-          Sentry.setTag('subscription_type', userData.subscription?.type || 'free');
-          Sentry.setTag('subscription_source', userData.subscription?.source || 'none');
+          Sentry.setTag('has_premium_purchase', (!!userData.lastPremiumPurchaseAt).toString());
           Sentry.setTag('is_anonymous', (!userData.email).toString());
           logger.debug('User identified with Sentry', { action: 'auth', userId: userData.id });
         } catch (error) {

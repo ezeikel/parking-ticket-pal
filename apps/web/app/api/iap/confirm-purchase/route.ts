@@ -10,7 +10,7 @@ const log = createServerLogger({ action: 'iap-confirm-purchase' });
  * POST /api/iap/confirm-purchase
  *
  * Confirms a RevenueCat consumable purchase and upgrades the ticket tier.
- * Called by the mobile app after a successful purchase of standard_ticket or premium_ticket.
+ * Called by the mobile app after a successful purchase of premium_ticket.
  */
 // eslint-disable-next-line import-x/prefer-default-export
 export const POST = async (req: Request) => {
@@ -60,35 +60,22 @@ export const POST = async (req: Request) => {
       );
     }
 
-    // Determine the target tier based on product ID
-    let targetTier: TicketTier;
-
-    if (productId.startsWith('standard_ticket')) {
-      targetTier = TicketTier.STANDARD;
-    } else if (productId.startsWith('premium_ticket')) {
-      targetTier = TicketTier.PREMIUM;
-    } else {
+    // Only Premium purchases are supported
+    if (!productId.startsWith('premium_ticket')) {
       return Response.json(
         {
-          error:
-            'Invalid product ID. Expected standard_ticket_* or premium_ticket_*',
+          error: 'Invalid product ID. Expected premium_ticket_*',
         },
         { status: 400 },
       );
     }
 
-    // Check if ticket already has equal or higher tier
-    const tierHierarchy = {
-      [TicketTier.FREE]: 0,
-      [TicketTier.STANDARD]: 1,
-      [TicketTier.PREMIUM]: 2,
-    };
-
-    if (tierHierarchy[ticket.tier] >= tierHierarchy[targetTier]) {
+    // Check if ticket already has Premium tier
+    if (ticket.tier === TicketTier.PREMIUM) {
       return Response.json(
         {
           success: true,
-          message: 'Ticket already has equal or higher tier',
+          message: 'Ticket already has Premium tier',
           ticket: {
             id: ticket.id,
             tier: ticket.tier,
@@ -114,10 +101,16 @@ export const POST = async (req: Request) => {
     // Update the ticket tier
     const updatedTicket = await db.ticket.update({
       where: { id: ticketId },
-      data: { tier: targetTier },
+      data: { tier: TicketTier.PREMIUM },
       include: {
         vehicle: true,
       },
+    });
+
+    // Update lastPremiumPurchaseAt for ad-free tracking
+    await db.user.update({
+      where: { id: userId },
+      data: { lastPremiumPurchaseAt: new Date() },
     });
 
     // Exit onboarding sequence on tier upgrade
@@ -135,7 +128,7 @@ export const POST = async (req: Request) => {
     return Response.json(
       {
         success: true,
-        message: `Ticket upgraded to ${targetTier}`,
+        message: `Ticket upgraded to PREMIUM`,
         ticket: {
           id: updatedTicket.id,
           tier: updatedTicket.tier,

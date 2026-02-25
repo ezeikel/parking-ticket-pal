@@ -314,11 +314,8 @@ const Hero = () => {
     if (data.intent === 'track') {
       // Track flow: redirect to signup page where ticket will be created after auth
       window.location.href = '/guest/signup?source=wizard';
-    } else if (data.tier === 'subscription') {
-      // Challenge flow with subscription
-      window.location.href = '/pricing?source=wizard';
     } else {
-      // Challenge flow with one-time tier
+      // Challenge flow: redirect to checkout with premium tier
       window.location.href = `/checkout?tier=${data.tier}&source=wizard`;
     }
   };

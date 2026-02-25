@@ -1,41 +1,35 @@
 import { Suspense } from 'react';
 import { getTickets } from '@/app/actions/ticket';
-import { getUserSubscriptionStatus } from '@/app/actions/user';
 import { TicketsPageClient } from '@/components/tickets';
-import { getUserId } from '@/utils/user';
+import AdBannerServer from '@/components/AdBanner/AdBannerServer';
 
 const TicketsPageWrapper = async () => {
-  const [tickets, userId] = await Promise.all([
-    getTickets(),
-    getUserId('view tickets'),
-  ]);
+  const tickets = await getTickets();
 
-  const { hasSubscription, subscriptionType } = userId
-    ? await getUserSubscriptionStatus(userId)
-    : { hasSubscription: false, subscriptionType: null };
-
-  return (
-    <TicketsPageClient
-      tickets={tickets ?? []}
-      hasSubscription={hasSubscription}
-      subscriptionType={subscriptionType}
-    />
-  );
+  return <TicketsPageClient tickets={tickets ?? []} />;
 };
 
 const TicketsPage = () => (
-  <Suspense
-    fallback={
-      <div className="container mx-auto py-6">
-        <div className="grid gap-6 lg:grid-cols-2">
-          <div className="h-[calc(100vh-180px)] animate-pulse rounded-2xl bg-light" />
-          <div className="hidden h-[calc(100vh-180px)] animate-pulse rounded-2xl bg-light lg:block" />
+  <>
+    <Suspense
+      fallback={
+        <div className="container mx-auto py-6">
+          <div className="grid gap-6 lg:grid-cols-2">
+            <div className="h-[calc(100vh-180px)] animate-pulse rounded-2xl bg-light" />
+            <div className="hidden h-[calc(100vh-180px)] animate-pulse rounded-2xl bg-light lg:block" />
+          </div>
         </div>
-      </div>
-    }
-  >
-    <TicketsPageWrapper />
-  </Suspense>
+      }
+    >
+      <TicketsPageWrapper />
+    </Suspense>
+    <Suspense fallback={null}>
+      <AdBannerServer
+        placement="tickets-list"
+        className="mx-auto max-w-7xl px-4 pb-6"
+      />
+    </Suspense>
+  </>
 );
 
 export default TicketsPage;

@@ -48,11 +48,6 @@ export type Media = Prisma.MediaModel
  */
 export type Letter = Prisma.LetterModel
 /**
- * Model Subscription
- * 
- */
-export type Subscription = Prisma.SubscriptionModel
-/**
  * Model Reminder
  * 
  */

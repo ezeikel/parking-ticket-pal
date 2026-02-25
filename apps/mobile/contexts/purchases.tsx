@@ -16,8 +16,6 @@ type PurchasesContextType = {
   offerings: PurchasesOffering[] | null;
   currentOffering: PurchasesOffering | null;
   isLoading: boolean;
-  hasActiveSubscription: boolean;
-  hasStandardAccess: boolean;
   hasPremiumAccess: boolean;
   purchasePackage: (pkg: PurchasesPackage, ticketId?: string) => Promise<{ customerInfo: CustomerInfo }>;
   restorePurchases: () => Promise<CustomerInfo>;
@@ -35,8 +33,6 @@ export const PurchasesContext = createContext<PurchasesContextType>({
   offerings: null,
   currentOffering: null,
   isLoading: true,
-  hasActiveSubscription: false,
-  hasStandardAccess: false,
   hasPremiumAccess: false,
   purchasePackage: async () => ({ customerInfo: {} as CustomerInfo }),
   restorePurchases: async () => ({} as CustomerInfo),
@@ -82,12 +78,7 @@ export const PurchasesContextProvider = ({ children }: PurchasesContextProviderP
     loadPurchaseData();
   }, []);
 
-  // Check if user has active subscription
-  const hasActiveSubscription =
-    customerInfo?.entitlements.active['standard_access'] !== undefined ||
-    customerInfo?.entitlements.active['premium_access'] !== undefined;
-
-  const hasStandardAccess = customerInfo?.entitlements.active['standard_access'] !== undefined;
+  // Check if user has premium access entitlement
   const hasPremiumAccess = customerInfo?.entitlements.active['premium_access'] !== undefined;
 
   /**
@@ -106,7 +97,7 @@ export const PurchasesContextProvider = ({ children }: PurchasesContextProviderP
       const productId = pkg.product.identifier;
       if (
         ticketId &&
-        (productId.startsWith('standard_ticket') || productId.startsWith('premium_ticket'))
+        productId.startsWith('premium_ticket')
       ) {
         try {
           await confirmPurchase(ticketId, productId);
@@ -190,8 +181,6 @@ export const PurchasesContextProvider = ({ children }: PurchasesContextProviderP
         offerings,
         currentOffering,
         isLoading,
-        hasActiveSubscription,
-        hasStandardAccess,
         hasPremiumAccess,
         purchasePackage,
         restorePurchases,

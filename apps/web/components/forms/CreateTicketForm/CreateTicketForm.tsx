@@ -41,7 +41,7 @@ import createUTCDate from '@/utils/createUTCDate';
 import useLogger from '@/lib/use-logger';
 
 type CreateTicketFormProps = {
-  tier?: 'standard' | 'premium' | null;
+  tier?: 'premium' | null;
   source?: string | null;
 };
 

@@ -11,11 +11,13 @@ const PRICING_TIERS = [
   {
     name: 'Free',
     price: '£0',
-    highlight: 'Track tickets & deadlines',
+    highlight: 'Track tickets & never miss a deadline',
     features: [
-      'Unlimited ticket storage',
-      'View fine deadlines',
-      'Upload letters & photos',
+      'Unlimited tickets',
+      'Email + push reminders',
+      'Timeline tracking',
+      'Document storage',
+      'Key deadline notifications',
     ],
     cta: 'Included with every account',
     href: '',
@@ -23,32 +25,18 @@ const PRICING_TIERS = [
     disabled: true,
   },
   {
-    name: 'Standard',
-    price: '£2.99',
-    highlight: 'Never miss a deadline',
+    name: 'Premium',
+    price: '£14.99',
+    highlight: 'Everything you need to challenge and win',
     features: [
       'Everything in Free',
-      'Email + SMS reminders',
-      'Timeline tracking',
-      'Storage for letters and tickets',
+      'Challenge/appeal letter with AI assist',
+      'Auto-submission to council',
       'Success prediction score',
+      'SMS reminders',
+      '30-day ad-free experience',
     ],
-    cta: 'Add Ticket & Get Standard',
-    href: '/new?tier=standard&source=homepage',
-    isPopular: false,
-    disabled: false,
-  },
-  {
-    name: 'Premium',
-    price: '£9.99',
-    highlight: 'Full AI Support & Auto-Submit',
-    features: [
-      'Everything in Standard',
-      'AI-generated appeal letters',
-      'Success prediction score',
-      'Automatic challenge submission',
-    ],
-    cta: 'Add Ticket & Get Premium',
+    cta: 'Upgrade to Premium — £14.99',
     href: '/new?tier=premium&source=homepage',
     isPopular: true,
     disabled: false,
@@ -69,18 +57,17 @@ const PricingTeaser = () => {
 
   return (
     <section className="py-16 md:py-24 bg-white dark:bg-slate-900">
-      <div className="container mx-auto px-4 md:px-6 max-w-6xl">
+      <div className="container mx-auto px-4 md:px-6 max-w-4xl">
         <div className="text-center mb-12 md:mb-16">
           <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight mb-4 text-slate-800 dark:text-slate-100">
-            📦 Simple Pricing, Powerful Help
+            Simple Pricing
           </h2>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            Pay per ticket as you go, or explore our subscription and fleet
-            plans for regular users.
+            Start free. Upgrade when you need to challenge.
           </p>
         </div>
 
-        <div className="grid gap-8 md:grid-cols-3 items-stretch">
+        <div className="grid gap-8 md:grid-cols-2 items-stretch">
           {PRICING_TIERS.map((tier) => (
             <div
               key={tier.name}
@@ -126,10 +113,10 @@ const PricingTeaser = () => {
                   >
                     {tier.price}
                   </span>
-                  {tier.name !== 'Free' && (
+                  {tier.name === 'Premium' && (
                     <span className="text-sm text-muted-foreground">
                       {' '}
-                      / ticket issue
+                      / ticket
                     </span>
                   )}
                 </div>
@@ -155,14 +142,7 @@ const PricingTeaser = () => {
                     {tier.cta}
                   </Button>
                 ) : (
-                  <Button
-                    asChild
-                    size="lg"
-                    className={cn(
-                      'w-full mt-auto',
-                      !tier.isPopular && 'bg-primary hover:bg-primary/90',
-                    )}
-                  >
+                  <Button asChild size="lg" className="w-full mt-auto">
                     <a
                       href={tier.href}
                       onClick={() => handlePlanClick(tier.name, tier.price)}
@@ -182,7 +162,7 @@ const PricingTeaser = () => {
             href="/pricing"
             className="text-primary hover:underline font-medium"
           >
-            View all pricing options →
+            View full pricing details &rarr;
           </a>
         </p>
       </div>

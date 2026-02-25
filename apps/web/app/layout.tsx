@@ -1,5 +1,6 @@
 import { Suspense } from 'react';
 import type { Metadata } from 'next';
+import Script from 'next/script';
 import { Analytics } from '@vercel/analytics/react';
 import { config } from '@fortawesome/fontawesome-svg-core';
 import { Toaster } from 'sonner';
@@ -42,7 +43,16 @@ const RootLayout = ({
       'font-sans',
     )}
   >
-    <head />
+    <head>
+      {process.env.NEXT_PUBLIC_ADSENSE_CLIENT_ID && (
+        <Script
+          async
+          src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${process.env.NEXT_PUBLIC_ADSENSE_CLIENT_ID}`}
+          crossOrigin="anonymous"
+          strategy="lazyOnload"
+        />
+      )}
+    </head>
     <body>
       <Suspense>
         <Providers>

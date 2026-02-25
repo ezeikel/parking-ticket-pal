@@ -19,12 +19,11 @@ import { useAnalytics } from '@/utils/analytics-client';
 import { TRACKING_EVENTS } from '@/constants/events';
 import { setPendingPricingAction } from '@/utils/pendingPricingAction';
 
-export interface PriceCardProps {
+export type PriceCardProps = {
   title: string;
   subtitle?: string;
   price: string;
   period?: string;
-  originalPrice?: string;
   features: string[];
   ctaLabel: string;
   href: string;
@@ -33,17 +32,14 @@ export interface PriceCardProps {
   disabled?: boolean;
   variant?: 'default' | 'highlighted';
   disclaimer?: string;
-  planType?: 'one-time' | 'subscription' | 'business';
-  billingPeriod?: 'monthly' | 'yearly';
   location?: 'pricing_page' | 'homepage';
-}
+};
 
 const PriceCard = ({
   title,
   subtitle,
   price,
   period,
-  originalPrice,
   features,
   ctaLabel,
   href,
@@ -52,8 +48,6 @@ const PriceCard = ({
   disabled = false,
   variant = 'default',
   disclaimer,
-  planType = 'one-time',
-  billingPeriod,
   location = 'pricing_page',
 }: PriceCardProps) => {
   const { track } = useAnalytics();
@@ -63,44 +57,30 @@ const PriceCard = ({
   const handleClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
     track(TRACKING_EVENTS.PRICING_PLAN_CLICKED, {
       planName: title,
-      planType,
-      billingPeriod,
+      planType: 'one-time',
       price,
       location,
     });
 
     // If user is loading or already authenticated, let the default href work
     if (status === 'loading' || status === 'authenticated') {
-      return; // Let the default navigation happen
+      return;
     }
 
-    // User is not authenticated - store the action and redirect to signin
-    e.preventDefault();
+    // Only store pending action for premium tier (free tier doesn't need checkout)
+    if (title.toLowerCase().includes('premium')) {
+      e.preventDefault();
 
-    // Determine tier from title (Standard or Premium)
-    const tier = title.toLowerCase().includes('premium')
-      ? 'premium'
-      : 'standard';
-
-    // Store the pending action
-    if (planType === 'one-time') {
       setPendingPricingAction({
         type: 'one-time',
-        tier,
+        tier: 'premium',
         source: location,
       });
-    } else if (planType === 'subscription' && billingPeriod) {
-      setPendingPricingAction({
-        type: 'subscription',
-        tier,
-        period: billingPeriod,
-        source: location,
-      });
-    }
 
-    // Redirect to signin
-    router.push('/signin');
+      router.push('/signin');
+    }
   };
+
   return (
     <Card
       className={cn(
@@ -132,13 +112,6 @@ const PriceCard = ({
               <span className="text-sm text-muted-foreground">/{period}</span>
             )}
           </div>
-          {originalPrice && (
-            <div className="mt-1">
-              <span className="text-sm text-muted-foreground line-through">
-                {originalPrice}
-              </span>
-            </div>
-          )}
         </div>
       </CardHeader>
       <CardContent className="flex-1">

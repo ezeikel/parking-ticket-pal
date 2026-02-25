@@ -247,11 +247,10 @@ const TicketsList = ({ filters }: TicketsListProps) => {
     refetch,
     isRefetching,
   } = useTickets(filters);
-  const { hasActiveSubscription, hasPremiumAccess, hasStandardAccess } =
+  const { hasPremiumAccess } =
     usePurchases();
 
-  const hasSubscription =
-    hasActiveSubscription || hasPremiumAccess || hasStandardAccess;
+  const hasSubscription = hasPremiumAccess;
 
   const onRefresh = useCallback(() => {
     refetch();

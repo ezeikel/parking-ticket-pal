@@ -205,7 +205,6 @@ const OnboardingCarousel = ({ onComplete, onTicketCreated }: OnboardingCarouselP
   if (phase === 'paywall') {
     return (
       <Paywall
-        mode={wizardResult?.intent === 'challenge' ? 'ticket_upgrades' : 'subscriptions'}
         ticketId={wizardResult?.ticketId}
         source="onboarding"
         onClose={handleOnboardingComplete}

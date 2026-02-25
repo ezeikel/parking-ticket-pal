@@ -69,8 +69,6 @@ export const TRACKING_EVENTS = {
   CHECKOUT_SESSION_CREATED: 'checkout_session_created',
   CUSTOMER_PORTAL_CREATED: 'customer_portal_created',
   PAYMENT_COMPLETED: 'payment_completed',
-  SUBSCRIPTION_STARTED: 'subscription_started',
-  SUBSCRIPTION_CANCELLED: 'subscription_cancelled',
   TICKET_TIER_UPGRADED: 'ticket_tier_upgraded',
   BILLING_PAGE_VISITED: 'billing_page_visited',
 

@@ -156,11 +156,7 @@ export const claimPendingTicket = async (
     const vehicleInfo = await getVehicleInfo(pendingTicket.vehicleReg);
 
     // Map pending ticket tier to input tier
-    const tierMap: Record<string, 'standard' | 'premium' | null> = {
-      PREMIUM: 'premium',
-      STANDARD: 'standard',
-    };
-    const mappedTier = tierMap[pendingTicket.tier] ?? null;
+    const mappedTier = pendingTicket.tier === 'PREMIUM' ? 'premium' : null;
 
     // Create the ticket using existing logic
     // eslint-disable-next-line @typescript-eslint/no-use-before-define
@@ -224,7 +220,7 @@ type CreateTicketFromGuestDataInput = {
   issuerType: 'council' | 'private' | null;
   ticketStage: 'initial' | 'nto' | 'rejection' | 'charge_cert' | null;
   // Tier is null for track flow (free ticket)
-  tier: 'standard' | 'premium' | null;
+  tier: 'premium' | null;
   tempImagePath?: string;
   initialAmount?: number;
   issuer?: string;
@@ -330,12 +326,8 @@ export const createTicketFromGuestData = async (
 
     // Map tier to TicketTier
     // null tier (track flow) creates a FREE ticket
-    const tierInputMap: Record<string, TicketTier> = {
-      premium: 'PREMIUM',
-      standard: 'STANDARD',
-    };
     const ticketTier: TicketTier =
-      (input.tier && tierInputMap[input.tier]) || 'FREE';
+      input.tier === 'premium' ? 'PREMIUM' : 'FREE';
 
     // Create the ticket
     const ticket = await db.ticket.create({

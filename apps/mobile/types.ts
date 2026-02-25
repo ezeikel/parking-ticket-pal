@@ -65,11 +65,6 @@ export enum IssuerType {
   PRIVATE_COMPANY = 'PRIVATE_COMPANY',
 }
 
-export enum SubscriptionType {
-  BASIC = 'BASIC',
-  PRO = 'PRO',
-}
-
 export enum ReminderType {
   REDUCED_PAYMENT_DUE = 'REDUCED_PAYMENT_DUE',
   FULL_PAYMENT_DUE = 'FULL_PAYMENT_DUE',
@@ -88,8 +83,6 @@ export enum TransactionType {
 
 export enum ProductType {
   PAY_PER_TICKET = 'PAY_PER_TICKET',
-  PRO_MONTHLY = 'PRO_MONTHLY',
-  PRO_ANNUAL = 'PRO_ANNUAL',
 }
 
 export type User = {
@@ -100,7 +93,7 @@ export type User = {
   phoneNumber?: string;
   signatureUrl?: string;
   vehicles: Vehicle[];
-  subscription?: Subscription;
+  lastPremiumPurchaseAt?: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -143,7 +136,7 @@ export type Ticket = {
   media: Media[];
   appeal?: Appeal;
   reminder: Reminder[];
-  tier?: 'FREE' | 'STANDARD' | 'PREMIUM';
+  tier?: 'FREE' | 'PREMIUM';
   contraventionCode?: string;
   contraventionAt?: string;
   location?: Address | null;
@@ -200,16 +193,6 @@ export type Appeal = {
   content: string;
   letter: Letter[];
   letterId: string;
-  createdAt: string;
-  updatedAt: string;
-}
-
-export type Subscription = {
-  id: string;
-  type: SubscriptionType;
-  stripeCustomerId?: string;
-  user: User;
-  userId: string;
   createdAt: string;
   updatedAt: string;
 }

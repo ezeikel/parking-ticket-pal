@@ -390,7 +390,6 @@ export const ModelName = {
   Ticket: 'Ticket',
   Media: 'Media',
   Letter: 'Letter',
-  Subscription: 'Subscription',
   Reminder: 'Reminder',
   Form: 'Form',
   Prediction: 'Prediction',
@@ -431,7 +430,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "mobileDeviceSession" | "vehicle" | "ticket" | "media" | "letter" | "subscription" | "reminder" | "form" | "prediction" | "amountIncrease" | "verification" | "challenge" | "notification" | "pushToken" | "account" | "session" | "verificationToken" | "londonTribunalCase" | "appealDataSource" | "contraventionStats" | "issuerContraventionStats" | "appealPattern" | "pendingIssuer" | "pendingChallenge" | "pendingTicket" | "issuerHealthCheck" | "tribunalCaseVideo" | "newsVideo" | "highwayCodeSign" | "highwayCodeQuizPost" | "onboardingSequence"
+    modelProps: "user" | "mobileDeviceSession" | "vehicle" | "ticket" | "media" | "letter" | "reminder" | "form" | "prediction" | "amountIncrease" | "verification" | "challenge" | "notification" | "pushToken" | "account" | "session" | "verificationToken" | "londonTribunalCase" | "appealDataSource" | "contraventionStats" | "issuerContraventionStats" | "appealPattern" | "pendingIssuer" | "pendingChallenge" | "pendingTicket" | "issuerHealthCheck" | "tribunalCaseVideo" | "newsVideo" | "highwayCodeSign" | "highwayCodeQuizPost" | "onboardingSequence"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -876,80 +875,6 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         count: {
           args: Prisma.LetterCountArgs<ExtArgs>
           result: runtime.Types.Utils.Optional<Prisma.LetterCountAggregateOutputType> | number
-        }
-      }
-    }
-    Subscription: {
-      payload: Prisma.$SubscriptionPayload<ExtArgs>
-      fields: Prisma.SubscriptionFieldRefs
-      operations: {
-        findUnique: {
-          args: Prisma.SubscriptionFindUniqueArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$SubscriptionPayload> | null
-        }
-        findUniqueOrThrow: {
-          args: Prisma.SubscriptionFindUniqueOrThrowArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$SubscriptionPayload>
-        }
-        findFirst: {
-          args: Prisma.SubscriptionFindFirstArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$SubscriptionPayload> | null
-        }
-        findFirstOrThrow: {
-          args: Prisma.SubscriptionFindFirstOrThrowArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$SubscriptionPayload>
-        }
-        findMany: {
-          args: Prisma.SubscriptionFindManyArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$SubscriptionPayload>[]
-        }
-        create: {
-          args: Prisma.SubscriptionCreateArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$SubscriptionPayload>
-        }
-        createMany: {
-          args: Prisma.SubscriptionCreateManyArgs<ExtArgs>
-          result: BatchPayload
-        }
-        createManyAndReturn: {
-          args: Prisma.SubscriptionCreateManyAndReturnArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$SubscriptionPayload>[]
-        }
-        delete: {
-          args: Prisma.SubscriptionDeleteArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$SubscriptionPayload>
-        }
-        update: {
-          args: Prisma.SubscriptionUpdateArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$SubscriptionPayload>
-        }
-        deleteMany: {
-          args: Prisma.SubscriptionDeleteManyArgs<ExtArgs>
-          result: BatchPayload
-        }
-        updateMany: {
-          args: Prisma.SubscriptionUpdateManyArgs<ExtArgs>
-          result: BatchPayload
-        }
-        updateManyAndReturn: {
-          args: Prisma.SubscriptionUpdateManyAndReturnArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$SubscriptionPayload>[]
-        }
-        upsert: {
-          args: Prisma.SubscriptionUpsertArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$SubscriptionPayload>
-        }
-        aggregate: {
-          args: Prisma.SubscriptionAggregateArgs<ExtArgs>
-          result: runtime.Types.Utils.Optional<Prisma.AggregateSubscription>
-        }
-        groupBy: {
-          args: Prisma.SubscriptionGroupByArgs<ExtArgs>
-          result: runtime.Types.Utils.Optional<Prisma.SubscriptionGroupByOutputType>[]
-        }
-        count: {
-          args: Prisma.SubscriptionCountArgs<ExtArgs>
-          result: runtime.Types.Utils.Optional<Prisma.SubscriptionCountAggregateOutputType> | number
         }
       }
     }
@@ -2855,6 +2780,7 @@ export const UserScalarFieldEnum = {
   stripeCustomerId: 'stripeCustomerId',
   revenueCatCustomerId: 'revenueCatCustomerId',
   notificationPreferences: 'notificationPreferences',
+  lastPremiumPurchaseAt: 'lastPremiumPurchaseAt',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
   signatureUrl: 'signatureUrl'
@@ -2949,20 +2875,6 @@ export const LetterScalarFieldEnum = {
 } as const
 
 export type LetterScalarFieldEnum = (typeof LetterScalarFieldEnum)[keyof typeof LetterScalarFieldEnum]
-
-
-export const SubscriptionScalarFieldEnum = {
-  id: 'id',
-  userId: 'userId',
-  stripeSubscriptionId: 'stripeSubscriptionId',
-  revenueCatSubscriptionId: 'revenueCatSubscriptionId',
-  type: 'type',
-  source: 'source',
-  createdAt: 'createdAt',
-  updatedAt: 'updatedAt'
-} as const
-
-export type SubscriptionScalarFieldEnum = (typeof SubscriptionScalarFieldEnum)[keyof typeof SubscriptionScalarFieldEnum]
 
 
 export const ReminderScalarFieldEnum = {
@@ -3651,34 +3563,6 @@ export type ListEnumLetterTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$P
 
 
 /**
- * Reference to a field of type 'SubscriptionType'
- */
-export type EnumSubscriptionTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'SubscriptionType'>
-    
-
-
-/**
- * Reference to a field of type 'SubscriptionType[]'
- */
-export type ListEnumSubscriptionTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'SubscriptionType[]'>
-    
-
-
-/**
- * Reference to a field of type 'SubscriptionSource'
- */
-export type EnumSubscriptionSourceFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'SubscriptionSource'>
-    
-
-
-/**
- * Reference to a field of type 'SubscriptionSource[]'
- */
-export type ListEnumSubscriptionSourceFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'SubscriptionSource[]'>
-    
-
-
-/**
  * Reference to a field of type 'ReminderType'
  */
 export type EnumReminderTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ReminderType'>
@@ -4072,7 +3956,6 @@ export type GlobalOmitConfig = {
   ticket?: Prisma.TicketOmit
   media?: Prisma.MediaOmit
   letter?: Prisma.LetterOmit
-  subscription?: Prisma.SubscriptionOmit
   reminder?: Prisma.ReminderOmit
   form?: Prisma.FormOmit
   prediction?: Prisma.PredictionOmit

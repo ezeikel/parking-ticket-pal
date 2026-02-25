@@ -14,6 +14,10 @@ import { updateTicketStatus } from '@/app/actions/ticket';
 import { createTicketCheckoutSession } from '@/app/actions/stripe';
 import { initiateAutoChallenge } from '@/app/actions/autoChallenge';
 import { generateChallengeLetter } from '@/app/actions/letter';
+import AddressPromptBanner from '@/components/AddressPromptBanner/AddressPromptBanner';
+import AdBanner from '@/components/AdBanner/AdBanner';
+import { ChallengeStatus } from '@parking-ticket-pal/db';
+import { getDisplayAmount } from '@/utils/getCurrentAmountDue';
 import TicketDetailHeader from './TicketDetailHeader';
 import TicketPhotoCard from './TicketPhotoCard';
 import TicketInfoCard from './TicketInfoCard';
@@ -34,14 +38,12 @@ import LightboxModal from './LightboxModal';
 import LetterContentModal from './LetterContentModal';
 import AutoChallengeDialog from './AutoChallengeDialog';
 import GenerateLetterDialog from './GenerateLetterDialog';
-import AddressPromptBanner from '@/components/AddressPromptBanner/AddressPromptBanner';
 import AutoChallengeStatusCard from './AutoChallengeStatusCard';
 import LiveStatusCard from './LiveStatusCard';
-import { ChallengeStatus } from '@parking-ticket-pal/db';
-import { getDisplayAmount } from '@/utils/getCurrentAmountDue';
 
 type TicketDetailPageProps = {
   ticket: TicketWithRelations;
+  showAds?: boolean;
 };
 
 const getDeadlineDays = (issuedAt: Date): number => {
@@ -54,7 +56,6 @@ const getDeadlineDays = (issuedAt: Date): number => {
   );
 };
 
-
 // Type for letters with media (used for letter content modal)
 type LetterWithMedia = {
   id: string;
@@ -65,11 +66,16 @@ type LetterWithMedia = {
   media: Pick<TicketWithRelations['letters'][0]['media'][0], 'id' | 'url'>[];
 };
 
-const TicketDetailPage = ({ ticket }: TicketDetailPageProps) => {
+const TicketDetailPage = ({
+  ticket,
+  showAds = false,
+}: TicketDetailPageProps) => {
   const router = useRouter();
   const [, startTransition] = useTransition();
   const [lightboxImage, setLightboxImage] = useState<string | null>(null);
-  const [selectedLetter, setSelectedLetter] = useState<LetterWithMedia | null>(null);
+  const [selectedLetter, setSelectedLetter] = useState<LetterWithMedia | null>(
+    null,
+  );
   const [isAutoChallengeDialogOpen, setIsAutoChallengeDialogOpen] =
     useState(false);
   const [isGenerateLetterDialogOpen, setIsGenerateLetterDialogOpen] =
@@ -77,7 +83,9 @@ const TicketDetailPage = ({ ticket }: TicketDetailPageProps) => {
   // For retry functionality
   const [retryChallengeId, setRetryChallengeId] = useState<string | null>(null);
   const [retryReason, setRetryReason] = useState<string | undefined>();
-  const [retryCustomReason, setRetryCustomReason] = useState<string | undefined>();
+  const [retryCustomReason, setRetryCustomReason] = useState<
+    string | undefined
+  >();
 
   // Helper to open dialog for retry
   const openAutoChallengeDialogForRetry = (
@@ -204,7 +212,8 @@ const TicketDetailPage = ({ ticket }: TicketDetailPageProps) => {
 
       if (result && result.success) {
         toast.success(
-          result.message || 'Your challenge letter is on the way! Check your inbox.',
+          result.message ||
+            'Your challenge letter is on the way! Check your inbox.',
           { id: toastId },
         );
         router.refresh();
@@ -237,7 +246,11 @@ const TicketDetailPage = ({ ticket }: TicketDetailPageProps) => {
     toast.info('Delete functionality available via existing UI');
   };
 
-  const handleAutoChallenge = async (reason: string, customReason?: string, existingChallengeId?: string) => {
+  const handleAutoChallenge = async (
+    reason: string,
+    customReason?: string,
+    existingChallengeId?: string,
+  ) => {
     const toastId = toast.loading('Starting challenge...');
 
     try {
@@ -338,15 +351,56 @@ const TicketDetailPage = ({ ticket }: TicketDetailPageProps) => {
               tier={ticket.tier}
               issuer={ticket.issuer}
               lastCheck={
-                ticket.verification?.type === 'TICKET' && ticket.verification.metadata
+                ticket.verification?.type === 'TICKET' &&
+                ticket.verification.metadata
                   ? {
-                      portalStatus: (ticket.verification.metadata as Record<string, unknown>).portalStatus as string || '',
-                      mappedStatus: (ticket.verification.metadata as Record<string, unknown>).mappedStatus as string | null,
-                      outstandingAmount: (ticket.verification.metadata as Record<string, unknown>).outstandingAmount as number || 0,
-                      canChallenge: (ticket.verification.metadata as Record<string, unknown>).canChallenge as boolean || false,
-                      canPay: (ticket.verification.metadata as Record<string, unknown>).canPay as boolean || false,
-                      screenshotUrl: (ticket.verification.metadata as Record<string, unknown>).screenshotUrl as string || '',
-                      checkedAt: (ticket.verification.metadata as Record<string, unknown>).checkedAt as string || ticket.verification.verifiedAt?.toISOString() || '',
+                      portalStatus:
+                        ((
+                          ticket.verification.metadata as Record<
+                            string,
+                            unknown
+                          >
+                        ).portalStatus as string) || '',
+                      mappedStatus: (
+                        ticket.verification.metadata as Record<string, unknown>
+                      ).mappedStatus as string | null,
+                      outstandingAmount:
+                        ((
+                          ticket.verification.metadata as Record<
+                            string,
+                            unknown
+                          >
+                        ).outstandingAmount as number) || 0,
+                      canChallenge:
+                        ((
+                          ticket.verification.metadata as Record<
+                            string,
+                            unknown
+                          >
+                        ).canChallenge as boolean) || false,
+                      canPay:
+                        ((
+                          ticket.verification.metadata as Record<
+                            string,
+                            unknown
+                          >
+                        ).canPay as boolean) || false,
+                      screenshotUrl:
+                        ((
+                          ticket.verification.metadata as Record<
+                            string,
+                            unknown
+                          >
+                        ).screenshotUrl as string) || '',
+                      checkedAt:
+                        ((
+                          ticket.verification.metadata as Record<
+                            string,
+                            unknown
+                          >
+                        ).checkedAt as string) ||
+                        ticket.verification.verifiedAt?.toISOString() ||
+                        '',
                     }
                   : null
               }
@@ -412,7 +466,7 @@ const TicketDetailPage = ({ ticket }: TicketDetailPageProps) => {
               return (
                 <AutoChallengeStatusCard
                   challengeId={latestAutoChallenge.id}
-                  initialStatus={latestAutoChallenge.status as ChallengeStatus}
+                  initialStatus={latestAutoChallenge.status}
                   reason={latestAutoChallenge.reason}
                   createdAt={latestAutoChallenge.createdAt}
                   onRetry={() => {
@@ -471,7 +525,16 @@ const TicketDetailPage = ({ ticket }: TicketDetailPageProps) => {
                 potentialSavings={ticket.initialAmount / 2}
                 onUpgrade={handleUpgrade}
                 numberOfCases={ticket.prediction?.numberOfCases ?? undefined}
-                metadata={ticket.prediction?.metadata as { dataSource: string; statsLevel: 'issuer_contravention' | 'contravention' | 'baseline'; numberOfCases?: number } | null}
+                metadata={
+                  ticket.prediction?.metadata as {
+                    dataSource: string;
+                    statsLevel:
+                      | 'issuer_contravention'
+                      | 'contravention'
+                      | 'baseline';
+                    numberOfCases?: number;
+                  } | null
+                }
                 issuerName={ticket.issuer}
                 contraventionCode={ticket.contraventionCode}
               />
@@ -526,6 +589,16 @@ const TicketDetailPage = ({ ticket }: TicketDetailPageProps) => {
 
               {/* Activity Timeline */}
               <ActivityTimelineCard events={historyEvents} />
+
+              {/* Ad Banner */}
+              {showAds &&
+                process.env.NEXT_PUBLIC_ADSENSE_SLOT_TICKET_DETAIL && (
+                  <AdBanner
+                    slot={process.env.NEXT_PUBLIC_ADSENSE_SLOT_TICKET_DETAIL}
+                    format="rectangle"
+                    className="mt-6"
+                  />
+                )}
             </div>
           </div>
         </div>
@@ -562,7 +635,11 @@ const TicketDetailPage = ({ ticket }: TicketDetailPageProps) => {
         open={isAutoChallengeDialogOpen}
         onOpenChange={handleAutoChallengeDialogChange}
         issuerName={ticket.issuer}
-        predictionMetadata={ticket.prediction?.metadata as import('@/services/prediction-service').PredictionMetadata | null}
+        predictionMetadata={
+          ticket.prediction?.metadata as
+            | import('@/services/prediction-service').PredictionMetadata
+            | null
+        }
         onSubmit={handleAutoChallenge}
         existingChallengeId={retryChallengeId || undefined}
         initialReason={retryReason}
@@ -574,7 +651,11 @@ const TicketDetailPage = ({ ticket }: TicketDetailPageProps) => {
         open={isGenerateLetterDialogOpen}
         onOpenChange={setIsGenerateLetterDialogOpen}
         issuerType={ticket.issuerType}
-        predictionMetadata={ticket.prediction?.metadata as import('@/services/prediction-service').PredictionMetadata | null}
+        predictionMetadata={
+          ticket.prediction?.metadata as
+            | import('@/services/prediction-service').PredictionMetadata
+            | null
+        }
         onSubmit={handleGenerateLetter}
       />
     </div>

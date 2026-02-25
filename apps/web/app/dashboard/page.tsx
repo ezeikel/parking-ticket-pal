@@ -22,6 +22,7 @@ import {
   LOST_STATUSES,
   PENDING_STATUSES,
 } from '@/constants/ticketStatuses';
+import AdBannerServer from '@/components/AdBanner/AdBannerServer';
 import DashboardTicketsSection from './DashboardTicketsSection';
 
 // Wrapper component for stats cards with data fetching
@@ -372,6 +373,11 @@ const DashboardPage = async () => {
             <StatsCardsWrapper />
           </Suspense>
         </div>
+
+        {/* Ad Banner */}
+        <Suspense fallback={null}>
+          <AdBannerServer placement="dashboard" className="mt-6" />
+        </Suspense>
 
         {/* Tickets & Map Section */}
         <div className="mt-8">

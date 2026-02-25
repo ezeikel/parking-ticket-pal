@@ -1,7 +1,5 @@
-import { Prisma, SubscriptionType } from '@parking-ticket-pal/db/types';
+import { Prisma } from '@parking-ticket-pal/db/types';
 import { getCachedTickets } from '@/app/actions/ticket';
-import { getUserSubscriptionStatus } from '@/app/actions/user';
-import { getUserId } from '@/utils/user';
 import { getDisplayAmount } from '@/utils/getCurrentAmountDue';
 import DashboardTicketsSectionClient from './DashboardTicketsSectionClient';
 
@@ -70,17 +68,7 @@ const mapTicketStatus = (status: string): TicketStatus => {
 };
 
 const DashboardTicketsSection = async () => {
-  const [ticketsData, userId] = await Promise.all([
-    getCachedTickets(),
-    getUserId('view dashboard'),
-  ]);
-
-  const { hasSubscription, subscriptionType } = userId
-    ? await getUserSubscriptionStatus(userId)
-    : {
-        hasSubscription: false,
-        subscriptionType: null as SubscriptionType | null,
-      };
+  const ticketsData = await getCachedTickets();
 
   const now = new Date();
 
@@ -119,13 +107,7 @@ const DashboardTicketsSection = async () => {
     };
   });
 
-  return (
-    <DashboardTicketsSectionClient
-      tickets={tickets}
-      hasSubscription={hasSubscription}
-      subscriptionType={subscriptionType}
-    />
-  );
+  return <DashboardTicketsSectionClient tickets={tickets} />;
 };
 
 export default DashboardTicketsSection;

@@ -59,8 +59,8 @@ class AdService {
     }
   }
 
-  async showAd(): Promise<boolean> {
-    const adFree = await purchaseService.isAdFree();
+  async showAd(lastPremiumPurchaseAt?: string | null): Promise<boolean> {
+    const adFree = await purchaseService.isAdFree(lastPremiumPurchaseAt);
     if (adFree) {
       logger.debug('Ad not shown: user is ad-free', {
         action: 'ad_show_skipped',

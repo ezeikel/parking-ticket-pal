@@ -3,16 +3,17 @@
 import { useEffect, useRef } from 'react';
 import { trackPurchase } from '@/lib/facebook-pixel';
 
-interface PurchaseTrackerProps {
+type PurchaseTrackerProps = {
   value: number;
   currency?: string;
   contentName?: string;
-}
+};
 
+// eslint-disable-next-line import-x/prefer-default-export
 export function PurchaseTracker({
   value,
   currency = 'GBP',
-  contentName = 'subscription',
+  contentName = 'premium_ticket',
 }: PurchaseTrackerProps) {
   const hasTracked = useRef(false);
 

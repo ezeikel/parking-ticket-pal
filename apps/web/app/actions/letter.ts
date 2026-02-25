@@ -17,9 +17,9 @@ import {
   ChallengeType,
   ChallengeStatus,
   AmountIncreaseSourceType,
+  db,
 } from '@parking-ticket-pal/db';
 import { Readable } from 'stream';
-import { db } from '@parking-ticket-pal/db';
 import getVehicleInfo from '@/utils/getVehicleInfo';
 import {
   letterFormSchema,
@@ -146,8 +146,7 @@ export const createLetter = async (
     if (letter && validatedData.tempImagePath && validatedData.tempImageUrl) {
       try {
         // Extract file extension from temp path
-        const extension =
-          validatedData.tempImagePath!.split('.').pop() || 'jpg';
+        const extension = validatedData.tempImagePath.split('.').pop() || 'jpg';
 
         // Move file to permanent location with letter ID
         // New path: letters/{letterId}/image.{ext}
@@ -157,7 +156,7 @@ export const createLetter = async (
         ).replace('%s', extension);
 
         // Download temp file and upload to permanent location
-        const tempResponse = await fetch(validatedData.tempImageUrl!);
+        const tempResponse = await fetch(validatedData.tempImageUrl);
         if (!tempResponse.ok) {
           throw new Error(
             `Failed to fetch temp file: ${tempResponse.statusText}`,
@@ -186,7 +185,7 @@ export const createLetter = async (
         });
 
         // Delete temporary file
-        await del(validatedData.tempImageUrl!);
+        await del(validatedData.tempImageUrl);
 
         logger.info('Successfully moved letter image', {
           letterId: letter.id,
@@ -492,6 +491,7 @@ const generateChallengeLetterByTicketId = async (
       phoneNumber: true,
       signatureUrl: true,
       stripeCustomerId: true,
+      lastPremiumPurchaseAt: true,
     },
   });
 

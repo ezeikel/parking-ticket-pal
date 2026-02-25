@@ -7,25 +7,6 @@ import { createServerLogger } from '@/lib/logger';
 
 const logger = createServerLogger({ action: 'actions' });
 
-export const getSubscription = async () => {
-  const userId = await getUserId('get the subscription');
-
-  if (!userId) {
-    logger.error('User needs to be logged in to get subscription');
-    return null;
-  }
-
-  const subscription = await db.subscription.findFirst({
-    where: {
-      user: {
-        id: userId,
-      },
-    },
-  });
-
-  return subscription;
-};
-
 export const getEvidenceImages = async ({
   pcnNumber,
 }: {

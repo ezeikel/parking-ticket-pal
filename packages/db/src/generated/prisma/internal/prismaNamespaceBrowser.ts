@@ -57,7 +57,6 @@ export const ModelName = {
   Ticket: 'Ticket',
   Media: 'Media',
   Letter: 'Letter',
-  Subscription: 'Subscription',
   Reminder: 'Reminder',
   Form: 'Form',
   Prediction: 'Prediction',
@@ -114,6 +113,7 @@ export const UserScalarFieldEnum = {
   stripeCustomerId: 'stripeCustomerId',
   revenueCatCustomerId: 'revenueCatCustomerId',
   notificationPreferences: 'notificationPreferences',
+  lastPremiumPurchaseAt: 'lastPremiumPurchaseAt',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
   signatureUrl: 'signatureUrl'
@@ -208,20 +208,6 @@ export const LetterScalarFieldEnum = {
 } as const
 
 export type LetterScalarFieldEnum = (typeof LetterScalarFieldEnum)[keyof typeof LetterScalarFieldEnum]
-
-
-export const SubscriptionScalarFieldEnum = {
-  id: 'id',
-  userId: 'userId',
-  stripeSubscriptionId: 'stripeSubscriptionId',
-  revenueCatSubscriptionId: 'revenueCatSubscriptionId',
-  type: 'type',
-  source: 'source',
-  createdAt: 'createdAt',
-  updatedAt: 'updatedAt'
-} as const
-
-export type SubscriptionScalarFieldEnum = (typeof SubscriptionScalarFieldEnum)[keyof typeof SubscriptionScalarFieldEnum]
 
 
 export const ReminderScalarFieldEnum = {

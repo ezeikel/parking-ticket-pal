@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { View } from 'react-native';
 import { BannerAd, BannerAdSize } from 'react-native-google-mobile-ads';
 import { purchaseService } from '../services/PurchaseService';
+import { useAuthContext } from '../contexts/auth';
 import { bannerUnitId } from '../lib/ads';
 import { logger } from '@/lib/logger';
 
@@ -11,11 +12,12 @@ interface AdBannerProps {
 }
 
 export const AdBanner: React.FC<AdBannerProps> = ({ placement, size = BannerAdSize.BANNER }) => {
+  const { user } = useAuthContext();
   const [isAdFree, setIsAdFree] = useState(false);
 
   useEffect(() => {
     const checkAdFreeStatus = async () => {
-      const adFree = await purchaseService.isAdFree();
+      const adFree = await purchaseService.isAdFree(user?.lastPremiumPurchaseAt);
       setIsAdFree(adFree);
 
       logger.debug('Banner ad status checked', {
@@ -25,10 +27,10 @@ export const AdBanner: React.FC<AdBannerProps> = ({ placement, size = BannerAdSi
       });
     };
     checkAdFreeStatus();
-  }, [placement]);
+  }, [placement, user?.lastPremiumPurchaseAt]);
 
   if (isAdFree) {
-    return null; // Don't show ads if user purchased ad removal (Standard or Ultimate plan)
+    return null; // Premium purchasers get 30 days ad-free
   }
 
   return (

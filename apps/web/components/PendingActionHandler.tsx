@@ -28,19 +28,12 @@ const PendingActionHandler = () => {
     // Clear the action immediately to prevent double-processing
     clearPendingPricingAction();
 
-    // Redirect based on action type
-    if (pendingAction.type === 'one-time') {
-      // Redirect to create ticket page with tier info
-      const params = new URLSearchParams({
-        tier: pendingAction.tier,
-        source: pendingAction.source,
-      });
-      router.push(`/new?${params.toString()}`);
-    } else if (pendingAction.type === 'subscription') {
-      // Redirect to billing page with plan info
-      const plan = `${pendingAction.tier}-${pendingAction.period}`;
-      router.push(`/account/billing?plan=${plan}`);
-    }
+    // Redirect to create ticket page with tier info
+    const params = new URLSearchParams({
+      tier: pendingAction.tier,
+      source: pendingAction.source,
+    });
+    router.push(`/new?${params.toString()}`);
   }, [status, router]);
 
   // This component doesn't render anything

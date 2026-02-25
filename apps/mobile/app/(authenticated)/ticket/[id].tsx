@@ -43,7 +43,7 @@ export default function TicketDetailScreen() {
   const screenWidth = width - padding * 2;
   const { id } = useLocalSearchParams<{ id: string }>();
   const { data, isLoading, isError, refetch } = useTicket(id!);
-  const { hasActiveSubscription, hasPremiumAccess, hasStandardAccess } =
+  const { hasPremiumAccess } =
     usePurchases();
 
   // Bottom sheet refs
@@ -128,9 +128,7 @@ export default function TicketDetailScreen() {
 
   const hasPremiumFeatures =
     ticketData.tier === 'PREMIUM' ||
-    hasActiveSubscription ||
-    hasPremiumAccess ||
-    hasStandardAccess;
+    hasPremiumAccess;
 
   // Separate ticket images from evidence
   const ticketImages = (ticket.media || []).filter(
@@ -287,11 +285,7 @@ export default function TicketDetailScreen() {
         <ActionsCard
           ticket={ticket}
           isPremium={hasPremiumFeatures}
-          isStandardOnly={
-            (hasStandardAccess || ticketData.tier === 'STANDARD') &&
-            !hasPremiumAccess &&
-            !hasActiveSubscription
-          }
+          isStandardOnly={false}
           onOpenPremiumActions={() =>
             setIsPremiumActionsVisible(true)
           }

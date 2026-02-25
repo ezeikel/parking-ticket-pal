@@ -3,44 +3,38 @@ import { toast } from '@/lib/toast';
 import { PurchasesPackage, PURCHASES_ERROR_CODE } from 'react-native-purchases';
 import { usePurchases } from '@/contexts/purchases';
 import { useAnalytics } from '@/lib/analytics';
-import { ONE_TIME_PLANS, SUBSCRIPTION_PLANS, type PricingPlan } from '@/constants/pricing';
-
-type PaywallMode = 'subscriptions' | 'ticket_upgrades';
-type BillingPeriod = 'monthly' | 'yearly';
+import { ONE_TIME_PLANS, type PricingPlan } from '@/constants/pricing';
 
 interface UsePaywallOptions {
-  mode: PaywallMode;
   ticketId?: string;
   onPurchaseComplete?: () => void;
 }
 
-export function usePaywall({ mode, ticketId, onPurchaseComplete }: UsePaywallOptions) {
+export function usePaywall({ ticketId, onPurchaseComplete }: UsePaywallOptions) {
   const { getOffering, purchasePackage: contextPurchasePackage, restorePurchases: contextRestore, refreshCustomerInfo } = usePurchases();
   const { trackEvent } = useAnalytics();
 
   const [isLoadingOfferings, setIsLoadingOfferings] = useState(true);
   const [isPurchasing, setIsPurchasing] = useState(false);
   const [offering, setOffering] = useState<any>(null);
-  const [billingPeriod, setBillingPeriod] = useState<BillingPeriod>('monthly');
   const [selectedPlanId, setSelectedPlanId] = useState<string | null>(null);
 
-  const plans = mode === 'subscriptions' ? SUBSCRIPTION_PLANS : ONE_TIME_PLANS;
+  const plans = ONE_TIME_PLANS;
 
-  // Pre-select the popular plan
+  // Pre-select the popular plan (Premium)
   useEffect(() => {
     const popularPlan = plans.find((p) => p.popular);
     if (popularPlan) {
       setSelectedPlanId(popularPlan.id);
     }
-  }, [mode]);
+  }, []);
 
   // Fetch offerings from RevenueCat
   useEffect(() => {
     const fetchOffering = async () => {
       setIsLoadingOfferings(true);
       try {
-        const offeringId = mode === 'subscriptions' ? 'subscriptions' : 'ticket_upgrades';
-        const result = await getOffering(offeringId);
+        const result = await getOffering('ticket_upgrades');
         setOffering(result);
       } catch (error) {
         console.error('[usePaywall] Error fetching offering:', error);
@@ -50,54 +44,27 @@ export function usePaywall({ mode, ticketId, onPurchaseComplete }: UsePaywallOpt
     };
 
     fetchOffering();
-  }, [mode]);
+  }, []);
 
   const getPackageForPlan = useCallback(
     (plan: PricingPlan): PurchasesPackage | null => {
       if (!offering?.availablePackages) return null;
 
       const prefix = plan.rcProductPrefix;
-      const periodSuffix = mode === 'subscriptions' ? `_${billingPeriod}` : '';
-      const searchId = `${prefix}${periodSuffix}`;
 
       return (
         offering.availablePackages.find((pkg: PurchasesPackage) =>
-          pkg.product.identifier.startsWith(searchId)
+          pkg.product.identifier.startsWith(prefix)
         ) ?? null
       );
     },
-    [offering, billingPeriod, mode]
+    [offering]
   );
 
   const formatPrice = useCallback((pkg: PurchasesPackage | null): string => {
     if (!pkg) return '---';
     return pkg.product.priceString;
   }, []);
-
-  const hasTrialForPlan = useCallback(
-    (plan: PricingPlan): boolean => {
-      const pkg = getPackageForPlan(plan);
-      if (!pkg) return false;
-      const intro = pkg.product.introPrice;
-      return intro != null && intro.price === 0;
-    },
-    [getPackageForPlan],
-  );
-
-  const getTrialDuration = useCallback(
-    (plan: PricingPlan): string | null => {
-      const pkg = getPackageForPlan(plan);
-      if (!pkg) return null;
-      const intro = pkg.product.introPrice;
-      if (!intro || intro.price !== 0) return null;
-      const count = intro.periodNumberOfUnits;
-      const unit = intro.periodUnit;
-      const unitLabel =
-        unit === 'DAY' ? 'day' : unit === 'WEEK' ? 'week' : unit === 'MONTH' ? 'month' : 'day';
-      return `${count}-${unitLabel}`;
-    },
-    [getPackageForPlan],
-  );
 
   const purchasePackage = useCallback(
     async (plan: PricingPlan) => {
@@ -112,38 +79,25 @@ export function usePaywall({ mode, ticketId, onPurchaseComplete }: UsePaywallOpt
       try {
         const { customerInfo } = await contextPurchasePackage(pkg, ticketId);
 
-        const isTrial = hasTrialForPlan(plan);
-
         trackEvent('paywall_purchase_success', {
           product_id: pkg.product.identifier,
           price: pkg.product.priceString,
           plan_id: plan.id,
-          mode,
-          is_trial: isTrial,
+          mode: 'ticket_upgrades',
         });
-
-        if (isTrial) {
-          trackEvent('paywall_trial_started', {
-            product_id: pkg.product.identifier,
-            plan_id: plan.id,
-            trial_duration: getTrialDuration(plan),
-          });
-        }
 
         await refreshCustomerInfo();
 
         toast.success(
           'Success',
-          mode === 'subscriptions'
-            ? 'Welcome! You now have access to all premium features.'
-            : 'Your ticket has been upgraded successfully!'
+          'Your ticket has been upgraded to Premium!'
         );
         onPurchaseComplete?.();
       } catch (error: any) {
         if (error.code === PURCHASES_ERROR_CODE.PURCHASE_CANCELLED_ERROR) {
           trackEvent('paywall_purchase_cancelled', {
             plan_id: plan.id,
-            mode,
+            mode: 'ticket_upgrades',
           });
         } else {
           console.error('[usePaywall] Purchase error:', error);
@@ -153,7 +107,7 @@ export function usePaywall({ mode, ticketId, onPurchaseComplete }: UsePaywallOpt
         setIsPurchasing(false);
       }
     },
-    [getPackageForPlan, contextPurchasePackage, ticketId, mode, refreshCustomerInfo, onPurchaseComplete, trackEvent, hasTrialForPlan, getTrialDuration]
+    [getPackageForPlan, contextPurchasePackage, ticketId, refreshCustomerInfo, onPurchaseComplete, trackEvent]
   );
 
   const restorePurchases = useCallback(async () => {
@@ -181,30 +135,16 @@ export function usePaywall({ mode, ticketId, onPurchaseComplete }: UsePaywallOpt
     }
   }, [contextRestore, onPurchaseComplete, trackEvent]);
 
-  const handleBillingPeriodChange = useCallback(
-    (period: BillingPeriod) => {
-      setBillingPeriod(period);
-      trackEvent('paywall_billing_period_changed', {
-        billing_period: period,
-      });
-    },
-    [trackEvent]
-  );
-
   return {
     isLoadingOfferings,
     isPurchasing,
     offering,
     plans,
-    billingPeriod,
-    setBillingPeriod: handleBillingPeriodChange,
     selectedPlanId,
     setSelectedPlanId,
     purchasePackage,
     restorePurchases,
     getPackageForPlan,
     formatPrice,
-    hasTrialForPlan,
-    getTrialDuration,
   };
 }

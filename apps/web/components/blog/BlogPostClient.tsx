@@ -17,6 +17,7 @@ import {
 } from '@fortawesome/free-brands-svg-icons';
 import { Button } from '@/components/ui/button';
 import PortableText from '@/components/PortableText/PortableText';
+import AdBanner from '@/components/AdBanner/AdBanner';
 import type { Post } from '@/types';
 import type { PortableTextBlock } from '@portabletext/types';
 import { PLACEHOLDER_AVATAR_IMAGE } from '@/constants';
@@ -31,13 +32,12 @@ type BlogPostClientProps = {
   relatedPosts?: RelatedPost[];
 };
 
-const formatDate = (dateString: string) => {
-  return new Date(dateString).toLocaleDateString('en-GB', {
+const formatDate = (dateString: string) =>
+  new Date(dateString).toLocaleDateString('en-GB', {
     day: 'numeric',
     month: 'long',
     year: 'numeric',
   });
-};
 
 const getTagColor = (tag: string) => {
   const tagLower = tag.toLowerCase();
@@ -285,6 +285,15 @@ const BlogPostClient = ({ post, relatedPosts = [] }: BlogPostClientProps) => {
               </div>
             </div>
           </motion.div>
+
+          {/* Ad Banner */}
+          {process.env.NEXT_PUBLIC_ADSENSE_SLOT_BLOG && (
+            <AdBanner
+              slot={process.env.NEXT_PUBLIC_ADSENSE_SLOT_BLOG}
+              format="horizontal"
+              className="mt-10"
+            />
+          )}
 
           {/* CTA */}
           <motion.div

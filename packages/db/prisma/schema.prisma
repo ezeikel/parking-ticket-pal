@@ -33,10 +33,10 @@ model User {
   stripeCustomerId        String? // set after Stripe customer creation
   revenueCatCustomerId    String? // set after RevenueCat identification
   notificationPreferences Json?                 @default("{\"inApp\":true,\"email\":true,\"sms\":true,\"push\":true}")
+  lastPremiumPurchaseAt   DateTime? // tracks 30-day ad-free window after Premium purchase
   createdAt               DateTime              @default(now())
   updatedAt               DateTime              @updatedAt
   signatureUrl            String?
-  subscription            Subscription?
   vehicles                Vehicle[]
   accounts                Account[]
   sessions                Session[]
@@ -164,20 +164,6 @@ model Letter {
   amountIncrease AmountIncrease?
 
   @@map("letters")
-}
-
-model Subscription {
-  id                       String             @id @default(cuid())
-  userId                   String             @unique
-  user                     User               @relation(fields: [userId], references: [id])
-  stripeSubscriptionId     String?            @unique // set after Stripe subscription creation
-  revenueCatSubscriptionId String?            @unique // set after RevenueCat subscription creation
-  type                     SubscriptionType   @default(STANDARD)
-  source                   SubscriptionSource @default(STRIPE)
-  createdAt                DateTime           @default(now())
-  updatedAt                DateTime           @updatedAt
-
-  @@map("subscriptions")
 }
 
 model Reminder {
@@ -438,16 +424,6 @@ enum IssuerType {
   PRIVATE_COMPANY
 }
 
-enum SubscriptionType {
-  STANDARD
-  PREMIUM
-}
-
-enum SubscriptionSource {
-  STRIPE
-  REVENUECAT
-}
-
 enum ReminderType {
   DISCOUNT_PERIOD
   FULL_CHARGE
@@ -527,7 +503,6 @@ enum ChallengeStatus {
 
 enum TicketTier {
   FREE
-  STANDARD
   PREMIUM
 }
 

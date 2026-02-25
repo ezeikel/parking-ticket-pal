@@ -35,6 +35,7 @@ export type UserMinAggregateOutputType = {
   role: $Enums.UserRole | null
   stripeCustomerId: string | null
   revenueCatCustomerId: string | null
+  lastPremiumPurchaseAt: Date | null
   createdAt: Date | null
   updatedAt: Date | null
   signatureUrl: string | null
@@ -51,6 +52,7 @@ export type UserMaxAggregateOutputType = {
   role: $Enums.UserRole | null
   stripeCustomerId: string | null
   revenueCatCustomerId: string | null
+  lastPremiumPurchaseAt: Date | null
   createdAt: Date | null
   updatedAt: Date | null
   signatureUrl: string | null
@@ -69,6 +71,7 @@ export type UserCountAggregateOutputType = {
   stripeCustomerId: number
   revenueCatCustomerId: number
   notificationPreferences: number
+  lastPremiumPurchaseAt: number
   createdAt: number
   updatedAt: number
   signatureUrl: number
@@ -87,6 +90,7 @@ export type UserMinAggregateInputType = {
   role?: true
   stripeCustomerId?: true
   revenueCatCustomerId?: true
+  lastPremiumPurchaseAt?: true
   createdAt?: true
   updatedAt?: true
   signatureUrl?: true
@@ -103,6 +107,7 @@ export type UserMaxAggregateInputType = {
   role?: true
   stripeCustomerId?: true
   revenueCatCustomerId?: true
+  lastPremiumPurchaseAt?: true
   createdAt?: true
   updatedAt?: true
   signatureUrl?: true
@@ -121,6 +126,7 @@ export type UserCountAggregateInputType = {
   stripeCustomerId?: true
   revenueCatCustomerId?: true
   notificationPreferences?: true
+  lastPremiumPurchaseAt?: true
   createdAt?: true
   updatedAt?: true
   signatureUrl?: true
@@ -212,6 +218,7 @@ export type UserGroupByOutputType = {
   stripeCustomerId: string | null
   revenueCatCustomerId: string | null
   notificationPreferences: runtime.JsonValue | null
+  lastPremiumPurchaseAt: Date | null
   createdAt: Date
   updatedAt: Date
   signatureUrl: string | null
@@ -251,10 +258,10 @@ export type UserWhereInput = {
   stripeCustomerId?: Prisma.StringNullableFilter<"User"> | string | null
   revenueCatCustomerId?: Prisma.StringNullableFilter<"User"> | string | null
   notificationPreferences?: Prisma.JsonNullableFilter<"User">
+  lastPremiumPurchaseAt?: Prisma.DateTimeNullableFilter<"User"> | Date | string | null
   createdAt?: Prisma.DateTimeFilter<"User"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"User"> | Date | string
   signatureUrl?: Prisma.StringNullableFilter<"User"> | string | null
-  subscription?: Prisma.XOR<Prisma.SubscriptionNullableScalarRelationFilter, Prisma.SubscriptionWhereInput> | null
   vehicles?: Prisma.VehicleListRelationFilter
   accounts?: Prisma.AccountListRelationFilter
   sessions?: Prisma.SessionListRelationFilter
@@ -277,10 +284,10 @@ export type UserOrderByWithRelationInput = {
   stripeCustomerId?: Prisma.SortOrderInput | Prisma.SortOrder
   revenueCatCustomerId?: Prisma.SortOrderInput | Prisma.SortOrder
   notificationPreferences?: Prisma.SortOrderInput | Prisma.SortOrder
+  lastPremiumPurchaseAt?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   signatureUrl?: Prisma.SortOrderInput | Prisma.SortOrder
-  subscription?: Prisma.SubscriptionOrderByWithRelationInput
   vehicles?: Prisma.VehicleOrderByRelationAggregateInput
   accounts?: Prisma.AccountOrderByRelationAggregateInput
   sessions?: Prisma.SessionOrderByRelationAggregateInput
@@ -306,10 +313,10 @@ export type UserWhereUniqueInput = Prisma.AtLeast<{
   stripeCustomerId?: Prisma.StringNullableFilter<"User"> | string | null
   revenueCatCustomerId?: Prisma.StringNullableFilter<"User"> | string | null
   notificationPreferences?: Prisma.JsonNullableFilter<"User">
+  lastPremiumPurchaseAt?: Prisma.DateTimeNullableFilter<"User"> | Date | string | null
   createdAt?: Prisma.DateTimeFilter<"User"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"User"> | Date | string
   signatureUrl?: Prisma.StringNullableFilter<"User"> | string | null
-  subscription?: Prisma.XOR<Prisma.SubscriptionNullableScalarRelationFilter, Prisma.SubscriptionWhereInput> | null
   vehicles?: Prisma.VehicleListRelationFilter
   accounts?: Prisma.AccountListRelationFilter
   sessions?: Prisma.SessionListRelationFilter
@@ -332,6 +339,7 @@ export type UserOrderByWithAggregationInput = {
   stripeCustomerId?: Prisma.SortOrderInput | Prisma.SortOrder
   revenueCatCustomerId?: Prisma.SortOrderInput | Prisma.SortOrder
   notificationPreferences?: Prisma.SortOrderInput | Prisma.SortOrder
+  lastPremiumPurchaseAt?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   signatureUrl?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -356,6 +364,7 @@ export type UserScalarWhereWithAggregatesInput = {
   stripeCustomerId?: Prisma.StringNullableWithAggregatesFilter<"User"> | string | null
   revenueCatCustomerId?: Prisma.StringNullableWithAggregatesFilter<"User"> | string | null
   notificationPreferences?: Prisma.JsonNullableWithAggregatesFilter<"User">
+  lastPremiumPurchaseAt?: Prisma.DateTimeNullableWithAggregatesFilter<"User"> | Date | string | null
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"User"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"User"> | Date | string
   signatureUrl?: Prisma.StringNullableWithAggregatesFilter<"User"> | string | null
@@ -374,10 +383,10 @@ export type UserCreateInput = {
   stripeCustomerId?: string | null
   revenueCatCustomerId?: string | null
   notificationPreferences?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  lastPremiumPurchaseAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   signatureUrl?: string | null
-  subscription?: Prisma.SubscriptionCreateNestedOneWithoutUserInput
   vehicles?: Prisma.VehicleCreateNestedManyWithoutUserInput
   accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
   sessions?: Prisma.SessionCreateNestedManyWithoutUserInput
@@ -400,10 +409,10 @@ export type UserUncheckedCreateInput = {
   stripeCustomerId?: string | null
   revenueCatCustomerId?: string | null
   notificationPreferences?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  lastPremiumPurchaseAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   signatureUrl?: string | null
-  subscription?: Prisma.SubscriptionUncheckedCreateNestedOneWithoutUserInput
   vehicles?: Prisma.VehicleUncheckedCreateNestedManyWithoutUserInput
   accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
   sessions?: Prisma.SessionUncheckedCreateNestedManyWithoutUserInput
@@ -426,10 +435,10 @@ export type UserUpdateInput = {
   stripeCustomerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   revenueCatCustomerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   notificationPreferences?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  lastPremiumPurchaseAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   signatureUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  subscription?: Prisma.SubscriptionUpdateOneWithoutUserNestedInput
   vehicles?: Prisma.VehicleUpdateManyWithoutUserNestedInput
   accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
   sessions?: Prisma.SessionUpdateManyWithoutUserNestedInput
@@ -452,10 +461,10 @@ export type UserUncheckedUpdateInput = {
   stripeCustomerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   revenueCatCustomerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   notificationPreferences?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  lastPremiumPurchaseAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   signatureUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  subscription?: Prisma.SubscriptionUncheckedUpdateOneWithoutUserNestedInput
   vehicles?: Prisma.VehicleUncheckedUpdateManyWithoutUserNestedInput
   accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
   sessions?: Prisma.SessionUncheckedUpdateManyWithoutUserNestedInput
@@ -478,6 +487,7 @@ export type UserCreateManyInput = {
   stripeCustomerId?: string | null
   revenueCatCustomerId?: string | null
   notificationPreferences?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  lastPremiumPurchaseAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   signatureUrl?: string | null
@@ -496,6 +506,7 @@ export type UserUpdateManyMutationInput = {
   stripeCustomerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   revenueCatCustomerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   notificationPreferences?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  lastPremiumPurchaseAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   signatureUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -514,6 +525,7 @@ export type UserUncheckedUpdateManyInput = {
   stripeCustomerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   revenueCatCustomerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   notificationPreferences?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  lastPremiumPurchaseAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   signatureUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -532,6 +544,7 @@ export type UserCountOrderByAggregateInput = {
   stripeCustomerId?: Prisma.SortOrder
   revenueCatCustomerId?: Prisma.SortOrder
   notificationPreferences?: Prisma.SortOrder
+  lastPremiumPurchaseAt?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   signatureUrl?: Prisma.SortOrder
@@ -548,6 +561,7 @@ export type UserMaxOrderByAggregateInput = {
   role?: Prisma.SortOrder
   stripeCustomerId?: Prisma.SortOrder
   revenueCatCustomerId?: Prisma.SortOrder
+  lastPremiumPurchaseAt?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   signatureUrl?: Prisma.SortOrder
@@ -564,6 +578,7 @@ export type UserMinOrderByAggregateInput = {
   role?: Prisma.SortOrder
   stripeCustomerId?: Prisma.SortOrder
   revenueCatCustomerId?: Prisma.SortOrder
+  lastPremiumPurchaseAt?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   signatureUrl?: Prisma.SortOrder
@@ -624,20 +639,6 @@ export type UserUpdateOneRequiredWithoutVehiclesNestedInput = {
   upsert?: Prisma.UserUpsertWithoutVehiclesInput
   connect?: Prisma.UserWhereUniqueInput
   update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutVehiclesInput, Prisma.UserUpdateWithoutVehiclesInput>, Prisma.UserUncheckedUpdateWithoutVehiclesInput>
-}
-
-export type UserCreateNestedOneWithoutSubscriptionInput = {
-  create?: Prisma.XOR<Prisma.UserCreateWithoutSubscriptionInput, Prisma.UserUncheckedCreateWithoutSubscriptionInput>
-  connectOrCreate?: Prisma.UserCreateOrConnectWithoutSubscriptionInput
-  connect?: Prisma.UserWhereUniqueInput
-}
-
-export type UserUpdateOneRequiredWithoutSubscriptionNestedInput = {
-  create?: Prisma.XOR<Prisma.UserCreateWithoutSubscriptionInput, Prisma.UserUncheckedCreateWithoutSubscriptionInput>
-  connectOrCreate?: Prisma.UserCreateOrConnectWithoutSubscriptionInput
-  upsert?: Prisma.UserUpsertWithoutSubscriptionInput
-  connect?: Prisma.UserWhereUniqueInput
-  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutSubscriptionInput, Prisma.UserUpdateWithoutSubscriptionInput>, Prisma.UserUncheckedUpdateWithoutSubscriptionInput>
 }
 
 export type UserCreateNestedOneWithoutNotificationsInput = {
@@ -723,10 +724,10 @@ export type UserCreateWithoutMobileDeviceSessionsInput = {
   stripeCustomerId?: string | null
   revenueCatCustomerId?: string | null
   notificationPreferences?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  lastPremiumPurchaseAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   signatureUrl?: string | null
-  subscription?: Prisma.SubscriptionCreateNestedOneWithoutUserInput
   vehicles?: Prisma.VehicleCreateNestedManyWithoutUserInput
   accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
   sessions?: Prisma.SessionCreateNestedManyWithoutUserInput
@@ -748,10 +749,10 @@ export type UserUncheckedCreateWithoutMobileDeviceSessionsInput = {
   stripeCustomerId?: string | null
   revenueCatCustomerId?: string | null
   notificationPreferences?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  lastPremiumPurchaseAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   signatureUrl?: string | null
-  subscription?: Prisma.SubscriptionUncheckedCreateNestedOneWithoutUserInput
   vehicles?: Prisma.VehicleUncheckedCreateNestedManyWithoutUserInput
   accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
   sessions?: Prisma.SessionUncheckedCreateNestedManyWithoutUserInput
@@ -789,10 +790,10 @@ export type UserUpdateWithoutMobileDeviceSessionsInput = {
   stripeCustomerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   revenueCatCustomerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   notificationPreferences?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  lastPremiumPurchaseAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   signatureUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  subscription?: Prisma.SubscriptionUpdateOneWithoutUserNestedInput
   vehicles?: Prisma.VehicleUpdateManyWithoutUserNestedInput
   accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
   sessions?: Prisma.SessionUpdateManyWithoutUserNestedInput
@@ -814,10 +815,10 @@ export type UserUncheckedUpdateWithoutMobileDeviceSessionsInput = {
   stripeCustomerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   revenueCatCustomerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   notificationPreferences?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  lastPremiumPurchaseAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   signatureUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  subscription?: Prisma.SubscriptionUncheckedUpdateOneWithoutUserNestedInput
   vehicles?: Prisma.VehicleUncheckedUpdateManyWithoutUserNestedInput
   accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
   sessions?: Prisma.SessionUncheckedUpdateManyWithoutUserNestedInput
@@ -839,10 +840,10 @@ export type UserCreateWithoutVehiclesInput = {
   stripeCustomerId?: string | null
   revenueCatCustomerId?: string | null
   notificationPreferences?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  lastPremiumPurchaseAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   signatureUrl?: string | null
-  subscription?: Prisma.SubscriptionCreateNestedOneWithoutUserInput
   accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
   sessions?: Prisma.SessionCreateNestedManyWithoutUserInput
   pushTokens?: Prisma.PushTokenCreateNestedManyWithoutUserInput
@@ -864,10 +865,10 @@ export type UserUncheckedCreateWithoutVehiclesInput = {
   stripeCustomerId?: string | null
   revenueCatCustomerId?: string | null
   notificationPreferences?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  lastPremiumPurchaseAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   signatureUrl?: string | null
-  subscription?: Prisma.SubscriptionUncheckedCreateNestedOneWithoutUserInput
   accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
   sessions?: Prisma.SessionUncheckedCreateNestedManyWithoutUserInput
   pushTokens?: Prisma.PushTokenUncheckedCreateNestedManyWithoutUserInput
@@ -905,10 +906,10 @@ export type UserUpdateWithoutVehiclesInput = {
   stripeCustomerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   revenueCatCustomerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   notificationPreferences?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  lastPremiumPurchaseAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   signatureUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  subscription?: Prisma.SubscriptionUpdateOneWithoutUserNestedInput
   accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
   sessions?: Prisma.SessionUpdateManyWithoutUserNestedInput
   pushTokens?: Prisma.PushTokenUpdateManyWithoutUserNestedInput
@@ -930,126 +931,10 @@ export type UserUncheckedUpdateWithoutVehiclesInput = {
   stripeCustomerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   revenueCatCustomerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   notificationPreferences?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  lastPremiumPurchaseAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   signatureUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  subscription?: Prisma.SubscriptionUncheckedUpdateOneWithoutUserNestedInput
-  accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
-  sessions?: Prisma.SessionUncheckedUpdateManyWithoutUserNestedInput
-  pushTokens?: Prisma.PushTokenUncheckedUpdateManyWithoutUserNestedInput
-  notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
-  mobileDeviceSessions?: Prisma.MobileDeviceSessionUncheckedUpdateManyWithoutUserNestedInput
-  onboardingSequences?: Prisma.OnboardingSequenceUncheckedUpdateManyWithoutUserNestedInput
-}
-
-export type UserCreateWithoutSubscriptionInput = {
-  id?: string
-  email?: string | null
-  name?: string | null
-  emailVerified?: Date | string | null
-  image?: string | null
-  title?: $Enums.UserTitle | null
-  phoneNumber?: string | null
-  address?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
-  role?: $Enums.UserRole
-  stripeCustomerId?: string | null
-  revenueCatCustomerId?: string | null
-  notificationPreferences?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
-  createdAt?: Date | string
-  updatedAt?: Date | string
-  signatureUrl?: string | null
-  vehicles?: Prisma.VehicleCreateNestedManyWithoutUserInput
-  accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
-  sessions?: Prisma.SessionCreateNestedManyWithoutUserInput
-  pushTokens?: Prisma.PushTokenCreateNestedManyWithoutUserInput
-  notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
-  mobileDeviceSessions?: Prisma.MobileDeviceSessionCreateNestedManyWithoutUserInput
-  onboardingSequences?: Prisma.OnboardingSequenceCreateNestedManyWithoutUserInput
-}
-
-export type UserUncheckedCreateWithoutSubscriptionInput = {
-  id?: string
-  email?: string | null
-  name?: string | null
-  emailVerified?: Date | string | null
-  image?: string | null
-  title?: $Enums.UserTitle | null
-  phoneNumber?: string | null
-  address?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
-  role?: $Enums.UserRole
-  stripeCustomerId?: string | null
-  revenueCatCustomerId?: string | null
-  notificationPreferences?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
-  createdAt?: Date | string
-  updatedAt?: Date | string
-  signatureUrl?: string | null
-  vehicles?: Prisma.VehicleUncheckedCreateNestedManyWithoutUserInput
-  accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
-  sessions?: Prisma.SessionUncheckedCreateNestedManyWithoutUserInput
-  pushTokens?: Prisma.PushTokenUncheckedCreateNestedManyWithoutUserInput
-  notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
-  mobileDeviceSessions?: Prisma.MobileDeviceSessionUncheckedCreateNestedManyWithoutUserInput
-  onboardingSequences?: Prisma.OnboardingSequenceUncheckedCreateNestedManyWithoutUserInput
-}
-
-export type UserCreateOrConnectWithoutSubscriptionInput = {
-  where: Prisma.UserWhereUniqueInput
-  create: Prisma.XOR<Prisma.UserCreateWithoutSubscriptionInput, Prisma.UserUncheckedCreateWithoutSubscriptionInput>
-}
-
-export type UserUpsertWithoutSubscriptionInput = {
-  update: Prisma.XOR<Prisma.UserUpdateWithoutSubscriptionInput, Prisma.UserUncheckedUpdateWithoutSubscriptionInput>
-  create: Prisma.XOR<Prisma.UserCreateWithoutSubscriptionInput, Prisma.UserUncheckedCreateWithoutSubscriptionInput>
-  where?: Prisma.UserWhereInput
-}
-
-export type UserUpdateToOneWithWhereWithoutSubscriptionInput = {
-  where?: Prisma.UserWhereInput
-  data: Prisma.XOR<Prisma.UserUpdateWithoutSubscriptionInput, Prisma.UserUncheckedUpdateWithoutSubscriptionInput>
-}
-
-export type UserUpdateWithoutSubscriptionInput = {
-  id?: Prisma.StringFieldUpdateOperationsInput | string
-  email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  emailVerified?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  title?: Prisma.NullableEnumUserTitleFieldUpdateOperationsInput | $Enums.UserTitle | null
-  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  address?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
-  role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
-  stripeCustomerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  revenueCatCustomerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  notificationPreferences?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
-  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  signatureUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  vehicles?: Prisma.VehicleUpdateManyWithoutUserNestedInput
-  accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
-  sessions?: Prisma.SessionUpdateManyWithoutUserNestedInput
-  pushTokens?: Prisma.PushTokenUpdateManyWithoutUserNestedInput
-  notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
-  mobileDeviceSessions?: Prisma.MobileDeviceSessionUpdateManyWithoutUserNestedInput
-  onboardingSequences?: Prisma.OnboardingSequenceUpdateManyWithoutUserNestedInput
-}
-
-export type UserUncheckedUpdateWithoutSubscriptionInput = {
-  id?: Prisma.StringFieldUpdateOperationsInput | string
-  email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  emailVerified?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  title?: Prisma.NullableEnumUserTitleFieldUpdateOperationsInput | $Enums.UserTitle | null
-  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  address?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
-  role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
-  stripeCustomerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  revenueCatCustomerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  notificationPreferences?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
-  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  signatureUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  vehicles?: Prisma.VehicleUncheckedUpdateManyWithoutUserNestedInput
   accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
   sessions?: Prisma.SessionUncheckedUpdateManyWithoutUserNestedInput
   pushTokens?: Prisma.PushTokenUncheckedUpdateManyWithoutUserNestedInput
@@ -1071,10 +956,10 @@ export type UserCreateWithoutNotificationsInput = {
   stripeCustomerId?: string | null
   revenueCatCustomerId?: string | null
   notificationPreferences?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  lastPremiumPurchaseAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   signatureUrl?: string | null
-  subscription?: Prisma.SubscriptionCreateNestedOneWithoutUserInput
   vehicles?: Prisma.VehicleCreateNestedManyWithoutUserInput
   accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
   sessions?: Prisma.SessionCreateNestedManyWithoutUserInput
@@ -1096,10 +981,10 @@ export type UserUncheckedCreateWithoutNotificationsInput = {
   stripeCustomerId?: string | null
   revenueCatCustomerId?: string | null
   notificationPreferences?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  lastPremiumPurchaseAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   signatureUrl?: string | null
-  subscription?: Prisma.SubscriptionUncheckedCreateNestedOneWithoutUserInput
   vehicles?: Prisma.VehicleUncheckedCreateNestedManyWithoutUserInput
   accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
   sessions?: Prisma.SessionUncheckedCreateNestedManyWithoutUserInput
@@ -1137,10 +1022,10 @@ export type UserUpdateWithoutNotificationsInput = {
   stripeCustomerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   revenueCatCustomerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   notificationPreferences?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  lastPremiumPurchaseAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   signatureUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  subscription?: Prisma.SubscriptionUpdateOneWithoutUserNestedInput
   vehicles?: Prisma.VehicleUpdateManyWithoutUserNestedInput
   accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
   sessions?: Prisma.SessionUpdateManyWithoutUserNestedInput
@@ -1162,10 +1047,10 @@ export type UserUncheckedUpdateWithoutNotificationsInput = {
   stripeCustomerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   revenueCatCustomerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   notificationPreferences?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  lastPremiumPurchaseAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   signatureUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  subscription?: Prisma.SubscriptionUncheckedUpdateOneWithoutUserNestedInput
   vehicles?: Prisma.VehicleUncheckedUpdateManyWithoutUserNestedInput
   accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
   sessions?: Prisma.SessionUncheckedUpdateManyWithoutUserNestedInput
@@ -1187,10 +1072,10 @@ export type UserCreateWithoutPushTokensInput = {
   stripeCustomerId?: string | null
   revenueCatCustomerId?: string | null
   notificationPreferences?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  lastPremiumPurchaseAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   signatureUrl?: string | null
-  subscription?: Prisma.SubscriptionCreateNestedOneWithoutUserInput
   vehicles?: Prisma.VehicleCreateNestedManyWithoutUserInput
   accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
   sessions?: Prisma.SessionCreateNestedManyWithoutUserInput
@@ -1212,10 +1097,10 @@ export type UserUncheckedCreateWithoutPushTokensInput = {
   stripeCustomerId?: string | null
   revenueCatCustomerId?: string | null
   notificationPreferences?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  lastPremiumPurchaseAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   signatureUrl?: string | null
-  subscription?: Prisma.SubscriptionUncheckedCreateNestedOneWithoutUserInput
   vehicles?: Prisma.VehicleUncheckedCreateNestedManyWithoutUserInput
   accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
   sessions?: Prisma.SessionUncheckedCreateNestedManyWithoutUserInput
@@ -1253,10 +1138,10 @@ export type UserUpdateWithoutPushTokensInput = {
   stripeCustomerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   revenueCatCustomerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   notificationPreferences?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  lastPremiumPurchaseAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   signatureUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  subscription?: Prisma.SubscriptionUpdateOneWithoutUserNestedInput
   vehicles?: Prisma.VehicleUpdateManyWithoutUserNestedInput
   accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
   sessions?: Prisma.SessionUpdateManyWithoutUserNestedInput
@@ -1278,10 +1163,10 @@ export type UserUncheckedUpdateWithoutPushTokensInput = {
   stripeCustomerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   revenueCatCustomerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   notificationPreferences?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  lastPremiumPurchaseAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   signatureUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  subscription?: Prisma.SubscriptionUncheckedUpdateOneWithoutUserNestedInput
   vehicles?: Prisma.VehicleUncheckedUpdateManyWithoutUserNestedInput
   accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
   sessions?: Prisma.SessionUncheckedUpdateManyWithoutUserNestedInput
@@ -1303,10 +1188,10 @@ export type UserCreateWithoutAccountsInput = {
   stripeCustomerId?: string | null
   revenueCatCustomerId?: string | null
   notificationPreferences?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  lastPremiumPurchaseAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   signatureUrl?: string | null
-  subscription?: Prisma.SubscriptionCreateNestedOneWithoutUserInput
   vehicles?: Prisma.VehicleCreateNestedManyWithoutUserInput
   sessions?: Prisma.SessionCreateNestedManyWithoutUserInput
   pushTokens?: Prisma.PushTokenCreateNestedManyWithoutUserInput
@@ -1328,10 +1213,10 @@ export type UserUncheckedCreateWithoutAccountsInput = {
   stripeCustomerId?: string | null
   revenueCatCustomerId?: string | null
   notificationPreferences?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  lastPremiumPurchaseAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   signatureUrl?: string | null
-  subscription?: Prisma.SubscriptionUncheckedCreateNestedOneWithoutUserInput
   vehicles?: Prisma.VehicleUncheckedCreateNestedManyWithoutUserInput
   sessions?: Prisma.SessionUncheckedCreateNestedManyWithoutUserInput
   pushTokens?: Prisma.PushTokenUncheckedCreateNestedManyWithoutUserInput
@@ -1369,10 +1254,10 @@ export type UserUpdateWithoutAccountsInput = {
   stripeCustomerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   revenueCatCustomerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   notificationPreferences?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  lastPremiumPurchaseAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   signatureUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  subscription?: Prisma.SubscriptionUpdateOneWithoutUserNestedInput
   vehicles?: Prisma.VehicleUpdateManyWithoutUserNestedInput
   sessions?: Prisma.SessionUpdateManyWithoutUserNestedInput
   pushTokens?: Prisma.PushTokenUpdateManyWithoutUserNestedInput
@@ -1394,10 +1279,10 @@ export type UserUncheckedUpdateWithoutAccountsInput = {
   stripeCustomerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   revenueCatCustomerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   notificationPreferences?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  lastPremiumPurchaseAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   signatureUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  subscription?: Prisma.SubscriptionUncheckedUpdateOneWithoutUserNestedInput
   vehicles?: Prisma.VehicleUncheckedUpdateManyWithoutUserNestedInput
   sessions?: Prisma.SessionUncheckedUpdateManyWithoutUserNestedInput
   pushTokens?: Prisma.PushTokenUncheckedUpdateManyWithoutUserNestedInput
@@ -1419,10 +1304,10 @@ export type UserCreateWithoutSessionsInput = {
   stripeCustomerId?: string | null
   revenueCatCustomerId?: string | null
   notificationPreferences?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  lastPremiumPurchaseAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   signatureUrl?: string | null
-  subscription?: Prisma.SubscriptionCreateNestedOneWithoutUserInput
   vehicles?: Prisma.VehicleCreateNestedManyWithoutUserInput
   accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
   pushTokens?: Prisma.PushTokenCreateNestedManyWithoutUserInput
@@ -1444,10 +1329,10 @@ export type UserUncheckedCreateWithoutSessionsInput = {
   stripeCustomerId?: string | null
   revenueCatCustomerId?: string | null
   notificationPreferences?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  lastPremiumPurchaseAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   signatureUrl?: string | null
-  subscription?: Prisma.SubscriptionUncheckedCreateNestedOneWithoutUserInput
   vehicles?: Prisma.VehicleUncheckedCreateNestedManyWithoutUserInput
   accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
   pushTokens?: Prisma.PushTokenUncheckedCreateNestedManyWithoutUserInput
@@ -1485,10 +1370,10 @@ export type UserUpdateWithoutSessionsInput = {
   stripeCustomerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   revenueCatCustomerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   notificationPreferences?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  lastPremiumPurchaseAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   signatureUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  subscription?: Prisma.SubscriptionUpdateOneWithoutUserNestedInput
   vehicles?: Prisma.VehicleUpdateManyWithoutUserNestedInput
   accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
   pushTokens?: Prisma.PushTokenUpdateManyWithoutUserNestedInput
@@ -1510,10 +1395,10 @@ export type UserUncheckedUpdateWithoutSessionsInput = {
   stripeCustomerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   revenueCatCustomerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   notificationPreferences?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  lastPremiumPurchaseAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   signatureUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  subscription?: Prisma.SubscriptionUncheckedUpdateOneWithoutUserNestedInput
   vehicles?: Prisma.VehicleUncheckedUpdateManyWithoutUserNestedInput
   accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
   pushTokens?: Prisma.PushTokenUncheckedUpdateManyWithoutUserNestedInput
@@ -1535,10 +1420,10 @@ export type UserCreateWithoutOnboardingSequencesInput = {
   stripeCustomerId?: string | null
   revenueCatCustomerId?: string | null
   notificationPreferences?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  lastPremiumPurchaseAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   signatureUrl?: string | null
-  subscription?: Prisma.SubscriptionCreateNestedOneWithoutUserInput
   vehicles?: Prisma.VehicleCreateNestedManyWithoutUserInput
   accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
   sessions?: Prisma.SessionCreateNestedManyWithoutUserInput
@@ -1560,10 +1445,10 @@ export type UserUncheckedCreateWithoutOnboardingSequencesInput = {
   stripeCustomerId?: string | null
   revenueCatCustomerId?: string | null
   notificationPreferences?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  lastPremiumPurchaseAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   signatureUrl?: string | null
-  subscription?: Prisma.SubscriptionUncheckedCreateNestedOneWithoutUserInput
   vehicles?: Prisma.VehicleUncheckedCreateNestedManyWithoutUserInput
   accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
   sessions?: Prisma.SessionUncheckedCreateNestedManyWithoutUserInput
@@ -1601,10 +1486,10 @@ export type UserUpdateWithoutOnboardingSequencesInput = {
   stripeCustomerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   revenueCatCustomerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   notificationPreferences?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  lastPremiumPurchaseAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   signatureUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  subscription?: Prisma.SubscriptionUpdateOneWithoutUserNestedInput
   vehicles?: Prisma.VehicleUpdateManyWithoutUserNestedInput
   accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
   sessions?: Prisma.SessionUpdateManyWithoutUserNestedInput
@@ -1626,10 +1511,10 @@ export type UserUncheckedUpdateWithoutOnboardingSequencesInput = {
   stripeCustomerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   revenueCatCustomerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   notificationPreferences?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  lastPremiumPurchaseAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   signatureUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  subscription?: Prisma.SubscriptionUncheckedUpdateOneWithoutUserNestedInput
   vehicles?: Prisma.VehicleUncheckedUpdateManyWithoutUserNestedInput
   accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
   sessions?: Prisma.SessionUncheckedUpdateManyWithoutUserNestedInput
@@ -1736,10 +1621,10 @@ export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   stripeCustomerId?: boolean
   revenueCatCustomerId?: boolean
   notificationPreferences?: boolean
+  lastPremiumPurchaseAt?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   signatureUrl?: boolean
-  subscription?: boolean | Prisma.User$subscriptionArgs<ExtArgs>
   vehicles?: boolean | Prisma.User$vehiclesArgs<ExtArgs>
   accounts?: boolean | Prisma.User$accountsArgs<ExtArgs>
   sessions?: boolean | Prisma.User$sessionsArgs<ExtArgs>
@@ -1763,6 +1648,7 @@ export type UserSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensio
   stripeCustomerId?: boolean
   revenueCatCustomerId?: boolean
   notificationPreferences?: boolean
+  lastPremiumPurchaseAt?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   signatureUrl?: boolean
@@ -1781,6 +1667,7 @@ export type UserSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensio
   stripeCustomerId?: boolean
   revenueCatCustomerId?: boolean
   notificationPreferences?: boolean
+  lastPremiumPurchaseAt?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   signatureUrl?: boolean
@@ -1799,14 +1686,14 @@ export type UserSelectScalar = {
   stripeCustomerId?: boolean
   revenueCatCustomerId?: boolean
   notificationPreferences?: boolean
+  lastPremiumPurchaseAt?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   signatureUrl?: boolean
 }
 
-export type UserOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "email" | "name" | "emailVerified" | "image" | "title" | "phoneNumber" | "address" | "role" | "stripeCustomerId" | "revenueCatCustomerId" | "notificationPreferences" | "createdAt" | "updatedAt" | "signatureUrl", ExtArgs["result"]["user"]>
+export type UserOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "email" | "name" | "emailVerified" | "image" | "title" | "phoneNumber" | "address" | "role" | "stripeCustomerId" | "revenueCatCustomerId" | "notificationPreferences" | "lastPremiumPurchaseAt" | "createdAt" | "updatedAt" | "signatureUrl", ExtArgs["result"]["user"]>
 export type UserInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  subscription?: boolean | Prisma.User$subscriptionArgs<ExtArgs>
   vehicles?: boolean | Prisma.User$vehiclesArgs<ExtArgs>
   accounts?: boolean | Prisma.User$accountsArgs<ExtArgs>
   sessions?: boolean | Prisma.User$sessionsArgs<ExtArgs>
@@ -1822,7 +1709,6 @@ export type UserIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensi
 export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "User"
   objects: {
-    subscription: Prisma.$SubscriptionPayload<ExtArgs> | null
     vehicles: Prisma.$VehiclePayload<ExtArgs>[]
     accounts: Prisma.$AccountPayload<ExtArgs>[]
     sessions: Prisma.$SessionPayload<ExtArgs>[]
@@ -1844,6 +1730,7 @@ export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     stripeCustomerId: string | null
     revenueCatCustomerId: string | null
     notificationPreferences: runtime.JsonValue | null
+    lastPremiumPurchaseAt: Date | null
     createdAt: Date
     updatedAt: Date
     signatureUrl: string | null
@@ -2241,7 +2128,6 @@ readonly fields: UserFieldRefs;
  */
 export interface Prisma__UserClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
-  subscription<T extends Prisma.User$subscriptionArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$subscriptionArgs<ExtArgs>>): Prisma.Prisma__SubscriptionClient<runtime.Types.Result.GetResult<Prisma.$SubscriptionPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   vehicles<T extends Prisma.User$vehiclesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$vehiclesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$VehiclePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   accounts<T extends Prisma.User$accountsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$accountsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$AccountPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   sessions<T extends Prisma.User$sessionsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$sessionsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$SessionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
@@ -2290,6 +2176,7 @@ export interface UserFieldRefs {
   readonly stripeCustomerId: Prisma.FieldRef<"User", 'String'>
   readonly revenueCatCustomerId: Prisma.FieldRef<"User", 'String'>
   readonly notificationPreferences: Prisma.FieldRef<"User", 'Json'>
+  readonly lastPremiumPurchaseAt: Prisma.FieldRef<"User", 'DateTime'>
   readonly createdAt: Prisma.FieldRef<"User", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"User", 'DateTime'>
   readonly signatureUrl: Prisma.FieldRef<"User", 'String'>
@@ -2678,25 +2565,6 @@ export type UserDeleteManyArgs<ExtArgs extends runtime.Types.Extensions.Internal
    * Limit how many Users to delete.
    */
   limit?: number
-}
-
-/**
- * User.subscription
- */
-export type User$subscriptionArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  /**
-   * Select specific fields to fetch from the Subscription
-   */
-  select?: Prisma.SubscriptionSelect<ExtArgs> | null
-  /**
-   * Omit specific fields from the Subscription
-   */
-  omit?: Prisma.SubscriptionOmit<ExtArgs> | null
-  /**
-   * Choose, which related nodes to fetch as well
-   */
-  include?: Prisma.SubscriptionInclude<ExtArgs> | null
-  where?: Prisma.SubscriptionWhereInput
 }
 
 /**

@@ -3,14 +3,13 @@
 import { useRef } from 'react';
 import { motion, useInView, type Variants } from 'framer-motion';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faCheck, faArrowRight } from '@fortawesome/pro-solid-svg-icons';
+import { faCheck } from '@fortawesome/pro-solid-svg-icons';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 
 type PricingTier = {
   name: string;
   price: string;
-  yearlyPrice?: string;
   period?: string;
   subtitle: string;
   features: string[];
@@ -21,77 +20,40 @@ type PricingTier = {
   popular?: boolean;
 };
 
-const oneTimeTiers: PricingTier[] = [
+const tiers: PricingTier[] = [
   {
-    name: 'Ticket Standard',
-    price: '£2.99',
-    subtitle: 'Track & Manage',
+    name: 'Free',
+    price: '£0',
+    subtitle: 'Track & manage your tickets',
     features: [
-      'Success prediction score',
-      'Email & SMS reminders',
+      'Unlimited tickets',
+      'Email + push reminders',
       'Timeline tracking',
       'Document storage',
-      'Deadline alerts',
+      'Key deadline notifications',
     ],
-    cta: 'Get Standard',
+    cta: 'Start Free',
     ctaVariant: 'outline',
-    ctaHref: '/pricing',
-    note: 'One-time payment per ticket',
-  },
-  {
-    name: 'Ticket Premium',
-    price: '£9.99',
-    subtitle: 'Full Challenge Package',
-    features: [
-      'Everything in Standard',
-      'AI-generated challenge letter',
-      'Success prediction score',
-      'Auto-submission to council',
-      'PDF download & email delivery',
-    ],
-    cta: 'Get Premium',
-    ctaVariant: 'default',
-    ctaHref: '/pricing',
-    note: 'One-time payment per ticket',
-    popular: true,
-  },
-];
-
-const subscriptionTiers: PricingTier[] = [
-  {
-    name: 'Standard',
-    price: '£6.99',
-    yearlyPrice: '£69.99',
-    period: '/month',
-    subtitle: 'Up to 5 tickets/month',
-    features: [
-      'Reminders & tracking',
-      'Document storage',
-      'Success score unlock',
-      'Deadline alerts',
-    ],
-    cta: 'Subscribe Standard',
-    ctaVariant: 'outline',
-    ctaHref: '/pricing',
-    note: 'Cancel anytime',
+    ctaHref: '/new',
+    note: 'No credit card required',
   },
   {
     name: 'Premium',
     price: '£14.99',
-    yearlyPrice: '£149.99',
-    period: '/month',
-    subtitle: 'Up to 10 tickets/month',
+    period: '/ticket',
+    subtitle: 'Everything you need to challenge and win',
     features: [
-      'Everything in Standard',
-      'AI appeal generation',
-      'Auto-submission',
-      'Priority support',
-      'Full stage escalation',
+      'Everything in Free',
+      'Challenge/appeal letter with AI assist',
+      'Auto-submission to council',
+      'Success prediction score',
+      'SMS reminders',
+      '30-day ad-free experience',
     ],
-    cta: 'Subscribe Premium',
+    cta: 'Upgrade to Premium',
     ctaVariant: 'default',
     ctaHref: '/pricing',
-    note: 'Save 17% with yearly',
+    note: 'One-time payment per ticket',
     popular: true,
   },
 ];
@@ -108,7 +70,6 @@ const fadeUpVariants: Variants = {
 const PricingSection = () => {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, margin: '-100px' });
-  const tiers = [...oneTimeTiers, ...subscriptionTiers];
 
   return (
     <section id="pricing" ref={ref} className="bg-light py-20 md:py-28">
@@ -121,15 +82,15 @@ const PricingSection = () => {
           className="mb-16 text-center"
         >
           <h2 className="text-3xl font-bold text-dark md:text-4xl">
-            Simple, Pay-Per-Ticket Pricing
+            Start Free. Upgrade When You Need To.
           </h2>
           <p className="mx-auto mt-4 max-w-2xl text-lg text-gray">
-            No subscriptions. No hidden fees. Only pay when we can help.
+            Track your tickets for free. Pay only when you want to challenge.
           </p>
         </motion.div>
 
         {/* Pricing Cards */}
-        <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-4">
+        <div className="mx-auto grid max-w-3xl gap-8 md:grid-cols-2">
           {tiers.map((tier, index) => (
             <motion.div
               key={tier.name}
@@ -201,23 +162,6 @@ const PricingSection = () => {
             </motion.div>
           ))}
         </div>
-
-        {/* Business CTA */}
-        <motion.div
-          initial="hidden"
-          animate={isInView ? 'visible' : 'hidden'}
-          variants={fadeUpVariants}
-          transition={{ delay: 0.5 }}
-          className="mt-12 text-center"
-        >
-          <a
-            href="mailto:hello@parkingticketpal.co.uk?subject=Business%20Pricing"
-            className="inline-flex items-center gap-2 text-sm font-medium text-dark hover:underline"
-          >
-            Have a fleet? Contact us for business pricing
-            <FontAwesomeIcon icon={faArrowRight} />
-          </a>
-        </motion.div>
       </div>
     </section>
   );

@@ -20,7 +20,7 @@ import * as Application from 'expo-application';
 import Loader from '@/components/Loader/Loader';
 import { useAnalytics } from '@/lib/analytics';
 import { resetOnboarding } from '@/utils/onboarding';
-import { UpgradeButton } from '@/components/UpgradeButton';
+
 import { EditablePhoneNumber } from '@/components/EditablePhoneNumber';
 import { EditableAddress } from '@/components/EditableAddress';
 import SignatureBottomSheet from '@/components/SignatureBottomSheet';
@@ -46,9 +46,7 @@ const SettingsScreen = () => {
   const user = data?.user;
   const { signOut, isLinked, signIn, signInWithApple: signInWithAppleMethod, signInWithFacebook: signInWithFacebookMethod, sendMagicLink } = useAuthContext();
   const {
-    hasActiveSubscription,
     hasPremiumAccess,
-    hasStandardAccess,
     restorePurchases,
     refreshCustomerInfo
   } = usePurchases();
@@ -328,26 +326,17 @@ const SettingsScreen = () => {
   };
 
   const getSubscriptionStatus = () => {
-    if (user?.subscription?.source === 'STRIPE') {
-      const type = user.subscription.type === 'PREMIUM' ? 'Premium' : 'Standard';
-      return `${type} (Web Subscription)`;
-    }
-
     if (hasPremiumAccess) {
-      return 'Premium (Mobile)';
-    }
-
-    if (hasStandardAccess) {
-      return 'Standard (Mobile)';
+      return 'Premium';
     }
 
     return 'Free';
   };
 
   const handleToggleNotification = (key: 'inApp' | 'email' | 'sms' | 'push') => {
-    // Check if user is trying to enable email/sms without subscription
-    if (!hasActiveSubscription && (key === 'email' || key === 'sms')) {
-      toast.info('Upgrade Required', `${key === 'email' ? 'Email' : 'SMS'} notifications are only available for Standard and Premium subscribers.`);
+    // SMS requires Premium
+    if (!hasPremiumAccess && key === 'sms') {
+      toast.info('Premium Required', 'SMS reminders are included with Premium. Upgrade a ticket for £14.99 to unlock.');
       return;
     }
 
@@ -386,9 +375,6 @@ const SettingsScreen = () => {
     setIsAddressSheetVisible(true);
   }, [trackEvent]);
 
-  const handleOpenSubscription = useCallback(() => {
-    router.push({ pathname: '/(authenticated)/paywall', params: { mode: 'subscriptions', source: 'settings' } });
-  }, []);
 
   const SettingRow = ({ icon, title, value, onPress, destructive = false }: {
     icon: any;
@@ -540,37 +526,12 @@ const SettingsScreen = () => {
               />
             </SquishyPressable>
 
-            {/* Subscription - inline in Account */}
+            {/* Plan status */}
             <SettingRow
               icon={faCrown}
-              title="Subscription"
+              title="Plan"
               value={getSubscriptionStatus()}
-              onPress={!hasPremiumAccess && user?.subscription?.source !== 'STRIPE'
-                ? handleOpenSubscription
-                : undefined
-              }
             />
-
-            {user?.subscription?.source === 'STRIPE' ? (
-              <View className="px-4 pb-4">
-                <Text className="font-jakarta text-sm text-gray-500">
-                  Manage your subscription on the website
-                </Text>
-              </View>
-            ) : (
-              <>
-                {!hasActiveSubscription && (
-                  <View className="px-4 pt-2 pb-4">
-                    <UpgradeButton fullWidth variant="primary" />
-                  </View>
-                )}
-                {hasActiveSubscription && !hasPremiumAccess && (
-                  <View className="px-4 pt-2 pb-4">
-                    <UpgradeButton fullWidth variant="primary" />
-                  </View>
-                )}
-              </>
-            )}
 
             <SquishyPressable
               className="flex-row items-center p-4 border-t border-gray-100 active:bg-gray-50"
@@ -668,31 +629,21 @@ const SettingsScreen = () => {
                 <FontAwesomeIcon
                   icon={faEnvelope}
                   size={20}
-                  color={hasActiveSubscription ? Colors[colorScheme ?? 'light'].text : '#9ca3af'}
+                  color={Colors[colorScheme ?? 'light'].text}
                   style={{ marginRight: 12 }}
                 />
                 <View className="flex-1">
-                  <View className="flex-row items-center">
-                    <Text className={`font-jakarta text-base ${hasActiveSubscription ? 'text-gray-900' : 'text-gray-400'}`}>
-                      Email Notifications
-                    </Text>
-                    {!hasActiveSubscription && (
-                      <View className="ml-2 bg-purple-100 rounded-full px-2 py-0.5">
-                        <Text className="font-jakarta-semibold text-xs text-purple-700">
-                          Premium
-                        </Text>
-                      </View>
-                    )}
-                  </View>
+                  <Text className="font-jakarta text-base text-gray-900">
+                    Email Notifications
+                  </Text>
                   <Text className="font-jakarta text-xs text-gray-500 mt-1">
-                    {hasActiveSubscription ? 'Get email alerts' : 'Available for Standard & Premium'}
+                    Get email alerts for deadlines
                   </Text>
                 </View>
               </View>
               <Switch
-                value={preferences.email && hasActiveSubscription}
+                value={preferences.email}
                 onValueChange={() => handleToggleNotification('email')}
-                disabled={!hasActiveSubscription}
                 trackColors={{ off: '#d1d5db', on: '#16a34a' }}
               />
             </View>
@@ -703,15 +654,15 @@ const SettingsScreen = () => {
                 <FontAwesomeIcon
                   icon={faComment}
                   size={20}
-                  color={hasActiveSubscription ? Colors[colorScheme ?? 'light'].text : '#9ca3af'}
+                  color={hasPremiumAccess ? Colors[colorScheme ?? 'light'].text : '#9ca3af'}
                   style={{ marginRight: 12 }}
                 />
                 <View className="flex-1">
                   <View className="flex-row items-center">
-                    <Text className={`font-jakarta text-base ${hasActiveSubscription ? 'text-gray-900' : 'text-gray-400'}`}>
+                    <Text className={`font-jakarta text-base ${hasPremiumAccess ? 'text-gray-900' : 'text-gray-400'}`}>
                       SMS Notifications
                     </Text>
-                    {!hasActiveSubscription && (
+                    {!hasPremiumAccess && (
                       <View className="ml-2 bg-purple-100 rounded-full px-2 py-0.5">
                         <Text className="font-jakarta-semibold text-xs text-purple-700">
                           Premium
@@ -720,14 +671,14 @@ const SettingsScreen = () => {
                     )}
                   </View>
                   <Text className="font-jakarta text-xs text-gray-500 mt-1">
-                    {hasActiveSubscription ? 'Get text message alerts' : 'Available for Standard & Premium'}
+                    {hasPremiumAccess ? 'Get text message alerts' : 'Included with Premium (£14.99/ticket)'}
                   </Text>
                 </View>
               </View>
               <Switch
-                value={preferences.sms && hasActiveSubscription}
+                value={preferences.sms && hasPremiumAccess}
                 onValueChange={() => handleToggleNotification('sms')}
-                disabled={!hasActiveSubscription}
+                disabled={!hasPremiumAccess}
                 trackColors={{ off: '#d1d5db', on: '#16a34a' }}
               />
             </View>

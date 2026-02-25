@@ -2,6 +2,7 @@ import { Suspense } from 'react';
 import { redirect } from 'next/navigation';
 import { getCurrentUser } from '@/utils/user';
 import { AccountSettingsPage } from '@/components/account';
+import AdBannerServer from '@/components/AdBanner/AdBannerServer';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faSpinnerThird } from '@fortawesome/pro-solid-svg-icons';
 
@@ -41,9 +42,17 @@ const AccountPage = async ({ searchParams }: AccountPageProps) => {
     tab && VALID_TABS.includes(tab as Tab) ? (tab as Tab) : 'profile';
 
   return (
-    <Suspense fallback={<AccountPageFallback />}>
-      <AccountSettingsPage user={user} initialTab={initialTab} />
-    </Suspense>
+    <>
+      <Suspense fallback={<AccountPageFallback />}>
+        <AccountSettingsPage user={user} initialTab={initialTab} />
+      </Suspense>
+      <Suspense fallback={null}>
+        <AdBannerServer
+          placement="account"
+          className="mx-auto max-w-4xl px-4 pb-8"
+        />
+      </Suspense>
+    </>
   );
 };
 

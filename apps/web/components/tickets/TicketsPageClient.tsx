@@ -4,10 +4,10 @@ import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faMap, faXmark } from '@fortawesome/pro-solid-svg-icons';
+import EmptyList from '@/components/EmptyList/EmptyList';
+import type { Prisma } from '@parking-ticket-pal/db/types';
 import TicketsList from './TicketsList';
 import TicketsMapView from './TicketsMapView';
-import EmptyList from '@/components/EmptyList/EmptyList';
-import type { Prisma, SubscriptionType } from '@parking-ticket-pal/db/types';
 
 type TicketWithRelations = Prisma.TicketGetPayload<{
   include: {
@@ -24,15 +24,9 @@ type TicketWithRelations = Prisma.TicketGetPayload<{
 
 type TicketsPageClientProps = {
   tickets: TicketWithRelations[];
-  hasSubscription?: boolean;
-  subscriptionType?: SubscriptionType | null;
 };
 
-const TicketsPageClient = ({
-  tickets,
-  hasSubscription = false,
-  subscriptionType = null,
-}: TicketsPageClientProps) => {
+const TicketsPageClient = ({ tickets }: TicketsPageClientProps) => {
   const [hoveredTicketId, setHoveredTicketId] = useState<string | null>(null);
   const [isMapOpen, setIsMapOpen] = useState(false);
 
@@ -59,8 +53,6 @@ const TicketsPageClient = ({
           tickets={tickets}
           hoveredTicketId={hoveredTicketId}
           onTicketHover={setHoveredTicketId}
-          hasSubscription={hasSubscription}
-          subscriptionType={subscriptionType}
         />
       </div>
 

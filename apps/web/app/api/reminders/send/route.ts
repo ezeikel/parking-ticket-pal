@@ -14,7 +14,7 @@ const handleRequest = async () => {
   console.log('end', end);
 
   // Only send reminders that are due today
-  // For EMAIL and SMS: only send for tickets that are STANDARD or PREMIUM
+  // For EMAIL and SMS: only send for PREMIUM tickets
   // For PUSH: send for all tiers (free users get in-app + push)
   const dueReminders = await db.reminder.findMany({
     where: {
@@ -27,7 +27,7 @@ const handleRequest = async () => {
         {
           notificationType: { in: ['EMAIL', 'SMS'] },
           ticket: {
-            tier: { in: ['STANDARD', 'PREMIUM'] },
+            tier: 'PREMIUM',
           },
         },
       ],

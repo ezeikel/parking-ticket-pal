@@ -93,22 +93,6 @@ export const IssuerType = {
 export type IssuerType = (typeof IssuerType)[keyof typeof IssuerType]
 
 
-export const SubscriptionType = {
-  STANDARD: 'STANDARD',
-  PREMIUM: 'PREMIUM'
-} as const
-
-export type SubscriptionType = (typeof SubscriptionType)[keyof typeof SubscriptionType]
-
-
-export const SubscriptionSource = {
-  STRIPE: 'STRIPE',
-  REVENUECAT: 'REVENUECAT'
-} as const
-
-export type SubscriptionSource = (typeof SubscriptionSource)[keyof typeof SubscriptionSource]
-
-
 export const ReminderType = {
   DISCOUNT_PERIOD: 'DISCOUNT_PERIOD',
   FULL_CHARGE: 'FULL_CHARGE',
@@ -224,7 +208,6 @@ export type ChallengeStatus = (typeof ChallengeStatus)[keyof typeof ChallengeSta
 
 export const TicketTier = {
   FREE: 'FREE',
-  STANDARD: 'STANDARD',
   PREMIUM: 'PREMIUM'
 } as const
 

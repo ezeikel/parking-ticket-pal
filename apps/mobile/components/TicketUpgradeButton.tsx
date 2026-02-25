@@ -1,12 +1,10 @@
 import { Text, View } from 'react-native';
 import { useRouter } from 'expo-router';
-import { usePurchases } from '@/contexts/purchases';
-import useUser from '@/hooks/api/useUser';
 import SquishyPressable from './SquishyPressable/SquishyPressable';
 
 interface TicketUpgradeButtonProps {
   ticketId: string;
-  currentTier: 'FREE' | 'STANDARD' | 'PREMIUM';
+  currentTier: 'FREE' | 'PREMIUM';
   onUpgradeComplete?: () => void;
 }
 
@@ -15,8 +13,6 @@ export function TicketUpgradeButton({
   currentTier,
 }: TicketUpgradeButtonProps) {
   const { push } = useRouter();
-  const { hasActiveSubscription } = usePurchases();
-  const { data: userData } = useUser();
 
   const handlePress = () => {
     push({
@@ -34,27 +30,16 @@ export function TicketUpgradeButton({
     );
   }
 
-  // Don't show if user has active subscription (already unlocked)
-  if (hasActiveSubscription || userData?.user?.subscription) {
-    return (
-      <View className="bg-teal/10 border border-teal/20 rounded-2xl p-3">
-        <Text className="font-jakarta-semibold text-teal text-center">
-          Unlocked with Subscription
-        </Text>
-      </View>
-    );
-  }
-
   return (
     <SquishyPressable
       onPress={handlePress}
       className="bg-dark rounded-xl p-4"
     >
       <Text className="font-jakarta-semibold text-white text-center">
-        {currentTier === 'STANDARD' ? 'Upgrade to Premium' : 'Upgrade Ticket'}
+        Upgrade to Premium — £14.99
       </Text>
       <Text className="font-jakarta text-white text-xs text-center mt-1 opacity-90">
-        Get AI predictions & premium features
+        Challenge letter, success prediction, auto-submit & more
       </Text>
     </SquishyPressable>
   );

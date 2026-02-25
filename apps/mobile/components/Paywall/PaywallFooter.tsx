@@ -3,10 +3,9 @@ import { View, Text, Pressable, Linking } from 'react-native';
 interface PaywallFooterProps {
   onRestore: () => void;
   isRestoring: boolean;
-  hasTrialEligible?: boolean;
 }
 
-export function PaywallFooter({ onRestore, isRestoring, hasTrialEligible }: PaywallFooterProps) {
+export function PaywallFooter({ onRestore, isRestoring }: PaywallFooterProps) {
   return (
     <View className="pt-2 pb-1">
       {/* Restore + Terms + Privacy in one row */}
@@ -26,10 +25,9 @@ export function PaywallFooter({ onRestore, isRestoring, hasTrialEligible }: Payw
         </Pressable>
       </View>
 
-      {/* Condensed legal text */}
+      {/* Legal text */}
       <Text className="font-jakarta text-[10px] text-gray text-center mt-1.5 leading-3">
-        Auto-renews unless cancelled 24h before period ends.
-        {hasTrialEligible ? ' Trial converts to paid subscription — cancel anytime.' : ''}
+        One-time purchase per ticket. No subscriptions, no auto-renewal.
       </Text>
     </View>
   );

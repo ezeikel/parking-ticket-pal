@@ -2,7 +2,7 @@
 
 import { Suspense, useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { TicketTier } from '@parking-ticket-pal/db';
+import { ProductType, TicketTier } from '@parking-ticket-pal/db/types';
 import {
   createTicketCheckoutSession,
   createGuestCheckoutSession,
@@ -40,7 +40,6 @@ const CheckoutContent = () => {
       try {
         // Get parameters from URL
         const ticketId = searchParams.get('ticketId');
-        const tier = searchParams.get('tier') as 'standard' | 'premium' | null;
         const source = searchParams.get('source');
 
         // Check if this is a guest checkout (from wizard)
@@ -69,22 +68,12 @@ const CheckoutContent = () => {
             return;
           }
 
-          const guestTier = tier || guestData.tier;
-          if (
-            !guestTier ||
-            (guestTier !== 'standard' && guestTier !== 'premium')
-          ) {
-            logger.warn('Guest checkout with invalid tier', {
-              tier: guestTier,
-            });
-            setError('Invalid pricing tier selected.');
-            setIsLoading(false);
-            return;
-          }
+          // Always use premium tier (only paid tier)
+          const guestTier = 'premium' as const;
 
           // Track guest checkout initiation
           await track(TRACKING_EVENTS.CHECKOUT_SESSION_CREATED, {
-            productType: 'PAY_PER_TICKET' as any,
+            productType: ProductType.PAY_PER_TICKET,
             tier: guestTier.toUpperCase() as TicketTier,
           });
           trackInitiateCheckout({
@@ -93,13 +82,12 @@ const CheckoutContent = () => {
           });
 
           // Create guest Stripe checkout session
-          // Ensure tier is set (we've already validated it above)
           const checkoutData = {
             ...guestData,
-            tier: guestTier as 'standard' | 'premium' | 'subscription',
+            tier: guestTier,
           };
           const session = await createGuestCheckoutSession(
-            guestTier.toUpperCase() as 'STANDARD' | 'PREMIUM',
+            'PREMIUM',
             checkoutData,
           );
 
@@ -125,25 +113,18 @@ const CheckoutContent = () => {
           return;
         }
 
-        if (!tier || (tier !== 'standard' && tier !== 'premium')) {
-          logger.warn('Checkout attempted with invalid tier', { tier });
-          setError('Invalid pricing tier selected.');
-          setIsLoading(false);
-          return;
-        }
-
-        // Convert tier to TicketTier enum (STANDARD or PREMIUM)
-        const ticketTier = tier.toUpperCase() as Omit<TicketTier, 'FREE'>;
+        // Only premium tier is supported — map any legacy 'standard' to 'premium'
+        const ticketTier = TicketTier.PREMIUM;
 
         // Track checkout initiation
         await track(TRACKING_EVENTS.CHECKOUT_SESSION_CREATED, {
-          productType: 'PAY_PER_TICKET' as any,
+          productType: ProductType.PAY_PER_TICKET,
           ticketId,
-          tier: ticketTier as TicketTier,
+          tier: ticketTier,
         });
         trackInitiateCheckout({
           content_name: 'ticket_tier_upgrade',
-          content_category: tier,
+          content_category: 'premium',
         });
 
         // Create Stripe checkout session

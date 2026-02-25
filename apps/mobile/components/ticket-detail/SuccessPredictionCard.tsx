@@ -72,7 +72,7 @@ export default function SuccessPredictionCard({
                 style={{ marginRight: 6 }}
               />
               <Text className="font-jakarta-semibold text-sm text-white">
-                Upgrade to See Score
+                Upgrade to Premium to See Score
               </Text>
             </View>
           </SquishyPressable>

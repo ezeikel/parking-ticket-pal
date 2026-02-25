@@ -30,8 +30,7 @@ type SuccessPredictionCardProps = {
   contraventionCode?: string | null;
 };
 
-const canViewSuccessScore = (tier: TicketTier) =>
-  tier === TicketTier.STANDARD || tier === TicketTier.PREMIUM;
+const canViewSuccessScore = (tier: TicketTier) => tier === TicketTier.PREMIUM;
 
 /**
  * Generate explanation text based on the stats level and available data
@@ -40,13 +39,13 @@ function getExplanationText(
   statsLevel: PredictionMetadata['statsLevel'] | undefined,
   numberOfCases: number | undefined,
   issuerName: string | undefined,
-  contraventionCode: string | null | undefined
+  contraventionCode: string | null | undefined,
 ): { text: string; tooltip?: string } {
   if (!statsLevel || statsLevel === 'baseline') {
     return {
       text: 'Based on overall appeal success rates.',
       tooltip:
-        'We don\'t have enough data for this specific contravention yet. As we add more tribunal data, this prediction will become more accurate.',
+        "We don't have enough data for this specific contravention yet. As we add more tribunal data, this prediction will become more accurate.",
     };
   }
 
@@ -83,7 +82,7 @@ const SuccessPredictionCard = ({
     metadata?.statsLevel,
     numberOfCases ?? metadata?.numberOfCases,
     issuerName,
-    contraventionCode
+    contraventionCode,
   );
 
   return (
@@ -138,7 +137,7 @@ const SuccessPredictionCard = ({
           onClick={onUpgrade}
         >
           <FontAwesomeIcon icon={faUnlock} className="mr-2" />
-          Upgrade to See Score
+          Upgrade to Premium to See Score
         </Button>
       )}
     </motion.div>

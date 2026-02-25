@@ -12,7 +12,7 @@ import {
   faUnlock,
   faLock,
 } from '@fortawesome/pro-solid-svg-icons';
-import { TicketTier, SubscriptionType, IssuerType } from '@parking-ticket-pal/db/types';
+import { TicketTier, IssuerType } from '@parking-ticket-pal/db/types';
 import { Button } from '@/components/ui/button';
 import {
   Select,
@@ -23,6 +23,18 @@ import {
 } from '@/components/ui/select';
 import ScoreGauge from '@/components/ui/ScoreGauge';
 import ChallengeOptionsDialog from '@/components/ticket-detail/ChallengeOptionsDialog';
+
+const getDeadlineIconColor = (days: number) => {
+  if (days <= 0) return 'text-coral';
+  if (days <= 7) return 'text-amber';
+  return 'text-gray';
+};
+
+const getDeadlineTextColor = (days: number) => {
+  if (days <= 0) return 'font-medium text-coral';
+  if (days <= 7) return 'font-medium text-amber';
+  return 'text-gray';
+};
 
 type TicketStatus =
   | 'NEEDS_ACTION'
@@ -58,53 +70,21 @@ type DashboardTicketsListProps = {
   tickets: Ticket[];
   onTicketHover?: (ticketId: string | null) => void;
   hoveredTicketId?: string | null;
-  hasSubscription?: boolean;
-  subscriptionType?: SubscriptionType | null;
 };
 
 /**
  * Check if the score should be locked for a ticket.
- * Score is unlocked if:
- * - The ticket tier is STANDARD or PREMIUM, OR
- * - The user has an active subscription (STANDARD or PREMIUM)
+ * Score is unlocked if the ticket tier is PREMIUM.
  */
-const isScoreLocked = (
-  ticketTier: TicketTier,
-  hasSubscription: boolean,
-): boolean => {
-  // Unlocked if ticket is STANDARD or PREMIUM tier
-  if (ticketTier === 'STANDARD' || ticketTier === 'PREMIUM') {
-    return false;
-  }
-  // Unlocked if user has subscription
-  if (hasSubscription) {
-    return false;
-  }
-  // Otherwise locked (FREE tier without subscription)
-  return true;
-};
+const isScoreLocked = (ticketTier: TicketTier): boolean =>
+  ticketTier !== 'PREMIUM';
 
 /**
  * Check if user can challenge a ticket.
- * Challenge is unlocked if:
- * - The ticket tier is PREMIUM, OR
- * - The user has a PREMIUM subscription
+ * Challenge is unlocked if the ticket tier is PREMIUM.
  */
-const canChallenge = (
-  ticketTier: TicketTier,
-  subscriptionType: SubscriptionType | null,
-): boolean => {
-  // Can challenge if ticket is PREMIUM tier
-  if (ticketTier === 'PREMIUM') {
-    return true;
-  }
-  // Can challenge if user has PREMIUM subscription
-  if (subscriptionType === 'PREMIUM') {
-    return true;
-  }
-  // Otherwise cannot challenge
-  return false;
-};
+const canChallenge = (ticketTier: TicketTier): boolean =>
+  ticketTier === 'PREMIUM';
 
 const statusConfig: Record<
   TicketStatus,
@@ -130,8 +110,6 @@ const DashboardTicketsList = ({
   tickets,
   onTicketHover,
   hoveredTicketId,
-  hasSubscription = false,
-  subscriptionType = null,
 }: DashboardTicketsListProps) => {
   const [filter, setFilter] = useState('all');
   const [sort, setSort] = useState('newest');
@@ -275,22 +253,10 @@ const DashboardTicketsList = ({
                       <div className="flex items-center gap-1.5">
                         <FontAwesomeIcon
                           icon={faClock}
-                          className={`text-xs ${
-                            ticket.deadlineDays <= 0
-                              ? 'text-coral'
-                              : ticket.deadlineDays <= 7
-                                ? 'text-amber'
-                                : 'text-gray'
-                          }`}
+                          className={`text-xs ${getDeadlineIconColor(ticket.deadlineDays)}`}
                         />
                         <span
-                          className={
-                            ticket.deadlineDays <= 0
-                              ? 'font-medium text-coral'
-                              : ticket.deadlineDays <= 7
-                                ? 'font-medium text-amber'
-                                : 'text-gray'
-                          }
+                          className={getDeadlineTextColor(ticket.deadlineDays)}
                         >
                           {ticket.deadlineDays <= 0
                             ? 'Overdue'
@@ -304,10 +270,7 @@ const DashboardTicketsList = ({
                   {ticket.successPrediction !== undefined &&
                     !isTerminalStatus(ticket.status) &&
                     (() => {
-                      const scoreLocked = isScoreLocked(
-                        ticket.tier,
-                        hasSubscription,
-                      );
+                      const scoreLocked = isScoreLocked(ticket.tier);
                       return (
                         <div className="mt-3 flex items-center justify-between">
                           <ScoreGauge
@@ -343,10 +306,7 @@ const DashboardTicketsList = ({
                   <div className="mt-4 flex gap-2">
                     {ticket.status === 'NEEDS_ACTION' &&
                       (() => {
-                        const canChallengeTicket = canChallenge(
-                          ticket.tier,
-                          subscriptionType,
-                        );
+                        const canChallengeTicket = canChallenge(ticket.tier);
                         return canChallengeTicket ? (
                           <Button
                             size="sm"

@@ -3,15 +3,13 @@ import { Paywall } from '@/components/Paywall';
 
 export default function PaywallScreen() {
   const { back } = useRouter();
-  const { mode = 'subscriptions', ticketId, source } = useLocalSearchParams<{
-    mode?: 'subscriptions' | 'ticket_upgrades';
+  const { ticketId, source } = useLocalSearchParams<{
     ticketId?: string;
     source?: 'onboarding' | 'feature_gate' | 'settings';
   }>();
 
   return (
     <Paywall
-      mode={mode as 'subscriptions' | 'ticket_upgrades'}
       ticketId={ticketId}
       source={source as 'onboarding' | 'feature_gate' | 'settings' | undefined}
       onClose={() => back()}

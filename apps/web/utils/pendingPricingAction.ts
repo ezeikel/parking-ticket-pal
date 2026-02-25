@@ -13,15 +13,14 @@ import { createClientLogger } from '@/lib/logger';
 const STORAGE_KEY = 'pending_pricing_action';
 const EXPIRY_MINUTES = 15; // Action expires after 15 minutes
 
-export type PricingActionType = 'one-time' | 'subscription';
+export type PricingActionType = 'one-time';
 
-export interface PendingPricingAction {
+export type PendingPricingAction = {
   type: PricingActionType;
-  tier: 'standard' | 'premium';
-  period?: 'monthly' | 'yearly'; // Only for subscriptions
+  tier: 'premium';
   source: string;
   timestamp: number;
-}
+};
 
 /**
  * Store a pending pricing action in sessionStorage

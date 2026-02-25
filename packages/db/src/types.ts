@@ -8,7 +8,6 @@ export { Prisma } from "./generated/prisma/browser";
 // Re-export specific model types with custom names
 export type {
   User as DbUserType,
-  Subscription as DbSubscriptionType,
   Vehicle as DbVehicleType,
   Ticket as DbTicketType,
   Media as DbMediaType,

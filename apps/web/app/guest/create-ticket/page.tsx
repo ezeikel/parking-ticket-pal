@@ -75,7 +75,7 @@ const GuestCreateTicketPage = () => {
       // Track signup completed (user came from guest flow and is now authenticated)
       if (!hasTrackedSignupComplete.current) {
         hasTrackedSignupComplete.current = true;
-        const intent = data.intent as 'track' | 'challenge' | undefined;
+        const { intent } = data;
         track(TRACKING_EVENTS.GUEST_SIGNUP_COMPLETED, {
           method: SignInMethod.GOOGLE, // Default - we can't determine exact method here
           intent,
@@ -86,13 +86,8 @@ const GuestCreateTicketPage = () => {
       setStep('creating');
 
       try {
-        // Determine tier: subscription maps to standard, null (track flow) stays null for FREE tier
-        const tier =
-          data.tier === 'subscription'
-            ? 'standard'
-            : data.tier === 'standard' || data.tier === 'premium'
-              ? data.tier
-              : null;
+        // Tier from guest data: 'premium' or null (track flow = FREE tier)
+        const tier = data.tier === 'premium' ? data.tier : null;
 
         // Create ticket with auto vehicle lookup
         const result = await createTicketFromGuestData({

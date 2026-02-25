@@ -1,10 +1,5 @@
 /* eslint-disable import-x/prefer-default-export */
-import {
-  db,
-  SubscriptionType,
-  SubscriptionSource,
-} from '@parking-ticket-pal/db';
-import { revalidatePath } from 'next/cache';
+import { db } from '@parking-ticket-pal/db';
 import crypto from 'crypto';
 import { createServerLogger } from '@/lib/logger';
 
@@ -97,25 +92,10 @@ function verifyWebhookSignature(
 }
 
 /**
- * Map product ID to subscription type
- * Handles versioned product IDs with durations (e.g., standard_sub_monthly_v1, premium_sub_yearly_v2)
- */
-function getSubscriptionTypeFromProductId(
-  productId: string,
-): SubscriptionType | null {
-  if (productId.startsWith('standard_sub')) {
-    return SubscriptionType.STANDARD;
-  }
-  if (productId.startsWith('premium_sub')) {
-    return SubscriptionType.PREMIUM;
-  }
-  return null;
-}
-
-/**
  * POST /api/webhooks/revenuecat
  *
- * Handles RevenueCat webhook events for subscriptions and purchases.
+ * Handles RevenueCat webhook events for one-time purchases.
+ * Subscriptions are no longer supported — only per-ticket Premium purchases.
  */
 export const POST = async (req: Request) => {
   try {
@@ -143,7 +123,6 @@ export const POST = async (req: Request) => {
     // Find the user in our database
     const user = await db.user.findUnique({
       where: { id: userId },
-      include: { subscription: true },
     });
 
     if (!user) {
@@ -161,95 +140,35 @@ export const POST = async (req: Request) => {
 
     // Handle different event types
     switch (event.type) {
-      case 'INITIAL_PURCHASE':
-      case 'RENEWAL':
-      case 'UNCANCELLATION':
-      case 'PRODUCT_CHANGE': {
-        const subscriptionType = getSubscriptionTypeFromProductId(
-          event.product_id,
-        );
-
-        if (subscriptionType) {
-          // This is a subscription purchase/renewal — create record so user gets access
-          // (including during trial period)
-          await db.subscription.upsert({
-            where: { userId },
-            create: {
-              userId,
-              type: subscriptionType,
-              source: SubscriptionSource.REVENUECAT,
-              revenueCatSubscriptionId: event.original_transaction_id,
-            },
-            update: {
-              type: subscriptionType,
-              source: SubscriptionSource.REVENUECAT,
-              revenueCatSubscriptionId: event.original_transaction_id,
-            },
-          });
-
-          if (event.period_type === 'TRIAL') {
-            log.info(
-              `Trial started: ${subscriptionType} for user ${userId} (product: ${event.product_id})`,
-            );
-          } else {
-            log.info(
-              `Subscription updated: ${subscriptionType} for user ${userId}`,
-            );
-          }
-
-          // Revalidate relevant paths
-          revalidatePath('/dashboard');
-          revalidatePath('/tickets');
-          revalidatePath('/account/billing');
-        }
-        break;
-      }
-
-      case 'CANCELLATION':
-      case 'EXPIRATION': {
-        // Remove the subscription
-        if (
-          user.subscription &&
-          user.subscription.source === SubscriptionSource.REVENUECAT
-        ) {
-          await db.subscription.delete({
-            where: { userId },
-          });
-
-          log.info(`Subscription removed for user ${userId}`);
-
-          // Revalidate relevant paths
-          revalidatePath('/dashboard');
-          revalidatePath('/tickets');
-          revalidatePath('/account/billing');
-        }
-        break;
-      }
-
       case 'NON_RENEWING_PURCHASE': {
-        // This is a consumable purchase (e.g., standard_ticket_v1 or premium_ticket_v1)
-        // The mobile app should handle this via /api/iap/confirm-purchase
-        // We just log it here for tracking
-        log.info(
-          `Non-renewing purchase: ${event.product_id} for user ${userId}`,
-        );
+        // This is a consumable purchase (e.g., premium_ticket_v1)
+        // The mobile app handles the actual ticket upgrade via /api/iap/confirm-purchase
+        // Update lastPremiumPurchaseAt for ad-free tracking
+        if (event.product_id.startsWith('premium_ticket')) {
+          await db.user.update({
+            where: { id: userId },
+            data: { lastPremiumPurchaseAt: new Date() },
+          });
+          log.info(
+            `Premium ticket purchase recorded for ad-free tracking: ${event.product_id} for user ${userId}`,
+          );
+        } else {
+          log.info(
+            `Non-renewing purchase: ${event.product_id} for user ${userId}`,
+          );
+        }
         break;
       }
 
       case 'BILLING_ISSUE': {
-        // Handle billing issues - could send notification to user
         log.warn(`Billing issue for user ${userId}`);
         break;
       }
 
-      case 'SUBSCRIPTION_PAUSED': {
-        // Handle subscription pause - keep subscription but mark as paused
-        log.info(`Subscription paused for user ${userId}`);
-        break;
-      }
-
       default:
-        log.warn(`Unhandled event type: ${event.type}`);
+        // Subscription events (INITIAL_PURCHASE, RENEWAL, CANCELLATION, etc.)
+        // are no longer handled — no subscriptions in new pricing model
+        log.info(`Ignoring event type: ${event.type} (subscriptions removed)`);
     }
 
     return Response.json({ received: true }, { status: 200 });

@@ -30,10 +30,21 @@ import type {
   Prisma,
   TicketStatus,
   TicketTier,
-  SubscriptionType,
   IssuerType,
 } from '@parking-ticket-pal/db/types';
 import { getDisplayAmount } from '@/utils/getCurrentAmountDue';
+
+const getDeadlineIconColor = (days: number) => {
+  if (days <= 0) return 'text-coral';
+  if (days <= 7) return 'text-amber';
+  return 'text-gray';
+};
+
+const getDeadlineTextColor = (days: number) => {
+  if (days <= 0) return 'font-semibold text-coral';
+  if (days <= 7) return 'font-semibold text-amber';
+  return 'text-gray';
+};
 
 type TicketWithRelations = Prisma.TicketGetPayload<{
   include: {
@@ -52,53 +63,21 @@ type TicketsListProps = {
   tickets: TicketWithRelations[];
   onTicketHover?: (ticketId: string | null) => void;
   hoveredTicketId?: string | null;
-  hasSubscription?: boolean;
-  subscriptionType?: SubscriptionType | null;
 };
 
 /**
  * Check if the score should be locked for a ticket.
- * Score is unlocked if:
- * - The ticket tier is STANDARD or PREMIUM, OR
- * - The user has an active subscription (STANDARD or PREMIUM)
+ * Score is unlocked if the ticket tier is PREMIUM.
  */
-const isScoreLocked = (
-  ticketTier: TicketTier,
-  hasSubscription: boolean,
-): boolean => {
-  // Unlocked if ticket is STANDARD or PREMIUM tier
-  if (ticketTier === 'STANDARD' || ticketTier === 'PREMIUM') {
-    return false;
-  }
-  // Unlocked if user has subscription
-  if (hasSubscription) {
-    return false;
-  }
-  // Otherwise locked (FREE tier without subscription)
-  return true;
-};
+const isScoreLocked = (ticketTier: TicketTier): boolean =>
+  ticketTier !== 'PREMIUM';
 
 /**
  * Check if user can challenge a ticket.
- * Challenge is unlocked if:
- * - The ticket tier is PREMIUM, OR
- * - The user has a PREMIUM subscription
+ * Challenge is unlocked if the ticket tier is PREMIUM.
  */
-const canChallenge = (
-  ticketTier: TicketTier,
-  subscriptionType: SubscriptionType | null,
-): boolean => {
-  // Can challenge if ticket is PREMIUM tier
-  if (ticketTier === 'PREMIUM') {
-    return true;
-  }
-  // Can challenge if user has PREMIUM subscription
-  if (subscriptionType === 'PREMIUM') {
-    return true;
-  }
-  // Otherwise cannot challenge
-  return false;
-};
+const canChallenge = (ticketTier: TicketTier): boolean =>
+  ticketTier === 'PREMIUM';
 
 const statusConfig: Record<
   string,
@@ -227,8 +206,6 @@ const TicketsList = ({
   tickets,
   onTicketHover,
   hoveredTicketId,
-  hasSubscription = false,
-  subscriptionType = null,
 }: TicketsListProps) => {
   const [filter, setFilter] = useState('all');
   const [sort, setSort] = useState('newest');
@@ -382,8 +359,7 @@ const TicketsList = ({
               const location = ticket.location as {
                 line1?: string;
               } | null;
-              // Score is locked if ticket is FREE tier AND user has no subscription
-              const scoreLocked = isScoreLocked(ticket.tier, hasSubscription);
+              const scoreLocked = isScoreLocked(ticket.tier);
 
               return (
                 <motion.a
@@ -461,34 +437,23 @@ const TicketsList = ({
                   </div>
 
                   {/* Deadline Warning - hidden for terminal statuses */}
-                  {deadlineDays <= 14 &&
-                    !isTerminalStatus(ticket.status) && (
-                      <div className="mt-3 flex items-center gap-2">
-                        <FontAwesomeIcon
-                          icon={faClock}
-                          className={`text-xs ${
-                            deadlineDays <= 0
-                              ? 'text-coral'
-                              : deadlineDays <= 7
-                                ? 'text-amber'
-                                : 'text-gray'
-                          }`}
-                        />
-                        <span
-                          className={`text-sm ${
-                            deadlineDays <= 0
-                              ? 'font-semibold text-coral'
-                              : deadlineDays <= 7
-                                ? 'font-semibold text-amber'
-                                : 'text-gray'
-                          }`}
-                        >
-                          {deadlineDays <= 0
-                            ? 'Overdue'
-                            : `Due in ${deadlineDays} days`}
-                        </span>
-                      </div>
-                    )}
+                  {deadlineDays <= 14 && !isTerminalStatus(ticket.status) && (
+                    <div className="mt-3 flex items-center gap-2">
+                      <FontAwesomeIcon
+                        icon={faClock}
+                        className={`text-xs ${getDeadlineIconColor(deadlineDays)}`}
+                      />
+                      <span
+                        className={`text-sm ${getDeadlineTextColor(
+                          deadlineDays,
+                        )}`}
+                      >
+                        {deadlineDays <= 0
+                          ? 'Overdue'
+                          : `Due in ${deadlineDays} days`}
+                      </span>
+                    </div>
+                  )}
 
                   {/* Bottom Row - Score and Actions - hide for terminal statuses with no action needed */}
                   {(!isTerminalStatus(ticket.status) ||
@@ -533,10 +498,7 @@ const TicketsList = ({
 
                       {needsAction(ticket.status) &&
                         (() => {
-                          const canChallengeTicket = canChallenge(
-                            ticket.tier,
-                            subscriptionType,
-                          );
+                          const canChallengeTicket = canChallenge(ticket.tier);
                           return canChallengeTicket ? (
                             <Button
                               size="sm"

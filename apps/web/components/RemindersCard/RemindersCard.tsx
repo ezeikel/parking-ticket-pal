@@ -14,10 +14,9 @@ import {
   faCircleCheck,
   faClock,
 } from '@fortawesome/pro-regular-svg-icons';
-import { TicketTier, type Reminder } from '@parking-ticket-pal/db/types';
+import { type Reminder } from '@parking-ticket-pal/db/types';
 
 type RemindersCardProps = {
-  tier: TicketTier;
   reminders: Reminder[];
 };
 
@@ -27,9 +26,9 @@ const formatReminderType = (type: string) =>
     .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
     .join(' ');
 
-const RemindersCard = ({ tier, reminders }: RemindersCardProps) => {
-  const hasRemindersAccess =
-    tier === TicketTier.STANDARD || tier === TicketTier.PREMIUM;
+const RemindersCard = ({ reminders }: RemindersCardProps) => {
+  // Email + push reminders are free for all users
+  const hasRemindersAccess = true;
 
   return (
     <Card className="shadow-md">

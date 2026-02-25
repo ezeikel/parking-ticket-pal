@@ -10,13 +10,12 @@ import {
   faLandmark,
   faLightbulb,
   faLock,
-  faCrown,
   faCircleInfo,
   faGavel,
   faBell,
   faUserPlus,
+  faP,
 } from '@fortawesome/pro-solid-svg-icons';
-import { faP } from '@fortawesome/pro-solid-svg-icons';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import ScoreGauge from '@/components/ui/ScoreGauge';
@@ -62,7 +61,7 @@ export type WizardCompleteData = {
   vehicleReg: string;
   intent: UserIntent;
   challengeReason: ChallengeReason;
-  tier: 'standard' | 'premium' | 'subscription' | null;
+  tier: 'premium' | null;
   extractedData?: ExtractedData;
 };
 
@@ -185,6 +184,43 @@ const TicketWizard = ({
     }
   }, [isOpen, hasExtractedData, extractedData?.imageUrl, track]);
 
+  const getStepNumber = () => {
+    if (hasExtractedData) {
+      if (userIntent === 'track') {
+        const ocrTrackSteps = ['confirm', 'intent', 'signup'];
+        return ocrTrackSteps.indexOf(currentStep) + 1;
+      }
+      const ocrChallengeSteps = ['confirm', 'intent', 'reason', 'result'];
+      return ocrChallengeSteps.indexOf(currentStep) + 1;
+    }
+    if (userIntent === 'track') {
+      const manualTrackSteps = [
+        'issuer',
+        'stage',
+        'details',
+        'intent',
+        'signup',
+      ];
+      return manualTrackSteps.indexOf(currentStep) + 1;
+    }
+    const manualChallengeSteps = [
+      'issuer',
+      'stage',
+      'details',
+      'intent',
+      'reason',
+      'result',
+    ];
+    return manualChallengeSteps.indexOf(currentStep) + 1;
+  };
+
+  const getTotalSteps = () => {
+    if (hasExtractedData) {
+      return userIntent === 'track' ? 3 : 4;
+    }
+    return userIntent === 'track' ? 5 : 6;
+  };
+
   // Track step views
   useEffect(() => {
     if (isOpen && currentStep !== lastTrackedStep.current) {
@@ -236,49 +272,10 @@ const TicketWizard = ({
     setCurrentStep(step);
   };
 
-  const getStepNumber = () => {
-    if (hasExtractedData) {
-      // OCR flow: confirm → intent → (challenge: reason → result) or (track: signup)
-      if (userIntent === 'track') {
-        const ocrTrackSteps = ['confirm', 'intent', 'signup'];
-        return ocrTrackSteps.indexOf(currentStep) + 1;
-      }
-      const ocrChallengeSteps = ['confirm', 'intent', 'reason', 'result'];
-      return ocrChallengeSteps.indexOf(currentStep) + 1;
-    }
-    // Manual flow: issuer → stage → details → intent → (challenge: reason → result) or (track: signup)
-    if (userIntent === 'track') {
-      const manualTrackSteps = [
-        'issuer',
-        'stage',
-        'details',
-        'intent',
-        'signup',
-      ];
-      return manualTrackSteps.indexOf(currentStep) + 1;
-    }
-    const manualChallengeSteps = [
-      'issuer',
-      'stage',
-      'details',
-      'intent',
-      'reason',
-      'result',
-    ];
-    return manualChallengeSteps.indexOf(currentStep) + 1;
-  };
-
-  const getTotalSteps = () => {
-    if (hasExtractedData) {
-      return userIntent === 'track' ? 3 : 4;
-    }
-    return userIntent === 'track' ? 5 : 6;
-  };
-
-  const handleTierSelect = (tier: 'standard' | 'premium' | 'subscription') => {
+  const handleTierSelect = () => {
     track(TRACKING_EVENTS.WIZARD_COMPLETED, {
       intent: 'challenge',
-      tier,
+      tier: 'premium',
       totalSteps: getTotalSteps(),
       path: typeof window !== 'undefined' ? window.location.pathname : '',
       challengeReason,
@@ -292,7 +289,7 @@ const TicketWizard = ({
         vehicleReg,
         intent: 'challenge',
         challengeReason,
-        tier,
+        tier: 'premium',
         extractedData,
       });
     }
@@ -867,7 +864,7 @@ const TicketWizard = ({
                       </p>
                       <p className="mt-0.5 text-sm text-gray">
                         Get your success score, AI-generated appeal letter, and
-                        optional auto-submission. From £2.99.
+                        optional auto-submission. Just £14.99.
                       </p>
                     </div>
                   </button>
@@ -923,9 +920,12 @@ const TicketWizard = ({
                       type="button"
                       onClick={() => {
                         setChallengeReason(reason.id as ChallengeReason);
-                        track(TRACKING_EVENTS.WIZARD_CHALLENGE_REASON_SELECTED, {
-                          reason: reason.id,
-                        });
+                        track(
+                          TRACKING_EVENTS.WIZARD_CHALLENGE_REASON_SELECTED,
+                          {
+                            reason: reason.id,
+                          },
+                        );
                         goToStep('result', reason.id);
                       }}
                       className={`rounded-lg border-2 p-3 text-left transition-all hover:border-teal ${
@@ -1011,64 +1011,29 @@ const TicketWizard = ({
                   </div>
                 </div>
 
-                {/* Conversion Options */}
+                {/* Conversion CTA */}
                 <div className="mt-6 flex flex-col gap-3">
-                  {/* One-time options */}
-                  <div className="grid grid-cols-2 gap-3">
-                    <button
-                      type="button"
-                      onClick={() => handleTierSelect('standard')}
-                      className="flex flex-col items-center rounded-xl border-2 border-border p-4 text-center transition-all hover:border-teal"
-                    >
-                      <span className="text-lg font-bold text-dark">£2.99</span>
-                      <span className="mt-1 text-xs font-medium text-dark">
-                        Standard
-                      </span>
-                      <span className="mt-0.5 text-[10px] text-gray">
-                        Unlock score + track
-                      </span>
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => handleTierSelect('premium')}
-                      className="relative flex flex-col items-center rounded-xl border-2 border-dark bg-dark p-4 text-center"
-                    >
-                      <span className="absolute -top-2 rounded-full bg-yellow px-2 py-0.5 text-[10px] font-bold text-dark">
-                        RECOMMENDED
-                      </span>
-                      <span className="text-lg font-bold text-white">
-                        £9.99
-                      </span>
-                      <span className="mt-1 text-xs font-medium text-white">
-                        Premium
-                      </span>
-                      <span className="mt-0.5 text-[10px] text-white/70">
-                        Score + AI letter + auto-submit
-                      </span>
-                    </button>
-                  </div>
-
-                  <div className="relative flex items-center gap-3">
-                    <div className="h-px flex-1 bg-border" />
-                    <span className="text-xs text-gray">
-                      or subscribe for multiple tickets
-                    </span>
-                    <div className="h-px flex-1 bg-border" />
-                  </div>
-
-                  <Button
-                    variant="outline"
-                    onClick={() => handleTierSelect('subscription')}
-                    className="h-11 w-full border-teal bg-transparent text-teal hover:bg-teal/5"
+                  <button
+                    type="button"
+                    onClick={handleTierSelect}
+                    className="relative flex flex-col items-center rounded-xl border-2 border-dark bg-dark p-5 text-center"
                   >
-                    <FontAwesomeIcon icon={faCrown} className="mr-2" />
-                    From £6.99/mo - Up to 5 tickets
-                  </Button>
+                    <span className="text-2xl font-bold text-white">
+                      £14.99
+                    </span>
+                    <span className="mt-1 text-sm font-medium text-white">
+                      Upgrade to Premium
+                    </span>
+                    <span className="mt-1 text-xs text-white/70">
+                      Success score + AI letter + auto-submit
+                    </span>
+                  </button>
                 </div>
 
                 <p className="mt-4 text-center text-xs text-gray">
-                  Both options unlock your success score. Premium adds AI letter
-                  &amp; auto-submission.
+                  Challenge your ticket for just £14.99. Includes success
+                  prediction, AI-powered challenge letter, and optional
+                  auto-submission.
                 </p>
               </motion.div>
             )}

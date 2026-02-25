@@ -3,11 +3,7 @@
 import { useState } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faList, faMap } from '@fortawesome/pro-solid-svg-icons';
-import {
-  TicketTier,
-  SubscriptionType,
-  IssuerType,
-} from '@parking-ticket-pal/db/types';
+import { TicketTier, IssuerType } from '@parking-ticket-pal/db/types';
 import { Button } from '@/components/ui/button';
 import DashboardTicketsList from '@/components/dashboard/DashboardTicketsList';
 import DashboardTicketsMap from '@/components/dashboard/DynamicDashboardTicketsMap';
@@ -39,14 +35,10 @@ type Ticket = {
 
 type DashboardTicketsSectionClientProps = {
   tickets: Ticket[];
-  hasSubscription?: boolean;
-  subscriptionType?: SubscriptionType | null;
 };
 
 const DashboardTicketsSectionClient = ({
   tickets,
-  hasSubscription = false,
-  subscriptionType = null,
 }: DashboardTicketsSectionClientProps) => {
   const [hoveredTicketId, setHoveredTicketId] = useState<string | null>(null);
   const [showMap, setShowMap] = useState(false);
@@ -95,8 +87,6 @@ const DashboardTicketsSectionClient = ({
               tickets={tickets}
               onTicketHover={setHoveredTicketId}
               hoveredTicketId={hoveredTicketId}
-              hasSubscription={hasSubscription}
-              subscriptionType={subscriptionType}
             />
           </div>
         </div>

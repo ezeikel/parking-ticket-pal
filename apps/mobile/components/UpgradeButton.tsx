@@ -14,12 +14,12 @@ export function UpgradeButton({
   fullWidth = false,
 }: UpgradeButtonProps) {
   const { push } = useRouter();
-  const { hasActiveSubscription, hasPremiumAccess, isLoading } = usePurchases();
+  const { hasPremiumAccess, isLoading } = usePurchases();
 
   const handlePress = () => {
     push({
       pathname: '/(authenticated)/paywall',
-      params: { mode: 'subscriptions', source: 'feature_gate' },
+      params: { mode: 'ticket_upgrades', source: 'feature_gate' },
     });
   };
 
@@ -41,7 +41,7 @@ export function UpgradeButton({
       className={`rounded-xl p-4 ${buttonClass} ${fullWidth ? 'w-full' : ''}`}
     >
       <Text className={`font-jakarta-semibold text-center ${textClass}`}>
-        {hasActiveSubscription ? 'Upgrade to Premium' : 'Subscribe Now'}
+        Upgrade to Premium
       </Text>
     </SquishyPressable>
   );

@@ -69,7 +69,6 @@ export async function getOrCreateDeviceUser(
     data: {
       email: null,
       name: 'Mobile User',
-      subscription: { create: {} },
       mobileDeviceSessions: {
         create: { deviceId },
       },
@@ -189,22 +188,6 @@ export async function mergeAnonymousUserIntoTarget(
     data: { userId: targetUserId },
   });
 
-  // Transfer subscription: if anonymous has one and target doesn't, reassign
-  const [anonymousSub, targetSub] = await Promise.all([
-    db.subscription.findUnique({ where: { userId: anonymousUserId } }),
-    db.subscription.findUnique({ where: { userId: targetUserId } }),
-  ]);
-
-  if (anonymousSub && !targetSub) {
-    await db.subscription.update({
-      where: { userId: anonymousUserId },
-      data: { userId: targetUserId },
-    });
-  } else if (anonymousSub) {
-    // Both have subscriptions — keep target's, delete anonymous's
-    await db.subscription.delete({ where: { userId: anonymousUserId } });
-  }
-
   // Point device sessions to target user
   await db.mobileDeviceSession.updateMany({
     where: { userId: anonymousUserId },
@@ -255,7 +238,6 @@ export async function handleMobileOAuthSignIn(
       data: {
         email,
         name: name || email.split('@')[0],
-        subscription: { create: {} },
         ...(deviceId ? { mobileDeviceSessions: { create: { deviceId } } } : {}),
       },
     });
@@ -321,7 +303,6 @@ export async function handleMobileOAuthSignIn(
       data: {
         email,
         name: name || email.split('@')[0],
-        subscription: { create: {} },
       },
     });
     await db.mobileDeviceSession.update({
