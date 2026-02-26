@@ -1,0 +1,54 @@
+name: PR Preview
+
+on:
+  pull_request:
+    paths:
+      - 'apps/mobile/**'
+
+jobs:
+  fingerprint:
+    type: fingerprint
+
+  get-latest-build:
+    type: get-build
+    params:
+      platform: all
+      profile: preview
+      distribution: internal
+
+  build-ios:
+    type: build
+    needs: [fingerprint, get-latest-build]
+    if: ${{ needs.fingerprint.outputs.ios_fingerprint_hash != needs.get-latest-build.outputs.ios_fingerprint_hash }}
+    params:
+      platform: ios
+      profile: preview
+      message: PR #${{ github.event.pull_request.number }}
+
+  build-android:
+    type: build
+    needs: [fingerprint, get-latest-build]
+    if: ${{ needs.fingerprint.outputs.android_fingerprint_hash != needs.get-latest-build.outputs.android_fingerprint_hash }}
+    params:
+      platform: android
+      profile: preview
+      message: PR #${{ github.event.pull_request.number }}
+
+  update:
+    type: update
+    needs: [fingerprint, get-latest-build]
+    if: >-
+      ${{
+        needs.fingerprint.outputs.ios_fingerprint_hash == needs.get-latest-build.outputs.ios_fingerprint_hash
+        && needs.fingerprint.outputs.android_fingerprint_hash == needs.get-latest-build.outputs.android_fingerprint_hash
+      }}
+    params:
+      branch: pr-${{ github.event.pull_request.number }}
+      message: PR #${{ github.event.pull_request.number }} update
+
+  comment:
+    type: github-comment
+    needs: [build-ios, build-android, update]
+    params:
+      message: |
+        **Preview builds ready for PR #${{ github.event.pull_request.number }}**

@@ -1,0 +1,49 @@
+name: Beta Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      platform:
+        type: choice
+        options:
+          - all
+          - ios
+          - android
+        default: all
+        required: true
+      message:
+        type: string
+        required: false
+
+jobs:
+  build-ios:
+    type: build
+    if: ${{ inputs.platform == 'all' || inputs.platform == 'ios' }}
+    params:
+      platform: ios
+      profile: beta
+      message: ${{ inputs.message || 'Beta release' }}
+
+  build-android:
+    type: build
+    if: ${{ inputs.platform == 'all' || inputs.platform == 'android' }}
+    params:
+      platform: android
+      profile: beta
+      message: ${{ inputs.message || 'Beta release' }}
+
+  testflight:
+    type: testflight
+    needs: [build-ios]
+    if: ${{ inputs.platform == 'all' || inputs.platform == 'ios' }}
+    params:
+      build_id: ${{ needs.build-ios.outputs.build_id }}
+      changelog: ${{ inputs.message || 'Beta release' }}
+
+  submit-android:
+    type: submit
+    needs: [build-android]
+    if: ${{ inputs.platform == 'all' || inputs.platform == 'android' }}
+    params:
+      build_id: ${{ needs.build-android.outputs.build_id }}
+      profile: beta

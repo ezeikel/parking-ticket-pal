@@ -56,6 +56,20 @@
       },
       "autoIncrement": true,
       "channel": "beta"
+    },
+    "e2e-test": {
+      "extends": "base",
+      "withoutCredentials": true,
+      "ios": {
+        "simulator": true
+      },
+      "android": {
+        "buildType": "apk"
+      },
+      "env": {
+        "EXPO_PUBLIC_ENVIRONMENT": "development"
+      },
+      "autoIncrement": false
     }
   },
   "submit": {

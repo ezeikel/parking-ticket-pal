@@ -1,0 +1,53 @@
+name: OTA Update
+
+on:
+  push:
+    branches: ['main']
+    paths:
+      - 'apps/mobile/**'
+
+jobs:
+  fingerprint:
+    type: fingerprint
+
+  get-latest-build:
+    type: get-build
+    params:
+      platform: all
+      profile: production
+      distribution: store
+
+  update:
+    type: update
+    needs: [fingerprint, get-latest-build]
+    if: >-
+      ${{
+        needs.fingerprint.outputs.ios_fingerprint_hash == needs.get-latest-build.outputs.ios_fingerprint_hash
+        && needs.fingerprint.outputs.android_fingerprint_hash == needs.get-latest-build.outputs.android_fingerprint_hash
+      }}
+    params:
+      branch: production
+      message: OTA update from ${{ github.sha }}
+
+  notify-ota:
+    type: doc
+    needs: [update]
+    params:
+      md: |
+        ## OTA Update Published
+        Branch: `production`
+        Commit: `${{ github.sha }}`
+
+  needs-native-build:
+    type: doc
+    needs: [fingerprint, get-latest-build]
+    if: >-
+      ${{
+        needs.fingerprint.outputs.ios_fingerprint_hash != needs.get-latest-build.outputs.ios_fingerprint_hash
+        || needs.fingerprint.outputs.android_fingerprint_hash != needs.get-latest-build.outputs.android_fingerprint_hash
+      }}
+    params:
+      md: |
+        ## Native Changes Detected
+        Fingerprints differ from latest production build.
+        Run the **Production Release** workflow manually to create new native builds.

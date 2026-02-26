@@ -1,0 +1,6 @@
+appId: com.chewybytes.parkingticketpal.app
+---
+- launchApp
+- assertVisible: "Tickets"
+- assertVisible: "Search tickets..."
+- assertVisible: "Settings"
