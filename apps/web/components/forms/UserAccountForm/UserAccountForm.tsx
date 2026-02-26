@@ -11,6 +11,7 @@ import {
   TanstackFormLabel,
   TanstackFormControl,
   TanstackFormMessage,
+  TanstackFormDescription,
 } from '@/components/ui/tanstack-form';
 import AddressInput from '@/components/forms/inputs/AddressInput/AddressInput';
 import SignatureInput from '@/components/SignatureInput/SignatureInput';
@@ -132,7 +133,12 @@ const UserAccountForm = ({ user }: UserAccountFormProps) => {
       <div className="space-y-6">
         <h3 className="text-lg font-medium">Personal Details</h3>
 
-        <form.Field name="name">
+        <form.Field
+          name="name"
+          validators={{
+            onBlur: profileFormSchema.shape.name,
+          }}
+        >
           {(field) => (
             <TanstackFormItem field={field}>
               <TanstackFormLabel>Full Name</TanstackFormLabel>
@@ -145,12 +151,20 @@ const UserAccountForm = ({ user }: UserAccountFormProps) => {
                   onBlur={field.handleBlur}
                 />
               </TanstackFormControl>
+              <TanstackFormDescription>
+                Used on official forms and letters
+              </TanstackFormDescription>
               <TanstackFormMessage />
             </TanstackFormItem>
           )}
         </form.Field>
 
-        <form.Field name="phoneNumber">
+        <form.Field
+          name="phoneNumber"
+          validators={{
+            onBlur: profileFormSchema.shape.phoneNumber,
+          }}
+        >
           {(field) => (
             <TanstackFormItem field={field}>
               <TanstackFormLabel>Phone Number</TanstackFormLabel>
@@ -163,6 +177,9 @@ const UserAccountForm = ({ user }: UserAccountFormProps) => {
                   onBlur={field.handleBlur}
                 />
               </TanstackFormControl>
+              <TanstackFormDescription>
+                UK mobile: 07xxx xxxxxx
+              </TanstackFormDescription>
               <TanstackFormMessage />
             </TanstackFormItem>
           )}
@@ -281,7 +298,12 @@ const UserAccountForm = ({ user }: UserAccountFormProps) => {
           </form.Field>
         </div>
 
-        <form.Field name="postcode">
+        <form.Field
+          name="postcode"
+          validators={{
+            onBlur: profileFormSchema.shape.postcode,
+          }}
+        >
           {(field) => (
             <TanstackFormItem field={field} className="max-w-[200px]">
               <TanstackFormLabel>Postcode</TanstackFormLabel>
@@ -290,7 +312,9 @@ const UserAccountForm = ({ user }: UserAccountFormProps) => {
                   placeholder="SW1A 1AA"
                   name="postcode"
                   value={field.state.value || ''}
-                  onChange={(e) => field.handleChange(e.target.value)}
+                  onChange={(e) =>
+                    field.handleChange(e.target.value.toUpperCase())
+                  }
                   onBlur={field.handleBlur}
                 />
               </TanstackFormControl>
@@ -311,9 +335,19 @@ const UserAccountForm = ({ user }: UserAccountFormProps) => {
       </div>
 
       <div className="pt-6">
-        <Button type="submit" className="w-full">
-          Save Changes
-        </Button>
+        <form.Subscribe
+          selector={(state) => [state.canSubmit, state.isSubmitting]}
+        >
+          {([canSubmit, isSubmitting]) => (
+            <Button
+              type="submit"
+              className="w-full"
+              disabled={!canSubmit || isSubmitting}
+            >
+              {isSubmitting ? 'Saving...' : 'Save Changes'}
+            </Button>
+          )}
+        </form.Subscribe>
       </div>
     </form>
   );

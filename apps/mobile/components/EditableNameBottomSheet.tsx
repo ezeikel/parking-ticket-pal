@@ -21,20 +21,24 @@ const EditableNameBottomSheet = ({
   const insets = useSafeAreaInsets();
   const [name, setName] = useState(currentName || '');
   const [isSaving, setIsSaving] = useState(false);
+  const [touched, setTouched] = useState(false);
 
-  // Reset name when modal is opened with new currentName
+  const nameError = touched && !name.trim();
+
+  // Reset state when modal is opened with new currentName
   useEffect(() => {
     if (visible) {
       setName(currentName || '');
       setIsSaving(false);
+      setTouched(false);
     }
   }, [visible, currentName]);
 
   const handleSave = async () => {
+    setTouched(true);
     const trimmedName = name.trim();
 
     if (!trimmedName) {
-      Alert.alert('Invalid Name', 'Please enter your name');
       return;
     }
 
@@ -85,12 +89,18 @@ const EditableNameBottomSheet = ({
               Full Name
             </Text>
             <TextInput
-              className="font-jakarta text-base bg-white border border-gray-300 rounded-lg px-4 py-3"
+              className={`font-jakarta text-base bg-white border rounded-lg px-4 py-3 ${nameError ? 'border-red-500' : 'border-gray-300'}`}
               placeholder="Enter your full name"
               value={name}
               onChangeText={setName}
+              onBlur={() => setTouched(true)}
               autoCapitalize="words"
             />
+            {nameError && (
+              <Text className="font-jakarta text-xs text-red-500 mt-1">
+                Please enter your name
+              </Text>
+            )}
           </View>
 
           {/* Action Buttons */}
@@ -107,7 +117,7 @@ const EditableNameBottomSheet = ({
               icon={faCheck}
               label="Save Changes"
               variant="primary"
-              disabled={isSaving}
+              disabled={isSaving || nameError}
               loading={isSaving}
             />
           </ActionButtonGroup>

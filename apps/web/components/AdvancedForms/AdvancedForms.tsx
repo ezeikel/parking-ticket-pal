@@ -84,18 +84,27 @@ const TE9Fields = ({ onDataChange }: { onDataChange: (data: any) => void }) => {
     appealInFavour: false,
     paidInFull: false,
   });
+  const [touched, setTouched] = useState(false);
 
   const handleGroundChange = (key: keyof typeof grounds, checked: boolean) => {
+    if (!touched) setTouched(true);
     const newGrounds = { ...grounds, [key]: checked };
     setGrounds(newGrounds);
     onDataChange(newGrounds);
   };
+
+  const hasSelection = Object.values(grounds).some(Boolean);
 
   return (
     <div className="space-y-4">
       <Label className="font-medium">
         Grounds for statement (Tick all that apply)
       </Label>
+      {touched && !hasSelection && (
+        <p className="text-sm font-medium text-destructive">
+          Please select at least one ground
+        </p>
+      )}
       <div className="flex items-center space-x-2">
         <Checkbox
           id="te9-did-not-receive-notice"
@@ -180,8 +189,11 @@ const PE3Fields = ({ onDataChange }: { onDataChange: (data: any) => void }) => {
     appealedToAdjudicator: false,
   });
   const [reason, setReason] = useState('');
+  const [groundsTouched, setGroundsTouched] = useState(false);
+  const [reasonTouched, setReasonTouched] = useState(false);
 
   const handleGroundChange = (key: keyof typeof grounds, checked: boolean) => {
+    if (!groundsTouched) setGroundsTouched(true);
     const newGrounds = { ...grounds, [key]: checked };
     setGrounds(newGrounds);
     onDataChange({ ...newGrounds, reasonText: reason });
@@ -192,11 +204,18 @@ const PE3Fields = ({ onDataChange }: { onDataChange: (data: any) => void }) => {
     onDataChange({ ...grounds, reasonText: value });
   };
 
+  const hasGroundSelection = Object.values(grounds).some(Boolean);
+
   return (
     <div className="space-y-4">
       <Label className="font-medium">
         Grounds for statement (Tick all that apply)
       </Label>
+      {groundsTouched && !hasGroundSelection && (
+        <p className="text-sm font-medium text-destructive">
+          Please select at least one ground
+        </p>
+      )}
       <div className="flex items-center space-x-2">
         <Checkbox
           id="pe3-did-not-receive-notice"
@@ -253,7 +272,13 @@ const PE3Fields = ({ onDataChange }: { onDataChange: (data: any) => void }) => {
           rows={5}
           value={reason}
           onChange={(e) => handleReasonChange(e.target.value)}
+          onBlur={() => setReasonTouched(true)}
         />
+        {reasonTouched && !reason.trim() && (
+          <p className="text-sm font-medium text-destructive">
+            Please provide a supporting explanation
+          </p>
+        )}
       </div>
     </div>
   );
@@ -262,6 +287,7 @@ const PE3Fields = ({ onDataChange }: { onDataChange: (data: any) => void }) => {
 // This component will render the specific fields for the TE7 form
 const TE7Fields = ({ onDataChange }: { onDataChange: (data: any) => void }) => {
   const [reason, setReason] = useState('');
+  const [touched, setTouched] = useState(false);
 
   const handleReasonChange = (value: string) => {
     setReason(value);
@@ -287,7 +313,13 @@ const TE7Fields = ({ onDataChange }: { onDataChange: (data: any) => void }) => {
         rows={5}
         value={reason}
         onChange={(e) => handleReasonChange(e.target.value)}
+        onBlur={() => setTouched(true)}
       />
+      {touched && !reason.trim() && (
+        <p className="text-sm font-medium text-destructive">
+          Please provide a reason for filing out of time
+        </p>
+      )}
     </div>
   );
 };

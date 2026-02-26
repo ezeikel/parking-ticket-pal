@@ -1,13 +1,12 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, ScrollView, Alert, KeyboardAvoidingView, Platform } from 'react-native';
-import { useForm, Controller } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
+import { useForm } from '@tanstack/react-form';
 import DateTimePicker, { DateTimePickerEvent } from '@react-native-community/datetimepicker';
 import { Picker } from '@react-native-picker/picker';
 import AddressInput from '@/components/AddressInput/AddressInput';
 import { CONTRAVENTION_CODES_OPTIONS } from '@parking-ticket-pal/constants';
 import { ticketFormSchema, type TicketFormData } from '@parking-ticket-pal/types';
-import { useAnalytics, getValidationErrorsProperties } from '@/lib/analytics';
+import { useAnalytics } from '@/lib/analytics';
 import Loader from '../Loader/Loader';
 import SquishyPressable from '@/components/SquishyPressable/SquishyPressable';
 
@@ -29,8 +28,7 @@ const TicketForm = ({ initialData, onSubmit, onCancel, isLoading = false }: Tick
     code.label.toLowerCase().includes(contraventionSearch.toLowerCase())
   );
 
-  const { control, handleSubmit, formState: { errors } } = useForm<TicketFormData>({
-    resolver: zodResolver(ticketFormSchema),
+  const form = useForm({
     defaultValues: {
       vehicleReg: initialData?.vehicleReg || '',
       pcnNumber: initialData?.pcnNumber || '',
@@ -48,25 +46,18 @@ const TicketForm = ({ initialData, onSubmit, onCancel, isLoading = false }: Tick
           longitude: 0,
         },
       },
+    } as TicketFormData,
+    validators: {
+      onSubmit: ticketFormSchema,
+    },
+    onSubmit: async ({ value }) => {
+      try {
+        await onSubmit(value);
+      } catch (error) {
+        Alert.alert('Error', 'Failed to submit ticket. Please try again.');
+      }
     },
   });
-
-  const onFormSubmit = async (data: TicketFormData) => {
-    try {
-      // Track validation errors if any
-      if (Object.keys(errors).length > 0) {
-        const validationProperties = getValidationErrorsProperties(errors);
-        trackEvent("error_occurred", {
-          screen: "ticket_form",
-          ...validationProperties
-        });
-      }
-
-      await onSubmit(data);
-    } catch (error) {
-      Alert.alert('Error', 'Failed to submit ticket. Please try again.');
-    }
-  };
 
   return (
     <KeyboardAvoidingView
@@ -78,120 +69,122 @@ const TicketForm = ({ initialData, onSubmit, onCancel, isLoading = false }: Tick
           <Text className="text-2xl font-jakarta-bold mb-6 text-center">Ticket Details</Text>
 
         {/* Vehicle Registration */}
-        <View className="mb-4">
-          <Text className="text-base font-jakarta-medium mb-2">Vehicle Registration *</Text>
-          <Controller
-            control={control}
-            name="vehicleReg"
-            render={({ field: { onChange, onBlur, value } }) => (
+        <form.Field
+          name="vehicleReg"
+          validators={{
+            onBlur: ticketFormSchema.shape.vehicleReg,
+          }}
+        >
+          {(field) => (
+            <View className="mb-4">
+              <Text className="text-base font-jakarta-medium mb-2">Vehicle Registration *</Text>
               <TextInput
                 className="border border-gray-300 rounded-lg px-3 py-3 text-base"
                 placeholder="AB12 CDE"
-                value={value}
-                onChangeText={(text) => onChange(text.toUpperCase())}
-                onBlur={onBlur}
+                value={field.state.value}
+                onChangeText={(text) => field.handleChange(text.toUpperCase())}
+                onBlur={field.handleBlur}
                 autoCapitalize="characters"
               />
-            )}
-          />
-          {errors.vehicleReg && (
-            <Text className="text-red-500 text-sm mt-1">{errors.vehicleReg.message}</Text>
+              <Text className="text-gray-500 text-xs mt-1">Found on the ticket. UK format: AB12 CDE</Text>
+              {field.state.meta.errors.length > 0 && (
+                <Text className="text-red-500 text-sm mt-1">{String(field.state.meta.errors[0])}</Text>
+              )}
+            </View>
           )}
-        </View>
+        </form.Field>
 
         {/* PCN Number */}
-        <View className="mb-4">
-          <Text className="text-base font-jakarta-medium mb-2">PCN Number *</Text>
-          <Controller
-            control={control}
-            name="pcnNumber"
-            render={({ field: { onChange, onBlur, value } }) => (
+        <form.Field
+          name="pcnNumber"
+          validators={{
+            onBlur: ticketFormSchema.shape.pcnNumber,
+          }}
+        >
+          {(field) => (
+            <View className="mb-4">
+              <Text className="text-base font-jakarta-medium mb-2">PCN Number *</Text>
               <TextInput
                 className="border border-gray-300 rounded-lg px-3 py-3 text-base"
                 placeholder="PCN12345678"
-                value={value}
-                onChangeText={onChange}
-                onBlur={onBlur}
+                value={field.state.value}
+                onChangeText={field.handleChange}
+                onBlur={field.handleBlur}
               />
-            )}
-          />
-          {errors.pcnNumber && (
-            <Text className="text-red-500 text-sm mt-1">{errors.pcnNumber.message}</Text>
+              <Text className="text-gray-500 text-xs mt-1">The unique reference number on your penalty charge notice</Text>
+              {field.state.meta.errors.length > 0 && (
+                <Text className="text-red-500 text-sm mt-1">{String(field.state.meta.errors[0])}</Text>
+              )}
+            </View>
           )}
-        </View>
+        </form.Field>
 
         {/* Date Issued */}
-        <View className="mb-4">
-          <Text className="text-base font-jakarta-medium mb-2">Date Issued *</Text>
-          <Controller
-            control={control}
-            name="issuedAt"
-            render={({ field: { onChange, value } }) => (
-              <>
-                <SquishyPressable
-                  className="border border-gray-300 rounded-lg px-3 py-3"
-                  onPress={() => {
-                    trackEvent("date_picker_opened", { screen: "ticket_form" });
-                    setShowDatePicker(true);
+        <form.Field name="issuedAt">
+          {(field) => (
+            <View className="mb-4">
+              <Text className="text-base font-jakarta-medium mb-2">Date Issued *</Text>
+              <SquishyPressable
+                className="border border-gray-300 rounded-lg px-3 py-3"
+                onPress={() => {
+                  trackEvent("date_picker_opened", { screen: "ticket_form" });
+                  setShowDatePicker(true);
+                }}
+              >
+                <Text className="text-base">
+                  {field.state.value ? field.state.value.toLocaleDateString() : 'Select date'}
+                </Text>
+              </SquishyPressable>
+              {showDatePicker && (
+                <DateTimePicker
+                  value={field.state.value || new Date()}
+                  mode="date"
+                  display="default"
+                  onChange={(event: DateTimePickerEvent, selectedDate?: Date) => {
+                    setShowDatePicker(false);
+                    if (selectedDate) {
+                      field.handleChange(selectedDate);
+                    }
                   }}
-                >
-                  <Text className="text-base">
-                    {value ? value.toLocaleDateString() : 'Select date'}
-                  </Text>
-                </SquishyPressable>
-                {showDatePicker && (
-                  <DateTimePicker
-                    value={value || new Date()}
-                    mode="date"
-                    display="default"
-                    onChange={(event: DateTimePickerEvent, selectedDate?: Date) => {
-                      setShowDatePicker(false);
-                      if (selectedDate) {
-                        onChange(selectedDate);
-                      }
-                    }}
-                    maximumDate={new Date()}
-                  />
-                )}
-              </>
-            )}
-          />
-          {errors.issuedAt && (
-            <Text className="text-red-500 text-sm mt-1">{errors.issuedAt.message}</Text>
+                  maximumDate={new Date()}
+                />
+              )}
+              {field.state.meta.errors.length > 0 && (
+                <Text className="text-red-500 text-sm mt-1">{String(field.state.meta.errors[0])}</Text>
+              )}
+            </View>
           )}
-        </View>
+        </form.Field>
 
         {/* Contravention Code with Search */}
-        <View className="mb-4">
-          <Text className="text-base font-jakarta-medium mb-2">Contravention *</Text>
-          
-          {/* Search input */}
-          <View className="mb-2">
-            <TextInput
-              className="border border-gray-300 rounded-lg px-3 py-2 text-base"
-              placeholder="Search contraventions..."
-              value={contraventionSearch}
-              onChangeText={(text) => {
-                setContraventionSearch(text);
-                if (text.length > 2) {
-                  trackEvent("contravention_code_searched", {
-                    screen: "ticket_form",
-                    search_query: text
-                  });
-                }
-              }}
-            />
-          </View>
+        <form.Field name="contraventionCode">
+          {(field) => (
+            <View className="mb-4">
+              <Text className="text-base font-jakarta-medium mb-2">Contravention *</Text>
 
-          <Controller
-            control={control}
-            name="contraventionCode"
-            render={({ field: { onChange, value } }) => (
+              {/* Search input */}
+              <View className="mb-2">
+                <TextInput
+                  className="border border-gray-300 rounded-lg px-3 py-2 text-base"
+                  placeholder="Search contraventions..."
+                  value={contraventionSearch}
+                  onChangeText={(text) => {
+                    setContraventionSearch(text);
+                    if (text.length > 2) {
+                      trackEvent("contravention_code_searched", {
+                        screen: "ticket_form",
+                        search_query: text
+                      });
+                    }
+                  }}
+                />
+              </View>
+
               <View className="border border-gray-300 rounded-lg">
                 <Picker
-                  selectedValue={value}
+                  selectedValue={field.state.value}
                   onValueChange={(selectedValue) => {
-                    onChange(selectedValue);
+                    field.handleChange(selectedValue);
                     if (selectedValue) {
                       trackEvent("contravention_code_selected", {
                         screen: "ticket_form",
@@ -211,81 +204,88 @@ const TicketForm = ({ initialData, onSubmit, onCancel, isLoading = false }: Tick
                   ))}
                 </Picker>
               </View>
-            )}
-          />
-          {errors.contraventionCode && (
-            <Text className="text-red-500 text-sm mt-1">{errors.contraventionCode.message}</Text>
+              {field.state.meta.errors.length > 0 && (
+                <Text className="text-red-500 text-sm mt-1">{String(field.state.meta.errors[0])}</Text>
+              )}
+            </View>
           )}
-        </View>
+        </form.Field>
 
         {/* Initial Amount */}
-        <View className="mb-4">
-          <Text className="text-base font-jakarta-medium mb-2">Initial Amount (£) *</Text>
-          <Controller
-            control={control}
-            name="initialAmount"
-            render={({ field: { onChange, onBlur, value } }) => (
+        <form.Field
+          name="initialAmount"
+          validators={{
+            onBlur: ticketFormSchema.shape.initialAmount,
+          }}
+        >
+          {(field) => (
+            <View className="mb-4">
+              <Text className="text-base font-jakarta-medium mb-2">Initial Amount (£) *</Text>
               <TextInput
                 className="border border-gray-300 rounded-lg px-3 py-3 text-base"
                 placeholder="70"
-                value={value === 0 ? '' : (value / 100).toString()}
+                value={field.state.value === 0 ? '' : String(field.state.value / 100)}
                 onChangeText={(text) => {
                   const amount = parseFloat(text) || 0;
-                  onChange(Math.round(amount * 100));
+                  field.handleChange(Math.round(amount * 100));
                 }}
-                onBlur={onBlur}
+                onBlur={field.handleBlur}
                 keyboardType="numeric"
               />
-            )}
-          />
-          {errors.initialAmount && (
-            <Text className="text-red-500 text-sm mt-1">{errors.initialAmount.message}</Text>
+              <Text className="text-gray-500 text-xs mt-1">Enter the amount in pounds (e.g. 70)</Text>
+              {field.state.meta.errors.length > 0 && (
+                <Text className="text-red-500 text-sm mt-1">{String(field.state.meta.errors[0])}</Text>
+              )}
+            </View>
           )}
-        </View>
+        </form.Field>
 
         {/* Issuer */}
-        <View className="mb-4">
-          <Text className="text-base font-jakarta-medium mb-2">Issuer *</Text>
-          <Controller
-            control={control}
-            name="issuer"
-            render={({ field: { onChange, onBlur, value } }) => (
+        <form.Field
+          name="issuer"
+          validators={{
+            onBlur: ticketFormSchema.shape.issuer,
+          }}
+        >
+          {(field) => (
+            <View className="mb-4">
+              <Text className="text-base font-jakarta-medium mb-2">Issuer *</Text>
               <TextInput
                 className="border border-gray-300 rounded-lg px-3 py-3 text-base"
                 placeholder="Local Council"
-                value={value}
-                onChangeText={onChange}
-                onBlur={onBlur}
+                value={field.state.value}
+                onChangeText={field.handleChange}
+                onBlur={field.handleBlur}
               />
-            )}
-          />
-          {errors.issuer && (
-            <Text className="text-red-500 text-sm mt-1">{errors.issuer.message}</Text>
+              <Text className="text-gray-500 text-xs mt-1">The council or company that issued the ticket</Text>
+              {field.state.meta.errors.length > 0 && (
+                <Text className="text-red-500 text-sm mt-1">{String(field.state.meta.errors[0])}</Text>
+              )}
+            </View>
           )}
-        </View>
+        </form.Field>
 
         {/* Location with Mapbox Autocomplete */}
-        <View className="mb-6">
-          <Text className="text-base font-jakarta-medium mb-2">Location *</Text>
-          <Controller
-            control={control}
-            name="location"
-            render={({ field: { onChange, value } }) => (
+        <form.Field name="location">
+          {(field) => (
+            <View className="mb-6">
+              <Text className="text-base font-jakarta-medium mb-2">Location *</Text>
               <AddressInput
-                onSelect={onChange}
+                onSelect={field.handleChange}
                 initialValue={
-                  value?.line1
-                    ? `${value.line1}, ${value.city}, ${value.postcode}`
+                  field.state.value?.line1
+                    ? `${field.state.value.line1}, ${field.state.value.city}, ${field.state.value.postcode}`
                     : undefined
                 }
                 placeholder="Start typing the location"
               />
-            )}
-          />
-          {errors.location && (
-            <Text className="text-red-500 text-sm mt-1">Location is required</Text>
+              <Text className="text-gray-500 text-xs mt-1">Start typing the street address where you were parked</Text>
+              {field.state.meta.errors.length > 0 && (
+                <Text className="text-red-500 text-sm mt-1">Location is required</Text>
+              )}
+            </View>
           )}
-        </View>
+        </form.Field>
         </View>
       </ScrollView>
 
@@ -301,7 +301,7 @@ const TicketForm = ({ initialData, onSubmit, onCancel, isLoading = false }: Tick
           </SquishyPressable>
 
           <SquishyPressable
-            onPress={handleSubmit(onFormSubmit)}
+            onPress={() => form.handleSubmit()}
             className="flex-1 bg-dark py-4 rounded-lg shadow-sm"
             disabled={isLoading}
           >

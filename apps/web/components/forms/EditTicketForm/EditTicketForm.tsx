@@ -1,6 +1,5 @@
 'use client';
 
-import { useState } from 'react';
 import { useForm } from '@tanstack/react-form';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { Button } from '@/components/ui/button';
@@ -10,6 +9,7 @@ import {
   TanstackFormLabel,
   TanstackFormControl,
   TanstackFormMessage,
+  TanstackFormDescription,
 } from '@/components/ui/tanstack-form';
 import { Calendar } from '@/components/ui/calendar';
 import {
@@ -43,7 +43,6 @@ type EditTicketFormProps = {
 
 const EditTicketForm = ({ ticket }: EditTicketFormProps) => {
   const router = useRouter();
-  const [isLoading, setIsLoading] = useState(false);
 
   const form = useForm({
     defaultValues: {
@@ -59,8 +58,6 @@ const EditTicketForm = ({ ticket }: EditTicketFormProps) => {
       onSubmit: ticketFormSchema,
     },
     onSubmit: async ({ value }) => {
-      setIsLoading(true);
-
       try {
         const updatedTicket = await updateTicket(ticket.id, value);
 
@@ -75,8 +72,6 @@ const EditTicketForm = ({ ticket }: EditTicketFormProps) => {
         router.push(`/tickets/${ticket.id}`);
       } catch {
         toast.error('Failed to update ticket. Please try again.');
-      } finally {
-        setIsLoading(false);
       }
     },
   });
@@ -91,7 +86,12 @@ const EditTicketForm = ({ ticket }: EditTicketFormProps) => {
       className="space-y-6"
     >
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <form.Field name="pcnNumber">
+        <form.Field
+          name="pcnNumber"
+          validators={{
+            onBlur: ticketFormSchema.shape.pcnNumber,
+          }}
+        >
           {(field) => (
             <TanstackFormItem field={field}>
               <TanstackFormLabel>PCN Number</TanstackFormLabel>
@@ -102,28 +102,46 @@ const EditTicketForm = ({ ticket }: EditTicketFormProps) => {
                   onBlur={field.handleBlur}
                 />
               </TanstackFormControl>
+              <TanstackFormDescription>
+                The unique reference number on your penalty charge notice
+              </TanstackFormDescription>
               <TanstackFormMessage />
             </TanstackFormItem>
           )}
         </form.Field>
 
-        <form.Field name="vehicleReg">
+        <form.Field
+          name="vehicleReg"
+          validators={{
+            onBlur: ticketFormSchema.shape.vehicleReg,
+          }}
+        >
           {(field) => (
             <TanstackFormItem field={field}>
               <TanstackFormLabel>Vehicle Registration</TanstackFormLabel>
               <TanstackFormControl>
                 <Input
                   value={field.state.value}
-                  onChange={(e) => field.handleChange(e.target.value)}
+                  onChange={(e) =>
+                    field.handleChange(e.target.value.toUpperCase())
+                  }
                   onBlur={field.handleBlur}
                 />
               </TanstackFormControl>
+              <TanstackFormDescription>
+                Found on the ticket. UK format: AB12 CDE
+              </TanstackFormDescription>
               <TanstackFormMessage />
             </TanstackFormItem>
           )}
         </form.Field>
 
-        <form.Field name="issuer">
+        <form.Field
+          name="issuer"
+          validators={{
+            onBlur: ticketFormSchema.shape.issuer,
+          }}
+        >
           {(field) => (
             <TanstackFormItem field={field}>
               <TanstackFormLabel>Issuer</TanstackFormLabel>
@@ -134,12 +152,20 @@ const EditTicketForm = ({ ticket }: EditTicketFormProps) => {
                   onBlur={field.handleBlur}
                 />
               </TanstackFormControl>
+              <TanstackFormDescription>
+                The council or company that issued the ticket
+              </TanstackFormDescription>
               <TanstackFormMessage />
             </TanstackFormItem>
           )}
         </form.Field>
 
-        <form.Field name="initialAmount">
+        <form.Field
+          name="initialAmount"
+          validators={{
+            onBlur: ticketFormSchema.shape.initialAmount,
+          }}
+        >
           {(field) => (
             <TanstackFormItem field={field}>
               <TanstackFormLabel>Initial Amount (£)</TanstackFormLabel>
@@ -149,8 +175,8 @@ const EditTicketForm = ({ ticket }: EditTicketFormProps) => {
                   step="0.01"
                   value={
                     field.state.value === 0
-                      ? undefined
-                      : field.state.value / 100
+                      ? ''
+                      : String(field.state.value / 100)
                   }
                   onChange={(e) =>
                     field.handleChange(Math.round(Number(e.target.value) * 100))
@@ -158,6 +184,9 @@ const EditTicketForm = ({ ticket }: EditTicketFormProps) => {
                   onBlur={field.handleBlur}
                 />
               </TanstackFormControl>
+              <TanstackFormDescription>
+                Enter the amount in pounds (e.g. 70)
+              </TanstackFormDescription>
               <TanstackFormMessage />
             </TanstackFormItem>
           )}
@@ -235,6 +264,9 @@ const EditTicketForm = ({ ticket }: EditTicketFormProps) => {
               onSelect={(address) => field.handleChange(address)}
               className="w-full"
             />
+            <TanstackFormDescription>
+              Start typing the street address where you were parked
+            </TanstackFormDescription>
             {field.state.value && (
               <div className="text-sm text-muted-foreground mt-2">
                 Current location: {field.state.value.line1},{' '}
@@ -250,24 +282,29 @@ const EditTicketForm = ({ ticket }: EditTicketFormProps) => {
           type="button"
           variant="outline"
           onClick={() => router.push(`/tickets/${ticket.id}`)}
-          disabled={isLoading}
         >
           Cancel
         </Button>
-        <Button type="submit" disabled={isLoading}>
-          {isLoading ? (
-            <>
-              <FontAwesomeIcon
-                icon={faSpinnerThird}
-                spin
-                className="mr-2 h-4 w-4"
-              />
-              Saving...
-            </>
-          ) : (
-            'Save Changes'
+        <form.Subscribe
+          selector={(state) => [state.canSubmit, state.isSubmitting]}
+        >
+          {([canSubmit, isSubmitting]) => (
+            <Button type="submit" disabled={!canSubmit || isSubmitting}>
+              {isSubmitting ? (
+                <>
+                  <FontAwesomeIcon
+                    icon={faSpinnerThird}
+                    spin
+                    className="mr-2 h-4 w-4"
+                  />
+                  Saving...
+                </>
+              ) : (
+                'Save Changes'
+              )}
+            </Button>
           )}
-        </Button>
+        </form.Subscribe>
       </div>
     </form>
   );

@@ -11,6 +11,7 @@ import {
   TanstackFormLabel,
   TanstackFormControl,
   TanstackFormMessage,
+  TanstackFormDescription,
 } from '@/components/ui/tanstack-form';
 import { Calendar } from '@/components/ui/calendar';
 import {
@@ -46,7 +47,7 @@ type CreateTicketFormProps = {
 };
 
 const CreateTicketForm = ({ tier, source }: CreateTicketFormProps) => {
-  const [isLoading, setIsLoading] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
   const [tempImageUrl, setTempImageUrl] = useState<string | undefined>();
   const [tempImagePath, setTempImagePath] = useState<string | undefined>();
   const [extractedText, setExtractedText] = useState<string>('');
@@ -78,8 +79,6 @@ const CreateTicketForm = ({ tier, source }: CreateTicketFormProps) => {
       onSubmit: ticketFormSchema,
     },
     onSubmit: async ({ value }) => {
-      setIsLoading(true);
-
       try {
         const ticket = await createTicket({
           ...value,
@@ -135,8 +134,6 @@ const CreateTicketForm = ({ tier, source }: CreateTicketFormProps) => {
           error instanceof Error ? error : undefined,
         );
         toast.error('Failed to create ticket. Please try again.');
-      } finally {
-        setIsLoading(false);
       }
     },
   });
@@ -145,7 +142,7 @@ const CreateTicketForm = ({ tier, source }: CreateTicketFormProps) => {
     const file = event.target.files?.[0];
     if (!file) return;
 
-    setIsLoading(true);
+    setIsUploading(true);
 
     // Compress image before upload
     let uploadFile: File = file;
@@ -197,7 +194,7 @@ const CreateTicketForm = ({ tier, source }: CreateTicketFormProps) => {
       );
       toast.error('Failed to upload image. Please try again.');
     } finally {
-      setIsLoading(false);
+      setIsUploading(false);
     }
   };
 
@@ -216,7 +213,7 @@ const CreateTicketForm = ({ tier, source }: CreateTicketFormProps) => {
           className="flex flex-col items-center justify-center w-full h-32 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100"
         >
           <div className="flex flex-col items-center justify-center pt-5 pb-6">
-            {isLoading ? (
+            {isUploading ? (
               <FontAwesomeIcon
                 icon={faSpinnerThird}
                 className="w-8 h-8 mb-4 text-gray-500 animate-spin"
@@ -228,7 +225,7 @@ const CreateTicketForm = ({ tier, source }: CreateTicketFormProps) => {
               />
             )}
             <p className="text-sm text-gray-500">
-              {isLoading
+              {isUploading
                 ? 'Processing image...'
                 : 'Upload image to pre-fill form'}
             </p>
@@ -239,18 +236,23 @@ const CreateTicketForm = ({ tier, source }: CreateTicketFormProps) => {
             className="hidden"
             accept="image/*,.pdf"
             onChange={handleFileUpload}
-            disabled={isLoading}
+            disabled={isUploading}
           />
         </label>
       </div>
 
-      {isLoading ? (
+      {isUploading ? (
         <div className="flex justify-center">
           <FontAwesomeIcon icon={faSpinnerThird} spin size="3x" />
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <form.Field name="vehicleReg">
+          <form.Field
+            name="vehicleReg"
+            validators={{
+              onBlur: ticketFormSchema.shape.vehicleReg,
+            }}
+          >
             {(field) => (
               <TanstackFormItem field={field}>
                 <TanstackFormLabel>Vehicle Registration</TanstackFormLabel>
@@ -258,16 +260,26 @@ const CreateTicketForm = ({ tier, source }: CreateTicketFormProps) => {
                   <Input
                     placeholder="AB12 CDE"
                     value={field.state.value}
-                    onChange={(e) => field.handleChange(e.target.value)}
+                    onChange={(e) =>
+                      field.handleChange(e.target.value.toUpperCase())
+                    }
                     onBlur={field.handleBlur}
                   />
                 </TanstackFormControl>
+                <TanstackFormDescription>
+                  Found on the ticket. UK format: AB12 CDE
+                </TanstackFormDescription>
                 <TanstackFormMessage />
               </TanstackFormItem>
             )}
           </form.Field>
 
-          <form.Field name="pcnNumber">
+          <form.Field
+            name="pcnNumber"
+            validators={{
+              onBlur: ticketFormSchema.shape.pcnNumber,
+            }}
+          >
             {(field) => (
               <TanstackFormItem field={field}>
                 <TanstackFormLabel>PCN Number</TanstackFormLabel>
@@ -279,6 +291,34 @@ const CreateTicketForm = ({ tier, source }: CreateTicketFormProps) => {
                     onBlur={field.handleBlur}
                   />
                 </TanstackFormControl>
+                <TanstackFormDescription>
+                  The unique reference number on your penalty charge notice
+                </TanstackFormDescription>
+                <TanstackFormMessage />
+              </TanstackFormItem>
+            )}
+          </form.Field>
+
+          <form.Field
+            name="issuer"
+            validators={{
+              onBlur: ticketFormSchema.shape.issuer,
+            }}
+          >
+            {(field) => (
+              <TanstackFormItem field={field}>
+                <TanstackFormLabel>Issuer</TanstackFormLabel>
+                <TanstackFormControl>
+                  <Input
+                    placeholder="Local Council"
+                    value={field.state.value}
+                    onChange={(e) => field.handleChange(e.target.value)}
+                    onBlur={field.handleBlur}
+                  />
+                </TanstackFormControl>
+                <TanstackFormDescription>
+                  The council or company that issued the ticket
+                </TanstackFormDescription>
                 <TanstackFormMessage />
               </TanstackFormItem>
             )}
@@ -337,6 +377,40 @@ const CreateTicketForm = ({ tier, source }: CreateTicketFormProps) => {
             )}
           </form.Field>
 
+          <form.Field
+            name="initialAmount"
+            validators={{
+              onBlur: ticketFormSchema.shape.initialAmount,
+            }}
+          >
+            {(field) => (
+              <TanstackFormItem field={field}>
+                <TanstackFormLabel>Initial Amount (£)</TanstackFormLabel>
+                <TanstackFormControl>
+                  <Input
+                    type="number"
+                    placeholder="70"
+                    value={
+                      field.state.value === 0
+                        ? ''
+                        : String(field.state.value / 100)
+                    }
+                    onChange={(e) =>
+                      field.handleChange(
+                        Math.round(Number(e.target.value) * 100),
+                      )
+                    }
+                    onBlur={field.handleBlur}
+                  />
+                </TanstackFormControl>
+                <TanstackFormDescription>
+                  Enter the amount in pounds (e.g. 70)
+                </TanstackFormDescription>
+                <TanstackFormMessage />
+              </TanstackFormItem>
+            )}
+          </form.Field>
+
           <form.Field name="contraventionCode">
             {(field) => (
               <TanstackFormItem
@@ -348,49 +422,6 @@ const CreateTicketForm = ({ tier, source }: CreateTicketFormProps) => {
                   <ContraventionCodeSelect
                     value={field.state.value}
                     onChange={(val) => field.handleChange(val)}
-                  />
-                </TanstackFormControl>
-                <TanstackFormMessage />
-              </TanstackFormItem>
-            )}
-          </form.Field>
-
-          <form.Field name="initialAmount">
-            {(field) => (
-              <TanstackFormItem field={field}>
-                <TanstackFormLabel>Initial Amount (£)</TanstackFormLabel>
-                <TanstackFormControl>
-                  <Input
-                    type="number"
-                    placeholder="70"
-                    value={
-                      field.state.value === 0
-                        ? undefined
-                        : field.state.value / 100
-                    }
-                    onChange={(e) =>
-                      field.handleChange(
-                        Math.round(Number(e.target.value) * 100),
-                      )
-                    }
-                    onBlur={field.handleBlur}
-                  />
-                </TanstackFormControl>
-                <TanstackFormMessage />
-              </TanstackFormItem>
-            )}
-          </form.Field>
-
-          <form.Field name="issuer">
-            {(field) => (
-              <TanstackFormItem field={field}>
-                <TanstackFormLabel>Issuer</TanstackFormLabel>
-                <TanstackFormControl>
-                  <Input
-                    placeholder="Local Council"
-                    value={field.state.value}
-                    onChange={(e) => field.handleChange(e.target.value)}
-                    onBlur={field.handleBlur}
                   />
                 </TanstackFormControl>
                 <TanstackFormMessage />
@@ -415,6 +446,9 @@ const CreateTicketForm = ({ tier, source }: CreateTicketFormProps) => {
                     }
                   />
                 </TanstackFormControl>
+                <TanstackFormDescription>
+                  Start typing the street address where you were parked
+                </TanstackFormDescription>
                 <TanstackFormMessage />
               </TanstackFormItem>
             )}
@@ -423,9 +457,18 @@ const CreateTicketForm = ({ tier, source }: CreateTicketFormProps) => {
       )}
 
       <div className="flex justify-end">
-        <Button type="submit" disabled={isLoading}>
-          {isLoading ? 'Creating...' : 'Create Ticket'}
-        </Button>
+        <form.Subscribe
+          selector={(state) => [state.canSubmit, state.isSubmitting]}
+        >
+          {([canSubmit, isSubmitting]) => (
+            <Button
+              type="submit"
+              disabled={!canSubmit || isSubmitting || isUploading}
+            >
+              {isSubmitting ? 'Creating...' : 'Create Ticket'}
+            </Button>
+          )}
+        </form.Subscribe>
       </div>
     </form>
   );

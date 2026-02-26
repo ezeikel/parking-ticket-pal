@@ -32,18 +32,23 @@ const FormsBottomSheet = forwardRef<BottomSheet, FormsBottomSheetProps>(
       appealInFavour: false,
       paidInFull: false,
     });
+    const [reasonTouched, setReasonTouched] = useState(false);
+    const [groundsTouched, setGroundsTouched] = useState(false);
+
+    const reasonError = reasonTouched && !reasonText.trim();
+    const hasSelectedGround = Object.values(grounds).some(Boolean);
+    const groundsError = groundsTouched && !hasSelectedGround;
 
     const handleGenerate = async () => {
       // Validate based on form type
       if ((formType === 'TE7' || formType === 'PE2') && !reasonText.trim()) {
-        toast.error('Required', 'Please provide a reason');
+        setReasonTouched(true);
         return;
       }
 
       if ((formType === 'TE9' || formType === 'PE3')) {
-        const hasSelectedGround = Object.values(grounds).some(v => v);
         if (!hasSelectedGround) {
-          toast.error('Required', 'Select at least one ground');
+          setGroundsTouched(true);
           return;
         }
       }
@@ -82,6 +87,8 @@ const FormsBottomSheet = forwardRef<BottomSheet, FormsBottomSheetProps>(
             appealInFavour: false,
             paidInFull: false,
           });
+          setReasonTouched(false);
+          setGroundsTouched(false);
           onSuccess();
         } else {
           // API returned but indicated failure
@@ -121,7 +128,7 @@ const FormsBottomSheet = forwardRef<BottomSheet, FormsBottomSheetProps>(
               </Text>
             </View>
             <TextInput
-              className="border border-gray-300 rounded-lg p-3 bg-white text-gray-900 min-h-[120px]"
+              className={`border rounded-lg p-3 bg-white text-gray-900 min-h-[120px] ${reasonError ? 'border-red-500' : 'border-gray-300'}`}
               placeholder="Explain why you are filing this application late..."
               placeholderTextColor="#9ca3af"
               multiline
@@ -129,8 +136,14 @@ const FormsBottomSheet = forwardRef<BottomSheet, FormsBottomSheetProps>(
               textAlignVertical="top"
               value={reasonText}
               onChangeText={setReasonText}
+              onBlur={() => setReasonTouched(true)}
               editable={!isLoading}
             />
+            {reasonError && (
+              <Text className="text-red-500 text-xs mt-1">
+                Please provide a reason for filing out of time
+              </Text>
+            )}
           </View>
         );
       }
@@ -143,12 +156,20 @@ const FormsBottomSheet = forwardRef<BottomSheet, FormsBottomSheetProps>(
               Grounds for statement <Text className="text-red-500">*</Text>
             </Text>
             <Text className="text-xs text-gray-600 mb-4">Select all that apply:</Text>
+            {groundsError && (
+              <Text className="text-red-500 text-xs mb-3">
+                Please select at least one ground
+              </Text>
+            )}
 
             <View className="space-y-3">
               <View className="flex-row items-start mb-3">
                 <Checkbox
                   value={grounds.didNotReceiveNotice}
-                  onValueChange={(value) => setGrounds({ ...grounds, didNotReceiveNotice: value })}
+                  onValueChange={(value) => {
+                    if (!groundsTouched) setGroundsTouched(true);
+                    setGrounds({ ...grounds, didNotReceiveNotice: value });
+                  }}
                   color={grounds.didNotReceiveNotice ? '#9333ea' : undefined}
                   disabled={isLoading}
                 />
@@ -160,7 +181,10 @@ const FormsBottomSheet = forwardRef<BottomSheet, FormsBottomSheetProps>(
               <View className="flex-row items-start mb-3">
                 <Checkbox
                   value={grounds.madeRepresentations}
-                  onValueChange={(value) => setGrounds({ ...grounds, madeRepresentations: value })}
+                  onValueChange={(value) => {
+                    if (!groundsTouched) setGroundsTouched(true);
+                    setGrounds({ ...grounds, madeRepresentations: value });
+                  }}
                   color={grounds.madeRepresentations ? '#9333ea' : undefined}
                   disabled={isLoading}
                 />
@@ -172,7 +196,10 @@ const FormsBottomSheet = forwardRef<BottomSheet, FormsBottomSheetProps>(
               <View className="flex-row items-start mb-3">
                 <Checkbox
                   value={grounds.hadNoResponse}
-                  onValueChange={(value) => setGrounds({ ...grounds, hadNoResponse: value })}
+                  onValueChange={(value) => {
+                    if (!groundsTouched) setGroundsTouched(true);
+                    setGrounds({ ...grounds, hadNoResponse: value });
+                  }}
                   color={grounds.hadNoResponse ? '#9333ea' : undefined}
                   disabled={isLoading}
                 />
@@ -184,7 +211,10 @@ const FormsBottomSheet = forwardRef<BottomSheet, FormsBottomSheetProps>(
               <View className="flex-row items-start mb-3">
                 <Checkbox
                   value={grounds.appealNotDetermined}
-                  onValueChange={(value) => setGrounds({ ...grounds, appealNotDetermined: value })}
+                  onValueChange={(value) => {
+                    if (!groundsTouched) setGroundsTouched(true);
+                    setGrounds({ ...grounds, appealNotDetermined: value });
+                  }}
                   color={grounds.appealNotDetermined ? '#9333ea' : undefined}
                   disabled={isLoading}
                 />
@@ -196,7 +226,10 @@ const FormsBottomSheet = forwardRef<BottomSheet, FormsBottomSheetProps>(
               <View className="flex-row items-start mb-3">
                 <Checkbox
                   value={grounds.appealInFavour}
-                  onValueChange={(value) => setGrounds({ ...grounds, appealInFavour: value })}
+                  onValueChange={(value) => {
+                    if (!groundsTouched) setGroundsTouched(true);
+                    setGrounds({ ...grounds, appealInFavour: value });
+                  }}
                   color={grounds.appealInFavour ? '#9333ea' : undefined}
                   disabled={isLoading}
                 />
@@ -208,7 +241,10 @@ const FormsBottomSheet = forwardRef<BottomSheet, FormsBottomSheetProps>(
               <View className="flex-row items-start mb-3">
                 <Checkbox
                   value={grounds.paidInFull}
-                  onValueChange={(value) => setGrounds({ ...grounds, paidInFull: value })}
+                  onValueChange={(value) => {
+                    if (!groundsTouched) setGroundsTouched(true);
+                    setGrounds({ ...grounds, paidInFull: value });
+                  }}
                   color={grounds.paidInFull ? '#9333ea' : undefined}
                   disabled={isLoading}
                 />

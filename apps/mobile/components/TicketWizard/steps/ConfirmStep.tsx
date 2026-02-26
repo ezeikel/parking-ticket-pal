@@ -13,8 +13,12 @@ const ConfirmStep = ({ wizardData, onNext }: WizardStepProps) => {
     wizardData.ticketStage ?? 'initial',
   );
   const [showMore, setShowMore] = useState(false);
+  const [pcnTouched, setPcnTouched] = useState(false);
+  const [regTouched, setRegTouched] = useState(false);
 
   const isValid = pcnNumber.trim().length > 0 && vehicleReg.trim().length > 0;
+  const pcnError = pcnTouched && !pcnNumber.trim();
+  const regError = regTouched && !vehicleReg.trim();
 
   const stageLabels: Record<string, string> = {
     initial: 'Initial Ticket',
@@ -40,10 +44,20 @@ const ConfirmStep = ({ wizardData, onNext }: WizardStepProps) => {
       <View className="mb-4">
         <Text className="font-jakarta-medium text-sm text-gray-900 mb-2">PCN Reference</Text>
         <TextInput
-          className="border border-gray-300 rounded-lg px-4 py-3 text-base font-jakarta"
+          className={`border rounded-lg px-4 py-3 text-base font-jakarta ${pcnError ? 'border-red-500' : 'border-gray-300'}`}
           value={pcnNumber}
           onChangeText={setPcnNumber}
+          onBlur={() => setPcnTouched(true)}
         />
+        {pcnError ? (
+          <Text className="font-jakarta text-xs text-red-500 mt-1">
+            PCN number is required
+          </Text>
+        ) : (
+          <Text className="font-jakarta text-xs text-gray-400 mt-1">
+            The unique reference number on your penalty charge notice
+          </Text>
+        )}
       </View>
 
       <View className="mb-4">
@@ -51,11 +65,21 @@ const ConfirmStep = ({ wizardData, onNext }: WizardStepProps) => {
           Vehicle Registration
         </Text>
         <TextInput
-          className="border border-gray-300 rounded-lg px-4 py-3 text-base font-jakarta uppercase"
+          className={`border rounded-lg px-4 py-3 text-base font-jakarta uppercase ${regError ? 'border-red-500' : 'border-gray-300'}`}
           value={vehicleReg}
           onChangeText={(text) => setVehicleReg(text.toUpperCase())}
+          onBlur={() => setRegTouched(true)}
           autoCapitalize="characters"
         />
+        {regError ? (
+          <Text className="font-jakarta text-xs text-red-500 mt-1">
+            Vehicle registration is required
+          </Text>
+        ) : (
+          <Text className="font-jakarta text-xs text-gray-400 mt-1">
+            Found on the ticket. UK format: AB12 CDE
+          </Text>
+        )}
       </View>
 
       {/* Issuer type toggle */}

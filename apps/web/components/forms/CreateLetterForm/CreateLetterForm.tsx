@@ -12,6 +12,7 @@ import {
   TanstackFormLabel,
   TanstackFormControl,
   TanstackFormMessage,
+  TanstackFormDescription,
 } from '@/components/ui/tanstack-form';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -46,7 +47,7 @@ import { logger } from '@/lib/logger';
 
 const CreateLetterForm = () => {
   const router = useRouter();
-  const [isLoading, setIsLoading] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
   const [tempImageUrl, setTempImageUrl] = useState<string | undefined>();
   const [tempImagePath, setTempImagePath] = useState<string | undefined>();
   const [extractedText, setExtractedText] = useState<string>('');
@@ -65,7 +66,6 @@ const CreateLetterForm = () => {
     },
     onSubmit: async ({ value }) => {
       try {
-        setIsLoading(true);
         const letter = await createLetter({
           ...value,
           extractedText,
@@ -95,8 +95,6 @@ const CreateLetterForm = () => {
           error instanceof Error ? error : undefined,
         );
         toast.error('Failed to create letter. Please try again.');
-      } finally {
-        setIsLoading(false);
       }
     },
   });
@@ -107,7 +105,7 @@ const CreateLetterForm = () => {
     const file = event.target.files?.[0];
     if (!file) return;
 
-    setIsLoading(true);
+    setIsUploading(true);
 
     // Compress image before upload
     let uploadFile: File = file;
@@ -155,7 +153,7 @@ const CreateLetterForm = () => {
       );
       toast.error('Failed to upload image. Please try again.');
     } finally {
-      setIsLoading(false);
+      setIsUploading(false);
     }
   };
 
@@ -174,7 +172,7 @@ const CreateLetterForm = () => {
           className="flex flex-col items-center justify-center w-full h-32 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100"
         >
           <div className="flex flex-col items-center justify-center pt-5 pb-6">
-            {isLoading ? (
+            {isUploading ? (
               <FontAwesomeIcon
                 icon={faSpinnerThird}
                 className="w-8 h-8 mb-4 text-gray-500 animate-spin"
@@ -186,7 +184,7 @@ const CreateLetterForm = () => {
               />
             )}
             <p className="text-sm text-gray-500">
-              {isLoading
+              {isUploading
                 ? 'Processing image...'
                 : 'Upload image to pre-fill form'}
             </p>
@@ -197,18 +195,23 @@ const CreateLetterForm = () => {
             className="hidden"
             accept="image/*,.pdf"
             onChange={handleFileUpload}
-            disabled={isLoading}
+            disabled={isUploading}
           />
         </label>
       </div>
 
-      {isLoading ? (
+      {isUploading ? (
         <div className="flex justify-center">
           <FontAwesomeIcon icon={faSpinnerThird} spin size="3x" />
         </div>
       ) : (
         <>
-          <form.Field name="pcnNumber">
+          <form.Field
+            name="pcnNumber"
+            validators={{
+              onBlur: letterFormSchema.shape.pcnNumber,
+            }}
+          >
             {(field) => (
               <TanstackFormItem field={field}>
                 <TanstackFormLabel>PCN Number</TanstackFormLabel>
@@ -220,12 +223,20 @@ const CreateLetterForm = () => {
                     onBlur={field.handleBlur}
                   />
                 </TanstackFormControl>
+                <TanstackFormDescription>
+                  The unique reference number on your penalty charge notice
+                </TanstackFormDescription>
                 <TanstackFormMessage />
               </TanstackFormItem>
             )}
           </form.Field>
 
-          <form.Field name="vehicleReg">
+          <form.Field
+            name="vehicleReg"
+            validators={{
+              onBlur: letterFormSchema.shape.vehicleReg,
+            }}
+          >
             {(field) => (
               <TanstackFormItem field={field}>
                 <TanstackFormLabel>Vehicle Registration</TanstackFormLabel>
@@ -233,10 +244,15 @@ const CreateLetterForm = () => {
                   <Input
                     placeholder="Enter vehicle registration"
                     value={field.state.value}
-                    onChange={(e) => field.handleChange(e.target.value)}
+                    onChange={(e) =>
+                      field.handleChange(e.target.value.toUpperCase())
+                    }
                     onBlur={field.handleBlur}
                   />
                 </TanstackFormControl>
+                <TanstackFormDescription>
+                  Found on the ticket. UK format: AB12 CDE
+                </TanstackFormDescription>
                 <TanstackFormMessage />
               </TanstackFormItem>
             )}
@@ -283,12 +299,20 @@ const CreateLetterForm = () => {
                     <SelectItem value={LetterType.GENERIC}>Generic</SelectItem>
                   </SelectContent>
                 </Select>
+                <TanstackFormDescription>
+                  The type of letter you received from the issuer
+                </TanstackFormDescription>
                 <TanstackFormMessage />
               </TanstackFormItem>
             )}
           </form.Field>
 
-          <form.Field name="summary">
+          <form.Field
+            name="summary"
+            validators={{
+              onBlur: letterFormSchema.shape.summary,
+            }}
+          >
             {(field) => (
               <TanstackFormItem field={field}>
                 <TanstackFormLabel>Summary</TanstackFormLabel>
@@ -301,6 +325,9 @@ const CreateLetterForm = () => {
                     onBlur={field.handleBlur}
                   />
                 </TanstackFormControl>
+                <TanstackFormDescription>
+                  Brief description of what the letter says
+                </TanstackFormDescription>
                 <TanstackFormMessage />
               </TanstackFormItem>
             )}
@@ -357,9 +384,18 @@ const CreateLetterForm = () => {
         </>
       )}
       <div className="flex justify-end">
-        <Button type="submit" disabled={isLoading}>
-          {isLoading ? 'Creating...' : 'Create Letter'}
-        </Button>
+        <form.Subscribe
+          selector={(state) => [state.canSubmit, state.isSubmitting]}
+        >
+          {([canSubmit, isSubmitting]) => (
+            <Button
+              type="submit"
+              disabled={!canSubmit || isSubmitting || isUploading}
+            >
+              {isSubmitting ? 'Creating...' : 'Create Letter'}
+            </Button>
+          )}
+        </form.Subscribe>
       </div>
     </form>
   );
