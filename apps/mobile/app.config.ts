@@ -18,7 +18,6 @@ export default ({ config }: ConfigContext): ExpoConfig => {
     icon: "./assets/images/icon.png",
     scheme: "parkingticketpal",
     userInterfaceStyle: "light",
-    newArchEnabled: true,
     ios: {
       bundleIdentifier: "com.chewybytes.parkingticketpal.app",
       supportsTablet: true,
@@ -156,7 +155,6 @@ export default ({ config }: ConfigContext): ExpoConfig => {
           category: ["BROWSABLE", "DEFAULT"]
         }
       ],
-      edgeToEdgeEnabled: true,
       config: {
         googleMaps: {
           apiKey: process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY,
@@ -252,6 +250,7 @@ export default ({ config }: ConfigContext): ExpoConfig => {
   ],
     experiments: {
       typedRoutes: true,
+      reactCompiler: true,
     },
     updates: {
       url: "https://u.expo.dev/93b42738-f8ca-4780-b1a7-eb966c8beb4a",
