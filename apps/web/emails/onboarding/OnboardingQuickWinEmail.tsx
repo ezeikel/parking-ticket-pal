@@ -6,9 +6,9 @@ import {
   Preview,
   Text,
 } from '@react-email/components';
-import EmailHeader from '@/components/emails/EmailHeader';
-import EmailFooter from '@/components/emails/EmailFooter';
-import EmailButton from '@/components/emails/EmailButton';
+import EmailHeader from '../EmailHeader';
+import EmailFooter from '../EmailFooter';
+import EmailButton from '../EmailButton';
 
 type OnboardingQuickWinEmailProps = {
   name?: string;
@@ -16,6 +16,7 @@ type OnboardingQuickWinEmailProps = {
   issuer: string;
   numberOfCases: number;
   ticketId: string;
+  unsubscribeUrl?: string;
 };
 
 const main = {
@@ -62,8 +63,9 @@ const OnboardingQuickWinEmail = ({
   issuer,
   numberOfCases,
   ticketId,
+  unsubscribeUrl,
 }: OnboardingQuickWinEmailProps) => (
-  <Html>
+  <Html lang="en">
     <Head />
     <Preview>Your ticket {pcnNumber} — we found something</Preview>
     <Body style={main}>
@@ -95,7 +97,7 @@ const OnboardingQuickWinEmail = ({
           The Parking Ticket Pal Team
         </Text>
 
-        <EmailFooter />
+        <EmailFooter unsubscribeUrl={unsubscribeUrl} />
       </Container>
     </Body>
   </Html>

@@ -7,9 +7,9 @@ import {
   Text,
   Section,
 } from '@react-email/components';
-import EmailHeader from '@/components/emails/EmailHeader';
-import EmailFooter from '@/components/emails/EmailFooter';
-import EmailButton from '@/components/emails/EmailButton';
+import EmailHeader from '../EmailHeader';
+import EmailFooter from '../EmailFooter';
+import EmailButton from '../EmailButton';
 
 const main = {
   backgroundColor: '#f6f9fc',
@@ -114,13 +114,15 @@ const requestText = {
 type WaitlistLaunchEmailProps = {
   appStoreUrl?: string;
   playStoreUrl?: string;
+  unsubscribeUrl?: string;
 };
 
 const WaitlistLaunchEmail = ({
   appStoreUrl = '#',
   playStoreUrl = '#',
+  unsubscribeUrl,
 }: WaitlistLaunchEmailProps) => (
-  <Html>
+  <Html lang="en">
     <Head />
     <Preview>
       Parking Ticket Pal is live on iPhone and Android — download now
@@ -207,7 +209,7 @@ const WaitlistLaunchEmail = ({
           The Parking Ticket Pal Team
         </Text>
 
-        <EmailFooter />
+        <EmailFooter unsubscribeUrl={unsubscribeUrl} />
       </Container>
     </Body>
   </Html>

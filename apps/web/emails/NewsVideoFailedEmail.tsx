@@ -7,8 +7,8 @@ import {
   Section,
   Text,
 } from '@react-email/components';
-import EmailHeader from '@/components/emails/EmailHeader';
-import EmailFooter from '@/components/emails/EmailFooter';
+import EmailHeader from './EmailHeader';
+import EmailFooter from './EmailFooter';
 
 type NewsVideoFailedEmailProps = {
   failedAt: string;
@@ -102,7 +102,7 @@ const NewsVideoFailedEmail = ({
   headline,
   stage,
 }: NewsVideoFailedEmailProps) => (
-  <Html>
+  <Html lang="en">
     <Head />
     <Preview>News Video Pipeline FAILED: {errorMessage.slice(0, 80)}</Preview>
     <Body style={main}>

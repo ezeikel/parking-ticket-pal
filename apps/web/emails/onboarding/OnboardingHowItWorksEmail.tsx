@@ -7,9 +7,9 @@ import {
   Text,
   Section,
 } from '@react-email/components';
-import EmailHeader from '@/components/emails/EmailHeader';
-import EmailFooter from '@/components/emails/EmailFooter';
-import EmailButton from '@/components/emails/EmailButton';
+import EmailHeader from '../EmailHeader';
+import EmailFooter from '../EmailFooter';
+import EmailButton from '../EmailButton';
 
 type OnboardingHowItWorksEmailProps = {
   name?: string;
@@ -17,6 +17,7 @@ type OnboardingHowItWorksEmailProps = {
   issuer: string;
   ticketId: string;
   fullAmount: string;
+  unsubscribeUrl?: string;
 };
 
 const main = {
@@ -120,8 +121,9 @@ const OnboardingHowItWorksEmail = ({
   pcnNumber,
   ticketId,
   fullAmount,
+  unsubscribeUrl,
 }: OnboardingHowItWorksEmailProps) => (
-  <Html>
+  <Html lang="en">
     <Head />
     <Preview>Challenge your ticket in under 3 minutes</Preview>
     <Body style={main}>
@@ -169,7 +171,7 @@ const OnboardingHowItWorksEmail = ({
           The Parking Ticket Pal Team
         </Text>
 
-        <EmailFooter />
+        <EmailFooter unsubscribeUrl={unsubscribeUrl} />
       </Container>
     </Body>
   </Html>

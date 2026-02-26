@@ -34,7 +34,7 @@ import {
   getMappedStatus,
   shouldUpdateStatus,
 } from '@/utils/letterStatusMapping';
-import ChallengeLetterEmail from '@/components/emails/ChallengeLetterEmail';
+import ChallengeLetterEmail from '@/emails/ChallengeLetterEmail';
 import { render } from '@react-email/render';
 import generatePDF from '@/utils/generatePDF';
 import streamToBuffer from '@/utils/streamToBuffer';
@@ -644,15 +644,17 @@ const generateChallengeLetterByTicketId = async (
 
     // TODO: make this step optional in UI
     // send email with challenge letter as a PDF attachment using React Email template
-    const emailHtml = await render(
-      ChallengeLetterEmail({
-        userName: user.name ?? '',
-        pcnNumber: ticket.pcnNumber,
-        issuer: ticket.issuer,
-        vehicleRegistration: ticket.vehicle.registrationNumber,
-        downloadUrl: pdfBlob.url,
-      }),
-    );
+    const challengeEmailProps = {
+      userName: user.name ?? '',
+      pcnNumber: ticket.pcnNumber,
+      issuer: ticket.issuer,
+      vehicleRegistration: ticket.vehicle.registrationNumber,
+      downloadUrl: pdfBlob.url,
+    };
+    const emailHtml = await render(ChallengeLetterEmail(challengeEmailProps));
+    const emailText = await render(ChallengeLetterEmail(challengeEmailProps), {
+      plainText: true,
+    });
 
     if (!user.email) {
       throw new Error('User email is required to send challenge letter');
@@ -662,6 +664,7 @@ const generateChallengeLetterByTicketId = async (
       to: user.email,
       subject: `Your Challenge Letter for PCN ${ticket.pcnNumber}`,
       html: emailHtml,
+      text: emailText,
       attachments: [
         {
           filename: `challenge-letter-${ticket.pcnNumber}.pdf`,

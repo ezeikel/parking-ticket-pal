@@ -7,8 +7,8 @@ import {
   Section,
   Text,
 } from '@react-email/components';
-import EmailHeader from '@/components/emails/EmailHeader';
-import EmailFooter from '@/components/emails/EmailFooter';
+import EmailHeader from './EmailHeader';
+import EmailFooter from './EmailFooter';
 
 type Diagnostics = {
   searchPrompt: string;
@@ -146,7 +146,7 @@ const NewsVideoSkippedEmail = ({
   checkedAt = new Date().toISOString(),
   diagnostics,
 }: NewsVideoSkippedEmailProps) => (
-  <Html>
+  <Html lang="en">
     <Head />
     <Preview>
       News Video Pipeline: {diagnostics?.skipReason || 'No new articles found'}

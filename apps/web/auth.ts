@@ -9,10 +9,10 @@ import { cookies } from 'next/headers';
 import { db } from '@parking-ticket-pal/db';
 import { createServerLogger } from '@/lib/logger';
 import { generateAppleClientSecret } from '@/lib/apple';
-import { render } from '@react-email/render';
-import MagicLinkEmail from '@/components/emails/MagicLinkEmail';
-import WelcomeEmail from '@/emails/WelcomeEmail';
-import resendClient from '@/lib/resend';
+import {
+  sendMagicLinkEmail,
+  sendWelcomeEmail as sendWelcomeEmailFn,
+} from '@/lib/email';
 import {
   attributeReferral,
   issueReferralCredits,
@@ -36,14 +36,7 @@ const logger = createServerLogger({ action: 'auth' });
 
 const sendWelcomeEmail = async (email: string, name?: string) => {
   try {
-    const emailHtml = await render(WelcomeEmail({ name }));
-
-    await resendClient.emails.send({
-      from: `Parking Ticket Pal <${process.env.DEFAULT_FROM_EMAIL}>`,
-      to: email,
-      subject: 'Welcome to Parking Ticket Pal',
-      html: emailHtml,
-    });
+    await sendWelcomeEmailFn(email, { name });
   } catch (error) {
     logger.error(
       'Failed to send welcome email',
@@ -124,14 +117,10 @@ const config = {
       from: process.env.DEFAULT_FROM_EMAIL,
       async sendVerificationRequest({ identifier: email, url }) {
         try {
-          const emailHtml = await render(MagicLinkEmail({ magicLink: url }));
-
-          await resendClient.emails.send({
-            from: `Parking Ticket Pal <${process.env.DEFAULT_FROM_EMAIL}>`,
-            to: email,
-            subject: 'Sign in to Parking Ticket Pal',
-            html: emailHtml,
-          });
+          const result = await sendMagicLinkEmail(email, url);
+          if (!result.success) {
+            throw new Error(result.error || 'Failed to send magic link email');
+          }
         } catch (error) {
           logger.error(
             'Failed to send verification email',

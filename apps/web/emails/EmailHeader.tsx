@@ -55,7 +55,7 @@ const EmailHeader = ({
   <Section style={header}>
     <div style={logoContainer}>
       <Img
-        src="https://parkingticketpal.com/logos/ptp.svg"
+        src="https://parkingticketpal.com/logos/ptp.png"
         alt="Parking Ticket Pal"
         style={logo}
         width={56}

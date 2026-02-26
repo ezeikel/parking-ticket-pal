@@ -8,9 +8,18 @@ import {
   Section,
   Text,
 } from '@react-email/components';
-import EmailHeader from '@/components/emails/EmailHeader';
-import EmailFooter from '@/components/emails/EmailFooter';
-import EmailButton from '@/components/emails/EmailButton';
+import EmailHeader from './EmailHeader';
+import EmailFooter from './EmailFooter';
+import EmailButton from './EmailButton';
+import {
+  main,
+  container,
+  card,
+  greeting,
+  text,
+  signature,
+  signatureName,
+} from './styles';
 
 type FormEmailProps = {
   formType: string;
@@ -18,115 +27,104 @@ type FormEmailProps = {
   downloadUrl: string;
 };
 
-// Styles
-const main = {
-  backgroundColor: '#f6f9fc',
-  fontFamily:
-    '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif',
+const highlightBox = {
+  backgroundColor: '#F0FDF9',
+  border: '1px solid #D1FAE5',
+  borderRadius: '12px',
+  padding: '24px',
+  margin: '28px 0',
+  textAlign: 'center' as const,
 };
 
-const container = {
-  margin: '0 auto',
-  padding: '20px',
-  maxWidth: '580px',
-  backgroundColor: '#ffffff',
-  borderRadius: '8px',
-};
-
-const greeting = {
-  color: '#1f2937',
-  fontSize: '18px',
+const formTypeLabel = {
+  color: '#065F46',
+  fontSize: '12px',
   fontWeight: '600',
-  margin: '0 0 24px 0',
+  textTransform: 'uppercase' as const,
+  letterSpacing: '0.8px',
+  margin: '0 0 8px 0',
 };
 
-const text = {
-  color: '#374151',
-  fontSize: '16px',
-  lineHeight: '24px',
-  margin: '16px 0',
+const formTypeValue = {
+  color: '#222222',
+  fontSize: '20px',
+  fontWeight: '600',
+  margin: '0',
 };
 
-const infoBox = {
-  backgroundColor: '#f3f4f6',
-  border: '1px solid #e5e7eb',
-  borderRadius: '6px',
-  padding: '16px',
+const infoSection = {
+  backgroundColor: '#FAFAFA',
+  borderRadius: '8px',
+  padding: '16px 20px',
   margin: '24px 0',
 };
 
-const infoLabel = {
-  color: '#6b7280',
+const infoText = {
+  color: '#717171',
   fontSize: '14px',
-  fontWeight: '600',
-  margin: '0 0 4px 0',
-  textTransform: 'uppercase' as const,
-  letterSpacing: '0.5px',
-};
-
-const infoValue = {
-  color: '#1f2937',
-  fontSize: '16px',
-  fontWeight: '600',
+  lineHeight: '22px',
   margin: '0',
 };
 
 const linkStyle = {
   color: '#1ABC9C',
-  textDecoration: 'underline',
+  textDecoration: 'none',
+  fontWeight: '500',
 };
 
-const signature = {
-  color: '#6b7280',
-  fontSize: '16px',
-  lineHeight: '24px',
-  margin: '32px 0 0 0',
-};
-
-const FormEmail = ({
-  formType = 'TE9 Appeal',
-  userName = 'John Smith',
-  downloadUrl = 'https://parkingticketpal.com/download/form-123',
-}: FormEmailProps) => (
-  <Html>
+const FormEmail = ({ formType, userName, downloadUrl }: FormEmailProps) => (
+  <Html lang="en">
     <Head />
     <Preview>Your {formType} Form is Ready</Preview>
     <Body style={main}>
       <Container style={container}>
-        <EmailHeader title="Form Ready for Download" />
+        <div style={card}>
+          <EmailHeader
+            title="Your Form is Ready"
+            subtitle="Download it now or access it anytime"
+          />
 
-        <Text style={greeting}>Hello {userName},</Text>
+          <Text style={greeting}>Hi {userName || 'there'},</Text>
 
-        <Text style={text}>
-          Great news! Your {formType} form has been successfully generated and
-          is ready for download.
-        </Text>
+          <Text style={text}>
+            Great news! Your form has been successfully generated and is ready
+            for download. Click the button below to get your document.
+          </Text>
 
-        <Section style={infoBox}>
-          <Text style={infoLabel}>Form Type</Text>
-          <Text style={infoValue}>{formType}</Text>
-        </Section>
+          <Section style={highlightBox}>
+            <Text style={formTypeLabel}>Form Type</Text>
+            <Text style={formTypeValue}>{formType}</Text>
+          </Section>
 
-        <EmailButton href={downloadUrl}>Download Your Form</EmailButton>
+          <EmailButton href={downloadUrl}>Download Your Form</EmailButton>
 
-        <Text style={text}>
-          You can also access this form anytime from your{' '}
-          <Link href="https://parkingticketpal.com/dashboard" style={linkStyle}>
-            account dashboard
-          </Link>
-          .
-        </Text>
+          <Section style={infoSection}>
+            <Text style={infoText}>
+              You can access this form anytime from your{' '}
+              <Link
+                href="https://parkingticketpal.com/dashboard"
+                style={linkStyle}
+              >
+                dashboard
+              </Link>
+              . Forms are saved to your account for easy retrieval.
+            </Text>
+          </Section>
 
-        <Text style={signature}>
-          Best regards,
-          <br />
-          The Parking Ticket Pal Team
-        </Text>
+          <Text style={signature}>Best regards,</Text>
+          <Text style={signatureName}>The Parking Ticket Pal Team</Text>
 
-        <EmailFooter />
+          <EmailFooter />
+        </div>
       </Container>
     </Body>
   </Html>
 );
+
+FormEmail.PreviewProps = {
+  formType: 'PE2 Appeal',
+  userName: 'Sarah',
+  downloadUrl: 'https://parkingticketpal.com/download/form.pdf',
+} as FormEmailProps;
 
 export default FormEmail;

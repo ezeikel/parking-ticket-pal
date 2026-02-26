@@ -103,14 +103,12 @@ export async function sendFreeLetterEmail(
     // 2. Generate PDF
     const pdfBuffer = await generateFreeLetterPDF(letterContent, templateTitle);
 
-    // 3. Render email HTML
-    const emailHtml = await render(
-      FreeTemplateEmail({
-        firstName,
-        templateTitle,
-        templateCategory,
-      }),
-    );
+    // 3. Render email HTML and plain text
+    const templateProps = { firstName, templateTitle, templateCategory };
+    const emailHtml = await render(FreeTemplateEmail(templateProps));
+    const emailText = await render(FreeTemplateEmail(templateProps), {
+      plainText: true,
+    });
 
     // 4. Send email with PDF attachment using the unified email utility
     // This uses Mailtrap in development and Resend in production
@@ -118,6 +116,7 @@ export async function sendFreeLetterEmail(
       to: email,
       subject: `Your ${templateTitle} is ready`,
       html: emailHtml,
+      text: emailText,
       attachments: [
         {
           filename: `${templateTitle.toLowerCase().replace(/\s+/g, '-')}.pdf`,

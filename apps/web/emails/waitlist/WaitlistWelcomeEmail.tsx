@@ -8,8 +8,8 @@ import {
   Link,
   Section,
 } from '@react-email/components';
-import EmailHeader from '@/components/emails/EmailHeader';
-import EmailFooter from '@/components/emails/EmailFooter';
+import EmailHeader from '../EmailHeader';
+import EmailFooter from '../EmailFooter';
 
 const main = {
   backgroundColor: '#f6f9fc',
@@ -91,8 +91,10 @@ const linkStyle = {
 const APP_URL =
   process.env.NEXT_PUBLIC_APP_URL || 'https://parkingticketpal.com';
 
-const WaitlistWelcomeEmail = () => (
-  <Html>
+const WaitlistWelcomeEmail = ({
+  unsubscribeUrl,
+}: { unsubscribeUrl?: string } = {}) => (
+  <Html lang="en">
     <Head />
     <Preview>
       You&apos;re on the list — we&apos;ll email you when the app is ready
@@ -158,7 +160,7 @@ const WaitlistWelcomeEmail = () => (
           The Parking Ticket Pal Team
         </Text>
 
-        <EmailFooter />
+        <EmailFooter unsubscribeUrl={unsubscribeUrl} />
       </Container>
     </Body>
   </Html>

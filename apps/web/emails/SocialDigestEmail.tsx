@@ -9,9 +9,9 @@ import {
   Link,
   Hr,
 } from '@react-email/components';
-import EmailHeader from '@/components/emails/EmailHeader';
-import EmailFooter from '@/components/emails/EmailFooter';
-import EmailButton from '@/components/emails/EmailButton';
+import EmailHeader from './EmailHeader';
+import EmailFooter from './EmailFooter';
+import EmailButton from './EmailButton';
 
 type PlatformCaption = {
   platform: string;
@@ -297,7 +297,7 @@ const SocialDigestEmail = ({
   sourceArticleName,
   voiceoverTranscript,
 }: SocialDigestEmailProps) => (
-  <Html>
+  <Html lang="en">
     <Head />
     <Preview>Social Media Assets Ready: {blogTitle}</Preview>
     <Body style={main}>

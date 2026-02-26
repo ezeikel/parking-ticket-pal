@@ -6,9 +6,9 @@ import {
   Preview,
   Text,
 } from '@react-email/components';
-import EmailHeader from '@/components/emails/EmailHeader';
-import EmailFooter from '@/components/emails/EmailFooter';
-import EmailButton from '@/components/emails/EmailButton';
+import EmailHeader from './EmailHeader';
+import EmailFooter from './EmailFooter';
+import EmailButton from './EmailButton';
 
 type WelcomeEmailProps = {
   name?: string;
@@ -62,7 +62,7 @@ const APP_URL =
   process.env.NEXT_PUBLIC_APP_URL || 'https://parkingticketpal.com';
 
 const WelcomeEmail = ({ name }: WelcomeEmailProps) => (
-  <Html>
+  <Html lang="en">
     <Head />
     <Preview>
       Welcome to Parking Ticket Pal - fight your parking ticket with AI

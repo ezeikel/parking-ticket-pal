@@ -6,10 +6,21 @@ import {
   Text,
   Container,
   Section,
+  Row,
+  Column,
 } from '@react-email/components';
-import EmailHeader from '@/components/emails/EmailHeader';
-import EmailFooter from '@/components/emails/EmailFooter';
-import EmailButton from '@/components/emails/EmailButton';
+import EmailHeader from './EmailHeader';
+import EmailFooter from './EmailFooter';
+import EmailButton from './EmailButton';
+import {
+  main,
+  container,
+  card,
+  greeting,
+  text,
+  signature,
+  signatureName,
+} from './styles';
 
 type ReminderEmailProps = {
   name: string;
@@ -20,164 +31,183 @@ type ReminderEmailProps = {
   issuer: string;
 };
 
-// Styles
-const main = {
-  backgroundColor: '#f6f9fc',
-  fontFamily:
-    '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif',
-};
-
-const container = {
-  margin: '0 auto',
-  padding: '20px',
-  maxWidth: '580px',
-  backgroundColor: '#ffffff',
-  borderRadius: '8px',
-};
-
-const greeting = {
-  color: '#1f2937',
-  fontSize: '18px',
-  fontWeight: '600',
-  margin: '0 0 24px 0',
-};
-
-const text = {
-  color: '#374151',
-  fontSize: '16px',
-  lineHeight: '24px',
-  margin: '16px 0',
-};
-
 const urgentBox = {
-  backgroundColor: '#fef3c7',
-  border: '2px solid #f59e0b',
-  borderRadius: '6px',
-  padding: '16px',
-  margin: '24px 0',
+  backgroundColor: '#FFFBEB',
+  border: '1px solid #FCD34D',
+  borderRadius: '12px',
+  padding: '20px 24px',
+  margin: '28px 0',
+  textAlign: 'center' as const,
+};
+
+const urgentIcon = {
+  fontSize: '32px',
+  margin: '0 0 12px 0',
 };
 
 const urgentTitle = {
-  color: '#92400e',
-  fontSize: '14px',
-  fontWeight: '700',
-  margin: '0 0 8px 0',
+  color: '#92400E',
+  fontSize: '12px',
+  fontWeight: '600',
   textTransform: 'uppercase' as const,
-  letterSpacing: '0.5px',
+  letterSpacing: '0.8px',
+  margin: '0 0 8px 0',
 };
 
 const urgentText = {
-  color: '#78350f',
-  fontSize: '16px',
+  color: '#78350F',
+  fontSize: '18px',
   fontWeight: '600',
   margin: '0',
+  lineHeight: '24px',
 };
 
 const detailsBox = {
-  backgroundColor: '#f3f4f6',
-  border: '1px solid #e5e7eb',
-  borderRadius: '6px',
-  padding: '16px',
-  margin: '24px 0',
+  backgroundColor: '#FAFAFA',
+  borderRadius: '12px',
+  padding: '24px',
+  margin: '28px 0',
+};
+
+const detailsTitle = {
+  color: '#222222',
+  fontSize: '14px',
+  fontWeight: '600',
+  margin: '0 0 16px 0',
 };
 
 const detailRow = {
-  margin: '12px 0',
+  marginBottom: '12px',
 };
 
 const detailLabel = {
-  color: '#6b7280',
-  fontSize: '14px',
-  fontWeight: '600',
-  margin: '0 0 4px 0',
+  color: '#717171',
+  fontSize: '13px',
+  fontWeight: '500',
+  margin: '0',
+  lineHeight: '20px',
 };
 
 const detailValue = {
-  color: '#1f2937',
-  fontSize: '16px',
+  color: '#222222',
+  fontSize: '15px',
+  fontWeight: '600',
+  margin: '2px 0 0 0',
+  lineHeight: '22px',
+};
+
+const tipBox = {
+  backgroundColor: '#F0FDF9',
+  borderRadius: '8px',
+  padding: '16px 20px',
+  margin: '24px 0',
+};
+
+const tipText = {
+  color: '#065F46',
+  fontSize: '14px',
+  lineHeight: '22px',
   margin: '0',
 };
 
-const signature = {
-  color: '#6b7280',
-  fontSize: '16px',
-  lineHeight: '24px',
-  margin: '32px 0 0 0',
-};
-
 const ReminderEmail = ({
-  name = 'Sarah Johnson',
-  reminderType = '14-day',
-  pcnNumber = 'PCN123456789',
-  vehicleRegistration = 'AB12 CDE',
-  issueDate = '15th October 2025',
-  issuer = 'Transport for London',
+  name,
+  reminderType,
+  pcnNumber,
+  vehicleRegistration,
+  issueDate,
+  issuer,
 }: ReminderEmailProps) => {
-  const deadlineText =
-    reminderType === '14-day'
-      ? '14-Day Reduced Payment Deadline'
-      : '28-Day Final Payment Deadline';
+  const is14Day = reminderType === '14-day';
+  const deadlineText = is14Day
+    ? '14-Day Reduced Payment Deadline'
+    : '28-Day Final Payment Deadline';
+
+  const headerSubtitle = is14Day
+    ? 'Pay now to save 50% on your fine'
+    : 'Final deadline approaching';
 
   return (
-    <Html>
+    <Html lang="en">
       <Head />
-      <Preview>Reminder: Your ticket deadline is approaching</Preview>
+      <Preview>
+        {is14Day ? 'Save 50%' : 'Final reminder'}: Your ticket deadline is
+        approaching
+      </Preview>
       <Body style={main}>
         <Container style={container}>
-          <EmailHeader title="Parking Ticket Reminder" />
+          <div style={card}>
+            <EmailHeader title="Deadline Reminder" subtitle={headerSubtitle} />
 
-          <Text style={greeting}>Hi {name},</Text>
+            <Text style={greeting}>Hi {name || 'there'},</Text>
 
-          <Section style={urgentBox}>
-            <Text style={urgentTitle}>⏰ Deadline Approaching</Text>
-            <Text style={urgentText}>{deadlineText}</Text>
-          </Section>
+            <Section style={urgentBox}>
+              <Text style={urgentIcon}>⏰</Text>
+              <Text style={urgentTitle}>Action Required</Text>
+              <Text style={urgentText}>{deadlineText}</Text>
+            </Section>
 
-          <Text style={text}>
-            This is a quick reminder that your parking ticket is approaching an
-            important deadline. Taking action now can help you avoid additional
-            charges.
-          </Text>
+            <Text style={text}>
+              Your parking ticket is approaching an important deadline. Taking
+              action now can help you avoid additional charges
+              {is14Day && ' and save 50% with the reduced payment period'}.
+            </Text>
 
-          <Section style={detailsBox}>
-            <div style={detailRow}>
-              <Text style={detailLabel}>PCN Number</Text>
-              <Text style={detailValue}>{pcnNumber}</Text>
-            </div>
-            <div style={detailRow}>
-              <Text style={detailLabel}>Vehicle Registration</Text>
-              <Text style={detailValue}>{vehicleRegistration}</Text>
-            </div>
-            <div style={detailRow}>
-              <Text style={detailLabel}>Issue Date</Text>
-              <Text style={detailValue}>{issueDate}</Text>
-            </div>
-            <div style={detailRow}>
-              <Text style={detailLabel}>Issuing Authority</Text>
-              <Text style={detailValue}>{issuer}</Text>
-            </div>
-          </Section>
+            <Section style={detailsBox}>
+              <Text style={detailsTitle}>Ticket Details</Text>
+              <Row>
+                <Column style={{ width: '50%' }}>
+                  <div style={detailRow}>
+                    <Text style={detailLabel}>PCN Number</Text>
+                    <Text style={detailValue}>{pcnNumber}</Text>
+                  </div>
+                  <div style={detailRow}>
+                    <Text style={detailLabel}>Vehicle</Text>
+                    <Text style={detailValue}>{vehicleRegistration}</Text>
+                  </div>
+                </Column>
+                <Column style={{ width: '50%' }}>
+                  <div style={detailRow}>
+                    <Text style={detailLabel}>Issue Date</Text>
+                    <Text style={detailValue}>{issueDate}</Text>
+                  </div>
+                  <div style={detailRow}>
+                    <Text style={detailLabel}>Issuing Authority</Text>
+                    <Text style={detailValue}>{issuer}</Text>
+                  </div>
+                </Column>
+              </Row>
+            </Section>
 
-          <EmailButton href="https://parkingticketpal.com/dashboard">
-            View My Dashboard
-          </EmailButton>
+            <EmailButton href="https://parkingticketpal.com/dashboard">
+              View My Dashboard
+            </EmailButton>
 
-          <Text style={text}>
-            Log in to review your options, check appeal eligibility, or manage
-            your payment.
-          </Text>
+            <Section style={tipBox}>
+              <Text style={tipText}>
+                <strong>Tip:</strong> Log in to review your options, check
+                appeal eligibility, or generate a challenge letter.
+              </Text>
+            </Section>
 
-          <Text style={signature}>
-            Best regards,
-            <br />
-            The Parking Ticket Pal Team
-          </Text>
+            <Text style={signature}>Best regards,</Text>
+            <Text style={signatureName}>The Parking Ticket Pal Team</Text>
 
-          <EmailFooter />
+            <EmailFooter />
+          </div>
         </Container>
       </Body>
     </Html>
   );
 };
+
+ReminderEmail.PreviewProps = {
+  name: 'Sarah',
+  reminderType: '14-day',
+  pcnNumber: 'ZY10071578',
+  vehicleRegistration: 'AB12 CDE',
+  issueDate: '15 January 2026',
+  issuer: 'Lewisham Council',
+} as ReminderEmailProps;
 
 export default ReminderEmail;

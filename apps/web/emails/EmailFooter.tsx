@@ -65,7 +65,18 @@ const address = {
   lineHeight: '16px',
 };
 
-const EmailFooter = () => (
+const unsubscribeSection = {
+  textAlign: 'center' as const,
+  margin: '0 0 20px 0',
+};
+
+const unsubscribeLink = {
+  color: '#717171',
+  fontSize: '13px',
+  textDecoration: 'underline',
+};
+
+const EmailFooter = ({ unsubscribeUrl }: { unsubscribeUrl?: string } = {}) => (
   <Section style={footer}>
     <div style={supportSection}>
       <Text style={supportText}>Questions? We&apos;re here to help.</Text>
@@ -87,6 +98,14 @@ const EmailFooter = () => (
         Terms
       </Link>
     </div>
+
+    {unsubscribeUrl && (
+      <div style={unsubscribeSection}>
+        <Link href={unsubscribeUrl} style={unsubscribeLink}>
+          Unsubscribe from these emails
+        </Link>
+      </div>
+    )}
 
     <div style={copyrightSection}>
       <Text style={copyright}>

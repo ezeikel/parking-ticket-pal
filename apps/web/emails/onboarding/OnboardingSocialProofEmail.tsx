@@ -7,9 +7,9 @@ import {
   Text,
   Section,
 } from '@react-email/components';
-import EmailHeader from '@/components/emails/EmailHeader';
-import EmailFooter from '@/components/emails/EmailFooter';
-import EmailButton from '@/components/emails/EmailButton';
+import EmailHeader from '../EmailHeader';
+import EmailFooter from '../EmailFooter';
+import EmailButton from '../EmailButton';
 
 type OnboardingSocialProofEmailProps = {
   name?: string;
@@ -18,6 +18,7 @@ type OnboardingSocialProofEmailProps = {
   ticketId: string;
   issuerAllowedCount: number;
   issuerTotalCases: number;
+  unsubscribeUrl?: string;
 };
 
 const main = {
@@ -87,8 +88,9 @@ const OnboardingSocialProofEmail = ({
   ticketId,
   issuerAllowedCount,
   issuerTotalCases,
+  unsubscribeUrl,
 }: OnboardingSocialProofEmailProps) => (
-  <Html>
+  <Html lang="en">
     <Head />
     <Preview>Tickets like yours — what the data shows</Preview>
     <Body style={main}>
@@ -133,7 +135,7 @@ const OnboardingSocialProofEmail = ({
           The Parking Ticket Pal Team
         </Text>
 
-        <EmailFooter />
+        <EmailFooter unsubscribeUrl={unsubscribeUrl} />
       </Container>
     </Body>
   </Html>

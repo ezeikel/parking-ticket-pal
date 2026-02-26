@@ -8,8 +8,8 @@ import {
   Link,
   Section,
 } from '@react-email/components';
-import EmailHeader from '@/components/emails/EmailHeader';
-import EmailFooter from '@/components/emails/EmailFooter';
+import EmailHeader from '../EmailHeader';
+import EmailFooter from '../EmailFooter';
 
 const main = {
   backgroundColor: '#f6f9fc',
@@ -95,8 +95,10 @@ const APP_URL =
 
 const utm = 'utm_source=email&utm_medium=waitlist&utm_campaign=value';
 
-const WaitlistValueEmail = () => (
-  <Html>
+const WaitlistValueEmail = ({
+  unsubscribeUrl,
+}: { unsubscribeUrl?: string } = {}) => (
+  <Html lang="en">
     <Head />
     <Preview>Most parking ticket appeals don&apos;t need a solicitor</Preview>
     <Body style={main}>
@@ -182,7 +184,7 @@ const WaitlistValueEmail = () => (
           The Parking Ticket Pal Team
         </Text>
 
-        <EmailFooter />
+        <EmailFooter unsubscribeUrl={unsubscribeUrl} />
       </Container>
     </Body>
   </Html>

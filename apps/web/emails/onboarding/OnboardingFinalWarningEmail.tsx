@@ -7,9 +7,9 @@ import {
   Text,
   Section,
 } from '@react-email/components';
-import EmailHeader from '@/components/emails/EmailHeader';
-import EmailFooter from '@/components/emails/EmailFooter';
-import EmailButton from '@/components/emails/EmailButton';
+import EmailHeader from '../EmailHeader';
+import EmailFooter from '../EmailFooter';
+import EmailButton from '../EmailButton';
 
 type OnboardingFinalWarningEmailProps = {
   name?: string;
@@ -18,6 +18,7 @@ type OnboardingFinalWarningEmailProps = {
   discountAmount: string;
   fullAmount: string;
   deadlineDate: string;
+  unsubscribeUrl?: string;
 };
 
 const main = {
@@ -100,8 +101,9 @@ const OnboardingFinalWarningEmail = ({
   discountAmount,
   fullAmount,
   deadlineDate,
+  unsubscribeUrl,
 }: OnboardingFinalWarningEmailProps) => (
-  <Html>
+  <Html lang="en">
     <Head />
     <Preview>Last chance — your fine doubles on {deadlineDate}</Preview>
     <Body style={main}>
@@ -146,7 +148,7 @@ const OnboardingFinalWarningEmail = ({
           The Parking Ticket Pal Team
         </Text>
 
-        <EmailFooter />
+        <EmailFooter unsubscribeUrl={unsubscribeUrl} />
       </Container>
     </Body>
   </Html>

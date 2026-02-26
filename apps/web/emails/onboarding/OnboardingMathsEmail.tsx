@@ -7,9 +7,9 @@ import {
   Text,
   Section,
 } from '@react-email/components';
-import EmailHeader from '@/components/emails/EmailHeader';
-import EmailFooter from '@/components/emails/EmailFooter';
-import EmailButton from '@/components/emails/EmailButton';
+import EmailHeader from '../EmailHeader';
+import EmailFooter from '../EmailFooter';
+import EmailButton from '../EmailButton';
 
 type OnboardingMathsEmailProps = {
   name?: string;
@@ -18,6 +18,7 @@ type OnboardingMathsEmailProps = {
   discountAmount: string;
   fullAmount: string;
   daysUntilDiscount: number;
+  unsubscribeUrl?: string;
 };
 
 const main = {
@@ -103,8 +104,9 @@ const OnboardingMathsEmail = ({
   discountAmount,
   fullAmount,
   daysUntilDiscount,
+  unsubscribeUrl,
 }: OnboardingMathsEmailProps) => (
-  <Html>
+  <Html lang="en">
     <Head />
     <Preview>£2.99 vs £{fullAmount} — simple maths</Preview>
     <Body style={main}>
@@ -149,7 +151,7 @@ const OnboardingMathsEmail = ({
           The Parking Ticket Pal Team
         </Text>
 
-        <EmailFooter />
+        <EmailFooter unsubscribeUrl={unsubscribeUrl} />
       </Container>
     </Body>
   </Html>

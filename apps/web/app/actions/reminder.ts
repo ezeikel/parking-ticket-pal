@@ -1,19 +1,22 @@
 'use server';
 
-import { Resend } from 'resend';
 import { render } from '@react-email/render';
-import ReminderEmail from '@/components/emails/ReminderEmail';
-import { db } from '@parking-ticket-pal/db';
+import ReminderEmail from '@/emails/ReminderEmail';
+import {
+  db,
+  ReminderType,
+  NotificationType,
+  Prisma,
+} from '@parking-ticket-pal/db';
 import twilio from 'twilio';
-import { ReminderType, NotificationType, Prisma } from '@parking-ticket-pal/db';
 import { addDays, isAfter, isSameDay } from 'date-fns';
 import { createServerLogger } from '@/lib/logger';
 import { createAndSendNotification } from '@/lib/notifications/create';
+import { sendEmail } from '@/lib/email';
 
-const resend = new Resend(process.env.RESEND_API_KEY!);
 const twilioClient = twilio(
-  process.env.TWILIO_ACCOUNT_SID!,
-  process.env.TWILIO_AUTH_TOKEN!,
+  process.env.TWILIO_ACCOUNT_SID,
+  process.env.TWILIO_AUTH_TOKEN,
 );
 
 export const generateReminders = async (ticket: {
@@ -136,10 +139,10 @@ export const sendReminder = async (reminderId: string) => {
 
     // email
     if (reminder.notificationType === NotificationType.EMAIL && user.email) {
-      const html = await render(
+      const emailHtml = await render(
         ReminderEmail({
           name: user.name ?? '',
-          reminderType: reminderLabel as '14-day' | '28-day',
+          reminderType: reminderLabel,
           pcnNumber: reminder.ticket.pcnNumber,
           vehicleRegistration: reminder.ticket.vehicle.registrationNumber,
           issueDate: reminder.ticket.issuedAt.toLocaleDateString(),
@@ -147,11 +150,23 @@ export const sendReminder = async (reminderId: string) => {
         }),
       );
 
-      await resend.emails.send({
-        from: `Parking Ticket Pal <${process.env.DEFAULT_FROM_EMAIL}>`,
+      const emailText = await render(
+        ReminderEmail({
+          name: user.name ?? '',
+          reminderType: reminderLabel,
+          pcnNumber: reminder.ticket.pcnNumber,
+          vehicleRegistration: reminder.ticket.vehicle.registrationNumber,
+          issueDate: reminder.ticket.issuedAt.toLocaleDateString(),
+          issuer: reminder.ticket.issuer,
+        }),
+        { plainText: true },
+      );
+
+      await sendEmail({
         to: user.email,
-        subject: `🚨 ${reminderLabel} Ticket Reminder`,
-        html,
+        subject: `${reminderLabel} Ticket Reminder`,
+        html: emailHtml,
+        text: emailText,
       });
     }
 

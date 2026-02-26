@@ -100,7 +100,7 @@ const templateDesc = {
 };
 
 const IndexEmail = () => (
-  <Html>
+  <Html lang="en">
     <Head />
     <Body style={main}>
       <Container style={container}>
