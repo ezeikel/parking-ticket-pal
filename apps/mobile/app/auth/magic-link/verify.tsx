@@ -52,7 +52,7 @@ const MagicLinkVerify = () => {
   }, [token, replace]);
 
   return (
-    <SafeAreaView className="flex-1 bg-white">
+    <SafeAreaView style={{ flex: 1, backgroundColor: 'white' }}>
       <View className="flex-1 justify-center items-center px-8">
         <View className="items-center gap-y-6">
           {status === 'verifying' && (

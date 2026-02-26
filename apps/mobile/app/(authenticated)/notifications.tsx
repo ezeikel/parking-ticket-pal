@@ -15,7 +15,7 @@ const NotificationsScreen = () => {
   const { data } = useNotifications();
 
   return (
-    <SafeAreaView className="flex-1 bg-white" edges={['top']}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: 'white' }} edges={['top']}>
       {/* Header */}
       <View className="bg-white border-b border-gray-200 px-4 pb-4">
         <View className="flex-row justify-between items-center mb-4">

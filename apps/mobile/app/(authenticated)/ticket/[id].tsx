@@ -78,7 +78,7 @@ export default function TicketDetailScreen() {
 
   if (isLoading) {
     return (
-      <SafeAreaView className="flex-1 items-center justify-center">
+      <SafeAreaView style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
         <Loader />
       </SafeAreaView>
     );
@@ -86,7 +86,7 @@ export default function TicketDetailScreen() {
 
   if (isError) {
     return (
-      <SafeAreaView className="flex-1 items-center justify-center px-8">
+      <SafeAreaView style={{ flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 32 }}>
         <FontAwesomeIcon
           icon={faTriangleExclamation}
           size={40}
@@ -112,7 +112,7 @@ export default function TicketDetailScreen() {
 
   if (!data?.ticket) {
     return (
-      <SafeAreaView className="flex-1 items-center justify-center">
+      <SafeAreaView style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
         <Text className="text-gray">Ticket not found</Text>
       </SafeAreaView>
     );
@@ -193,7 +193,7 @@ export default function TicketDetailScreen() {
 
   return (
     <View className="flex-1 bg-white">
-    <SafeAreaView className="flex-1" edges={['top', 'left', 'right']}>
+    <SafeAreaView style={{ flex: 1 }} edges={['top', 'left', 'right']}>
       {/* Header */}
       <View
         className="border-b border-border pb-4"

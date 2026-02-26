@@ -24,7 +24,7 @@ const CaptureModal = ({ isVisible, setIsVisible }: CaptureModalProps) => {
       presentationStyle="fullScreen"
       onRequestClose={() => setIsVisible(false)}
     >
-      <SafeAreaView className="flex-1">
+      <SafeAreaView style={{ flex: 1 }}>
         <View className="flex-1 bg-white">
           {hasScannedImage && (
             <View className="flex-1 px-4">

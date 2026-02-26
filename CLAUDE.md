@@ -90,7 +90,15 @@ Located in `apps/web/utils/automation/`. Uses **Playwright MCP** to automate int
 
 ## Mobile App (apps/mobile)
 
-Built with Expo SDK 55 and React Native 0.83.
+Built with Expo SDK 55 and React Native 0.83. Uses **NativeWind v5** + **Tailwind CSS v4**.
+
+### NativeWind v5 / Tailwind v4 Gotchas
+
+NativeWind v5 uses `react-native-css` which works via a Metro resolver that swaps `react-native` imports for CSS-aware wrapper components (adding `className` → `style` mapping). This does **not** cover all third-party components:
+
+- **`SafeAreaView` from `react-native-safe-area-context` does NOT support `className`**. The `react-native-css` polyfill only wraps `SafeAreaProvider` (for CSS variable injection), but re-exports `SafeAreaView` unchanged. Any `className` prop on `SafeAreaView` is silently ignored. **Always use `style` on `SafeAreaView`**, e.g. `<SafeAreaView style={{ flex: 1, backgroundColor: 'white' }}>`.
+- Standard RN components (`View`, `Text`, `ScrollView`, `Pressable`, `TextInput`, etc.) work fine with `className`.
+- If adding other third-party components, test that `className` actually applies — if the component isn't in `react-native-css/components/`, it won't be wrapped.
 
 ### Running the Mobile App Locally
 

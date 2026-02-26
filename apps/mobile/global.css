@@ -1,3 +1,29 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
+@import "nativewind/theme";
+
+@theme {
+  --font-jakarta: "PlusJakartaSans-Regular";
+  --font-jakarta-medium: "PlusJakartaSans-Medium";
+  --font-jakarta-semibold: "PlusJakartaSans-SemiBold";
+  --font-jakarta-bold: "PlusJakartaSans-Bold";
+  --font-jakarta-extrabold: "PlusJakartaSans-ExtraBold";
+  --font-jakarta-italic: "PlusJakartaSans-Italic";
+  --font-inter: "Inter18pt-Regular";
+  --font-inter-bold: "Inter18pt-Bold";
+  --font-inter-italic: "Inter18pt-Italic";
+  --font-lato: "Lato-Regular";
+  --font-lato-bold: "Lato-Bold";
+  --font-lato-italic: "Lato-Italic";
+  --font-uknumberplate: "UKNumberPlate";
+
+  --color-dark: #222222;
+  --color-gray: #717171;
+  --color-light: #f7f7f7;
+  --color-teal: #1abc9c;
+  --color-teal-dark: #16a085;
+  --color-yellow: #FDD835;
+  --color-coral: #ff5a5f;
+  --color-amber: #ffb400;
+  --color-success: #00a699;
+  --color-border: #e2e8f0;
+}
