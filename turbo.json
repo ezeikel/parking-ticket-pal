@@ -2,17 +2,47 @@
   "$schema": "https://turbo.build/schema.json",
   "ui": "tui",
   "tasks": {
+    "transit": {
+      "dependsOn": ["^transit"]
+    },
     "build": {
       "dependsOn": ["^build", "@parking-ticket-pal/db#db:generate"],
       "inputs": ["$TURBO_DEFAULT$", ".env*"],
       "outputs": [".next/**", "!.next/cache/**", "dist/**", "android/app/build/**", "ios/build/**"],
-      "env": ["**"]
+      "env": [
+        "DATABASE_URL",
+        "DATABASE_URL_UNPOOLED",
+        "NEXTAUTH_URL",
+        "NEXT_AUTH_SECRET",
+        "GOOGLE_CLIENT_ID",
+        "GOOGLE_CLIENT_SECRET",
+        "APPLE_CLIENT_ID",
+        "APPLE_TEAM_ID",
+        "FACEBOOK_CONSUMER_APP_ID",
+        "FACEBOOK_CONSUMER_APP_SECRET",
+        "STRIPE_SECRET",
+        "STRIPE_ADMIN_COUPON_ID",
+        "OPENAI_API_KEY",
+        "ANTHROPIC_API_KEY",
+        "GOOGLE_GENERATIVE_AI_API_KEY",
+        "PERPLEXITY_API_KEY",
+        "RESEND_API_KEY",
+        "SENTRY_AUTH_TOKEN",
+        "SENTRY_DSN",
+        "CRON_SECRET",
+        "WORKER_URL",
+        "WORKER_SECRET",
+        "SANITY_API_TOKEN",
+        "REVENUECAT_API_KEY",
+        "ELEVENLABS_API_KEY",
+        "BLOB_READ_WRITE_TOKEN"
+      ]
     },
     "lint": {
-      "dependsOn": ["^lint"]
+      "dependsOn": ["transit"]
     },
     "check-types": {
-      "dependsOn": ["^check-types"]
+      "dependsOn": ["transit"]
     },
     "dev": {
       "dependsOn": ["^build"],
