@@ -15,6 +15,7 @@ import Scanner from '@/components/Scanner/Scanner';
 import TicketWizard from '@/components/TicketWizard/TicketWizard';
 import { Paywall } from '@/components/Paywall/Paywall';
 import { useCameraContext } from '@/contexts/CameraContext';
+import { useAuthContext } from '@/contexts/auth';
 import { useAnalytics } from '@/lib/analytics';
 import { adService } from '@/services/AdService';
 import Loader from '../Loader/Loader';
@@ -47,6 +48,7 @@ const CameraSheet = ({ isVisible, onClose, onboardingMode, onOCRComplete }: Came
     requestMediaLibraryPermission,
     arePermissionsReady
   } = useCameraContext();
+  const { user } = useAuthContext();
   const { trackEvent } = useAnalytics();
 
   // Internal phase state for non-onboarding flow
@@ -141,7 +143,7 @@ const CameraSheet = ({ isVisible, onClose, onboardingMode, onOCRComplete }: Came
     } else {
       // Track flow: show ad, then close
       (async () => {
-        await adService.showAd();
+        await adService.showAd(user?.lastPremiumPurchaseAt);
         Alert.alert('Success', 'Ticket created successfully!', [
           { text: 'OK', onPress: handleClose }
         ]);

@@ -9,6 +9,7 @@ import Animated, {
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import TicketWizard from '@/components/TicketWizard/TicketWizard';
 import { Paywall } from '@/components/Paywall/Paywall';
+import { useAuthContext } from '@/contexts/auth';
 import { useAnalytics } from '@/lib/analytics';
 import { adService } from '@/services/AdService';
 import type { WizardResult } from '@/components/TicketWizard/types';
@@ -25,6 +26,7 @@ type ManualEntrySheetProps = {
 
 const ManualEntrySheet = ({ isVisible, onClose }: ManualEntrySheetProps) => {
   const translateY = useSharedValue(SCREEN_HEIGHT);
+  const { user } = useAuthContext();
   const { trackEvent } = useAnalytics();
 
   const [phase, setPhase] = useState<ManualEntrySheetPhase>('wizard');
@@ -62,7 +64,7 @@ const ManualEntrySheet = ({ isVisible, onClose }: ManualEntrySheetProps) => {
       setPhase('paywall');
     } else {
       (async () => {
-        await adService.showAd();
+        await adService.showAd(user?.lastPremiumPurchaseAt);
         Alert.alert('Success', 'Ticket created successfully!', [
           { text: 'OK', onPress: handleClose }
         ]);
