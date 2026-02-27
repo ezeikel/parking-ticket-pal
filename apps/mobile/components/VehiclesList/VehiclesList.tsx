@@ -43,6 +43,13 @@ const VehicleItem = memo(function VehicleItem({ vehicle, style }: {
 const VehiclesList = () => {
   const { data: { vehicles } = {}, isLoading } = useVehicles();
 
+  const renderItem = useCallback(({ item }: { item: Vehicle }) => (
+    <VehicleItem
+      vehicle={item}
+      style={vehicleItemStyle}
+    />
+  ), []);
+
   if (isLoading) {
     return (
       <View className="flex-1 items-center justify-center">
@@ -58,13 +65,6 @@ const VehiclesList = () => {
       </View>
     );
   }
-
-  const renderItem = useCallback(({ item }: { item: Vehicle }) => (
-    <VehicleItem
-      vehicle={item}
-      style={vehicleItemStyle}
-    />
-  ), []);
 
   return (
     <View className="flex-1 gap-y-6 p-4">

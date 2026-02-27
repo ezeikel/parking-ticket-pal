@@ -56,7 +56,7 @@ const StageStep = ({ onNext }: WizardStepProps) => {
               Pro Tip: The 14-Day Rule
             </Text>
             <Text className="font-jakarta text-sm text-gray-600 mt-1">
-              Most Councils will "freeze" the 50% discount if you appeal informally within the first
+              {'Most Councils will "freeze" the 50% discount if you appeal informally within the first'}
               14 days.
             </Text>
           </View>

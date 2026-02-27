@@ -31,7 +31,7 @@ const IssuerStep = ({ onNext }: WizardStepProps) => {
             A Local Council / Authority
           </Text>
           <Text className="font-jakarta text-sm text-gray-500 mt-1">
-            It says "Penalty Charge Notice" (PCN). It mentions the Traffic Management Act 2004.
+            {'It says "Penalty Charge Notice" (PCN). It mentions the Traffic Management Act 2004.'}
           </Text>
         </View>
       </SquishyPressable>
@@ -48,7 +48,7 @@ const IssuerStep = ({ onNext }: WizardStepProps) => {
             A Private Company
           </Text>
           <Text className="font-jakarta text-sm text-gray-500 mt-1">
-            It says "Parking Charge Notice". Issued by companies like ParkingEye, APCOA, Euro Car
+            {'It says "Parking Charge Notice". Issued by companies like ParkingEye, APCOA, Euro Car'}
             Parks.
           </Text>
         </View>

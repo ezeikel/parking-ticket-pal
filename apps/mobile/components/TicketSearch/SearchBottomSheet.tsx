@@ -110,10 +110,10 @@ const SearchBottomSheet = forwardRef<BottomSheet, SearchBottomSheetProps>(
           <View className="bg-teal/10 rounded-lg p-3">
             <Text className="text-xs font-jakarta-semibold text-teal-dark mb-2">Search Tips:</Text>
             <Text className="text-xs text-teal-dark leading-5">
-              • PCN numbers: e.g., "AB123456789"
-              {'\n'}• Issuer names: e.g., "Westminster"
-              {'\n'}• Locations: e.g., "Baker Street"
-              {'\n'}• Vehicle registrations: e.g., "AB12 CDE"
+              {'\u2022 PCN numbers: e.g., \u201CAB123456789\u201D'}
+              {'\n'}{'\u2022 Issuer names: e.g., \u201CWestminster\u201D'}
+              {'\n'}{'\u2022 Locations: e.g., \u201CBaker Street\u201D'}
+              {'\n'}{'\u2022 Vehicle registrations: e.g., \u201CAB12 CDE\u201D'}
             </Text>
           </View>
         </BottomSheetView>

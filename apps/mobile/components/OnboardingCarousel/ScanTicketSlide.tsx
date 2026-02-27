@@ -82,7 +82,7 @@ const ScanTicketSlide = ({ isActive, onScanNow, onManualEntry, onSkip }: ScanTic
           Got a parking ticket?
         </Text>
         <Text className="font-jakarta text-base text-gray-500 text-center leading-6 max-w-sm">
-          Scan it now and we'll start building your appeal right away
+          {"Scan it now and we'll start building your appeal right away"}
         </Text>
       </Animated.View>
 
@@ -106,7 +106,7 @@ const ScanTicketSlide = ({ isActive, onScanNow, onManualEntry, onSkip }: ScanTic
         >
           <FontAwesomeIcon icon={faPenToSquare} size={14} color="#6B7280" />
           <Text className="font-jakarta-medium text-gray-500 text-base">
-            I'll enter details manually
+            {"I'll enter details manually"}
           </Text>
         </SquishyPressable>
 

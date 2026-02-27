@@ -307,7 +307,7 @@ export default function LiveStatusCard({
             </View>
           </SquishyPressable>
           <Text className="font-jakarta text-xs text-gray mt-3">
-            We'll check the {issuer} portal for the latest status
+            {"We'll"} check the {issuer} portal for the latest status
           </Text>
         </View>
       )}

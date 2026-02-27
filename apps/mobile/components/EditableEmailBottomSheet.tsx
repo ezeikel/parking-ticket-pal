@@ -53,7 +53,7 @@ const EditableEmailBottomSheet = ({
               style={{ marginRight: 8, marginTop: 2 }}
             />
             <Text className="font-jakarta text-xs text-teal-dark flex-1">
-              Your email address cannot be changed as it's used for authentication. If you need to change your email, please contact support.
+              {"Your email address cannot be changed as it's used for authentication. If you need to change your email, please contact support."}
             </Text>
           </View>
 

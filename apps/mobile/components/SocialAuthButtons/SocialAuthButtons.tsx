@@ -1,6 +1,6 @@
 import { View, Text, TextInput } from 'react-native';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
-import { faApple, faFacebook, faGoogle, type IconDefinition } from '@fortawesome/free-brands-svg-icons';
+import { faApple, faFacebook, faGoogle } from '@fortawesome/free-brands-svg-icons';
 import { useState } from 'react';
 import SquishyPressable from '@/components/SquishyPressable/SquishyPressable';
 

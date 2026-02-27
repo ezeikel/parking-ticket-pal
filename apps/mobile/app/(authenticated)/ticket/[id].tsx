@@ -97,7 +97,7 @@ export default function TicketDetailScreen() {
           Something went wrong
         </Text>
         <Text className="font-jakarta text-sm text-gray text-center mb-6">
-          We couldn't load this ticket. Please try again.
+          {"We couldn't load this ticket. Please try again."}
         </Text>
         <SquishyPressable onPress={() => refetch()}>
           <View className="bg-dark rounded-xl px-6 py-3">
