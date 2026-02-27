@@ -62,7 +62,7 @@ jobs:
     needs: [build-e2e-android]
     type: maestro
     params:
-      build_id: ${{ needs.build-e2e-android.outputs.build_id }}
+      build_id: ${{ needs["build-e2e-android"].outputs.build_id }}
       flow_path: .maestro/
       retries: 2
 
@@ -71,7 +71,7 @@ jobs:
     needs: [build-e2e-ios]
     type: maestro
     params:
-      build_id: ${{ needs.build-e2e-ios.outputs.build_id }}
+      build_id: ${{ needs["build-e2e-ios"].outputs.build_id }}
       flow_path: .maestro/
       retries: 2
 
@@ -86,7 +86,7 @@ jobs:
 
         | Job | Status |
         |-----|--------|
-        | Lint & Typecheck | ${{ needs.lint-and-typecheck.status || 'passed' }} |
-        | Unit Tests | ${{ needs.unit-tests.status || 'passed' }} |
-        | E2E Android | ${{ after.e2e-android.status }} |
-        | E2E iOS | ${{ after.e2e-ios.status }} |
+        | Lint & Typecheck | ${{ needs["lint-and-typecheck"].status || 'passed' }} |
+        | Unit Tests | ${{ needs["unit-tests"].status || 'passed' }} |
+        | E2E Android | ${{ after["e2e-android"].status }} |
+        | E2E iOS | ${{ after["e2e-ios"].status }} |

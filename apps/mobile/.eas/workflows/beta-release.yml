@@ -37,7 +37,7 @@ jobs:
     needs: [build-ios]
     if: ${{ inputs.platform == 'all' || inputs.platform == 'ios' }}
     params:
-      build_id: ${{ needs.build-ios.outputs.build_id }}
+      build_id: ${{ needs["build-ios"].outputs.build_id }}
       changelog: ${{ inputs.message || 'Beta release' }}
 
   submit-android:
@@ -45,5 +45,5 @@ jobs:
     needs: [build-android]
     if: ${{ inputs.platform == 'all' || inputs.platform == 'android' }}
     params:
-      build_id: ${{ needs.build-android.outputs.build_id }}
+      build_id: ${{ needs["build-android"].outputs.build_id }}
       profile: beta

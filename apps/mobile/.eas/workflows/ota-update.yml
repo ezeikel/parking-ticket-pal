@@ -22,8 +22,8 @@ jobs:
     needs: [fingerprint, get-latest-build]
     if: >-
       ${{
-        needs.fingerprint.outputs.ios_fingerprint_hash == needs.get-latest-build.outputs.ios_fingerprint_hash
-        && needs.fingerprint.outputs.android_fingerprint_hash == needs.get-latest-build.outputs.android_fingerprint_hash
+        needs.fingerprint.outputs.ios_fingerprint_hash == needs["get-latest-build"].outputs.ios_fingerprint_hash
+        && needs.fingerprint.outputs.android_fingerprint_hash == needs["get-latest-build"].outputs.android_fingerprint_hash
       }}
     params:
       branch: production
@@ -43,8 +43,8 @@ jobs:
     needs: [fingerprint, get-latest-build]
     if: >-
       ${{
-        needs.fingerprint.outputs.ios_fingerprint_hash != needs.get-latest-build.outputs.ios_fingerprint_hash
-        || needs.fingerprint.outputs.android_fingerprint_hash != needs.get-latest-build.outputs.android_fingerprint_hash
+        needs.fingerprint.outputs.ios_fingerprint_hash != needs["get-latest-build"].outputs.ios_fingerprint_hash
+        || needs.fingerprint.outputs.android_fingerprint_hash != needs["get-latest-build"].outputs.android_fingerprint_hash
       }}
     params:
       md: |

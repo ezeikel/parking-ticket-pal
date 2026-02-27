@@ -19,7 +19,7 @@ jobs:
   build-ios:
     type: build
     needs: [fingerprint, get-latest-build]
-    if: ${{ needs.fingerprint.outputs.ios_fingerprint_hash != needs.get-latest-build.outputs.ios_fingerprint_hash }}
+    if: ${{ needs.fingerprint.outputs.ios_fingerprint_hash != needs["get-latest-build"].outputs.ios_fingerprint_hash }}
     params:
       platform: ios
       profile: preview
@@ -28,7 +28,7 @@ jobs:
   build-android:
     type: build
     needs: [fingerprint, get-latest-build]
-    if: ${{ needs.fingerprint.outputs.android_fingerprint_hash != needs.get-latest-build.outputs.android_fingerprint_hash }}
+    if: ${{ needs.fingerprint.outputs.android_fingerprint_hash != needs["get-latest-build"].outputs.android_fingerprint_hash }}
     params:
       platform: android
       profile: preview
@@ -39,8 +39,8 @@ jobs:
     needs: [fingerprint, get-latest-build]
     if: >-
       ${{
-        needs.fingerprint.outputs.ios_fingerprint_hash == needs.get-latest-build.outputs.ios_fingerprint_hash
-        && needs.fingerprint.outputs.android_fingerprint_hash == needs.get-latest-build.outputs.android_fingerprint_hash
+        needs.fingerprint.outputs.ios_fingerprint_hash == needs["get-latest-build"].outputs.ios_fingerprint_hash
+        && needs.fingerprint.outputs.android_fingerprint_hash == needs["get-latest-build"].outputs.android_fingerprint_hash
       }}
     params:
       branch: pr-${{ github.event.pull_request.number }}
