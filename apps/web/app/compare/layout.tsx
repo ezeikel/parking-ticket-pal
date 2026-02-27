@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import JsonLd, { createBreadcrumbSchema } from '@/components/JsonLd/JsonLd';
 
 export const metadata: Metadata = {
   title: 'Compare Parking Ticket Pal | See How We Stack Up',
@@ -17,5 +18,15 @@ export default function CompareLayout({
 }: {
   children: React.ReactNode;
 }) {
-  return children;
+  return (
+    <>
+      <JsonLd
+        data={createBreadcrumbSchema([
+          { name: 'Home', url: 'https://parkingticketpal.co.uk' },
+          { name: 'Compare', url: 'https://parkingticketpal.co.uk/compare' },
+        ])}
+      />
+      {children}
+    </>
+  );
 }

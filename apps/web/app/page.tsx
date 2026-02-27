@@ -11,9 +11,12 @@ import Authorities from '@/components/landing/Authorities';
 import FAQSection from '@/components/landing/FAQSection';
 import Newsletter from '@/components/landing/Newsletter';
 import FinalCTA from '@/components/landing/FinalCTA';
+import JsonLd, { createFAQSchema } from '@/components/JsonLd/JsonLd';
+import { HOMEPAGE_FAQS } from '@/lib/faq-data';
 
 const HomePage = () => (
   <>
+    <JsonLd data={createFAQSchema(HOMEPAGE_FAQS)} />
     {/* Hero takes full viewport - no padding */}
     <Hero />
     <StatsBar />

@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import JsonLd, { createBreadcrumbSchema } from '@/components/JsonLd/JsonLd';
 
 export const metadata: Metadata = {
   title: 'Parking Ticket Appeal Alternatives | Find the Best Option',
@@ -17,5 +18,18 @@ export default function AlternativesLayout({
 }: {
   children: React.ReactNode;
 }) {
-  return children;
+  return (
+    <>
+      <JsonLd
+        data={createBreadcrumbSchema([
+          { name: 'Home', url: 'https://parkingticketpal.co.uk' },
+          {
+            name: 'Alternatives',
+            url: 'https://parkingticketpal.co.uk/alternatives',
+          },
+        ])}
+      />
+      {children}
+    </>
+  );
 }

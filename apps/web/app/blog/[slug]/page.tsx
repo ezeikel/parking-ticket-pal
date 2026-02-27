@@ -5,6 +5,10 @@ import {
   getAllPosts,
 } from '@/lib/queries/blog';
 import BlogPostClient from '@/components/blog/BlogPostClient';
+import JsonLd, {
+  createArticleSchema,
+  createBreadcrumbSchema,
+} from '@/components/JsonLd/JsonLd';
 
 // Pre-generate all published blog posts at build time
 export async function generateStaticParams() {
@@ -64,7 +68,29 @@ const BlogPostPage = async ({
     .slice(0, 3)
     .map((p) => ({ slug: p.meta.slug, title: p.meta.title }));
 
-  return <BlogPostClient post={post} relatedPosts={relatedPosts} />;
+  const postUrl = `https://parkingticketpal.co.uk/blog/${slug}`;
+
+  return (
+    <>
+      <JsonLd
+        data={createArticleSchema({
+          title: post.meta.title,
+          description: post.meta.summary,
+          url: postUrl,
+          datePublished: post.meta.date,
+          dateModified: post.meta.date,
+        })}
+      />
+      <JsonLd
+        data={createBreadcrumbSchema([
+          { name: 'Home', url: 'https://parkingticketpal.co.uk' },
+          { name: 'Blog', url: 'https://parkingticketpal.co.uk/blog' },
+          { name: post.meta.title, url: postUrl },
+        ])}
+      />
+      <BlogPostClient post={post} relatedPosts={relatedPosts} />
+    </>
+  );
 };
 
 export default BlogPostPage;
