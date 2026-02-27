@@ -59,6 +59,7 @@
     },
     "e2e-test": {
       "extends": "base",
+      "distribution": "internal",
       "withoutCredentials": true,
       "ios": {
         "simulator": true
