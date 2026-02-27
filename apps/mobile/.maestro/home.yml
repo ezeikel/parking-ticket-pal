@@ -1,6 +1,8 @@
 appId: com.chewybytes.parkingticketpal.app
 ---
 - launchApp
-- assertVisible: "Tickets"
-- assertVisible: "Search tickets..."
-- assertVisible: "Settings"
+- assertVisible:
+    text: "Take control of your parking tickets"
+    enabled: true
+- assertVisible: "Skip"
+- assertVisible: "Next"
