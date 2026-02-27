@@ -1,6 +1,6 @@
 import { View, Text, TextInput } from 'react-native';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
-import { faApple, faFacebook, faGoogle } from '@fortawesome/free-brands-svg-icons';
+import { faApple, faFacebook, faGoogle, type IconDefinition } from '@fortawesome/free-brands-svg-icons';
 import { useState } from 'react';
 import SquishyPressable from '@/components/SquishyPressable/SquishyPressable';
 
@@ -30,7 +30,7 @@ const SocialAuthButtons = ({
         onPress={onGoogle}
         disabled={disabled}
       >
-        <FontAwesomeIcon icon={faGoogle} size={20} color="#EA4335" style={{ marginRight: 12 }} />
+        <FontAwesomeIcon icon={faGoogle as unknown as import('@fortawesome/fontawesome-svg-core').IconDefinition} size={20} color="#EA4335" style={{ marginRight: 12 }} />
         <Text className="font-jakarta text-base text-gray-900">Continue with Google</Text>
       </SquishyPressable>
 
@@ -39,7 +39,7 @@ const SocialAuthButtons = ({
         onPress={onApple}
         disabled={disabled}
       >
-        <FontAwesomeIcon icon={faApple} size={20} color="#000000" style={{ marginRight: 12 }} />
+        <FontAwesomeIcon icon={faApple as unknown as import('@fortawesome/fontawesome-svg-core').IconDefinition} size={20} color="#000000" style={{ marginRight: 12 }} />
         <Text className="font-jakarta text-base text-gray-900">Continue with Apple</Text>
       </SquishyPressable>
 
@@ -48,7 +48,7 @@ const SocialAuthButtons = ({
         onPress={onFacebook}
         disabled={disabled}
       >
-        <FontAwesomeIcon icon={faFacebook} size={20} color="#1877F2" style={{ marginRight: 12 }} />
+        <FontAwesomeIcon icon={faFacebook as unknown as import('@fortawesome/fontawesome-svg-core').IconDefinition} size={20} color="#1877F2" style={{ marginRight: 12 }} />
         <Text className="font-jakarta text-base text-gray-900">Continue with Facebook</Text>
       </SquishyPressable>
 

@@ -183,7 +183,7 @@ const OnboardingCarousel = ({ onComplete, onTicketCreated }: OnboardingCarouselP
           />
         );
       default:
-        return null;
+        return <View />;
     }
   };
 

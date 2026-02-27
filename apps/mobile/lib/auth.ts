@@ -30,7 +30,7 @@ export async function getDeviceId(): Promise<string> {
     if (Platform.OS === 'ios') {
       deviceId = await Application.getIosIdForVendorAsync() || generateRandomId();
     } else {
-      deviceId = Application.androidId || generateRandomId();
+      deviceId = Application.getAndroidId() ?? generateRandomId();
     }
     await SecureStore.setItemAsync(DEVICE_ID_KEY, deviceId);
   }

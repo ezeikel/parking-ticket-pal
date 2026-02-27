@@ -21,7 +21,7 @@ export const PostHogNavigationTracker = () => {
     try {
       const currentRoute = navigationRef.getCurrentRoute();
       if (currentRoute?.name) {
-        posthog.screen(currentRoute.name, currentRoute.params);
+        posthog.screen(currentRoute.name, currentRoute.params as Record<string, string> | undefined);
       }
     } catch {
       // Navigation container not yet initialized — the state listener below
@@ -32,7 +32,7 @@ export const PostHogNavigationTracker = () => {
     const unsubscribe = navigationRef.addListener('state', () => {
       const newRoute = navigationRef.getCurrentRoute();
       if (newRoute?.name) {
-        posthog.screen(newRoute.name, newRoute.params);
+        posthog.screen(newRoute.name, newRoute.params as Record<string, string> | undefined);
       }
     });
 

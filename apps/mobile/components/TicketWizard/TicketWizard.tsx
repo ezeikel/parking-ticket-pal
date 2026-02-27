@@ -95,7 +95,6 @@ const TicketWizard = ({ ocrData, onComplete, onCancel }: TicketWizardProps) => {
           screen: 'onboarding',
           step_name: step,
           step_number: getStepFlow().indexOf(step) + 1,
-          total_steps: getStepFlow().length,
           source: hasOCR ? 'ocr' : 'manual',
         });
       }
@@ -120,7 +119,7 @@ const TicketWizard = ({ ocrData, onComplete, onCancel }: TicketWizardProps) => {
       trackEvent('wizard_step_completed', {
         screen: 'onboarding',
         step_name: currentStep,
-        selection: Object.entries(updates)
+        selected_value: Object.entries(updates)
           .map(([k, v]) => `${k}=${v}`)
           .join(','),
       });

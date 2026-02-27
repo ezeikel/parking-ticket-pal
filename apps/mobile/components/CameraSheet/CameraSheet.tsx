@@ -226,8 +226,8 @@ const CameraSheet = ({ isVisible, onClose, onboardingMode, onOCRComplete }: Came
       return (
         <View style={{ flex: 1, backgroundColor: 'white' }}>
           <Paywall
-            mode="ticket_upgrades"
             ticketId={wizardResult.ticketId}
+            source="feature_gate"
             onClose={handlePaywallClose}
             onPurchaseComplete={handlePurchaseComplete}
           />

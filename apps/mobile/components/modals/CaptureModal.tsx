@@ -51,6 +51,9 @@ const CaptureModal = ({ isVisible, setIsVisible }: CaptureModalProps) => {
               setIsVisible(false);
             }}
             onImageScanned={() => setHasScannedImage(true)}
+            onOCRComplete={() => {
+              // OCR handled by parent flow
+            }}
           />
         </View>
       </SafeAreaView>

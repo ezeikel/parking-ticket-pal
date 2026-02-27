@@ -52,7 +52,7 @@ const CreatingStep = ({ wizardData, onComplete }: CreatingStepProps) => {
         trackEvent('wizard_ticket_created', {
           screen: 'onboarding',
           ticket_id: result.ticket.id,
-          intent: wizardData.intent,
+          intent: wizardData.intent ?? undefined,
         });
 
         // Prompt for push notifications after first ticket creation
@@ -63,7 +63,7 @@ const CreatingStep = ({ wizardData, onComplete }: CreatingStepProps) => {
 
         onComplete({
           ticketId: result.ticket.id,
-          intent: wizardData.intent!,
+          intent: wizardData.intent ?? 'track',
         });
       } else {
         setError(result.error || 'Failed to create ticket.');

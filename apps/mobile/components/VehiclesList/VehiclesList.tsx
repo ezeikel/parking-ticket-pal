@@ -28,7 +28,7 @@ const VehicleItem = memo(function VehicleItem({ vehicle, style }: {
         </View>
         <View className="flex-1">
           <View className="flex-row items-center gap-x-2">
-            <Typography variant="vrm">{vehicle.vrm}</Typography>
+            <Typography font="uknumberplate">{vehicle.vrm}</Typography>
             <Text className="font-jakarta text-lg">{vehicle.make}</Text>
           </View>
           <Text className="font-jakarta text-[#71717a]">
@@ -71,7 +71,6 @@ const VehiclesList = () => {
       <FlashList
         data={vehicles}
         renderItem={renderItem}
-        estimatedItemSize={100}
         keyExtractor={(item) => item.id.toString()}
       />
     </View>

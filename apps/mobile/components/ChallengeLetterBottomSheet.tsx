@@ -4,7 +4,7 @@ import { toast } from '@/lib/toast';
 import BottomSheet, { BottomSheetBackdrop, BottomSheetView } from '@gorhom/bottom-sheet';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { Picker } from '@react-native-picker/picker';
-import { IssuerType } from '@parking-ticket-pal/types';
+import { IssuerType } from '@/types';
 import { getChallengeReasons } from '@/constants/challenges';
 import SquishyPressable from '@/components/SquishyPressable/SquishyPressable';
 import Loader from '@/components/Loader/Loader';

@@ -127,6 +127,7 @@ export type AnalyticsEvent =
   // Sharing & Referral
   | "share_initiated"
   | "share_completed"
+  | "referral_invite_tapped"
 
   // Settings actions
   | "restore_purchases_tapped"

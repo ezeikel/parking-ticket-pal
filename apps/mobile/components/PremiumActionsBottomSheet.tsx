@@ -3,7 +3,7 @@ import { View, Text, Modal, Pressable } from 'react-native';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { faFileLines, faFileContract, faXmark } from '@fortawesome/pro-regular-svg-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { IssuerType } from '@parking-ticket-pal/types';
+import { IssuerType } from '@/types';
 import { getAvailableForms, FORM_TYPES, FormType } from '@/constants/challenges';
 import SquishyPressable from './SquishyPressable/SquishyPressable';
 

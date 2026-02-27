@@ -365,7 +365,6 @@ const TicketsList = ({ filters }: TicketsListProps) => {
       <FlashList
         data={displayTickets}
         renderItem={renderTicketItem}
-        estimatedItemSize={280}
         keyExtractor={(item) => item.id.toString()}
         getItemType={(item) => isTerminalStatus(item.status) ? 'terminal' : 'active'}
         showsVerticalScrollIndicator={false}

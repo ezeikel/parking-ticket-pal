@@ -31,12 +31,11 @@ const Providers = ({ children, trackingAllowed = false }: ProvidersProps) => {
             apiKey={process.env.EXPO_PUBLIC_POSTHOG_API_KEY}
             options={{
               host: 'https://eu.i.posthog.com',
-              captureNativeAppLifecycleEvents: true,
+              captureAppLifecycleEvents: true,
               disabled: !trackingAllowed,
             }}
             autocapture={{
               captureTouches: false,
-              captureLifecycleEvents: true,
               captureScreens: false,
             }}
           >

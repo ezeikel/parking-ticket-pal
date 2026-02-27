@@ -139,6 +139,6 @@ export type FormType = keyof typeof FORM_TYPES;
 
 export const getAvailableForms = (issuerType: IssuerType): FormType[] => {
   return Object.entries(FORM_TYPES)
-    .filter(([_, form]) => form.issuerTypes.includes(issuerType))
+    .filter(([_, form]) => (form.issuerTypes as readonly IssuerType[]).includes(issuerType))
     .map(([key]) => key as FormType);
 };

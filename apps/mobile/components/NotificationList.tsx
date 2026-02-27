@@ -60,7 +60,6 @@ const NotificationList = ({ unreadOnly = false }: NotificationListProps) => {
     <FlashList
       data={notifications}
       renderItem={renderNotificationItem}
-      estimatedItemSize={100}
       keyExtractor={(item) => item.id}
       getItemType={(item) => item.read ? 'read' : 'unread'}
       showsVerticalScrollIndicator={false}
