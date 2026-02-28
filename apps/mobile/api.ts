@@ -8,6 +8,7 @@ import {
   getSessionToken,
   setSessionToken,
   setUserId,
+  logout as clearAuthTokens,
 } from './lib/auth';
 
 // allow an override just for Android if set in EAS
@@ -83,6 +84,35 @@ api.interceptors.request.use(async (config) => {
 
   return config;
 });
+
+// Response interceptor: clear expired token and re-register on 401
+api.interceptors.response.use(
+  (response) => response,
+  async (error) => {
+    const originalRequest = error.config;
+    if (error.response?.status === 401 && !originalRequest._retried) {
+      originalRequest._retried = true;
+      // Token is expired/invalid — clear it so ensureRegistered creates a new one
+      await clearAuthTokens();
+      registrationPromise = null;
+      await ensureRegistered();
+      const newToken = await getSessionToken();
+      if (newToken) {
+        originalRequest.headers.Authorization = `Bearer ${newToken}`;
+      }
+      return api(originalRequest);
+    }
+    return Promise.reject(error);
+  },
+);
+
+/**
+ * Reset the cached registration promise.
+ * Call after sign-out so ensureRegistered doesn't skip re-registration.
+ */
+export function resetRegistrationState(): void {
+  registrationPromise = null;
+}
 
 // Export for use by auth context to manually trigger registration
 export { ensureRegistered };
@@ -217,6 +247,25 @@ export const verifyMagicLink = async (token: string, deviceId?: string) => {
     deviceId,
   });
 
+  return response.data;
+};
+
+export const mobileLogout = async (
+  deviceId: string,
+): Promise<{ token: string; userId: string }> => {
+  const currentToken = await getSessionToken();
+  // Use raw axios (not the `api` instance) to avoid the 401 interceptor
+  // from clearing the token and auto-re-registering during logout
+  const response = await axios.post(
+    `${apiUrlFromEnv}/auth/mobile/logout`,
+    { deviceId },
+    {
+      headers: {
+        'Content-Type': 'application/json',
+        ...(currentToken ? { Authorization: `Bearer ${currentToken}` } : {}),
+      },
+    },
+  );
   return response.data;
 };
 

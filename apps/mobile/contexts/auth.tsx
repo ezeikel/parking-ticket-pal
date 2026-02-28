@@ -5,6 +5,7 @@ import appleAuth from '@invertase/react-native-apple-authentication';
 import Purchases from 'react-native-purchases';
 import { usePostHog } from 'posthog-react-native';
 import * as Sentry from '@sentry/react-native';
+import { useQueryClient } from '@tanstack/react-query';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
   getCurrentUser,
@@ -13,6 +14,8 @@ import {
   signInWithApple,
   sendMagicLink,
   ensureRegistered,
+  mobileLogout,
+  resetRegistrationState,
 } from '@/api';
 import {
   getDeviceId,
@@ -21,6 +24,7 @@ import {
   setUserId,
   logout as authLogout,
 } from '@/lib/auth';
+import { unregisterPushToken } from '@/lib/notifications';
 import { logger } from '@/lib/logger';
 import { usePurchases } from './purchases';
 
@@ -71,6 +75,7 @@ export const AuthContextProvider = ({ children }: AuthContextProviderProps) => {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const posthog = usePostHog();
+  const queryClient = useQueryClient();
   const { isConfigured: isPurchasesConfigured } = usePurchases();
 
   const configureGoogleSignIn = () => {
@@ -290,37 +295,61 @@ export const AuthContextProvider = ({ children }: AuthContextProviderProps) => {
 
   const signOut = async () => {
     try {
-      await GoogleSignin.signOut();
-      await LoginManager.logOut();
-
+      // 1. Unregister push token before we lose the current auth context
       try {
-        posthog.reset();
+        await unregisterPushToken();
       } catch (error) {
-        logger.error('Error resetting PostHog', { action: 'auth' }, error instanceof Error ? error : new Error(String(error)));
+        logger.error('Error unregistering push token during sign-out', { action: 'auth' }, error instanceof Error ? error : new Error(String(error)));
       }
 
-      try {
-        Sentry.setUser(null);
-      } catch (error) {
-        logger.error('Error clearing Sentry user', { action: 'auth' }, error instanceof Error ? error : new Error(String(error)));
-      }
+      // 2. Sign out from OAuth providers (local state only)
+      try { await GoogleSignin.signOut(); } catch { /* ignore */ }
+      try { LoginManager.logOut(); } catch { /* ignore */ }
 
+      // 3. Call server to detach device and create new anonymous user
+      const deviceId = await getDeviceId();
+      const { token: newToken, userId: newUserId } = await mobileLogout(deviceId);
+
+      // 4. Reset analytics/monitoring
+      try { posthog.reset(); } catch { /* ignore */ }
+      try { Sentry.setUser(null); } catch { /* ignore */ }
       if (isPurchasesConfigured) {
-        try {
-          await Purchases.logOut();
-        } catch (error) {
-          logger.error('Error logging out from RevenueCat', { action: 'auth' }, error instanceof Error ? error : new Error(String(error)));
-        }
+        try { await Purchases.logOut(); } catch { /* ignore */ }
       }
 
+      // 5. Store the new anonymous token + userId (replace, not clear)
+      await setSessionToken(newToken);
+      await setUserId(newUserId);
+
+      // 6. Reset the registration promise cache
+      resetRegistrationState();
+
+      // 7. Clear React Query cache (removes old user's tickets, vehicles, etc.)
+      queryClient.clear();
+
+      // 8. Fetch the new anonymous user data
+      const { user: anonUser, isLinked: linked } = await getCurrentUser();
+
+      // 9. Update state to reflect anonymous session
+      setUser(anonUser || null);
+      setIsLinked(linked);
+      setIsAuthenticated(true); // Still authenticated — as anonymous device user
+
+      // 10. Identify the new anonymous user in analytics
+      if (anonUser) {
+        await identifyUser(anonUser);
+      }
+
+      logger.info('Sign-out complete, switched to anonymous user', { action: 'auth', newUserId });
+    } catch (error) {
+      logger.error('Error during sign-out, falling back to local-only logout', { action: 'auth' }, error instanceof Error ? error : new Error(String(error)));
+
+      // Fallback: clear local state. Next API call will trigger re-registration.
       await authLogout();
+      resetRegistrationState();
       setIsLinked(false);
       setUser(null);
-      // Don't set isAuthenticated to false — device will re-register on next API call
-      // This triggers a re-check which will create a new anonymous user
       setIsAuthenticated(false);
-    } catch (error) {
-      logger.error('Error signing out', { action: 'auth' }, error instanceof Error ? error : new Error(String(error)));
     }
   };
 
