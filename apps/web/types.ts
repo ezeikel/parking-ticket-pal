@@ -546,6 +546,8 @@ export type EventProperties = {
   // Demo Features
   [TRACKING_EVENTS.NOTIFICATION_DEMO_STARTED]: Record<string, never>;
   [TRACKING_EVENTS.NOTIFICATION_DEMO_STOPPED]: Record<string, never>;
+  [TRACKING_EVENTS.PORTAL_DEMO_STARTED]: Record<string, never>;
+  [TRACKING_EVENTS.PORTAL_DEMO_STOPPED]: Record<string, never>;
 
   // Free Tools
   [TRACKING_EVENTS.TOOLS_PAGE_VIEWED]: Record<string, never>;

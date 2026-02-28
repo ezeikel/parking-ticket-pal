@@ -4,6 +4,7 @@ import ProblemSection from '@/components/landing/ProblemSection';
 import HowItWorksSection from '@/components/landing/HowItWorksSection';
 import FeaturesSection from '@/components/landing/FeaturesSection';
 import NotificationSection from '@/components/landing/NotificationSection';
+import PortalAutomationSection from '@/components/landing/PortalAutomationSection/PortalAutomationSection';
 // TODO: Add <Testimonials /> back once we have real user reviews
 // import Testimonials from '@/components/landing/Testimonials';
 import UseCases from '@/components/landing/UseCases';
@@ -24,6 +25,7 @@ const HomePage = () => (
     <HowItWorksSection />
     <FeaturesSection />
     <NotificationSection />
+    <PortalAutomationSection />
     <UseCases />
     <Authorities />
     <FAQSection />

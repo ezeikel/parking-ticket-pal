@@ -102,6 +102,8 @@ export const TRACKING_EVENTS = {
   // Demo Features
   NOTIFICATION_DEMO_STARTED: 'notification_demo_started',
   NOTIFICATION_DEMO_STOPPED: 'notification_demo_stopped',
+  PORTAL_DEMO_STARTED: 'portal_demo_started',
+  PORTAL_DEMO_STOPPED: 'portal_demo_stopped',
 
   // Free Tools
   TOOLS_PAGE_VIEWED: 'tools_page_viewed',
