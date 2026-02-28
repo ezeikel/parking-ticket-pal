@@ -1,32 +1,41 @@
 name: OTA Update
 
-on:
-  push:
-    branches: ['main']
-    paths:
-      - 'apps/mobile/**'
+# Disabled until app is published to stores — no production builds exist yet.
+# Uncomment the 'on' block below when ready.
+# on:
+#   push:
+#     branches: ['main']
+#     paths:
+#       - 'apps/mobile/**'
 
 jobs:
   fingerprint:
     type: fingerprint
 
-  get-latest-build:
+  get-ios-build:
+    name: Check existing iOS build
+    needs: [fingerprint]
     type: get-build
     params:
-      platform: all
+      fingerprint_hash: ${{ needs.fingerprint.outputs.ios_fingerprint_hash }}
       profile: production
-      distribution: store
+
+  get-android-build:
+    name: Check existing Android build
+    needs: [fingerprint]
+    type: get-build
+    params:
+      fingerprint_hash: ${{ needs.fingerprint.outputs.android_fingerprint_hash }}
+      profile: production
 
   update:
+    name: Publish OTA update
     type: update
-    needs: [fingerprint, get-latest-build]
-    if: >-
-      ${{
-        needs.fingerprint.outputs.ios_fingerprint_hash == needs["get-latest-build"].outputs.ios_fingerprint_hash
-        && needs.fingerprint.outputs.android_fingerprint_hash == needs["get-latest-build"].outputs.android_fingerprint_hash
-      }}
+    needs: [get-ios-build, get-android-build]
+    if: ${{ needs["get-ios-build"].outputs.build_id && needs["get-android-build"].outputs.build_id }}
     params:
       branch: production
+      platform: all
       message: OTA update from ${{ github.sha }}
 
   notify-ota:
@@ -40,14 +49,10 @@ jobs:
 
   needs-native-build:
     type: doc
-    needs: [fingerprint, get-latest-build]
-    if: >-
-      ${{
-        needs.fingerprint.outputs.ios_fingerprint_hash != needs["get-latest-build"].outputs.ios_fingerprint_hash
-        || needs.fingerprint.outputs.android_fingerprint_hash != needs["get-latest-build"].outputs.android_fingerprint_hash
-      }}
+    needs: [get-ios-build, get-android-build]
+    if: ${{ !needs["get-ios-build"].outputs.build_id || !needs["get-android-build"].outputs.build_id }}
     params:
       md: |
         ## Native Changes Detected
-        Fingerprints differ from latest production build.
+        No matching production build found for one or both platforms.
         Run the **Production Release** workflow manually to create new native builds.
