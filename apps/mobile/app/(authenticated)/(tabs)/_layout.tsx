@@ -4,10 +4,12 @@ import { Tabs } from 'expo-router';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import {
   faCardsBlank as faCardsBlankSolid,
+  faCar as faCarSolid,
   faGear as faGearSolid,
 } from '@fortawesome/pro-solid-svg-icons';
 import {
   faCardsBlank as faCardsBlankRegular,
+  faCar as faCarRegular,
   faGear as faGearRegular,
 } from '@fortawesome/pro-regular-svg-icons';
 import HapticTab from '@/components/HapticTab/HapticTab';
@@ -44,6 +46,19 @@ function TabLayoutInner() {
             tabBarIcon: ({ focused, color }) => (
               <FontAwesomeIcon
                 icon={focused ? faCardsBlankSolid : faCardsBlankRegular}
+                size={22}
+                color={color}
+              />
+            ),
+          }}
+        />
+        <Tabs.Screen
+          name="vehicles"
+          options={{
+            title: 'Vehicles',
+            tabBarIcon: ({ focused, color }) => (
+              <FontAwesomeIcon
+                icon={focused ? faCarSolid : faCarRegular}
                 size={22}
                 color={color}
               />

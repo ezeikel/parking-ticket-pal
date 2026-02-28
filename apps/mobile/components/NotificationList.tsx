@@ -1,11 +1,11 @@
-import { View, Text, RefreshControl } from 'react-native';
+import { View, RefreshControl } from 'react-native';
 import { FlashList } from '@shopify/flash-list';
 import { useState, useCallback } from 'react';
 import { useNotifications } from '@/hooks/api/useNotifications';
 import NotificationItem from './NotificationItem';
-import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { faBell } from '@fortawesome/pro-regular-svg-icons';
 import Loader from './Loader/Loader';
+import EmptyState from './EmptyState/EmptyState';
 
 interface NotificationListProps {
   unreadOnly?: boolean;
@@ -40,18 +40,16 @@ const NotificationList = ({ unreadOnly = false }: NotificationListProps) => {
   // Empty state
   if (notifications.length === 0) {
     return (
-      <View className="flex-1 items-center justify-center px-8">
-        <View className="w-20 h-20 bg-gray-100 rounded-full items-center justify-center mb-4">
-          <FontAwesomeIcon icon={faBell} size={32} color="#9ca3af" />
-        </View>
-        <Text className="font-jakarta-semibold text-lg text-gray-900 mb-2 text-center">
-          {unreadOnly ? 'No unread notifications' : 'No notifications yet'}
-        </Text>
-        <Text className="font-jakarta text-sm text-gray-600 text-center">
-          {unreadOnly
-            ? 'You\'re all caught up! Check back later for updates on your parking tickets.'
-            : 'When you receive notifications about your parking tickets, they\'ll appear here.'}
-        </Text>
+      <View className="flex-1 items-center justify-center">
+        <EmptyState
+          icon={faBell}
+          title={unreadOnly ? 'No unread notifications' : 'No notifications yet'}
+          description={
+            unreadOnly
+              ? "You're all caught up! Check back later for updates on your parking tickets."
+              : "When you receive notifications about your parking tickets, they'll appear here."
+          }
+        />
       </View>
     );
   }

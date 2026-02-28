@@ -46,7 +46,7 @@ const InfoRow = ({ label, value, fullWidth, valueColor, note, isVrm }: InfoRowPr
 export default function TicketInfoCard({ ticket }: TicketInfoCardProps) {
   const location = ticket.location as Address | null;
   const vehicleReg =
-    (ticket.vehicle as any)?.registrationNumber || ticket.vehicle?.vrm || 'N/A';
+    ticket.vehicle?.registrationNumber || ticket.vehicle?.vrm || 'N/A';
 
   const issuedDate = format(new Date(ticket.issuedAt), 'dd MMM yyyy');
   const displayAmount = getDisplayAmount(ticket);

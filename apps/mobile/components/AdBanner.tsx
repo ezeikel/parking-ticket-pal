@@ -7,7 +7,7 @@ import { bannerUnitId } from '../lib/ads';
 import { logger } from '@/lib/logger';
 
 interface AdBannerProps {
-  placement: 'tickets' | 'settings' | 'ticket-detail';
+  placement: 'tickets' | 'settings' | 'vehicles' | 'ticket-detail';
   size?: BannerAdSize;
 }
 

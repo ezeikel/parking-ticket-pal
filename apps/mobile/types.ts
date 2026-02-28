@@ -107,6 +107,7 @@ export type Vehicle = {
   model: string;
   year: number;
   vrm: string;
+  registrationNumber: string;
   active: boolean;
   tickets: Ticket[];
   createdAt: string;

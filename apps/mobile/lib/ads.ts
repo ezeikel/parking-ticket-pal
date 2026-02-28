@@ -7,6 +7,7 @@ type UnitMap = {
   banners: {
     tickets: Sided;
     settings: Sided;
+    vehicles: Sided;
     'ticket-detail': Sided;
   };
   interstitial: Sided;
@@ -21,6 +22,10 @@ const UNITS: UnitMap = {
     settings: {
       ios: 'ca-app-pub-7677365102925875/6999987803',
       android: 'ca-app-pub-7677365102925875/2659371826',
+    },
+    vehicles: {
+      ios: 'ca-app-pub-7677365102925875/5814786925',
+      android: 'ca-app-pub-7677365102925875/4940688951',
     },
     'ticket-detail': {
       ios: 'ca-app-pub-7677365102925875/1444408793',

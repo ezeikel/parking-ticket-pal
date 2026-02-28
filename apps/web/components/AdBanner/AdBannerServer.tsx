@@ -5,6 +5,7 @@ import AdBanner from './AdBanner';
 type Placement =
   | 'ticket-detail'
   | 'tickets-list'
+  | 'vehicles-list'
   | 'dashboard'
   | 'account'
   | 'blog'
@@ -13,6 +14,7 @@ type Placement =
 const SLOT_IDS: Record<Placement, string> = {
   'ticket-detail': process.env.NEXT_PUBLIC_ADSENSE_SLOT_TICKET_DETAIL ?? '',
   'tickets-list': process.env.NEXT_PUBLIC_ADSENSE_SLOT_TICKETS_LIST ?? '',
+  'vehicles-list': process.env.NEXT_PUBLIC_ADSENSE_SLOT_VEHICLES_LIST ?? '',
   dashboard: process.env.NEXT_PUBLIC_ADSENSE_SLOT_DASHBOARD ?? '',
   account: process.env.NEXT_PUBLIC_ADSENSE_SLOT_ACCOUNT ?? '',
   blog: process.env.NEXT_PUBLIC_ADSENSE_SLOT_BLOG ?? '',

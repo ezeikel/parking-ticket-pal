@@ -11,6 +11,7 @@ import {
   faLock,
   faSterlingSign,
   faTriangleExclamation,
+  faCardsBlank,
 } from '@fortawesome/pro-solid-svg-icons';
 import { addDays, format } from 'date-fns';
 import useTickets from '@/hooks/api/useTickets';
@@ -26,6 +27,7 @@ import {
   formatCurrency,
 } from '@/constants/ticket-status';
 import Loader from '@/components/Loader/Loader';
+import EmptyState from '@/components/EmptyState/EmptyState';
 import SquishyPressable from '@/components/SquishyPressable/SquishyPressable';
 import ScoreGauge from '@/components/ScoreGauge/ScoreGauge';
 
@@ -53,7 +55,7 @@ const TicketItem = memo(function TicketItem({
   const formattedDate = format(new Date(ticket.issuedAt), 'MMM d, yyyy');
 
   const vehicleReg =
-    (ticket.vehicle as any)?.registrationNumber || ticket.vehicle?.vrm || 'N/A';
+    ticket.vehicle?.registrationNumber || ticket.vehicle?.vrm || 'N/A';
 
   const tier = ticket.tier || 'FREE';
   const isPremium = tier === 'PREMIUM' || hasSubscription;
@@ -293,24 +295,17 @@ const TicketsList = ({ filters }: TicketsListProps) => {
     return (
       <ScrollView
         className="flex-1"
-        contentContainerClassName="flex-1 items-center justify-center px-8"
+        contentContainerClassName="flex-1 items-center justify-center"
         contentInsetAdjustmentBehavior="automatic"
         refreshControl={
           <RefreshControl refreshing={isRefetching} onRefresh={onRefresh} />
         }
       >
-        <FontAwesomeIcon
+        <EmptyState
           icon={faTriangleExclamation}
-          size={40}
-          color="#717171"
-          style={{ marginBottom: 16 }}
+          title="Something went wrong"
+          description="Pull down to refresh and try again"
         />
-        <Text className="font-jakarta-semibold text-lg text-dark text-center mb-2">
-          Something went wrong
-        </Text>
-        <Text className="font-jakarta text-sm text-gray text-center">
-          Pull down to refresh and try again
-        </Text>
       </ScrollView>
     );
   }
@@ -325,20 +320,21 @@ const TicketsList = ({ filters }: TicketsListProps) => {
     return (
       <ScrollView
         className="flex-1"
-        contentContainerClassName="flex-1 items-center justify-center px-8"
+        contentContainerClassName="flex-1 items-center justify-center"
         contentInsetAdjustmentBehavior="automatic"
         refreshControl={
           <RefreshControl refreshing={isRefetching} onRefresh={onRefresh} />
         }
       >
-        <Text className="font-jakarta text-lg text-gray text-center mb-2">
-          {hasActiveFilters ? 'No tickets found' : 'No tickets yet'}
-        </Text>
-        <Text className="font-jakarta text-sm text-gray text-center">
-          {hasActiveFilters
-            ? 'Try adjusting your filters or search terms'
-            : 'Use the camera button to capture your first parking ticket'}
-        </Text>
+        <EmptyState
+          icon={faCardsBlank}
+          title={hasActiveFilters ? 'No tickets found' : 'No tickets yet'}
+          description={
+            hasActiveFilters
+              ? 'Try adjusting your filters or search terms'
+              : 'Use the camera button to capture your first parking ticket'
+          }
+        />
       </ScrollView>
     );
   }
