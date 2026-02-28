@@ -82,7 +82,9 @@ export const proxy = async (req: NextRequest) => {
         },
       });
     } catch (_error) {
-      return NextResponse.error();
+      // Token is invalid or expired — let the request through without user headers.
+      // The route handler will see no x-user-id and can return 401 itself.
+      return NextResponse.next();
     }
   }
 
