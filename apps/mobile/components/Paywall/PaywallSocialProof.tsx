@@ -86,7 +86,7 @@ export function PaywallSocialProof() {
   }, [opacity, translateY, advanceIndex]);
 
   return (
-    <View className="px-6 pb-3">
+    <View className="pb-1">
       {/* Stats strip */}
       <View className="flex-row items-center justify-center mb-2.5">
         <Text className="font-jakarta-medium text-xs text-gray">

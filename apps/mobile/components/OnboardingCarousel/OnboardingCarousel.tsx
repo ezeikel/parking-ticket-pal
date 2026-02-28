@@ -1,4 +1,4 @@
-import { View, useWindowDimensions } from 'react-native';
+import { View, Text, useWindowDimensions } from 'react-native';
 import Carousel from 'react-native-reanimated-carousel';
 import Animated, {
   useSharedValue,
@@ -11,6 +11,7 @@ import { useAnalytics } from '@/lib/analytics';
 import { MAX_CONTENT_WIDTH } from '@/constants/layout';
 import type { OCRProcessingResult } from '@/hooks/api/useOCR';
 import type { WizardResult } from '@/components/TicketWizard/types';
+import SquishyPressable from '@/components/SquishyPressable/SquishyPressable';
 import WelcomeSlide from './WelcomeSlide';
 import AIAppealsSlide from './AIAppealsSlide';
 import TrackWinSlide from './TrackWinSlide';
@@ -261,27 +262,23 @@ const OnboardingCarousel = ({ onComplete, onTicketCreated }: OnboardingCarouselP
           )}
 
           {showNextButton && (
-            <Animated.View>
-              <View
-                className="py-4 rounded-xl items-center justify-center"
-                style={{ backgroundColor: '#1ABC9C' }}
-              >
-                <Animated.Text
-                  className="font-jakarta-semibold text-white text-lg"
-                  onPress={() => {
-                    trackEvent('onboarding_next_clicked', {
-                      screen: 'onboarding',
-                      current_slide: currentSlide,
-                    });
-                    if (carouselRef.current) {
-                      carouselRef.current.next();
-                    }
-                  }}
-                >
-                  Next
-                </Animated.Text>
-              </View>
-            </Animated.View>
+            <SquishyPressable
+              className="py-4 rounded-xl items-center justify-center"
+              style={{ backgroundColor: '#1ABC9C' }}
+              onPress={() => {
+                trackEvent('onboarding_next_clicked', {
+                  screen: 'onboarding',
+                  current_slide: currentSlide,
+                });
+                if (carouselRef.current) {
+                  carouselRef.current.next();
+                }
+              }}
+            >
+              <Text className="font-jakarta-semibold text-white text-lg">
+                Next
+              </Text>
+            </SquishyPressable>
           )}
         </View>
       )}

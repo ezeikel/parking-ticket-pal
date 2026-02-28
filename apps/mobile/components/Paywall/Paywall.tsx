@@ -73,14 +73,14 @@ export function Paywall({ ticketId, source, onClose, onPurchaseComplete }: Paywa
         onClose={handleClose}
       />
 
-      <PaywallSocialProof />
-
       <ScrollView
         className="flex-1"
         contentContainerClassName="px-6 pb-4 gap-5"
         contentInsetAdjustmentBehavior="automatic"
         showsVerticalScrollIndicator={false}
       >
+        <PaywallSocialProof />
+
         {plans.map((plan) => (
           <PlanCard
             key={plan.id}
