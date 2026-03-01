@@ -3,7 +3,7 @@
 ## App Identity
 
 - **App Name:** Parking Ticket Pal
-- **Subtitle (30 chars):** Track & manage parking tickets
+- **Subtitle (30 chars):** Stop Your Fine From Growing
 - **Bundle ID (iOS):** com.chewybytes.parkingticketpal.app
 - **Package (Android):** com.chewybytes.parkingticketpal.app
 - **Category:** Utilities (primary) / Lifestyle (secondary)
@@ -13,59 +13,61 @@
 ## App Description (4000 chars max)
 
 ```
-Got a parking ticket? Don't let it cost you more than it should.
+A £60 parking ticket can balloon to £300+ if you miss a single deadline. Don't let that happen.
 
-Parking Ticket Pal helps you track, manage, and take action on UK parking tickets — so you never miss a deadline or pay more than you need to.
+Parking Ticket Pal stops your parking ticket from spiralling out of control. Upload your ticket, and we'll track every deadline, show you exactly what to do next, and — if you want to fight it — handle the entire challenge process for you.
 
-Whether you've received a PCN from a council, a private parking company, or TfL, we keep everything organised in one place and give you the tools to decide what to do next.
+Whether you've received a PCN from a council, a private parking company, or TfL, we keep everything organised in one place so nothing slips through the cracks.
 
-TRACK & MANAGE YOUR TICKETS
+STOP YOUR FINE FROM GROWING
 
-1. Scan your ticket — Use your phone camera to capture ticket details instantly. The PCN number, issuer, amount, deadline, and location are all extracted automatically.
+Parking fines double when you miss the early payment window. Then they go to debt recovery. Then bailiffs. We make sure it never gets that far.
 
-2. Stay on top of deadlines — Parking fines increase if you miss the early payment window. We track every deadline and send you push notifications before time runs out.
+• Scan your ticket — Point your camera at any parking ticket. The PCN number, issuer, amount, deadline, and location are extracted automatically. No typing required.
 
-3. Store everything in one place — Keep photos of the ticket, evidence, correspondence, and documents together so nothing gets lost.
+• Never miss a deadline — We track the 14-day discount window, the 28-day payment deadline, and every stage after. Push notifications remind you before time runs out.
 
-4. Monitor your ticket's journey — Follow each ticket from issue through to resolution with a clear status timeline.
+• Everything in one place — Photos, evidence, correspondence, appeal letters, and documents stored against each ticket. Nothing gets lost.
 
-CHALLENGE IF YOU CHOOSE TO
+• See exactly where you stand — A clear status timeline shows every ticket's journey from issue through to resolution.
 
-Not every ticket is fair. If yours wasn't, you have options. If you believe your ticket was issued unfairly, Parking Ticket Pal gives you tools to take action:
+CHALLENGE YOUR TICKET
 
-• Success Score — See how likely a challenge is to succeed, based on real UK tribunal decision data we've analysed. This helps you make an informed decision before you act.
+Not every ticket is fair. If yours wasn't, you have options — and we can do the hard work for you.
 
-• Challenge Letters — Generate tailored appeal letters using AI assistance, customised to your specific ticket and circumstances. Review, edit, and send when you're ready.
+• Know your chances first — Our Success Score analyses real UK tribunal decision data to show how likely a challenge is to succeed. Make an informed decision before you act.
 
-• Official Appeal Forms — Fill in TE7, TE9, PE2, and PE3 forms with step-by-step guidance.
+• Build your case — Write your own appeal, or let AI assist you with a tailored challenge letter based on your specific ticket, circumstances, and evidence. Review, edit, and approve before anything is sent.
 
-• Evidence Management — Attach photos, dashcam footage, and supporting documents to build your case.
+• Official appeal forms — Fill in TE7, TE9, PE2, and PE3 forms with step-by-step guidance. Make formal representations to councils or escalate to POPLA and the Traffic Penalty Tribunal.
 
-• Digital Signature — Sign appeal letters directly in the app.
+• We submit it for you — This is the part no other app does. We go to the issuer's website, fill in the forms with your approved details, and submit the challenge on your behalf. You don't have to do anything.
+
+• Evidence management — Attach photos, dashcam footage, and supporting documents to build your case. Sign appeal letters with a digital signature directly in the app.
 
 MORE FEATURES
 
-• Live Portal Checks — Premium users get automated status checks against issuer websites so you know when something changes.
+• Live portal checks — We automatically check issuer websites for status changes so you know the moment something happens.
 
-• Multiple Vehicles — Manage tickets across all your vehicles in one account.
+• Multiple vehicles — Manage tickets across all your vehicles in one account.
 
-• Map View — See all your tickets plotted on a map.
+• Map view — See all your tickets plotted on a map.
 
-SUBSCRIPTION PLANS
+PRICING
 
 • Free — Scan and track tickets, view basic details, and get deadline reminders.
-• Standard — Unlock success scores, challenge letters, and form generation for all your tickets.
-• Premium — Everything in Standard plus live portal status checks and priority support.
 
-One-time ticket upgrades are also available if you prefer not to subscribe.
+• Premium (£14.99 per ticket) — Unlock everything: success prediction, challenge assistance, automatic submission, live portal checks, and priority support. One-time purchase — not a subscription.
+
+That's less than what most tickets increase by when you miss a single deadline.
 
 IMPORTANT NOTES
 
-• This app provides tools and information to help you manage parking tickets. It does not provide legal advice.
+• This app provides tools to help you manage parking tickets. It does not provide legal advice.
 • Success scores are estimates based on historical tribunal data and do not guarantee outcomes.
-• Available for UK parking tickets (PCNs, FPNs, and private parking charges).
+• Available for UK parking tickets — council PCNs, FPNs, and private parking charges.
 
-Download Parking Ticket Pal — because a parking ticket shouldn't ruin your week.
+A parking ticket doesn't have to cost you a penny more than it should.
 ```
 
 ---
@@ -73,7 +75,15 @@ Download Parking Ticket Pal — because a parking ticket shouldn't ruin your wee
 ## Keywords (100 chars max)
 
 ```
-PCN,penalty charge notice,parking fine,appeal,challenge,council,TfL,private parking,deadline
+fine,challenge,dispute,fight,FPN,council,TfL,private,POPLA,unfair,letter,evidence,NTO,penalty,warden
+```
+
+---
+
+## Promotional Text (170 chars, changeable without app update)
+
+```
+A £60 ticket can become £300+ if you miss a deadline. Upload yours now — we'll track it, show your options, and handle the challenge for you. One-time purchase, no subscription.
 ```
 
 ---
@@ -87,9 +97,9 @@ Capture on iPhone 6.7" simulator in light mode:
 3. **Ticket detail** — Full ticket overview with deadline alert, status timeline, and info card
 4. **Deadline tracking** — Deadline alert card showing days remaining with push notification prompt
 5. **Success score** — Prediction card showing percentage score based on real tribunal data
-6. **Challenge letter** — AI-assisted appeal letter ready to review and send
+6. **Challenge letter** — Appeal letter ready to review and send
 7. **Map view** — All tickets plotted on a map
-8. **Settings / subscription** — Account management and subscription options
+8. **Premium upgrade** — Paywall screen showing Premium features and pricing
 
 ### Screenshot Dimensions Required
 
@@ -111,13 +121,13 @@ See `docs/app-store-products.md` for IAP review notes.
 
 Provide Apple with a test account for review:
 
-- **Email:** (configure a test account before submission)
-- **Password:** (configure before submission)
+- **Email:** testreviewer@parkingticketpal.com
+- **Password:** AppReview2025!
 
 ### Review Notes
 
 ```
-This app helps UK motorists track and manage parking tickets (PCNs) — monitoring deadlines to prevent fines from increasing, and optionally providing tools to challenge tickets they believe were issued unfairly.
+This app helps UK motorists track and manage parking tickets (PCNs) — monitoring deadlines to prevent fines from increasing, and providing tools to challenge tickets they believe were issued unfairly.
 
 To test the app:
 1. Create an account using any sign-in method
@@ -128,12 +138,9 @@ To test the app:
 The app requires a UK parking ticket (PCN) to demonstrate full functionality. If you do not have one, you can add a ticket manually with any PCN number (e.g., "AB12345678") and issuer (e.g., "Lewisham Council").
 
 In-app purchases:
-- Standard Ticket (£2.99) — One-time upgrade for a single ticket
-- Premium Ticket (£4.99) — One-time upgrade for a single ticket
-- Standard Monthly (£3.99/month) — Subscription for all tickets
-- Standard Annual (£29.99/year) — Subscription for all tickets
-- Premium Monthly (£6.99/month) — Subscription for all tickets
-- Premium Annual (£49.99/year) — Subscription for all tickets
+- Premium Ticket (£14.99) — One-time upgrade for a single ticket. Unlocks success prediction, AI-assisted challenge letters, automatic challenge submission to issuer websites, live portal status checks, and priority support.
+
+Users can also purchase Premium before adding ticket details. A draft ticket is created and the user fills in the details later via the ticket wizard.
 ```
 
 ---
@@ -162,7 +169,7 @@ In-app purchases:
 | PostHog (eu.i.posthog.com) | Device ID, product interaction, performance data | Analytics |
 | Sentry (sentry.io) | Crash data, performance data | Crash reporting |
 | Google AdMob | Device ID (non-personalised ads) | Advertising |
-| RevenueCat | Purchase history, device ID | Subscription management |
+| RevenueCat | Purchase history, device ID | Purchase management |
 
 ### Data Retention
 
@@ -203,7 +210,8 @@ Users can request account deletion via the app settings or by emailing support@p
    - [ ] Onboarding (carousel + ticket scan + skip)
    - [ ] Camera scanner (OCR + manual entry)
    - [ ] Ticket creation and detail view
-   - [ ] IAP (subscription + one-time purchase)
+   - [ ] IAP (Premium one-time purchase)
+   - [ ] Draft ticket purchase + completion flow
    - [ ] Push notifications (registration + receipt)
    - [ ] Deep links (parkingticketpal://...)
    - [ ] Error states (airplane mode)
