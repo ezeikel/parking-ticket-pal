@@ -4,6 +4,7 @@ import Switch from '@/components/Switch/Switch';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import SquishyPressable from '@/components/SquishyPressable/SquishyPressable';
 import { useState, useRef, useCallback } from 'react';
+import { useFeatureFlag } from 'posthog-react-native';
 import { router } from 'expo-router';
 import { FontAwesomeIcon } from "@fortawesome/react-native-fontawesome";
 import { faSignOut, faUser, faEnvelope, faInfoCircle, faHeart, faBookOpen, faTrashCan, faCrown, faRotateRight, faPencil, faSignature, faBell as faBellRegular, faComment, faCircleQuestion, faStar, faShieldCheck, faFileLines, faGift, faUserPlus } from "@fortawesome/pro-regular-svg-icons";
@@ -55,6 +56,7 @@ const SettingsScreen = () => {
   const queryClient = useQueryClient();
   const [isRestoring, setIsRestoring] = useState(false);
   const [isLinking, setIsLinking] = useState(false);
+  const showFacebookLogin = useFeatureFlag('facebook-login-mobile');
   const signatureBottomSheetRef = useRef<BottomSheet>(null);
   const [isNameSheetVisible, setIsNameSheetVisible] = useState(false);
   const [isEmailSheetVisible, setIsEmailSheetVisible] = useState(false);
@@ -627,6 +629,7 @@ const SettingsScreen = () => {
                 onFacebook={handleLinkFacebook}
                 onMagicLink={handleLinkMagicLink}
                 disabled={isLinking}
+                showFacebook={!!showFacebookLogin}
               />
             </View>
           )}

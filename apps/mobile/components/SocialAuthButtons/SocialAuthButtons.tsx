@@ -1,4 +1,4 @@
-import { View, Text, TextInput } from 'react-native';
+import { View, Text, TextInput, Platform } from 'react-native';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { faApple, faFacebook, faGoogle } from '@fortawesome/free-brands-svg-icons';
 import { useState } from 'react';
@@ -11,6 +11,7 @@ type SocialAuthButtonsProps = {
   onMagicLink: (email: string) => void;
   disabled?: boolean;
   showMagicLink?: boolean;
+  showFacebook?: boolean;
 };
 
 const SocialAuthButtons = ({
@@ -20,6 +21,7 @@ const SocialAuthButtons = ({
   onMagicLink,
   disabled = false,
   showMagicLink = true,
+  showFacebook = true,
 }: SocialAuthButtonsProps) => {
   const [email, setEmail] = useState('');
 
@@ -34,23 +36,27 @@ const SocialAuthButtons = ({
         <Text className="font-jakarta text-base text-gray-900">Continue with Google</Text>
       </SquishyPressable>
 
-      <SquishyPressable
-        className="flex-row items-center p-4 border-b border-gray-100 active:bg-gray-50"
-        onPress={onApple}
-        disabled={disabled}
-      >
-        <FontAwesomeIcon icon={faApple as unknown as import('@fortawesome/fontawesome-svg-core').IconDefinition} size={20} color="#000000" style={{ marginRight: 12 }} />
-        <Text className="font-jakarta text-base text-gray-900">Continue with Apple</Text>
-      </SquishyPressable>
+      {Platform.OS === 'ios' && (
+        <SquishyPressable
+          className="flex-row items-center p-4 border-b border-gray-100 active:bg-gray-50"
+          onPress={onApple}
+          disabled={disabled}
+        >
+          <FontAwesomeIcon icon={faApple as unknown as import('@fortawesome/fontawesome-svg-core').IconDefinition} size={20} color="#000000" style={{ marginRight: 12 }} />
+          <Text className="font-jakarta text-base text-gray-900">Continue with Apple</Text>
+        </SquishyPressable>
+      )}
 
-      <SquishyPressable
-        className="flex-row items-center p-4 border-b border-gray-100 active:bg-gray-50"
-        onPress={onFacebook}
-        disabled={disabled}
-      >
-        <FontAwesomeIcon icon={faFacebook as unknown as import('@fortawesome/fontawesome-svg-core').IconDefinition} size={20} color="#1877F2" style={{ marginRight: 12 }} />
-        <Text className="font-jakarta text-base text-gray-900">Continue with Facebook</Text>
-      </SquishyPressable>
+      {showFacebook && (
+        <SquishyPressable
+          className="flex-row items-center p-4 border-b border-gray-100 active:bg-gray-50"
+          onPress={onFacebook}
+          disabled={disabled}
+        >
+          <FontAwesomeIcon icon={faFacebook as unknown as import('@fortawesome/fontawesome-svg-core').IconDefinition} size={20} color="#1877F2" style={{ marginRight: 12 }} />
+          <Text className="font-jakarta text-base text-gray-900">Continue with Facebook</Text>
+        </SquishyPressable>
+      )}
 
       {showMagicLink && (
         <View className="p-4">
