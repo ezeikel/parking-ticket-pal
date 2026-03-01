@@ -1,5 +1,5 @@
 import { useCallback, memo } from 'react';
-import { View, Text } from 'react-native';
+import { View, Text, ScrollView } from 'react-native';
 import { FlashList } from "@shopify/flash-list";
 import useVehicles from '@/hooks/api/useVehicles';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
@@ -8,6 +8,7 @@ import { Vehicle } from '@/types';
 import { Typography } from '../Typography/Typography';
 import Loader from '../Loader/Loader';
 import EmptyState from '../EmptyState/EmptyState';
+import CustomRefreshControl from '../CustomRefreshControl/CustomRefreshControl';
 
 const gridGap = 16;
 const vehicleItemStyle = { marginBottom: gridGap };
@@ -115,7 +116,11 @@ const VehicleItem = memo(function VehicleItem({ vehicle, style }: {
 });
 
 const VehiclesList = () => {
-  const { data: { vehicles } = {}, isLoading } = useVehicles();
+  const { data: { vehicles } = {}, isLoading, refetch, isRefetching } = useVehicles();
+
+  const onRefresh = useCallback(() => {
+    refetch();
+  }, [refetch]);
 
   const renderItem = useCallback(({ item }: { item: Vehicle }) => (
     <VehicleItem
@@ -134,13 +139,20 @@ const VehiclesList = () => {
 
   if (!vehicles || !vehicles.length) {
     return (
-      <View className="flex-1 items-center justify-center">
+      <ScrollView
+        className="flex-1"
+        contentContainerClassName="flex-1 items-center justify-center"
+        contentInsetAdjustmentBehavior="automatic"
+        refreshControl={
+          <CustomRefreshControl refreshing={isRefetching} onRefresh={onRefresh} />
+        }
+      >
         <EmptyState
           icon={faCar}
           title="No vehicles yet"
           description="Add a vehicle to link it with your parking tickets"
         />
-      </View>
+      </ScrollView>
     );
   }
 
@@ -151,6 +163,9 @@ const VehiclesList = () => {
         renderItem={renderItem}
         keyExtractor={(item) => item.id.toString()}
         contentContainerStyle={{ padding: 16 }}
+        refreshControl={
+          <CustomRefreshControl refreshing={isRefetching} onRefresh={onRefresh} />
+        }
       />
     </View>
   );

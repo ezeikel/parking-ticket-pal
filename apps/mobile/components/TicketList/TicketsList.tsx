@@ -1,5 +1,5 @@
 import { useCallback, useMemo, memo } from 'react';
-import { Text, View, RefreshControl, ScrollView } from 'react-native';
+import { Text, View, ScrollView } from 'react-native';
 import { FlashList } from '@shopify/flash-list';
 import { router } from 'expo-router';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
@@ -33,6 +33,7 @@ import Loader from '@/components/Loader/Loader';
 import EmptyState from '@/components/EmptyState/EmptyState';
 import SquishyPressable from '@/components/SquishyPressable/SquishyPressable';
 import ScoreGauge from '@/components/ScoreGauge/ScoreGauge';
+import CustomRefreshControl from '@/components/CustomRefreshControl/CustomRefreshControl';
 
 interface TicketsListProps {
   filters?: TicketFilters;
@@ -375,7 +376,7 @@ const TicketsList = ({ filters }: TicketsListProps) => {
         contentContainerClassName="flex-1 items-center justify-center"
         contentInsetAdjustmentBehavior="automatic"
         refreshControl={
-          <RefreshControl refreshing={isRefetching} onRefresh={onRefresh} />
+          <CustomRefreshControl refreshing={isRefetching} onRefresh={onRefresh} />
         }
       >
         <EmptyState
@@ -401,7 +402,7 @@ const TicketsList = ({ filters }: TicketsListProps) => {
           className="flex-1"
           contentInsetAdjustmentBehavior="automatic"
           refreshControl={
-            <RefreshControl refreshing={isRefetching} onRefresh={onRefresh} />
+            <CustomRefreshControl refreshing={isRefetching} onRefresh={onRefresh} />
           }
         >
           {draftTickets.map((draft) => (
@@ -421,7 +422,7 @@ const TicketsList = ({ filters }: TicketsListProps) => {
         contentContainerClassName="flex-1 items-center justify-center"
         contentInsetAdjustmentBehavior="automatic"
         refreshControl={
-          <RefreshControl refreshing={isRefetching} onRefresh={onRefresh} />
+          <CustomRefreshControl refreshing={isRefetching} onRefresh={onRefresh} />
         }
       >
         <EmptyState
@@ -476,7 +477,7 @@ const TicketsList = ({ filters }: TicketsListProps) => {
           ) : undefined
         }
         refreshControl={
-          <RefreshControl refreshing={isRefetching} onRefresh={onRefresh} />
+          <CustomRefreshControl refreshing={isRefetching} onRefresh={onRefresh} />
         }
       />
     </View>

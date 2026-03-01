@@ -1,19 +1,19 @@
-import { View, RefreshControl } from 'react-native';
+import { View, ScrollView } from 'react-native';
 import { FlashList } from '@shopify/flash-list';
-import { useState, useCallback } from 'react';
+import { useCallback } from 'react';
 import { useNotifications } from '@/hooks/api/useNotifications';
 import NotificationItem from './NotificationItem';
 import { faBell } from '@fortawesome/pro-regular-svg-icons';
 import Loader from './Loader/Loader';
 import EmptyState from './EmptyState/EmptyState';
+import CustomRefreshControl from './CustomRefreshControl/CustomRefreshControl';
 
 interface NotificationListProps {
   unreadOnly?: boolean;
 }
 
 const NotificationList = ({ unreadOnly = false }: NotificationListProps) => {
-  const [refreshing, setRefreshing] = useState(false);
-  const { data, isLoading, refetch } = useNotifications({ unreadOnly });
+  const { data, isLoading, isRefetching, refetch } = useNotifications({ unreadOnly });
 
   const notifications = data?.notifications || [];
 
@@ -22,11 +22,9 @@ const NotificationList = ({ unreadOnly = false }: NotificationListProps) => {
     [],
   );
 
-  const handleRefresh = async () => {
-    setRefreshing(true);
-    await refetch();
-    setRefreshing(false);
-  };
+  const onRefresh = useCallback(() => {
+    refetch();
+  }, [refetch]);
 
   if (isLoading) {
     return (
@@ -38,7 +36,14 @@ const NotificationList = ({ unreadOnly = false }: NotificationListProps) => {
 
   if (notifications.length === 0) {
     return (
-      <View className="flex-1 items-center justify-center">
+      <ScrollView
+        className="flex-1"
+        contentContainerClassName="flex-1 items-center justify-center"
+        contentInsetAdjustmentBehavior="automatic"
+        refreshControl={
+          <CustomRefreshControl refreshing={isRefetching} onRefresh={onRefresh} />
+        }
+      >
         <EmptyState
           icon={faBell}
           title={unreadOnly ? 'No unread notifications' : 'No notifications yet'}
@@ -48,7 +53,7 @@ const NotificationList = ({ unreadOnly = false }: NotificationListProps) => {
               : "When you receive notifications about your parking tickets, they'll appear here."
           }
         />
-      </View>
+      </ScrollView>
     );
   }
 
@@ -65,12 +70,7 @@ const NotificationList = ({ unreadOnly = false }: NotificationListProps) => {
         paddingBottom: 24,
       }}
       refreshControl={
-        <RefreshControl
-          refreshing={refreshing}
-          onRefresh={handleRefresh}
-          tintColor="#1ABC9C"
-          colors={['#1ABC9C']}
-        />
+        <CustomRefreshControl refreshing={isRefetching} onRefresh={onRefresh} />
       }
     />
   );
