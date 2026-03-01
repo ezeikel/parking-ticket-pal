@@ -10,12 +10,10 @@ export const ticketFormSchema = z.object({
     }),
   pcnNumber: z.string().min(1, { message: 'PCN number is required' }),
   issuedAt: z.date({ required_error: 'Date issued is required' }),
-  contraventionCode: z
-    .string()
-    .min(1, { message: 'Contravention code is required' }),
-  initialAmount: z.number().min(1, { message: 'Amount due is required' }),
-  issuer: z.string().min(1, { message: 'Issuer is required' }),
-  location: AddressSchema,
+  contraventionCode: z.string().optional().nullable(),
+  initialAmount: z.number().optional().nullable(),
+  issuer: z.string().optional().nullable(),
+  location: AddressSchema.optional().nullable(),
 });
 
 export type TicketFormData = z.infer<typeof ticketFormSchema>;

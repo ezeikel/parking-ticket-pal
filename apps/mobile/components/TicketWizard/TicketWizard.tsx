@@ -211,7 +211,7 @@ const TicketWizard = ({ ocrData, onComplete, onCancel }: TicketWizardProps) => {
 
   // CreatingStep has its own layout (full-screen loading)
   if (currentStep === 'creating') {
-    return <CreatingStep wizardData={wizardData} onComplete={handleWizardComplete} />;
+    return <CreatingStep wizardData={wizardData} onComplete={handleWizardComplete} onCancel={onCancel} />;
   }
 
   const stepProps = {

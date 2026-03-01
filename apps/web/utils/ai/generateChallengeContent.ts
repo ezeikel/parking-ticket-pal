@@ -49,18 +49,19 @@ const generateChallengeLetterPrompt = (
   const ticketCity = ticketLocation?.city || '';
   const ticketPostcode = ticketLocation?.postcode || '';
 
-  const contraventionDescription =
-    contraventionCodes[ticket.contraventionCode]?.description ||
-    'Unknown contravention';
+  const contraventionDescription = ticket.contraventionCode
+    ? contraventionCodes[ticket.contraventionCode]?.description ||
+      'Unknown contravention'
+    : 'Not specified';
 
   return `Generate a challenge letter for the following PCN:
 
 PCN Number: ${ticket.pcnNumber}
 Vehicle Registration: ${ticket.vehicle?.registrationNumber || 'N/A'}
-Issuer: ${ticket.issuer}
-Contravention Code: ${ticket.contraventionCode}
+Issuer: ${ticket.issuer || 'Not specified'}
+Contravention Code: ${ticket.contraventionCode || 'Not specified'}
 Contravention Description: ${contraventionDescription}
-Amount Due: £${(ticket.initialAmount / 100).toFixed(2)}
+Amount Due: ${ticket.initialAmount != null ? `£${(ticket.initialAmount / 100).toFixed(2)}` : 'Not specified'}
 Location: ${ticketAddressLine1}, ${ticketCity} ${ticketPostcode}
 Date of Contravention: ${ticket.contraventionAt.toLocaleDateString('en-GB')}
 Date Issued: ${ticket.issuedAt.toLocaleDateString('en-GB')}

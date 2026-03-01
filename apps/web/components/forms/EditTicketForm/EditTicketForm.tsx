@@ -49,10 +49,10 @@ const EditTicketForm = ({ ticket }: EditTicketFormProps) => {
       vehicleReg: ticket.vehicle.registrationNumber,
       pcnNumber: ticket.pcnNumber,
       issuedAt: new Date(ticket.issuedAt),
-      contraventionCode: ticket.contraventionCode,
-      initialAmount: ticket.initialAmount,
-      issuer: ticket.issuer,
-      location: ticket.location as Address,
+      contraventionCode: ticket.contraventionCode ?? '',
+      initialAmount: ticket.initialAmount ?? 0,
+      issuer: ticket.issuer ?? '',
+      location: (ticket.location as Address) ?? null,
     } as TicketFormData,
     validators: {
       onSubmit: ticketFormSchema,
@@ -147,7 +147,7 @@ const EditTicketForm = ({ ticket }: EditTicketFormProps) => {
               <TanstackFormLabel>Issuer</TanstackFormLabel>
               <TanstackFormControl>
                 <Input
-                  value={field.state.value}
+                  value={field.state.value ?? ''}
                   onChange={(e) => field.handleChange(e.target.value)}
                   onBlur={field.handleBlur}
                 />
@@ -174,9 +174,7 @@ const EditTicketForm = ({ ticket }: EditTicketFormProps) => {
                   type="number"
                   step="0.01"
                   value={
-                    field.state.value === 0
-                      ? ''
-                      : String(field.state.value / 100)
+                    !field.state.value ? '' : String(field.state.value / 100)
                   }
                   onChange={(e) =>
                     field.handleChange(Math.round(Number(e.target.value) * 100))
@@ -246,7 +244,7 @@ const EditTicketForm = ({ ticket }: EditTicketFormProps) => {
               <TanstackFormLabel>Contravention Code</TanstackFormLabel>
               <TanstackFormControl>
                 <ContraventionCodeSelect
-                  value={field.state.value}
+                  value={field.state.value ?? ''}
                   onChange={(val) => field.handleChange(val)}
                 />
               </TanstackFormControl>

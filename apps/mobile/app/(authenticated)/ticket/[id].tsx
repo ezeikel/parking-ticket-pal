@@ -1,4 +1,4 @@
-import { View, Text, ScrollView, useWindowDimensions, Linking, Alert } from 'react-native';
+import { View, Text, ScrollView, useWindowDimensions, Linking } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, router } from 'expo-router';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
@@ -14,6 +14,7 @@ import {
   getDisplayAmount,
 } from '@/constants/ticket-status';
 import { MAX_CONTENT_WIDTH } from '@/constants/layout';
+import { toast } from '@/lib/toast';
 import Loader from '@/components/Loader/Loader';
 import SquishyPressable from '@/components/SquishyPressable/SquishyPressable';
 import PremiumActionsBottomSheet from '@/components/PremiumActionsBottomSheet';
@@ -176,7 +177,7 @@ export default function TicketDetailScreen() {
     if (ticket.paymentLink) {
       Linking.openURL(ticket.paymentLink);
     } else {
-      Alert.alert('Payment', 'Payment link not available for this ticket.');
+      toast.info('Payment', 'Payment link not available for this ticket.');
     }
   };
 

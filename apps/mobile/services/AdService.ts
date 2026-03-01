@@ -81,8 +81,18 @@ class AdService {
       logger.info('Showing interstitial ad', {
         action: 'ad_show',
       });
-      this.interstitial.show();
-      return true;
+
+      return new Promise<boolean>((resolve) => {
+        const closedListener = this.interstitial.addAdEventListener(
+          AdEventType.CLOSED,
+          () => {
+            closedListener();
+            resolve(true);
+          },
+        );
+
+        this.interstitial.show();
+      });
     } catch (error) {
       logger.error('Failed to show interstitial ad', {
         action: 'ad_show',

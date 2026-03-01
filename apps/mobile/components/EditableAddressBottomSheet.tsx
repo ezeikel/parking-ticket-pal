@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, Alert, ScrollView, Modal, Pressable } from 'react-native';
+import { View, Text, TextInput, ScrollView, Modal, Pressable } from 'react-native';
+import { toast } from '@/lib/toast';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { faXmark } from '@fortawesome/pro-regular-svg-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -44,10 +45,10 @@ const EditableAddressBottomSheet = ({
       try {
         setIsSaving(true);
         await onSave(value as Address);
-        Alert.alert('Success', 'Address updated successfully');
+        toast.success('Success', 'Address updated successfully');
       } catch (error) {
         console.error('Error saving address:', error);
-        Alert.alert('Error', 'Failed to update address');
+        toast.error('Error', 'Failed to update address');
       } finally {
         setIsSaving(false);
       }

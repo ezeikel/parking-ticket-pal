@@ -1,5 +1,6 @@
 import React, { forwardRef, useMemo, useState, useRef } from 'react';
-import { View, Text, Alert, useWindowDimensions } from 'react-native';
+import { View, Text, useWindowDimensions } from 'react-native';
+import { toast } from '@/lib/toast';
 import BottomSheet, { BottomSheetBackdrop, BottomSheetView } from '@gorhom/bottom-sheet';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { faTrash, faXmark, faExclamationTriangle } from '@fortawesome/pro-regular-svg-icons';
@@ -35,7 +36,7 @@ const SignatureBottomSheet = forwardRef<BottomSheet, SignatureBottomSheetProps>(
 
     const handleSave = async () => {
       if (!hasDrawn) {
-        Alert.alert('No Signature', 'Please draw your signature before saving');
+        toast.info('No Signature', 'Please draw your signature before saving');
         return;
       }
 
@@ -43,7 +44,7 @@ const SignatureBottomSheet = forwardRef<BottomSheet, SignatureBottomSheetProps>(
         setIsSaving(true);
 
         if (!drawPadRef.current || !drawPadRef.current.getSVG) {
-          Alert.alert('Error', 'Failed to access signature canvas');
+          toast.error('Error', 'Failed to access signature canvas');
           return;
         }
 
@@ -51,7 +52,7 @@ const SignatureBottomSheet = forwardRef<BottomSheet, SignatureBottomSheetProps>(
         const svgData = await drawPadRef.current.getSVG();
 
         if (!svgData) {
-          Alert.alert('Error', 'Failed to export signature');
+          toast.error('Error', 'Failed to export signature');
           return;
         }
 
@@ -61,7 +62,7 @@ const SignatureBottomSheet = forwardRef<BottomSheet, SignatureBottomSheetProps>(
         onSave(signatureDataString);
       } catch (error) {
         console.error('Error exporting signature:', error);
-        Alert.alert('Error', 'Failed to export signature');
+        toast.error('Error', 'Failed to export signature');
       } finally {
         setIsSaving(false);
       }

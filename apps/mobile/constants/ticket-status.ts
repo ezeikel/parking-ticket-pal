@@ -82,7 +82,8 @@ export function needsActionStatus(status: TicketStatus): boolean {
   return NEEDS_ACTION_STATUSES.has(status);
 }
 
-export function getIssuerInitials(issuer: string): string {
+export function getIssuerInitials(issuer: string | null | undefined): string {
+  if (!issuer) return '??';
   return issuer.substring(0, 2).toUpperCase();
 }
 

@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useEffect } from 'react';
-import { View, Dimensions, Alert } from 'react-native';
+import { View, Dimensions } from 'react-native';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -7,11 +7,13 @@ import Animated, {
   Easing,
 } from 'react-native-reanimated';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { router } from 'expo-router';
 import TicketWizard from '@/components/TicketWizard/TicketWizard';
 import { Paywall } from '@/components/Paywall/Paywall';
 import { useAuthContext } from '@/contexts/auth';
 import { useAnalytics } from '@/lib/analytics';
 import { adService } from '@/services/AdService';
+import { toast } from '@/lib/toast';
 import type { WizardResult } from '@/components/TicketWizard/types';
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
@@ -65,9 +67,9 @@ const ManualEntrySheet = ({ isVisible, onClose }: ManualEntrySheetProps) => {
     } else {
       (async () => {
         await adService.showAd(user?.lastPremiumPurchaseAt);
-        Alert.alert('Success', 'Ticket created successfully!', [
-          { text: 'OK', onPress: handleClose }
-        ]);
+        toast.success('Success', 'Ticket created successfully!');
+        handleClose();
+        router.push(`/ticket/${result.ticketId}`);
       })();
     }
   }, [trackEvent, handleClose]);

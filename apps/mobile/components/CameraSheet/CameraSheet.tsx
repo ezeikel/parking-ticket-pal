@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { View, Dimensions, Text, Alert } from 'react-native';
+import { View, Dimensions, Text } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Animated, {
   useSharedValue,
@@ -11,6 +11,7 @@ import Animated, {
   Easing,
 } from 'react-native-reanimated';
 import { Gesture, GestureDetector, GestureHandlerRootView } from 'react-native-gesture-handler';
+import { router } from 'expo-router';
 import Scanner from '@/components/Scanner/Scanner';
 import TicketWizard from '@/components/TicketWizard/TicketWizard';
 import { Paywall } from '@/components/Paywall/Paywall';
@@ -18,6 +19,7 @@ import { useCameraContext } from '@/contexts/CameraContext';
 import { useAuthContext } from '@/contexts/auth';
 import { useAnalytics } from '@/lib/analytics';
 import { adService } from '@/services/AdService';
+import { toast } from '@/lib/toast';
 import Loader from '../Loader/Loader';
 import type { OCRProcessingResult } from '@/hooks/api/useOCR';
 import type { WizardResult } from '@/components/TicketWizard/types';
@@ -141,12 +143,12 @@ const CameraSheet = ({ isVisible, onClose, onboardingMode, onOCRComplete }: Came
       // Show paywall for challenge flow
       setPhase('paywall');
     } else {
-      // Track flow: show ad, then close
+      // Track flow: show ad, then close, then navigate to ticket
       (async () => {
         await adService.showAd(user?.lastPremiumPurchaseAt);
-        Alert.alert('Success', 'Ticket created successfully!', [
-          { text: 'OK', onPress: handleClose }
-        ]);
+        toast.success('Success', 'Ticket created successfully!');
+        handleClose();
+        router.push(`/ticket/${result.ticketId}`);
       })();
     }
   }, [trackEvent, handleClose]);

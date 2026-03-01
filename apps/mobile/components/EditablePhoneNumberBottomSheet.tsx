@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, Alert, Modal, Pressable } from 'react-native';
+import { View, Text, TextInput, Modal, Pressable } from 'react-native';
+import { toast } from '@/lib/toast';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { faXmark, faCheck } from '@fortawesome/pro-regular-svg-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -104,10 +105,10 @@ const EditablePhoneNumberBottomSheet = ({
       try {
         setIsSaving(true);
         await onSave(value.phoneNumber);
-        Alert.alert('Success', 'Mobile number updated successfully');
+        toast.success('Success', 'Mobile number updated successfully');
       } catch (error) {
         console.error('Error saving phone number:', error);
-        Alert.alert('Error', 'Failed to update mobile number');
+        toast.error('Error', 'Failed to update mobile number');
       } finally {
         setIsSaving(false);
       }

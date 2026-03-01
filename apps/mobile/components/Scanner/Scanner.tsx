@@ -4,6 +4,7 @@ import { Image } from 'expo-image';
 import DocumentScanner, { ResponseType } from 'react-native-document-scanner-plugin';
 import * as ImagePicker from 'expo-image-picker';
 
+import { toast } from '@/lib/toast';
 import useOCR, { type OCRProcessingResult } from '@/hooks/api/useOCR';
 import { useAnalytics, getOCRAnalyticsProperties } from '@/lib/analytics';
 import { useLogger, logScannerIssue } from '@/lib/logger';
@@ -122,14 +123,8 @@ const Scanner = ({ onClose, onImageScanned, onOCRComplete }: ScannerProps) => {
         errorType: "scanning"
       });
 
-      // Show an alert instead of just closing
-      Alert.alert(
-        'Camera Error',
-        'Unable to access photo library. Please check app permissions in Settings.',
-        [
-          { text: 'OK', onPress: () => onClose?.() }
-        ]
-      );
+      toast.error('Camera Error', 'Unable to access photo library. Please check app permissions in Settings.');
+      onClose?.();
     }
   };
 
@@ -280,7 +275,7 @@ const Scanner = ({ onClose, onImageScanned, onOCRComplete }: ScannerProps) => {
           error_message: ocrResult.message,
           processing_time_ms: Date.now() - startTime
         });
-        Alert.alert('Error', 'Failed to process the image. Please try again.');
+        toast.error('Error', 'Failed to process the image. Please try again.');
       }
     } catch (error) {
       logScannerIssue('ocr_process', error as Error, { screen: "scanner" });

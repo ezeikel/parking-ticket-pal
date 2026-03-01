@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, ScrollView, Alert, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, Text, TextInput, ScrollView, KeyboardAvoidingView, Platform } from 'react-native';
+import { toast } from '@/lib/toast';
 import { useForm } from '@tanstack/react-form';
 import DateTimePicker, { DateTimePickerEvent } from '@react-native-community/datetimepicker';
 import { Picker } from '@react-native-picker/picker';
@@ -54,7 +55,7 @@ const TicketForm = ({ initialData, onSubmit, onCancel, isLoading = false }: Tick
       try {
         await onSubmit(value);
       } catch (error) {
-        Alert.alert('Error', 'Failed to submit ticket. Please try again.');
+        toast.error('Error', 'Failed to submit ticket. Please try again.');
       }
     },
   });
