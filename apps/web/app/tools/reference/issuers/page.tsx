@@ -16,32 +16,10 @@ import {
   LOCAL_AUTHORITY_IDS,
   PRIVATE_COMPANIES,
   TRANSPORT_AUTHORITIES,
-  LOCAL_AUTHORITIES,
+  slugToDisplayName,
 } from '@/constants';
 
 type IssuerTypeFilter = 'all' | 'council' | 'private' | 'tfl';
-
-// Helper to convert slug to display name
-const slugToDisplayName = (slug: string): string => {
-  // Check if we have a full metadata entry
-  const fullEntry = LOCAL_AUTHORITIES.find((la) => la.id === slug);
-  if (fullEntry) return fullEntry.name;
-
-  // Otherwise, convert the slug
-  return slug
-    .split('-')
-    .map((word) => {
-      // Handle special cases
-      if (word === 'and') return 'and';
-      if (word === 'of') return 'of';
-      if (word === 'upon') return 'upon';
-      if (word === 'in') return 'in';
-      if (word === 'the') return 'the';
-      // Capitalize first letter
-      return word.charAt(0).toUpperCase() + word.slice(1);
-    })
-    .join(' ');
-};
 
 // Get all issuers in a structured format
 const getAllIssuers = () => {

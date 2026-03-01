@@ -40,7 +40,7 @@ function getStepTitle(step: WizardStep): string {
     case 'stage':
       return 'What stage are you at?';
     case 'details':
-      return 'Enter your ticket details';
+      return 'Your ticket details';
     case 'confirm':
       return 'Confirm your details';
     case 'intent':
