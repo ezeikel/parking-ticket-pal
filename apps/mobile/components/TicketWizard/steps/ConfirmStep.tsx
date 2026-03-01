@@ -44,6 +44,7 @@ const ConfirmStep = ({ wizardData, onNext }: WizardStepProps) => {
       <View className="mb-4">
         <Text className="font-jakarta-medium text-sm text-gray-900 mb-2">PCN Reference</Text>
         <TextInput
+          testID="confirm-pcn"
           className={`border rounded-lg px-4 py-3 text-base font-jakarta ${pcnError ? 'border-red-500' : 'border-gray-300'}`}
           value={pcnNumber}
           onChangeText={setPcnNumber}
@@ -201,6 +202,7 @@ const ConfirmStep = ({ wizardData, onNext }: WizardStepProps) => {
       )}
 
       <SquishyPressable
+        testID="confirm-continue"
         onPress={() =>
           onNext({
             pcnNumber: pcnNumber.trim(),

@@ -1,0 +1,89 @@
+appId: com.chewybytes.parkingticketpal.app
+---
+# Flow 6: Manual ticket entry via wizard
+# Prerequisites: User is logged in, app is on Tickets tab
+
+- launchApp
+
+# Skip onboarding if shown
+- runFlow:
+    when:
+      visible: "Skip"
+    commands:
+      - tapOn: "Skip"
+
+# Wait for tickets screen to load
+- assertVisible: "Tickets"
+
+# Tap the manual entry FAB
+- tapOn:
+    id: "fab-manual-entry"
+
+# --- Step 1: Issuer Type ---
+- assertVisible: "Who issued your ticket?"
+- tapOn:
+    id: "issuer-council"
+
+# --- Step 2: Stage ---
+- assertVisible: "What stage are you at?"
+- tapOn:
+    id: "stage-initial"
+
+# --- Step 3: Details ---
+- assertVisible: "Enter your ticket details"
+
+# Fill PCN
+- tapOn:
+    id: "details-pcn"
+- inputText: "E2E-MAESTRO-001"
+
+# Fill Vehicle Registration
+- tapOn:
+    id: "details-vehicle-reg"
+- inputText: "AB12CDE"
+
+# Fill Issuer - type and select from suggestions
+- tapOn:
+    id: "details-issuer"
+- inputText: "Lewisham"
+- extendedWaitUntil:
+    visible: "Lewisham"
+    timeout: 10000
+- tapOn: "Lewisham"
+
+# Date picker is inline on iOS - it defaults to today, which is fine
+
+# Fill Amount
+- tapOn:
+    id: "details-amount"
+- inputText: "70"
+
+# Fill Location
+- tapOn:
+    id: "details-location"
+- inputText: "10 Downing Street"
+- extendedWaitUntil:
+    visible: "Downing"
+    timeout: 10000
+- tapOn:
+    index: 0
+    text: ".*Downing.*"
+
+# Scroll down and tap Continue
+- scrollUntilVisible:
+    element:
+      id: "details-continue"
+    direction: DOWN
+- tapOn:
+    id: "details-continue"
+
+# --- Step 4: Intent ---
+- assertVisible: "What would you like to do?"
+- tapOn:
+    id: "intent-track"
+
+# --- Creating Step ---
+# Wait for ticket creation to complete
+- extendedWaitUntil:
+    visible: "Ticket created"
+    timeout: 30000

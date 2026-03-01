@@ -38,6 +38,7 @@ const StageStep = ({ onNext }: WizardStepProps) => {
         {stages.map((stage) => (
           <SquishyPressable
             key={stage.id}
+            testID={`stage-${stage.id}`}
             onPress={() => handleSelect(stage.id)}
             className="rounded-xl border-2 border-gray-200 p-4"
           >

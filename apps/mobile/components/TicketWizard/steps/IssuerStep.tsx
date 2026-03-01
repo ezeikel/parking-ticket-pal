@@ -17,6 +17,7 @@ const IssuerStep = ({ onNext }: WizardStepProps) => {
       </Text>
 
       <SquishyPressable
+        testID="issuer-council"
         onPress={() => handleSelect('council')}
         className="flex-row items-start gap-x-4 rounded-xl border-2 border-gray-200 p-4"
       >
@@ -37,6 +38,7 @@ const IssuerStep = ({ onNext }: WizardStepProps) => {
       </SquishyPressable>
 
       <SquishyPressable
+        testID="issuer-private"
         onPress={() => handleSelect('private')}
         className="flex-row items-start gap-x-4 rounded-xl border-2 border-gray-200 p-4"
       >

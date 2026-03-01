@@ -17,6 +17,7 @@ const IntentStep = ({ onNext }: WizardStepProps) => {
 
       <View className="gap-y-3 mb-4">
         <SquishyPressable
+          testID="intent-track"
           onPress={() => handleSelect('track')}
           className="flex-row items-start gap-x-4 rounded-xl border-2 border-gray-200 p-4"
         >
@@ -37,6 +38,7 @@ const IntentStep = ({ onNext }: WizardStepProps) => {
         </SquishyPressable>
 
         <SquishyPressable
+          testID="intent-challenge"
           onPress={() => handleSelect('challenge')}
           className="flex-row items-start gap-x-4 rounded-xl border-2 border-gray-200 p-4"
         >

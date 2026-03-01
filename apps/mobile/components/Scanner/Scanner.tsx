@@ -329,6 +329,7 @@ const Scanner = ({ onClose, onImageScanned, onOCRComplete }: ScannerProps) => {
         </SquishyPressable>
 
         <SquishyPressable
+          testID="scanner-process"
           onPress={handleProcess}
           className="flex-1 bg-dark py-3 rounded-lg"
           disabled={ocrMutation.isPending}

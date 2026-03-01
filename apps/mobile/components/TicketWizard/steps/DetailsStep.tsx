@@ -57,6 +57,7 @@ const DetailsStep = ({ wizardData, onNext }: WizardStepProps) => {
           PCN / Reference Number
         </Text>
         <TextInput
+          testID="details-pcn"
           className={`border rounded-lg px-4 py-3 text-base font-jakarta ${pcnError ? 'border-red-500' : 'border-gray-300'}`}
           placeholder="e.g. WK12345678"
           value={pcnNumber}
@@ -81,6 +82,7 @@ const DetailsStep = ({ wizardData, onNext }: WizardStepProps) => {
           Vehicle Registration
         </Text>
         <TextInput
+          testID="details-vehicle-reg"
           className={`border rounded-lg px-4 py-3 text-base font-jakarta uppercase ${regError ? 'border-red-500' : 'border-gray-300'}`}
           placeholder="e.g. AB12 CDE"
           value={vehicleReg}
@@ -105,6 +107,7 @@ const DetailsStep = ({ wizardData, onNext }: WizardStepProps) => {
           Issuer Name
         </Text>
         <IssuerInput
+          testID="details-issuer"
           onSelect={setIssuer}
           initialValue={issuer}
           issuerType={wizardData.issuerType}
@@ -121,7 +124,7 @@ const DetailsStep = ({ wizardData, onNext }: WizardStepProps) => {
           Date Issued
         </Text>
         {Platform.OS === 'ios' ? (
-          <View className="border border-gray-300 rounded-lg overflow-hidden">
+          <View testID="details-date" className="border border-gray-300 rounded-lg overflow-hidden">
             <DateTimePicker
               value={issuedAt || new Date()}
               mode="date"
@@ -183,6 +186,7 @@ const DetailsStep = ({ wizardData, onNext }: WizardStepProps) => {
           Amount (£)
         </Text>
         <TextInput
+          testID="details-amount"
           className="border border-gray-300 rounded-lg px-4 py-3 text-base font-jakarta"
           placeholder="e.g. 65"
           value={amountText}
@@ -210,6 +214,7 @@ const DetailsStep = ({ wizardData, onNext }: WizardStepProps) => {
           Location
         </Text>
         <AddressInput
+          testID="details-location"
           onSelect={setLocation}
           initialValue={
             location ? `${location.line1}, ${location.postcode}` : ''
@@ -222,6 +227,7 @@ const DetailsStep = ({ wizardData, onNext }: WizardStepProps) => {
       </View>
 
       <SquishyPressable
+        testID="details-continue"
         onPress={() =>
           onNext({
             pcnNumber: pcnNumber.trim(),

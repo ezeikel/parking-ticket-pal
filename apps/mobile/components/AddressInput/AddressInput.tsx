@@ -28,9 +28,10 @@ type AddressInputProps = {
   onSelect: (address: Address) => void;
   initialValue?: string;
   placeholder?: string;
+  testID?: string;
 };
 
-const AddressInput = ({ onSelect, initialValue = '', placeholder = 'Start typing an address' }: AddressInputProps) => {
+const AddressInput = ({ onSelect, initialValue = '', placeholder = 'Start typing an address', testID }: AddressInputProps) => {
   const [query, setQuery] = useState(initialValue);
   const [suggestions, setSuggestions] = useState<MapboxFeature[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -125,6 +126,7 @@ const AddressInput = ({ onSelect, initialValue = '', placeholder = 'Start typing
     <View>
       <View className="border border-gray-300 rounded-lg">
         <TextInput
+          testID={testID}
           className="px-3 py-3 text-base"
           placeholder={placeholder}
           value={query}

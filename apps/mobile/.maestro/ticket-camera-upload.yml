@@ -1,0 +1,70 @@
+appId: com.chewybytes.parkingticketpal.app
+---
+# Flow 5: Camera/upload ticket via scanner + OCR
+# Prerequisites: User is logged in, fixture image added to simulator
+# Note: In dev mode, Scanner falls back to ImagePicker
+
+# Inject test ticket image into simulator gallery
+- addMedia: fixtures/ticket-council-1.jpg
+
+- launchApp
+
+# Skip onboarding if shown
+- runFlow:
+    when:
+      visible: "Skip"
+    commands:
+      - tapOn: "Skip"
+
+# Wait for tickets screen to load
+- assertVisible: "Tickets"
+
+# Tap the camera FAB
+- tapOn:
+    id: "fab-camera"
+
+# Grant camera permission if prompted
+- runFlow:
+    when:
+      visible: "Allow"
+    commands:
+      - tapOn: "Allow"
+
+# In dev mode, scanner uses ImagePicker - select the injected image
+# This may show the photo library picker
+- runFlow:
+    when:
+      visible: "Choose"
+    commands:
+      - tapOn: "Choose"
+
+# Wait for image to appear in scanner preview, then process
+- extendedWaitUntil:
+    visible:
+      id: "scanner-process"
+    timeout: 15000
+- tapOn:
+    id: "scanner-process"
+
+# Wait for OCR processing to complete (up to 30s)
+- extendedWaitUntil:
+    visible:
+      id: "confirm-pcn"
+    timeout: 30000
+
+# Verify OCR extracted data is shown
+- assertVisible: "Details extracted from your photo"
+
+# Tap Continue on confirm step
+- tapOn:
+    id: "confirm-continue"
+
+# --- Intent Step ---
+- assertVisible: "What would you like to do?"
+- tapOn:
+    id: "intent-track"
+
+# Wait for ticket creation
+- extendedWaitUntil:
+    visible: "Ticket created"
+    timeout: 30000

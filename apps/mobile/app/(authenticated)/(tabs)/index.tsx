@@ -198,6 +198,7 @@ const TicketsScreen = () => {
         pointerEvents="box-none"
       >
         <SquishyPressable
+          testID="fab-camera"
           onPress={openCamera}
           style={[fabStyle, perfect.cardShadow]}
           accessibilityRole="button"
@@ -207,6 +208,7 @@ const TicketsScreen = () => {
         </SquishyPressable>
 
         <SquishyPressable
+          testID="fab-manual-entry"
           onPress={openManualEntry}
           style={[fabStyle, perfect.cardShadow]}
           accessibilityRole="button"

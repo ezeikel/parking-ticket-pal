@@ -116,6 +116,15 @@ export default [
     },
   },
   {
+    files: ['playwright.config.ts', 'e2e/**/*.ts'],
+    rules: {
+      'import-x/no-extraneous-dependencies': [
+        'error',
+        { devDependencies: true },
+      ],
+    },
+  },
+  {
     ignores: [
       'node_modules/**',
       '.next/**',

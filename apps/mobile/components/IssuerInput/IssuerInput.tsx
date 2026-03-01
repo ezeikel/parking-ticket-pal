@@ -19,6 +19,7 @@ type IssuerInputProps = {
   initialValue?: string;
   issuerType?: 'council' | 'private' | null;
   placeholder?: string;
+  testID?: string;
 };
 
 const ALL_ISSUERS: IssuerEntry[] = [
@@ -44,6 +45,7 @@ const IssuerInput = ({
   initialValue = '',
   issuerType = null,
   placeholder = 'Search for issuer',
+  testID,
 }: IssuerInputProps) => {
   const [query, setQuery] = useState(initialValue);
   const [showSuggestions, setShowSuggestions] = useState(false);
@@ -93,6 +95,7 @@ const IssuerInput = ({
     <View>
       <View className="border border-gray-300 rounded-lg">
         <TextInput
+          testID={testID}
           className="px-4 py-3 text-base font-jakarta"
           placeholder={placeholder}
           value={query}
