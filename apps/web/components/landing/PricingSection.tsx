@@ -54,7 +54,7 @@ const tiers: PricingTier[] = [
     ctaVariant: 'default',
     ctaHref: '/pricing',
     note: 'One-time payment per ticket',
-    popular: true,
+    popular: false,
   },
 ];
 

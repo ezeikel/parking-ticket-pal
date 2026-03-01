@@ -39,7 +39,6 @@ export const PRICING_TIERS: Omit<PriceCardProps, 'dataAttrs'>[] = [
     ],
     ctaLabel: 'Upgrade to Premium — £14.99',
     href: '/new?tier=premium&source=pricing',
-    badge: 'Most Popular',
     variant: 'highlighted' as const,
   },
 ];

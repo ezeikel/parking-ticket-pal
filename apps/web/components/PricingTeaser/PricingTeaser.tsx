@@ -38,7 +38,7 @@ const PRICING_TIERS = [
     ],
     cta: 'Upgrade to Premium — £14.99',
     href: '/new?tier=premium&source=homepage',
-    isPopular: true,
+    isPopular: false,
     disabled: false,
   },
 ];
