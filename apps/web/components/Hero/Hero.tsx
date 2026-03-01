@@ -194,6 +194,9 @@ const Hero = () => {
             vehicleReg: result.data.vehicleReg || '',
             issuerType: 'council',
             ticketStage: 'initial',
+            issueDate: result.data.issuedAt
+              ? new Date(result.data.issuedAt).toISOString()
+              : undefined,
             initialAmount: result.data.initialAmount,
             issuer: result.data.issuer,
             imageUrl: result.imageUrl,

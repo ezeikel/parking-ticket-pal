@@ -801,10 +801,10 @@ const TicketWizard = ({
                   We extracted these details. Please check they&apos;re correct.
                 </p>
 
-                <div className="mt-6 flex flex-col gap-4">
+                <div className="mt-6 flex max-h-[320px] flex-col gap-4 overflow-y-auto pr-2">
                   <div>
                     <label className="mb-1.5 block text-sm font-medium text-dark">
-                      PCN Reference
+                      PCN Reference *
                     </label>
                     <Input
                       value={pcnNumber}
@@ -815,12 +815,14 @@ const TicketWizard = ({
 
                   <div>
                     <label className="mb-1.5 block text-sm font-medium text-dark">
-                      Vehicle Registration
+                      Vehicle Registration *
                     </label>
                     <Input
                       value={vehicleReg}
-                      onChange={(e) => setVehicleReg(e.target.value)}
-                      className="h-11"
+                      onChange={(e) =>
+                        setVehicleReg(e.target.value.toUpperCase())
+                      }
+                      className="h-11 uppercase"
                     />
                   </div>
 
@@ -875,11 +877,90 @@ const TicketWizard = ({
                       </option>
                     </select>
                   </div>
+
+                  <div>
+                    <label className="mb-1.5 block text-sm font-medium text-dark">
+                      Issuer *
+                    </label>
+                    <IssuerCombobox
+                      issuerType={issuerType}
+                      value={issuer}
+                      onSelect={setIssuer}
+                    />
+                  </div>
+
+                  <div>
+                    <label className="mb-1.5 block text-sm font-medium text-dark">
+                      Issue Date *
+                    </label>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <button
+                          type="button"
+                          className={`flex h-11 w-full items-center rounded-md border border-input bg-background px-3 text-sm ring-offset-background ${
+                            issuedAt ? 'text-dark' : 'text-muted-foreground'
+                          }`}
+                        >
+                          <FontAwesomeIcon
+                            icon={faCalendar}
+                            className="mr-2 text-gray"
+                          />
+                          {issuedAt
+                            ? format(issuedAt, 'dd MMM yyyy')
+                            : 'Pick a date'}
+                        </button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0" align="start">
+                        <Calendar
+                          mode="single"
+                          selected={issuedAt ?? undefined}
+                          onSelect={(day) => setIssuedAt(day ?? null)}
+                          disabled={{ after: new Date() }}
+                          defaultMonth={issuedAt ?? undefined}
+                        />
+                      </PopoverContent>
+                    </Popover>
+                  </div>
+
+                  <div>
+                    <label className="mb-1.5 block text-sm font-medium text-dark">
+                      Amount (£) *
+                    </label>
+                    <Input
+                      type="number"
+                      value={initialAmount !== null ? initialAmount / 100 : ''}
+                      onChange={(e) =>
+                        setInitialAmount(
+                          e.target.value
+                            ? Math.round(Number(e.target.value) * 100)
+                            : null,
+                        )
+                      }
+                      placeholder="e.g. 70"
+                      min="0"
+                      step="0.01"
+                      className="h-11"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="mb-1.5 block text-sm font-medium text-dark">
+                      Location *
+                    </label>
+                    <AddressInput onSelect={setLocation} className="h-11" />
+                  </div>
                 </div>
 
                 <Button
                   onClick={() => goToStep('intent')}
-                  disabled={!pcnNumber.trim() || !vehicleReg.trim()}
+                  disabled={
+                    !pcnNumber.trim() ||
+                    !vehicleReg.trim() ||
+                    !issuer.trim() ||
+                    !issuedAt ||
+                    !initialAmount ||
+                    !location
+                  }
                   className="mt-6 h-11 w-full bg-teal text-white hover:bg-teal-dark disabled:opacity-50"
                 >
                   Continue
