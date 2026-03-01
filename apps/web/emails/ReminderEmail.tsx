@@ -28,7 +28,7 @@ type ReminderEmailProps = {
   pcnNumber: string;
   vehicleRegistration: string;
   issueDate: string;
-  issuer: string;
+  issuer: string | null;
 };
 
 const urgentBox = {

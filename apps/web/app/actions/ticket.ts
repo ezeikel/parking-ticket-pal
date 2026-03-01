@@ -142,20 +142,23 @@ export const createTicket = async (
     ticket = await db.ticket.create({
       data: {
         pcnNumber: values.pcnNumber,
-        contraventionCode: values.contraventionCode,
-        location: values.location,
+        contraventionCode: values.contraventionCode ?? null,
+        location: values.location ?? Prisma.DbNull,
         issuedAt: values.issuedAt,
         contraventionAt: values.issuedAt,
         status: TicketStatus.ISSUED_DISCOUNT_PERIOD,
         type: TicketType.PENALTY_CHARGE_NOTICE, // TODO: hardcoded for now
-        initialAmount: values.initialAmount,
-        issuer: values.issuer,
+        initialAmount: values.initialAmount ?? null,
+        issuer: values.issuer ?? null,
         issuerType: IssuerType.COUNCIL, // TODO: hardcoded for now
         extractedText: values.extractedText || '',
         vehicle: {
           connectOrCreate: {
             where: {
-              registrationNumber: values.vehicleReg,
+              registrationNumber_userId: {
+                registrationNumber: values.vehicleReg,
+                userId,
+              },
             },
             create: {
               registrationNumber: values.vehicleReg,
@@ -228,7 +231,11 @@ export const createTicket = async (
     }
 
     return ticket;
-  } catch (error) {
+  } catch (error: any) {
+    if (error?.code === 'P2002') {
+      return { error: 'A ticket with this PCN number already exists.' };
+    }
+
     logger.error(
       'Error creating ticket',
       {
@@ -305,16 +312,19 @@ export const updateTicket = async (id: string, values: TicketFormData) => {
       },
       data: {
         pcnNumber: values.pcnNumber,
-        contraventionCode: values.contraventionCode,
-        location: values.location,
+        contraventionCode: values.contraventionCode ?? undefined,
+        location: values.location ?? Prisma.DbNull,
         issuedAt: values.issuedAt,
         contraventionAt: values.issuedAt,
-        initialAmount: values.initialAmount,
-        issuer: values.issuer,
+        initialAmount: values.initialAmount ?? undefined,
+        issuer: values.issuer ?? undefined,
         vehicle: {
           connectOrCreate: {
             where: {
-              registrationNumber: values.vehicleReg,
+              registrationNumber_userId: {
+                registrationNumber: values.vehicleReg,
+                userId,
+              },
             },
             create: {
               registrationNumber: values.vehicleReg,
@@ -892,6 +902,14 @@ export const verifyTicket = async (pcnNumber: string, ticketId?: string) => {
       return false;
     }
 
+    if (!ticket.issuer) {
+      logger.error('Ticket has no issuer set, cannot verify', {
+        pcnNumber,
+        ticketId: ticket.id,
+      });
+      return false;
+    }
+
     // Determine issuer ID from ticket
     const issuerId = ticket.issuer.toLowerCase().replace(/\s+/g, '-');
 
@@ -937,6 +955,12 @@ export const challengeTicket = async (
 
     if (!ticket) {
       throw new Error('Ticket not found');
+    }
+
+    if (!ticket.issuer) {
+      throw new Error(
+        'Ticket has no issuer set. Please add the issuer before challenging.',
+      );
     }
 
     // Create challenge record first

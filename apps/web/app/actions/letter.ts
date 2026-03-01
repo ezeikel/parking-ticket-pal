@@ -98,7 +98,10 @@ export const createLetter = async (
       vehicle: {
         connectOrCreate: {
           where: {
-            registrationNumber: validatedData.vehicleReg,
+            registrationNumber_userId: {
+              registrationNumber: validatedData.vehicleReg,
+              userId,
+            },
           },
           create: {
             registrationNumber: validatedData.vehicleReg,
@@ -254,7 +257,7 @@ export const createLetter = async (
     // Create AmountIncrease if letter has a higher amount than ticket's initial amount
     if (
       validatedData.currentAmount &&
-      validatedData.currentAmount > ticket.initialAmount
+      validatedData.currentAmount > (ticket.initialAmount ?? 0)
     ) {
       await db.amountIncrease.create({
         data: {

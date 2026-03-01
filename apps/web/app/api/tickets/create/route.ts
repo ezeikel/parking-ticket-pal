@@ -33,14 +33,23 @@ export async function POST(request: NextRequest) {
       extractedText: body.extractedText,
     };
 
-    const ticket = await createTicket(ticketData);
+    const result = await createTicket(ticketData);
 
-    if (!ticket) {
+    if (!result) {
       return Response.json(
         { success: false, error: 'Failed to create ticket' },
         { status: 500 },
       );
     }
+
+    if ('error' in result) {
+      return Response.json(
+        { success: false, error: result.error },
+        { status: 409 },
+      );
+    }
+
+    const ticket = result;
 
     return Response.json(
       { success: true, ticket },

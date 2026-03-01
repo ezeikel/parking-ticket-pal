@@ -80,14 +80,20 @@ const CreateTicketForm = ({ tier, source }: CreateTicketFormProps) => {
     },
     onSubmit: async ({ value }) => {
       try {
-        const ticket = await createTicket({
+        const result = await createTicket({
           ...value,
           tempImageUrl,
           tempImagePath,
           extractedText,
         });
 
-        if (ticket) {
+        if (result && 'error' in result) {
+          toast.error(result.error);
+          return;
+        }
+
+        if (result) {
+          const ticket = result;
           await track(TRACKING_EVENTS.TICKET_CREATED, {
             ticket_id: ticket.id,
             pcn_number: ticket.pcnNumber,
@@ -311,7 +317,7 @@ const CreateTicketForm = ({ tier, source }: CreateTicketFormProps) => {
                 <TanstackFormControl>
                   <Input
                     placeholder="Local Council"
-                    value={field.state.value}
+                    value={field.state.value ?? ''}
                     onChange={(e) => field.handleChange(e.target.value)}
                     onBlur={field.handleBlur}
                   />
@@ -391,9 +397,7 @@ const CreateTicketForm = ({ tier, source }: CreateTicketFormProps) => {
                     type="number"
                     placeholder="70"
                     value={
-                      field.state.value === 0
-                        ? ''
-                        : String(field.state.value / 100)
+                      !field.state.value ? '' : String(field.state.value / 100)
                     }
                     onChange={(e) =>
                       field.handleChange(
@@ -420,7 +424,7 @@ const CreateTicketForm = ({ tier, source }: CreateTicketFormProps) => {
                 <TanstackFormLabel>Contravention</TanstackFormLabel>
                 <TanstackFormControl>
                   <ContraventionCodeSelect
-                    value={field.state.value}
+                    value={field.state.value ?? ''}
                     onChange={(val) => field.handleChange(val)}
                   />
                 </TanstackFormControl>

@@ -238,7 +238,7 @@ const AddDocumentPage = () => {
           coordinates: { latitude: 51.5074, longitude: -0.1278 }, // London default
         };
 
-        const ticket = await createTicket({
+        const result = await createTicket({
           vehicleReg: data.vehicleReg,
           pcnNumber: data.pcnNumber,
           issuedAt: data.issuedAt || new Date(),
@@ -251,7 +251,13 @@ const AddDocumentPage = () => {
           extractedText: data.extractedText,
         });
 
-        if (ticket) {
+        if (result && 'error' in result) {
+          toast.error(result.error);
+          return;
+        }
+
+        if (result) {
+          const ticket = result;
           await track(TRACKING_EVENTS.TICKET_CREATED, {
             ticket_id: ticket.id,
             pcn_number: ticket.pcnNumber,

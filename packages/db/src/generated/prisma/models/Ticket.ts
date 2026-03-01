@@ -274,18 +274,18 @@ export type TicketGroupByArgs<ExtArgs extends runtime.Types.Extensions.InternalA
 export type TicketGroupByOutputType = {
   id: string
   pcnNumber: string
-  contraventionCode: string
-  location: runtime.JsonValue
+  contraventionCode: string | null
+  location: runtime.JsonValue | null
   extractedText: string
   issuedAt: Date
   contraventionAt: Date
   observedAt: Date | null
   status: $Enums.TicketStatus
   type: $Enums.TicketType
-  initialAmount: number
+  initialAmount: number | null
   statusUpdatedAt: Date | null
   statusUpdatedBy: string | null
-  issuer: string
+  issuer: string | null
   issuerType: $Enums.IssuerType
   verified: boolean
   notes: string | null
@@ -321,18 +321,18 @@ export type TicketWhereInput = {
   NOT?: Prisma.TicketWhereInput | Prisma.TicketWhereInput[]
   id?: Prisma.StringFilter<"Ticket"> | string
   pcnNumber?: Prisma.StringFilter<"Ticket"> | string
-  contraventionCode?: Prisma.StringFilter<"Ticket"> | string
-  location?: Prisma.JsonFilter<"Ticket">
+  contraventionCode?: Prisma.StringNullableFilter<"Ticket"> | string | null
+  location?: Prisma.JsonNullableFilter<"Ticket">
   extractedText?: Prisma.StringFilter<"Ticket"> | string
   issuedAt?: Prisma.DateTimeFilter<"Ticket"> | Date | string
   contraventionAt?: Prisma.DateTimeFilter<"Ticket"> | Date | string
   observedAt?: Prisma.DateTimeNullableFilter<"Ticket"> | Date | string | null
   status?: Prisma.EnumTicketStatusFilter<"Ticket"> | $Enums.TicketStatus
   type?: Prisma.EnumTicketTypeFilter<"Ticket"> | $Enums.TicketType
-  initialAmount?: Prisma.IntFilter<"Ticket"> | number
+  initialAmount?: Prisma.IntNullableFilter<"Ticket"> | number | null
   statusUpdatedAt?: Prisma.DateTimeNullableFilter<"Ticket"> | Date | string | null
   statusUpdatedBy?: Prisma.StringNullableFilter<"Ticket"> | string | null
-  issuer?: Prisma.StringFilter<"Ticket"> | string
+  issuer?: Prisma.StringNullableFilter<"Ticket"> | string | null
   issuerType?: Prisma.EnumIssuerTypeFilter<"Ticket"> | $Enums.IssuerType
   verified?: Prisma.BoolFilter<"Ticket"> | boolean
   notes?: Prisma.StringNullableFilter<"Ticket"> | string | null
@@ -356,18 +356,18 @@ export type TicketWhereInput = {
 export type TicketOrderByWithRelationInput = {
   id?: Prisma.SortOrder
   pcnNumber?: Prisma.SortOrder
-  contraventionCode?: Prisma.SortOrder
-  location?: Prisma.SortOrder
+  contraventionCode?: Prisma.SortOrderInput | Prisma.SortOrder
+  location?: Prisma.SortOrderInput | Prisma.SortOrder
   extractedText?: Prisma.SortOrder
   issuedAt?: Prisma.SortOrder
   contraventionAt?: Prisma.SortOrder
   observedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   status?: Prisma.SortOrder
   type?: Prisma.SortOrder
-  initialAmount?: Prisma.SortOrder
+  initialAmount?: Prisma.SortOrderInput | Prisma.SortOrder
   statusUpdatedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   statusUpdatedBy?: Prisma.SortOrderInput | Prisma.SortOrder
-  issuer?: Prisma.SortOrder
+  issuer?: Prisma.SortOrderInput | Prisma.SortOrder
   issuerType?: Prisma.SortOrder
   verified?: Prisma.SortOrder
   notes?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -394,18 +394,18 @@ export type TicketWhereUniqueInput = Prisma.AtLeast<{
   AND?: Prisma.TicketWhereInput | Prisma.TicketWhereInput[]
   OR?: Prisma.TicketWhereInput[]
   NOT?: Prisma.TicketWhereInput | Prisma.TicketWhereInput[]
-  contraventionCode?: Prisma.StringFilter<"Ticket"> | string
-  location?: Prisma.JsonFilter<"Ticket">
+  contraventionCode?: Prisma.StringNullableFilter<"Ticket"> | string | null
+  location?: Prisma.JsonNullableFilter<"Ticket">
   extractedText?: Prisma.StringFilter<"Ticket"> | string
   issuedAt?: Prisma.DateTimeFilter<"Ticket"> | Date | string
   contraventionAt?: Prisma.DateTimeFilter<"Ticket"> | Date | string
   observedAt?: Prisma.DateTimeNullableFilter<"Ticket"> | Date | string | null
   status?: Prisma.EnumTicketStatusFilter<"Ticket"> | $Enums.TicketStatus
   type?: Prisma.EnumTicketTypeFilter<"Ticket"> | $Enums.TicketType
-  initialAmount?: Prisma.IntFilter<"Ticket"> | number
+  initialAmount?: Prisma.IntNullableFilter<"Ticket"> | number | null
   statusUpdatedAt?: Prisma.DateTimeNullableFilter<"Ticket"> | Date | string | null
   statusUpdatedBy?: Prisma.StringNullableFilter<"Ticket"> | string | null
-  issuer?: Prisma.StringFilter<"Ticket"> | string
+  issuer?: Prisma.StringNullableFilter<"Ticket"> | string | null
   issuerType?: Prisma.EnumIssuerTypeFilter<"Ticket"> | $Enums.IssuerType
   verified?: Prisma.BoolFilter<"Ticket"> | boolean
   notes?: Prisma.StringNullableFilter<"Ticket"> | string | null
@@ -429,18 +429,18 @@ export type TicketWhereUniqueInput = Prisma.AtLeast<{
 export type TicketOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
   pcnNumber?: Prisma.SortOrder
-  contraventionCode?: Prisma.SortOrder
-  location?: Prisma.SortOrder
+  contraventionCode?: Prisma.SortOrderInput | Prisma.SortOrder
+  location?: Prisma.SortOrderInput | Prisma.SortOrder
   extractedText?: Prisma.SortOrder
   issuedAt?: Prisma.SortOrder
   contraventionAt?: Prisma.SortOrder
   observedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   status?: Prisma.SortOrder
   type?: Prisma.SortOrder
-  initialAmount?: Prisma.SortOrder
+  initialAmount?: Prisma.SortOrderInput | Prisma.SortOrder
   statusUpdatedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   statusUpdatedBy?: Prisma.SortOrderInput | Prisma.SortOrder
-  issuer?: Prisma.SortOrder
+  issuer?: Prisma.SortOrderInput | Prisma.SortOrder
   issuerType?: Prisma.SortOrder
   verified?: Prisma.SortOrder
   notes?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -461,18 +461,18 @@ export type TicketScalarWhereWithAggregatesInput = {
   NOT?: Prisma.TicketScalarWhereWithAggregatesInput | Prisma.TicketScalarWhereWithAggregatesInput[]
   id?: Prisma.StringWithAggregatesFilter<"Ticket"> | string
   pcnNumber?: Prisma.StringWithAggregatesFilter<"Ticket"> | string
-  contraventionCode?: Prisma.StringWithAggregatesFilter<"Ticket"> | string
-  location?: Prisma.JsonWithAggregatesFilter<"Ticket">
+  contraventionCode?: Prisma.StringNullableWithAggregatesFilter<"Ticket"> | string | null
+  location?: Prisma.JsonNullableWithAggregatesFilter<"Ticket">
   extractedText?: Prisma.StringWithAggregatesFilter<"Ticket"> | string
   issuedAt?: Prisma.DateTimeWithAggregatesFilter<"Ticket"> | Date | string
   contraventionAt?: Prisma.DateTimeWithAggregatesFilter<"Ticket"> | Date | string
   observedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"Ticket"> | Date | string | null
   status?: Prisma.EnumTicketStatusWithAggregatesFilter<"Ticket"> | $Enums.TicketStatus
   type?: Prisma.EnumTicketTypeWithAggregatesFilter<"Ticket"> | $Enums.TicketType
-  initialAmount?: Prisma.IntWithAggregatesFilter<"Ticket"> | number
+  initialAmount?: Prisma.IntNullableWithAggregatesFilter<"Ticket"> | number | null
   statusUpdatedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"Ticket"> | Date | string | null
   statusUpdatedBy?: Prisma.StringNullableWithAggregatesFilter<"Ticket"> | string | null
-  issuer?: Prisma.StringWithAggregatesFilter<"Ticket"> | string
+  issuer?: Prisma.StringNullableWithAggregatesFilter<"Ticket"> | string | null
   issuerType?: Prisma.EnumIssuerTypeWithAggregatesFilter<"Ticket"> | $Enums.IssuerType
   verified?: Prisma.BoolWithAggregatesFilter<"Ticket"> | boolean
   notes?: Prisma.StringNullableWithAggregatesFilter<"Ticket"> | string | null
@@ -485,18 +485,18 @@ export type TicketScalarWhereWithAggregatesInput = {
 export type TicketCreateInput = {
   id?: string
   pcnNumber: string
-  contraventionCode: string
-  location: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  contraventionCode?: string | null
+  location?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   extractedText: string
   issuedAt: Date | string
   contraventionAt: Date | string
   observedAt?: Date | string | null
   status?: $Enums.TicketStatus
   type: $Enums.TicketType
-  initialAmount: number
+  initialAmount?: number | null
   statusUpdatedAt?: Date | string | null
   statusUpdatedBy?: string | null
-  issuer: string
+  issuer?: string | null
   issuerType: $Enums.IssuerType
   verified?: boolean
   notes?: string | null
@@ -519,18 +519,18 @@ export type TicketCreateInput = {
 export type TicketUncheckedCreateInput = {
   id?: string
   pcnNumber: string
-  contraventionCode: string
-  location: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  contraventionCode?: string | null
+  location?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   extractedText: string
   issuedAt: Date | string
   contraventionAt: Date | string
   observedAt?: Date | string | null
   status?: $Enums.TicketStatus
   type: $Enums.TicketType
-  initialAmount: number
+  initialAmount?: number | null
   statusUpdatedAt?: Date | string | null
   statusUpdatedBy?: string | null
-  issuer: string
+  issuer?: string | null
   issuerType: $Enums.IssuerType
   verified?: boolean
   notes?: string | null
@@ -553,18 +553,18 @@ export type TicketUncheckedCreateInput = {
 export type TicketUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   pcnNumber?: Prisma.StringFieldUpdateOperationsInput | string
-  contraventionCode?: Prisma.StringFieldUpdateOperationsInput | string
-  location?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  contraventionCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  location?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   extractedText?: Prisma.StringFieldUpdateOperationsInput | string
   issuedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   contraventionAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   observedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   status?: Prisma.EnumTicketStatusFieldUpdateOperationsInput | $Enums.TicketStatus
   type?: Prisma.EnumTicketTypeFieldUpdateOperationsInput | $Enums.TicketType
-  initialAmount?: Prisma.IntFieldUpdateOperationsInput | number
+  initialAmount?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   statusUpdatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   statusUpdatedBy?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  issuer?: Prisma.StringFieldUpdateOperationsInput | string
+  issuer?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   issuerType?: Prisma.EnumIssuerTypeFieldUpdateOperationsInput | $Enums.IssuerType
   verified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -587,18 +587,18 @@ export type TicketUpdateInput = {
 export type TicketUncheckedUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   pcnNumber?: Prisma.StringFieldUpdateOperationsInput | string
-  contraventionCode?: Prisma.StringFieldUpdateOperationsInput | string
-  location?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  contraventionCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  location?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   extractedText?: Prisma.StringFieldUpdateOperationsInput | string
   issuedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   contraventionAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   observedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   status?: Prisma.EnumTicketStatusFieldUpdateOperationsInput | $Enums.TicketStatus
   type?: Prisma.EnumTicketTypeFieldUpdateOperationsInput | $Enums.TicketType
-  initialAmount?: Prisma.IntFieldUpdateOperationsInput | number
+  initialAmount?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   statusUpdatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   statusUpdatedBy?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  issuer?: Prisma.StringFieldUpdateOperationsInput | string
+  issuer?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   issuerType?: Prisma.EnumIssuerTypeFieldUpdateOperationsInput | $Enums.IssuerType
   verified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -621,18 +621,18 @@ export type TicketUncheckedUpdateInput = {
 export type TicketCreateManyInput = {
   id?: string
   pcnNumber: string
-  contraventionCode: string
-  location: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  contraventionCode?: string | null
+  location?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   extractedText: string
   issuedAt: Date | string
   contraventionAt: Date | string
   observedAt?: Date | string | null
   status?: $Enums.TicketStatus
   type: $Enums.TicketType
-  initialAmount: number
+  initialAmount?: number | null
   statusUpdatedAt?: Date | string | null
   statusUpdatedBy?: string | null
-  issuer: string
+  issuer?: string | null
   issuerType: $Enums.IssuerType
   verified?: boolean
   notes?: string | null
@@ -645,18 +645,18 @@ export type TicketCreateManyInput = {
 export type TicketUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   pcnNumber?: Prisma.StringFieldUpdateOperationsInput | string
-  contraventionCode?: Prisma.StringFieldUpdateOperationsInput | string
-  location?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  contraventionCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  location?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   extractedText?: Prisma.StringFieldUpdateOperationsInput | string
   issuedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   contraventionAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   observedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   status?: Prisma.EnumTicketStatusFieldUpdateOperationsInput | $Enums.TicketStatus
   type?: Prisma.EnumTicketTypeFieldUpdateOperationsInput | $Enums.TicketType
-  initialAmount?: Prisma.IntFieldUpdateOperationsInput | number
+  initialAmount?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   statusUpdatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   statusUpdatedBy?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  issuer?: Prisma.StringFieldUpdateOperationsInput | string
+  issuer?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   issuerType?: Prisma.EnumIssuerTypeFieldUpdateOperationsInput | $Enums.IssuerType
   verified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -668,18 +668,18 @@ export type TicketUpdateManyMutationInput = {
 export type TicketUncheckedUpdateManyInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   pcnNumber?: Prisma.StringFieldUpdateOperationsInput | string
-  contraventionCode?: Prisma.StringFieldUpdateOperationsInput | string
-  location?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  contraventionCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  location?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   extractedText?: Prisma.StringFieldUpdateOperationsInput | string
   issuedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   contraventionAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   observedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   status?: Prisma.EnumTicketStatusFieldUpdateOperationsInput | $Enums.TicketStatus
   type?: Prisma.EnumTicketTypeFieldUpdateOperationsInput | $Enums.TicketType
-  initialAmount?: Prisma.IntFieldUpdateOperationsInput | number
+  initialAmount?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   statusUpdatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   statusUpdatedBy?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  issuer?: Prisma.StringFieldUpdateOperationsInput | string
+  issuer?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   issuerType?: Prisma.EnumIssuerTypeFieldUpdateOperationsInput | $Enums.IssuerType
   verified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -835,6 +835,14 @@ export type EnumTicketStatusFieldUpdateOperationsInput = {
 
 export type EnumTicketTypeFieldUpdateOperationsInput = {
   set?: $Enums.TicketType
+}
+
+export type NullableIntFieldUpdateOperationsInput = {
+  set?: number | null
+  increment?: number
+  decrement?: number
+  multiply?: number
+  divide?: number
 }
 
 export type EnumIssuerTypeFieldUpdateOperationsInput = {
@@ -994,18 +1002,18 @@ export type TicketUpdateOneRequiredWithoutOnboardingSequencesNestedInput = {
 export type TicketCreateWithoutVehicleInput = {
   id?: string
   pcnNumber: string
-  contraventionCode: string
-  location: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  contraventionCode?: string | null
+  location?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   extractedText: string
   issuedAt: Date | string
   contraventionAt: Date | string
   observedAt?: Date | string | null
   status?: $Enums.TicketStatus
   type: $Enums.TicketType
-  initialAmount: number
+  initialAmount?: number | null
   statusUpdatedAt?: Date | string | null
   statusUpdatedBy?: string | null
-  issuer: string
+  issuer?: string | null
   issuerType: $Enums.IssuerType
   verified?: boolean
   notes?: string | null
@@ -1027,18 +1035,18 @@ export type TicketCreateWithoutVehicleInput = {
 export type TicketUncheckedCreateWithoutVehicleInput = {
   id?: string
   pcnNumber: string
-  contraventionCode: string
-  location: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  contraventionCode?: string | null
+  location?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   extractedText: string
   issuedAt: Date | string
   contraventionAt: Date | string
   observedAt?: Date | string | null
   status?: $Enums.TicketStatus
   type: $Enums.TicketType
-  initialAmount: number
+  initialAmount?: number | null
   statusUpdatedAt?: Date | string | null
   statusUpdatedBy?: string | null
-  issuer: string
+  issuer?: string | null
   issuerType: $Enums.IssuerType
   verified?: boolean
   notes?: string | null
@@ -1089,18 +1097,18 @@ export type TicketScalarWhereInput = {
   NOT?: Prisma.TicketScalarWhereInput | Prisma.TicketScalarWhereInput[]
   id?: Prisma.StringFilter<"Ticket"> | string
   pcnNumber?: Prisma.StringFilter<"Ticket"> | string
-  contraventionCode?: Prisma.StringFilter<"Ticket"> | string
-  location?: Prisma.JsonFilter<"Ticket">
+  contraventionCode?: Prisma.StringNullableFilter<"Ticket"> | string | null
+  location?: Prisma.JsonNullableFilter<"Ticket">
   extractedText?: Prisma.StringFilter<"Ticket"> | string
   issuedAt?: Prisma.DateTimeFilter<"Ticket"> | Date | string
   contraventionAt?: Prisma.DateTimeFilter<"Ticket"> | Date | string
   observedAt?: Prisma.DateTimeNullableFilter<"Ticket"> | Date | string | null
   status?: Prisma.EnumTicketStatusFilter<"Ticket"> | $Enums.TicketStatus
   type?: Prisma.EnumTicketTypeFilter<"Ticket"> | $Enums.TicketType
-  initialAmount?: Prisma.IntFilter<"Ticket"> | number
+  initialAmount?: Prisma.IntNullableFilter<"Ticket"> | number | null
   statusUpdatedAt?: Prisma.DateTimeNullableFilter<"Ticket"> | Date | string | null
   statusUpdatedBy?: Prisma.StringNullableFilter<"Ticket"> | string | null
-  issuer?: Prisma.StringFilter<"Ticket"> | string
+  issuer?: Prisma.StringNullableFilter<"Ticket"> | string | null
   issuerType?: Prisma.EnumIssuerTypeFilter<"Ticket"> | $Enums.IssuerType
   verified?: Prisma.BoolFilter<"Ticket"> | boolean
   notes?: Prisma.StringNullableFilter<"Ticket"> | string | null
@@ -1113,18 +1121,18 @@ export type TicketScalarWhereInput = {
 export type TicketCreateWithoutMediaInput = {
   id?: string
   pcnNumber: string
-  contraventionCode: string
-  location: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  contraventionCode?: string | null
+  location?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   extractedText: string
   issuedAt: Date | string
   contraventionAt: Date | string
   observedAt?: Date | string | null
   status?: $Enums.TicketStatus
   type: $Enums.TicketType
-  initialAmount: number
+  initialAmount?: number | null
   statusUpdatedAt?: Date | string | null
   statusUpdatedBy?: string | null
-  issuer: string
+  issuer?: string | null
   issuerType: $Enums.IssuerType
   verified?: boolean
   notes?: string | null
@@ -1146,18 +1154,18 @@ export type TicketCreateWithoutMediaInput = {
 export type TicketUncheckedCreateWithoutMediaInput = {
   id?: string
   pcnNumber: string
-  contraventionCode: string
-  location: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  contraventionCode?: string | null
+  location?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   extractedText: string
   issuedAt: Date | string
   contraventionAt: Date | string
   observedAt?: Date | string | null
   status?: $Enums.TicketStatus
   type: $Enums.TicketType
-  initialAmount: number
+  initialAmount?: number | null
   statusUpdatedAt?: Date | string | null
   statusUpdatedBy?: string | null
-  issuer: string
+  issuer?: string | null
   issuerType: $Enums.IssuerType
   verified?: boolean
   notes?: string | null
@@ -1195,18 +1203,18 @@ export type TicketUpdateToOneWithWhereWithoutMediaInput = {
 export type TicketUpdateWithoutMediaInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   pcnNumber?: Prisma.StringFieldUpdateOperationsInput | string
-  contraventionCode?: Prisma.StringFieldUpdateOperationsInput | string
-  location?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  contraventionCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  location?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   extractedText?: Prisma.StringFieldUpdateOperationsInput | string
   issuedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   contraventionAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   observedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   status?: Prisma.EnumTicketStatusFieldUpdateOperationsInput | $Enums.TicketStatus
   type?: Prisma.EnumTicketTypeFieldUpdateOperationsInput | $Enums.TicketType
-  initialAmount?: Prisma.IntFieldUpdateOperationsInput | number
+  initialAmount?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   statusUpdatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   statusUpdatedBy?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  issuer?: Prisma.StringFieldUpdateOperationsInput | string
+  issuer?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   issuerType?: Prisma.EnumIssuerTypeFieldUpdateOperationsInput | $Enums.IssuerType
   verified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1228,18 +1236,18 @@ export type TicketUpdateWithoutMediaInput = {
 export type TicketUncheckedUpdateWithoutMediaInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   pcnNumber?: Prisma.StringFieldUpdateOperationsInput | string
-  contraventionCode?: Prisma.StringFieldUpdateOperationsInput | string
-  location?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  contraventionCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  location?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   extractedText?: Prisma.StringFieldUpdateOperationsInput | string
   issuedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   contraventionAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   observedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   status?: Prisma.EnumTicketStatusFieldUpdateOperationsInput | $Enums.TicketStatus
   type?: Prisma.EnumTicketTypeFieldUpdateOperationsInput | $Enums.TicketType
-  initialAmount?: Prisma.IntFieldUpdateOperationsInput | number
+  initialAmount?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   statusUpdatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   statusUpdatedBy?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  issuer?: Prisma.StringFieldUpdateOperationsInput | string
+  issuer?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   issuerType?: Prisma.EnumIssuerTypeFieldUpdateOperationsInput | $Enums.IssuerType
   verified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1261,18 +1269,18 @@ export type TicketUncheckedUpdateWithoutMediaInput = {
 export type TicketCreateWithoutLettersInput = {
   id?: string
   pcnNumber: string
-  contraventionCode: string
-  location: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  contraventionCode?: string | null
+  location?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   extractedText: string
   issuedAt: Date | string
   contraventionAt: Date | string
   observedAt?: Date | string | null
   status?: $Enums.TicketStatus
   type: $Enums.TicketType
-  initialAmount: number
+  initialAmount?: number | null
   statusUpdatedAt?: Date | string | null
   statusUpdatedBy?: string | null
-  issuer: string
+  issuer?: string | null
   issuerType: $Enums.IssuerType
   verified?: boolean
   notes?: string | null
@@ -1294,18 +1302,18 @@ export type TicketCreateWithoutLettersInput = {
 export type TicketUncheckedCreateWithoutLettersInput = {
   id?: string
   pcnNumber: string
-  contraventionCode: string
-  location: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  contraventionCode?: string | null
+  location?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   extractedText: string
   issuedAt: Date | string
   contraventionAt: Date | string
   observedAt?: Date | string | null
   status?: $Enums.TicketStatus
   type: $Enums.TicketType
-  initialAmount: number
+  initialAmount?: number | null
   statusUpdatedAt?: Date | string | null
   statusUpdatedBy?: string | null
-  issuer: string
+  issuer?: string | null
   issuerType: $Enums.IssuerType
   verified?: boolean
   notes?: string | null
@@ -1343,18 +1351,18 @@ export type TicketUpdateToOneWithWhereWithoutLettersInput = {
 export type TicketUpdateWithoutLettersInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   pcnNumber?: Prisma.StringFieldUpdateOperationsInput | string
-  contraventionCode?: Prisma.StringFieldUpdateOperationsInput | string
-  location?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  contraventionCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  location?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   extractedText?: Prisma.StringFieldUpdateOperationsInput | string
   issuedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   contraventionAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   observedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   status?: Prisma.EnumTicketStatusFieldUpdateOperationsInput | $Enums.TicketStatus
   type?: Prisma.EnumTicketTypeFieldUpdateOperationsInput | $Enums.TicketType
-  initialAmount?: Prisma.IntFieldUpdateOperationsInput | number
+  initialAmount?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   statusUpdatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   statusUpdatedBy?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  issuer?: Prisma.StringFieldUpdateOperationsInput | string
+  issuer?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   issuerType?: Prisma.EnumIssuerTypeFieldUpdateOperationsInput | $Enums.IssuerType
   verified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1376,18 +1384,18 @@ export type TicketUpdateWithoutLettersInput = {
 export type TicketUncheckedUpdateWithoutLettersInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   pcnNumber?: Prisma.StringFieldUpdateOperationsInput | string
-  contraventionCode?: Prisma.StringFieldUpdateOperationsInput | string
-  location?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  contraventionCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  location?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   extractedText?: Prisma.StringFieldUpdateOperationsInput | string
   issuedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   contraventionAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   observedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   status?: Prisma.EnumTicketStatusFieldUpdateOperationsInput | $Enums.TicketStatus
   type?: Prisma.EnumTicketTypeFieldUpdateOperationsInput | $Enums.TicketType
-  initialAmount?: Prisma.IntFieldUpdateOperationsInput | number
+  initialAmount?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   statusUpdatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   statusUpdatedBy?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  issuer?: Prisma.StringFieldUpdateOperationsInput | string
+  issuer?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   issuerType?: Prisma.EnumIssuerTypeFieldUpdateOperationsInput | $Enums.IssuerType
   verified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1409,18 +1417,18 @@ export type TicketUncheckedUpdateWithoutLettersInput = {
 export type TicketCreateWithoutRemindersInput = {
   id?: string
   pcnNumber: string
-  contraventionCode: string
-  location: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  contraventionCode?: string | null
+  location?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   extractedText: string
   issuedAt: Date | string
   contraventionAt: Date | string
   observedAt?: Date | string | null
   status?: $Enums.TicketStatus
   type: $Enums.TicketType
-  initialAmount: number
+  initialAmount?: number | null
   statusUpdatedAt?: Date | string | null
   statusUpdatedBy?: string | null
-  issuer: string
+  issuer?: string | null
   issuerType: $Enums.IssuerType
   verified?: boolean
   notes?: string | null
@@ -1442,18 +1450,18 @@ export type TicketCreateWithoutRemindersInput = {
 export type TicketUncheckedCreateWithoutRemindersInput = {
   id?: string
   pcnNumber: string
-  contraventionCode: string
-  location: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  contraventionCode?: string | null
+  location?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   extractedText: string
   issuedAt: Date | string
   contraventionAt: Date | string
   observedAt?: Date | string | null
   status?: $Enums.TicketStatus
   type: $Enums.TicketType
-  initialAmount: number
+  initialAmount?: number | null
   statusUpdatedAt?: Date | string | null
   statusUpdatedBy?: string | null
-  issuer: string
+  issuer?: string | null
   issuerType: $Enums.IssuerType
   verified?: boolean
   notes?: string | null
@@ -1491,18 +1499,18 @@ export type TicketUpdateToOneWithWhereWithoutRemindersInput = {
 export type TicketUpdateWithoutRemindersInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   pcnNumber?: Prisma.StringFieldUpdateOperationsInput | string
-  contraventionCode?: Prisma.StringFieldUpdateOperationsInput | string
-  location?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  contraventionCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  location?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   extractedText?: Prisma.StringFieldUpdateOperationsInput | string
   issuedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   contraventionAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   observedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   status?: Prisma.EnumTicketStatusFieldUpdateOperationsInput | $Enums.TicketStatus
   type?: Prisma.EnumTicketTypeFieldUpdateOperationsInput | $Enums.TicketType
-  initialAmount?: Prisma.IntFieldUpdateOperationsInput | number
+  initialAmount?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   statusUpdatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   statusUpdatedBy?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  issuer?: Prisma.StringFieldUpdateOperationsInput | string
+  issuer?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   issuerType?: Prisma.EnumIssuerTypeFieldUpdateOperationsInput | $Enums.IssuerType
   verified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1524,18 +1532,18 @@ export type TicketUpdateWithoutRemindersInput = {
 export type TicketUncheckedUpdateWithoutRemindersInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   pcnNumber?: Prisma.StringFieldUpdateOperationsInput | string
-  contraventionCode?: Prisma.StringFieldUpdateOperationsInput | string
-  location?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  contraventionCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  location?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   extractedText?: Prisma.StringFieldUpdateOperationsInput | string
   issuedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   contraventionAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   observedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   status?: Prisma.EnumTicketStatusFieldUpdateOperationsInput | $Enums.TicketStatus
   type?: Prisma.EnumTicketTypeFieldUpdateOperationsInput | $Enums.TicketType
-  initialAmount?: Prisma.IntFieldUpdateOperationsInput | number
+  initialAmount?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   statusUpdatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   statusUpdatedBy?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  issuer?: Prisma.StringFieldUpdateOperationsInput | string
+  issuer?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   issuerType?: Prisma.EnumIssuerTypeFieldUpdateOperationsInput | $Enums.IssuerType
   verified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1557,18 +1565,18 @@ export type TicketUncheckedUpdateWithoutRemindersInput = {
 export type TicketCreateWithoutFormsInput = {
   id?: string
   pcnNumber: string
-  contraventionCode: string
-  location: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  contraventionCode?: string | null
+  location?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   extractedText: string
   issuedAt: Date | string
   contraventionAt: Date | string
   observedAt?: Date | string | null
   status?: $Enums.TicketStatus
   type: $Enums.TicketType
-  initialAmount: number
+  initialAmount?: number | null
   statusUpdatedAt?: Date | string | null
   statusUpdatedBy?: string | null
-  issuer: string
+  issuer?: string | null
   issuerType: $Enums.IssuerType
   verified?: boolean
   notes?: string | null
@@ -1590,18 +1598,18 @@ export type TicketCreateWithoutFormsInput = {
 export type TicketUncheckedCreateWithoutFormsInput = {
   id?: string
   pcnNumber: string
-  contraventionCode: string
-  location: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  contraventionCode?: string | null
+  location?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   extractedText: string
   issuedAt: Date | string
   contraventionAt: Date | string
   observedAt?: Date | string | null
   status?: $Enums.TicketStatus
   type: $Enums.TicketType
-  initialAmount: number
+  initialAmount?: number | null
   statusUpdatedAt?: Date | string | null
   statusUpdatedBy?: string | null
-  issuer: string
+  issuer?: string | null
   issuerType: $Enums.IssuerType
   verified?: boolean
   notes?: string | null
@@ -1639,18 +1647,18 @@ export type TicketUpdateToOneWithWhereWithoutFormsInput = {
 export type TicketUpdateWithoutFormsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   pcnNumber?: Prisma.StringFieldUpdateOperationsInput | string
-  contraventionCode?: Prisma.StringFieldUpdateOperationsInput | string
-  location?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  contraventionCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  location?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   extractedText?: Prisma.StringFieldUpdateOperationsInput | string
   issuedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   contraventionAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   observedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   status?: Prisma.EnumTicketStatusFieldUpdateOperationsInput | $Enums.TicketStatus
   type?: Prisma.EnumTicketTypeFieldUpdateOperationsInput | $Enums.TicketType
-  initialAmount?: Prisma.IntFieldUpdateOperationsInput | number
+  initialAmount?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   statusUpdatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   statusUpdatedBy?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  issuer?: Prisma.StringFieldUpdateOperationsInput | string
+  issuer?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   issuerType?: Prisma.EnumIssuerTypeFieldUpdateOperationsInput | $Enums.IssuerType
   verified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1672,18 +1680,18 @@ export type TicketUpdateWithoutFormsInput = {
 export type TicketUncheckedUpdateWithoutFormsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   pcnNumber?: Prisma.StringFieldUpdateOperationsInput | string
-  contraventionCode?: Prisma.StringFieldUpdateOperationsInput | string
-  location?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  contraventionCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  location?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   extractedText?: Prisma.StringFieldUpdateOperationsInput | string
   issuedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   contraventionAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   observedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   status?: Prisma.EnumTicketStatusFieldUpdateOperationsInput | $Enums.TicketStatus
   type?: Prisma.EnumTicketTypeFieldUpdateOperationsInput | $Enums.TicketType
-  initialAmount?: Prisma.IntFieldUpdateOperationsInput | number
+  initialAmount?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   statusUpdatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   statusUpdatedBy?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  issuer?: Prisma.StringFieldUpdateOperationsInput | string
+  issuer?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   issuerType?: Prisma.EnumIssuerTypeFieldUpdateOperationsInput | $Enums.IssuerType
   verified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1705,18 +1713,18 @@ export type TicketUncheckedUpdateWithoutFormsInput = {
 export type TicketCreateWithoutPredictionInput = {
   id?: string
   pcnNumber: string
-  contraventionCode: string
-  location: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  contraventionCode?: string | null
+  location?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   extractedText: string
   issuedAt: Date | string
   contraventionAt: Date | string
   observedAt?: Date | string | null
   status?: $Enums.TicketStatus
   type: $Enums.TicketType
-  initialAmount: number
+  initialAmount?: number | null
   statusUpdatedAt?: Date | string | null
   statusUpdatedBy?: string | null
-  issuer: string
+  issuer?: string | null
   issuerType: $Enums.IssuerType
   verified?: boolean
   notes?: string | null
@@ -1738,18 +1746,18 @@ export type TicketCreateWithoutPredictionInput = {
 export type TicketUncheckedCreateWithoutPredictionInput = {
   id?: string
   pcnNumber: string
-  contraventionCode: string
-  location: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  contraventionCode?: string | null
+  location?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   extractedText: string
   issuedAt: Date | string
   contraventionAt: Date | string
   observedAt?: Date | string | null
   status?: $Enums.TicketStatus
   type: $Enums.TicketType
-  initialAmount: number
+  initialAmount?: number | null
   statusUpdatedAt?: Date | string | null
   statusUpdatedBy?: string | null
-  issuer: string
+  issuer?: string | null
   issuerType: $Enums.IssuerType
   verified?: boolean
   notes?: string | null
@@ -1787,18 +1795,18 @@ export type TicketUpdateToOneWithWhereWithoutPredictionInput = {
 export type TicketUpdateWithoutPredictionInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   pcnNumber?: Prisma.StringFieldUpdateOperationsInput | string
-  contraventionCode?: Prisma.StringFieldUpdateOperationsInput | string
-  location?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  contraventionCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  location?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   extractedText?: Prisma.StringFieldUpdateOperationsInput | string
   issuedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   contraventionAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   observedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   status?: Prisma.EnumTicketStatusFieldUpdateOperationsInput | $Enums.TicketStatus
   type?: Prisma.EnumTicketTypeFieldUpdateOperationsInput | $Enums.TicketType
-  initialAmount?: Prisma.IntFieldUpdateOperationsInput | number
+  initialAmount?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   statusUpdatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   statusUpdatedBy?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  issuer?: Prisma.StringFieldUpdateOperationsInput | string
+  issuer?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   issuerType?: Prisma.EnumIssuerTypeFieldUpdateOperationsInput | $Enums.IssuerType
   verified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1820,18 +1828,18 @@ export type TicketUpdateWithoutPredictionInput = {
 export type TicketUncheckedUpdateWithoutPredictionInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   pcnNumber?: Prisma.StringFieldUpdateOperationsInput | string
-  contraventionCode?: Prisma.StringFieldUpdateOperationsInput | string
-  location?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  contraventionCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  location?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   extractedText?: Prisma.StringFieldUpdateOperationsInput | string
   issuedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   contraventionAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   observedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   status?: Prisma.EnumTicketStatusFieldUpdateOperationsInput | $Enums.TicketStatus
   type?: Prisma.EnumTicketTypeFieldUpdateOperationsInput | $Enums.TicketType
-  initialAmount?: Prisma.IntFieldUpdateOperationsInput | number
+  initialAmount?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   statusUpdatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   statusUpdatedBy?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  issuer?: Prisma.StringFieldUpdateOperationsInput | string
+  issuer?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   issuerType?: Prisma.EnumIssuerTypeFieldUpdateOperationsInput | $Enums.IssuerType
   verified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1853,18 +1861,18 @@ export type TicketUncheckedUpdateWithoutPredictionInput = {
 export type TicketCreateWithoutAmountIncreasesInput = {
   id?: string
   pcnNumber: string
-  contraventionCode: string
-  location: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  contraventionCode?: string | null
+  location?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   extractedText: string
   issuedAt: Date | string
   contraventionAt: Date | string
   observedAt?: Date | string | null
   status?: $Enums.TicketStatus
   type: $Enums.TicketType
-  initialAmount: number
+  initialAmount?: number | null
   statusUpdatedAt?: Date | string | null
   statusUpdatedBy?: string | null
-  issuer: string
+  issuer?: string | null
   issuerType: $Enums.IssuerType
   verified?: boolean
   notes?: string | null
@@ -1886,18 +1894,18 @@ export type TicketCreateWithoutAmountIncreasesInput = {
 export type TicketUncheckedCreateWithoutAmountIncreasesInput = {
   id?: string
   pcnNumber: string
-  contraventionCode: string
-  location: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  contraventionCode?: string | null
+  location?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   extractedText: string
   issuedAt: Date | string
   contraventionAt: Date | string
   observedAt?: Date | string | null
   status?: $Enums.TicketStatus
   type: $Enums.TicketType
-  initialAmount: number
+  initialAmount?: number | null
   statusUpdatedAt?: Date | string | null
   statusUpdatedBy?: string | null
-  issuer: string
+  issuer?: string | null
   issuerType: $Enums.IssuerType
   verified?: boolean
   notes?: string | null
@@ -1935,18 +1943,18 @@ export type TicketUpdateToOneWithWhereWithoutAmountIncreasesInput = {
 export type TicketUpdateWithoutAmountIncreasesInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   pcnNumber?: Prisma.StringFieldUpdateOperationsInput | string
-  contraventionCode?: Prisma.StringFieldUpdateOperationsInput | string
-  location?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  contraventionCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  location?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   extractedText?: Prisma.StringFieldUpdateOperationsInput | string
   issuedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   contraventionAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   observedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   status?: Prisma.EnumTicketStatusFieldUpdateOperationsInput | $Enums.TicketStatus
   type?: Prisma.EnumTicketTypeFieldUpdateOperationsInput | $Enums.TicketType
-  initialAmount?: Prisma.IntFieldUpdateOperationsInput | number
+  initialAmount?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   statusUpdatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   statusUpdatedBy?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  issuer?: Prisma.StringFieldUpdateOperationsInput | string
+  issuer?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   issuerType?: Prisma.EnumIssuerTypeFieldUpdateOperationsInput | $Enums.IssuerType
   verified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1968,18 +1976,18 @@ export type TicketUpdateWithoutAmountIncreasesInput = {
 export type TicketUncheckedUpdateWithoutAmountIncreasesInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   pcnNumber?: Prisma.StringFieldUpdateOperationsInput | string
-  contraventionCode?: Prisma.StringFieldUpdateOperationsInput | string
-  location?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  contraventionCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  location?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   extractedText?: Prisma.StringFieldUpdateOperationsInput | string
   issuedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   contraventionAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   observedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   status?: Prisma.EnumTicketStatusFieldUpdateOperationsInput | $Enums.TicketStatus
   type?: Prisma.EnumTicketTypeFieldUpdateOperationsInput | $Enums.TicketType
-  initialAmount?: Prisma.IntFieldUpdateOperationsInput | number
+  initialAmount?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   statusUpdatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   statusUpdatedBy?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  issuer?: Prisma.StringFieldUpdateOperationsInput | string
+  issuer?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   issuerType?: Prisma.EnumIssuerTypeFieldUpdateOperationsInput | $Enums.IssuerType
   verified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2001,18 +2009,18 @@ export type TicketUncheckedUpdateWithoutAmountIncreasesInput = {
 export type TicketCreateWithoutVerificationInput = {
   id?: string
   pcnNumber: string
-  contraventionCode: string
-  location: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  contraventionCode?: string | null
+  location?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   extractedText: string
   issuedAt: Date | string
   contraventionAt: Date | string
   observedAt?: Date | string | null
   status?: $Enums.TicketStatus
   type: $Enums.TicketType
-  initialAmount: number
+  initialAmount?: number | null
   statusUpdatedAt?: Date | string | null
   statusUpdatedBy?: string | null
-  issuer: string
+  issuer?: string | null
   issuerType: $Enums.IssuerType
   verified?: boolean
   notes?: string | null
@@ -2034,18 +2042,18 @@ export type TicketCreateWithoutVerificationInput = {
 export type TicketUncheckedCreateWithoutVerificationInput = {
   id?: string
   pcnNumber: string
-  contraventionCode: string
-  location: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  contraventionCode?: string | null
+  location?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   extractedText: string
   issuedAt: Date | string
   contraventionAt: Date | string
   observedAt?: Date | string | null
   status?: $Enums.TicketStatus
   type: $Enums.TicketType
-  initialAmount: number
+  initialAmount?: number | null
   statusUpdatedAt?: Date | string | null
   statusUpdatedBy?: string | null
-  issuer: string
+  issuer?: string | null
   issuerType: $Enums.IssuerType
   verified?: boolean
   notes?: string | null
@@ -2083,18 +2091,18 @@ export type TicketUpdateToOneWithWhereWithoutVerificationInput = {
 export type TicketUpdateWithoutVerificationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   pcnNumber?: Prisma.StringFieldUpdateOperationsInput | string
-  contraventionCode?: Prisma.StringFieldUpdateOperationsInput | string
-  location?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  contraventionCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  location?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   extractedText?: Prisma.StringFieldUpdateOperationsInput | string
   issuedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   contraventionAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   observedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   status?: Prisma.EnumTicketStatusFieldUpdateOperationsInput | $Enums.TicketStatus
   type?: Prisma.EnumTicketTypeFieldUpdateOperationsInput | $Enums.TicketType
-  initialAmount?: Prisma.IntFieldUpdateOperationsInput | number
+  initialAmount?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   statusUpdatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   statusUpdatedBy?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  issuer?: Prisma.StringFieldUpdateOperationsInput | string
+  issuer?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   issuerType?: Prisma.EnumIssuerTypeFieldUpdateOperationsInput | $Enums.IssuerType
   verified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2116,18 +2124,18 @@ export type TicketUpdateWithoutVerificationInput = {
 export type TicketUncheckedUpdateWithoutVerificationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   pcnNumber?: Prisma.StringFieldUpdateOperationsInput | string
-  contraventionCode?: Prisma.StringFieldUpdateOperationsInput | string
-  location?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  contraventionCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  location?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   extractedText?: Prisma.StringFieldUpdateOperationsInput | string
   issuedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   contraventionAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   observedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   status?: Prisma.EnumTicketStatusFieldUpdateOperationsInput | $Enums.TicketStatus
   type?: Prisma.EnumTicketTypeFieldUpdateOperationsInput | $Enums.TicketType
-  initialAmount?: Prisma.IntFieldUpdateOperationsInput | number
+  initialAmount?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   statusUpdatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   statusUpdatedBy?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  issuer?: Prisma.StringFieldUpdateOperationsInput | string
+  issuer?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   issuerType?: Prisma.EnumIssuerTypeFieldUpdateOperationsInput | $Enums.IssuerType
   verified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2149,18 +2157,18 @@ export type TicketUncheckedUpdateWithoutVerificationInput = {
 export type TicketCreateWithoutChallengesInput = {
   id?: string
   pcnNumber: string
-  contraventionCode: string
-  location: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  contraventionCode?: string | null
+  location?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   extractedText: string
   issuedAt: Date | string
   contraventionAt: Date | string
   observedAt?: Date | string | null
   status?: $Enums.TicketStatus
   type: $Enums.TicketType
-  initialAmount: number
+  initialAmount?: number | null
   statusUpdatedAt?: Date | string | null
   statusUpdatedBy?: string | null
-  issuer: string
+  issuer?: string | null
   issuerType: $Enums.IssuerType
   verified?: boolean
   notes?: string | null
@@ -2182,18 +2190,18 @@ export type TicketCreateWithoutChallengesInput = {
 export type TicketUncheckedCreateWithoutChallengesInput = {
   id?: string
   pcnNumber: string
-  contraventionCode: string
-  location: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  contraventionCode?: string | null
+  location?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   extractedText: string
   issuedAt: Date | string
   contraventionAt: Date | string
   observedAt?: Date | string | null
   status?: $Enums.TicketStatus
   type: $Enums.TicketType
-  initialAmount: number
+  initialAmount?: number | null
   statusUpdatedAt?: Date | string | null
   statusUpdatedBy?: string | null
-  issuer: string
+  issuer?: string | null
   issuerType: $Enums.IssuerType
   verified?: boolean
   notes?: string | null
@@ -2231,18 +2239,18 @@ export type TicketUpdateToOneWithWhereWithoutChallengesInput = {
 export type TicketUpdateWithoutChallengesInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   pcnNumber?: Prisma.StringFieldUpdateOperationsInput | string
-  contraventionCode?: Prisma.StringFieldUpdateOperationsInput | string
-  location?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  contraventionCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  location?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   extractedText?: Prisma.StringFieldUpdateOperationsInput | string
   issuedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   contraventionAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   observedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   status?: Prisma.EnumTicketStatusFieldUpdateOperationsInput | $Enums.TicketStatus
   type?: Prisma.EnumTicketTypeFieldUpdateOperationsInput | $Enums.TicketType
-  initialAmount?: Prisma.IntFieldUpdateOperationsInput | number
+  initialAmount?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   statusUpdatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   statusUpdatedBy?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  issuer?: Prisma.StringFieldUpdateOperationsInput | string
+  issuer?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   issuerType?: Prisma.EnumIssuerTypeFieldUpdateOperationsInput | $Enums.IssuerType
   verified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2264,18 +2272,18 @@ export type TicketUpdateWithoutChallengesInput = {
 export type TicketUncheckedUpdateWithoutChallengesInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   pcnNumber?: Prisma.StringFieldUpdateOperationsInput | string
-  contraventionCode?: Prisma.StringFieldUpdateOperationsInput | string
-  location?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  contraventionCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  location?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   extractedText?: Prisma.StringFieldUpdateOperationsInput | string
   issuedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   contraventionAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   observedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   status?: Prisma.EnumTicketStatusFieldUpdateOperationsInput | $Enums.TicketStatus
   type?: Prisma.EnumTicketTypeFieldUpdateOperationsInput | $Enums.TicketType
-  initialAmount?: Prisma.IntFieldUpdateOperationsInput | number
+  initialAmount?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   statusUpdatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   statusUpdatedBy?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  issuer?: Prisma.StringFieldUpdateOperationsInput | string
+  issuer?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   issuerType?: Prisma.EnumIssuerTypeFieldUpdateOperationsInput | $Enums.IssuerType
   verified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2297,18 +2305,18 @@ export type TicketUncheckedUpdateWithoutChallengesInput = {
 export type TicketCreateWithoutNotificationsInput = {
   id?: string
   pcnNumber: string
-  contraventionCode: string
-  location: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  contraventionCode?: string | null
+  location?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   extractedText: string
   issuedAt: Date | string
   contraventionAt: Date | string
   observedAt?: Date | string | null
   status?: $Enums.TicketStatus
   type: $Enums.TicketType
-  initialAmount: number
+  initialAmount?: number | null
   statusUpdatedAt?: Date | string | null
   statusUpdatedBy?: string | null
-  issuer: string
+  issuer?: string | null
   issuerType: $Enums.IssuerType
   verified?: boolean
   notes?: string | null
@@ -2330,18 +2338,18 @@ export type TicketCreateWithoutNotificationsInput = {
 export type TicketUncheckedCreateWithoutNotificationsInput = {
   id?: string
   pcnNumber: string
-  contraventionCode: string
-  location: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  contraventionCode?: string | null
+  location?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   extractedText: string
   issuedAt: Date | string
   contraventionAt: Date | string
   observedAt?: Date | string | null
   status?: $Enums.TicketStatus
   type: $Enums.TicketType
-  initialAmount: number
+  initialAmount?: number | null
   statusUpdatedAt?: Date | string | null
   statusUpdatedBy?: string | null
-  issuer: string
+  issuer?: string | null
   issuerType: $Enums.IssuerType
   verified?: boolean
   notes?: string | null
@@ -2379,18 +2387,18 @@ export type TicketUpdateToOneWithWhereWithoutNotificationsInput = {
 export type TicketUpdateWithoutNotificationsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   pcnNumber?: Prisma.StringFieldUpdateOperationsInput | string
-  contraventionCode?: Prisma.StringFieldUpdateOperationsInput | string
-  location?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  contraventionCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  location?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   extractedText?: Prisma.StringFieldUpdateOperationsInput | string
   issuedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   contraventionAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   observedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   status?: Prisma.EnumTicketStatusFieldUpdateOperationsInput | $Enums.TicketStatus
   type?: Prisma.EnumTicketTypeFieldUpdateOperationsInput | $Enums.TicketType
-  initialAmount?: Prisma.IntFieldUpdateOperationsInput | number
+  initialAmount?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   statusUpdatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   statusUpdatedBy?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  issuer?: Prisma.StringFieldUpdateOperationsInput | string
+  issuer?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   issuerType?: Prisma.EnumIssuerTypeFieldUpdateOperationsInput | $Enums.IssuerType
   verified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2412,18 +2420,18 @@ export type TicketUpdateWithoutNotificationsInput = {
 export type TicketUncheckedUpdateWithoutNotificationsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   pcnNumber?: Prisma.StringFieldUpdateOperationsInput | string
-  contraventionCode?: Prisma.StringFieldUpdateOperationsInput | string
-  location?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  contraventionCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  location?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   extractedText?: Prisma.StringFieldUpdateOperationsInput | string
   issuedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   contraventionAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   observedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   status?: Prisma.EnumTicketStatusFieldUpdateOperationsInput | $Enums.TicketStatus
   type?: Prisma.EnumTicketTypeFieldUpdateOperationsInput | $Enums.TicketType
-  initialAmount?: Prisma.IntFieldUpdateOperationsInput | number
+  initialAmount?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   statusUpdatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   statusUpdatedBy?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  issuer?: Prisma.StringFieldUpdateOperationsInput | string
+  issuer?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   issuerType?: Prisma.EnumIssuerTypeFieldUpdateOperationsInput | $Enums.IssuerType
   verified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2445,18 +2453,18 @@ export type TicketUncheckedUpdateWithoutNotificationsInput = {
 export type TicketCreateWithoutOnboardingSequencesInput = {
   id?: string
   pcnNumber: string
-  contraventionCode: string
-  location: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  contraventionCode?: string | null
+  location?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   extractedText: string
   issuedAt: Date | string
   contraventionAt: Date | string
   observedAt?: Date | string | null
   status?: $Enums.TicketStatus
   type: $Enums.TicketType
-  initialAmount: number
+  initialAmount?: number | null
   statusUpdatedAt?: Date | string | null
   statusUpdatedBy?: string | null
-  issuer: string
+  issuer?: string | null
   issuerType: $Enums.IssuerType
   verified?: boolean
   notes?: string | null
@@ -2478,18 +2486,18 @@ export type TicketCreateWithoutOnboardingSequencesInput = {
 export type TicketUncheckedCreateWithoutOnboardingSequencesInput = {
   id?: string
   pcnNumber: string
-  contraventionCode: string
-  location: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  contraventionCode?: string | null
+  location?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   extractedText: string
   issuedAt: Date | string
   contraventionAt: Date | string
   observedAt?: Date | string | null
   status?: $Enums.TicketStatus
   type: $Enums.TicketType
-  initialAmount: number
+  initialAmount?: number | null
   statusUpdatedAt?: Date | string | null
   statusUpdatedBy?: string | null
-  issuer: string
+  issuer?: string | null
   issuerType: $Enums.IssuerType
   verified?: boolean
   notes?: string | null
@@ -2527,18 +2535,18 @@ export type TicketUpdateToOneWithWhereWithoutOnboardingSequencesInput = {
 export type TicketUpdateWithoutOnboardingSequencesInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   pcnNumber?: Prisma.StringFieldUpdateOperationsInput | string
-  contraventionCode?: Prisma.StringFieldUpdateOperationsInput | string
-  location?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  contraventionCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  location?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   extractedText?: Prisma.StringFieldUpdateOperationsInput | string
   issuedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   contraventionAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   observedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   status?: Prisma.EnumTicketStatusFieldUpdateOperationsInput | $Enums.TicketStatus
   type?: Prisma.EnumTicketTypeFieldUpdateOperationsInput | $Enums.TicketType
-  initialAmount?: Prisma.IntFieldUpdateOperationsInput | number
+  initialAmount?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   statusUpdatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   statusUpdatedBy?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  issuer?: Prisma.StringFieldUpdateOperationsInput | string
+  issuer?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   issuerType?: Prisma.EnumIssuerTypeFieldUpdateOperationsInput | $Enums.IssuerType
   verified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2560,18 +2568,18 @@ export type TicketUpdateWithoutOnboardingSequencesInput = {
 export type TicketUncheckedUpdateWithoutOnboardingSequencesInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   pcnNumber?: Prisma.StringFieldUpdateOperationsInput | string
-  contraventionCode?: Prisma.StringFieldUpdateOperationsInput | string
-  location?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  contraventionCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  location?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   extractedText?: Prisma.StringFieldUpdateOperationsInput | string
   issuedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   contraventionAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   observedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   status?: Prisma.EnumTicketStatusFieldUpdateOperationsInput | $Enums.TicketStatus
   type?: Prisma.EnumTicketTypeFieldUpdateOperationsInput | $Enums.TicketType
-  initialAmount?: Prisma.IntFieldUpdateOperationsInput | number
+  initialAmount?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   statusUpdatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   statusUpdatedBy?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  issuer?: Prisma.StringFieldUpdateOperationsInput | string
+  issuer?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   issuerType?: Prisma.EnumIssuerTypeFieldUpdateOperationsInput | $Enums.IssuerType
   verified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2593,18 +2601,18 @@ export type TicketUncheckedUpdateWithoutOnboardingSequencesInput = {
 export type TicketCreateManyVehicleInput = {
   id?: string
   pcnNumber: string
-  contraventionCode: string
-  location: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  contraventionCode?: string | null
+  location?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   extractedText: string
   issuedAt: Date | string
   contraventionAt: Date | string
   observedAt?: Date | string | null
   status?: $Enums.TicketStatus
   type: $Enums.TicketType
-  initialAmount: number
+  initialAmount?: number | null
   statusUpdatedAt?: Date | string | null
   statusUpdatedBy?: string | null
-  issuer: string
+  issuer?: string | null
   issuerType: $Enums.IssuerType
   verified?: boolean
   notes?: string | null
@@ -2616,18 +2624,18 @@ export type TicketCreateManyVehicleInput = {
 export type TicketUpdateWithoutVehicleInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   pcnNumber?: Prisma.StringFieldUpdateOperationsInput | string
-  contraventionCode?: Prisma.StringFieldUpdateOperationsInput | string
-  location?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  contraventionCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  location?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   extractedText?: Prisma.StringFieldUpdateOperationsInput | string
   issuedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   contraventionAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   observedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   status?: Prisma.EnumTicketStatusFieldUpdateOperationsInput | $Enums.TicketStatus
   type?: Prisma.EnumTicketTypeFieldUpdateOperationsInput | $Enums.TicketType
-  initialAmount?: Prisma.IntFieldUpdateOperationsInput | number
+  initialAmount?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   statusUpdatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   statusUpdatedBy?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  issuer?: Prisma.StringFieldUpdateOperationsInput | string
+  issuer?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   issuerType?: Prisma.EnumIssuerTypeFieldUpdateOperationsInput | $Enums.IssuerType
   verified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2649,18 +2657,18 @@ export type TicketUpdateWithoutVehicleInput = {
 export type TicketUncheckedUpdateWithoutVehicleInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   pcnNumber?: Prisma.StringFieldUpdateOperationsInput | string
-  contraventionCode?: Prisma.StringFieldUpdateOperationsInput | string
-  location?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  contraventionCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  location?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   extractedText?: Prisma.StringFieldUpdateOperationsInput | string
   issuedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   contraventionAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   observedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   status?: Prisma.EnumTicketStatusFieldUpdateOperationsInput | $Enums.TicketStatus
   type?: Prisma.EnumTicketTypeFieldUpdateOperationsInput | $Enums.TicketType
-  initialAmount?: Prisma.IntFieldUpdateOperationsInput | number
+  initialAmount?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   statusUpdatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   statusUpdatedBy?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  issuer?: Prisma.StringFieldUpdateOperationsInput | string
+  issuer?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   issuerType?: Prisma.EnumIssuerTypeFieldUpdateOperationsInput | $Enums.IssuerType
   verified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2682,18 +2690,18 @@ export type TicketUncheckedUpdateWithoutVehicleInput = {
 export type TicketUncheckedUpdateManyWithoutVehicleInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   pcnNumber?: Prisma.StringFieldUpdateOperationsInput | string
-  contraventionCode?: Prisma.StringFieldUpdateOperationsInput | string
-  location?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  contraventionCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  location?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   extractedText?: Prisma.StringFieldUpdateOperationsInput | string
   issuedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   contraventionAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   observedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   status?: Prisma.EnumTicketStatusFieldUpdateOperationsInput | $Enums.TicketStatus
   type?: Prisma.EnumTicketTypeFieldUpdateOperationsInput | $Enums.TicketType
-  initialAmount?: Prisma.IntFieldUpdateOperationsInput | number
+  initialAmount?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   statusUpdatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   statusUpdatedBy?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  issuer?: Prisma.StringFieldUpdateOperationsInput | string
+  issuer?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   issuerType?: Prisma.EnumIssuerTypeFieldUpdateOperationsInput | $Enums.IssuerType
   verified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2946,18 +2954,18 @@ export type $TicketPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
     pcnNumber: string
-    contraventionCode: string
-    location: runtime.JsonValue
+    contraventionCode: string | null
+    location: runtime.JsonValue | null
     extractedText: string
     issuedAt: Date
     contraventionAt: Date
     observedAt: Date | null
     status: $Enums.TicketStatus
     type: $Enums.TicketType
-    initialAmount: number
+    initialAmount: number | null
     statusUpdatedAt: Date | null
     statusUpdatedBy: string | null
-    issuer: string
+    issuer: string | null
     issuerType: $Enums.IssuerType
     verified: boolean
     notes: string | null

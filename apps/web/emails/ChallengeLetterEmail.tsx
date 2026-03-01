@@ -26,7 +26,7 @@ import {
 type ChallengeLetterEmailProps = {
   userName: string;
   pcnNumber: string;
-  issuer: string;
+  issuer: string | null;
   vehicleRegistration?: string;
   downloadUrl?: string;
 };

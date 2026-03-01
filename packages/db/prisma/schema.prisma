@@ -78,7 +78,7 @@ model Vehicle {
   fuelType           String
   year               Int
   color              String
-  registrationNumber String        @unique
+  registrationNumber String
   notes              String?
   active             Boolean       @default(true)
   createdAt          DateTime      @default(now())
@@ -87,14 +87,15 @@ model Vehicle {
   user               User          @relation(fields: [userId], references: [id], onDelete: Cascade)
   verification       Verification?
 
+  @@unique([registrationNumber, userId])
   @@map("vehicles")
 }
 
 model Ticket {
-  id                String @id @default(cuid())
-  pcnNumber         String @unique
-  contraventionCode String
-  location          Json
+  id                String  @id @default(cuid())
+  pcnNumber         String  @unique
+  contraventionCode String?
+  location          Json?
   // example address:
   //  const address = {
   //  line1: "123 Main St",
@@ -114,10 +115,10 @@ model Ticket {
   observedAt      DateTime?
   status          TicketStatus     @default(ISSUED_DISCOUNT_PERIOD)
   type            TicketType
-  initialAmount   Int
+  initialAmount   Int?
   statusUpdatedAt DateTime? // When status was last updated
   statusUpdatedBy String? // "SYSTEM" | "USER" | "LETTER_PARSER"
-  issuer          String
+  issuer          String?
   issuerType      IssuerType
   verified        Boolean          @default(false)
   notes           String?

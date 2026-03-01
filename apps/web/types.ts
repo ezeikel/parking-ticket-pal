@@ -215,9 +215,9 @@ export type TicketForChallengeLetter = {
   vehicle?: {
     registrationNumber: string;
   };
-  issuer: string;
-  contraventionCode: string;
-  initialAmount: number;
+  issuer: string | null;
+  contraventionCode: string | null;
+  initialAmount: number | null;
   location: Address;
   contraventionAt: Date;
   issuedAt: Date;
@@ -358,7 +358,7 @@ export type EventProperties = {
   [TRACKING_EVENTS.TICKET_CREATED]: {
     ticket_id: string;
     pcn_number: string;
-    issuer: string;
+    issuer: string | null;
     issuer_type: IssuerType;
     prefilled: boolean;
   };

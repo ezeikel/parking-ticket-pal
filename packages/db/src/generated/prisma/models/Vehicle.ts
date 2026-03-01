@@ -306,7 +306,7 @@ export type VehicleOrderByWithRelationInput = {
 
 export type VehicleWhereUniqueInput = Prisma.AtLeast<{
   id?: string
-  registrationNumber?: string
+  registrationNumber_userId?: Prisma.VehicleRegistrationNumberUserIdCompoundUniqueInput
   AND?: Prisma.VehicleWhereInput | Prisma.VehicleWhereInput[]
   OR?: Prisma.VehicleWhereInput[]
   NOT?: Prisma.VehicleWhereInput | Prisma.VehicleWhereInput[]
@@ -317,6 +317,7 @@ export type VehicleWhereUniqueInput = Prisma.AtLeast<{
   fuelType?: Prisma.StringFilter<"Vehicle"> | string
   year?: Prisma.IntFilter<"Vehicle"> | number
   color?: Prisma.StringFilter<"Vehicle"> | string
+  registrationNumber?: Prisma.StringFilter<"Vehicle"> | string
   notes?: Prisma.StringNullableFilter<"Vehicle"> | string | null
   active?: Prisma.BoolFilter<"Vehicle"> | boolean
   createdAt?: Prisma.DateTimeFilter<"Vehicle"> | Date | string
@@ -324,7 +325,7 @@ export type VehicleWhereUniqueInput = Prisma.AtLeast<{
   tickets?: Prisma.TicketListRelationFilter
   user?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
   verification?: Prisma.XOR<Prisma.VerificationNullableScalarRelationFilter, Prisma.VerificationWhereInput> | null
-}, "id" | "registrationNumber">
+}, "id" | "registrationNumber_userId">
 
 export type VehicleOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
@@ -493,6 +494,11 @@ export type VehicleListRelationFilter = {
 
 export type VehicleOrderByRelationAggregateInput = {
   _count?: Prisma.SortOrder
+}
+
+export type VehicleRegistrationNumberUserIdCompoundUniqueInput = {
+  registrationNumber: string
+  userId: string
 }
 
 export type VehicleCountOrderByAggregateInput = {

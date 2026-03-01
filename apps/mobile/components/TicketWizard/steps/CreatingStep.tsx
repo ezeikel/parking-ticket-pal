@@ -14,9 +14,10 @@ import type { WizardData, WizardResult } from '../types';
 type CreatingStepProps = {
   wizardData: WizardData;
   onComplete: (result: WizardResult) => void;
+  onCancel: () => void;
 };
 
-const CreatingStep = ({ wizardData, onComplete }: CreatingStepProps) => {
+const CreatingStep = ({ wizardData, onComplete, onCancel }: CreatingStepProps) => {
   const createTicketMutation = useCreateTicket();
   const { trackEvent, trackError } = useAnalytics();
   const [error, setError] = useState<string | null>(null);
@@ -31,16 +32,10 @@ const CreatingStep = ({ wizardData, onComplete }: CreatingStepProps) => {
         pcnNumber: wizardData.pcnNumber,
         vehicleReg: wizardData.vehicleReg,
         issuedAt: wizardData.issuedAt ?? new Date(),
-        contraventionCode: wizardData.contraventionCode,
-        initialAmount: wizardData.initialAmount,
-        issuer: wizardData.issuer,
-        location: wizardData.location ?? {
-          line1: '',
-          city: '',
-          postcode: '',
-          country: 'United Kingdom',
-          coordinates: { latitude: 0, longitude: 0 },
-        },
+        contraventionCode: wizardData.contraventionCode || undefined,
+        initialAmount: wizardData.initialAmount || undefined,
+        issuer: wizardData.issuer || undefined,
+        location: wizardData.location ?? undefined,
         tempImageUrl: wizardData.imageUrl,
         tempImagePath: wizardData.tempImagePath,
         extractedText: wizardData.extractedText,
@@ -72,8 +67,10 @@ const CreatingStep = ({ wizardData, onComplete }: CreatingStepProps) => {
           action: 'wizard_create_ticket',
         });
       }
-    } catch (err) {
-      const message = err instanceof Error ? err.message : 'An unexpected error occurred.';
+    } catch (err: any) {
+      const message =
+        err?.response?.data?.error ||
+        (err instanceof Error ? err.message : 'An unexpected error occurred.');
       setError(message);
       trackError(err instanceof Error ? err : new Error(message), {
         screen: 'onboarding',
@@ -106,6 +103,12 @@ const CreatingStep = ({ wizardData, onComplete }: CreatingStepProps) => {
             style={{ backgroundColor: '#1ABC9C' }}
           >
             <Text className="font-jakarta-semibold text-white text-base">Try Again</Text>
+          </SquishyPressable>
+          <SquishyPressable
+            onPress={onCancel}
+            className="py-3 px-8 mt-3"
+          >
+            <Text className="font-jakarta-semibold text-gray-500 text-base">Close</Text>
           </SquishyPressable>
         </Animated.View>
       </View>
