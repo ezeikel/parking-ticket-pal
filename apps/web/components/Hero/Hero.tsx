@@ -199,6 +199,7 @@ const Hero = () => {
               : undefined,
             initialAmount: result.data.initialAmount,
             issuer: result.data.issuer,
+            location: result.data.location,
             imageUrl: result.imageUrl,
             tempImagePath: result.tempImagePath,
           });

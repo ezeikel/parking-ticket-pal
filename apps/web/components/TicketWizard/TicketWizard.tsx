@@ -51,7 +51,7 @@ export type ExtractedData = {
   pcnNumber?: string;
   vehicleReg?: string;
   issueDate?: string;
-  location?: string;
+  location?: Address;
   initialAmount?: number;
   issuer?: string;
   imageUrl?: string;
@@ -174,7 +174,9 @@ const TicketWizard = ({
   const [initialAmount, setInitialAmount] = useState<number | null>(
     extractedData?.initialAmount ?? null,
   );
-  const [location, setLocation] = useState<Address | null>(null);
+  const [location, setLocation] = useState<Address | null>(
+    extractedData?.location ?? null,
+  );
   const [userIntent, setUserIntent] = useState<UserIntent>(null);
   const [challengeReason, setChallengeReason] = useState<ChallengeReason>(null);
 
@@ -755,7 +757,15 @@ const TicketWizard = ({
                     <label className="mb-1.5 block text-sm font-medium text-dark">
                       Location *
                     </label>
-                    <AddressInput onSelect={setLocation} className="h-11" />
+                    <AddressInput
+                      onSelect={setLocation}
+                      initialValue={
+                        location?.line1
+                          ? `${location.line1}, ${location.city}`
+                          : undefined
+                      }
+                      className="h-11"
+                    />
                   </div>
                 </div>
 
@@ -947,7 +957,15 @@ const TicketWizard = ({
                     <label className="mb-1.5 block text-sm font-medium text-dark">
                       Location *
                     </label>
-                    <AddressInput onSelect={setLocation} className="h-11" />
+                    <AddressInput
+                      onSelect={setLocation}
+                      initialValue={
+                        location?.line1
+                          ? `${location.line1}, ${location.city}`
+                          : undefined
+                      }
+                      className="h-11"
+                    />
                   </div>
                 </div>
 
