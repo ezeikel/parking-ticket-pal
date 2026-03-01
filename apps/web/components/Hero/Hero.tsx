@@ -297,14 +297,16 @@ const Hero = () => {
       vehicleReg: data.vehicleReg,
       issuerType: data.issuerType,
       ticketStage: data.ticketStage,
+      issuer: data.issuer,
+      issuedAt: data.issuedAt?.toISOString() ?? null,
+      initialAmount: data.initialAmount,
+      location: data.location,
       intent: data.intent,
       challengeReason: data.challengeReason,
       tier: data.tier,
       // Include extracted data if available (from OCR)
       imageUrl: data.extractedData?.imageUrl,
       tempImagePath: data.extractedData?.tempImagePath,
-      initialAmount: data.extractedData?.initialAmount,
-      issuer: data.extractedData?.issuer,
       createdAt: new Date().toISOString(),
     };
 

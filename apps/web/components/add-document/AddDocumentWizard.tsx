@@ -5,16 +5,23 @@ import { motion, AnimatePresence, type Variants } from 'framer-motion';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
   faArrowLeft,
-  faArrowRight,
   faCheckCircle,
   faLandmark,
   faLightbulb,
   faCircleInfo,
   faSpinnerThird,
+  faCalendar,
   faP,
 } from '@fortawesome/pro-solid-svg-icons';
+import { format } from 'date-fns';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Calendar } from '@/components/ui/calendar';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover';
 import {
   Select,
   SelectContent,
@@ -22,8 +29,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { CONTRAVENTION_CODES_OPTIONS } from '@parking-ticket-pal/constants';
 import AddressInput from '@/components/forms/inputs/AddressInput/AddressInput';
+import IssuerCombobox from '@/components/forms/inputs/IssuerCombobox/IssuerCombobox';
 import { Address } from '@parking-ticket-pal/types';
 
 type IssuerType = 'council' | 'private' | null;
@@ -96,7 +103,7 @@ const AddDocumentWizard = ({
   };
 
   const [currentStep, setCurrentStep] = useState<
-    'issuer' | 'stage' | 'details' | 'confirm' | 'additional'
+    'issuer' | 'stage' | 'details' | 'confirm'
   >(getInitialStep());
   const [direction, setDirection] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -110,7 +117,9 @@ const AddDocumentWizard = ({
   );
   const [pcnNumber, setPcnNumber] = useState(extractedData?.pcnNumber || '');
   const [vehicleReg, setVehicleReg] = useState(extractedData?.vehicleReg || '');
-  const [issuedAt] = useState<Date | undefined>(extractedData?.issuedAt);
+  const [issuedAt, setIssuedAt] = useState<Date | undefined>(
+    extractedData?.issuedAt,
+  );
   const [location, setLocation] = useState<Address | undefined>(
     extractedData?.location,
   );
@@ -118,14 +127,9 @@ const AddDocumentWizard = ({
     extractedData?.initialAmount,
   );
   const [issuer, setIssuer] = useState(extractedData?.issuer || '');
-  const [contraventionCode, setContraventionCode] = useState(
-    extractedData?.contraventionCode || '',
-  );
 
-  const goToStep = (
-    step: 'issuer' | 'stage' | 'details' | 'confirm' | 'additional',
-  ) => {
-    const stepOrder = ['issuer', 'stage', 'details', 'confirm', 'additional'];
+  const goToStep = (step: 'issuer' | 'stage' | 'details' | 'confirm') => {
+    const stepOrder = ['issuer', 'stage', 'details', 'confirm'];
     const currentIndex = stepOrder.indexOf(currentStep);
     const nextIndex = stepOrder.indexOf(step);
     setDirection(nextIndex > currentIndex ? 1 : -1);
@@ -134,14 +138,21 @@ const AddDocumentWizard = ({
 
   const getStepNumber = () => {
     if (hasExtractedData) {
-      const ocrSteps = ['confirm', 'additional'];
-      return ocrSteps.indexOf(currentStep) + 1;
+      return 1; // OCR flow has single confirm step
     }
-    const manualSteps = ['issuer', 'stage', 'details', 'additional'];
+    const manualSteps = ['issuer', 'stage', 'details'];
     return manualSteps.indexOf(currentStep) + 1;
   };
 
-  const getTotalSteps = () => (hasExtractedData ? 2 : 4);
+  const getTotalSteps = () => (hasExtractedData ? 1 : 3);
+
+  const isDetailsComplete =
+    pcnNumber.trim() &&
+    vehicleReg.trim() &&
+    issuer.trim() &&
+    issuedAt &&
+    initialAmount &&
+    location;
 
   const handleSubmit = async () => {
     setIsSubmitting(true);
@@ -155,7 +166,6 @@ const AddDocumentWizard = ({
         location,
         initialAmount,
         issuer,
-        contraventionCode,
         imageUrl: extractedData?.imageUrl,
         tempImagePath: extractedData?.tempImagePath,
         extractedText: extractedData?.extractedText,
@@ -422,7 +432,7 @@ const AddDocumentWizard = ({
               </motion.div>
             )}
 
-            {/* Step: Basic Details (Manual flow) */}
+            {/* Step: Ticket Details (Manual flow — merged basic + additional) */}
             {currentStep === 'details' && (
               <motion.div
                 key="details"
@@ -446,11 +456,11 @@ const AddDocumentWizard = ({
                   Enter your ticket details
                 </h2>
                 <p className="mt-1 text-sm text-gray">
-                  We use these to track your specific ticket and check for
-                  updates.
+                  We use these to track your ticket and calculate your appeal
+                  chances.
                 </p>
 
-                <div className="mt-6 flex flex-col gap-4">
+                <div className="mt-6 flex max-h-[320px] flex-col gap-4 overflow-y-auto pr-2">
                   <div>
                     <label className="mb-1.5 block text-sm font-medium text-dark">
                       PCN / Reference Number *
@@ -476,15 +486,107 @@ const AddDocumentWizard = ({
                       className="h-11 uppercase"
                     />
                   </div>
+
+                  <div>
+                    <label className="mb-1.5 block text-sm font-medium text-dark">
+                      Issuer *
+                    </label>
+                    <IssuerCombobox
+                      issuerType={issuerType}
+                      value={issuer}
+                      onSelect={setIssuer}
+                    />
+                  </div>
+
+                  <div>
+                    <label className="mb-1.5 block text-sm font-medium text-dark">
+                      Issue Date *
+                    </label>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <button
+                          type="button"
+                          className={`flex h-11 w-full items-center rounded-md border border-input bg-background px-3 text-sm ring-offset-background ${
+                            issuedAt ? 'text-dark' : 'text-muted-foreground'
+                          }`}
+                        >
+                          <FontAwesomeIcon
+                            icon={faCalendar}
+                            className="mr-2 text-gray"
+                          />
+                          {issuedAt
+                            ? format(issuedAt, 'dd MMM yyyy')
+                            : 'Pick a date'}
+                        </button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0" align="start">
+                        <Calendar
+                          mode="single"
+                          selected={issuedAt}
+                          onSelect={(day) => setIssuedAt(day ?? undefined)}
+                          disabled={{ after: new Date() }}
+                          defaultMonth={issuedAt}
+                        />
+                      </PopoverContent>
+                    </Popover>
+                  </div>
+
+                  <div>
+                    <label className="mb-1.5 block text-sm font-medium text-dark">
+                      Amount (£) *
+                    </label>
+                    <Input
+                      type="number"
+                      value={initialAmount ? initialAmount / 100 : ''}
+                      onChange={(e) =>
+                        setInitialAmount(
+                          e.target.value
+                            ? Math.round(Number(e.target.value) * 100)
+                            : undefined,
+                        )
+                      }
+                      placeholder="e.g. 70"
+                      min="0"
+                      step="0.01"
+                      className="h-11"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="mb-1.5 block text-sm font-medium text-dark">
+                      Location *
+                    </label>
+                    <AddressInput
+                      onSelect={setLocation}
+                      initialValue={
+                        location?.line1
+                          ? `${location.line1}, ${location.city}`
+                          : undefined
+                      }
+                      className="h-11"
+                    />
+                  </div>
                 </div>
 
                 <Button
-                  onClick={() => goToStep('additional')}
-                  disabled={!pcnNumber.trim() || !vehicleReg.trim()}
+                  onClick={handleSubmit}
+                  disabled={!isDetailsComplete || isSubmitting}
                   className="mt-6 h-11 w-full bg-teal text-white hover:bg-teal-dark disabled:opacity-50"
                 >
-                  Continue
-                  <FontAwesomeIcon icon={faArrowRight} className="ml-2" />
+                  {isSubmitting ? (
+                    <>
+                      <FontAwesomeIcon
+                        icon={faSpinnerThird}
+                        className="mr-2 animate-spin"
+                      />
+                      Creating ticket...
+                    </>
+                  ) : (
+                    <>
+                      Add Ticket
+                      <FontAwesomeIcon icon={faCheckCircle} className="ml-2" />
+                    </>
+                  )}
                 </Button>
               </motion.div>
             )}
@@ -511,12 +613,8 @@ const AddDocumentWizard = ({
                 <p className="mt-1 text-sm text-gray">
                   Please check these are correct.
                 </p>
-                <p className="mt-1 text-xs text-gray/70">
-                  Accurate details help us track your deadlines and calculate
-                  your appeal chances.
-                </p>
 
-                <div className="mt-6 flex flex-col gap-4">
+                <div className="mt-6 flex max-h-[320px] flex-col gap-4 overflow-y-auto pr-2">
                   <div>
                     <label className="mb-1.5 block text-sm font-medium text-dark">
                       PCN Reference *
@@ -543,7 +641,7 @@ const AddDocumentWizard = ({
 
                   <div>
                     <label className="mb-1.5 block text-sm font-medium text-dark">
-                      Ticket Type
+                      Ticket Type *
                     </label>
                     <div className="flex gap-2">
                       <button
@@ -598,65 +696,54 @@ const AddDocumentWizard = ({
                       </SelectContent>
                     </Select>
                   </div>
-                </div>
 
-                <Button
-                  onClick={() => goToStep('additional')}
-                  disabled={!pcnNumber.trim() || !vehicleReg.trim()}
-                  className="mt-6 h-11 w-full bg-teal text-white hover:bg-teal-dark"
-                >
-                  Continue
-                  <FontAwesomeIcon icon={faArrowRight} className="ml-2" />
-                </Button>
-              </motion.div>
-            )}
-
-            {/* Step: Additional Details */}
-            {currentStep === 'additional' && (
-              <motion.div
-                key="additional"
-                custom={direction}
-                variants={slideVariants}
-                initial="enter"
-                animate="center"
-                exit="exit"
-                transition={{ duration: 0.3 }}
-              >
-                <button
-                  type="button"
-                  onClick={() =>
-                    goToStep(hasExtractedData ? 'confirm' : 'details')
-                  }
-                  className="mb-4 flex items-center gap-2 text-sm text-gray hover:text-dark"
-                >
-                  <FontAwesomeIcon icon={faArrowLeft} className="text-xs" />
-                  Back
-                </button>
-
-                <h2 className="text-xl font-bold text-dark">
-                  Additional details
-                </h2>
-                <p className="mt-1 text-sm text-gray">
-                  These help us calculate your appeal success score and track
-                  your ticket accurately (all optional).
-                </p>
-
-                <div className="mt-6 flex flex-col gap-4 max-h-[280px] overflow-y-auto pr-2">
                   <div>
                     <label className="mb-1.5 block text-sm font-medium text-dark">
-                      Issuer
+                      Issuer *
                     </label>
-                    <Input
+                    <IssuerCombobox
+                      issuerType={issuerType}
                       value={issuer}
-                      onChange={(e) => setIssuer(e.target.value)}
-                      placeholder="e.g. Lewisham Council"
-                      className="h-11"
+                      onSelect={setIssuer}
                     />
                   </div>
 
                   <div>
                     <label className="mb-1.5 block text-sm font-medium text-dark">
-                      Amount (£)
+                      Issue Date *
+                    </label>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <button
+                          type="button"
+                          className={`flex h-11 w-full items-center rounded-md border border-input bg-background px-3 text-sm ring-offset-background ${
+                            issuedAt ? 'text-dark' : 'text-muted-foreground'
+                          }`}
+                        >
+                          <FontAwesomeIcon
+                            icon={faCalendar}
+                            className="mr-2 text-gray"
+                          />
+                          {issuedAt
+                            ? format(issuedAt, 'dd MMM yyyy')
+                            : 'Pick a date'}
+                        </button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0" align="start">
+                        <Calendar
+                          mode="single"
+                          selected={issuedAt}
+                          onSelect={(day) => setIssuedAt(day ?? undefined)}
+                          disabled={{ after: new Date() }}
+                          defaultMonth={issuedAt}
+                        />
+                      </PopoverContent>
+                    </Popover>
+                  </div>
+
+                  <div>
+                    <label className="mb-1.5 block text-sm font-medium text-dark">
+                      Amount (£) *
                     </label>
                     <Input
                       type="number"
@@ -669,34 +756,15 @@ const AddDocumentWizard = ({
                         )
                       }
                       placeholder="e.g. 70"
+                      min="0"
+                      step="0.01"
                       className="h-11"
                     />
                   </div>
 
                   <div>
                     <label className="mb-1.5 block text-sm font-medium text-dark">
-                      Contravention
-                    </label>
-                    <Select
-                      value={contraventionCode}
-                      onValueChange={setContraventionCode}
-                    >
-                      <SelectTrigger className="h-11">
-                        <SelectValue placeholder="Select contravention" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {CONTRAVENTION_CODES_OPTIONS.map((code) => (
-                          <SelectItem key={code.value} value={code.value}>
-                            {code.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div>
-                    <label className="mb-1.5 block text-sm font-medium text-dark">
-                      Location
+                      Location *
                     </label>
                     <AddressInput
                       onSelect={setLocation}
@@ -712,8 +780,8 @@ const AddDocumentWizard = ({
 
                 <Button
                   onClick={handleSubmit}
-                  disabled={isSubmitting}
-                  className="mt-6 h-11 w-full bg-teal text-white hover:bg-teal-dark"
+                  disabled={!isDetailsComplete || isSubmitting}
+                  className="mt-6 h-11 w-full bg-teal text-white hover:bg-teal-dark disabled:opacity-50"
                 >
                   {isSubmitting ? (
                     <>

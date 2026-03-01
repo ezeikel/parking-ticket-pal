@@ -14,13 +14,24 @@ import {
   faGavel,
   faBell,
   faUserPlus,
+  faCalendar,
   faP,
 } from '@fortawesome/pro-solid-svg-icons';
+import { format } from 'date-fns';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Calendar } from '@/components/ui/calendar';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover';
 import ScoreGauge from '@/components/ui/ScoreGauge';
 import { useAnalytics } from '@/utils/analytics-client';
 import { TRACKING_EVENTS } from '@/constants/events';
+import IssuerCombobox from '@/components/forms/inputs/IssuerCombobox/IssuerCombobox';
+import AddressInput from '@/components/forms/inputs/AddressInput/AddressInput';
+import { Address } from '@parking-ticket-pal/types';
 
 type IssuerType = 'council' | 'private' | null;
 type TicketStage = 'initial' | 'nto' | 'rejection' | 'charge_cert' | null;
@@ -59,6 +70,10 @@ export type WizardCompleteData = {
   ticketStage: TicketStage;
   pcnNumber: string;
   vehicleReg: string;
+  issuer: string;
+  issuedAt: Date | null;
+  initialAmount: number | null;
+  location: Address | null;
   intent: UserIntent;
   challengeReason: ChallengeReason;
   tier: 'premium' | null;
@@ -152,6 +167,14 @@ const TicketWizard = ({
   );
   const [pcnNumber, setPcnNumber] = useState(extractedData?.pcnNumber || '');
   const [vehicleReg, setVehicleReg] = useState(extractedData?.vehicleReg || '');
+  const [issuer, setIssuer] = useState(extractedData?.issuer || '');
+  const [issuedAt, setIssuedAt] = useState<Date | null>(
+    extractedData?.issueDate ? new Date(extractedData.issueDate) : null,
+  );
+  const [initialAmount, setInitialAmount] = useState<number | null>(
+    extractedData?.initialAmount ?? null,
+  );
+  const [location, setLocation] = useState<Address | null>(null);
   const [userIntent, setUserIntent] = useState<UserIntent>(null);
   const [challengeReason, setChallengeReason] = useState<ChallengeReason>(null);
 
@@ -288,6 +311,10 @@ const TicketWizard = ({
         ticketStage,
         pcnNumber,
         vehicleReg,
+        issuer,
+        issuedAt,
+        initialAmount,
+        location,
         intent: 'challenge',
         challengeReason,
         tier: 'premium',
@@ -311,6 +338,10 @@ const TicketWizard = ({
         ticketStage,
         pcnNumber,
         vehicleReg,
+        issuer,
+        issuedAt,
+        initialAmount,
+        location,
         intent: 'track',
         challengeReason: null,
         tier: null,
@@ -628,10 +659,10 @@ const TicketWizard = ({
                   You can find these on your ticket or letter.
                 </p>
 
-                <div className="mt-6 flex flex-col gap-4">
+                <div className="mt-6 flex max-h-[320px] flex-col gap-4 overflow-y-auto pr-2">
                   <div>
                     <label className="mb-1.5 block text-sm font-medium text-dark">
-                      PCN / Reference Number
+                      PCN / Reference Number *
                     </label>
                     <Input
                       value={pcnNumber}
@@ -639,14 +670,11 @@ const TicketWizard = ({
                       placeholder="e.g. WK12345678"
                       className="h-11"
                     />
-                    <p className="mt-1 text-xs text-gray">
-                      Usually found at the top of your ticket
-                    </p>
                   </div>
 
                   <div>
                     <label className="mb-1.5 block text-sm font-medium text-dark">
-                      Vehicle Registration
+                      Vehicle Registration *
                     </label>
                     <Input
                       value={vehicleReg}
@@ -657,11 +685,90 @@ const TicketWizard = ({
                       className="h-11 uppercase"
                     />
                   </div>
+
+                  <div>
+                    <label className="mb-1.5 block text-sm font-medium text-dark">
+                      Issuer *
+                    </label>
+                    <IssuerCombobox
+                      issuerType={issuerType}
+                      value={issuer}
+                      onSelect={setIssuer}
+                    />
+                  </div>
+
+                  <div>
+                    <label className="mb-1.5 block text-sm font-medium text-dark">
+                      Issue Date *
+                    </label>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <button
+                          type="button"
+                          className={`flex h-11 w-full items-center rounded-md border border-input bg-background px-3 text-sm ring-offset-background ${
+                            issuedAt ? 'text-dark' : 'text-muted-foreground'
+                          }`}
+                        >
+                          <FontAwesomeIcon
+                            icon={faCalendar}
+                            className="mr-2 text-gray"
+                          />
+                          {issuedAt
+                            ? format(issuedAt, 'dd MMM yyyy')
+                            : 'Pick a date'}
+                        </button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0" align="start">
+                        <Calendar
+                          mode="single"
+                          selected={issuedAt ?? undefined}
+                          onSelect={(day) => setIssuedAt(day ?? null)}
+                          disabled={{ after: new Date() }}
+                          defaultMonth={issuedAt ?? undefined}
+                        />
+                      </PopoverContent>
+                    </Popover>
+                  </div>
+
+                  <div>
+                    <label className="mb-1.5 block text-sm font-medium text-dark">
+                      Amount (£) *
+                    </label>
+                    <Input
+                      type="number"
+                      value={initialAmount !== null ? initialAmount / 100 : ''}
+                      onChange={(e) =>
+                        setInitialAmount(
+                          e.target.value
+                            ? Math.round(Number(e.target.value) * 100)
+                            : null,
+                        )
+                      }
+                      placeholder="e.g. 70"
+                      min="0"
+                      step="0.01"
+                      className="h-11"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="mb-1.5 block text-sm font-medium text-dark">
+                      Location *
+                    </label>
+                    <AddressInput onSelect={setLocation} className="h-11" />
+                  </div>
                 </div>
 
                 <Button
                   onClick={() => goToStep('intent')}
-                  disabled={!pcnNumber.trim() || !vehicleReg.trim()}
+                  disabled={
+                    !pcnNumber.trim() ||
+                    !vehicleReg.trim() ||
+                    !issuer.trim() ||
+                    !issuedAt ||
+                    !initialAmount ||
+                    !location
+                  }
                   className="mt-6 h-11 w-full bg-teal text-white hover:bg-teal-dark disabled:opacity-50"
                 >
                   Continue
