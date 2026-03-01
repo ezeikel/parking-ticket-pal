@@ -73,9 +73,6 @@ export const ModelName = {
   Referral: 'Referral',
   ReferralCredit: 'ReferralCredit',
   LondonTribunalCase: 'LondonTribunalCase',
-  KeyCasePrecedent: 'KeyCasePrecedent',
-  NationalAppealStats: 'NationalAppealStats',
-  CouncilPCNData: 'CouncilPCNData',
   AppealDataSource: 'AppealDataSource',
   ContraventionStats: 'ContraventionStats',
   IssuerContraventionStats: 'IssuerContraventionStats',
@@ -461,73 +458,6 @@ export const LondonTribunalCaseScalarFieldEnum = {
 export type LondonTribunalCaseScalarFieldEnum = (typeof LondonTribunalCaseScalarFieldEnum)[keyof typeof LondonTribunalCaseScalarFieldEnum]
 
 
-export const KeyCasePrecedentScalarFieldEnum = {
-  id: 'id',
-  caseReference: 'caseReference',
-  source: 'source',
-  tribunal: 'tribunal',
-  authority: 'authority',
-  normalizedIssuerId: 'normalizedIssuerId',
-  contraventionType: 'contraventionType',
-  normalizedContraventionCode: 'normalizedContraventionCode',
-  issueCategory: 'issueCategory',
-  decision: 'decision',
-  decisionDate: 'decisionDate',
-  summary: 'summary',
-  reasoning: 'reasoning',
-  legalPrinciples: 'legalPrinciples',
-  scrapedAt: 'scrapedAt',
-  updatedAt: 'updatedAt'
-} as const
-
-export type KeyCasePrecedentScalarFieldEnum = (typeof KeyCasePrecedentScalarFieldEnum)[keyof typeof KeyCasePrecedentScalarFieldEnum]
-
-
-export const NationalAppealStatsScalarFieldEnum = {
-  id: 'id',
-  source: 'source',
-  authority: 'authority',
-  normalizedIssuerId: 'normalizedIssuerId',
-  region: 'region',
-  penaltyType: 'penaltyType',
-  contraventionCode: 'contraventionCode',
-  year: 'year',
-  totalPCNs: 'totalPCNs',
-  totalAppeals: 'totalAppeals',
-  allowedCount: 'allowedCount',
-  refusedCount: 'refusedCount',
-  withdrawnCount: 'withdrawnCount',
-  successRate: 'successRate',
-  cancellationRate: 'cancellationRate',
-  sourceUrl: 'sourceUrl',
-  importedAt: 'importedAt',
-  updatedAt: 'updatedAt'
-} as const
-
-export type NationalAppealStatsScalarFieldEnum = (typeof NationalAppealStatsScalarFieldEnum)[keyof typeof NationalAppealStatsScalarFieldEnum]
-
-
-export const CouncilPCNDataScalarFieldEnum = {
-  id: 'id',
-  source: 'source',
-  authority: 'authority',
-  normalizedIssuerId: 'normalizedIssuerId',
-  pcnReference: 'pcnReference',
-  contraventionCode: 'contraventionCode',
-  normalizedContraventionCode: 'normalizedContraventionCode',
-  contraventionDate: 'contraventionDate',
-  street: 'street',
-  postcode: 'postcode',
-  vehicleCategory: 'vehicleCategory',
-  status: 'status',
-  amount: 'amount',
-  importedAt: 'importedAt',
-  updatedAt: 'updatedAt'
-} as const
-
-export type CouncilPCNDataScalarFieldEnum = (typeof CouncilPCNDataScalarFieldEnum)[keyof typeof CouncilPCNDataScalarFieldEnum]
-
-
 export const AppealDataSourceScalarFieldEnum = {
   id: 'id',
   name: 'name',
@@ -669,8 +599,6 @@ export type IssuerHealthCheckScalarFieldEnum = (typeof IssuerHealthCheckScalarFi
 export const TribunalCaseVideoScalarFieldEnum = {
   id: 'id',
   caseId: 'caseId',
-  keyCaseId: 'keyCaseId',
-  caseSource: 'caseSource',
   interestScore: 'interestScore',
   script: 'script',
   scriptSegments: 'scriptSegments',

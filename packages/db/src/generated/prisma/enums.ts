@@ -275,48 +275,6 @@ export const UserTitle = {
 export type UserTitle = (typeof UserTitle)[keyof typeof UserTitle]
 
 
-export const KeyCaseSource = {
-  TRAFFICASE: 'TRAFFICASE',
-  HIGH_COURT: 'HIGH_COURT',
-  TPT_PRECEDENT: 'TPT_PRECEDENT'
-} as const
-
-export type KeyCaseSource = (typeof KeyCaseSource)[keyof typeof KeyCaseSource]
-
-
-export const NationalStatsSource = {
-  TPT: 'TPT',
-  LONDON_COUNCILS: 'LONDON_COUNCILS',
-  LONDON_TRIBUNAL_ANNUAL: 'LONDON_TRIBUNAL_ANNUAL',
-  POPLA: 'POPLA',
-  IAS: 'IAS',
-  SCOTTISH_TRIBUNALS: 'SCOTTISH_TRIBUNALS',
-  OPEN_DATA_NI: 'OPEN_DATA_NI',
-  FOI: 'FOI',
-  COUNCIL_APR: 'COUNCIL_APR'
-} as const
-
-export type NationalStatsSource = (typeof NationalStatsSource)[keyof typeof NationalStatsSource]
-
-
-export const UKRegion = {
-  LONDON: 'LONDON',
-  SOUTH_EAST: 'SOUTH_EAST',
-  SOUTH_WEST: 'SOUTH_WEST',
-  EAST_OF_ENGLAND: 'EAST_OF_ENGLAND',
-  WEST_MIDLANDS: 'WEST_MIDLANDS',
-  EAST_MIDLANDS: 'EAST_MIDLANDS',
-  NORTH_WEST: 'NORTH_WEST',
-  NORTH_EAST: 'NORTH_EAST',
-  YORKSHIRE_AND_HUMBER: 'YORKSHIRE_AND_HUMBER',
-  WALES: 'WALES',
-  SCOTLAND: 'SCOTLAND',
-  NORTHERN_IRELAND: 'NORTHERN_IRELAND'
-} as const
-
-export type UKRegion = (typeof UKRegion)[keyof typeof UKRegion]
-
-
 export const PatternOutcome = {
   WINNING: 'WINNING',
   LOSING: 'LOSING'
@@ -398,14 +356,6 @@ export const VideoStatus = {
 } as const
 
 export type VideoStatus = (typeof VideoStatus)[keyof typeof VideoStatus]
-
-
-export const VideoCaseSource = {
-  LONDON_TRIBUNAL: 'LONDON_TRIBUNAL',
-  KEY_CASE_PRECEDENT: 'KEY_CASE_PRECEDENT'
-} as const
-
-export type VideoCaseSource = (typeof VideoCaseSource)[keyof typeof VideoCaseSource]
 
 
 export const OnboardingExitReason = {

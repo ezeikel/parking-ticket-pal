@@ -656,127 +656,6 @@ model LondonTribunalCase {
 }
 
 // ============================================================================
-// National Data Sources
-// ============================================================================
-
-// Key case precedents from Traff-iCase / keycases.info
-// Curated precedent decisions from TPT + London + High Court with full legal reasoning
-model KeyCasePrecedent {
-  id                          String              @id @default(cuid())
-  caseReference               String              @unique
-  source                      KeyCaseSource       @default(TRAFFICASE)
-  tribunal                    String? // "TPT", "London Tribunal", "High Court"
-  authority                   String? // Council/authority name
-  normalizedIssuerId          String?
-  contraventionType           String? // Type of contravention
-  normalizedContraventionCode String?
-  issueCategory               String? // e.g., "Signage", "Loading", "Procedure"
-  decision                    AppealDecision
-  decisionDate                DateTime?
-  summary                     String?             @db.Text // Brief summary
-  reasoning                   String              @db.Text // Full legal reasoning
-  legalPrinciples             String[] // Key legal principles established
-  scrapedAt                   DateTime            @default(now())
-  updatedAt                   DateTime            @updatedAt
-  videos                      TribunalCaseVideo[] @relation("KeyCaseVideos")
-
-  @@index([normalizedIssuerId, normalizedContraventionCode])
-  @@index([decision])
-  @@index([issueCategory])
-  @@index([tribunal])
-  @@map("key_case_precedents")
-}
-
-enum KeyCaseSource {
-  TRAFFICASE // keycases.info
-  HIGH_COURT
-  TPT_PRECEDENT
-}
-
-// National appeal statistics from TPT, London Councils, POPLA, etc.
-// Aggregate stats by authority + penalty type + year
-model NationalAppealStats {
-  id                 String              @id @default(cuid())
-  source             NationalStatsSource
-  authority          String // Council/authority name
-  normalizedIssuerId String?
-  region             UKRegion?
-  penaltyType        String? // "parking", "bus_lane", "moving_traffic"
-  contraventionCode  String? // If available at this granularity
-  year               Int // Financial or calendar year
-  totalPCNs          Int? // Total PCNs issued (if available)
-  totalAppeals       Int
-  allowedCount       Int
-  refusedCount       Int
-  withdrawnCount     Int?
-  successRate        Float // (allowed) / total appeals
-  cancellationRate   Float? // For private parking (POPLA) — operator concessions
-  sourceUrl          String? // URL where data was obtained
-  importedAt         DateTime            @default(now())
-  updatedAt          DateTime            @updatedAt
-
-  @@unique([source, authority, penaltyType, year])
-  @@index([normalizedIssuerId])
-  @@index([source])
-  @@index([region])
-  @@index([year])
-  @@map("national_appeal_stats")
-}
-
-enum NationalStatsSource {
-  TPT // Traffic Penalty Tribunal (England outside London + Wales)
-  LONDON_COUNCILS // London Councils enforcement stats
-  LONDON_TRIBUNAL_ANNUAL // London Tribunals annual report XLSX
-  POPLA // Private parking appeals (BPA members)
-  IAS // Independent Appeals Service (IPC members)
-  SCOTTISH_TRIBUNALS // Scottish parking tribunals
-  OPEN_DATA_NI // Northern Ireland open data
-  FOI // Freedom of Information responses
-  COUNCIL_APR // Council Annual Parking Reports
-}
-
-enum UKRegion {
-  LONDON
-  SOUTH_EAST
-  SOUTH_WEST
-  EAST_OF_ENGLAND
-  WEST_MIDLANDS
-  EAST_MIDLANDS
-  NORTH_WEST
-  NORTH_EAST
-  YORKSHIRE_AND_HUMBER
-  WALES
-  SCOTLAND
-  NORTHERN_IRELAND
-}
-
-// Individual PCN records from council open data portals (Socrata, etc.)
-model CouncilPCNData {
-  id                          String    @id @default(cuid())
-  source                      String // e.g., "camden_socrata", "barnet_socrata"
-  authority                   String
-  normalizedIssuerId          String?
-  pcnReference                String? // PCN number if available
-  contraventionCode           String?
-  normalizedContraventionCode String?
-  contraventionDate           DateTime?
-  street                      String?
-  postcode                    String?
-  vehicleCategory             String? // Car, van, motorcycle, etc.
-  status                      String? // Paid, cancelled, appealed, etc.
-  amount                      Decimal?  @db.Decimal(10, 2)
-  importedAt                  DateTime  @default(now())
-  updatedAt                   DateTime  @updatedAt
-
-  @@unique([source, pcnReference])
-  @@index([normalizedIssuerId, normalizedContraventionCode])
-  @@index([source])
-  @@index([contraventionDate])
-  @@index([status])
-  @@map("council_pcn_data")
-}
-
-// ============================================================================
 // Success Score Prediction Models
 // ============================================================================
 
@@ -1006,9 +885,6 @@ model TribunalCaseVideo {
   id                 String             @id @default(cuid())
   caseId             String
   case               LondonTribunalCase @relation(fields: [caseId], references: [id])
-  keyCaseId          String? // Optional: if sourced from KeyCasePrecedent
-  keyCase            KeyCasePrecedent?  @relation("KeyCaseVideos", fields: [keyCaseId], references: [id])
-  caseSource         VideoCaseSource    @default(LONDON_TRIBUNAL)
   interestScore      Float
   script             String             @db.Text
   scriptSegments     Json?
@@ -1028,14 +904,8 @@ model TribunalCaseVideo {
   updatedAt          DateTime           @updatedAt
 
   @@index([caseId])
-  @@index([keyCaseId])
   @@index([status])
   @@map("tribunal_case_videos")
-}
-
-enum VideoCaseSource {
-  LONDON_TRIBUNAL
-  KEY_CASE_PRECEDENT
 }
 
 model NewsVideo {

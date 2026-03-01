@@ -150,21 +150,6 @@ export type ReferralCredit = Prisma.ReferralCreditModel
  */
 export type LondonTribunalCase = Prisma.LondonTribunalCaseModel
 /**
- * Model KeyCasePrecedent
- * 
- */
-export type KeyCasePrecedent = Prisma.KeyCasePrecedentModel
-/**
- * Model NationalAppealStats
- * 
- */
-export type NationalAppealStats = Prisma.NationalAppealStatsModel
-/**
- * Model CouncilPCNData
- * 
- */
-export type CouncilPCNData = Prisma.CouncilPCNDataModel
-/**
  * Model AppealDataSource
  * 
  */
