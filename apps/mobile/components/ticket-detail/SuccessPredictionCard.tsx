@@ -64,7 +64,7 @@ export default function SuccessPredictionCard({
               })
             }
           >
-            <View className="bg-teal rounded-full px-5 py-2.5 flex-row items-center">
+            <View className="bg-teal rounded-xl px-5 py-3.5 flex-row items-center justify-center">
               <FontAwesomeIcon
                 icon={faUnlock}
                 size={12}
