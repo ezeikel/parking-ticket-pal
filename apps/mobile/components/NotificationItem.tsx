@@ -1,19 +1,19 @@
 import { View, Text } from 'react-native';
+import { useState } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import {
   faBell,
   faTicket,
   faFileLines,
   faCheckCircle,
-  faDollarSign,
+  faSterlingSign,
+  faChevronRight,
 } from '@fortawesome/pro-regular-svg-icons';
 import { router } from 'expo-router';
 import { formatDistanceToNow } from 'date-fns';
 import { useMarkNotificationAsRead } from '@/hooks/api/useNotifications';
-import Animated, { useAnimatedStyle, withTiming, useSharedValue } from 'react-native-reanimated';
 import SquishyPressable from '@/components/SquishyPressable/SquishyPressable';
-
-const AnimatedSquishyPressable = Animated.createAnimatedComponent(SquishyPressable);
+import { perfect } from '@/styles';
 
 type Notification = {
   id: string;
@@ -40,120 +40,114 @@ interface NotificationItemProps {
 const getNotificationIcon = (type: string) => {
   switch (type) {
     case 'TICKET_DEADLINE_REMINDER':
-      return { icon: faBell, color: '#d97706' };
+      return faBell;
     case 'TICKET_STATUS_UPDATE':
-      return { icon: faTicket, color: '#2563eb' };
+      return faTicket;
     case 'FORM_DEADLINE_REMINDER':
-      return { icon: faFileLines, color: '#d97706' };
+      return faFileLines;
     case 'APPEAL_SUBMITTED':
     case 'CHALLENGE_COMPLETE':
-      return { icon: faCheckCircle, color: '#16a34a' };
+    case 'APPEAL_RESPONSE_RECEIVED':
+      return faCheckCircle;
     case 'PAYMENT_DUE':
-      return { icon: faDollarSign, color: '#dc2626' };
+      return faSterlingSign;
     default:
-      return { icon: faBell, color: '#6b7280' };
+      return faBell;
   }
 };
 
 const NotificationItem = ({ notification }: NotificationItemProps) => {
   const { mutate: markAsRead } = useMarkNotificationAsRead();
-  const scale = useSharedValue(1);
-  const { icon, color } = getNotificationIcon(notification.type);
+  const [expanded, setExpanded] = useState(false);
+  const icon = getNotificationIcon(notification.type);
 
   const handlePress = () => {
-    // Mark as read
     if (!notification.read) {
       markAsRead(notification.id);
     }
 
-    // Navigate to ticket if available
+    setExpanded((prev) => !prev);
+  };
+
+  const handleViewTicket = () => {
     if (notification.ticketId) {
       router.push(`/(authenticated)/ticket/${notification.ticketId}`);
     }
   };
-
-  const handlePressIn = () => {
-    scale.value = withTiming(0.98, { duration: 100 });
-  };
-
-  const handlePressOut = () => {
-    scale.value = withTiming(1, { duration: 100 });
-  };
-
-  const animatedStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: scale.value }],
-  }));
 
   const timeAgo = formatDistanceToNow(new Date(notification.createdAt), {
     addSuffix: true,
   });
 
   return (
-    <AnimatedSquishyPressable
+    <SquishyPressable
       onPress={handlePress}
-      onPressIn={handlePressIn}
-      onPressOut={handlePressOut}
-      className={`bg-white rounded-lg p-4 mb-3 border ${
-        notification.read ? 'border-gray-100' : 'border-teal/20 bg-teal/10'
-      }`}
-      style={animatedStyle}
+      className="rounded-2xl p-4 mb-3 bg-white"
+      style={perfect.cardShadow}
     >
       <View className="flex-row">
         {/* Icon */}
-        <View
-          className={`w-10 h-10 rounded-lg items-center justify-center mr-3 ${
-            notification.read ? 'bg-gray-100' : 'bg-teal/10'
-          }`}
-        >
-          <FontAwesomeIcon
-            icon={icon}
-            size={18}
-            color={color}
-          />
+        <View className="w-11 h-11 rounded-full items-center justify-center mr-3 bg-gray-100">
+          <FontAwesomeIcon icon={icon} size={18} color="#6B7280" />
         </View>
 
         {/* Content */}
         <View className="flex-1">
-          {/* Title and timestamp */}
+          {/* Title row */}
           <View className="flex-row items-start justify-between mb-1">
             <Text
-              className={`flex-1 font-jakarta text-base ${
-                notification.read ? 'text-gray-900' : 'text-gray-900 font-jakarta-bold'
+              className={`flex-1 text-base ${
+                notification.read
+                  ? 'font-jakarta text-gray-500'
+                  : 'font-jakarta-bold text-dark'
               }`}
-              numberOfLines={1}
+              numberOfLines={expanded ? undefined : 1}
             >
               {notification.title}
             </Text>
             {!notification.read && (
-              <View className="w-2 h-2 bg-dark rounded-full ml-2 mt-2" />
+              <View className="w-2 h-2 bg-teal rounded-full ml-2 mt-2" />
             )}
           </View>
 
           {/* Body */}
           <Text
-            className={`font-jakarta text-sm mb-2 ${
-              notification.read ? 'text-gray-600' : 'text-gray-700'
+            className={`font-jakarta text-sm mb-2.5 ${
+              notification.read ? 'text-gray-400' : 'text-gray-600'
             }`}
-            numberOfLines={2}
+            numberOfLines={expanded ? undefined : 2}
           >
             {notification.body}
           </Text>
 
+          {/* View ticket link (only when expanded and has a ticket) */}
+          {expanded && notification.ticketId && (
+            <SquishyPressable onPress={handleViewTicket}>
+              <View className="flex-row items-center mb-2.5">
+                <Text className="font-jakarta-semibold text-sm text-dark mr-1">
+                  View ticket
+                </Text>
+                <FontAwesomeIcon icon={faChevronRight} size={10} color="#222222" />
+              </View>
+            </SquishyPressable>
+          )}
+
           {/* Metadata */}
           <View className="flex-row items-center justify-between">
-            <Text className="font-jakarta text-xs text-gray-500">
+            <Text className={`font-jakarta text-xs ${notification.read ? 'text-gray-300' : 'text-gray-400'}`}>
               {timeAgo}
             </Text>
-
             {notification.ticket && (
-              <Text className="font-jakarta text-xs text-gray-500">
-                {notification.ticket.pcnNumber}
-              </Text>
+              <View className="bg-gray-100 rounded-full px-2 py-0.5">
+                <Text className="font-jakarta-medium text-xs text-gray-500">
+                  {notification.ticket.pcnNumber}
+                </Text>
+              </View>
             )}
           </View>
         </View>
       </View>
-    </AnimatedSquishyPressable>
+    </SquishyPressable>
   );
 };
 

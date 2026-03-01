@@ -28,7 +28,6 @@ const NotificationList = ({ unreadOnly = false }: NotificationListProps) => {
     setRefreshing(false);
   };
 
-  // Loading state
   if (isLoading) {
     return (
       <View className="flex-1 items-center justify-center">
@@ -37,7 +36,6 @@ const NotificationList = ({ unreadOnly = false }: NotificationListProps) => {
     );
   }
 
-  // Empty state
   if (notifications.length === 0) {
     return (
       <View className="flex-1 items-center justify-center">
@@ -63,7 +61,7 @@ const NotificationList = ({ unreadOnly = false }: NotificationListProps) => {
       showsVerticalScrollIndicator={false}
       contentContainerStyle={{
         paddingHorizontal: 16,
-        paddingTop: 8,
+        paddingTop: 16,
         paddingBottom: 24,
       }}
       refreshControl={
