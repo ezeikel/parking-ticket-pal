@@ -319,6 +319,7 @@ export type UserWhereInput = {
   notifications?: Prisma.NotificationListRelationFilter
   mobileDeviceSessions?: Prisma.MobileDeviceSessionListRelationFilter
   onboardingSequences?: Prisma.OnboardingSequenceListRelationFilter
+  draftTickets?: Prisma.DraftTicketListRelationFilter
   referrer?: Prisma.XOR<Prisma.UserNullableScalarRelationFilter, Prisma.UserWhereInput> | null
   referrals?: Prisma.UserListRelationFilter
   referralCode?: Prisma.XOR<Prisma.ReferralCodeNullableScalarRelationFilter, Prisma.ReferralCodeWhereInput> | null
@@ -351,6 +352,7 @@ export type UserOrderByWithRelationInput = {
   notifications?: Prisma.NotificationOrderByRelationAggregateInput
   mobileDeviceSessions?: Prisma.MobileDeviceSessionOrderByRelationAggregateInput
   onboardingSequences?: Prisma.OnboardingSequenceOrderByRelationAggregateInput
+  draftTickets?: Prisma.DraftTicketOrderByRelationAggregateInput
   referrer?: Prisma.UserOrderByWithRelationInput
   referrals?: Prisma.UserOrderByRelationAggregateInput
   referralCode?: Prisma.ReferralCodeOrderByWithRelationInput
@@ -386,6 +388,7 @@ export type UserWhereUniqueInput = Prisma.AtLeast<{
   notifications?: Prisma.NotificationListRelationFilter
   mobileDeviceSessions?: Prisma.MobileDeviceSessionListRelationFilter
   onboardingSequences?: Prisma.OnboardingSequenceListRelationFilter
+  draftTickets?: Prisma.DraftTicketListRelationFilter
   referrer?: Prisma.XOR<Prisma.UserNullableScalarRelationFilter, Prisma.UserWhereInput> | null
   referrals?: Prisma.UserListRelationFilter
   referralCode?: Prisma.XOR<Prisma.ReferralCodeNullableScalarRelationFilter, Prisma.ReferralCodeWhereInput> | null
@@ -467,6 +470,7 @@ export type UserCreateInput = {
   notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
   mobileDeviceSessions?: Prisma.MobileDeviceSessionCreateNestedManyWithoutUserInput
   onboardingSequences?: Prisma.OnboardingSequenceCreateNestedManyWithoutUserInput
+  draftTickets?: Prisma.DraftTicketCreateNestedManyWithoutUserInput
   referrer?: Prisma.UserCreateNestedOneWithoutReferralsInput
   referrals?: Prisma.UserCreateNestedManyWithoutReferrerInput
   referralCode?: Prisma.ReferralCodeCreateNestedOneWithoutUserInput
@@ -499,6 +503,7 @@ export type UserUncheckedCreateInput = {
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
   mobileDeviceSessions?: Prisma.MobileDeviceSessionUncheckedCreateNestedManyWithoutUserInput
   onboardingSequences?: Prisma.OnboardingSequenceUncheckedCreateNestedManyWithoutUserInput
+  draftTickets?: Prisma.DraftTicketUncheckedCreateNestedManyWithoutUserInput
   referrals?: Prisma.UserUncheckedCreateNestedManyWithoutReferrerInput
   referralCode?: Prisma.ReferralCodeUncheckedCreateNestedOneWithoutUserInput
   referralCredits?: Prisma.ReferralCreditUncheckedCreateNestedManyWithoutUserInput
@@ -529,6 +534,7 @@ export type UserUpdateInput = {
   notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
   mobileDeviceSessions?: Prisma.MobileDeviceSessionUpdateManyWithoutUserNestedInput
   onboardingSequences?: Prisma.OnboardingSequenceUpdateManyWithoutUserNestedInput
+  draftTickets?: Prisma.DraftTicketUpdateManyWithoutUserNestedInput
   referrer?: Prisma.UserUpdateOneWithoutReferralsNestedInput
   referrals?: Prisma.UserUpdateManyWithoutReferrerNestedInput
   referralCode?: Prisma.ReferralCodeUpdateOneWithoutUserNestedInput
@@ -561,6 +567,7 @@ export type UserUncheckedUpdateInput = {
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
   mobileDeviceSessions?: Prisma.MobileDeviceSessionUncheckedUpdateManyWithoutUserNestedInput
   onboardingSequences?: Prisma.OnboardingSequenceUncheckedUpdateManyWithoutUserNestedInput
+  draftTickets?: Prisma.DraftTicketUncheckedUpdateManyWithoutUserNestedInput
   referrals?: Prisma.UserUncheckedUpdateManyWithoutReferrerNestedInput
   referralCode?: Prisma.ReferralCodeUncheckedUpdateOneWithoutUserNestedInput
   referralCredits?: Prisma.ReferralCreditUncheckedUpdateManyWithoutUserNestedInput
@@ -833,6 +840,20 @@ export type UserUpdateOneRequiredWithoutVehiclesNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutVehiclesInput, Prisma.UserUpdateWithoutVehiclesInput>, Prisma.UserUncheckedUpdateWithoutVehiclesInput>
 }
 
+export type UserCreateNestedOneWithoutDraftTicketsInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutDraftTicketsInput, Prisma.UserUncheckedCreateWithoutDraftTicketsInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutDraftTicketsInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
+export type UserUpdateOneRequiredWithoutDraftTicketsNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutDraftTicketsInput, Prisma.UserUncheckedCreateWithoutDraftTicketsInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutDraftTicketsInput
+  upsert?: Prisma.UserUpsertWithoutDraftTicketsInput
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutDraftTicketsInput, Prisma.UserUpdateWithoutDraftTicketsInput>, Prisma.UserUncheckedUpdateWithoutDraftTicketsInput>
+}
+
 export type UserCreateNestedOneWithoutNotificationsInput = {
   create?: Prisma.XOR<Prisma.UserCreateWithoutNotificationsInput, Prisma.UserUncheckedCreateWithoutNotificationsInput>
   connectOrCreate?: Prisma.UserCreateOrConnectWithoutNotificationsInput
@@ -956,6 +977,7 @@ export type UserCreateWithoutReferralsInput = {
   notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
   mobileDeviceSessions?: Prisma.MobileDeviceSessionCreateNestedManyWithoutUserInput
   onboardingSequences?: Prisma.OnboardingSequenceCreateNestedManyWithoutUserInput
+  draftTickets?: Prisma.DraftTicketCreateNestedManyWithoutUserInput
   referrer?: Prisma.UserCreateNestedOneWithoutReferralsInput
   referralCode?: Prisma.ReferralCodeCreateNestedOneWithoutUserInput
   referralCredits?: Prisma.ReferralCreditCreateNestedManyWithoutUserInput
@@ -987,6 +1009,7 @@ export type UserUncheckedCreateWithoutReferralsInput = {
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
   mobileDeviceSessions?: Prisma.MobileDeviceSessionUncheckedCreateNestedManyWithoutUserInput
   onboardingSequences?: Prisma.OnboardingSequenceUncheckedCreateNestedManyWithoutUserInput
+  draftTickets?: Prisma.DraftTicketUncheckedCreateNestedManyWithoutUserInput
   referralCode?: Prisma.ReferralCodeUncheckedCreateNestedOneWithoutUserInput
   referralCredits?: Prisma.ReferralCreditUncheckedCreateNestedManyWithoutUserInput
 }
@@ -1021,6 +1044,7 @@ export type UserCreateWithoutReferrerInput = {
   notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
   mobileDeviceSessions?: Prisma.MobileDeviceSessionCreateNestedManyWithoutUserInput
   onboardingSequences?: Prisma.OnboardingSequenceCreateNestedManyWithoutUserInput
+  draftTickets?: Prisma.DraftTicketCreateNestedManyWithoutUserInput
   referrals?: Prisma.UserCreateNestedManyWithoutReferrerInput
   referralCode?: Prisma.ReferralCodeCreateNestedOneWithoutUserInput
   referralCredits?: Prisma.ReferralCreditCreateNestedManyWithoutUserInput
@@ -1051,6 +1075,7 @@ export type UserUncheckedCreateWithoutReferrerInput = {
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
   mobileDeviceSessions?: Prisma.MobileDeviceSessionUncheckedCreateNestedManyWithoutUserInput
   onboardingSequences?: Prisma.OnboardingSequenceUncheckedCreateNestedManyWithoutUserInput
+  draftTickets?: Prisma.DraftTicketUncheckedCreateNestedManyWithoutUserInput
   referrals?: Prisma.UserUncheckedCreateNestedManyWithoutReferrerInput
   referralCode?: Prisma.ReferralCodeUncheckedCreateNestedOneWithoutUserInput
   referralCredits?: Prisma.ReferralCreditUncheckedCreateNestedManyWithoutUserInput
@@ -1102,6 +1127,7 @@ export type UserUpdateWithoutReferralsInput = {
   notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
   mobileDeviceSessions?: Prisma.MobileDeviceSessionUpdateManyWithoutUserNestedInput
   onboardingSequences?: Prisma.OnboardingSequenceUpdateManyWithoutUserNestedInput
+  draftTickets?: Prisma.DraftTicketUpdateManyWithoutUserNestedInput
   referrer?: Prisma.UserUpdateOneWithoutReferralsNestedInput
   referralCode?: Prisma.ReferralCodeUpdateOneWithoutUserNestedInput
   referralCredits?: Prisma.ReferralCreditUpdateManyWithoutUserNestedInput
@@ -1133,6 +1159,7 @@ export type UserUncheckedUpdateWithoutReferralsInput = {
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
   mobileDeviceSessions?: Prisma.MobileDeviceSessionUncheckedUpdateManyWithoutUserNestedInput
   onboardingSequences?: Prisma.OnboardingSequenceUncheckedUpdateManyWithoutUserNestedInput
+  draftTickets?: Prisma.DraftTicketUncheckedUpdateManyWithoutUserNestedInput
   referralCode?: Prisma.ReferralCodeUncheckedUpdateOneWithoutUserNestedInput
   referralCredits?: Prisma.ReferralCreditUncheckedUpdateManyWithoutUserNestedInput
 }
@@ -1201,6 +1228,7 @@ export type UserCreateWithoutMobileDeviceSessionsInput = {
   pushTokens?: Prisma.PushTokenCreateNestedManyWithoutUserInput
   notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
   onboardingSequences?: Prisma.OnboardingSequenceCreateNestedManyWithoutUserInput
+  draftTickets?: Prisma.DraftTicketCreateNestedManyWithoutUserInput
   referrer?: Prisma.UserCreateNestedOneWithoutReferralsInput
   referrals?: Prisma.UserCreateNestedManyWithoutReferrerInput
   referralCode?: Prisma.ReferralCodeCreateNestedOneWithoutUserInput
@@ -1232,6 +1260,7 @@ export type UserUncheckedCreateWithoutMobileDeviceSessionsInput = {
   pushTokens?: Prisma.PushTokenUncheckedCreateNestedManyWithoutUserInput
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
   onboardingSequences?: Prisma.OnboardingSequenceUncheckedCreateNestedManyWithoutUserInput
+  draftTickets?: Prisma.DraftTicketUncheckedCreateNestedManyWithoutUserInput
   referrals?: Prisma.UserUncheckedCreateNestedManyWithoutReferrerInput
   referralCode?: Prisma.ReferralCodeUncheckedCreateNestedOneWithoutUserInput
   referralCredits?: Prisma.ReferralCreditUncheckedCreateNestedManyWithoutUserInput
@@ -1277,6 +1306,7 @@ export type UserUpdateWithoutMobileDeviceSessionsInput = {
   pushTokens?: Prisma.PushTokenUpdateManyWithoutUserNestedInput
   notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
   onboardingSequences?: Prisma.OnboardingSequenceUpdateManyWithoutUserNestedInput
+  draftTickets?: Prisma.DraftTicketUpdateManyWithoutUserNestedInput
   referrer?: Prisma.UserUpdateOneWithoutReferralsNestedInput
   referrals?: Prisma.UserUpdateManyWithoutReferrerNestedInput
   referralCode?: Prisma.ReferralCodeUpdateOneWithoutUserNestedInput
@@ -1308,6 +1338,7 @@ export type UserUncheckedUpdateWithoutMobileDeviceSessionsInput = {
   pushTokens?: Prisma.PushTokenUncheckedUpdateManyWithoutUserNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
   onboardingSequences?: Prisma.OnboardingSequenceUncheckedUpdateManyWithoutUserNestedInput
+  draftTickets?: Prisma.DraftTicketUncheckedUpdateManyWithoutUserNestedInput
   referrals?: Prisma.UserUncheckedUpdateManyWithoutReferrerNestedInput
   referralCode?: Prisma.ReferralCodeUncheckedUpdateOneWithoutUserNestedInput
   referralCredits?: Prisma.ReferralCreditUncheckedUpdateManyWithoutUserNestedInput
@@ -1337,6 +1368,7 @@ export type UserCreateWithoutVehiclesInput = {
   notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
   mobileDeviceSessions?: Prisma.MobileDeviceSessionCreateNestedManyWithoutUserInput
   onboardingSequences?: Prisma.OnboardingSequenceCreateNestedManyWithoutUserInput
+  draftTickets?: Prisma.DraftTicketCreateNestedManyWithoutUserInput
   referrer?: Prisma.UserCreateNestedOneWithoutReferralsInput
   referrals?: Prisma.UserCreateNestedManyWithoutReferrerInput
   referralCode?: Prisma.ReferralCodeCreateNestedOneWithoutUserInput
@@ -1368,6 +1400,7 @@ export type UserUncheckedCreateWithoutVehiclesInput = {
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
   mobileDeviceSessions?: Prisma.MobileDeviceSessionUncheckedCreateNestedManyWithoutUserInput
   onboardingSequences?: Prisma.OnboardingSequenceUncheckedCreateNestedManyWithoutUserInput
+  draftTickets?: Prisma.DraftTicketUncheckedCreateNestedManyWithoutUserInput
   referrals?: Prisma.UserUncheckedCreateNestedManyWithoutReferrerInput
   referralCode?: Prisma.ReferralCodeUncheckedCreateNestedOneWithoutUserInput
   referralCredits?: Prisma.ReferralCreditUncheckedCreateNestedManyWithoutUserInput
@@ -1413,6 +1446,7 @@ export type UserUpdateWithoutVehiclesInput = {
   notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
   mobileDeviceSessions?: Prisma.MobileDeviceSessionUpdateManyWithoutUserNestedInput
   onboardingSequences?: Prisma.OnboardingSequenceUpdateManyWithoutUserNestedInput
+  draftTickets?: Prisma.DraftTicketUpdateManyWithoutUserNestedInput
   referrer?: Prisma.UserUpdateOneWithoutReferralsNestedInput
   referrals?: Prisma.UserUpdateManyWithoutReferrerNestedInput
   referralCode?: Prisma.ReferralCodeUpdateOneWithoutUserNestedInput
@@ -1438,6 +1472,147 @@ export type UserUncheckedUpdateWithoutVehiclesInput = {
   signatureUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   referralCreditBalance?: Prisma.IntFieldUpdateOperationsInput | number
   referredBy?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
+  sessions?: Prisma.SessionUncheckedUpdateManyWithoutUserNestedInput
+  pushTokens?: Prisma.PushTokenUncheckedUpdateManyWithoutUserNestedInput
+  notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
+  mobileDeviceSessions?: Prisma.MobileDeviceSessionUncheckedUpdateManyWithoutUserNestedInput
+  onboardingSequences?: Prisma.OnboardingSequenceUncheckedUpdateManyWithoutUserNestedInput
+  draftTickets?: Prisma.DraftTicketUncheckedUpdateManyWithoutUserNestedInput
+  referrals?: Prisma.UserUncheckedUpdateManyWithoutReferrerNestedInput
+  referralCode?: Prisma.ReferralCodeUncheckedUpdateOneWithoutUserNestedInput
+  referralCredits?: Prisma.ReferralCreditUncheckedUpdateManyWithoutUserNestedInput
+}
+
+export type UserCreateWithoutDraftTicketsInput = {
+  id?: string
+  email?: string | null
+  name?: string | null
+  emailVerified?: Date | string | null
+  image?: string | null
+  title?: $Enums.UserTitle | null
+  phoneNumber?: string | null
+  address?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  role?: $Enums.UserRole
+  stripeCustomerId?: string | null
+  revenueCatCustomerId?: string | null
+  notificationPreferences?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  lastPremiumPurchaseAt?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  signatureUrl?: string | null
+  referralCreditBalance?: number
+  vehicles?: Prisma.VehicleCreateNestedManyWithoutUserInput
+  accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
+  sessions?: Prisma.SessionCreateNestedManyWithoutUserInput
+  pushTokens?: Prisma.PushTokenCreateNestedManyWithoutUserInput
+  notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
+  mobileDeviceSessions?: Prisma.MobileDeviceSessionCreateNestedManyWithoutUserInput
+  onboardingSequences?: Prisma.OnboardingSequenceCreateNestedManyWithoutUserInput
+  referrer?: Prisma.UserCreateNestedOneWithoutReferralsInput
+  referrals?: Prisma.UserCreateNestedManyWithoutReferrerInput
+  referralCode?: Prisma.ReferralCodeCreateNestedOneWithoutUserInput
+  referralCredits?: Prisma.ReferralCreditCreateNestedManyWithoutUserInput
+}
+
+export type UserUncheckedCreateWithoutDraftTicketsInput = {
+  id?: string
+  email?: string | null
+  name?: string | null
+  emailVerified?: Date | string | null
+  image?: string | null
+  title?: $Enums.UserTitle | null
+  phoneNumber?: string | null
+  address?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  role?: $Enums.UserRole
+  stripeCustomerId?: string | null
+  revenueCatCustomerId?: string | null
+  notificationPreferences?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  lastPremiumPurchaseAt?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  signatureUrl?: string | null
+  referralCreditBalance?: number
+  referredBy?: string | null
+  vehicles?: Prisma.VehicleUncheckedCreateNestedManyWithoutUserInput
+  accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
+  sessions?: Prisma.SessionUncheckedCreateNestedManyWithoutUserInput
+  pushTokens?: Prisma.PushTokenUncheckedCreateNestedManyWithoutUserInput
+  notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
+  mobileDeviceSessions?: Prisma.MobileDeviceSessionUncheckedCreateNestedManyWithoutUserInput
+  onboardingSequences?: Prisma.OnboardingSequenceUncheckedCreateNestedManyWithoutUserInput
+  referrals?: Prisma.UserUncheckedCreateNestedManyWithoutReferrerInput
+  referralCode?: Prisma.ReferralCodeUncheckedCreateNestedOneWithoutUserInput
+  referralCredits?: Prisma.ReferralCreditUncheckedCreateNestedManyWithoutUserInput
+}
+
+export type UserCreateOrConnectWithoutDraftTicketsInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutDraftTicketsInput, Prisma.UserUncheckedCreateWithoutDraftTicketsInput>
+}
+
+export type UserUpsertWithoutDraftTicketsInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutDraftTicketsInput, Prisma.UserUncheckedUpdateWithoutDraftTicketsInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutDraftTicketsInput, Prisma.UserUncheckedCreateWithoutDraftTicketsInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutDraftTicketsInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutDraftTicketsInput, Prisma.UserUncheckedUpdateWithoutDraftTicketsInput>
+}
+
+export type UserUpdateWithoutDraftTicketsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  emailVerified?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  title?: Prisma.NullableEnumUserTitleFieldUpdateOperationsInput | $Enums.UserTitle | null
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+  stripeCustomerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  revenueCatCustomerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  notificationPreferences?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  lastPremiumPurchaseAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  signatureUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  referralCreditBalance?: Prisma.IntFieldUpdateOperationsInput | number
+  vehicles?: Prisma.VehicleUpdateManyWithoutUserNestedInput
+  accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
+  sessions?: Prisma.SessionUpdateManyWithoutUserNestedInput
+  pushTokens?: Prisma.PushTokenUpdateManyWithoutUserNestedInput
+  notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
+  mobileDeviceSessions?: Prisma.MobileDeviceSessionUpdateManyWithoutUserNestedInput
+  onboardingSequences?: Prisma.OnboardingSequenceUpdateManyWithoutUserNestedInput
+  referrer?: Prisma.UserUpdateOneWithoutReferralsNestedInput
+  referrals?: Prisma.UserUpdateManyWithoutReferrerNestedInput
+  referralCode?: Prisma.ReferralCodeUpdateOneWithoutUserNestedInput
+  referralCredits?: Prisma.ReferralCreditUpdateManyWithoutUserNestedInput
+}
+
+export type UserUncheckedUpdateWithoutDraftTicketsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  emailVerified?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  title?: Prisma.NullableEnumUserTitleFieldUpdateOperationsInput | $Enums.UserTitle | null
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+  stripeCustomerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  revenueCatCustomerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  notificationPreferences?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  lastPremiumPurchaseAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  signatureUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  referralCreditBalance?: Prisma.IntFieldUpdateOperationsInput | number
+  referredBy?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  vehicles?: Prisma.VehicleUncheckedUpdateManyWithoutUserNestedInput
   accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
   sessions?: Prisma.SessionUncheckedUpdateManyWithoutUserNestedInput
   pushTokens?: Prisma.PushTokenUncheckedUpdateManyWithoutUserNestedInput
@@ -1473,6 +1648,7 @@ export type UserCreateWithoutNotificationsInput = {
   pushTokens?: Prisma.PushTokenCreateNestedManyWithoutUserInput
   mobileDeviceSessions?: Prisma.MobileDeviceSessionCreateNestedManyWithoutUserInput
   onboardingSequences?: Prisma.OnboardingSequenceCreateNestedManyWithoutUserInput
+  draftTickets?: Prisma.DraftTicketCreateNestedManyWithoutUserInput
   referrer?: Prisma.UserCreateNestedOneWithoutReferralsInput
   referrals?: Prisma.UserCreateNestedManyWithoutReferrerInput
   referralCode?: Prisma.ReferralCodeCreateNestedOneWithoutUserInput
@@ -1504,6 +1680,7 @@ export type UserUncheckedCreateWithoutNotificationsInput = {
   pushTokens?: Prisma.PushTokenUncheckedCreateNestedManyWithoutUserInput
   mobileDeviceSessions?: Prisma.MobileDeviceSessionUncheckedCreateNestedManyWithoutUserInput
   onboardingSequences?: Prisma.OnboardingSequenceUncheckedCreateNestedManyWithoutUserInput
+  draftTickets?: Prisma.DraftTicketUncheckedCreateNestedManyWithoutUserInput
   referrals?: Prisma.UserUncheckedCreateNestedManyWithoutReferrerInput
   referralCode?: Prisma.ReferralCodeUncheckedCreateNestedOneWithoutUserInput
   referralCredits?: Prisma.ReferralCreditUncheckedCreateNestedManyWithoutUserInput
@@ -1549,6 +1726,7 @@ export type UserUpdateWithoutNotificationsInput = {
   pushTokens?: Prisma.PushTokenUpdateManyWithoutUserNestedInput
   mobileDeviceSessions?: Prisma.MobileDeviceSessionUpdateManyWithoutUserNestedInput
   onboardingSequences?: Prisma.OnboardingSequenceUpdateManyWithoutUserNestedInput
+  draftTickets?: Prisma.DraftTicketUpdateManyWithoutUserNestedInput
   referrer?: Prisma.UserUpdateOneWithoutReferralsNestedInput
   referrals?: Prisma.UserUpdateManyWithoutReferrerNestedInput
   referralCode?: Prisma.ReferralCodeUpdateOneWithoutUserNestedInput
@@ -1580,6 +1758,7 @@ export type UserUncheckedUpdateWithoutNotificationsInput = {
   pushTokens?: Prisma.PushTokenUncheckedUpdateManyWithoutUserNestedInput
   mobileDeviceSessions?: Prisma.MobileDeviceSessionUncheckedUpdateManyWithoutUserNestedInput
   onboardingSequences?: Prisma.OnboardingSequenceUncheckedUpdateManyWithoutUserNestedInput
+  draftTickets?: Prisma.DraftTicketUncheckedUpdateManyWithoutUserNestedInput
   referrals?: Prisma.UserUncheckedUpdateManyWithoutReferrerNestedInput
   referralCode?: Prisma.ReferralCodeUncheckedUpdateOneWithoutUserNestedInput
   referralCredits?: Prisma.ReferralCreditUncheckedUpdateManyWithoutUserNestedInput
@@ -1609,6 +1788,7 @@ export type UserCreateWithoutPushTokensInput = {
   notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
   mobileDeviceSessions?: Prisma.MobileDeviceSessionCreateNestedManyWithoutUserInput
   onboardingSequences?: Prisma.OnboardingSequenceCreateNestedManyWithoutUserInput
+  draftTickets?: Prisma.DraftTicketCreateNestedManyWithoutUserInput
   referrer?: Prisma.UserCreateNestedOneWithoutReferralsInput
   referrals?: Prisma.UserCreateNestedManyWithoutReferrerInput
   referralCode?: Prisma.ReferralCodeCreateNestedOneWithoutUserInput
@@ -1640,6 +1820,7 @@ export type UserUncheckedCreateWithoutPushTokensInput = {
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
   mobileDeviceSessions?: Prisma.MobileDeviceSessionUncheckedCreateNestedManyWithoutUserInput
   onboardingSequences?: Prisma.OnboardingSequenceUncheckedCreateNestedManyWithoutUserInput
+  draftTickets?: Prisma.DraftTicketUncheckedCreateNestedManyWithoutUserInput
   referrals?: Prisma.UserUncheckedCreateNestedManyWithoutReferrerInput
   referralCode?: Prisma.ReferralCodeUncheckedCreateNestedOneWithoutUserInput
   referralCredits?: Prisma.ReferralCreditUncheckedCreateNestedManyWithoutUserInput
@@ -1685,6 +1866,7 @@ export type UserUpdateWithoutPushTokensInput = {
   notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
   mobileDeviceSessions?: Prisma.MobileDeviceSessionUpdateManyWithoutUserNestedInput
   onboardingSequences?: Prisma.OnboardingSequenceUpdateManyWithoutUserNestedInput
+  draftTickets?: Prisma.DraftTicketUpdateManyWithoutUserNestedInput
   referrer?: Prisma.UserUpdateOneWithoutReferralsNestedInput
   referrals?: Prisma.UserUpdateManyWithoutReferrerNestedInput
   referralCode?: Prisma.ReferralCodeUpdateOneWithoutUserNestedInput
@@ -1716,6 +1898,7 @@ export type UserUncheckedUpdateWithoutPushTokensInput = {
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
   mobileDeviceSessions?: Prisma.MobileDeviceSessionUncheckedUpdateManyWithoutUserNestedInput
   onboardingSequences?: Prisma.OnboardingSequenceUncheckedUpdateManyWithoutUserNestedInput
+  draftTickets?: Prisma.DraftTicketUncheckedUpdateManyWithoutUserNestedInput
   referrals?: Prisma.UserUncheckedUpdateManyWithoutReferrerNestedInput
   referralCode?: Prisma.ReferralCodeUncheckedUpdateOneWithoutUserNestedInput
   referralCredits?: Prisma.ReferralCreditUncheckedUpdateManyWithoutUserNestedInput
@@ -1745,6 +1928,7 @@ export type UserCreateWithoutAccountsInput = {
   notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
   mobileDeviceSessions?: Prisma.MobileDeviceSessionCreateNestedManyWithoutUserInput
   onboardingSequences?: Prisma.OnboardingSequenceCreateNestedManyWithoutUserInput
+  draftTickets?: Prisma.DraftTicketCreateNestedManyWithoutUserInput
   referrer?: Prisma.UserCreateNestedOneWithoutReferralsInput
   referrals?: Prisma.UserCreateNestedManyWithoutReferrerInput
   referralCode?: Prisma.ReferralCodeCreateNestedOneWithoutUserInput
@@ -1776,6 +1960,7 @@ export type UserUncheckedCreateWithoutAccountsInput = {
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
   mobileDeviceSessions?: Prisma.MobileDeviceSessionUncheckedCreateNestedManyWithoutUserInput
   onboardingSequences?: Prisma.OnboardingSequenceUncheckedCreateNestedManyWithoutUserInput
+  draftTickets?: Prisma.DraftTicketUncheckedCreateNestedManyWithoutUserInput
   referrals?: Prisma.UserUncheckedCreateNestedManyWithoutReferrerInput
   referralCode?: Prisma.ReferralCodeUncheckedCreateNestedOneWithoutUserInput
   referralCredits?: Prisma.ReferralCreditUncheckedCreateNestedManyWithoutUserInput
@@ -1821,6 +2006,7 @@ export type UserUpdateWithoutAccountsInput = {
   notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
   mobileDeviceSessions?: Prisma.MobileDeviceSessionUpdateManyWithoutUserNestedInput
   onboardingSequences?: Prisma.OnboardingSequenceUpdateManyWithoutUserNestedInput
+  draftTickets?: Prisma.DraftTicketUpdateManyWithoutUserNestedInput
   referrer?: Prisma.UserUpdateOneWithoutReferralsNestedInput
   referrals?: Prisma.UserUpdateManyWithoutReferrerNestedInput
   referralCode?: Prisma.ReferralCodeUpdateOneWithoutUserNestedInput
@@ -1852,6 +2038,7 @@ export type UserUncheckedUpdateWithoutAccountsInput = {
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
   mobileDeviceSessions?: Prisma.MobileDeviceSessionUncheckedUpdateManyWithoutUserNestedInput
   onboardingSequences?: Prisma.OnboardingSequenceUncheckedUpdateManyWithoutUserNestedInput
+  draftTickets?: Prisma.DraftTicketUncheckedUpdateManyWithoutUserNestedInput
   referrals?: Prisma.UserUncheckedUpdateManyWithoutReferrerNestedInput
   referralCode?: Prisma.ReferralCodeUncheckedUpdateOneWithoutUserNestedInput
   referralCredits?: Prisma.ReferralCreditUncheckedUpdateManyWithoutUserNestedInput
@@ -1881,6 +2068,7 @@ export type UserCreateWithoutSessionsInput = {
   notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
   mobileDeviceSessions?: Prisma.MobileDeviceSessionCreateNestedManyWithoutUserInput
   onboardingSequences?: Prisma.OnboardingSequenceCreateNestedManyWithoutUserInput
+  draftTickets?: Prisma.DraftTicketCreateNestedManyWithoutUserInput
   referrer?: Prisma.UserCreateNestedOneWithoutReferralsInput
   referrals?: Prisma.UserCreateNestedManyWithoutReferrerInput
   referralCode?: Prisma.ReferralCodeCreateNestedOneWithoutUserInput
@@ -1912,6 +2100,7 @@ export type UserUncheckedCreateWithoutSessionsInput = {
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
   mobileDeviceSessions?: Prisma.MobileDeviceSessionUncheckedCreateNestedManyWithoutUserInput
   onboardingSequences?: Prisma.OnboardingSequenceUncheckedCreateNestedManyWithoutUserInput
+  draftTickets?: Prisma.DraftTicketUncheckedCreateNestedManyWithoutUserInput
   referrals?: Prisma.UserUncheckedCreateNestedManyWithoutReferrerInput
   referralCode?: Prisma.ReferralCodeUncheckedCreateNestedOneWithoutUserInput
   referralCredits?: Prisma.ReferralCreditUncheckedCreateNestedManyWithoutUserInput
@@ -1957,6 +2146,7 @@ export type UserUpdateWithoutSessionsInput = {
   notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
   mobileDeviceSessions?: Prisma.MobileDeviceSessionUpdateManyWithoutUserNestedInput
   onboardingSequences?: Prisma.OnboardingSequenceUpdateManyWithoutUserNestedInput
+  draftTickets?: Prisma.DraftTicketUpdateManyWithoutUserNestedInput
   referrer?: Prisma.UserUpdateOneWithoutReferralsNestedInput
   referrals?: Prisma.UserUpdateManyWithoutReferrerNestedInput
   referralCode?: Prisma.ReferralCodeUpdateOneWithoutUserNestedInput
@@ -1988,6 +2178,7 @@ export type UserUncheckedUpdateWithoutSessionsInput = {
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
   mobileDeviceSessions?: Prisma.MobileDeviceSessionUncheckedUpdateManyWithoutUserNestedInput
   onboardingSequences?: Prisma.OnboardingSequenceUncheckedUpdateManyWithoutUserNestedInput
+  draftTickets?: Prisma.DraftTicketUncheckedUpdateManyWithoutUserNestedInput
   referrals?: Prisma.UserUncheckedUpdateManyWithoutReferrerNestedInput
   referralCode?: Prisma.ReferralCodeUncheckedUpdateOneWithoutUserNestedInput
   referralCredits?: Prisma.ReferralCreditUncheckedUpdateManyWithoutUserNestedInput
@@ -2018,6 +2209,7 @@ export type UserCreateWithoutReferralCodeInput = {
   notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
   mobileDeviceSessions?: Prisma.MobileDeviceSessionCreateNestedManyWithoutUserInput
   onboardingSequences?: Prisma.OnboardingSequenceCreateNestedManyWithoutUserInput
+  draftTickets?: Prisma.DraftTicketCreateNestedManyWithoutUserInput
   referrer?: Prisma.UserCreateNestedOneWithoutReferralsInput
   referrals?: Prisma.UserCreateNestedManyWithoutReferrerInput
   referralCredits?: Prisma.ReferralCreditCreateNestedManyWithoutUserInput
@@ -2049,6 +2241,7 @@ export type UserUncheckedCreateWithoutReferralCodeInput = {
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
   mobileDeviceSessions?: Prisma.MobileDeviceSessionUncheckedCreateNestedManyWithoutUserInput
   onboardingSequences?: Prisma.OnboardingSequenceUncheckedCreateNestedManyWithoutUserInput
+  draftTickets?: Prisma.DraftTicketUncheckedCreateNestedManyWithoutUserInput
   referrals?: Prisma.UserUncheckedCreateNestedManyWithoutReferrerInput
   referralCredits?: Prisma.ReferralCreditUncheckedCreateNestedManyWithoutUserInput
 }
@@ -2094,6 +2287,7 @@ export type UserUpdateWithoutReferralCodeInput = {
   notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
   mobileDeviceSessions?: Prisma.MobileDeviceSessionUpdateManyWithoutUserNestedInput
   onboardingSequences?: Prisma.OnboardingSequenceUpdateManyWithoutUserNestedInput
+  draftTickets?: Prisma.DraftTicketUpdateManyWithoutUserNestedInput
   referrer?: Prisma.UserUpdateOneWithoutReferralsNestedInput
   referrals?: Prisma.UserUpdateManyWithoutReferrerNestedInput
   referralCredits?: Prisma.ReferralCreditUpdateManyWithoutUserNestedInput
@@ -2125,6 +2319,7 @@ export type UserUncheckedUpdateWithoutReferralCodeInput = {
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
   mobileDeviceSessions?: Prisma.MobileDeviceSessionUncheckedUpdateManyWithoutUserNestedInput
   onboardingSequences?: Prisma.OnboardingSequenceUncheckedUpdateManyWithoutUserNestedInput
+  draftTickets?: Prisma.DraftTicketUncheckedUpdateManyWithoutUserNestedInput
   referrals?: Prisma.UserUncheckedUpdateManyWithoutReferrerNestedInput
   referralCredits?: Prisma.ReferralCreditUncheckedUpdateManyWithoutUserNestedInput
 }
@@ -2154,6 +2349,7 @@ export type UserCreateWithoutReferralCreditsInput = {
   notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
   mobileDeviceSessions?: Prisma.MobileDeviceSessionCreateNestedManyWithoutUserInput
   onboardingSequences?: Prisma.OnboardingSequenceCreateNestedManyWithoutUserInput
+  draftTickets?: Prisma.DraftTicketCreateNestedManyWithoutUserInput
   referrer?: Prisma.UserCreateNestedOneWithoutReferralsInput
   referrals?: Prisma.UserCreateNestedManyWithoutReferrerInput
   referralCode?: Prisma.ReferralCodeCreateNestedOneWithoutUserInput
@@ -2185,6 +2381,7 @@ export type UserUncheckedCreateWithoutReferralCreditsInput = {
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
   mobileDeviceSessions?: Prisma.MobileDeviceSessionUncheckedCreateNestedManyWithoutUserInput
   onboardingSequences?: Prisma.OnboardingSequenceUncheckedCreateNestedManyWithoutUserInput
+  draftTickets?: Prisma.DraftTicketUncheckedCreateNestedManyWithoutUserInput
   referrals?: Prisma.UserUncheckedCreateNestedManyWithoutReferrerInput
   referralCode?: Prisma.ReferralCodeUncheckedCreateNestedOneWithoutUserInput
 }
@@ -2230,6 +2427,7 @@ export type UserUpdateWithoutReferralCreditsInput = {
   notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
   mobileDeviceSessions?: Prisma.MobileDeviceSessionUpdateManyWithoutUserNestedInput
   onboardingSequences?: Prisma.OnboardingSequenceUpdateManyWithoutUserNestedInput
+  draftTickets?: Prisma.DraftTicketUpdateManyWithoutUserNestedInput
   referrer?: Prisma.UserUpdateOneWithoutReferralsNestedInput
   referrals?: Prisma.UserUpdateManyWithoutReferrerNestedInput
   referralCode?: Prisma.ReferralCodeUpdateOneWithoutUserNestedInput
@@ -2261,6 +2459,7 @@ export type UserUncheckedUpdateWithoutReferralCreditsInput = {
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
   mobileDeviceSessions?: Prisma.MobileDeviceSessionUncheckedUpdateManyWithoutUserNestedInput
   onboardingSequences?: Prisma.OnboardingSequenceUncheckedUpdateManyWithoutUserNestedInput
+  draftTickets?: Prisma.DraftTicketUncheckedUpdateManyWithoutUserNestedInput
   referrals?: Prisma.UserUncheckedUpdateManyWithoutReferrerNestedInput
   referralCode?: Prisma.ReferralCodeUncheckedUpdateOneWithoutUserNestedInput
 }
@@ -2289,6 +2488,7 @@ export type UserCreateWithoutOnboardingSequencesInput = {
   pushTokens?: Prisma.PushTokenCreateNestedManyWithoutUserInput
   notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
   mobileDeviceSessions?: Prisma.MobileDeviceSessionCreateNestedManyWithoutUserInput
+  draftTickets?: Prisma.DraftTicketCreateNestedManyWithoutUserInput
   referrer?: Prisma.UserCreateNestedOneWithoutReferralsInput
   referrals?: Prisma.UserCreateNestedManyWithoutReferrerInput
   referralCode?: Prisma.ReferralCodeCreateNestedOneWithoutUserInput
@@ -2320,6 +2520,7 @@ export type UserUncheckedCreateWithoutOnboardingSequencesInput = {
   pushTokens?: Prisma.PushTokenUncheckedCreateNestedManyWithoutUserInput
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
   mobileDeviceSessions?: Prisma.MobileDeviceSessionUncheckedCreateNestedManyWithoutUserInput
+  draftTickets?: Prisma.DraftTicketUncheckedCreateNestedManyWithoutUserInput
   referrals?: Prisma.UserUncheckedCreateNestedManyWithoutReferrerInput
   referralCode?: Prisma.ReferralCodeUncheckedCreateNestedOneWithoutUserInput
   referralCredits?: Prisma.ReferralCreditUncheckedCreateNestedManyWithoutUserInput
@@ -2365,6 +2566,7 @@ export type UserUpdateWithoutOnboardingSequencesInput = {
   pushTokens?: Prisma.PushTokenUpdateManyWithoutUserNestedInput
   notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
   mobileDeviceSessions?: Prisma.MobileDeviceSessionUpdateManyWithoutUserNestedInput
+  draftTickets?: Prisma.DraftTicketUpdateManyWithoutUserNestedInput
   referrer?: Prisma.UserUpdateOneWithoutReferralsNestedInput
   referrals?: Prisma.UserUpdateManyWithoutReferrerNestedInput
   referralCode?: Prisma.ReferralCodeUpdateOneWithoutUserNestedInput
@@ -2396,6 +2598,7 @@ export type UserUncheckedUpdateWithoutOnboardingSequencesInput = {
   pushTokens?: Prisma.PushTokenUncheckedUpdateManyWithoutUserNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
   mobileDeviceSessions?: Prisma.MobileDeviceSessionUncheckedUpdateManyWithoutUserNestedInput
+  draftTickets?: Prisma.DraftTicketUncheckedUpdateManyWithoutUserNestedInput
   referrals?: Prisma.UserUncheckedUpdateManyWithoutReferrerNestedInput
   referralCode?: Prisma.ReferralCodeUncheckedUpdateOneWithoutUserNestedInput
   referralCredits?: Prisma.ReferralCreditUncheckedUpdateManyWithoutUserNestedInput
@@ -2446,6 +2649,7 @@ export type UserUpdateWithoutReferrerInput = {
   notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
   mobileDeviceSessions?: Prisma.MobileDeviceSessionUpdateManyWithoutUserNestedInput
   onboardingSequences?: Prisma.OnboardingSequenceUpdateManyWithoutUserNestedInput
+  draftTickets?: Prisma.DraftTicketUpdateManyWithoutUserNestedInput
   referrals?: Prisma.UserUpdateManyWithoutReferrerNestedInput
   referralCode?: Prisma.ReferralCodeUpdateOneWithoutUserNestedInput
   referralCredits?: Prisma.ReferralCreditUpdateManyWithoutUserNestedInput
@@ -2476,6 +2680,7 @@ export type UserUncheckedUpdateWithoutReferrerInput = {
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
   mobileDeviceSessions?: Prisma.MobileDeviceSessionUncheckedUpdateManyWithoutUserNestedInput
   onboardingSequences?: Prisma.OnboardingSequenceUncheckedUpdateManyWithoutUserNestedInput
+  draftTickets?: Prisma.DraftTicketUncheckedUpdateManyWithoutUserNestedInput
   referrals?: Prisma.UserUncheckedUpdateManyWithoutReferrerNestedInput
   referralCode?: Prisma.ReferralCodeUncheckedUpdateOneWithoutUserNestedInput
   referralCredits?: Prisma.ReferralCreditUncheckedUpdateManyWithoutUserNestedInput
@@ -2514,6 +2719,7 @@ export type UserCountOutputType = {
   notifications: number
   mobileDeviceSessions: number
   onboardingSequences: number
+  draftTickets: number
   referrals: number
   referralCredits: number
 }
@@ -2526,6 +2732,7 @@ export type UserCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.I
   notifications?: boolean | UserCountOutputTypeCountNotificationsArgs
   mobileDeviceSessions?: boolean | UserCountOutputTypeCountMobileDeviceSessionsArgs
   onboardingSequences?: boolean | UserCountOutputTypeCountOnboardingSequencesArgs
+  draftTickets?: boolean | UserCountOutputTypeCountDraftTicketsArgs
   referrals?: boolean | UserCountOutputTypeCountReferralsArgs
   referralCredits?: boolean | UserCountOutputTypeCountReferralCreditsArgs
 }
@@ -2592,6 +2799,13 @@ export type UserCountOutputTypeCountOnboardingSequencesArgs<ExtArgs extends runt
 /**
  * UserCountOutputType without action
  */
+export type UserCountOutputTypeCountDraftTicketsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.DraftTicketWhereInput
+}
+
+/**
+ * UserCountOutputType without action
+ */
 export type UserCountOutputTypeCountReferralsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   where?: Prisma.UserWhereInput
 }
@@ -2630,6 +2844,7 @@ export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   notifications?: boolean | Prisma.User$notificationsArgs<ExtArgs>
   mobileDeviceSessions?: boolean | Prisma.User$mobileDeviceSessionsArgs<ExtArgs>
   onboardingSequences?: boolean | Prisma.User$onboardingSequencesArgs<ExtArgs>
+  draftTickets?: boolean | Prisma.User$draftTicketsArgs<ExtArgs>
   referrer?: boolean | Prisma.User$referrerArgs<ExtArgs>
   referrals?: boolean | Prisma.User$referralsArgs<ExtArgs>
   referralCode?: boolean | Prisma.User$referralCodeArgs<ExtArgs>
@@ -2711,6 +2926,7 @@ export type UserInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   notifications?: boolean | Prisma.User$notificationsArgs<ExtArgs>
   mobileDeviceSessions?: boolean | Prisma.User$mobileDeviceSessionsArgs<ExtArgs>
   onboardingSequences?: boolean | Prisma.User$onboardingSequencesArgs<ExtArgs>
+  draftTickets?: boolean | Prisma.User$draftTicketsArgs<ExtArgs>
   referrer?: boolean | Prisma.User$referrerArgs<ExtArgs>
   referrals?: boolean | Prisma.User$referralsArgs<ExtArgs>
   referralCode?: boolean | Prisma.User$referralCodeArgs<ExtArgs>
@@ -2734,6 +2950,7 @@ export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     notifications: Prisma.$NotificationPayload<ExtArgs>[]
     mobileDeviceSessions: Prisma.$MobileDeviceSessionPayload<ExtArgs>[]
     onboardingSequences: Prisma.$OnboardingSequencePayload<ExtArgs>[]
+    draftTickets: Prisma.$DraftTicketPayload<ExtArgs>[]
     referrer: Prisma.$UserPayload<ExtArgs> | null
     referrals: Prisma.$UserPayload<ExtArgs>[]
     referralCode: Prisma.$ReferralCodePayload<ExtArgs> | null
@@ -3159,6 +3376,7 @@ export interface Prisma__UserClient<T, Null = never, ExtArgs extends runtime.Typ
   notifications<T extends Prisma.User$notificationsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$notificationsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$NotificationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   mobileDeviceSessions<T extends Prisma.User$mobileDeviceSessionsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$mobileDeviceSessionsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$MobileDeviceSessionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   onboardingSequences<T extends Prisma.User$onboardingSequencesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$onboardingSequencesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$OnboardingSequencePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  draftTickets<T extends Prisma.User$draftTicketsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$draftTicketsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$DraftTicketPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   referrer<T extends Prisma.User$referrerArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$referrerArgs<ExtArgs>>): Prisma.Prisma__UserClient<runtime.Types.Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   referrals<T extends Prisma.User$referralsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$referralsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   referralCode<T extends Prisma.User$referralCodeArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$referralCodeArgs<ExtArgs>>): Prisma.Prisma__ReferralCodeClient<runtime.Types.Result.GetResult<Prisma.$ReferralCodePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
@@ -3771,6 +3989,30 @@ export type User$onboardingSequencesArgs<ExtArgs extends runtime.Types.Extension
   take?: number
   skip?: number
   distinct?: Prisma.OnboardingSequenceScalarFieldEnum | Prisma.OnboardingSequenceScalarFieldEnum[]
+}
+
+/**
+ * User.draftTickets
+ */
+export type User$draftTicketsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the DraftTicket
+   */
+  select?: Prisma.DraftTicketSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the DraftTicket
+   */
+  omit?: Prisma.DraftTicketOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.DraftTicketInclude<ExtArgs> | null
+  where?: Prisma.DraftTicketWhereInput
+  orderBy?: Prisma.DraftTicketOrderByWithRelationInput | Prisma.DraftTicketOrderByWithRelationInput[]
+  cursor?: Prisma.DraftTicketWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.DraftTicketScalarFieldEnum | Prisma.DraftTicketScalarFieldEnum[]
 }
 
 /**

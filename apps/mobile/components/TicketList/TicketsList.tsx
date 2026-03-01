@@ -12,10 +12,13 @@ import {
   faSterlingSign,
   faTriangleExclamation,
   faCardsBlank,
+  faCrown,
+  faPlus,
 } from '@fortawesome/pro-solid-svg-icons';
 import { addDays, format } from 'date-fns';
 import useTickets from '@/hooks/api/useTickets';
-import { Ticket, TicketStatus } from '@/types';
+import useDraftTickets from '@/hooks/api/useDraftTickets';
+import { Ticket, TicketStatus, DraftTicket } from '@/types';
 import { type TicketFilters } from '@/api';
 import { usePurchases } from '@/contexts/purchases';
 import {
@@ -241,6 +244,77 @@ const TicketItem = memo(function TicketItem({
   );
 });
 
+const DraftTicketItem = memo(function DraftTicketItem({
+  draftTicket,
+  style,
+}: {
+  draftTicket: DraftTicket;
+  style: Record<string, unknown>;
+}) {
+  const formattedDate = format(new Date(draftTicket.createdAt), 'MMM d, yyyy');
+
+  return (
+    <SquishyPressable
+      onPress={() =>
+        router.push(`/complete-draft?draftTicketId=${draftTicket.id}`)
+      }
+      style={style}
+    >
+      <View
+        className="rounded-2xl border border-teal bg-white"
+        style={{ borderStyle: 'dashed' }}
+      >
+        <View className="flex-row items-start justify-between p-4 pb-3">
+          <View className="flex-row items-center flex-1">
+            {/* Crown icon for premium */}
+            <View className="h-11 w-11 rounded-full bg-teal/10 items-center justify-center mr-3">
+              <FontAwesomeIcon icon={faCrown} size={18} color="#14B8A6" />
+            </View>
+            <View className="flex-1">
+              <Text className="font-jakarta-bold text-base text-dark">
+                Premium Ticket
+              </Text>
+              <Text className="font-jakarta text-sm text-gray">
+                Purchased {formattedDate}
+              </Text>
+            </View>
+          </View>
+          {/* Premium badge */}
+          <View
+            className="rounded-full px-3 py-1 ml-2"
+            style={{ backgroundColor: '#CCFBF1' }}
+          >
+            <Text
+              className="font-jakarta-medium text-xs"
+              style={{ color: '#0D9488' }}
+            >
+              Premium
+            </Text>
+          </View>
+        </View>
+
+        {/* CTA */}
+        <View className="border-t border-teal/20 mx-4 pt-3 pb-4 flex-row items-center justify-between">
+          <Text className="font-jakarta text-sm text-gray">
+            Add your details to get started
+          </Text>
+          <View className="bg-teal rounded-full px-4 py-2 flex-row items-center">
+            <FontAwesomeIcon
+              icon={faPlus}
+              size={10}
+              color="#ffffff"
+              style={{ marginRight: 4 }}
+            />
+            <Text className="font-jakarta-semibold text-xs text-white">
+              Add Details
+            </Text>
+          </View>
+        </View>
+      </View>
+    </SquishyPressable>
+  );
+});
+
 const TicketsList = ({ filters }: TicketsListProps) => {
   const {
     data: { tickets } = {},
@@ -249,14 +323,17 @@ const TicketsList = ({ filters }: TicketsListProps) => {
     refetch,
     isRefetching,
   } = useTickets(filters);
+  const { data: { draftTickets } = {}, refetch: refetchDrafts } = useDraftTickets();
   const { hasPremiumAccess } =
     usePurchases();
 
   const hasSubscription = hasPremiumAccess;
+  const hasDrafts = draftTickets && draftTickets.length > 0;
 
   const onRefresh = useCallback(() => {
     refetch();
-  }, [refetch]);
+    refetchDrafts();
+  }, [refetch, refetchDrafts]);
 
   const renderTicketItem = useCallback(({ item }: { item: Ticket }) => (
     <TicketItem
@@ -317,6 +394,27 @@ const TicketsList = ({ filters }: TicketsListProps) => {
       (filters?.issuerType && filters.issuerType.length > 0) ||
       (filters?.ticketType && filters.ticketType.length > 0);
 
+    // If we have draft tickets but no real tickets, show drafts with a scroll view
+    if (hasDrafts) {
+      return (
+        <ScrollView
+          className="flex-1"
+          contentInsetAdjustmentBehavior="automatic"
+          refreshControl={
+            <RefreshControl refreshing={isRefetching} onRefresh={onRefresh} />
+          }
+        >
+          {draftTickets.map((draft) => (
+            <DraftTicketItem
+              key={draft.id}
+              draftTicket={draft}
+              style={ticketItemStyle}
+            />
+          ))}
+        </ScrollView>
+      );
+    }
+
     return (
       <ScrollView
         className="flex-1"
@@ -364,6 +462,19 @@ const TicketsList = ({ filters }: TicketsListProps) => {
         keyExtractor={(item) => item.id.toString()}
         getItemType={(item) => isTerminalStatus(item.status) ? 'terminal' : 'active'}
         showsVerticalScrollIndicator={false}
+        ListHeaderComponent={
+          hasDrafts ? (
+            <View>
+              {draftTickets.map((draft) => (
+                <DraftTicketItem
+                  key={draft.id}
+                  draftTicket={draft}
+                  style={ticketItemStyle}
+                />
+              ))}
+            </View>
+          ) : undefined
+        }
         refreshControl={
           <RefreshControl refreshing={isRefetching} onRefresh={onRefresh} />
         }

@@ -295,6 +295,21 @@ export const confirmPurchase = async (ticketId: string, productId: string) => {
   return response.data;
 };
 
+export const confirmDraftPurchase = async (productId: string) => {
+  const response = await api.post('/iap/confirm-draft', { productId });
+  return response.data;
+};
+
+export const getDraftTickets = async () => {
+  const response = await api.get('/draft-tickets');
+  return response.data;
+};
+
+export const convertDraftTicket = async (draftTicketId: string, ticketId: string) => {
+  const response = await api.post('/draft-tickets/convert', { draftTicketId, ticketId });
+  return response.data;
+};
+
 export const updateUser = async (
   userId: string,
   data: { phoneNumber?: string; name?: string; address?: Address; signatureDataUrl?: string },

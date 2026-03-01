@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { toast } from '@/lib/toast';
 import { PurchasesPackage, PURCHASES_ERROR_CODE } from 'react-native-purchases';
+import { useQueryClient } from '@tanstack/react-query';
 import { usePurchases } from '@/contexts/purchases';
 import { useAnalytics } from '@/lib/analytics';
 import { ONE_TIME_PLANS, type PricingPlan } from '@/constants/pricing';
@@ -13,6 +14,7 @@ interface UsePaywallOptions {
 export function usePaywall({ ticketId, onPurchaseComplete }: UsePaywallOptions) {
   const { getOffering, purchasePackage: contextPurchasePackage, restorePurchases: contextRestore, refreshCustomerInfo } = usePurchases();
   const { trackEvent } = useAnalytics();
+  const queryClient = useQueryClient();
 
   const [isLoadingOfferings, setIsLoadingOfferings] = useState(true);
   const [isPurchasing, setIsPurchasing] = useState(false);
@@ -87,10 +89,14 @@ export function usePaywall({ ticketId, onPurchaseComplete }: UsePaywallOptions) 
         });
 
         await refreshCustomerInfo();
+        await queryClient.invalidateQueries({ queryKey: ['draftTickets'] });
+        await queryClient.invalidateQueries({ queryKey: ['user'] });
 
         toast.success(
           'Success',
-          'Your ticket has been upgraded to Premium!'
+          ticketId
+            ? 'Your ticket has been upgraded to Premium!'
+            : 'Premium ticket created! Add your details to get started.',
         );
         onPurchaseComplete?.();
       } catch (error: any) {
@@ -107,7 +113,7 @@ export function usePaywall({ ticketId, onPurchaseComplete }: UsePaywallOptions) 
         setIsPurchasing(false);
       }
     },
-    [getPackageForPlan, contextPurchasePackage, ticketId, refreshCustomerInfo, onPurchaseComplete, trackEvent]
+    [getPackageForPlan, contextPurchasePackage, ticketId, refreshCustomerInfo, queryClient, onPurchaseComplete, trackEvent]
   );
 
   const restorePurchases = useCallback(async () => {

@@ -180,6 +180,12 @@ export async function mergeAnonymousUserIntoTarget(
   }
   /* eslint-enable no-restricted-syntax, no-await-in-loop */
 
+  // Transfer draft tickets
+  await db.draftTicket.updateMany({
+    where: { userId: anonymousUserId },
+    data: { userId: targetUserId },
+  });
+
   // Transfer push tokens
   await db.pushToken.updateMany({
     where: { userId: anonymousUserId },

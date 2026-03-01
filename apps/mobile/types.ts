@@ -199,6 +199,14 @@ export type Appeal = {
   updatedAt: string;
 }
 
+export type DraftTicket = {
+  id: string;
+  userId: string;
+  tier: 'FREE' | 'PREMIUM';
+  productId: string;
+  createdAt: string;
+}
+
 export type Reminder = {
   id: string;
   type: ReminderType;

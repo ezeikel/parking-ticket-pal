@@ -38,6 +38,11 @@ export type Vehicle = Prisma.VehicleModel
  */
 export type Ticket = Prisma.TicketModel
 /**
+ * Model DraftTicket
+ * 
+ */
+export type DraftTicket = Prisma.DraftTicketModel
+/**
  * Model Media
  * 
  */
@@ -122,6 +127,21 @@ export type ReferralCredit = Prisma.ReferralCreditModel
  * 
  */
 export type LondonTribunalCase = Prisma.LondonTribunalCaseModel
+/**
+ * Model KeyCasePrecedent
+ * 
+ */
+export type KeyCasePrecedent = Prisma.KeyCasePrecedentModel
+/**
+ * Model NationalAppealStats
+ * 
+ */
+export type NationalAppealStats = Prisma.NationalAppealStatsModel
+/**
+ * Model CouncilPCNData
+ * 
+ */
+export type CouncilPCNData = Prisma.CouncilPCNDataModel
 /**
  * Model AppealDataSource
  * 

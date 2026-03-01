@@ -800,6 +800,84 @@ export type EnumAppealDecisionWithAggregatesFilter<$PrismaModel = never> = {
   _max?: Prisma.NestedEnumAppealDecisionFilter<$PrismaModel>
 }
 
+export type EnumKeyCaseSourceFilter<$PrismaModel = never> = {
+  equals?: $Enums.KeyCaseSource | Prisma.EnumKeyCaseSourceFieldRefInput<$PrismaModel>
+  in?: $Enums.KeyCaseSource[] | Prisma.ListEnumKeyCaseSourceFieldRefInput<$PrismaModel>
+  notIn?: $Enums.KeyCaseSource[] | Prisma.ListEnumKeyCaseSourceFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumKeyCaseSourceFilter<$PrismaModel> | $Enums.KeyCaseSource
+}
+
+export type EnumKeyCaseSourceWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.KeyCaseSource | Prisma.EnumKeyCaseSourceFieldRefInput<$PrismaModel>
+  in?: $Enums.KeyCaseSource[] | Prisma.ListEnumKeyCaseSourceFieldRefInput<$PrismaModel>
+  notIn?: $Enums.KeyCaseSource[] | Prisma.ListEnumKeyCaseSourceFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumKeyCaseSourceWithAggregatesFilter<$PrismaModel> | $Enums.KeyCaseSource
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumKeyCaseSourceFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumKeyCaseSourceFilter<$PrismaModel>
+}
+
+export type EnumNationalStatsSourceFilter<$PrismaModel = never> = {
+  equals?: $Enums.NationalStatsSource | Prisma.EnumNationalStatsSourceFieldRefInput<$PrismaModel>
+  in?: $Enums.NationalStatsSource[] | Prisma.ListEnumNationalStatsSourceFieldRefInput<$PrismaModel>
+  notIn?: $Enums.NationalStatsSource[] | Prisma.ListEnumNationalStatsSourceFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumNationalStatsSourceFilter<$PrismaModel> | $Enums.NationalStatsSource
+}
+
+export type EnumUKRegionNullableFilter<$PrismaModel = never> = {
+  equals?: $Enums.UKRegion | Prisma.EnumUKRegionFieldRefInput<$PrismaModel> | null
+  in?: $Enums.UKRegion[] | Prisma.ListEnumUKRegionFieldRefInput<$PrismaModel> | null
+  notIn?: $Enums.UKRegion[] | Prisma.ListEnumUKRegionFieldRefInput<$PrismaModel> | null
+  not?: Prisma.NestedEnumUKRegionNullableFilter<$PrismaModel> | $Enums.UKRegion | null
+}
+
+export type FloatNullableFilter<$PrismaModel = never> = {
+  equals?: number | Prisma.FloatFieldRefInput<$PrismaModel> | null
+  in?: number[] | Prisma.ListFloatFieldRefInput<$PrismaModel> | null
+  notIn?: number[] | Prisma.ListFloatFieldRefInput<$PrismaModel> | null
+  lt?: number | Prisma.FloatFieldRefInput<$PrismaModel>
+  lte?: number | Prisma.FloatFieldRefInput<$PrismaModel>
+  gt?: number | Prisma.FloatFieldRefInput<$PrismaModel>
+  gte?: number | Prisma.FloatFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedFloatNullableFilter<$PrismaModel> | number | null
+}
+
+export type EnumNationalStatsSourceWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.NationalStatsSource | Prisma.EnumNationalStatsSourceFieldRefInput<$PrismaModel>
+  in?: $Enums.NationalStatsSource[] | Prisma.ListEnumNationalStatsSourceFieldRefInput<$PrismaModel>
+  notIn?: $Enums.NationalStatsSource[] | Prisma.ListEnumNationalStatsSourceFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumNationalStatsSourceWithAggregatesFilter<$PrismaModel> | $Enums.NationalStatsSource
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumNationalStatsSourceFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumNationalStatsSourceFilter<$PrismaModel>
+}
+
+export type EnumUKRegionNullableWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.UKRegion | Prisma.EnumUKRegionFieldRefInput<$PrismaModel> | null
+  in?: $Enums.UKRegion[] | Prisma.ListEnumUKRegionFieldRefInput<$PrismaModel> | null
+  notIn?: $Enums.UKRegion[] | Prisma.ListEnumUKRegionFieldRefInput<$PrismaModel> | null
+  not?: Prisma.NestedEnumUKRegionNullableWithAggregatesFilter<$PrismaModel> | $Enums.UKRegion | null
+  _count?: Prisma.NestedIntNullableFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumUKRegionNullableFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumUKRegionNullableFilter<$PrismaModel>
+}
+
+export type FloatNullableWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: number | Prisma.FloatFieldRefInput<$PrismaModel> | null
+  in?: number[] | Prisma.ListFloatFieldRefInput<$PrismaModel> | null
+  notIn?: number[] | Prisma.ListFloatFieldRefInput<$PrismaModel> | null
+  lt?: number | Prisma.FloatFieldRefInput<$PrismaModel>
+  lte?: number | Prisma.FloatFieldRefInput<$PrismaModel>
+  gt?: number | Prisma.FloatFieldRefInput<$PrismaModel>
+  gte?: number | Prisma.FloatFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedFloatNullableWithAggregatesFilter<$PrismaModel> | number | null
+  _count?: Prisma.NestedIntNullableFilter<$PrismaModel>
+  _avg?: Prisma.NestedFloatNullableFilter<$PrismaModel>
+  _sum?: Prisma.NestedFloatNullableFilter<$PrismaModel>
+  _min?: Prisma.NestedFloatNullableFilter<$PrismaModel>
+  _max?: Prisma.NestedFloatNullableFilter<$PrismaModel>
+}
+
 export type EnumPatternOutcomeFilter<$PrismaModel = never> = {
   equals?: $Enums.PatternOutcome | Prisma.EnumPatternOutcomeFieldRefInput<$PrismaModel>
   in?: $Enums.PatternOutcome[] | Prisma.ListEnumPatternOutcomeFieldRefInput<$PrismaModel>
@@ -885,15 +963,11 @@ export type EnumIssuerHealthStatusNullableWithAggregatesFilter<$PrismaModel = ne
   _max?: Prisma.NestedEnumIssuerHealthStatusNullableFilter<$PrismaModel>
 }
 
-export type FloatNullableFilter<$PrismaModel = never> = {
-  equals?: number | Prisma.FloatFieldRefInput<$PrismaModel> | null
-  in?: number[] | Prisma.ListFloatFieldRefInput<$PrismaModel> | null
-  notIn?: number[] | Prisma.ListFloatFieldRefInput<$PrismaModel> | null
-  lt?: number | Prisma.FloatFieldRefInput<$PrismaModel>
-  lte?: number | Prisma.FloatFieldRefInput<$PrismaModel>
-  gt?: number | Prisma.FloatFieldRefInput<$PrismaModel>
-  gte?: number | Prisma.FloatFieldRefInput<$PrismaModel>
-  not?: Prisma.NestedFloatNullableFilter<$PrismaModel> | number | null
+export type EnumVideoCaseSourceFilter<$PrismaModel = never> = {
+  equals?: $Enums.VideoCaseSource | Prisma.EnumVideoCaseSourceFieldRefInput<$PrismaModel>
+  in?: $Enums.VideoCaseSource[] | Prisma.ListEnumVideoCaseSourceFieldRefInput<$PrismaModel>
+  notIn?: $Enums.VideoCaseSource[] | Prisma.ListEnumVideoCaseSourceFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumVideoCaseSourceFilter<$PrismaModel> | $Enums.VideoCaseSource
 }
 
 export type EnumVideoStatusFilter<$PrismaModel = never> = {
@@ -903,20 +977,14 @@ export type EnumVideoStatusFilter<$PrismaModel = never> = {
   not?: Prisma.NestedEnumVideoStatusFilter<$PrismaModel> | $Enums.VideoStatus
 }
 
-export type FloatNullableWithAggregatesFilter<$PrismaModel = never> = {
-  equals?: number | Prisma.FloatFieldRefInput<$PrismaModel> | null
-  in?: number[] | Prisma.ListFloatFieldRefInput<$PrismaModel> | null
-  notIn?: number[] | Prisma.ListFloatFieldRefInput<$PrismaModel> | null
-  lt?: number | Prisma.FloatFieldRefInput<$PrismaModel>
-  lte?: number | Prisma.FloatFieldRefInput<$PrismaModel>
-  gt?: number | Prisma.FloatFieldRefInput<$PrismaModel>
-  gte?: number | Prisma.FloatFieldRefInput<$PrismaModel>
-  not?: Prisma.NestedFloatNullableWithAggregatesFilter<$PrismaModel> | number | null
-  _count?: Prisma.NestedIntNullableFilter<$PrismaModel>
-  _avg?: Prisma.NestedFloatNullableFilter<$PrismaModel>
-  _sum?: Prisma.NestedFloatNullableFilter<$PrismaModel>
-  _min?: Prisma.NestedFloatNullableFilter<$PrismaModel>
-  _max?: Prisma.NestedFloatNullableFilter<$PrismaModel>
+export type EnumVideoCaseSourceWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.VideoCaseSource | Prisma.EnumVideoCaseSourceFieldRefInput<$PrismaModel>
+  in?: $Enums.VideoCaseSource[] | Prisma.ListEnumVideoCaseSourceFieldRefInput<$PrismaModel>
+  notIn?: $Enums.VideoCaseSource[] | Prisma.ListEnumVideoCaseSourceFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumVideoCaseSourceWithAggregatesFilter<$PrismaModel> | $Enums.VideoCaseSource
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumVideoCaseSourceFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumVideoCaseSourceFilter<$PrismaModel>
 }
 
 export type EnumVideoStatusWithAggregatesFilter<$PrismaModel = never> = {
@@ -1697,6 +1765,73 @@ export type NestedEnumAppealDecisionWithAggregatesFilter<$PrismaModel = never> =
   _max?: Prisma.NestedEnumAppealDecisionFilter<$PrismaModel>
 }
 
+export type NestedEnumKeyCaseSourceFilter<$PrismaModel = never> = {
+  equals?: $Enums.KeyCaseSource | Prisma.EnumKeyCaseSourceFieldRefInput<$PrismaModel>
+  in?: $Enums.KeyCaseSource[] | Prisma.ListEnumKeyCaseSourceFieldRefInput<$PrismaModel>
+  notIn?: $Enums.KeyCaseSource[] | Prisma.ListEnumKeyCaseSourceFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumKeyCaseSourceFilter<$PrismaModel> | $Enums.KeyCaseSource
+}
+
+export type NestedEnumKeyCaseSourceWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.KeyCaseSource | Prisma.EnumKeyCaseSourceFieldRefInput<$PrismaModel>
+  in?: $Enums.KeyCaseSource[] | Prisma.ListEnumKeyCaseSourceFieldRefInput<$PrismaModel>
+  notIn?: $Enums.KeyCaseSource[] | Prisma.ListEnumKeyCaseSourceFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumKeyCaseSourceWithAggregatesFilter<$PrismaModel> | $Enums.KeyCaseSource
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumKeyCaseSourceFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumKeyCaseSourceFilter<$PrismaModel>
+}
+
+export type NestedEnumNationalStatsSourceFilter<$PrismaModel = never> = {
+  equals?: $Enums.NationalStatsSource | Prisma.EnumNationalStatsSourceFieldRefInput<$PrismaModel>
+  in?: $Enums.NationalStatsSource[] | Prisma.ListEnumNationalStatsSourceFieldRefInput<$PrismaModel>
+  notIn?: $Enums.NationalStatsSource[] | Prisma.ListEnumNationalStatsSourceFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumNationalStatsSourceFilter<$PrismaModel> | $Enums.NationalStatsSource
+}
+
+export type NestedEnumUKRegionNullableFilter<$PrismaModel = never> = {
+  equals?: $Enums.UKRegion | Prisma.EnumUKRegionFieldRefInput<$PrismaModel> | null
+  in?: $Enums.UKRegion[] | Prisma.ListEnumUKRegionFieldRefInput<$PrismaModel> | null
+  notIn?: $Enums.UKRegion[] | Prisma.ListEnumUKRegionFieldRefInput<$PrismaModel> | null
+  not?: Prisma.NestedEnumUKRegionNullableFilter<$PrismaModel> | $Enums.UKRegion | null
+}
+
+export type NestedEnumNationalStatsSourceWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.NationalStatsSource | Prisma.EnumNationalStatsSourceFieldRefInput<$PrismaModel>
+  in?: $Enums.NationalStatsSource[] | Prisma.ListEnumNationalStatsSourceFieldRefInput<$PrismaModel>
+  notIn?: $Enums.NationalStatsSource[] | Prisma.ListEnumNationalStatsSourceFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumNationalStatsSourceWithAggregatesFilter<$PrismaModel> | $Enums.NationalStatsSource
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumNationalStatsSourceFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumNationalStatsSourceFilter<$PrismaModel>
+}
+
+export type NestedEnumUKRegionNullableWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.UKRegion | Prisma.EnumUKRegionFieldRefInput<$PrismaModel> | null
+  in?: $Enums.UKRegion[] | Prisma.ListEnumUKRegionFieldRefInput<$PrismaModel> | null
+  notIn?: $Enums.UKRegion[] | Prisma.ListEnumUKRegionFieldRefInput<$PrismaModel> | null
+  not?: Prisma.NestedEnumUKRegionNullableWithAggregatesFilter<$PrismaModel> | $Enums.UKRegion | null
+  _count?: Prisma.NestedIntNullableFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumUKRegionNullableFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumUKRegionNullableFilter<$PrismaModel>
+}
+
+export type NestedFloatNullableWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: number | Prisma.FloatFieldRefInput<$PrismaModel> | null
+  in?: number[] | Prisma.ListFloatFieldRefInput<$PrismaModel> | null
+  notIn?: number[] | Prisma.ListFloatFieldRefInput<$PrismaModel> | null
+  lt?: number | Prisma.FloatFieldRefInput<$PrismaModel>
+  lte?: number | Prisma.FloatFieldRefInput<$PrismaModel>
+  gt?: number | Prisma.FloatFieldRefInput<$PrismaModel>
+  gte?: number | Prisma.FloatFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedFloatNullableWithAggregatesFilter<$PrismaModel> | number | null
+  _count?: Prisma.NestedIntNullableFilter<$PrismaModel>
+  _avg?: Prisma.NestedFloatNullableFilter<$PrismaModel>
+  _sum?: Prisma.NestedFloatNullableFilter<$PrismaModel>
+  _min?: Prisma.NestedFloatNullableFilter<$PrismaModel>
+  _max?: Prisma.NestedFloatNullableFilter<$PrismaModel>
+}
+
 export type NestedEnumPatternOutcomeFilter<$PrismaModel = never> = {
   equals?: $Enums.PatternOutcome | Prisma.EnumPatternOutcomeFieldRefInput<$PrismaModel>
   in?: $Enums.PatternOutcome[] | Prisma.ListEnumPatternOutcomeFieldRefInput<$PrismaModel>
@@ -1782,6 +1917,13 @@ export type NestedEnumIssuerHealthStatusNullableWithAggregatesFilter<$PrismaMode
   _max?: Prisma.NestedEnumIssuerHealthStatusNullableFilter<$PrismaModel>
 }
 
+export type NestedEnumVideoCaseSourceFilter<$PrismaModel = never> = {
+  equals?: $Enums.VideoCaseSource | Prisma.EnumVideoCaseSourceFieldRefInput<$PrismaModel>
+  in?: $Enums.VideoCaseSource[] | Prisma.ListEnumVideoCaseSourceFieldRefInput<$PrismaModel>
+  notIn?: $Enums.VideoCaseSource[] | Prisma.ListEnumVideoCaseSourceFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumVideoCaseSourceFilter<$PrismaModel> | $Enums.VideoCaseSource
+}
+
 export type NestedEnumVideoStatusFilter<$PrismaModel = never> = {
   equals?: $Enums.VideoStatus | Prisma.EnumVideoStatusFieldRefInput<$PrismaModel>
   in?: $Enums.VideoStatus[] | Prisma.ListEnumVideoStatusFieldRefInput<$PrismaModel>
@@ -1789,20 +1931,14 @@ export type NestedEnumVideoStatusFilter<$PrismaModel = never> = {
   not?: Prisma.NestedEnumVideoStatusFilter<$PrismaModel> | $Enums.VideoStatus
 }
 
-export type NestedFloatNullableWithAggregatesFilter<$PrismaModel = never> = {
-  equals?: number | Prisma.FloatFieldRefInput<$PrismaModel> | null
-  in?: number[] | Prisma.ListFloatFieldRefInput<$PrismaModel> | null
-  notIn?: number[] | Prisma.ListFloatFieldRefInput<$PrismaModel> | null
-  lt?: number | Prisma.FloatFieldRefInput<$PrismaModel>
-  lte?: number | Prisma.FloatFieldRefInput<$PrismaModel>
-  gt?: number | Prisma.FloatFieldRefInput<$PrismaModel>
-  gte?: number | Prisma.FloatFieldRefInput<$PrismaModel>
-  not?: Prisma.NestedFloatNullableWithAggregatesFilter<$PrismaModel> | number | null
-  _count?: Prisma.NestedIntNullableFilter<$PrismaModel>
-  _avg?: Prisma.NestedFloatNullableFilter<$PrismaModel>
-  _sum?: Prisma.NestedFloatNullableFilter<$PrismaModel>
-  _min?: Prisma.NestedFloatNullableFilter<$PrismaModel>
-  _max?: Prisma.NestedFloatNullableFilter<$PrismaModel>
+export type NestedEnumVideoCaseSourceWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.VideoCaseSource | Prisma.EnumVideoCaseSourceFieldRefInput<$PrismaModel>
+  in?: $Enums.VideoCaseSource[] | Prisma.ListEnumVideoCaseSourceFieldRefInput<$PrismaModel>
+  notIn?: $Enums.VideoCaseSource[] | Prisma.ListEnumVideoCaseSourceFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumVideoCaseSourceWithAggregatesFilter<$PrismaModel> | $Enums.VideoCaseSource
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumVideoCaseSourceFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumVideoCaseSourceFilter<$PrismaModel>
 }
 
 export type NestedEnumVideoStatusWithAggregatesFilter<$PrismaModel = never> = {

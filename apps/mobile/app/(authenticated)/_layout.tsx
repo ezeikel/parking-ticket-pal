@@ -47,6 +47,13 @@ const AppLayout = () => {
           animation: 'slide_from_bottom',
         }}
       />
+      <Stack.Screen
+        name="complete-draft"
+        options={{
+          headerShown: false,
+          presentation: 'card',
+        }}
+      />
     </Stack>
   );
 }

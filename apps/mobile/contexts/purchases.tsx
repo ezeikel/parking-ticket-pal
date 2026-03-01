@@ -6,7 +6,7 @@ import Purchases, {
   PURCHASES_ERROR_CODE,
 } from 'react-native-purchases';
 import { Platform } from 'react-native';
-import { confirmPurchase } from '@/api';
+import { confirmPurchase, confirmDraftPurchase } from '@/api';
 import { purchaseService } from '@/services/PurchaseService';
 import { logger } from '@/lib/logger';
 
@@ -95,13 +95,15 @@ export const PurchasesContextProvider = ({ children }: PurchasesContextProviderP
 
       // If this is a consumable purchase (ticket upgrade), confirm with backend
       const productId = pkg.product.identifier;
-      if (
-        ticketId &&
-        productId.startsWith('premium_ticket')
-      ) {
+      if (productId.startsWith('premium_ticket')) {
         try {
-          await confirmPurchase(ticketId, productId);
-          logger.info('Ticket upgrade confirmed with backend', { action: 'purchases', ticketId, productId });
+          if (ticketId) {
+            await confirmPurchase(ticketId, productId);
+            logger.info('Ticket upgrade confirmed with backend', { action: 'purchases', ticketId, productId });
+          } else {
+            await confirmDraftPurchase(productId);
+            logger.info('Draft ticket created from purchase without ticket', { action: 'purchases', productId });
+          }
         } catch (error) {
           logger.error('Error confirming purchase with backend', { action: 'purchases', ticketId, productId }, error instanceof Error ? error : new Error(String(error)));
           // Don't throw - purchase went through, just backend confirmation failed

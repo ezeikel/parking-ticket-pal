@@ -388,6 +388,7 @@ export const ModelName = {
   MobileDeviceSession: 'MobileDeviceSession',
   Vehicle: 'Vehicle',
   Ticket: 'Ticket',
+  DraftTicket: 'DraftTicket',
   Media: 'Media',
   Letter: 'Letter',
   Reminder: 'Reminder',
@@ -405,6 +406,9 @@ export const ModelName = {
   Referral: 'Referral',
   ReferralCredit: 'ReferralCredit',
   LondonTribunalCase: 'LondonTribunalCase',
+  KeyCasePrecedent: 'KeyCasePrecedent',
+  NationalAppealStats: 'NationalAppealStats',
+  CouncilPCNData: 'CouncilPCNData',
   AppealDataSource: 'AppealDataSource',
   ContraventionStats: 'ContraventionStats',
   IssuerContraventionStats: 'IssuerContraventionStats',
@@ -434,7 +438,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "mobileDeviceSession" | "vehicle" | "ticket" | "media" | "letter" | "reminder" | "form" | "prediction" | "amountIncrease" | "verification" | "challenge" | "notification" | "pushToken" | "account" | "session" | "verificationToken" | "referralCode" | "referral" | "referralCredit" | "londonTribunalCase" | "appealDataSource" | "contraventionStats" | "issuerContraventionStats" | "appealPattern" | "pendingIssuer" | "pendingChallenge" | "pendingTicket" | "issuerHealthCheck" | "tribunalCaseVideo" | "newsVideo" | "highwayCodeSign" | "highwayCodeQuizPost" | "onboardingSequence" | "waitlistSignup"
+    modelProps: "user" | "mobileDeviceSession" | "vehicle" | "ticket" | "draftTicket" | "media" | "letter" | "reminder" | "form" | "prediction" | "amountIncrease" | "verification" | "challenge" | "notification" | "pushToken" | "account" | "session" | "verificationToken" | "referralCode" | "referral" | "referralCredit" | "londonTribunalCase" | "keyCasePrecedent" | "nationalAppealStats" | "councilPCNData" | "appealDataSource" | "contraventionStats" | "issuerContraventionStats" | "appealPattern" | "pendingIssuer" | "pendingChallenge" | "pendingTicket" | "issuerHealthCheck" | "tribunalCaseVideo" | "newsVideo" | "highwayCodeSign" | "highwayCodeQuizPost" | "onboardingSequence" | "waitlistSignup"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -731,6 +735,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         count: {
           args: Prisma.TicketCountArgs<ExtArgs>
           result: runtime.Types.Utils.Optional<Prisma.TicketCountAggregateOutputType> | number
+        }
+      }
+    }
+    DraftTicket: {
+      payload: Prisma.$DraftTicketPayload<ExtArgs>
+      fields: Prisma.DraftTicketFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.DraftTicketFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DraftTicketPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.DraftTicketFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DraftTicketPayload>
+        }
+        findFirst: {
+          args: Prisma.DraftTicketFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DraftTicketPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.DraftTicketFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DraftTicketPayload>
+        }
+        findMany: {
+          args: Prisma.DraftTicketFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DraftTicketPayload>[]
+        }
+        create: {
+          args: Prisma.DraftTicketCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DraftTicketPayload>
+        }
+        createMany: {
+          args: Prisma.DraftTicketCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.DraftTicketCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DraftTicketPayload>[]
+        }
+        delete: {
+          args: Prisma.DraftTicketDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DraftTicketPayload>
+        }
+        update: {
+          args: Prisma.DraftTicketUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DraftTicketPayload>
+        }
+        deleteMany: {
+          args: Prisma.DraftTicketDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.DraftTicketUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.DraftTicketUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DraftTicketPayload>[]
+        }
+        upsert: {
+          args: Prisma.DraftTicketUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DraftTicketPayload>
+        }
+        aggregate: {
+          args: Prisma.DraftTicketAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateDraftTicket>
+        }
+        groupBy: {
+          args: Prisma.DraftTicketGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.DraftTicketGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.DraftTicketCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.DraftTicketCountAggregateOutputType> | number
         }
       }
     }
@@ -1992,6 +2070,228 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    KeyCasePrecedent: {
+      payload: Prisma.$KeyCasePrecedentPayload<ExtArgs>
+      fields: Prisma.KeyCasePrecedentFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.KeyCasePrecedentFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$KeyCasePrecedentPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.KeyCasePrecedentFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$KeyCasePrecedentPayload>
+        }
+        findFirst: {
+          args: Prisma.KeyCasePrecedentFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$KeyCasePrecedentPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.KeyCasePrecedentFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$KeyCasePrecedentPayload>
+        }
+        findMany: {
+          args: Prisma.KeyCasePrecedentFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$KeyCasePrecedentPayload>[]
+        }
+        create: {
+          args: Prisma.KeyCasePrecedentCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$KeyCasePrecedentPayload>
+        }
+        createMany: {
+          args: Prisma.KeyCasePrecedentCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.KeyCasePrecedentCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$KeyCasePrecedentPayload>[]
+        }
+        delete: {
+          args: Prisma.KeyCasePrecedentDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$KeyCasePrecedentPayload>
+        }
+        update: {
+          args: Prisma.KeyCasePrecedentUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$KeyCasePrecedentPayload>
+        }
+        deleteMany: {
+          args: Prisma.KeyCasePrecedentDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.KeyCasePrecedentUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.KeyCasePrecedentUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$KeyCasePrecedentPayload>[]
+        }
+        upsert: {
+          args: Prisma.KeyCasePrecedentUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$KeyCasePrecedentPayload>
+        }
+        aggregate: {
+          args: Prisma.KeyCasePrecedentAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateKeyCasePrecedent>
+        }
+        groupBy: {
+          args: Prisma.KeyCasePrecedentGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.KeyCasePrecedentGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.KeyCasePrecedentCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.KeyCasePrecedentCountAggregateOutputType> | number
+        }
+      }
+    }
+    NationalAppealStats: {
+      payload: Prisma.$NationalAppealStatsPayload<ExtArgs>
+      fields: Prisma.NationalAppealStatsFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.NationalAppealStatsFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$NationalAppealStatsPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.NationalAppealStatsFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$NationalAppealStatsPayload>
+        }
+        findFirst: {
+          args: Prisma.NationalAppealStatsFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$NationalAppealStatsPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.NationalAppealStatsFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$NationalAppealStatsPayload>
+        }
+        findMany: {
+          args: Prisma.NationalAppealStatsFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$NationalAppealStatsPayload>[]
+        }
+        create: {
+          args: Prisma.NationalAppealStatsCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$NationalAppealStatsPayload>
+        }
+        createMany: {
+          args: Prisma.NationalAppealStatsCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.NationalAppealStatsCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$NationalAppealStatsPayload>[]
+        }
+        delete: {
+          args: Prisma.NationalAppealStatsDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$NationalAppealStatsPayload>
+        }
+        update: {
+          args: Prisma.NationalAppealStatsUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$NationalAppealStatsPayload>
+        }
+        deleteMany: {
+          args: Prisma.NationalAppealStatsDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.NationalAppealStatsUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.NationalAppealStatsUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$NationalAppealStatsPayload>[]
+        }
+        upsert: {
+          args: Prisma.NationalAppealStatsUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$NationalAppealStatsPayload>
+        }
+        aggregate: {
+          args: Prisma.NationalAppealStatsAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateNationalAppealStats>
+        }
+        groupBy: {
+          args: Prisma.NationalAppealStatsGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.NationalAppealStatsGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.NationalAppealStatsCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.NationalAppealStatsCountAggregateOutputType> | number
+        }
+      }
+    }
+    CouncilPCNData: {
+      payload: Prisma.$CouncilPCNDataPayload<ExtArgs>
+      fields: Prisma.CouncilPCNDataFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.CouncilPCNDataFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CouncilPCNDataPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.CouncilPCNDataFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CouncilPCNDataPayload>
+        }
+        findFirst: {
+          args: Prisma.CouncilPCNDataFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CouncilPCNDataPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.CouncilPCNDataFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CouncilPCNDataPayload>
+        }
+        findMany: {
+          args: Prisma.CouncilPCNDataFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CouncilPCNDataPayload>[]
+        }
+        create: {
+          args: Prisma.CouncilPCNDataCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CouncilPCNDataPayload>
+        }
+        createMany: {
+          args: Prisma.CouncilPCNDataCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.CouncilPCNDataCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CouncilPCNDataPayload>[]
+        }
+        delete: {
+          args: Prisma.CouncilPCNDataDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CouncilPCNDataPayload>
+        }
+        update: {
+          args: Prisma.CouncilPCNDataUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CouncilPCNDataPayload>
+        }
+        deleteMany: {
+          args: Prisma.CouncilPCNDataDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.CouncilPCNDataUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.CouncilPCNDataUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CouncilPCNDataPayload>[]
+        }
+        upsert: {
+          args: Prisma.CouncilPCNDataUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CouncilPCNDataPayload>
+        }
+        aggregate: {
+          args: Prisma.CouncilPCNDataAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateCouncilPCNData>
+        }
+        groupBy: {
+          args: Prisma.CouncilPCNDataGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.CouncilPCNDataGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.CouncilPCNDataCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.CouncilPCNDataCountAggregateOutputType> | number
+        }
+      }
+    }
     AppealDataSource: {
       payload: Prisma.$AppealDataSourcePayload<ExtArgs>
       fields: Prisma.AppealDataSourceFieldRefs
@@ -3149,6 +3449,18 @@ export const TicketScalarFieldEnum = {
 export type TicketScalarFieldEnum = (typeof TicketScalarFieldEnum)[keyof typeof TicketScalarFieldEnum]
 
 
+export const DraftTicketScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  tier: 'tier',
+  productId: 'productId',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type DraftTicketScalarFieldEnum = (typeof DraftTicketScalarFieldEnum)[keyof typeof DraftTicketScalarFieldEnum]
+
+
 export const MediaScalarFieldEnum = {
   id: 'id',
   url: 'url',
@@ -3408,6 +3720,73 @@ export const LondonTribunalCaseScalarFieldEnum = {
 export type LondonTribunalCaseScalarFieldEnum = (typeof LondonTribunalCaseScalarFieldEnum)[keyof typeof LondonTribunalCaseScalarFieldEnum]
 
 
+export const KeyCasePrecedentScalarFieldEnum = {
+  id: 'id',
+  caseReference: 'caseReference',
+  source: 'source',
+  tribunal: 'tribunal',
+  authority: 'authority',
+  normalizedIssuerId: 'normalizedIssuerId',
+  contraventionType: 'contraventionType',
+  normalizedContraventionCode: 'normalizedContraventionCode',
+  issueCategory: 'issueCategory',
+  decision: 'decision',
+  decisionDate: 'decisionDate',
+  summary: 'summary',
+  reasoning: 'reasoning',
+  legalPrinciples: 'legalPrinciples',
+  scrapedAt: 'scrapedAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type KeyCasePrecedentScalarFieldEnum = (typeof KeyCasePrecedentScalarFieldEnum)[keyof typeof KeyCasePrecedentScalarFieldEnum]
+
+
+export const NationalAppealStatsScalarFieldEnum = {
+  id: 'id',
+  source: 'source',
+  authority: 'authority',
+  normalizedIssuerId: 'normalizedIssuerId',
+  region: 'region',
+  penaltyType: 'penaltyType',
+  contraventionCode: 'contraventionCode',
+  year: 'year',
+  totalPCNs: 'totalPCNs',
+  totalAppeals: 'totalAppeals',
+  allowedCount: 'allowedCount',
+  refusedCount: 'refusedCount',
+  withdrawnCount: 'withdrawnCount',
+  successRate: 'successRate',
+  cancellationRate: 'cancellationRate',
+  sourceUrl: 'sourceUrl',
+  importedAt: 'importedAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type NationalAppealStatsScalarFieldEnum = (typeof NationalAppealStatsScalarFieldEnum)[keyof typeof NationalAppealStatsScalarFieldEnum]
+
+
+export const CouncilPCNDataScalarFieldEnum = {
+  id: 'id',
+  source: 'source',
+  authority: 'authority',
+  normalizedIssuerId: 'normalizedIssuerId',
+  pcnReference: 'pcnReference',
+  contraventionCode: 'contraventionCode',
+  normalizedContraventionCode: 'normalizedContraventionCode',
+  contraventionDate: 'contraventionDate',
+  street: 'street',
+  postcode: 'postcode',
+  vehicleCategory: 'vehicleCategory',
+  status: 'status',
+  amount: 'amount',
+  importedAt: 'importedAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type CouncilPCNDataScalarFieldEnum = (typeof CouncilPCNDataScalarFieldEnum)[keyof typeof CouncilPCNDataScalarFieldEnum]
+
+
 export const AppealDataSourceScalarFieldEnum = {
   id: 'id',
   name: 'name',
@@ -3549,6 +3928,8 @@ export type IssuerHealthCheckScalarFieldEnum = (typeof IssuerHealthCheckScalarFi
 export const TribunalCaseVideoScalarFieldEnum = {
   id: 'id',
   caseId: 'caseId',
+  keyCaseId: 'keyCaseId',
+  caseSource: 'caseSource',
   interestScore: 'interestScore',
   script: 'script',
   scriptSegments: 'scriptSegments',
@@ -4172,6 +4553,48 @@ export type ListEnumAppealDecisionFieldRefInput<$PrismaModel> = FieldRefInputTyp
 
 
 /**
+ * Reference to a field of type 'KeyCaseSource'
+ */
+export type EnumKeyCaseSourceFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'KeyCaseSource'>
+    
+
+
+/**
+ * Reference to a field of type 'KeyCaseSource[]'
+ */
+export type ListEnumKeyCaseSourceFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'KeyCaseSource[]'>
+    
+
+
+/**
+ * Reference to a field of type 'NationalStatsSource'
+ */
+export type EnumNationalStatsSourceFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'NationalStatsSource'>
+    
+
+
+/**
+ * Reference to a field of type 'NationalStatsSource[]'
+ */
+export type ListEnumNationalStatsSourceFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'NationalStatsSource[]'>
+    
+
+
+/**
+ * Reference to a field of type 'UKRegion'
+ */
+export type EnumUKRegionFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'UKRegion'>
+    
+
+
+/**
+ * Reference to a field of type 'UKRegion[]'
+ */
+export type ListEnumUKRegionFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'UKRegion[]'>
+    
+
+
+/**
  * Reference to a field of type 'PatternOutcome'
  */
 export type EnumPatternOutcomeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'PatternOutcome'>
@@ -4224,6 +4647,20 @@ export type EnumIssuerHealthStatusFieldRefInput<$PrismaModel> = FieldRefInputTyp
  * Reference to a field of type 'IssuerHealthStatus[]'
  */
 export type ListEnumIssuerHealthStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'IssuerHealthStatus[]'>
+    
+
+
+/**
+ * Reference to a field of type 'VideoCaseSource'
+ */
+export type EnumVideoCaseSourceFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'VideoCaseSource'>
+    
+
+
+/**
+ * Reference to a field of type 'VideoCaseSource[]'
+ */
+export type ListEnumVideoCaseSourceFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'VideoCaseSource[]'>
     
 
 
@@ -4367,6 +4804,7 @@ export type GlobalOmitConfig = {
   mobileDeviceSession?: Prisma.MobileDeviceSessionOmit
   vehicle?: Prisma.VehicleOmit
   ticket?: Prisma.TicketOmit
+  draftTicket?: Prisma.DraftTicketOmit
   media?: Prisma.MediaOmit
   letter?: Prisma.LetterOmit
   reminder?: Prisma.ReminderOmit
@@ -4384,6 +4822,9 @@ export type GlobalOmitConfig = {
   referral?: Prisma.ReferralOmit
   referralCredit?: Prisma.ReferralCreditOmit
   londonTribunalCase?: Prisma.LondonTribunalCaseOmit
+  keyCasePrecedent?: Prisma.KeyCasePrecedentOmit
+  nationalAppealStats?: Prisma.NationalAppealStatsOmit
+  councilPCNData?: Prisma.CouncilPCNDataOmit
   appealDataSource?: Prisma.AppealDataSourceOmit
   contraventionStats?: Prisma.ContraventionStatsOmit
   issuerContraventionStats?: Prisma.IssuerContraventionStatsOmit
