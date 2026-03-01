@@ -3,6 +3,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import OnboardingCarousel from '@/components/OnboardingCarousel/OnboardingCarousel';
 import { useAnalytics } from '@/lib/analytics';
 import { registerForPushNotifications } from '@/lib/notifications';
+import { logger } from '@/lib/logger';
 
 const ONBOARDING_COMPLETED_KEY = '@parking_ticket_pal_onboarding_completed';
 
@@ -19,7 +20,7 @@ const OnboardingScreen = () => {
 
       router.replace('/(authenticated)/(tabs)');
     } catch (error) {
-      console.error('Error saving onboarding status:', error);
+      logger.error('Error saving onboarding status', { screen: 'onboarding', action: 'complete' }, error instanceof Error ? error : undefined);
       router.replace('/(authenticated)/(tabs)');
     }
   };

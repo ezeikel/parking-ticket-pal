@@ -151,7 +151,6 @@ const VehiclesList = () => {
         renderItem={renderItem}
         keyExtractor={(item) => item.id.toString()}
         contentContainerStyle={{ padding: 16 }}
-        estimatedItemSize={200}
       />
     </View>
   );

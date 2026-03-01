@@ -20,6 +20,7 @@ import Constants from 'expo-constants';
 import * as Application from 'expo-application';
 import Loader from '@/components/Loader/Loader';
 import { useAnalytics } from '@/lib/analytics';
+import { logger } from '@/lib/logger';
 import { resetOnboarding } from '@/utils/onboarding';
 
 import { EditablePhoneNumber } from '@/components/EditablePhoneNumber';
@@ -249,7 +250,7 @@ const SettingsScreen = () => {
 
       toast.success('Saved', 'Signature updated');
     } catch (error) {
-      console.error('Error saving signature:', error);
+      logger.error('Error saving signature', { screen: 'settings', action: 'save_signature' }, error instanceof Error ? error : undefined);
       toast.error('Save Failed', 'Could not save signature');
     }
   };
@@ -281,7 +282,7 @@ const SettingsScreen = () => {
         toast.info('No Purchases Found', 'No previous purchases on this account');
       }
     } catch (error) {
-      console.error('Error restoring purchases:', error);
+      logger.error('Error restoring purchases', { screen: 'settings', action: 'restore_purchases' }, error instanceof Error ? error : undefined);
       toast.error('Restore Failed', 'Please try again later');
     } finally {
       setIsRestoring(false);

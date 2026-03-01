@@ -9,6 +9,7 @@ import { getDeviceId, setSessionToken } from '@/lib/auth';
 import { useColorScheme } from '@/hooks/useColorScheme';
 import { Colors } from '@/constants/Colors';
 import Loader from '@/components/Loader/Loader';
+import { logger } from '@/lib/logger';
 
 const MagicLinkVerify = () => {
   const { token } = useLocalSearchParams<{ token: string }>();
@@ -42,7 +43,7 @@ const MagicLinkVerify = () => {
           setMessage('Invalid or expired magic link. Please request a new one.');
         }
       } catch (error) {
-        console.error('Magic link verification error:', error);
+        logger.error('Magic link verification error', { screen: 'magic-link-verify', action: 'verify' }, error instanceof Error ? error : undefined);
         setStatus('error');
         setMessage('Something went wrong. Please try again.');
       }
