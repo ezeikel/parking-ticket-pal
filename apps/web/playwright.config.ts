@@ -2,7 +2,7 @@ import { defineConfig, devices } from '@playwright/test';
 
 export default defineConfig({
   testDir: './e2e',
-  timeout: 120_000,
+  timeout: 180_000, // 3 min — upload tests need 90s for OCR + time for the rest
   expect: {
     timeout: 15_000,
   },

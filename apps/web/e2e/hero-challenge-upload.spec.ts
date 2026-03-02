@@ -6,13 +6,13 @@ const FIXTURE_PATH = path.join(__dirname, 'fixtures', 'ticket-council-1.jpg');
 
 const hasFixture = fs.existsSync(FIXTURE_PATH);
 
-test.describe('Guest upload ticket creation (home page)', () => {
+test.describe('Guest upload challenge flow (home page)', () => {
   test.skip(
     !hasFixture,
     'Skipping: ticket fixture image not found. Add ticket-council-1.jpg to e2e/fixtures/',
   );
 
-  test('uploads ticket image via hero, OCR pre-fills wizard, and stores data in localStorage', async ({
+  test('uploads ticket image via hero, OCR pre-fills wizard, selects challenge, and redirects to checkout', async ({
     page,
   }) => {
     // Navigate to home page
@@ -31,9 +31,6 @@ test.describe('Guest upload ticket creation (home page)', () => {
     await expect(
       page.getByText('Details extracted from your photo'),
     ).toBeVisible();
-
-    // The confirm step fields use div-based labels, not <label> elements.
-    // Use locators that find the textbox sibling to the label div.
 
     // Check PCN was extracted (non-empty)
     const pcnInput = page
@@ -107,29 +104,48 @@ test.describe('Guest upload ticket creation (home page)', () => {
 
     // --- Intent step ---
     await expect(page.getByText('What would you like to do?')).toBeVisible();
-    await page.getByRole('button', { name: /just track my ticket/i }).click();
 
-    // --- Signup step ---
-    await expect(page.getByText('Create your free account')).toBeVisible();
+    // Select "I want to challenge it" (diverges from track flow here)
+    await page.getByRole('button', { name: /i want to challenge it/i }).click();
 
-    // Click "Create Free Account" - triggers redirect to /guest/signup
-    await Promise.all([
-      page.waitForURL('**/guest/signup**', { timeout: 10_000 }),
-      page.getByRole('button', { name: /create free account/i }).click(),
-    ]);
+    // --- Challenge Reason step ---
+    await expect(page.getByText('Why do you want to challenge?')).toBeVisible();
 
-    expect(page.url()).toContain('/guest/signup');
+    // Select "Unclear / Obscured Signage"
+    await page
+      .getByRole('button', { name: /unclear \/ obscured signage/i })
+      .click();
 
-    // Verify localStorage has the guest ticket data
+    // --- Result (Score Gate) step ---
+    await expect(page.getByText("We've analysed your ticket")).toBeVisible();
+    await expect(page.getByText('Challenge Success Score')).toBeVisible();
+    await expect(page.getByText('Challenge Letter Ready')).toBeVisible();
+    await expect(page.getByText('Locked')).toBeVisible();
+    // Verify the upgrade CTA button contains both price and label
+    const upgradeCta = page.getByRole('button', {
+      name: /£14\.99 Upgrade to Premium/i,
+    });
+    await expect(upgradeCta).toBeVisible();
+
+    // Click "Upgrade to Premium" - triggers redirect to /checkout
+    await upgradeCta.click();
+    await page.waitForURL('**/checkout**', { timeout: 10_000 });
+
+    // Verify URL
+    expect(page.url()).toContain('/checkout');
+
+    // Verify localStorage contains the guest ticket data with challenge fields
     const guestData = await page.evaluate(() => {
       const raw = localStorage.getItem('guestTicketData');
       return raw ? JSON.parse(raw) : null;
     });
 
     expect(guestData).not.toBeNull();
-    expect(guestData.pcnNumber).toBeTruthy();
+    expect(guestData.pcnNumber).toBeTruthy(); // PCN comes from OCR
     expect(guestData.issuerType).toBeTruthy();
-    expect(guestData.intent).toBe('track');
+    expect(guestData.intent).toBe('challenge');
+    expect(guestData.challengeReason).toBe('signage');
+    expect(guestData.tier).toBe('premium');
     expect(guestData.issuedAt).toBeTruthy();
     expect(guestData.location).toBeTruthy();
   });

@@ -57,24 +57,21 @@ test.describe('Authenticated manual ticket creation (/new)', () => {
     // Wait for dropdown and click the option
     await page.getByRole('button', { name: 'Lewisham' }).click();
 
-    // Fill Date - click date picker and select today
+    // Fill Date - click date picker, go to previous month, select first enabled date
     await page.getByRole('button', { name: /pick a date/i }).click();
-    // Click today's date in the calendar - today should be enabled
-    const today = new Date();
-    const dayText = today.getDate().toString();
-    // The calendar marks today; click the button with today's date that's not disabled
+    await page.getByRole('button', { name: /previous month/i }).click();
     await page
-      .locator('[role="gridcell"]')
-      .getByRole('button', { name: dayText, exact: true })
+      .locator('[role="gridcell"]:not([data-disabled]) button')
       .first()
       .click();
 
     // Fill Amount
     await page.getByPlaceholder('e.g. 70').fill('70');
 
-    // Fill Location - type address and select from Mapbox geocoder
-    const addressInput = page.getByPlaceholder('Start typing an address');
-    await addressInput.fill('10 Downing Street');
+    // Fill Location - use pressSequentially to trigger geocoder's input events
+    const addressInput = page.locator('.mapboxgl-ctrl-geocoder input');
+    await addressInput.click();
+    await addressInput.pressSequentially('10 Downing Street', { delay: 50 });
     // Wait for Mapbox suggestions and select the first one
     await page
       .locator('.mapboxgl-ctrl-geocoder .suggestions li')

@@ -58,9 +58,11 @@ export const ChallengeLetterSchema = z.object({
   recipientCity: z.string(),
   recipientPostcode: z.string(),
   subject: z.string(),
-  salutation: z.string().default('Dear Sir or Madam'),
+  salutation: z
+    .string()
+    .describe('Letter salutation, e.g. "Dear Sir or Madam"'),
   body: z.string(),
-  closing: z.string().default('Yours faithfully'),
+  closing: z.string().describe('Letter closing, e.g. "Yours faithfully"'),
   signatureName: z.string(),
 });
 

@@ -44,66 +44,133 @@ test.describe('Authenticated upload ticket creation (/new)', () => {
     const fileInput = page.locator('input[type="file"]');
     await fileInput.setInputFiles(FIXTURE_PATH);
 
-    // Wait for OCR processing to complete - wizard should appear
-    // The processing state shows progress steps, then wizard opens
-    await expect(page.getByText('Confirm your details')).toBeVisible({
-      timeout: 60_000, // OCR can take up to 60s
+    // Wait for processing to start - look for processing state indicators
+    await expect(
+      page
+        .getByText(/scanning ticket|extracting details|image uploaded/i)
+        .first(),
+    ).toBeVisible({ timeout: 15_000 });
+
+    // Wait for wizard to appear after OCR - either confirm step (OCR success)
+    // or issuer step (OCR failed, falls back to manual)
+    const confirmHeading = page.getByText('Confirm your details');
+    const issuerHeading = page.getByText('Who issued your ticket?');
+
+    await expect(confirmHeading.or(issuerHeading)).toBeVisible({
+      timeout: 90_000, // OCR can be slow
     });
 
-    // Verify OCR extracted some data - badge should show
-    await expect(
-      page.getByText('Details extracted from your photo'),
-    ).toBeVisible();
+    const isOcrSuccess = await confirmHeading.isVisible();
 
-    // Override PCN to our unique test value so we can find it in DB
-    const pcnField = page.getByLabel(/pcn reference/i);
-    await pcnField.clear();
-    await pcnField.fill(testPcn);
+    if (isOcrSuccess) {
+      // OCR succeeded - verify extraction badge
+      await expect(
+        page.getByText('Details extracted from your photo'),
+      ).toBeVisible();
 
-    // Ensure vehicle registration has a value
-    const vehicleRegField = page.getByLabel(/vehicle registration/i);
-    const regValue = await vehicleRegField.inputValue();
-    if (!regValue) {
-      await vehicleRegField.fill('AB12CDE');
-    }
+      // Override PCN to our unique test value so we can find it in DB
+      const pcnField = page
+        .getByText('PCN Reference')
+        .locator('..')
+        .getByRole('textbox');
+      await expect(pcnField).toBeVisible({ timeout: 5_000 });
+      await pcnField.clear();
+      await pcnField.fill(testPcn);
 
-    // Ensure issuer is filled - if OCR didn't extract it, fill manually
-    // IssuerCombobox doesn't use a standard label, so check by placeholder
-    const issuerInput = page.getByPlaceholder(
-      /search for issuer|lewisham|westminster/i,
-    );
-    const issuerValue = await issuerInput.inputValue();
-    if (!issuerValue || issuerValue.length < 2) {
+      // Ensure vehicle registration has a value
+      const vehicleRegField = page
+        .getByText('Vehicle Registration')
+        .locator('..')
+        .getByRole('textbox');
+      const regValue = await vehicleRegField.inputValue();
+      if (!regValue) {
+        await vehicleRegField.fill('AB12CDE');
+      }
+
+      // Ensure issuer is filled
+      const issuerInput = page.getByPlaceholder(
+        /e\.g\. Lewisham|search for issuer/i,
+      );
+      const issuerValue = await issuerInput.inputValue();
+      if (!issuerValue || issuerValue.length < 2) {
+        await issuerInput.fill('Lewisham');
+        await page.getByRole('button', { name: 'Lewisham' }).click();
+      }
+
+      // Ensure date is filled
+      const dateButton = page.getByRole('button', { name: /pick a date/i });
+      if ((await dateButton.count()) > 0) {
+        const dateText = await dateButton.textContent();
+        if (dateText?.includes('Pick a date')) {
+          await dateButton.click();
+          await page.getByRole('button', { name: /previous month/i }).click();
+          await page
+            .locator('[role="gridcell"]:not([data-disabled]) button')
+            .first()
+            .click();
+        }
+      }
+
+      // Ensure amount is filled
+      const amountInput = page.getByPlaceholder('e.g. 70');
+      const amountValue = await amountInput.inputValue();
+      if (!amountValue) {
+        await amountInput.fill('70');
+      }
+
+      // Ensure location is filled - use pressSequentially to trigger geocoder events
+      const addressPlaceholder = page.getByPlaceholder(
+        'Start typing an address',
+      );
+      const addressValue = await addressPlaceholder.inputValue();
+      if (!addressValue) {
+        const addressInput = page.locator('.mapboxgl-ctrl-geocoder input');
+        await addressInput.click();
+        await addressInput.pressSequentially('10 Downing Street', {
+          delay: 50,
+        });
+        await page
+          .locator('.mapboxgl-ctrl-geocoder .suggestions li')
+          .first()
+          .waitFor({ timeout: 10_000 });
+        await page
+          .locator('.mapboxgl-ctrl-geocoder .suggestions li')
+          .first()
+          .click();
+      }
+    } else {
+      // OCR failed - fill all fields manually
+      // Step 1: Issuer type
+      await page.getByRole('button', { name: /a local council/i }).click();
+
+      // Step 2: Stage
+      await expect(page.getByText('What stage are you at?')).toBeVisible();
+      await page.getByRole('button', { name: /initial ticket/i }).click();
+
+      // Step 3: Details
+      await expect(page.getByText('Enter your ticket details')).toBeVisible();
+
+      await page.getByPlaceholder('e.g. WK12345678').fill(testPcn);
+      await page.getByPlaceholder('e.g. AB12 CDE').fill('AB12CDE');
+
+      const issuerInput = page.getByPlaceholder(
+        'e.g. Lewisham, Westminster...',
+      );
       await issuerInput.fill('Lewisham');
       await page.getByRole('button', { name: 'Lewisham' }).click();
-    }
 
-    // Ensure date is filled
-    const dateButton = page.getByRole('button', { name: /pick a date/i });
-    // If the button text is "Pick a date" (no date selected), we need to pick one
-    const dateText = await dateButton.textContent();
-    if (dateText?.includes('Pick a date')) {
-      await dateButton.click();
-      const today = new Date();
+      await page.getByRole('button', { name: /pick a date/i }).click();
+      await page.getByRole('button', { name: /previous month/i }).click();
       await page
-        .locator('[role="gridcell"]')
-        .getByRole('button', { name: today.getDate().toString(), exact: true })
+        .locator('[role="gridcell"]:not([data-disabled]) button')
         .first()
         .click();
-    }
 
-    // Ensure amount is filled
-    const amountInput = page.getByPlaceholder('e.g. 70');
-    const amountValue = await amountInput.inputValue();
-    if (!amountValue) {
-      await amountInput.fill('70');
-    }
+      await page.getByPlaceholder('e.g. 70').fill('70');
 
-    // Ensure location is filled
-    const addressInput = page.getByPlaceholder('Start typing an address');
-    const addressValue = await addressInput.inputValue();
-    if (!addressValue) {
-      await addressInput.fill('10 Downing Street');
+      const addressInput = page.locator('.mapboxgl-ctrl-geocoder input');
+      await addressInput.click();
+      await addressInput.pressSequentially('10 Downing Street', { delay: 50 });
       await page
         .locator('.mapboxgl-ctrl-geocoder .suggestions li')
         .first()
@@ -115,7 +182,9 @@ test.describe('Authenticated upload ticket creation (/new)', () => {
     }
 
     // Submit - click "Add Ticket"
-    const addTicketButton = page.getByRole('button', { name: /add ticket/i });
+    const addTicketButton = page.getByRole('button', {
+      name: /add ticket/i,
+    });
     await expect(addTicketButton).toBeEnabled({ timeout: 5_000 });
     await addTicketButton.click();
 

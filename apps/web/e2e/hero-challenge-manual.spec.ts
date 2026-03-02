@@ -1,8 +1,8 @@
 import { test, expect } from '@playwright/test';
 import { generateUniquePcn } from './helpers/db';
 
-test.describe('Guest manual ticket creation (home page)', () => {
-  test('enters details manually, completes wizard, and stores data in localStorage', async ({
+test.describe('Guest manual challenge flow (home page)', () => {
+  test('enters details manually, selects challenge intent, and redirects to checkout', async ({
     page,
   }) => {
     const testPcn = generateUniquePcn();
@@ -35,7 +35,7 @@ test.describe('Guest manual ticket creation (home page)', () => {
     await issuerInput.fill('Lewisham');
     await page.getByRole('button', { name: 'Lewisham' }).click();
 
-    // Fill Date - click date picker, go to previous month, select 15th
+    // Fill Date - click date picker, go to previous month, select first enabled date
     await page.getByRole('button', { name: /pick a date/i }).click();
     await page.getByRole('button', { name: /previous month/i }).click();
     await page
@@ -65,22 +65,36 @@ test.describe('Guest manual ticket creation (home page)', () => {
     // --- Step 4: Intent ---
     await expect(page.getByText('What would you like to do?')).toBeVisible();
 
-    // Select "Just track my ticket"
-    await page.getByRole('button', { name: /just track my ticket/i }).click();
+    // Select "I want to challenge it" (diverges from track flow here)
+    await page.getByRole('button', { name: /i want to challenge it/i }).click();
 
-    // --- Step 5: Signup ---
-    await expect(page.getByText('Create your free account')).toBeVisible();
+    // --- Step 5: Challenge Reason ---
+    await expect(page.getByText('Why do you want to challenge?')).toBeVisible();
 
-    // Click "Create Free Account" - this triggers redirect
-    await Promise.all([
-      page.waitForURL('**/guest/signup**', { timeout: 10_000 }),
-      page.getByRole('button', { name: /create free account/i }).click(),
-    ]);
+    // Select "Unclear / Obscured Signage"
+    await page
+      .getByRole('button', { name: /unclear \/ obscured signage/i })
+      .click();
 
-    // Verify we're on the signup page
-    expect(page.url()).toContain('/guest/signup');
+    // --- Step 6: Result (Score Gate) ---
+    await expect(page.getByText("We've analysed your ticket")).toBeVisible();
+    await expect(page.getByText('Challenge Success Score')).toBeVisible();
+    await expect(page.getByText('Challenge Letter Ready')).toBeVisible();
+    await expect(page.getByText('Locked')).toBeVisible();
+    // Verify the upgrade CTA button contains both price and label
+    const upgradeCta = page.getByRole('button', {
+      name: /£14\.99 Upgrade to Premium/i,
+    });
+    await expect(upgradeCta).toBeVisible();
 
-    // Verify localStorage contains the guest ticket data
+    // Click "Upgrade to Premium" - triggers redirect to /checkout
+    await upgradeCta.click();
+    await page.waitForURL('**/checkout**', { timeout: 10_000 });
+
+    // Verify URL
+    expect(page.url()).toContain('/checkout');
+
+    // Verify localStorage contains the guest ticket data with challenge fields
     const guestData = await page.evaluate(() => {
       const raw = localStorage.getItem('guestTicketData');
       return raw ? JSON.parse(raw) : null;
@@ -93,7 +107,9 @@ test.describe('Guest manual ticket creation (home page)', () => {
     expect(guestData.issuerType).toBe('council');
     expect(guestData.ticketStage).toBe('initial');
     expect(guestData.initialAmount).toBe(6500); // £65 = 6500 pence
-    expect(guestData.intent).toBe('track');
+    expect(guestData.intent).toBe('challenge');
+    expect(guestData.challengeReason).toBe('signage');
+    expect(guestData.tier).toBe('premium');
     expect(guestData.location).toBeTruthy();
     expect(guestData.issuedAt).toBeTruthy();
   });

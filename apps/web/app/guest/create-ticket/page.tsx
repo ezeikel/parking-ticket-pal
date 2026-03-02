@@ -39,6 +39,7 @@ const GuestCreateTicketPage = () => {
   const router = useRouter();
   const { data: session, status } = useSession();
   const { track } = useAnalytics();
+  const hasStartedCreation = useRef(false);
   const hasLinkedUser = useRef(false);
   const hasTrackedSignupComplete = useRef(false);
   const [step, setStep] = useState<Step>('loading');
@@ -63,6 +64,10 @@ const GuestCreateTicketPage = () => {
         hasLinkedUser.current = true;
         linkAnonymousUser(sessionUser.dbId);
       }
+
+      // Prevent double-invocation from React Strict Mode
+      if (hasStartedCreation.current) return;
+      hasStartedCreation.current = true;
 
       // Check for guest data
       const data = getGuestTicketData();
