@@ -1,0 +1,145 @@
+appId: com.chewybytes.parkingticketpal.app
+---
+# Reusable sub-flow: Create a ticket via the manual entry wizard
+# Pass PCN_NUMBER env to customize the PCN
+
+- launchApp
+
+# Dismiss Expo dev tools overlay if shown
+- runFlow:
+    when:
+      visible: "Continue"
+    commands:
+      - tapOn: "Continue"
+
+# Dismiss any error overlay if shown
+- runFlow:
+    when:
+      visible: "Dismiss"
+    commands:
+      - tapOn: "Dismiss"
+
+# Skip onboarding if shown
+- runFlow:
+    when:
+      visible: "Skip"
+    commands:
+      - tapOn: "Skip"
+
+# Wait for tickets screen to load
+- extendedWaitUntil:
+    visible: "Tickets"
+    timeout: 10000
+
+# Tap the manual entry FAB
+- tapOn:
+    id: "fab-manual-entry"
+
+# --- Step 1: Issuer Type ---
+- extendedWaitUntil:
+    visible: "Who issued your ticket?"
+    timeout: 5000
+- tapOn:
+    id: "issuer-council"
+
+# --- Step 2: Stage ---
+- extendedWaitUntil:
+    visible: "What stage are you at?"
+    timeout: 5000
+- tapOn:
+    id: "stage-initial"
+
+# --- Step 3: Details ---
+- extendedWaitUntil:
+    visible: "Your ticket details"
+    timeout: 5000
+
+# Fill PCN
+- tapOn:
+    id: "details-pcn"
+- inputText: "${PCN_NUMBER}"
+
+# Fill Vehicle Registration
+- tapOn:
+    id: "details-vehicle-reg"
+- inputText: "AB12CDE"
+
+# Fill Issuer - type full name (onBlur auto-selects exact matches)
+- tapOn:
+    id: "details-issuer"
+- inputText: "Lewisham"
+
+# Date picker is inline on iOS - it defaults to today, which is fine
+
+# Scroll to Amount field — scrolling dismisses keyboard via keyboardDismissMode="on-drag"
+# This also triggers issuer onBlur which auto-selects "Lewisham"
+- scrollUntilVisible:
+    element:
+      id: "details-amount"
+    direction: DOWN
+- tapOn:
+    id: "details-amount"
+- inputText: "70"
+
+# Dismiss decimal-pad by swiping on the scroll area
+# (keyboardDismissMode="on-drag" dismisses keyboard on scroll)
+- swipe:
+    start: "50%,30%"
+    end: "50%,20%"
+
+# Scroll to Location field
+- scrollUntilVisible:
+    element:
+      id: "details-location"
+    direction: DOWN
+
+# Tap Location field
+- tapOn:
+    id: "details-location"
+- inputText: "10 Downing Street"
+
+# Dismiss keyboard so address suggestions are visible below the input
+- hideKeyboard
+
+# Wait for address suggestions to load from Mapbox API
+- extendedWaitUntil:
+    visible: ".*Cambridge.*"
+    timeout: 30000
+
+# Tap the Westminster suggestion
+- tapOn: ".*Westminster.*"
+
+# Scroll down and tap Continue
+- scrollUntilVisible:
+    element:
+      id: "details-continue"
+    direction: DOWN
+- tapOn:
+    id: "details-continue"
+
+# --- Step 4: Intent ---
+- extendedWaitUntil:
+    visible: "What would you like to do?"
+    timeout: 10000
+- tapOn:
+    id: "intent-track"
+
+# --- Creating Step ---
+# Dismiss interstitial ad if shown (AdMob test ad may appear)
+- runFlow:
+    when:
+      visible: "Kapat"
+    commands:
+      - tapOn: "Kapat"
+
+- runFlow:
+    when:
+      visible: "Close"
+    commands:
+      - tapOn: "Close"
+
+# Wait for ticket creation to complete — after creation, app navigates back to Tickets list
+# The toast "Ticket created" is brief, so check for the Tickets screen + the created ticket
+- extendedWaitUntil:
+    visible: "${PCN_NUMBER}"
+    timeout: 30000

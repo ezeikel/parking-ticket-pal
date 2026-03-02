@@ -141,7 +141,7 @@ const VehiclesList = () => {
     return (
       <ScrollView
         className="flex-1"
-        contentContainerClassName="flex-1 items-center justify-center"
+        contentContainerStyle={{ flexGrow: 1, alignItems: 'center', justifyContent: 'center' }}
         contentInsetAdjustmentBehavior="automatic"
         refreshControl={
           <CustomRefreshControl refreshing={isRefetching} onRefresh={onRefresh} />

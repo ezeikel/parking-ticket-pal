@@ -1,12 +1,12 @@
 import React, { useState, useMemo, useRef } from 'react';
-import { View, Text, TextInput, ScrollView } from 'react-native';
+import { View, Text, TextInput, ScrollView, Keyboard, Pressable } from 'react-native';
 import {
   LOCAL_AUTHORITY_IDS,
   PRIVATE_COMPANIES,
   TRANSPORT_AUTHORITIES,
   slugToDisplayName,
 } from '@parking-ticket-pal/constants';
-import SquishyPressable from '@/components/SquishyPressable/SquishyPressable';
+
 
 type IssuerEntry = {
   id: string;
@@ -84,17 +84,32 @@ const IssuerInput = ({
     }, 300);
   };
 
+  const inputRef = useRef<TextInput>(null);
+
   const handleSelect = (issuer: IssuerEntry) => {
     setQuery(issuer.name);
     setShowSuggestions(false);
     setSuggestions([]);
     onSelect(issuer.name);
+    inputRef.current?.blur();
+    Keyboard.dismiss();
+  };
+
+  const handleBlur = () => {
+    // Auto-select if typed text exactly matches an issuer name (case-insensitive)
+    const exactMatch = filteredByType.find(
+      (i) => i.name.toLowerCase() === query.trim().toLowerCase(),
+    );
+    if (exactMatch) {
+      handleSelect(exactMatch);
+    }
   };
 
   return (
     <View>
       <View className="border border-gray-300 rounded-lg">
         <TextInput
+          ref={inputRef}
           testID={testID}
           className="px-4 py-3 text-base font-jakarta"
           placeholder={placeholder}
@@ -105,6 +120,7 @@ const IssuerInput = ({
               setShowSuggestions(true);
             }
           }}
+          onBlur={handleBlur}
         />
       </View>
 
@@ -113,9 +129,9 @@ const IssuerInput = ({
           className="bg-white border border-gray-300 rounded-lg mt-2"
           style={{ maxHeight: 200 }}
         >
-          <ScrollView style={{ maxHeight: 200 }} nestedScrollEnabled>
+          <ScrollView style={{ maxHeight: 200 }} nestedScrollEnabled keyboardShouldPersistTaps="handled">
             {suggestions.map((issuer, index) => (
-              <SquishyPressable
+              <Pressable
                 key={`${issuer.id}-${index}`}
                 className="px-3 py-3 border-b border-gray-100"
                 onPress={() => handleSelect(issuer)}
@@ -126,7 +142,7 @@ const IssuerInput = ({
                 >
                   {issuer.name}
                 </Text>
-              </SquishyPressable>
+              </Pressable>
             ))}
           </ScrollView>
         </View>

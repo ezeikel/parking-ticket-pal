@@ -1,0 +1,106 @@
+appId: com.chewybytes.parkingticketpal.app
+---
+# Flow: Challenge letter generation
+# Prerequisites:
+#   - Ticket with PCN "E2E-MAESTRO-CHALLENGE" exists in the DB
+#   - Ticket tier has been upgraded to PREMIUM via upgrade-ticket-tier.mjs
+#   - User is logged in
+
+- launchApp
+
+# Dismiss "Process system isn't responding" dialog if shown
+- runFlow:
+    when:
+      visible: "Process system"
+    commands:
+      - tapOn: "Wait"
+
+# Dismiss Expo dev tools overlay if shown
+- runFlow:
+    when:
+      visible: "Continue"
+    commands:
+      - tapOn: "Continue"
+
+# Dismiss any error overlay if shown
+- runFlow:
+    when:
+      visible: "Dismiss"
+    commands:
+      - tapOn: "Dismiss"
+
+# Skip onboarding if shown
+- runFlow:
+    when:
+      visible: "Skip"
+    commands:
+      - tapOn: "Skip"
+
+# Dismiss "Process system isn't responding" if it appeared late
+- runFlow:
+    when:
+      visible: "Process system"
+    commands:
+      - tapOn: "Wait"
+
+# Wait for tickets screen to load
+- extendedWaitUntil:
+    visible: "Tickets"
+    timeout: 15000
+
+# Tap on the challenge ticket (PCN may be truncated in card UI)
+- extendedWaitUntil:
+    visible: ".*E2E-MAESTRO.*"
+    timeout: 15000
+- tapOn: ".*E2E-MAESTRO.*"
+
+# Wait for ticket detail screen to load
+- extendedWaitUntil:
+    visible: ".*E2E-MAESTRO.*"
+    timeout: 10000
+
+# Tap the sticky bottom Challenge CTA to open Premium Actions modal
+- tapOn:
+    id: "cta-challenge"
+
+# Wait for Premium Actions modal
+- extendedWaitUntil:
+    visible: "Premium Actions"
+    timeout: 5000
+
+# Select "Challenge Letter" from the modal
+- tapOn:
+    id: "action-challenge-letter"
+
+# Wait for Challenge Letter modal to appear (now a Modal, not gorhom BottomSheet)
+- extendedWaitUntil:
+    visible: "Generate Challenge Letter"
+    timeout: 10000
+
+# Select a challenge reason from the iOS Picker
+# The picker shows "Select a reason..." centered. We need to select "The contravention did not occur"
+# which is one row below. Tap slightly below picker center to select the next row.
+# From the screenshot, the picker is roughly at y=25%-42% of screen. Center ~33%.
+# Row below center ~37%. Tap on that row to select it.
+- tapOn:
+    point: "50%,37%"
+
+# Fill additional details (optional)
+- tapOn:
+    id: "challenge-additional-details"
+- inputText: "E2E test - the vehicle was not parked in violation"
+
+# Dismiss keyboard before tapping Generate
+- hideKeyboard
+
+# Tap Generate & Email button
+- tapOn:
+    id: "challenge-generate-button"
+
+# Wait for success toast (AI generation + PDF + email can take up to 90s)
+- extendedWaitUntil:
+    visible: "Letter Generated"
+    timeout: 90000
+
+# Verify the toast description
+- assertVisible: "Check your email"

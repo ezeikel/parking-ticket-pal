@@ -58,7 +58,7 @@ export default function StickyBottomCTA({
 
       {/* Challenge button */}
       <View style={{ flex: 1 }}>
-        <SquishyPressable onPress={onChallenge}>
+        <SquishyPressable onPress={onChallenge} testID="cta-challenge">
           <View
             style={{
               borderRadius: 12,

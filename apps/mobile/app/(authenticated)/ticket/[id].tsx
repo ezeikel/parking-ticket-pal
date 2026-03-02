@@ -3,7 +3,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, router } from 'expo-router';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { faArrowLeft, faTriangleExclamation } from '@fortawesome/pro-solid-svg-icons';
-import { useRef, useCallback, useState } from 'react';
+import { useRef, useState } from 'react';
 import BottomSheet from '@gorhom/bottom-sheet';
 import useTicket from '@/hooks/api/useTicket';
 import { Address } from '@parking-ticket-pal/types';
@@ -48,10 +48,10 @@ export default function TicketDetailScreen() {
     usePurchases();
 
   // Bottom sheet refs
-  const challengeLetterSheetRef = useRef<BottomSheet>(null);
   const formsSheetRef = useRef<BottomSheet>(null);
 
   const [isPremiumActionsVisible, setIsPremiumActionsVisible] = useState(false);
+  const [isChallengeLetterVisible, setIsChallengeLetterVisible] = useState(false);
   const [selectedFormType, setSelectedFormType] = useState<FormType | null>(
     null,
   );
@@ -60,10 +60,10 @@ export default function TicketDetailScreen() {
     action: 'challenge-letter' | FormType,
   ) => {
     setIsPremiumActionsVisible(false);
-    // Use setTimeout to let modal dismiss before opening bottom sheet
+    // Use setTimeout to let modal dismiss before opening next modal/sheet
     setTimeout(() => {
       if (action === 'challenge-letter') {
-        challengeLetterSheetRef.current?.snapToIndex(0);
+        setIsChallengeLetterVisible(true);
       } else {
         setSelectedFormType(action);
         formsSheetRef.current?.snapToIndex(0);
@@ -72,7 +72,7 @@ export default function TicketDetailScreen() {
   };
 
   const handleSuccess = () => {
-    challengeLetterSheetRef.current?.close();
+    setIsChallengeLetterVisible(false);
     formsSheetRef.current?.close();
     refetch();
   };
@@ -291,7 +291,7 @@ export default function TicketDetailScreen() {
             setIsPremiumActionsVisible(true)
           }
           onOpenChallengeLetter={() =>
-            challengeLetterSheetRef.current?.snapToIndex(0)
+            setIsChallengeLetterVisible(true)
           }
           onRefetch={refetch}
         />
@@ -328,10 +328,11 @@ export default function TicketDetailScreen() {
       />
 
       <ChallengeLetterBottomSheet
-        ref={challengeLetterSheetRef}
+        visible={isChallengeLetterVisible}
         pcnNumber={ticketData.pcnNumber}
         issuerType={ticketData.issuerType}
         onSuccess={handleSuccess}
+        onClose={() => setIsChallengeLetterVisible(false)}
       />
 
       <FormsBottomSheet

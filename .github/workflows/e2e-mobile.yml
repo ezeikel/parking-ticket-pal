@@ -65,6 +65,27 @@ jobs:
         working-directory: ./apps/mobile
         run: maestro test .maestro/ticket-manual-entry.yml
 
+      - name: Create ticket for challenge letter test
+        working-directory: ./apps/mobile
+        run: maestro test .maestro/ticket-create-for-challenge.yml
+
+      - name: Upgrade ticket tier to PREMIUM
+        env:
+          DATABASE_URL: ${{ secrets.E2E_DATABASE_URL }}
+        working-directory: ./apps/mobile
+        run: node .maestro/scripts/upgrade-ticket-tier.mjs E2E-MAESTRO-CHALLENGE
+
+      - name: Run challenge letter flow
+        working-directory: ./apps/mobile
+        run: maestro test .maestro/challenge-letter.yml
+
+      - name: Cleanup E2E tickets
+        if: always()
+        env:
+          DATABASE_URL: ${{ secrets.E2E_DATABASE_URL }}
+        working-directory: ./apps/mobile
+        run: node .maestro/scripts/cleanup-e2e-tickets.mjs
+
       - name: Upload Maestro artifacts
         uses: actions/upload-artifact@v4
         if: failure()

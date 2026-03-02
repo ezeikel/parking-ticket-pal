@@ -3,6 +3,7 @@ import { useState } from 'react';
 import DateTimePicker, {
   type DateTimePickerEvent,
 } from '@react-native-community/datetimepicker';
+import { KeyboardToolbar } from 'react-native-keyboard-controller';
 import type { Address } from '@parking-ticket-pal/types';
 import SquishyPressable from '@/components/SquishyPressable/SquishyPressable';
 import IssuerInput from '@/components/IssuerInput/IssuerInput';
@@ -13,7 +14,7 @@ const DetailsStep = ({ wizardData, onNext }: WizardStepProps) => {
   const [pcnNumber, setPcnNumber] = useState(wizardData.pcnNumber);
   const [vehicleReg, setVehicleReg] = useState(wizardData.vehicleReg);
   const [issuer, setIssuer] = useState(wizardData.issuer);
-  const [issuedAt, setIssuedAt] = useState<Date | null>(wizardData.issuedAt);
+  const [issuedAt, setIssuedAt] = useState<Date | null>(wizardData.issuedAt ?? new Date());
   const [amountText, setAmountText] = useState(
     wizardData.initialAmount ? String(wizardData.initialAmount / 100) : '',
   );
@@ -43,9 +44,11 @@ const DetailsStep = ({ wizardData, onNext }: WizardStepProps) => {
   const regError = regTouched && !vehicleReg.trim();
 
   return (
+  <>
     <ScrollView
       showsVerticalScrollIndicator={false}
       keyboardShouldPersistTaps="handled"
+      keyboardDismissMode="on-drag"
     >
       <Text className="font-jakarta text-sm text-gray-500 mb-6">
         Enter the details from your ticket or letter.
@@ -250,6 +253,8 @@ const DetailsStep = ({ wizardData, onNext }: WizardStepProps) => {
         </Text>
       </SquishyPressable>
     </ScrollView>
+    <KeyboardToolbar />
+  </>
   );
 };
 

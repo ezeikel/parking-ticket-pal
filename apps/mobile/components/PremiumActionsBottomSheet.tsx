@@ -47,6 +47,7 @@ const PremiumActionsBottomSheet = ({
         <SquishyPressable
           onPress={() => onActionSelect('challenge-letter')}
           className="mb-3 active:opacity-70"
+          testID="action-challenge-letter"
         >
           <View className="bg-white border border-gray-200 rounded-xl p-4 flex-row items-center">
             <View className="w-12 h-12 bg-teal/10 rounded-lg items-center justify-center mr-3">

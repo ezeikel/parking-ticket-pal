@@ -1,8 +1,8 @@
-import React, { useState, useCallback } from 'react';
-import { View, Text, TextInput, ScrollView } from 'react-native';
+import React, { useState, useCallback, useRef } from 'react';
+import { View, Text, TextInput, ScrollView, Keyboard, Pressable } from 'react-native';
 import { type Address } from '@parking-ticket-pal/types';
 import Loader from '../Loader/Loader';
-import SquishyPressable from '@/components/SquishyPressable/SquishyPressable';
+
 
 type MapboxFeature = {
   id: string;
@@ -103,12 +103,16 @@ const AddressInput = ({ onSelect, initialValue = '', placeholder = 'Start typing
     };
   };
 
+  const inputRef = useRef<TextInput>(null);
+
   const handleAddressSelect = (feature: MapboxFeature) => {
     const address = parseMapboxFeature(feature);
     setQuery(feature.place_name);
     setShowSuggestions(false);
     setSuggestions([]);
     onSelect(address);
+    inputRef.current?.blur();
+    Keyboard.dismiss();
   };
 
   const handleTextChange = (text: string) => {
@@ -126,6 +130,7 @@ const AddressInput = ({ onSelect, initialValue = '', placeholder = 'Start typing
     <View>
       <View className="border border-gray-300 rounded-lg">
         <TextInput
+          ref={inputRef}
           testID={testID}
           className="px-3 py-3 text-base"
           placeholder={placeholder}
@@ -146,9 +151,9 @@ const AddressInput = ({ onSelect, initialValue = '', placeholder = 'Start typing
 
       {showSuggestions && suggestions.length > 0 && (
         <View className="bg-white border border-gray-300 rounded-lg mt-2" style={{ maxHeight: 250 }}>
-          <ScrollView style={{ maxHeight: 250 }} nestedScrollEnabled>
+          <ScrollView style={{ maxHeight: 250 }} nestedScrollEnabled keyboardShouldPersistTaps="handled">
             {suggestions.map((feature, index) => (
-              <SquishyPressable
+              <Pressable
                 key={feature.id || index}
                 className="px-3 py-3 border-b border-gray-100"
                 onPress={() => handleAddressSelect(feature)}
@@ -156,7 +161,7 @@ const AddressInput = ({ onSelect, initialValue = '', placeholder = 'Start typing
                 <Text className="text-base text-gray-900" numberOfLines={2}>
                   {feature.place_name}
                 </Text>
-              </SquishyPressable>
+              </Pressable>
             ))}
           </ScrollView>
         </View>
