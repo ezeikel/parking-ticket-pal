@@ -264,11 +264,11 @@ const AnalyticsChartsWrapper = async () => {
   const savedAmount =
     tickets
       .filter((t) => (WON_STATUSES as readonly string[]).includes(t.status))
-      .reduce((sum, t) => sum + t.initialAmount, 0) / 100;
+      .reduce((sum, t) => sum + (t.initialAmount ?? 0), 0) / 100;
   const paidAmount =
     tickets
       .filter((t) => t.status === 'PAID')
-      .reduce((sum, t) => sum + t.initialAmount, 0) / 100;
+      .reduce((sum, t) => sum + (t.initialAmount ?? 0), 0) / 100;
 
   const financialData = [
     { name: 'Saved', value: savedAmount, color: '#222222' },

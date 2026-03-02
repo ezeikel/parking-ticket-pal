@@ -224,7 +224,7 @@ const TicketDetailPage = ({
           },
         );
       }
-    } catch (error) {
+    } catch {
       toast.error('Something went wrong. Please try again.', {
         id: toastId,
       });
@@ -293,7 +293,7 @@ const TicketDetailPage = ({
       } else {
         toast.error(result.message, { id: toastId });
       }
-    } catch (error) {
+    } catch {
       toast.error('Failed to start challenge. Please try again.', {
         id: toastId,
       });
@@ -320,7 +320,7 @@ const TicketDetailPage = ({
         <TicketDetailHeader
           pcnNumber={ticket.pcnNumber}
           status={ticket.status}
-          issuer={ticket.issuer}
+          issuer={ticket.issuer ?? ''}
           onEdit={handleEdit}
           onChallenge={handleChallenge}
         />
@@ -337,8 +337,8 @@ const TicketDetailPage = ({
                 contraventionCode={ticket.contraventionCode}
                 location={location}
                 vehicleReg={ticket.vehicle.registrationNumber}
-                issuer={ticket.issuer}
-                originalAmount={ticket.initialAmount}
+                issuer={ticket.issuer ?? ''}
+                originalAmount={ticket.initialAmount ?? 0}
                 currentAmount={currentAmount}
                 onEdit={handleEdit}
               />
@@ -348,7 +348,7 @@ const TicketDetailPage = ({
             <LiveStatusCard
               ticketId={ticket.id}
               tier={ticket.tier}
-              issuer={ticket.issuer}
+              issuer={ticket.issuer ?? ''}
               lastCheck={
                 ticket.verification?.type === 'TICKET' &&
                 ticket.verification.metadata
@@ -521,7 +521,7 @@ const TicketDetailPage = ({
               <SuccessPredictionCard
                 tier={ticket.tier}
                 successPrediction={successPrediction}
-                potentialSavings={ticket.initialAmount / 2}
+                potentialSavings={(ticket.initialAmount ?? 0) / 2}
                 onUpgrade={handleUpgrade}
                 numberOfCases={ticket.prediction?.numberOfCases ?? undefined}
                 metadata={
@@ -534,7 +534,7 @@ const TicketDetailPage = ({
                     numberOfCases?: number;
                   } | null
                 }
-                issuerName={ticket.issuer}
+                issuerName={ticket.issuer ?? undefined}
                 contraventionCode={ticket.contraventionCode}
               />
 
@@ -633,7 +633,7 @@ const TicketDetailPage = ({
       <AutoChallengeDialog
         open={isAutoChallengeDialogOpen}
         onOpenChange={handleAutoChallengeDialogChange}
-        issuerName={ticket.issuer}
+        issuerName={ticket.issuer ?? ''}
         predictionMetadata={
           ticket.prediction?.metadata as
             | import('@/services/prediction-service').PredictionMetadata

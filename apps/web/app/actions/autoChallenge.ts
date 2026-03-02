@@ -181,6 +181,13 @@ export async function initiateAutoChallenge(
     }
 
     // Find the issuer
+    if (!ticket.issuer) {
+      return {
+        success: false,
+        status: 'error',
+        message: 'Ticket issuer is required to submit a challenge.',
+      };
+    }
     const issuer = findIssuer(ticket.issuer);
     const issuerId =
       issuer?.id || ticket.issuer.toLowerCase().replace(/\s+/g, '-');

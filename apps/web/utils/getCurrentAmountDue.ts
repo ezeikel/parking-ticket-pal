@@ -112,7 +112,7 @@ export const formatCurrency = (amountInPence: number): string => {
  * @returns The current amount due in pence
  */
 export const getDisplayAmount = (ticket: {
-  initialAmount: number;
+  initialAmount: number | null;
   issuedAt: Date | string;
   status?: TicketStatus | string;
   amountIncreases?: { amount: number; effectiveAt: Date | string }[];
@@ -144,9 +144,9 @@ export const getDisplayAmount = (ticket: {
 
   // During discount period (first 14 days)
   if (daysSinceIssued <= 14) {
-    return ticket.initialAmount;
+    return ticket.initialAmount ?? 0;
   }
 
   // After discount period - return full amount (2x discounted)
-  return Math.floor(ticket.initialAmount * 2);
+  return Math.floor((ticket.initialAmount ?? 0) * 2);
 };

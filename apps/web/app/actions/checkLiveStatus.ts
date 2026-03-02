@@ -1,11 +1,7 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
-import {
-  db,
-  TicketTier,
-  VerificationStatus,
-} from '@parking-ticket-pal/db';
+import { db, TicketTier, VerificationStatus } from '@parking-ticket-pal/db';
 import { getUserId } from '@/utils/user';
 import { createServerLogger } from '@/lib/logger';
 import {
@@ -99,9 +95,9 @@ export async function checkLiveStatus(
     }
 
     // Find the issuer to get portal URL
-    const issuer = findIssuer(ticket.issuer);
+    const issuer = ticket.issuer ? findIssuer(ticket.issuer) : undefined;
     const issuerId =
-      issuer?.id || ticket.issuer.toLowerCase().replace(/\s+/g, '-');
+      issuer?.id || (ticket.issuer ?? '').toLowerCase().replace(/\s+/g, '-');
 
     logger.info('Starting live status check', {
       ticketId,

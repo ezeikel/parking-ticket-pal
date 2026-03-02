@@ -264,21 +264,22 @@ export const buildOnboardingEmailData = async (
   ticket: {
     id: string;
     pcnNumber: string;
-    issuer: string;
-    initialAmount: number;
+    issuer: string | null;
+    initialAmount: number | null;
     issuedAt: Date;
-    contraventionCode: string;
+    contraventionCode: string | null;
     prediction?: { numberOfCases: number } | null;
   },
 ): Promise<OnboardingEmailData> => {
   const name = user.name || undefined;
   const ticketId = ticket.id;
   const { pcnNumber } = ticket;
-  const { issuer } = ticket;
+  const issuer = ticket.issuer ?? '';
 
   // Amounts: stored in pence, convert to pounds
-  const fullAmountPounds = (ticket.initialAmount / 100).toFixed(2);
-  const discountAmountPounds = (ticket.initialAmount / 200).toFixed(2);
+  const initialAmount = ticket.initialAmount ?? 0;
+  const fullAmountPounds = (initialAmount / 100).toFixed(2);
+  const discountAmountPounds = (initialAmount / 200).toFixed(2);
 
   const discountDeadline = addDays(ticket.issuedAt, 14);
   const daysUntilDiscount = Math.max(
@@ -319,7 +320,9 @@ export const buildOnboardingEmailData = async (
 
     case 3: {
       // Fetch aggregate issuer stats (public tribunal data, not gated)
-      const normalizedIssuer = ticket.issuer.toLowerCase().replace(/\s+/g, '-');
+      const normalizedIssuer = (ticket.issuer ?? '')
+        .toLowerCase()
+        .replace(/\s+/g, '-');
       let issuerAllowedCount = 0;
       let issuerTotalCases = 0;
 
@@ -334,7 +337,7 @@ export const buildOnboardingEmailData = async (
       } else {
         // Fall back to general contravention stats
         const contraventionStats = await db.contraventionStats.findUnique({
-          where: { contraventionCode: ticket.contraventionCode },
+          where: { contraventionCode: ticket.contraventionCode ?? '' },
           select: { allowedCount: true, totalCases: true },
         });
         if (contraventionStats) {

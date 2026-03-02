@@ -12,12 +12,12 @@ import {
 import { getUserId } from '@/utils/user';
 import { createServerLogger } from '@/lib/logger';
 import { STORAGE_PATHS } from '@/constants';
-import { extractOCRTextWithVision } from './ocr';
 import {
   getMappedStatus,
   shouldUpdateStatus,
 } from '@/utils/letterStatusMapping';
 import { validateLetterType } from '@/utils/letterTypeValidation';
+import { extractOCRTextWithVision } from './ocr';
 
 const logger = createServerLogger({ action: 'letterUpload' });
 
@@ -28,7 +28,12 @@ const logger = createServerLogger({ action: 'letterUpload' });
 export async function uploadLetterToTicket(
   ticketId: string,
   formData: FormData,
-): Promise<{ success: boolean; error?: string; letterId?: string; warning?: string }> {
+): Promise<{
+  success: boolean;
+  error?: string;
+  letterId?: string;
+  warning?: string;
+}> {
   const userId = await getUserId('upload a letter');
 
   if (!userId) {
@@ -111,13 +116,14 @@ export async function uploadLetterToTicket(
     const buffer = Buffer.from(arrayBuffer);
     const extension = file.name.split('.').pop() || 'jpg';
 
-    const imagePath = STORAGE_PATHS.LETTER_IMAGE.replace('%s', letter.id).replace(
+    const imagePath = STORAGE_PATHS.LETTER_IMAGE.replace(
       '%s',
-      extension,
-    );
+      letter.id,
+    ).replace('%s', extension);
 
     const blob = await put(imagePath, buffer, {
-      contentType: file.type || `image/${extension === 'jpg' ? 'jpeg' : extension}`,
+      contentType:
+        file.type || `image/${extension === 'jpg' ? 'jpeg' : extension}`,
     });
 
     await db.media.create({
@@ -170,7 +176,11 @@ export async function uploadLetterToTicket(
     }
 
     // Create AmountIncrease if OCR detected a higher amount
-    if (currentAmount && currentAmount > ticket.initialAmount) {
+    if (
+      currentAmount &&
+      ticket.initialAmount != null &&
+      currentAmount > ticket.initialAmount
+    ) {
       await db.amountIncrease.create({
         data: {
           ticketId: ticket.id,
@@ -253,14 +263,18 @@ export async function deleteLetter(
     }
 
     // Delete media files from storage
-    for (const media of letter.media) {
-      try {
-        await del(media.url);
-      } catch {
-        // Log but continue if file deletion fails
-        logger.warn('Failed to delete media file', { mediaId: media.id, url: media.url });
-      }
-    }
+    await Promise.all(
+      letter.media.map(async (media) => {
+        try {
+          await del(media.url);
+        } catch {
+          logger.warn('Failed to delete media file', {
+            mediaId: media.id,
+            url: media.url,
+          });
+        }
+      }),
+    );
 
     // Delete letter (will cascade delete media records)
     await db.letter.delete({
@@ -269,7 +283,11 @@ export async function deleteLetter(
 
     revalidatePath(`/tickets/${letter.ticket.id}`);
 
-    logger.info('Letter deleted', { letterId, ticketId: letter.ticket.id, userId });
+    logger.info('Letter deleted', {
+      letterId,
+      ticketId: letter.ticket.id,
+      userId,
+    });
 
     return { success: true };
   } catch (error) {

@@ -197,7 +197,7 @@ export const getFormFillDataFromTicket = async (
       userTitle: 'Mr', // TODO: get title from user
       penaltyChargeNo: ticket.pcnNumber,
       vehicleRegistrationNo: ticket.vehicle.registrationNumber,
-      applicant: ticket.issuer,
+      applicant: ticket.issuer ?? '',
       locationOfContravention:
         typeof ticket.location === 'object' && ticket.location !== null
           ? ((ticket.location as Address).line1 || '') +

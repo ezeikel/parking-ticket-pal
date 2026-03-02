@@ -12,17 +12,16 @@ const StatsCards = async () => {
   const tickets = (await getTickets()) ?? [];
 
   const totalTickets = tickets.length;
+  const now = new Date();
+  const oneWeekFromNow = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
   const upcomingDue = tickets.filter((ticket) => {
     const dueDate = new Date(ticket.issuedAt);
     dueDate.setDate(dueDate.getDate() + 14); // Assuming 14 days to pay
-    return (
-      dueDate > new Date() &&
-      dueDate < new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
-    ); // Next 7 days
+    return dueDate > now && dueDate < oneWeekFromNow; // Next 7 days
   }).length;
 
   const totalAmount = tickets.reduce(
-    (acc, ticket) => acc + ticket.initialAmount,
+    (acc, ticket) => acc + (ticket.initialAmount ?? 0),
     0,
   );
   const uniqueVehicles = new Set(tickets.map((ticket) => ticket.vehicleId))

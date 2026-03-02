@@ -86,7 +86,7 @@ const TicketsMapView = ({
 
   // Initialize map
   useEffect(() => {
-    if (!mapContainerRef.current || mapRef.current) return;
+    if (!mapContainerRef.current || mapRef.current) return undefined;
 
     mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN!;
 
@@ -267,10 +267,11 @@ const TicketsMapView = ({
             </p>
             <div className="mt-2 flex items-center justify-between">
               <span className="font-semibold text-dark">
-                {formatAmount(selectedTicket.initialAmount)}
+                {formatAmount(selectedTicket.initialAmount ?? 0)}
               </span>
               <span
                 className={`text-sm ${
+                  // eslint-disable-next-line no-nested-ternary
                   selectedDeadlineDays <= 0
                     ? 'font-medium text-coral'
                     : selectedDeadlineDays <= 7

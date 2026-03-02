@@ -97,8 +97,8 @@ export async function POST(request: Request) {
         });
 
         // Send notification to user about status escalation
-        const fullAmountFormatted = `£${(ticket.initialAmount / 100).toFixed(2)}`;
-        const discountAmountFormatted = `£${(ticket.initialAmount / 200).toFixed(2)}`;
+        const fullAmountFormatted = `£${((ticket.initialAmount ?? 0) / 100).toFixed(2)}`;
+        const discountAmountFormatted = `£${((ticket.initialAmount ?? 0) / 200).toFixed(2)}`;
 
         await createAndSendNotification({
           userId: ticket.vehicle.userId,
@@ -109,8 +109,8 @@ export async function POST(request: Request) {
           data: {
             previousStatus: 'ISSUED_DISCOUNT_PERIOD',
             newStatus: 'ISSUED_FULL_CHARGE',
-            previousAmount: ticket.initialAmount / 2,
-            newAmount: ticket.initialAmount,
+            previousAmount: (ticket.initialAmount ?? 0) / 2,
+            newAmount: ticket.initialAmount ?? 0,
             source: 'cron_escalation',
           },
         });

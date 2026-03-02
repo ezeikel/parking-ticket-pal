@@ -141,7 +141,7 @@ export async function GET(
           const portalAmount = result.outstandingAmount || 0;
           const currentCalculated = getCurrentAmountDue({
             id: ticket.id,
-            initialAmount: ticket.initialAmount,
+            initialAmount: ticket.initialAmount ?? 0,
             status: ticket.status,
             issuedAt: ticket.issuedAt,
             priceIncreases: ticket.amountIncreases.map((ai) => ({

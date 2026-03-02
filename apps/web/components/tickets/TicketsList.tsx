@@ -258,7 +258,8 @@ const TicketsList = ({
       return new Date(b.issuedAt).getTime() - new Date(a.issuedAt).getTime();
     if (sort === 'deadline')
       return getDeadlineDays(a.issuedAt) - getDeadlineDays(b.issuedAt);
-    if (sort === 'amount') return b.initialAmount - a.initialAmount;
+    if (sort === 'amount')
+      return (b.initialAmount ?? 0) - (a.initialAmount ?? 0);
     return 0;
   });
 
@@ -508,7 +509,7 @@ const TicketsList = ({
                                 e.stopPropagation();
                                 setChallengeTicket({
                                   id: ticket.id,
-                                  issuer: ticket.issuer,
+                                  issuer: ticket.issuer ?? '',
                                   issuerType: ticket.issuerType,
                                 });
                               }}

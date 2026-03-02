@@ -85,7 +85,7 @@ const TicketDetailsCard = ({ ticket }: TicketDetailsCardProps) => {
 
   // Calculate amount due based on days since issue
   const amountInfo = calculateAmountDue(
-    ticket.initialAmount,
+    ticket.initialAmount ?? 0,
     typeof ticket.issuedAt === 'string'
       ? ticket.issuedAt
       : ticket.issuedAt.toISOString(),
@@ -129,10 +129,10 @@ const TicketDetailsCard = ({ ticket }: TicketDetailsCardProps) => {
   };
 
   const contraventionDetails = getContraventionDetails(
-    ticket.contraventionCode,
+    ticket.contraventionCode ?? '',
   );
 
-  const statusInfo = getStatusInfo(ticket?.status as TicketStatus);
+  const statusInfo = getStatusInfo(ticket?.status);
 
   const renderFooterActions = () => {
     switch (ticket.status) {
@@ -294,8 +294,8 @@ const TicketDetailsCard = ({ ticket }: TicketDetailsCardProps) => {
         <div className="h-64 w-full overflow-hidden rounded-lg bg-muted">
           {hasCoordinates ? (
             <LocationMap
-              latitude={location!.coordinates.latitude}
-              longitude={location!.coordinates.longitude}
+              latitude={location.coordinates.latitude}
+              longitude={location.coordinates.longitude}
             />
           ) : (
             <div className="flex h-full w-full items-center justify-center text-muted-foreground">
