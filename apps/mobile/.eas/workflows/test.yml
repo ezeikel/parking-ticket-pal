@@ -57,13 +57,17 @@ jobs:
       platform: ios
       profile: e2e-test
 
+  # --- Basic E2E flows (no DB orchestration needed) ---
+
   e2e-android:
     name: E2E Tests (Android)
     needs: [build-e2e-android]
     type: maestro
     params:
       build_id: ${{ needs["build-e2e-android"].outputs.build_id }}
-      flow_path: .maestro/
+      flow_path:
+        - .maestro/home.yml
+        - .maestro/ticket-manual-entry.yml
       retries: 2
 
   e2e-ios:
@@ -72,14 +76,65 @@ jobs:
     type: maestro
     params:
       build_id: ${{ needs["build-e2e-ios"].outputs.build_id }}
-      flow_path: .maestro/
+      flow_path:
+        - .maestro/home.yml
+        - .maestro/ticket-manual-entry.yml
       retries: 2
+
+  # --- Challenge letter E2E (requires DB orchestration) ---
+  # Step 1: Create ticket via Maestro
+  e2e-challenge-create-ios:
+    name: Challenge - Create Ticket (iOS)
+    needs: [build-e2e-ios]
+    type: maestro
+    params:
+      build_id: ${{ needs["build-e2e-ios"].outputs.build_id }}
+      flow_path: .maestro/orchestrated/ticket-create-for-challenge.yml
+      retries: 2
+
+  # Step 2: Upgrade ticket tier to PREMIUM via DB script
+  challenge-upgrade-tier:
+    name: Challenge - Upgrade Tier
+    needs: [e2e-challenge-create-ios]
+    runs_on: linux-medium
+    env:
+      DATABASE_URL: ${{ env.E2E_DATABASE_URL }}
+    steps:
+      - uses: eas/checkout
+      - uses: eas/install_node_modules
+      - name: Upgrade ticket tier to PREMIUM
+        working_directory: apps/mobile
+        run: node .maestro/scripts/upgrade-ticket-tier.mjs E2E-MAESTRO-CHALLENGE
+
+  # Step 3: Run challenge letter flow
+  e2e-challenge-letter-ios:
+    name: Challenge - Generate Letter (iOS)
+    needs: [challenge-upgrade-tier, build-e2e-ios]
+    type: maestro
+    params:
+      build_id: ${{ needs["build-e2e-ios"].outputs.build_id }}
+      flow_path: .maestro/orchestrated/challenge-letter.yml
+      retries: 1
+
+  # Step 4: Cleanup E2E tickets from DB
+  challenge-cleanup:
+    name: Challenge - Cleanup
+    after: [e2e-challenge-letter-ios]
+    runs_on: linux-medium
+    env:
+      DATABASE_URL: ${{ env.E2E_DATABASE_URL }}
+    steps:
+      - uses: eas/checkout
+      - uses: eas/install_node_modules
+      - name: Cleanup E2E test tickets
+        working_directory: apps/mobile
+        run: node .maestro/scripts/cleanup-e2e-tickets.mjs
 
   comment:
     name: Post Results
     type: github-comment
     if: ${{ github.event_name == 'pull_request' }}
-    after: [e2e-android, e2e-ios]
+    after: [e2e-android, e2e-ios, e2e-challenge-letter-ios]
     params:
       message: |
         **Test results for PR #${{ github.event.pull_request.number }}**
@@ -90,3 +145,4 @@ jobs:
         | Unit Tests | ${{ needs["unit-tests"].status || 'passed' }} |
         | E2E Android | ${{ after["e2e-android"].status }} |
         | E2E iOS | ${{ after["e2e-ios"].status }} |
+        | Challenge Letter (iOS) | ${{ after["e2e-challenge-letter-ios"].status }} |

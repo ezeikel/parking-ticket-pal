@@ -4,6 +4,6 @@ appId: com.chewybytes.parkingticketpal.app
 # The tier is upgraded to PREMIUM via a separate script step in CI.
 
 - runFlow:
-    file: flows/create-ticket.yml
+    file: ../flows/create-ticket.yml
     env:
       PCN_NUMBER: "E2E-MAESTRO-CHALLENGE"
