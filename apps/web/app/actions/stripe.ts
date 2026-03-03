@@ -13,6 +13,12 @@ import { createReferralCoupon } from '@/lib/referral-stripe';
 
 const logger = createServerLogger({ action: 'stripe' });
 
+export type FacebookTrackingData = {
+  fbp?: string;
+  fbc?: string;
+  purchaseEventId?: string;
+};
+
 const getUserRole = async () => {
   const userId = await getUserId('get user role');
 
@@ -172,6 +178,7 @@ export const getInvoices = async (): Promise<InvoiceData[]> => {
 export const createTicketCheckoutSession = async (
   _tier: unknown,
   ticketId: string,
+  fbData?: FacebookTrackingData,
 ): Promise<{ url: string } | null> => {
   const userId = await getUserId('create a ticket checkout session');
 
@@ -236,7 +243,7 @@ export const createTicketCheckoutSession = async (
       },
     ],
     mode: 'payment',
-    success_url: `${origin}/tickets/${ticketId}?success=true`,
+    success_url: `${origin}/tickets/${ticketId}?success=true${fbData?.purchaseEventId ? `&purchaseEventId=${fbData.purchaseEventId}` : ''}`,
     cancel_url: `${origin}/tickets/${ticketId}?cancelled=true`,
     client_reference_id: userId,
 
@@ -245,6 +252,11 @@ export const createTicketCheckoutSession = async (
       ticketId,
       tier: TicketTier.PREMIUM,
       userId,
+      ...(fbData?.fbp && { fbp: fbData.fbp }),
+      ...(fbData?.fbc && { fbc: fbData.fbc }),
+      ...(fbData?.purchaseEventId && {
+        purchaseEventId: fbData.purchaseEventId,
+      }),
     },
 
     // conditionally set customer parameters - use existing customer OR create new one
@@ -297,6 +309,7 @@ export type GuestTicketCheckoutData = {
 export const createGuestCheckoutSession = async (
   _tier: string,
   guestData: GuestTicketCheckoutData,
+  fbData?: FacebookTrackingData,
 ): Promise<{ url: string } | null> => {
   const headersList = await headers();
   const origin = headersList.get('origin');
@@ -324,7 +337,7 @@ export const createGuestCheckoutSession = async (
     ],
     mode: 'payment',
     // After success, redirect to claim page where user will sign up
-    success_url: `${origin}/guest/claim?session_id={CHECKOUT_SESSION_ID}`,
+    success_url: `${origin}/guest/claim?session_id={CHECKOUT_SESSION_ID}${fbData?.purchaseEventId ? `&purchaseEventId=${fbData.purchaseEventId}` : ''}`,
     cancel_url: `${origin}/?cancelled=true`,
 
     // Collect email for guest - pre-fill if available from wizard
@@ -343,6 +356,11 @@ export const createGuestCheckoutSession = async (
       tempImagePath: guestData.tempImagePath || '',
       initialAmount: guestData.initialAmount?.toString() || '',
       issuer: guestData.issuer || '',
+      ...(fbData?.fbp && { fbp: fbData.fbp }),
+      ...(fbData?.fbc && { fbc: fbData.fbc }),
+      ...(fbData?.purchaseEventId && {
+        purchaseEventId: fbData.purchaseEventId,
+      }),
     },
   };
 

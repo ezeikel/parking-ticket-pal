@@ -1,4 +1,5 @@
 declare global {
+  // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
   interface Window {
     fbq: (...args: unknown[]) => void;
     _fbq: unknown;
@@ -16,31 +17,35 @@ export type FacebookPixelEvent =
   | 'InitiateCheckout'
   | 'ViewContent';
 
-interface PurchaseParams {
+type PurchaseParams = {
   value: number;
   currency: string;
   content_name?: string;
   content_ids?: string[];
   content_type?: string;
-}
+};
 
-interface LeadParams {
+type LeadParams = {
   content_name?: string;
   content_category?: string;
   value?: number;
   currency?: string;
-}
+};
 
-interface ViewContentParams {
+type ViewContentParams = {
   content_name?: string;
   content_category?: string;
   content_ids?: string[];
   content_type?: string;
   value?: number;
   currency?: string;
-}
+};
 
-type EventParams = PurchaseParams | LeadParams | ViewContentParams | Record<string, unknown>;
+type EventParams =
+  | PurchaseParams
+  | LeadParams
+  | ViewContentParams
+  | Record<string, unknown>;
 
 export const pageview = () => {
   if (typeof window !== 'undefined' && window.fbq) {
@@ -48,9 +53,17 @@ export const pageview = () => {
   }
 };
 
-export const event = (name: FacebookPixelEvent, params?: EventParams) => {
+export const event = (
+  name: FacebookPixelEvent,
+  params?: EventParams,
+  eventId?: string,
+) => {
   if (typeof window !== 'undefined' && window.fbq) {
-    window.fbq('track', name, params);
+    if (eventId) {
+      window.fbq('track', name, params, { eventID: eventId });
+    } else {
+      window.fbq('track', name, params);
+    }
   }
 };
 
@@ -59,8 +72,8 @@ export const trackLead = (params?: LeadParams) => {
   event('Lead', params);
 };
 
-export const trackPurchase = (params: PurchaseParams) => {
-  event('Purchase', params);
+export const trackPurchase = (params: PurchaseParams, eventId?: string) => {
+  event('Purchase', params, eventId);
 };
 
 export const trackCompleteRegistration = (params?: Record<string, unknown>) => {

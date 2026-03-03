@@ -8,6 +8,7 @@ import {
   applyReferralCredits,
   deleteCouponAfterUse,
 } from '@/lib/referral-stripe';
+import { trackServerPurchase } from '@/lib/facebook-capi';
 
 const log = createServerLogger({ action: 'stripe-webhook' });
 
@@ -243,6 +244,26 @@ export const POST = async (req: Request) => {
     } else {
       log.error('No customer email provided to complete the payment');
     }
+    // Fire Meta Conversions API Purchase event (fire-and-forget)
+    const metadata = completedCheckoutSession.metadata || {};
+    const purchaseValue = completedCheckoutSession.amount_total
+      ? completedCheckoutSession.amount_total / 100
+      : 14.99;
+
+    trackServerPurchase({
+      email,
+      fbp: metadata.fbp || null,
+      fbc: metadata.fbc || null,
+      eventId: metadata.purchaseEventId || null,
+      value: purchaseValue,
+      currency: completedCheckoutSession.currency?.toUpperCase() || 'GBP',
+    }).catch((err) =>
+      log.error(
+        'Failed to send Meta CAPI Purchase event',
+        undefined,
+        err instanceof Error ? err : undefined,
+      ),
+    );
   } else {
     log.warn(`Unhandled event type ${stripeEvent.type}`);
   }

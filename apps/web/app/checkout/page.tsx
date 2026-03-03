@@ -19,12 +19,26 @@ import { faSpinnerThird } from '@fortawesome/pro-regular-svg-icons';
 import { useAnalytics } from '@/utils/analytics-client';
 import { TRACKING_EVENTS } from '@/constants/events';
 import { trackInitiateCheckout } from '@/lib/facebook-pixel';
+import type { FacebookTrackingData } from '@/app/actions/stripe';
 import useLogger from '@/lib/use-logger';
 import {
   getGuestTicketData,
   isGuestTicketExpired,
   clearGuestTicketData,
 } from '@/utils/guestTicket';
+
+function getCookie(name: string): string | undefined {
+  const match = document.cookie.match(new RegExp(`(?:^|; )${name}=([^;]*)`));
+  return match?.[1] || undefined;
+}
+
+function getFacebookTrackingData(): FacebookTrackingData {
+  return {
+    fbp: getCookie('_fbp'),
+    fbc: getCookie('_fbc'),
+    purchaseEventId: crypto.randomUUID(),
+  };
+}
 
 const CheckoutContent = () => {
   const router = useRouter();
@@ -70,6 +84,7 @@ const CheckoutContent = () => {
 
           // Always use premium tier (only paid tier)
           const guestTier = 'premium' as const;
+          const fbData = getFacebookTrackingData();
 
           // Track guest checkout initiation
           await track(TRACKING_EVENTS.CHECKOUT_SESSION_CREATED, {
@@ -89,6 +104,7 @@ const CheckoutContent = () => {
           const session = await createGuestCheckoutSession(
             'PREMIUM',
             checkoutData,
+            fbData,
           );
 
           if (!session?.url) {
@@ -115,6 +131,7 @@ const CheckoutContent = () => {
 
         // Only premium tier is supported — map any legacy 'standard' to 'premium'
         const ticketTier = TicketTier.PREMIUM;
+        const fbData = getFacebookTrackingData();
 
         // Track checkout initiation
         await track(TRACKING_EVENTS.CHECKOUT_SESSION_CREATED, {
@@ -128,7 +145,11 @@ const CheckoutContent = () => {
         });
 
         // Create Stripe checkout session
-        const session = await createTicketCheckoutSession(ticketTier, ticketId);
+        const session = await createTicketCheckoutSession(
+          ticketTier,
+          ticketId,
+          fbData,
+        );
 
         if (!session?.url) {
           logger.error('Checkout session created but no URL returned', {

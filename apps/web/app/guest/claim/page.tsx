@@ -22,6 +22,7 @@ import { Input } from '@/components/ui/input';
 import { getGuestTicketData, updateGuestTicketData } from '@/utils/guestTicket';
 import { useAnalytics } from '@/utils/analytics-client';
 import { TRACKING_EVENTS } from '@/constants/events';
+import { trackPurchase } from '@/lib/facebook-pixel';
 
 const ClaimContent = () => {
   const router = useRouter();
@@ -29,12 +30,14 @@ const ClaimContent = () => {
   const { data: session, status } = useSession();
   const { track } = useAnalytics();
   const hasTrackedPageView = useRef(false);
+  const hasTrackedPurchase = useRef(false);
   const [isLoading, setIsLoading] = useState(true);
   const [paymentVerified, setPaymentVerified] = useState(false);
   const [email, setEmail] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const sessionId = searchParams.get('session_id');
+  const purchaseEventId = searchParams.get('purchaseEventId');
 
   useEffect(() => {
     const verifyPayment = async () => {
@@ -62,6 +65,15 @@ const ClaimContent = () => {
 
       if (updated) {
         setPaymentVerified(true);
+
+        // Fire client-side Purchase pixel (deduplicated with server via eventId)
+        if (!hasTrackedPurchase.current) {
+          trackPurchase(
+            { value: 14.99, currency: 'GBP', content_name: 'premium_ticket' },
+            purchaseEventId || undefined,
+          );
+          hasTrackedPurchase.current = true;
+        }
       }
 
       setIsLoading(false);
@@ -77,7 +89,7 @@ const ClaimContent = () => {
     };
 
     verifyPayment();
-  }, [sessionId, track]);
+  }, [sessionId, track, purchaseEventId]);
 
   // If user is already logged in, redirect to create ticket
   useEffect(() => {
