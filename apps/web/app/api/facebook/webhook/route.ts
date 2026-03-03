@@ -26,66 +26,75 @@ export const GET = async (req: NextRequest) => {
 };
 
 export const POST = async (req: NextRequest) => {
+  const debugLog: string[] = [];
+
   try {
     const body = await req.json();
-    console.log(
-      '[webhook] Event received:',
-      JSON.stringify({ object: body.object, entryCount: body.entry?.length }),
-    );
+    debugLog.push(`[webhook] FULL BODY: ${JSON.stringify(body)}`);
 
     if (body.object === 'instagram') {
       const promises: Promise<void>[] = [];
 
       for (const entry of body.entry || []) {
+        debugLog.push(`[webhook] Entry keys: ${Object.keys(entry).join(',')}`);
+        debugLog.push(`[webhook] Entry: ${JSON.stringify(entry)}`);
+
         for (const change of entry.changes || []) {
-          console.log('[webhook] Change field:', change.field);
+          debugLog.push(`[webhook] Change field: ${change.field}`);
+          debugLog.push(
+            `[webhook] Change value: ${JSON.stringify(change.value)}`,
+          );
 
           if (change.field === 'comments') {
             const { id: commentId, text, from, media } = change.value || {};
-            console.log(
-              '[webhook] Comment payload:',
-              JSON.stringify({ commentId, text, from, mediaId: media?.id }),
-            );
 
             if (!commentId || !text || !from || !media) {
-              console.warn('[webhook] Incomplete comment payload');
+              debugLog.push('[webhook] Incomplete comment payload');
               continue;
             }
 
             const trimmedText = text.trim();
             if (TRIGGER_PATTERNS.test(trimmedText)) {
-              console.log('[webhook] Trigger match! Processing...');
+              debugLog.push(
+                `[webhook] Trigger match! from=${from.username} media=${media.id}`,
+              );
 
-              // Await the handler — Vercel kills async work after response
               promises.push(
                 handleTriggerComment({
                   commentId,
                   commenterId: from.id,
                   commenterUsername: from.username,
                   mediaId: media.id,
-                }).catch((error) => {
-                  console.error('[webhook] handleTriggerComment error:', error);
-                }),
+                })
+                  .then(() => {
+                    debugLog.push('[webhook] Handler completed successfully');
+                  })
+                  .catch((error) => {
+                    debugLog.push(`[webhook] Handler error: ${error}`);
+                  }),
               );
             } else {
-              console.log('[webhook] Not a trigger comment:', trimmedText);
+              debugLog.push(`[webhook] Not a trigger: "${trimmedText}"`);
             }
           }
         }
       }
 
-      // Wait for all handlers to complete before returning
       if (promises.length > 0) {
         await Promise.all(promises);
-        console.log('[webhook] All handlers completed');
       }
     } else {
-      console.log('[webhook] Ignoring non-instagram object:', body.object);
+      debugLog.push(`[webhook] Non-instagram object: ${body.object}`);
     }
 
-    return new NextResponse('OK', { status: 200 });
+    // Log everything at once
+    // eslint-disable-next-line no-console
+    console.log(debugLog.join('\n'));
+    return new NextResponse(debugLog.join('\n'), { status: 200 });
   } catch (error) {
-    console.error('[webhook] Error processing webhook:', error);
-    return new NextResponse('OK', { status: 200 });
+    debugLog.push(`[webhook] ERROR: ${error}`);
+    // eslint-disable-next-line no-console
+    console.log(debugLog.join('\n'));
+    return new NextResponse(debugLog.join('\n'), { status: 200 });
   }
 };
