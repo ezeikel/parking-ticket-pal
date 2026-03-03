@@ -164,24 +164,38 @@ class Logger {
   }
 
   /**
-   * Send error to Sentry as an issue.
-   * Only errors go to Sentry - debug/info/warn go to console only
-   * (Vercel Logs capture server console output)
+   * Send log entry to Sentry.
+   * - debug/info: breadcrumb only (enriches future error events)
+   * - warn: breadcrumb only (too noisy for Sentry issues on web)
+   * - error: sets context/tags and captures exception or message
    */
   // eslint-disable-next-line class-methods-use-this
-  private logToSentry(message: string, context?: LogContext, error?: Error) {
+  private logToSentry(entry: LogEntry) {
     try {
-      if (context) {
-        Sentry.setContext('error_context', context);
-        if (context.page) Sentry.setTag('page', context.page);
-        if (context.action) Sentry.setTag('action', context.action);
-        if (context.userId) Sentry.setUser({ id: context.userId });
-      }
+      if (entry.level === 'error') {
+        if (entry.context) {
+          Sentry.setContext('error_context', entry.context);
+          if (entry.context.page) Sentry.setTag('page', entry.context.page);
+          if (entry.context.action)
+            Sentry.setTag('action', entry.context.action);
+        }
 
-      if (error) {
-        Sentry.captureException(error);
+        if (entry.error) {
+          Sentry.captureException(entry.error);
+        } else {
+          Sentry.captureMessage(entry.message, 'error');
+        }
       } else {
-        Sentry.captureMessage(message, 'error');
+        // debug, info, warn → breadcrumb
+        Sentry.addBreadcrumb({
+          message: entry.message,
+          level: entry.level === 'warn' ? 'warning' : entry.level,
+          category: 'logger',
+          data: {
+            ...(entry.context?.page && { page: entry.context.page }),
+            ...(entry.context?.action && { action: entry.context.action }),
+          },
+        });
       }
     } catch (err) {
       if (process.env.NODE_ENV === 'development') {
@@ -289,6 +303,7 @@ class Logger {
   debug(message: string, context?: LogContext) {
     const entry = this.createLogEntry('debug', message, context);
     this.logToConsole(entry);
+    this.logToSentry(entry);
     this.logToPostHog(entry);
     this.logToOtel(entry);
   }
@@ -296,6 +311,7 @@ class Logger {
   info(message: string, context?: LogContext) {
     const entry = this.createLogEntry('info', message, context);
     this.logToConsole(entry);
+    this.logToSentry(entry);
     this.logToPostHog(entry);
     this.logToOtel(entry);
   }
@@ -303,6 +319,7 @@ class Logger {
   warn(message: string, context?: LogContext, error?: Error) {
     const entry = this.createLogEntry('warn', message, context, error);
     this.logToConsole(entry);
+    this.logToSentry(entry);
     this.logToPostHog(entry);
     this.logToOtel(entry);
   }
@@ -310,7 +327,7 @@ class Logger {
   error(message: string, context?: LogContext, error?: Error) {
     const entry = this.createLogEntry('error', message, context, error);
     this.logToConsole(entry);
-    this.logToSentry(entry.message, entry.context, entry.error);
+    this.logToSentry(entry);
     this.logToPostHog(entry);
     this.logToOtel(entry);
   }

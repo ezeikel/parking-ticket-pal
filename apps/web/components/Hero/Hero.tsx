@@ -11,8 +11,8 @@ import TicketWizard, {
   type ExtractedData,
   type WizardCompleteData,
 } from '@/components/TicketWizard/TicketWizard';
-import * as Sentry from '@sentry/nextjs';
 import { extractOCRTextWithVision } from '@/app/actions/ocr';
+import { logger } from '@/lib/logger';
 import { useAnalytics } from '@/utils/analytics-client';
 import { TRACKING_EVENTS } from '@/constants/events';
 import { compressImage } from '@/utils/compressImage';
@@ -226,15 +226,18 @@ const Hero = () => {
           error: error instanceof Error ? error.message : 'Unknown error',
         });
 
-        Sentry.captureException(error, {
-          tags: { feature: 'hero_upload' },
-          extra: {
+        logger.error(
+          'Hero upload failed',
+          {
+            page: 'hero',
+            action: 'photo_upload',
             fileType: file.type,
             fileSize: file.size,
             compressedFileSize,
             wasCompressed,
           },
-        });
+          error instanceof Error ? error : undefined,
+        );
 
         toast.error('Something went wrong. Please try again.');
         setExtractedData(undefined);

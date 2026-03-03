@@ -2,8 +2,8 @@
 
 import nodemailer from 'nodemailer';
 import { z } from 'zod';
-import * as Sentry from '@sentry/nextjs';
 import { render } from '@react-email/render';
+import { createServerLogger } from '@/lib/logger';
 import resend from '@/lib/resend';
 import MagicLinkEmail from '@/emails/MagicLinkEmail';
 import TicketReminderEmail from '@/emails/TicketReminderEmail';
@@ -20,6 +20,8 @@ import OnboardingFinalWarningEmail from '@/emails/onboarding/OnboardingFinalWarn
 import WaitlistWelcomeEmail from '@/emails/waitlist/WaitlistWelcomeEmail';
 import WaitlistValueEmail from '@/emails/waitlist/WaitlistValueEmail';
 import WaitlistLaunchEmail from '@/emails/waitlist/WaitlistLaunchEmail';
+
+const log = createServerLogger({ action: 'email' });
 
 const AttachmentSchema = z.object({
   filename: z.string(),
@@ -127,16 +129,11 @@ export const sendEmail = async (
     const errorMessage =
       error instanceof Error ? error.message : 'Unknown error';
 
-    Sentry.captureException(error, {
-      tags: {
-        service: 'email',
-        action: 'send_email',
-      },
-      extra: {
-        to: emailData.to,
-        subject: emailData.subject,
-      },
-    });
+    log.error(
+      'Failed to send email',
+      { action: 'send_email', to: emailData.to, subject: emailData.subject },
+      error instanceof Error ? error : undefined,
+    );
 
     return {
       success: false,
@@ -213,9 +210,11 @@ export const sendBatchEmails = async (
 
     return { success: true, results };
   } catch (error) {
-    Sentry.captureException(error, {
-      tags: { service: 'email', action: 'send_batch' },
-    });
+    log.error(
+      'Failed to send batch emails',
+      { action: 'send_batch', batchSize: emails.length },
+      error instanceof Error ? error : undefined,
+    );
 
     return {
       success: false,

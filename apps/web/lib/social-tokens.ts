@@ -1,4 +1,4 @@
-import * as Sentry from '@sentry/nextjs';
+import { logger } from '@/lib/logger';
 
 type TokenInfo = {
   access_token: string;
@@ -55,6 +55,7 @@ export const validateToken = async (
 
     return { isValid: true };
   } catch (error) {
+    // eslint-disable-next-line no-console
     console.error('Token validation error:', error);
     return {
       isValid: false,
@@ -309,8 +310,9 @@ export const checkAllTokens = async (): Promise<{
     results.facebook.expiresAt &&
     results.facebook.expiresAt < thirtyDaysFromNow
   ) {
-    Sentry.captureMessage(
+    logger.warn(
       `Facebook/Instagram token expires soon: ${results.facebook.expiresAt}`,
+      { action: 'social_token_check', platform: 'facebook' },
     );
   }
 
@@ -320,8 +322,9 @@ export const checkAllTokens = async (): Promise<{
     results.linkedin.expiresAt &&
     results.linkedin.expiresAt < tenDaysFromNow
   ) {
-    Sentry.captureMessage(
+    logger.warn(
       `LinkedIn token expires within 10 days: ${results.linkedin.expiresAt} - Manual renewal required!`,
+      { action: 'social_token_check', platform: 'linkedin' },
     );
   }
 

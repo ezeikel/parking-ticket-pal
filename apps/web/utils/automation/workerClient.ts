@@ -5,6 +5,7 @@
  * Handles requesting code generation for new issuer automations.
  */
 
+import * as Sentry from '@sentry/nextjs';
 import { createServerLogger } from '@/lib/logger';
 
 const logger = createServerLogger({ action: 'worker-client' });
@@ -347,7 +348,10 @@ export async function getIssuers(): Promise<IssuerMetadata[]> {
       const error = await response
         .json()
         .catch(() => ({ error: 'Unknown error' }));
-      logger.error('Failed to fetch issuers', { error, status: response.status });
+      logger.error('Failed to fetch issuers', {
+        error,
+        status: response.status,
+      });
       throw new Error(error.error || `HTTP ${response.status}`);
     }
 
@@ -384,84 +388,93 @@ export async function isIssuerSupported(issuerId: string): Promise<boolean> {
 export async function runChallenge(
   params: ChallengeParams,
 ): Promise<ChallengeResult> {
-  try {
-    const { baseUrl, secret } = getConfig();
+  return Sentry.startSpan(
+    {
+      name: 'worker.runChallenge',
+      op: 'automation',
+      attributes: { issuerId: params.issuerId, ticketId: params.ticketId },
+    },
+    async () => {
+      try {
+        const { baseUrl, secret } = getConfig();
 
-    logger.info('Running challenge automation on worker', {
-      issuerId: params.issuerId,
-      pcnNumber: params.pcnNumber,
-      ticketId: params.ticketId,
-      dryRun: params.dryRun,
-    });
+        logger.info('Running challenge automation on worker', {
+          issuerId: params.issuerId,
+          pcnNumber: params.pcnNumber,
+          ticketId: params.ticketId,
+          dryRun: params.dryRun,
+        });
 
-    const response = await fetch(`${baseUrl}/automation/challenge`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${secret}`,
-      },
-      body: JSON.stringify({
-        issuerId: params.issuerId,
-        pcnNumber: params.pcnNumber,
-        vehicleReg: params.vehicleReg,
-        vehicleMake: params.vehicleMake,
-        vehicleModel: params.vehicleModel,
-        challengeReason: params.challengeReason,
-        additionalDetails: params.additionalDetails,
-        ticketId: params.ticketId,
-        challengeId: params.challengeId,
-        user: params.user,
-        dryRun: params.dryRun ?? false,
-      }),
-    });
+        const response = await fetch(`${baseUrl}/automation/challenge`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${secret}`,
+          },
+          body: JSON.stringify({
+            issuerId: params.issuerId,
+            pcnNumber: params.pcnNumber,
+            vehicleReg: params.vehicleReg,
+            vehicleMake: params.vehicleMake,
+            vehicleModel: params.vehicleModel,
+            challengeReason: params.challengeReason,
+            additionalDetails: params.additionalDetails,
+            ticketId: params.ticketId,
+            challengeId: params.challengeId,
+            user: params.user,
+            dryRun: params.dryRun ?? false,
+          }),
+        });
 
-    if (!response.ok) {
-      const error = await response
-        .json()
-        .catch(() => ({ error: 'Unknown error' }));
-      logger.error('Challenge automation failed', {
-        issuerId: params.issuerId,
-        status: response.status,
-        error,
-      });
+        if (!response.ok) {
+          const error = await response
+            .json()
+            .catch(() => ({ error: 'Unknown error' }));
+          logger.error('Challenge automation failed', {
+            issuerId: params.issuerId,
+            status: response.status,
+            error,
+          });
 
-      return {
-        success: false,
-        error: error.error || error.message || `HTTP ${response.status}`,
-        screenshotUrls: error.screenshotUrls || [],
-        issuerId: params.issuerId,
-        challengeId: params.challengeId || '',
-        dryRun: params.dryRun ?? false,
-      };
-    }
+          return {
+            success: false,
+            error: error.error || error.message || `HTTP ${response.status}`,
+            screenshotUrls: error.screenshotUrls || [],
+            issuerId: params.issuerId,
+            challengeId: params.challengeId || '',
+            dryRun: params.dryRun ?? false,
+          };
+        }
 
-    const result = await response.json();
-    logger.info('Challenge automation completed', {
-      issuerId: params.issuerId,
-      success: result.success,
-      challengeId: result.challengeId,
-    });
+        const result = await response.json();
+        logger.info('Challenge automation completed', {
+          issuerId: params.issuerId,
+          success: result.success,
+          challengeId: result.challengeId,
+        });
 
-    return result;
-  } catch (error) {
-    logger.error(
-      'Failed to run challenge automation',
-      { issuerId: params.issuerId, ticketId: params.ticketId },
-      error instanceof Error ? error : new Error(String(error)),
-    );
+        return result;
+      } catch (error) {
+        logger.error(
+          'Failed to run challenge automation',
+          { issuerId: params.issuerId, ticketId: params.ticketId },
+          error instanceof Error ? error : new Error(String(error)),
+        );
 
-    return {
-      success: false,
-      error:
-        error instanceof Error
-          ? error.message
-          : 'Failed to connect to automation service',
-      screenshotUrls: [],
-      issuerId: params.issuerId,
-      challengeId: params.challengeId || '',
-      dryRun: params.dryRun ?? false,
-    };
-  }
+        return {
+          success: false,
+          error:
+            error instanceof Error
+              ? error.message
+              : 'Failed to connect to automation service',
+          screenshotUrls: [],
+          issuerId: params.issuerId,
+          challengeId: params.challengeId || '',
+          dryRun: params.dryRun ?? false,
+        };
+      }
+    },
+  );
 }
 
 /**
@@ -469,72 +482,81 @@ export async function runChallenge(
  * Verifies ticket details on the issuer portal and captures evidence.
  */
 export async function runVerify(params: VerifyParams): Promise<VerifyResult> {
-  try {
-    const { baseUrl, secret } = getConfig();
+  return Sentry.startSpan(
+    {
+      name: 'worker.runVerify',
+      op: 'automation',
+      attributes: { issuerId: params.issuerId, ticketId: params.ticketId },
+    },
+    async () => {
+      try {
+        const { baseUrl, secret } = getConfig();
 
-    logger.info('Running verify automation on worker', {
-      issuerId: params.issuerId,
-      pcnNumber: params.pcnNumber,
-      ticketId: params.ticketId,
-    });
+        logger.info('Running verify automation on worker', {
+          issuerId: params.issuerId,
+          pcnNumber: params.pcnNumber,
+          ticketId: params.ticketId,
+        });
 
-    const response = await fetch(`${baseUrl}/automation/verify`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${secret}`,
-      },
-      body: JSON.stringify({
-        issuerId: params.issuerId,
-        pcnNumber: params.pcnNumber,
-        vehicleReg: params.vehicleReg,
-        ticketId: params.ticketId,
-        challengeId: params.challengeId,
-      }),
-    });
+        const response = await fetch(`${baseUrl}/automation/verify`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${secret}`,
+          },
+          body: JSON.stringify({
+            issuerId: params.issuerId,
+            pcnNumber: params.pcnNumber,
+            vehicleReg: params.vehicleReg,
+            ticketId: params.ticketId,
+            challengeId: params.challengeId,
+          }),
+        });
 
-    if (!response.ok) {
-      const error = await response
-        .json()
-        .catch(() => ({ error: 'Unknown error' }));
-      logger.error('Verify automation failed', {
-        issuerId: params.issuerId,
-        status: response.status,
-        error,
-      });
+        if (!response.ok) {
+          const error = await response
+            .json()
+            .catch(() => ({ error: 'Unknown error' }));
+          logger.error('Verify automation failed', {
+            issuerId: params.issuerId,
+            status: response.status,
+            error,
+          });
 
-      return {
-        success: false,
-        error: error.error || error.message || `HTTP ${response.status}`,
-        screenshotUrls: error.screenshotUrls || [],
-        issuerId: params.issuerId,
-      };
-    }
+          return {
+            success: false,
+            error: error.error || error.message || `HTTP ${response.status}`,
+            screenshotUrls: error.screenshotUrls || [],
+            issuerId: params.issuerId,
+          };
+        }
 
-    const result = await response.json();
-    logger.info('Verify automation completed', {
-      issuerId: params.issuerId,
-      success: result.success,
-    });
+        const result = await response.json();
+        logger.info('Verify automation completed', {
+          issuerId: params.issuerId,
+          success: result.success,
+        });
 
-    return result;
-  } catch (error) {
-    logger.error(
-      'Failed to run verify automation',
-      { issuerId: params.issuerId, ticketId: params.ticketId },
-      error instanceof Error ? error : new Error(String(error)),
-    );
+        return result;
+      } catch (error) {
+        logger.error(
+          'Failed to run verify automation',
+          { issuerId: params.issuerId, ticketId: params.ticketId },
+          error instanceof Error ? error : new Error(String(error)),
+        );
 
-    return {
-      success: false,
-      error:
-        error instanceof Error
-          ? error.message
-          : 'Failed to connect to automation service',
-      screenshotUrls: [],
-      issuerId: params.issuerId,
-    };
-  }
+        return {
+          success: false,
+          error:
+            error instanceof Error
+              ? error.message
+              : 'Failed to connect to automation service',
+          screenshotUrls: [],
+          issuerId: params.issuerId,
+        };
+      }
+    },
+  );
 }
 
 // ============================================
@@ -562,86 +584,95 @@ function getChallengeWebhookUrl(): string {
 export async function startChallenge(
   params: ChallengeParams,
 ): Promise<StartChallengeResponse> {
-  try {
-    const { baseUrl, secret } = getConfig();
-    const webhookUrl = getChallengeWebhookUrl();
-    const webhookSecret = process.env.WORKER_SECRET!;
+  return Sentry.startSpan(
+    {
+      name: 'worker.startChallenge',
+      op: 'automation',
+      attributes: { issuerId: params.issuerId, ticketId: params.ticketId },
+    },
+    async () => {
+      try {
+        const { baseUrl, secret } = getConfig();
+        const webhookUrl = getChallengeWebhookUrl();
+        const webhookSecret = process.env.WORKER_SECRET!;
 
-    logger.info('Starting async challenge automation', {
-      issuerId: params.issuerId,
-      pcnNumber: params.pcnNumber,
-      ticketId: params.ticketId,
-      dryRun: params.dryRun,
-    });
+        logger.info('Starting async challenge automation', {
+          issuerId: params.issuerId,
+          pcnNumber: params.pcnNumber,
+          ticketId: params.ticketId,
+          dryRun: params.dryRun,
+        });
 
-    const response = await fetch(`${baseUrl}/automation/challenge`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${secret}`,
-      },
-      body: JSON.stringify({
-        issuerId: params.issuerId,
-        pcnNumber: params.pcnNumber,
-        vehicleReg: params.vehicleReg,
-        vehicleMake: params.vehicleMake,
-        vehicleModel: params.vehicleModel,
-        challengeReason: params.challengeReason,
-        additionalDetails: params.additionalDetails,
-        ticketId: params.ticketId,
-        challengeId: params.challengeId,
-        user: params.user,
-        dryRun: params.dryRun ?? false,
-        webhookUrl,
-        webhookSecret,
-      }),
-    });
+        const response = await fetch(`${baseUrl}/automation/challenge`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${secret}`,
+          },
+          body: JSON.stringify({
+            issuerId: params.issuerId,
+            pcnNumber: params.pcnNumber,
+            vehicleReg: params.vehicleReg,
+            vehicleMake: params.vehicleMake,
+            vehicleModel: params.vehicleModel,
+            challengeReason: params.challengeReason,
+            additionalDetails: params.additionalDetails,
+            ticketId: params.ticketId,
+            challengeId: params.challengeId,
+            user: params.user,
+            dryRun: params.dryRun ?? false,
+            webhookUrl,
+            webhookSecret,
+          }),
+        });
 
-    if (!response.ok) {
-      const error = await response
-        .json()
-        .catch(() => ({ error: 'Unknown error' }));
-      logger.error('Failed to start challenge job', {
-        issuerId: params.issuerId,
-        status: response.status,
-        error,
-      });
+        if (!response.ok) {
+          const error = await response
+            .json()
+            .catch(() => ({ error: 'Unknown error' }));
+          logger.error('Failed to start challenge job', {
+            issuerId: params.issuerId,
+            status: response.status,
+            error,
+          });
 
-      return {
-        success: false,
-        error: error.error || error.message || `HTTP ${response.status}`,
-      };
-    }
+          return {
+            success: false,
+            error: error.error || error.message || `HTTP ${response.status}`,
+          };
+        }
 
-    const result = await response.json();
-    logger.info('Challenge job started', {
-      issuerId: params.issuerId,
-      jobId: result.jobId,
-      challengeId: result.challengeId,
-    });
+        const result = await response.json();
+        logger.info('Challenge job started', {
+          issuerId: params.issuerId,
+          jobId: result.jobId,
+          challengeId: result.challengeId,
+        });
 
-    return {
-      success: true,
-      jobId: result.jobId,
-      challengeId: result.challengeId,
-      status: 'running',
-      message: result.message,
-    };
-  } catch (error) {
-    logger.error(
-      'Failed to start challenge job',
-      { issuerId: params.issuerId, ticketId: params.ticketId },
-      error instanceof Error ? error : new Error(String(error)),
-    );
+        return {
+          success: true,
+          jobId: result.jobId,
+          challengeId: result.challengeId,
+          status: 'running' as const,
+          message: result.message,
+        };
+      } catch (error) {
+        logger.error(
+          'Failed to start challenge job',
+          { issuerId: params.issuerId, ticketId: params.ticketId },
+          error instanceof Error ? error : new Error(String(error)),
+        );
 
-    return {
-      success: false,
-      error:
-        error instanceof Error
-          ? error.message
-          : 'Failed to connect to automation service',
-    };
-  }
+        return {
+          success: false,
+          error:
+            error instanceof Error
+              ? error.message
+              : 'Failed to connect to automation service',
+        };
+      }
+    },
+  );
 }
 
 /**
@@ -679,7 +710,7 @@ export async function getChallengeJobStatus(
       return null;
     }
 
-    return response.json();
+    return await response.json();
   } catch (error) {
     logger.error(
       'Failed to get challenge job status',
@@ -860,7 +891,9 @@ export async function startStatusCheck(
   });
 
   if (!response.ok) {
-    const error = await response.json().catch(() => ({ error: 'Unknown error' }));
+    const error = await response
+      .json()
+      .catch(() => ({ error: 'Unknown error' }));
     throw new Error(error.error || `HTTP ${response.status}`);
   }
 
@@ -883,7 +916,9 @@ export async function pollStatusCheck(
   });
 
   if (!response.ok) {
-    const error = await response.json().catch(() => ({ error: 'Unknown error' }));
+    const error = await response
+      .json()
+      .catch(() => ({ error: 'Unknown error' }));
     throw new Error(error.error || `HTTP ${response.status}`);
   }
 
@@ -903,94 +938,144 @@ export async function checkLiveStatus(
   pollIntervalMs = 3000,
   maxWaitMs = 180000,
 ): Promise<LiveStatusResult> {
-  try {
-    const { baseUrl, secret } = getConfig();
-
-    logger.info('Checking live ticket status (async)', {
-      ticketId: params.ticketId,
-      pcnNumber: params.pcnNumber,
-      issuerId: params.issuerId,
-    });
-
-    // Start the job
-    const startResponse = await fetch(`${baseUrl}/automation/status`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${secret}`,
+  return Sentry.startSpan(
+    {
+      name: 'worker.checkLiveStatus',
+      op: 'automation',
+      attributes: {
+        issuerId: params.issuerId ?? '',
+        ticketId: params.ticketId,
       },
-      body: JSON.stringify({
-        pcnNumber: params.pcnNumber,
-        vehicleReg: params.vehicleReg,
-        ticketId: params.ticketId,
-        issuerId: params.issuerId,
-        portalUrl: params.portalUrl,
-      }),
-    });
+    },
+    async () => {
+      try {
+        const { baseUrl, secret } = getConfig();
 
-    if (!startResponse.ok) {
-      const error = await startResponse
-        .json()
-        .catch(() => ({ error: 'Unknown error' }));
-      logger.error('Failed to start status check job', {
-        ticketId: params.ticketId,
-        status: startResponse.status,
-        error,
-      });
+        logger.info('Checking live ticket status (async)', {
+          ticketId: params.ticketId,
+          pcnNumber: params.pcnNumber,
+          issuerId: params.issuerId,
+        });
 
-      return {
-        success: false,
-        portalStatus: '',
-        mappedStatus: null,
-        outstandingAmount: 0,
-        canChallenge: false,
-        canPay: false,
-        screenshotUrl: '',
-        checkedAt: new Date().toISOString(),
-        error: error.error || error.message || `HTTP ${startResponse.status}`,
-      };
-    }
-
-    const { jobId } = (await startResponse.json()) as StatusJobResponse;
-    logger.info('Status check job started', { ticketId: params.ticketId, jobId });
-
-    // Poll for result
-    const startTime = Date.now();
-    while (Date.now() - startTime < maxWaitMs) {
-      await new Promise((resolve) => setTimeout(resolve, pollIntervalMs));
-
-      const pollResponse = await fetch(
-        `${baseUrl}/automation/status/job/${jobId}`,
-        {
-          method: 'GET',
+        // Start the job
+        const startResponse = await fetch(`${baseUrl}/automation/status`, {
+          method: 'POST',
           headers: {
+            'Content-Type': 'application/json',
             Authorization: `Bearer ${secret}`,
           },
-        },
-      );
-
-      if (!pollResponse.ok) {
-        logger.warn('Poll request failed', {
-          jobId,
-          status: pollResponse.status,
-        });
-        continue; // Retry
-      }
-
-      const pollResult = (await pollResponse.json()) as StatusJobPollResponse;
-
-      if (pollResult.status === 'completed' || pollResult.status === 'failed') {
-        logger.info('Status check job completed', {
-          ticketId: params.ticketId,
-          jobId,
-          status: pollResult.status,
+          body: JSON.stringify({
+            pcnNumber: params.pcnNumber,
+            vehicleReg: params.vehicleReg,
+            ticketId: params.ticketId,
+            issuerId: params.issuerId,
+            portalUrl: params.portalUrl,
+          }),
         });
 
-        if (pollResult.result) {
-          return pollResult.result;
+        if (!startResponse.ok) {
+          const error = await startResponse
+            .json()
+            .catch(() => ({ error: 'Unknown error' }));
+          logger.error('Failed to start status check job', {
+            ticketId: params.ticketId,
+            status: startResponse.status,
+            error,
+          });
+
+          return {
+            success: false,
+            portalStatus: '',
+            mappedStatus: null,
+            outstandingAmount: 0,
+            canChallenge: false,
+            canPay: false,
+            screenshotUrl: '',
+            checkedAt: new Date().toISOString(),
+            error:
+              error.error || error.message || `HTTP ${startResponse.status}`,
+          };
         }
 
-        // No result but job completed - treat as failure
+        const { jobId } = (await startResponse.json()) as StatusJobResponse;
+        logger.info('Status check job started', {
+          ticketId: params.ticketId,
+          jobId,
+        });
+
+        // Poll for result
+        const startTime = Date.now();
+        while (Date.now() - startTime < maxWaitMs) {
+          // eslint-disable-next-line no-await-in-loop, no-promise-executor-return
+          await new Promise((resolve) => setTimeout(resolve, pollIntervalMs));
+
+          // eslint-disable-next-line no-await-in-loop
+          const pollResponse = await fetch(
+            `${baseUrl}/automation/status/job/${jobId}`,
+            {
+              method: 'GET',
+              headers: {
+                Authorization: `Bearer ${secret}`,
+              },
+            },
+          );
+
+          if (!pollResponse.ok) {
+            logger.warn('Poll request failed', {
+              jobId,
+              status: pollResponse.status,
+            });
+            // eslint-disable-next-line no-continue
+            continue; // Retry
+          }
+
+          /* eslint-disable no-await-in-loop */
+          const pollResult =
+            (await pollResponse.json()) as StatusJobPollResponse;
+          /* eslint-enable no-await-in-loop */
+
+          if (
+            pollResult.status === 'completed' ||
+            pollResult.status === 'failed'
+          ) {
+            logger.info('Status check job completed', {
+              ticketId: params.ticketId,
+              jobId,
+              status: pollResult.status,
+            });
+
+            if (pollResult.result) {
+              return pollResult.result;
+            }
+
+            // No result but job completed - treat as failure
+            return {
+              success: false,
+              portalStatus: '',
+              mappedStatus: null,
+              outstandingAmount: 0,
+              canChallenge: false,
+              canPay: false,
+              screenshotUrl: '',
+              checkedAt: new Date().toISOString(),
+              error: 'Job completed but no result returned',
+            };
+          }
+
+          // Still running, continue polling
+          logger.debug('Status check still running', {
+            jobId,
+            progress: pollResult.progress,
+          });
+        }
+
+        // Timeout
+        logger.error('Status check timed out', {
+          ticketId: params.ticketId,
+          jobId,
+          maxWaitMs,
+        });
+
         return {
           success: false,
           portalStatus: '',
@@ -1000,55 +1085,30 @@ export async function checkLiveStatus(
           canPay: false,
           screenshotUrl: '',
           checkedAt: new Date().toISOString(),
-          error: 'Job completed but no result returned',
+          error: 'Status check timed out',
+        };
+      } catch (error) {
+        logger.error(
+          'Failed to check live status',
+          { ticketId: params.ticketId },
+          error instanceof Error ? error : new Error(String(error)),
+        );
+
+        return {
+          success: false,
+          portalStatus: '',
+          mappedStatus: null,
+          outstandingAmount: 0,
+          canChallenge: false,
+          canPay: false,
+          screenshotUrl: '',
+          checkedAt: new Date().toISOString(),
+          error:
+            error instanceof Error
+              ? error.message
+              : 'Failed to connect to automation service',
         };
       }
-
-      // Still running, continue polling
-      logger.debug('Status check still running', {
-        jobId,
-        progress: pollResult.progress,
-      });
-    }
-
-    // Timeout
-    logger.error('Status check timed out', {
-      ticketId: params.ticketId,
-      jobId,
-      maxWaitMs,
-    });
-
-    return {
-      success: false,
-      portalStatus: '',
-      mappedStatus: null,
-      outstandingAmount: 0,
-      canChallenge: false,
-      canPay: false,
-      screenshotUrl: '',
-      checkedAt: new Date().toISOString(),
-      error: 'Status check timed out',
-    };
-  } catch (error) {
-    logger.error(
-      'Failed to check live status',
-      { ticketId: params.ticketId },
-      error instanceof Error ? error : new Error(String(error)),
-    );
-
-    return {
-      success: false,
-      portalStatus: '',
-      mappedStatus: null,
-      outstandingAmount: 0,
-      canChallenge: false,
-      canPay: false,
-      screenshotUrl: '',
-      checkedAt: new Date().toISOString(),
-      error:
-        error instanceof Error
-          ? error.message
-          : 'Failed to connect to automation service',
-    };
-  }
+    },
+  );
 }

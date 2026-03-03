@@ -1,6 +1,5 @@
 /* eslint-disable import-x/no-extraneous-dependencies */
 import { NextRequest, NextResponse } from 'next/server';
-import * as Sentry from '@sentry/nextjs';
 import { toPlainText } from '@portabletext/toolkit';
 import { postToSocialMedia } from '@/app/actions/social';
 import { getPostBySlug, getAllPosts } from '@/lib/queries/blog';
@@ -108,11 +107,6 @@ const handleRequest = async (request: NextRequest) => {
     );
   } catch (error) {
     log.error('Error', undefined, error instanceof Error ? error : undefined);
-
-    // Only send actual errors to Sentry
-    if (error instanceof Error) {
-      Sentry.captureException(error);
-    }
 
     return NextResponse.json(
       {
