@@ -219,3 +219,8 @@ export type OnboardingSequence = Prisma.OnboardingSequenceModel
  * 
  */
 export type WaitlistSignup = Prisma.WaitlistSignupModel
+/**
+ * Model InstagramPostBlogMapping
+ * 
+ */
+export type InstagramPostBlogMapping = Prisma.InstagramPostBlogMappingModel

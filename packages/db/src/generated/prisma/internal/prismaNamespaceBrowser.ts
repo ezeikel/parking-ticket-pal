@@ -86,7 +86,8 @@ export const ModelName = {
   HighwayCodeSign: 'HighwayCodeSign',
   HighwayCodeQuizPost: 'HighwayCodeQuizPost',
   OnboardingSequence: 'OnboardingSequence',
-  WaitlistSignup: 'WaitlistSignup'
+  WaitlistSignup: 'WaitlistSignup',
+  InstagramPostBlogMapping: 'InstagramPostBlogMapping'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -611,6 +612,7 @@ export const TribunalCaseVideoScalarFieldEnum = {
   sceneImages: 'sceneImages',
   videoUrl: 'videoUrl',
   coverImageUrl: 'coverImageUrl',
+  blogPostSlug: 'blogPostSlug',
   status: 'status',
   postingResults: 'postingResults',
   errorMessage: 'errorMessage',
@@ -642,6 +644,7 @@ export const NewsVideoScalarFieldEnum = {
   sceneImages: 'sceneImages',
   videoUrl: 'videoUrl',
   coverImageUrl: 'coverImageUrl',
+  blogPostSlug: 'blogPostSlug',
   status: 'status',
   postingResults: 'postingResults',
   errorMessage: 'errorMessage',
@@ -710,6 +713,20 @@ export const WaitlistSignupScalarFieldEnum = {
 } as const
 
 export type WaitlistSignupScalarFieldEnum = (typeof WaitlistSignupScalarFieldEnum)[keyof typeof WaitlistSignupScalarFieldEnum]
+
+
+export const InstagramPostBlogMappingScalarFieldEnum = {
+  id: 'id',
+  instagramMediaId: 'instagramMediaId',
+  blogPostSlug: 'blogPostSlug',
+  blogPostUrl: 'blogPostUrl',
+  contentType: 'contentType',
+  videoRecordId: 'videoRecordId',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type InstagramPostBlogMappingScalarFieldEnum = (typeof InstagramPostBlogMappingScalarFieldEnum)[keyof typeof InstagramPostBlogMappingScalarFieldEnum]
 
 
 export const SortOrder = {

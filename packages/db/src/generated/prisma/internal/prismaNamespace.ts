@@ -419,7 +419,8 @@ export const ModelName = {
   HighwayCodeSign: 'HighwayCodeSign',
   HighwayCodeQuizPost: 'HighwayCodeQuizPost',
   OnboardingSequence: 'OnboardingSequence',
-  WaitlistSignup: 'WaitlistSignup'
+  WaitlistSignup: 'WaitlistSignup',
+  InstagramPostBlogMapping: 'InstagramPostBlogMapping'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -435,7 +436,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "mobileDeviceSession" | "vehicle" | "ticket" | "draftTicket" | "media" | "letter" | "reminder" | "form" | "prediction" | "amountIncrease" | "verification" | "challenge" | "notification" | "pushToken" | "account" | "session" | "verificationToken" | "referralCode" | "referral" | "referralCredit" | "londonTribunalCase" | "appealDataSource" | "contraventionStats" | "issuerContraventionStats" | "appealPattern" | "pendingIssuer" | "pendingChallenge" | "pendingTicket" | "issuerHealthCheck" | "tribunalCaseVideo" | "newsVideo" | "highwayCodeSign" | "highwayCodeQuizPost" | "onboardingSequence" | "waitlistSignup"
+    modelProps: "user" | "mobileDeviceSession" | "vehicle" | "ticket" | "draftTicket" | "media" | "letter" | "reminder" | "form" | "prediction" | "amountIncrease" | "verification" | "challenge" | "notification" | "pushToken" | "account" | "session" | "verificationToken" | "referralCode" | "referral" | "referralCredit" | "londonTribunalCase" | "appealDataSource" | "contraventionStats" | "issuerContraventionStats" | "appealPattern" | "pendingIssuer" | "pendingChallenge" | "pendingTicket" | "issuerHealthCheck" | "tribunalCaseVideo" | "newsVideo" | "highwayCodeSign" | "highwayCodeQuizPost" | "onboardingSequence" | "waitlistSignup" | "instagramPostBlogMapping"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -3103,6 +3104,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    InstagramPostBlogMapping: {
+      payload: Prisma.$InstagramPostBlogMappingPayload<ExtArgs>
+      fields: Prisma.InstagramPostBlogMappingFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.InstagramPostBlogMappingFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$InstagramPostBlogMappingPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.InstagramPostBlogMappingFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$InstagramPostBlogMappingPayload>
+        }
+        findFirst: {
+          args: Prisma.InstagramPostBlogMappingFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$InstagramPostBlogMappingPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.InstagramPostBlogMappingFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$InstagramPostBlogMappingPayload>
+        }
+        findMany: {
+          args: Prisma.InstagramPostBlogMappingFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$InstagramPostBlogMappingPayload>[]
+        }
+        create: {
+          args: Prisma.InstagramPostBlogMappingCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$InstagramPostBlogMappingPayload>
+        }
+        createMany: {
+          args: Prisma.InstagramPostBlogMappingCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.InstagramPostBlogMappingCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$InstagramPostBlogMappingPayload>[]
+        }
+        delete: {
+          args: Prisma.InstagramPostBlogMappingDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$InstagramPostBlogMappingPayload>
+        }
+        update: {
+          args: Prisma.InstagramPostBlogMappingUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$InstagramPostBlogMappingPayload>
+        }
+        deleteMany: {
+          args: Prisma.InstagramPostBlogMappingDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.InstagramPostBlogMappingUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.InstagramPostBlogMappingUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$InstagramPostBlogMappingPayload>[]
+        }
+        upsert: {
+          args: Prisma.InstagramPostBlogMappingUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$InstagramPostBlogMappingPayload>
+        }
+        aggregate: {
+          args: Prisma.InstagramPostBlogMappingAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateInstagramPostBlogMapping>
+        }
+        groupBy: {
+          args: Prisma.InstagramPostBlogMappingGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.InstagramPostBlogMappingGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.InstagramPostBlogMappingCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.InstagramPostBlogMappingCountAggregateOutputType> | number
+        }
+      }
+    }
   }
 } & {
   other: {
@@ -3648,6 +3723,7 @@ export const TribunalCaseVideoScalarFieldEnum = {
   sceneImages: 'sceneImages',
   videoUrl: 'videoUrl',
   coverImageUrl: 'coverImageUrl',
+  blogPostSlug: 'blogPostSlug',
   status: 'status',
   postingResults: 'postingResults',
   errorMessage: 'errorMessage',
@@ -3679,6 +3755,7 @@ export const NewsVideoScalarFieldEnum = {
   sceneImages: 'sceneImages',
   videoUrl: 'videoUrl',
   coverImageUrl: 'coverImageUrl',
+  blogPostSlug: 'blogPostSlug',
   status: 'status',
   postingResults: 'postingResults',
   errorMessage: 'errorMessage',
@@ -3747,6 +3824,20 @@ export const WaitlistSignupScalarFieldEnum = {
 } as const
 
 export type WaitlistSignupScalarFieldEnum = (typeof WaitlistSignupScalarFieldEnum)[keyof typeof WaitlistSignupScalarFieldEnum]
+
+
+export const InstagramPostBlogMappingScalarFieldEnum = {
+  id: 'id',
+  instagramMediaId: 'instagramMediaId',
+  blogPostSlug: 'blogPostSlug',
+  blogPostUrl: 'blogPostUrl',
+  contentType: 'contentType',
+  videoRecordId: 'videoRecordId',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type InstagramPostBlogMappingScalarFieldEnum = (typeof InstagramPostBlogMappingScalarFieldEnum)[keyof typeof InstagramPostBlogMappingScalarFieldEnum]
 
 
 export const SortOrder = {
@@ -4479,6 +4570,7 @@ export type GlobalOmitConfig = {
   highwayCodeQuizPost?: Prisma.HighwayCodeQuizPostOmit
   onboardingSequence?: Prisma.OnboardingSequenceOmit
   waitlistSignup?: Prisma.WaitlistSignupOmit
+  instagramPostBlogMapping?: Prisma.InstagramPostBlogMappingOmit
 }
 
 /* Types for Logging */

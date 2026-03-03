@@ -9,6 +9,10 @@ import {
   BLOG_CONTENT_PROMPT,
   BLOG_IMAGE_SEARCH_PROMPT,
   BLOG_IMAGE_GENERATION_PROMPT,
+  BLOG_NEWS_META_PROMPT,
+  BLOG_NEWS_CONTENT_PROMPT,
+  BLOG_TRIBUNAL_META_PROMPT,
+  BLOG_TRIBUNAL_CONTENT_PROMPT,
 } from '@/lib/ai/prompts';
 import { writeClient } from '@/lib/sanity/client';
 import {
@@ -24,6 +28,44 @@ import { createServerLogger } from '@/lib/logger';
 import { getCoveredTopics } from '@/lib/queries/blog';
 
 const logger = createServerLogger({ action: 'blog' });
+
+/**
+ * Get the next author using least-recently-used rotation.
+ * Queries all authors, checks last N posts for distribution,
+ * and picks the author used least recently.
+ */
+async function getNextAuthor(): Promise<string | null> {
+  const authors = await writeClient.fetch<{ _id: string }[]>(
+    `*[_type == "author"] | order(_createdAt asc) { _id }`,
+  );
+
+  if (authors.length === 0) return null;
+  if (authors.length === 1) return authors[0]._id;
+
+  // Check last N posts (N = number of authors * 3) for recent author usage
+  const lookback = authors.length * 3;
+  const recentAuthorIds = await writeClient.fetch<string[]>(
+    `*[_type == "post" && defined(author)] | order(publishedAt desc) [0...$limit].author->_id`,
+    { limit: lookback },
+  );
+
+  // Find the author least recently used (or never used)
+  const authorIds = authors.map((a) => a._id);
+  const lastUsedIndex = new Map<string, number>();
+
+  for (const id of authorIds) {
+    const idx = recentAuthorIds.indexOf(id);
+    lastUsedIndex.set(id, idx === -1 ? Infinity : idx);
+  }
+
+  // Pick the author with the highest index (least recently used) or Infinity (never used)
+  // Higher index = further back in recency = least recently used
+  const sorted = authorIds.sort(
+    (a, b) => (lastUsedIndex.get(b) ?? 0) - (lastUsedIndex.get(a) ?? 0),
+  );
+
+  return sorted[0];
+}
 
 // Types
 type BlogPostMeta = {
@@ -571,9 +613,13 @@ const createSanityPost = async (
   body: any[],
   featuredImage: FeaturedImage | null,
   publishDate?: Date,
+  options?: {
+    contentSource?: 'news' | 'tribunal' | 'general';
+    sourceUrl?: string;
+  },
 ): Promise<string> => {
-  // Get or create a default author
-  const authorRef = await writeClient.fetch(`*[_type == "author"][0]._id`);
+  // Get next author using least-recently-used rotation
+  const authorRef = await getNextAuthor();
 
   // If no author exists, skip author reference
   if (!authorRef) {
@@ -641,6 +687,15 @@ const createSanityPost = async (
       ...(featuredImage.pexelsPhotoId && {
         pexelsPhotoId: featuredImage.pexelsPhotoId,
       }),
+    };
+  }
+
+  // Track content source and source URL in generationMeta
+  if (options?.contentSource || options?.sourceUrl) {
+    doc.generationMeta = {
+      ...doc.generationMeta,
+      ...(options.contentSource && { contentSource: options.contentSource }),
+      ...(options.sourceUrl && { sourceUrl: options.sourceUrl }),
     };
   }
 
@@ -991,4 +1046,295 @@ export const regenerateAllPostImages = async (): Promise<{
     failed,
     results,
   };
+};
+
+// ============================================================================
+// News & Tribunal Blog Post Generation
+// ============================================================================
+
+/**
+ * Generate a blog post from a news video's data.
+ * Reuses existing infrastructure (markdownToPortableText, createSanityPost, getFeaturedImage).
+ */
+export const generateNewsBlogPost = async (newsData: {
+  headline: string;
+  source: string;
+  summary: string;
+  category: string;
+  articleUrl: string;
+  coverImageUrl?: string | null;
+}): Promise<{
+  slug: string;
+  title: string;
+  success: boolean;
+  error?: string;
+}> => {
+  try {
+    logger.info('Generating news blog post', { headline: newsData.headline });
+
+    // 1. Generate metadata
+    const metaPrompt = BLOG_NEWS_META_PROMPT.replace(
+      '{{HEADLINE}}',
+      newsData.headline,
+    )
+      .replace('{{SOURCE}}', newsData.source)
+      .replace('{{SUMMARY}}', newsData.summary)
+      .replace('{{CATEGORY}}', newsData.category);
+
+    const { output: meta } = await generateText({
+      model: getTracedModel(models.text, {
+        properties: { feature: 'blog_news_meta', headline: newsData.headline },
+      }),
+      output: Output.object({ schema: BlogMetaSchema }),
+      prompt: metaPrompt,
+      temperature: 0.7,
+    });
+
+    meta.slug = generateSlug(meta.title);
+    logger.info('Generated news blog metadata', {
+      title: meta.title,
+      slug: meta.slug,
+    });
+
+    // 2. Check for duplicate slug
+    const existingPost = await writeClient.fetch(
+      `*[_type == "post" && slug.current == $slug][0]._id`,
+      { slug: meta.slug },
+    );
+    if (existingPost) {
+      throw new Error(`Post with slug "${meta.slug}" already exists`);
+    }
+
+    // 3. Generate content
+    const coveredTopics = await getCoveredTopics();
+    const contentPrompt = BLOG_NEWS_CONTENT_PROMPT.replace(
+      '{{HEADLINE}}',
+      newsData.headline,
+    )
+      .replace('{{SOURCE}}', newsData.source)
+      .replace('{{SUMMARY}}', newsData.summary)
+      .replace('{{CATEGORY}}', newsData.category)
+      .replace('{{ARTICLE_URL}}', newsData.articleUrl)
+      .replace('{{EXISTING_POSTS}}', coveredTopics.join(', '));
+
+    const { text: content } = await generateText({
+      model: getTracedModel(models.text, {
+        properties: { feature: 'blog_news_content', title: meta.title },
+      }),
+      system:
+        "You are a professional journalist specialising in UK motoring, parking law, and drivers' rights.",
+      prompt: contentPrompt,
+      temperature: 0.7,
+    });
+
+    if (!content) {
+      throw new Error('Failed to generate news blog content');
+    }
+
+    // 4. Get featured image — try reusing the video cover, fall back to Pexels/Gemini
+    let featuredImage: FeaturedImage | null = null;
+
+    if (newsData.coverImageUrl) {
+      try {
+        const response = await fetch(newsData.coverImageUrl);
+        const buffer = Buffer.from(await response.arrayBuffer());
+        const assetRef = await uploadImageToSanity(
+          buffer,
+          `${meta.slug}-featured.jpg`,
+        );
+        featuredImage = {
+          asset: assetRef,
+          alt: meta.title,
+        };
+      } catch {
+        logger.warn(
+          'Failed to reuse video cover image, falling back to search',
+          {
+            coverImageUrl: newsData.coverImageUrl,
+          },
+        );
+      }
+    }
+
+    if (!featuredImage) {
+      const usedPexelsIds = await getUsedPexelsIds();
+      featuredImage = await getFeaturedImage(
+        meta.title,
+        meta.excerpt,
+        meta.category,
+        meta.slug,
+        usedPexelsIds,
+      );
+    }
+
+    // 5. Convert to Portable Text and create post
+    const portableText = markdownToPortableText(content);
+    await createSanityPost(meta, portableText, featuredImage, undefined, {
+      contentSource: 'news',
+      sourceUrl: newsData.articleUrl,
+    });
+
+    logger.info('Successfully generated news blog post', {
+      slug: meta.slug,
+      title: meta.title,
+    });
+
+    return { slug: meta.slug, title: meta.title, success: true };
+  } catch (error) {
+    logger.error(
+      'Error generating news blog post',
+      { headline: newsData.headline },
+      error instanceof Error ? error : new Error(String(error)),
+    );
+    return {
+      slug: '',
+      title: '',
+      success: false,
+      error: error instanceof Error ? error.message : 'Unknown error',
+    };
+  }
+};
+
+/**
+ * Generate a blog post from a tribunal case video's data.
+ * Reuses existing infrastructure (markdownToPortableText, createSanityPost, getFeaturedImage).
+ */
+export const generateTribunalBlogPost = async (caseData: {
+  authority: string;
+  contravention: string;
+  appealDecision: string;
+  reasons: string;
+  coverImageUrl?: string | null;
+}): Promise<{
+  slug: string;
+  title: string;
+  success: boolean;
+  error?: string;
+}> => {
+  try {
+    logger.info('Generating tribunal blog post', {
+      authority: caseData.authority,
+    });
+
+    // 1. Generate metadata
+    const metaPrompt = BLOG_TRIBUNAL_META_PROMPT.replace(
+      '{{AUTHORITY}}',
+      caseData.authority,
+    )
+      .replace('{{CONTRAVENTION}}', caseData.contravention)
+      .replace('{{APPEAL_DECISION}}', caseData.appealDecision);
+
+    const { output: meta } = await generateText({
+      model: getTracedModel(models.text, {
+        properties: {
+          feature: 'blog_tribunal_meta',
+          authority: caseData.authority,
+        },
+      }),
+      output: Output.object({ schema: BlogMetaSchema }),
+      prompt: metaPrompt,
+      temperature: 0.7,
+    });
+
+    meta.slug = generateSlug(meta.title);
+    logger.info('Generated tribunal blog metadata', {
+      title: meta.title,
+      slug: meta.slug,
+    });
+
+    // 2. Check for duplicate slug
+    const existingPost = await writeClient.fetch(
+      `*[_type == "post" && slug.current == $slug][0]._id`,
+      { slug: meta.slug },
+    );
+    if (existingPost) {
+      throw new Error(`Post with slug "${meta.slug}" already exists`);
+    }
+
+    // 3. Generate content
+    const coveredTopics = await getCoveredTopics();
+    const contentPrompt = BLOG_TRIBUNAL_CONTENT_PROMPT.replace(
+      '{{AUTHORITY}}',
+      caseData.authority,
+    )
+      .replace('{{CONTRAVENTION}}', caseData.contravention)
+      .replace('{{APPEAL_DECISION}}', caseData.appealDecision)
+      .replace('{{REASONS}}', caseData.reasons)
+      .replace('{{EXISTING_POSTS}}', coveredTopics.join(', '));
+
+    const { text: content } = await generateText({
+      model: getTracedModel(models.text, {
+        properties: { feature: 'blog_tribunal_content', title: meta.title },
+      }),
+      system:
+        'You are a legal journalist specialising in UK parking tribunal cases. You translate complex legal reasoning into plain English.',
+      prompt: contentPrompt,
+      temperature: 0.7,
+    });
+
+    if (!content) {
+      throw new Error('Failed to generate tribunal blog content');
+    }
+
+    // 4. Get featured image — try reusing the video cover, fall back to Pexels/Gemini
+    let featuredImage: FeaturedImage | null = null;
+
+    if (caseData.coverImageUrl) {
+      try {
+        const response = await fetch(caseData.coverImageUrl);
+        const buffer = Buffer.from(await response.arrayBuffer());
+        const assetRef = await uploadImageToSanity(
+          buffer,
+          `${meta.slug}-featured.jpg`,
+        );
+        featuredImage = {
+          asset: assetRef,
+          alt: meta.title,
+        };
+      } catch {
+        logger.warn(
+          'Failed to reuse video cover image, falling back to search',
+          {
+            coverImageUrl: caseData.coverImageUrl,
+          },
+        );
+      }
+    }
+
+    if (!featuredImage) {
+      const usedPexelsIds = await getUsedPexelsIds();
+      featuredImage = await getFeaturedImage(
+        meta.title,
+        meta.excerpt,
+        meta.category,
+        meta.slug,
+        usedPexelsIds,
+      );
+    }
+
+    // 5. Convert to Portable Text and create post
+    const portableText = markdownToPortableText(content);
+    await createSanityPost(meta, portableText, featuredImage, undefined, {
+      contentSource: 'tribunal',
+    });
+
+    logger.info('Successfully generated tribunal blog post', {
+      slug: meta.slug,
+      title: meta.title,
+    });
+
+    return { slug: meta.slug, title: meta.title, success: true };
+  } catch (error) {
+    logger.error(
+      'Error generating tribunal blog post',
+      { authority: caseData.authority },
+      error instanceof Error ? error : new Error(String(error)),
+    );
+    return {
+      slug: '',
+      title: '',
+      success: false,
+      error: error instanceof Error ? error.message : 'Unknown error',
+    };
+  }
 };

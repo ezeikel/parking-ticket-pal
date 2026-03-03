@@ -48,6 +48,7 @@ export type TribunalCaseVideoMinAggregateOutputType = {
   transitionSfxUrl: string | null
   videoUrl: string | null
   coverImageUrl: string | null
+  blogPostSlug: string | null
   status: $Enums.VideoStatus | null
   errorMessage: string | null
   createdAt: Date | null
@@ -66,6 +67,7 @@ export type TribunalCaseVideoMaxAggregateOutputType = {
   transitionSfxUrl: string | null
   videoUrl: string | null
   coverImageUrl: string | null
+  blogPostSlug: string | null
   status: $Enums.VideoStatus | null
   errorMessage: string | null
   createdAt: Date | null
@@ -87,6 +89,7 @@ export type TribunalCaseVideoCountAggregateOutputType = {
   sceneImages: number
   videoUrl: number
   coverImageUrl: number
+  blogPostSlug: number
   status: number
   postingResults: number
   errorMessage: number
@@ -118,6 +121,7 @@ export type TribunalCaseVideoMinAggregateInputType = {
   transitionSfxUrl?: true
   videoUrl?: true
   coverImageUrl?: true
+  blogPostSlug?: true
   status?: true
   errorMessage?: true
   createdAt?: true
@@ -136,6 +140,7 @@ export type TribunalCaseVideoMaxAggregateInputType = {
   transitionSfxUrl?: true
   videoUrl?: true
   coverImageUrl?: true
+  blogPostSlug?: true
   status?: true
   errorMessage?: true
   createdAt?: true
@@ -157,6 +162,7 @@ export type TribunalCaseVideoCountAggregateInputType = {
   sceneImages?: true
   videoUrl?: true
   coverImageUrl?: true
+  blogPostSlug?: true
   status?: true
   postingResults?: true
   errorMessage?: true
@@ -266,6 +272,7 @@ export type TribunalCaseVideoGroupByOutputType = {
   sceneImages: runtime.JsonValue | null
   videoUrl: string | null
   coverImageUrl: string | null
+  blogPostSlug: string | null
   status: $Enums.VideoStatus
   postingResults: runtime.JsonValue | null
   errorMessage: string | null
@@ -311,6 +318,7 @@ export type TribunalCaseVideoWhereInput = {
   sceneImages?: Prisma.JsonNullableFilter<"TribunalCaseVideo">
   videoUrl?: Prisma.StringNullableFilter<"TribunalCaseVideo"> | string | null
   coverImageUrl?: Prisma.StringNullableFilter<"TribunalCaseVideo"> | string | null
+  blogPostSlug?: Prisma.StringNullableFilter<"TribunalCaseVideo"> | string | null
   status?: Prisma.EnumVideoStatusFilter<"TribunalCaseVideo"> | $Enums.VideoStatus
   postingResults?: Prisma.JsonNullableFilter<"TribunalCaseVideo">
   errorMessage?: Prisma.StringNullableFilter<"TribunalCaseVideo"> | string | null
@@ -334,6 +342,7 @@ export type TribunalCaseVideoOrderByWithRelationInput = {
   sceneImages?: Prisma.SortOrderInput | Prisma.SortOrder
   videoUrl?: Prisma.SortOrderInput | Prisma.SortOrder
   coverImageUrl?: Prisma.SortOrderInput | Prisma.SortOrder
+  blogPostSlug?: Prisma.SortOrderInput | Prisma.SortOrder
   status?: Prisma.SortOrder
   postingResults?: Prisma.SortOrderInput | Prisma.SortOrder
   errorMessage?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -360,6 +369,7 @@ export type TribunalCaseVideoWhereUniqueInput = Prisma.AtLeast<{
   sceneImages?: Prisma.JsonNullableFilter<"TribunalCaseVideo">
   videoUrl?: Prisma.StringNullableFilter<"TribunalCaseVideo"> | string | null
   coverImageUrl?: Prisma.StringNullableFilter<"TribunalCaseVideo"> | string | null
+  blogPostSlug?: Prisma.StringNullableFilter<"TribunalCaseVideo"> | string | null
   status?: Prisma.EnumVideoStatusFilter<"TribunalCaseVideo"> | $Enums.VideoStatus
   postingResults?: Prisma.JsonNullableFilter<"TribunalCaseVideo">
   errorMessage?: Prisma.StringNullableFilter<"TribunalCaseVideo"> | string | null
@@ -383,6 +393,7 @@ export type TribunalCaseVideoOrderByWithAggregationInput = {
   sceneImages?: Prisma.SortOrderInput | Prisma.SortOrder
   videoUrl?: Prisma.SortOrderInput | Prisma.SortOrder
   coverImageUrl?: Prisma.SortOrderInput | Prisma.SortOrder
+  blogPostSlug?: Prisma.SortOrderInput | Prisma.SortOrder
   status?: Prisma.SortOrder
   postingResults?: Prisma.SortOrderInput | Prisma.SortOrder
   errorMessage?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -413,6 +424,7 @@ export type TribunalCaseVideoScalarWhereWithAggregatesInput = {
   sceneImages?: Prisma.JsonNullableWithAggregatesFilter<"TribunalCaseVideo">
   videoUrl?: Prisma.StringNullableWithAggregatesFilter<"TribunalCaseVideo"> | string | null
   coverImageUrl?: Prisma.StringNullableWithAggregatesFilter<"TribunalCaseVideo"> | string | null
+  blogPostSlug?: Prisma.StringNullableWithAggregatesFilter<"TribunalCaseVideo"> | string | null
   status?: Prisma.EnumVideoStatusWithAggregatesFilter<"TribunalCaseVideo"> | $Enums.VideoStatus
   postingResults?: Prisma.JsonNullableWithAggregatesFilter<"TribunalCaseVideo">
   errorMessage?: Prisma.StringNullableWithAggregatesFilter<"TribunalCaseVideo"> | string | null
@@ -434,6 +446,7 @@ export type TribunalCaseVideoCreateInput = {
   sceneImages?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   videoUrl?: string | null
   coverImageUrl?: string | null
+  blogPostSlug?: string | null
   status?: $Enums.VideoStatus
   postingResults?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   errorMessage?: string | null
@@ -457,6 +470,7 @@ export type TribunalCaseVideoUncheckedCreateInput = {
   sceneImages?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   videoUrl?: string | null
   coverImageUrl?: string | null
+  blogPostSlug?: string | null
   status?: $Enums.VideoStatus
   postingResults?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   errorMessage?: string | null
@@ -478,6 +492,7 @@ export type TribunalCaseVideoUpdateInput = {
   sceneImages?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   videoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   coverImageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  blogPostSlug?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumVideoStatusFieldUpdateOperationsInput | $Enums.VideoStatus
   postingResults?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   errorMessage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -501,6 +516,7 @@ export type TribunalCaseVideoUncheckedUpdateInput = {
   sceneImages?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   videoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   coverImageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  blogPostSlug?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumVideoStatusFieldUpdateOperationsInput | $Enums.VideoStatus
   postingResults?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   errorMessage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -523,6 +539,7 @@ export type TribunalCaseVideoCreateManyInput = {
   sceneImages?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   videoUrl?: string | null
   coverImageUrl?: string | null
+  blogPostSlug?: string | null
   status?: $Enums.VideoStatus
   postingResults?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   errorMessage?: string | null
@@ -544,6 +561,7 @@ export type TribunalCaseVideoUpdateManyMutationInput = {
   sceneImages?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   videoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   coverImageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  blogPostSlug?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumVideoStatusFieldUpdateOperationsInput | $Enums.VideoStatus
   postingResults?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   errorMessage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -566,6 +584,7 @@ export type TribunalCaseVideoUncheckedUpdateManyInput = {
   sceneImages?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   videoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   coverImageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  blogPostSlug?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumVideoStatusFieldUpdateOperationsInput | $Enums.VideoStatus
   postingResults?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   errorMessage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -598,6 +617,7 @@ export type TribunalCaseVideoCountOrderByAggregateInput = {
   sceneImages?: Prisma.SortOrder
   videoUrl?: Prisma.SortOrder
   coverImageUrl?: Prisma.SortOrder
+  blogPostSlug?: Prisma.SortOrder
   status?: Prisma.SortOrder
   postingResults?: Prisma.SortOrder
   errorMessage?: Prisma.SortOrder
@@ -622,6 +642,7 @@ export type TribunalCaseVideoMaxOrderByAggregateInput = {
   transitionSfxUrl?: Prisma.SortOrder
   videoUrl?: Prisma.SortOrder
   coverImageUrl?: Prisma.SortOrder
+  blogPostSlug?: Prisma.SortOrder
   status?: Prisma.SortOrder
   errorMessage?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -640,6 +661,7 @@ export type TribunalCaseVideoMinOrderByAggregateInput = {
   transitionSfxUrl?: Prisma.SortOrder
   videoUrl?: Prisma.SortOrder
   coverImageUrl?: Prisma.SortOrder
+  blogPostSlug?: Prisma.SortOrder
   status?: Prisma.SortOrder
   errorMessage?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -719,6 +741,7 @@ export type TribunalCaseVideoCreateWithoutCaseInput = {
   sceneImages?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   videoUrl?: string | null
   coverImageUrl?: string | null
+  blogPostSlug?: string | null
   status?: $Enums.VideoStatus
   postingResults?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   errorMessage?: string | null
@@ -740,6 +763,7 @@ export type TribunalCaseVideoUncheckedCreateWithoutCaseInput = {
   sceneImages?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   videoUrl?: string | null
   coverImageUrl?: string | null
+  blogPostSlug?: string | null
   status?: $Enums.VideoStatus
   postingResults?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   errorMessage?: string | null
@@ -791,6 +815,7 @@ export type TribunalCaseVideoScalarWhereInput = {
   sceneImages?: Prisma.JsonNullableFilter<"TribunalCaseVideo">
   videoUrl?: Prisma.StringNullableFilter<"TribunalCaseVideo"> | string | null
   coverImageUrl?: Prisma.StringNullableFilter<"TribunalCaseVideo"> | string | null
+  blogPostSlug?: Prisma.StringNullableFilter<"TribunalCaseVideo"> | string | null
   status?: Prisma.EnumVideoStatusFilter<"TribunalCaseVideo"> | $Enums.VideoStatus
   postingResults?: Prisma.JsonNullableFilter<"TribunalCaseVideo">
   errorMessage?: Prisma.StringNullableFilter<"TribunalCaseVideo"> | string | null
@@ -812,6 +837,7 @@ export type TribunalCaseVideoCreateManyCaseInput = {
   sceneImages?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   videoUrl?: string | null
   coverImageUrl?: string | null
+  blogPostSlug?: string | null
   status?: $Enums.VideoStatus
   postingResults?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   errorMessage?: string | null
@@ -833,6 +859,7 @@ export type TribunalCaseVideoUpdateWithoutCaseInput = {
   sceneImages?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   videoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   coverImageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  blogPostSlug?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumVideoStatusFieldUpdateOperationsInput | $Enums.VideoStatus
   postingResults?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   errorMessage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -854,6 +881,7 @@ export type TribunalCaseVideoUncheckedUpdateWithoutCaseInput = {
   sceneImages?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   videoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   coverImageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  blogPostSlug?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumVideoStatusFieldUpdateOperationsInput | $Enums.VideoStatus
   postingResults?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   errorMessage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -875,6 +903,7 @@ export type TribunalCaseVideoUncheckedUpdateManyWithoutCaseInput = {
   sceneImages?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   videoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   coverImageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  blogPostSlug?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumVideoStatusFieldUpdateOperationsInput | $Enums.VideoStatus
   postingResults?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   errorMessage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -899,6 +928,7 @@ export type TribunalCaseVideoSelect<ExtArgs extends runtime.Types.Extensions.Int
   sceneImages?: boolean
   videoUrl?: boolean
   coverImageUrl?: boolean
+  blogPostSlug?: boolean
   status?: boolean
   postingResults?: boolean
   errorMessage?: boolean
@@ -922,6 +952,7 @@ export type TribunalCaseVideoSelectCreateManyAndReturn<ExtArgs extends runtime.T
   sceneImages?: boolean
   videoUrl?: boolean
   coverImageUrl?: boolean
+  blogPostSlug?: boolean
   status?: boolean
   postingResults?: boolean
   errorMessage?: boolean
@@ -945,6 +976,7 @@ export type TribunalCaseVideoSelectUpdateManyAndReturn<ExtArgs extends runtime.T
   sceneImages?: boolean
   videoUrl?: boolean
   coverImageUrl?: boolean
+  blogPostSlug?: boolean
   status?: boolean
   postingResults?: boolean
   errorMessage?: boolean
@@ -968,6 +1000,7 @@ export type TribunalCaseVideoSelectScalar = {
   sceneImages?: boolean
   videoUrl?: boolean
   coverImageUrl?: boolean
+  blogPostSlug?: boolean
   status?: boolean
   postingResults?: boolean
   errorMessage?: boolean
@@ -975,7 +1008,7 @@ export type TribunalCaseVideoSelectScalar = {
   updatedAt?: boolean
 }
 
-export type TribunalCaseVideoOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "caseId" | "interestScore" | "script" | "scriptSegments" | "voiceoverUrl" | "voiceoverDuration" | "wordTimestamps" | "backgroundMusicUrl" | "verdictSfxUrl" | "transitionSfxUrl" | "sceneImages" | "videoUrl" | "coverImageUrl" | "status" | "postingResults" | "errorMessage" | "createdAt" | "updatedAt", ExtArgs["result"]["tribunalCaseVideo"]>
+export type TribunalCaseVideoOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "caseId" | "interestScore" | "script" | "scriptSegments" | "voiceoverUrl" | "voiceoverDuration" | "wordTimestamps" | "backgroundMusicUrl" | "verdictSfxUrl" | "transitionSfxUrl" | "sceneImages" | "videoUrl" | "coverImageUrl" | "blogPostSlug" | "status" | "postingResults" | "errorMessage" | "createdAt" | "updatedAt", ExtArgs["result"]["tribunalCaseVideo"]>
 export type TribunalCaseVideoInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   case?: boolean | Prisma.LondonTribunalCaseDefaultArgs<ExtArgs>
 }
@@ -1006,6 +1039,7 @@ export type $TribunalCaseVideoPayload<ExtArgs extends runtime.Types.Extensions.I
     sceneImages: runtime.JsonValue | null
     videoUrl: string | null
     coverImageUrl: string | null
+    blogPostSlug: string | null
     status: $Enums.VideoStatus
     postingResults: runtime.JsonValue | null
     errorMessage: string | null
@@ -1449,6 +1483,7 @@ export interface TribunalCaseVideoFieldRefs {
   readonly sceneImages: Prisma.FieldRef<"TribunalCaseVideo", 'Json'>
   readonly videoUrl: Prisma.FieldRef<"TribunalCaseVideo", 'String'>
   readonly coverImageUrl: Prisma.FieldRef<"TribunalCaseVideo", 'String'>
+  readonly blogPostSlug: Prisma.FieldRef<"TribunalCaseVideo", 'String'>
   readonly status: Prisma.FieldRef<"TribunalCaseVideo", 'VideoStatus'>
   readonly postingResults: Prisma.FieldRef<"TribunalCaseVideo", 'Json'>
   readonly errorMessage: Prisma.FieldRef<"TribunalCaseVideo", 'String'>

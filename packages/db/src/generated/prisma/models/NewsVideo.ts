@@ -53,6 +53,7 @@ export type NewsVideoMinAggregateOutputType = {
   newsSfxUrl: string | null
   videoUrl: string | null
   coverImageUrl: string | null
+  blogPostSlug: string | null
   status: $Enums.VideoStatus | null
   errorMessage: string | null
   createdAt: Date | null
@@ -76,6 +77,7 @@ export type NewsVideoMaxAggregateOutputType = {
   newsSfxUrl: string | null
   videoUrl: string | null
   coverImageUrl: string | null
+  blogPostSlug: string | null
   status: $Enums.VideoStatus | null
   errorMessage: string | null
   createdAt: Date | null
@@ -103,6 +105,7 @@ export type NewsVideoCountAggregateOutputType = {
   sceneImages: number
   videoUrl: number
   coverImageUrl: number
+  blogPostSlug: number
   status: number
   postingResults: number
   errorMessage: number
@@ -139,6 +142,7 @@ export type NewsVideoMinAggregateInputType = {
   newsSfxUrl?: true
   videoUrl?: true
   coverImageUrl?: true
+  blogPostSlug?: true
   status?: true
   errorMessage?: true
   createdAt?: true
@@ -162,6 +166,7 @@ export type NewsVideoMaxAggregateInputType = {
   newsSfxUrl?: true
   videoUrl?: true
   coverImageUrl?: true
+  blogPostSlug?: true
   status?: true
   errorMessage?: true
   createdAt?: true
@@ -189,6 +194,7 @@ export type NewsVideoCountAggregateInputType = {
   sceneImages?: true
   videoUrl?: true
   coverImageUrl?: true
+  blogPostSlug?: true
   status?: true
   postingResults?: true
   errorMessage?: true
@@ -304,6 +310,7 @@ export type NewsVideoGroupByOutputType = {
   sceneImages: runtime.JsonValue | null
   videoUrl: string | null
   coverImageUrl: string | null
+  blogPostSlug: string | null
   status: $Enums.VideoStatus
   postingResults: runtime.JsonValue | null
   errorMessage: string | null
@@ -355,6 +362,7 @@ export type NewsVideoWhereInput = {
   sceneImages?: Prisma.JsonNullableFilter<"NewsVideo">
   videoUrl?: Prisma.StringNullableFilter<"NewsVideo"> | string | null
   coverImageUrl?: Prisma.StringNullableFilter<"NewsVideo"> | string | null
+  blogPostSlug?: Prisma.StringNullableFilter<"NewsVideo"> | string | null
   status?: Prisma.EnumVideoStatusFilter<"NewsVideo"> | $Enums.VideoStatus
   postingResults?: Prisma.JsonNullableFilter<"NewsVideo">
   errorMessage?: Prisma.StringNullableFilter<"NewsVideo"> | string | null
@@ -383,6 +391,7 @@ export type NewsVideoOrderByWithRelationInput = {
   sceneImages?: Prisma.SortOrderInput | Prisma.SortOrder
   videoUrl?: Prisma.SortOrderInput | Prisma.SortOrder
   coverImageUrl?: Prisma.SortOrderInput | Prisma.SortOrder
+  blogPostSlug?: Prisma.SortOrderInput | Prisma.SortOrder
   status?: Prisma.SortOrder
   postingResults?: Prisma.SortOrderInput | Prisma.SortOrder
   errorMessage?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -414,6 +423,7 @@ export type NewsVideoWhereUniqueInput = Prisma.AtLeast<{
   sceneImages?: Prisma.JsonNullableFilter<"NewsVideo">
   videoUrl?: Prisma.StringNullableFilter<"NewsVideo"> | string | null
   coverImageUrl?: Prisma.StringNullableFilter<"NewsVideo"> | string | null
+  blogPostSlug?: Prisma.StringNullableFilter<"NewsVideo"> | string | null
   status?: Prisma.EnumVideoStatusFilter<"NewsVideo"> | $Enums.VideoStatus
   postingResults?: Prisma.JsonNullableFilter<"NewsVideo">
   errorMessage?: Prisma.StringNullableFilter<"NewsVideo"> | string | null
@@ -442,6 +452,7 @@ export type NewsVideoOrderByWithAggregationInput = {
   sceneImages?: Prisma.SortOrderInput | Prisma.SortOrder
   videoUrl?: Prisma.SortOrderInput | Prisma.SortOrder
   coverImageUrl?: Prisma.SortOrderInput | Prisma.SortOrder
+  blogPostSlug?: Prisma.SortOrderInput | Prisma.SortOrder
   status?: Prisma.SortOrder
   postingResults?: Prisma.SortOrderInput | Prisma.SortOrder
   errorMessage?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -478,6 +489,7 @@ export type NewsVideoScalarWhereWithAggregatesInput = {
   sceneImages?: Prisma.JsonNullableWithAggregatesFilter<"NewsVideo">
   videoUrl?: Prisma.StringNullableWithAggregatesFilter<"NewsVideo"> | string | null
   coverImageUrl?: Prisma.StringNullableWithAggregatesFilter<"NewsVideo"> | string | null
+  blogPostSlug?: Prisma.StringNullableWithAggregatesFilter<"NewsVideo"> | string | null
   status?: Prisma.EnumVideoStatusWithAggregatesFilter<"NewsVideo"> | $Enums.VideoStatus
   postingResults?: Prisma.JsonNullableWithAggregatesFilter<"NewsVideo">
   errorMessage?: Prisma.StringNullableWithAggregatesFilter<"NewsVideo"> | string | null
@@ -506,6 +518,7 @@ export type NewsVideoCreateInput = {
   sceneImages?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   videoUrl?: string | null
   coverImageUrl?: string | null
+  blogPostSlug?: string | null
   status?: $Enums.VideoStatus
   postingResults?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   errorMessage?: string | null
@@ -534,6 +547,7 @@ export type NewsVideoUncheckedCreateInput = {
   sceneImages?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   videoUrl?: string | null
   coverImageUrl?: string | null
+  blogPostSlug?: string | null
   status?: $Enums.VideoStatus
   postingResults?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   errorMessage?: string | null
@@ -562,6 +576,7 @@ export type NewsVideoUpdateInput = {
   sceneImages?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   videoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   coverImageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  blogPostSlug?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumVideoStatusFieldUpdateOperationsInput | $Enums.VideoStatus
   postingResults?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   errorMessage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -590,6 +605,7 @@ export type NewsVideoUncheckedUpdateInput = {
   sceneImages?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   videoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   coverImageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  blogPostSlug?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumVideoStatusFieldUpdateOperationsInput | $Enums.VideoStatus
   postingResults?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   errorMessage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -618,6 +634,7 @@ export type NewsVideoCreateManyInput = {
   sceneImages?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   videoUrl?: string | null
   coverImageUrl?: string | null
+  blogPostSlug?: string | null
   status?: $Enums.VideoStatus
   postingResults?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   errorMessage?: string | null
@@ -646,6 +663,7 @@ export type NewsVideoUpdateManyMutationInput = {
   sceneImages?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   videoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   coverImageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  blogPostSlug?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumVideoStatusFieldUpdateOperationsInput | $Enums.VideoStatus
   postingResults?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   errorMessage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -674,6 +692,7 @@ export type NewsVideoUncheckedUpdateManyInput = {
   sceneImages?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   videoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   coverImageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  blogPostSlug?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumVideoStatusFieldUpdateOperationsInput | $Enums.VideoStatus
   postingResults?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   errorMessage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -702,6 +721,7 @@ export type NewsVideoCountOrderByAggregateInput = {
   sceneImages?: Prisma.SortOrder
   videoUrl?: Prisma.SortOrder
   coverImageUrl?: Prisma.SortOrder
+  blogPostSlug?: Prisma.SortOrder
   status?: Prisma.SortOrder
   postingResults?: Prisma.SortOrder
   errorMessage?: Prisma.SortOrder
@@ -731,6 +751,7 @@ export type NewsVideoMaxOrderByAggregateInput = {
   newsSfxUrl?: Prisma.SortOrder
   videoUrl?: Prisma.SortOrder
   coverImageUrl?: Prisma.SortOrder
+  blogPostSlug?: Prisma.SortOrder
   status?: Prisma.SortOrder
   errorMessage?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -754,6 +775,7 @@ export type NewsVideoMinOrderByAggregateInput = {
   newsSfxUrl?: Prisma.SortOrder
   videoUrl?: Prisma.SortOrder
   coverImageUrl?: Prisma.SortOrder
+  blogPostSlug?: Prisma.SortOrder
   status?: Prisma.SortOrder
   errorMessage?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -788,6 +810,7 @@ export type NewsVideoSelect<ExtArgs extends runtime.Types.Extensions.InternalArg
   sceneImages?: boolean
   videoUrl?: boolean
   coverImageUrl?: boolean
+  blogPostSlug?: boolean
   status?: boolean
   postingResults?: boolean
   errorMessage?: boolean
@@ -816,6 +839,7 @@ export type NewsVideoSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Ext
   sceneImages?: boolean
   videoUrl?: boolean
   coverImageUrl?: boolean
+  blogPostSlug?: boolean
   status?: boolean
   postingResults?: boolean
   errorMessage?: boolean
@@ -844,6 +868,7 @@ export type NewsVideoSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Ext
   sceneImages?: boolean
   videoUrl?: boolean
   coverImageUrl?: boolean
+  blogPostSlug?: boolean
   status?: boolean
   postingResults?: boolean
   errorMessage?: boolean
@@ -872,6 +897,7 @@ export type NewsVideoSelectScalar = {
   sceneImages?: boolean
   videoUrl?: boolean
   coverImageUrl?: boolean
+  blogPostSlug?: boolean
   status?: boolean
   postingResults?: boolean
   errorMessage?: boolean
@@ -879,7 +905,7 @@ export type NewsVideoSelectScalar = {
   updatedAt?: boolean
 }
 
-export type NewsVideoOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "articleUrl" | "articleUrlHash" | "source" | "headline" | "category" | "summary" | "interestScore" | "script" | "scriptSegments" | "sceneImagePrompts" | "voiceoverUrl" | "voiceoverDuration" | "wordTimestamps" | "backgroundMusicUrl" | "transitionSfxUrl" | "newsSfxUrl" | "sceneImages" | "videoUrl" | "coverImageUrl" | "status" | "postingResults" | "errorMessage" | "createdAt" | "updatedAt", ExtArgs["result"]["newsVideo"]>
+export type NewsVideoOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "articleUrl" | "articleUrlHash" | "source" | "headline" | "category" | "summary" | "interestScore" | "script" | "scriptSegments" | "sceneImagePrompts" | "voiceoverUrl" | "voiceoverDuration" | "wordTimestamps" | "backgroundMusicUrl" | "transitionSfxUrl" | "newsSfxUrl" | "sceneImages" | "videoUrl" | "coverImageUrl" | "blogPostSlug" | "status" | "postingResults" | "errorMessage" | "createdAt" | "updatedAt", ExtArgs["result"]["newsVideo"]>
 
 export type $NewsVideoPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "NewsVideo"
@@ -905,6 +931,7 @@ export type $NewsVideoPayload<ExtArgs extends runtime.Types.Extensions.InternalA
     sceneImages: runtime.JsonValue | null
     videoUrl: string | null
     coverImageUrl: string | null
+    blogPostSlug: string | null
     status: $Enums.VideoStatus
     postingResults: runtime.JsonValue | null
     errorMessage: string | null
@@ -1353,6 +1380,7 @@ export interface NewsVideoFieldRefs {
   readonly sceneImages: Prisma.FieldRef<"NewsVideo", 'Json'>
   readonly videoUrl: Prisma.FieldRef<"NewsVideo", 'String'>
   readonly coverImageUrl: Prisma.FieldRef<"NewsVideo", 'String'>
+  readonly blogPostSlug: Prisma.FieldRef<"NewsVideo", 'String'>
   readonly status: Prisma.FieldRef<"NewsVideo", 'VideoStatus'>
   readonly postingResults: Prisma.FieldRef<"NewsVideo", 'Json'>
   readonly errorMessage: Prisma.FieldRef<"NewsVideo", 'String'>

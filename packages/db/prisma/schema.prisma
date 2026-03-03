@@ -898,6 +898,7 @@ model TribunalCaseVideo {
   sceneImages        Json?
   videoUrl           String?
   coverImageUrl      String?
+  blogPostSlug       String?
   status             VideoStatus        @default(PENDING)
   postingResults     Json?
   errorMessage       String?
@@ -930,6 +931,7 @@ model NewsVideo {
   sceneImages        Json?
   videoUrl           String?
   coverImageUrl      String?
+  blogPostSlug       String?
   status             VideoStatus @default(PENDING)
   postingResults     Json?
   errorMessage       String?
@@ -1038,4 +1040,22 @@ model WaitlistSignup {
   @@index([nextSendAt, completedAt])
   @@index([email])
   @@map("waitlist_signups")
+}
+
+// ============================================================================
+// Instagram Post → Blog Mapping (for comment-to-DM automation)
+// ============================================================================
+
+model InstagramPostBlogMapping {
+  id               String   @id @default(cuid())
+  instagramMediaId String   @unique
+  blogPostSlug     String
+  blogPostUrl      String
+  contentType      String // "NEWS" | "TRIBUNAL"
+  videoRecordId    String?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  @@index([instagramMediaId])
+  @@map("instagram_post_blog_mappings")
 }

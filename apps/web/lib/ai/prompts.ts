@@ -216,6 +216,130 @@ Requirements:
 The image should visually represent the topic and be engaging without being overly literal.`;
 
 // ============================================================================
+// News Blog Post Prompts
+// ============================================================================
+
+export const BLOG_NEWS_META_PROMPT = `You are an SEO expert and content strategist for a UK parking and motorist news blog.
+
+Generate metadata for a blog post about this news story:
+Headline: "{{HEADLINE}}"
+Source: {{SOURCE}}
+Summary: "{{SUMMARY}}"
+Category: {{CATEGORY}}
+
+Return a JSON object with:
+{
+  "title": "SEO-optimized title (50-60 characters ideal)",
+  "slug": "url-friendly-slug",
+  "excerpt": "Compelling meta description (150-160 characters)",
+  "keywords": ["array", "of", "relevant", "keywords"],
+  "category": "one of: pcn-codes, appeals, private-parking, council-parking, enforcement, drivers-rights, payment-options, legal-advice"
+}
+
+Guidelines:
+- Use UK-specific terminology and laws
+- Make titles compelling and click-worthy — go beyond the headline
+- Include the main keyword naturally
+- Create slugs that are URL-friendly and descriptive
+- The blog post will be more in-depth than the reel, so the title can hint at deeper analysis`;
+
+export const BLOG_NEWS_CONTENT_PROMPT = `You are a professional journalist and content writer specialising in UK motoring, parking law, and drivers' rights.
+
+Your task is to write an in-depth blog post expanding on this news story:
+- Headline: "{{HEADLINE}}"
+- Source: {{SOURCE}}
+- Summary: "{{SUMMARY}}"
+- Category: {{CATEGORY}}
+- Source article URL: {{ARTICLE_URL}}
+
+REQUIREMENTS:
+- Write 1200-1600 words (6-8 minute read)
+- British English throughout
+- Go significantly deeper than the headline — provide background context, legal implications, and practical advice
+- Include specific UK laws, regulations, or precedents where relevant
+- Write in an engaging, accessible tone — informative but not dry
+- Include practical takeaways for drivers
+- Reference the source but add substantial original analysis
+- Use markdown formatting: headings, lists, emphasis
+
+STRUCTURE:
+1. Hook — compelling opening that draws the reader in
+2. What happened — the core news story in detail
+3. Why it matters — context, background, implications
+4. The legal angle — relevant laws, regulations, rights
+5. What drivers should know — practical advice and tips
+6. Looking ahead — what this means going forward
+
+AVOID:
+- Simply restating the headline or summary
+- Overly formal or academic language
+- Generic advice that could apply anywhere
+- Being promotional about Parking Ticket Pal
+- Legal disclaimers or warnings
+- Repeating content from these existing posts: {{EXISTING_POSTS}}`;
+
+// ============================================================================
+// Tribunal Blog Post Prompts
+// ============================================================================
+
+export const BLOG_TRIBUNAL_META_PROMPT = `You are an SEO expert and content strategist for a UK parking tribunal case analysis blog.
+
+Generate metadata for a blog post analysing this tribunal case:
+Authority: {{AUTHORITY}}
+Contravention: "{{CONTRAVENTION}}"
+Appeal Decision: {{APPEAL_DECISION}}
+
+Return a JSON object with:
+{
+  "title": "SEO-optimized title (50-60 characters ideal)",
+  "slug": "url-friendly-slug",
+  "excerpt": "Compelling meta description (150-160 characters)",
+  "keywords": ["array", "of", "relevant", "keywords"],
+  "category": "one of: pcn-codes, appeals, private-parking, council-parking, enforcement, drivers-rights, payment-options, legal-advice"
+}
+
+Guidelines:
+- Use UK-specific terminology and laws
+- Make titles compelling — frame it as a story drivers can learn from
+- Include the main keyword naturally
+- Create slugs that are URL-friendly and descriptive
+- Focus on the practical lesson, not just the outcome`;
+
+export const BLOG_TRIBUNAL_CONTENT_PROMPT = `You are a legal journalist specialising in UK parking tribunal cases. You translate complex legal reasoning into plain English that any driver can understand.
+
+Your task is to write an in-depth case analysis blog post:
+- Authority: {{AUTHORITY}}
+- Contravention: "{{CONTRAVENTION}}"
+- Appeal Decision: {{APPEAL_DECISION}}
+- Adjudicator's Reasons: "{{REASONS}}"
+
+REQUIREMENTS:
+- Write 1200-1600 words (6-8 minute read)
+- British English throughout
+- Explain the legal reasoning in plain English
+- Draw out practical lessons for drivers
+- Include relevant UK parking law context
+- Write in an engaging, accessible tone
+- Use markdown formatting: headings, lists, emphasis
+
+STRUCTURE:
+1. Hook — a compelling opening that frames why this case matters to everyday drivers
+2. The case — what happened, who was involved, what the contravention was
+3. The arguments — what the driver argued and what the council argued
+4. The decision — what the adjudicator decided and why
+5. The legal reasoning — break down the key legal points in plain English
+6. Lessons for drivers — 3-5 practical takeaways
+7. Key takeaway — one clear, memorable lesson
+
+AVOID:
+- Legalese without explanation
+- Simply quoting the adjudicator's reasons verbatim
+- Overly formal or academic language
+- Being promotional about Parking Ticket Pal
+- Legal disclaimers
+- Repeating content from these existing posts: {{EXISTING_POSTS}}`;
+
+// ============================================================================
 // Social Media Prompts
 // ============================================================================
 

@@ -3,6 +3,13 @@ import { db } from '@parking-ticket-pal/db';
 import { createServerLogger } from '@/lib/logger';
 import { models, getTracedModel } from '@/lib/ai/models';
 import { sendSocialDigest, type SocialDigestCaption } from '@/lib/email';
+import {
+  generateNewsBlogPost,
+  generateTribunalBlogPost,
+} from '@/app/actions/blog';
+
+const SITE_URL =
+  process.env.NEXT_PUBLIC_APP_URL || 'https://parkingticketpal.com';
 
 // ============================================================================
 // Caption generation
@@ -582,6 +589,65 @@ export async function completeTribunalVideo(
     }
   }
 
+  // Generate blog post (non-fatal)
+  let blogPostSlug: string | null = null;
+  try {
+    logger.info('Generating tribunal blog post', { videoId });
+    const blogResult = await generateTribunalBlogPost({
+      authority: videoRecord.case.authority,
+      contravention: videoRecord.case.contravention || 'Parking contravention',
+      appealDecision: videoRecord.case.appealDecision,
+      reasons: videoRecord.case.reasons,
+      coverImageUrl,
+    });
+
+    if (blogResult.success && blogResult.slug) {
+      blogPostSlug = blogResult.slug;
+      const blogPostUrl = `${SITE_URL}/blog/${blogResult.slug}`;
+
+      // Update video record with blog slug
+      await db.tribunalCaseVideo.update({
+        where: { id: videoId },
+        data: { blogPostSlug },
+      });
+
+      // Create IG mapping if Instagram was posted successfully
+      if (
+        postingResults.instagram?.success &&
+        postingResults.instagram.mediaId
+      ) {
+        await db.instagramPostBlogMapping.create({
+          data: {
+            instagramMediaId: postingResults.instagram.mediaId,
+            blogPostSlug,
+            blogPostUrl,
+            contentType: 'TRIBUNAL',
+            videoRecordId: videoId,
+          },
+        });
+        logger.info('Created Instagram blog mapping', {
+          mediaId: postingResults.instagram.mediaId,
+          blogPostSlug,
+        });
+      }
+
+      logger.info('Tribunal blog post generated', {
+        slug: blogResult.slug,
+        title: blogResult.title,
+      });
+    } else {
+      logger.warn('Tribunal blog post generation failed', {
+        error: blogResult.error,
+      });
+    }
+  } catch (error) {
+    logger.error(
+      'Non-fatal: tribunal blog generation error',
+      {},
+      error instanceof Error ? error : new Error(String(error)),
+    );
+  }
+
   // Mark completed
   await db.tribunalCaseVideo.update({
     where: { id: videoId },
@@ -595,6 +661,7 @@ export async function completeTribunalVideo(
     videoId,
     videoUrl,
     postingResults,
+    blogPostSlug,
   });
 }
 
@@ -752,6 +819,66 @@ export async function completeNewsVideo(
     }
   }
 
+  // Generate blog post (non-fatal)
+  let blogPostSlug: string | null = null;
+  try {
+    logger.info('Generating news blog post', { videoId });
+    const blogResult = await generateNewsBlogPost({
+      headline: videoRecord.headline,
+      source: videoRecord.source,
+      summary: videoRecord.summary,
+      category: videoRecord.category,
+      articleUrl: videoRecord.articleUrl,
+      coverImageUrl,
+    });
+
+    if (blogResult.success && blogResult.slug) {
+      blogPostSlug = blogResult.slug;
+      const blogPostUrl = `${SITE_URL}/blog/${blogResult.slug}`;
+
+      // Update video record with blog slug
+      await db.newsVideo.update({
+        where: { id: videoId },
+        data: { blogPostSlug },
+      });
+
+      // Create IG mapping if Instagram was posted successfully
+      if (
+        postingResults.instagram?.success &&
+        postingResults.instagram.mediaId
+      ) {
+        await db.instagramPostBlogMapping.create({
+          data: {
+            instagramMediaId: postingResults.instagram.mediaId,
+            blogPostSlug,
+            blogPostUrl,
+            contentType: 'NEWS',
+            videoRecordId: videoId,
+          },
+        });
+        logger.info('Created Instagram blog mapping', {
+          mediaId: postingResults.instagram.mediaId,
+          blogPostSlug,
+        });
+      }
+
+      logger.info('News blog post generated', {
+        slug: blogResult.slug,
+        title: blogResult.title,
+      });
+    } else {
+      logger.warn('News blog post generation failed', {
+        error: blogResult.error,
+      });
+    }
+  } catch (error) {
+    logger.error(
+      'Non-fatal: news blog generation error',
+      {},
+      error instanceof Error ? error : new Error(String(error)),
+    );
+  }
+
   // Mark completed
   await db.newsVideo.update({
     where: { id: videoId },
@@ -765,5 +892,6 @@ export async function completeNewsVideo(
     videoId,
     videoUrl,
     postingResults,
+    blogPostSlug,
   });
 }
