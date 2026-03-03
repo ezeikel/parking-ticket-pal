@@ -94,6 +94,11 @@ async function sendTextDM(
       throw new Error('INSTAGRAM_ACCOUNT_ID not configured');
     }
 
+    console.log('[ig-auto] sendTextDM:', {
+      recipientId,
+      textPreview: text.slice(0, 50),
+    });
+
     const response = await fetch(
       `https://graph.facebook.com/v24.0/${INSTAGRAM_ACCOUNT_ID}/messages`,
       {
@@ -107,6 +112,11 @@ async function sendTextDM(
       },
     );
     const data = await response.json();
+    console.log('[ig-auto] sendTextDM response:', {
+      ok: response.ok,
+      status: response.status,
+      data,
+    });
 
     if (!response.ok) {
       throw new Error(`DM send failed: ${JSON.stringify(data)}`);
@@ -115,7 +125,7 @@ async function sendTextDM(
     return { success: true };
   } catch (error) {
     const err = error instanceof Error ? error : new Error(String(error));
-    logger.error('Failed to send text DM', { recipientId }, err);
+    console.error('[ig-auto] sendTextDM error:', err.message);
     return { success: false, error: err.message };
   }
 }
@@ -305,22 +315,25 @@ export async function handleTriggerComment({
   }
 
   // Send the multi-step DM sequence
+  console.log('[ig-auto] Starting DM sequence:', {
+    commenterId,
+    commenterUsername,
+    blogUrl,
+    hasSpecificPost,
+  });
   const dmResult = await sendDMSequence(
     commenterId,
     commenterUsername,
     blogUrl,
     hasSpecificPost,
   );
+  console.log('[ig-auto] DM sequence result:', dmResult);
 
   if (!dmResult.success) {
-    logger.error('DM sequence failed', {
-      commenterId,
-      commenterUsername,
-      error: dmResult.error,
-    });
+    console.error('[ig-auto] DM sequence failed:', dmResult.error);
   }
 
-  logger.info('Trigger comment handled', {
+  console.log('[ig-auto] Trigger comment handled:', {
     commentId,
     mediaId,
     blogUrl,

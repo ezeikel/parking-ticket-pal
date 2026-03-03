@@ -8,6 +8,9 @@ const log = createServerLogger({ action: 'facebook-webhook' });
 const VERIFY_TOKEN =
   process.env.FACEBOOK_WEBHOOK_VERIFY_TOKEN || 'ptp-secret-verify';
 
+/** Our own Instagram account ID — ignore comments from ourselves */
+const OWN_IG_ACCOUNT_ID = process.env.INSTAGRAM_ACCOUNT_ID;
+
 /** Comment text patterns that trigger the DM automation */
 const TRIGGER_PATTERNS = /^(ptp|link)$/i;
 
@@ -50,6 +53,12 @@ export const POST = async (req: NextRequest) => {
 
             if (!commentId || !text || !from || !media) {
               debugLog.push('[webhook] Incomplete comment payload');
+              continue;
+            }
+
+            // Ignore our own comments (replies we post)
+            if (from.id === OWN_IG_ACCOUNT_ID) {
+              debugLog.push('[webhook] Ignoring own comment');
               continue;
             }
 
