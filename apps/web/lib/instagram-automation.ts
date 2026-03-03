@@ -270,7 +270,7 @@ export async function handleTriggerComment({
   commenterUsername: string;
   mediaId: string;
 }): Promise<void> {
-  logger.info('Handling trigger comment', {
+  console.log('[ig-auto] handleTriggerComment called:', {
     commentId,
     commenterId,
     commenterUsername,
@@ -281,19 +281,27 @@ export async function handleTriggerComment({
   const mapping = await db.instagramPostBlogMapping.findUnique({
     where: { instagramMediaId: mediaId },
   });
+  console.log(
+    '[ig-auto] Blog mapping:',
+    mapping ? { slug: mapping.blogPostSlug, url: mapping.blogPostUrl } : 'none',
+  );
 
   const hasSpecificPost = !!mapping;
   const rawBlogUrl = mapping?.blogPostUrl ?? `${SITE_URL}/blog`;
   const blogUrl = appendUtmParams(rawBlogUrl, mapping?.contentType ?? null);
+  console.log('[ig-auto] Blog URL:', blogUrl);
 
   // Reply to the comment with a varied response
   const commentReply = getRandomCommentReply(commenterUsername);
+  console.log('[ig-auto] Replying to comment:', { commentId, commentReply });
   const replyResult = await replyToComment(commentId, commentReply);
+  console.log('[ig-auto] Comment reply result:', replyResult);
 
   if (!replyResult.success) {
-    logger.warn('Comment reply failed, still attempting DM sequence', {
-      error: replyResult.error,
-    });
+    console.warn(
+      '[ig-auto] Comment reply failed, still attempting DM sequence:',
+      replyResult.error,
+    );
   }
 
   // Send the multi-step DM sequence
