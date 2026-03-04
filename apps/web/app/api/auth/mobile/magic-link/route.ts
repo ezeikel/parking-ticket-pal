@@ -1,13 +1,14 @@
-/* eslint-disable import/prefer-default-export */
+/* eslint-disable import-x/prefer-default-export */
 
 import { sendMagicLinkEmail } from '@/lib/email';
-import { encryptMagicLink } from '@/app/lib/session';
+import { encrypt, encryptMagicLink } from '@/app/lib/session';
+import { handleMobileOAuthSignIn } from '@/lib/mobile-auth';
 import { createServerLogger } from '@/lib/logger';
 
 const logger = createServerLogger({ action: 'mobile_magic_link' });
 
 export const POST = async (req: Request) => {
-  const { email } = await req.json();
+  const { email, password } = await req.json();
 
   if (!email) {
     logger.warn('Magic link request missing email');
@@ -15,6 +16,35 @@ export const POST = async (req: Request) => {
   }
 
   try {
+    // Test reviewer auto-login: if email+password match the review account, sign in directly
+    const reviewEmail = process.env.APP_REVIEW_TEST_EMAIL;
+    const reviewPassword = process.env.APP_REVIEW_TEST_PASSWORD;
+
+    if (
+      reviewEmail &&
+      reviewPassword &&
+      email.toLowerCase() === reviewEmail.toLowerCase() &&
+      password === reviewPassword
+    ) {
+      logger.info('Test reviewer auto-login', { email });
+
+      const { userId } = await handleMobileOAuthSignIn(null, email);
+      const sessionToken = await encrypt({ email, id: userId });
+
+      return Response.json(
+        { sessionToken, userId },
+        {
+          headers: {
+            'Access-Control-Allow-Origin': '*',
+            'Access-Control-Allow-Methods': 'POST, OPTIONS',
+            'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+            'Content-Type': 'application/json',
+          },
+          status: 200,
+        },
+      );
+    }
+
     // Generate a magic link token
     const magicLinkToken = await encryptMagicLink({ email });
     // Use a mobile-specific verification URL that will deep link to the app

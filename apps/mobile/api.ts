@@ -233,9 +233,10 @@ export const signInWithApple = async (
   return response.data;
 };
 
-export const sendMagicLink = async (email: string) => {
+export const sendMagicLink = async (email: string, password?: string) => {
   const response = await axios.post(`${apiUrlFromEnv}/auth/mobile/magic-link`, {
     email,
+    ...(password ? { password } : {}),
   });
 
   return response.data;

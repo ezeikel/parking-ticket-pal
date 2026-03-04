@@ -46,7 +46,7 @@ type AuthContextType = {
   signIn: () => Promise<void>;
   signInWithFacebook: () => Promise<void>;
   signInWithApple: () => Promise<void>;
-  sendMagicLink: (email: string) => Promise<void>;
+  sendMagicLink: (email: string, password?: string) => Promise<{ autoLogin: boolean }>;
   signOut: () => Promise<void>;
   isLoading: boolean;
   getToken: () => Promise<string | null>;
@@ -63,7 +63,7 @@ export const AuthContext = createContext<AuthContextType>({
   signIn: async () => {},
   signInWithFacebook: async () => {},
   signInWithApple: async () => {},
-  sendMagicLink: async () => {},
+  sendMagicLink: async () => ({ autoLogin: false }),
   signOut: async () => {},
   isLoading: true,
   getToken: async () => null,
@@ -284,9 +284,17 @@ export const AuthContextProvider = ({ children }: AuthContextProviderProps) => {
     }
   };
 
-  const sendMagicLinkMethod = async (email: string) => {
+  const sendMagicLinkMethod = async (email: string, password?: string): Promise<{ autoLogin: boolean }> => {
     try {
-      await sendMagicLink(email);
+      const result = await sendMagicLink(email, password);
+
+      // If the API returned a session token, sign in directly (test reviewer flow)
+      if (result.sessionToken) {
+        await handlePostSignIn(result.sessionToken);
+        return { autoLogin: true };
+      }
+
+      return { autoLogin: false };
     } catch (error) {
       logger.error('Magic link error', { action: 'auth', provider: 'magic-link' }, error instanceof Error ? error : new Error(String(error)));
       throw error;

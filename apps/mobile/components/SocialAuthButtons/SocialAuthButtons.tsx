@@ -8,7 +8,7 @@ type SocialAuthButtonsProps = {
   onGoogle: () => void;
   onApple: () => void;
   onFacebook: () => void;
-  onMagicLink: (email: string) => void;
+  onMagicLink: (email: string, password?: string) => void;
   disabled?: boolean;
   showMagicLink?: boolean;
   showFacebook?: boolean;
@@ -24,6 +24,7 @@ const SocialAuthButtons = ({
   showFacebook = true,
 }: SocialAuthButtonsProps) => {
   const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
 
   return (
     <View>
@@ -65,9 +66,9 @@ const SocialAuthButtons = ({
             <Text className="font-jakarta text-xs text-gray-400 mx-3">or</Text>
             <View className="flex-1 h-px bg-gray-200" />
           </View>
-          <View className="flex-row items-center gap-x-2">
+          <View className="gap-y-2">
             <TextInput
-              className="flex-1 border border-gray-300 rounded-lg px-3 py-3 font-jakarta text-sm"
+              className="border border-gray-300 rounded-lg px-3 py-3 font-jakarta text-sm"
               placeholder="Enter email address"
               value={email}
               onChangeText={setEmail}
@@ -75,9 +76,18 @@ const SocialAuthButtons = ({
               autoCapitalize="none"
               autoComplete="email"
             />
+            <TextInput
+              className="border border-gray-300 rounded-lg px-3 py-3 font-jakarta text-sm"
+              placeholder="Password (optional)"
+              value={password}
+              onChangeText={setPassword}
+              secureTextEntry
+              autoCapitalize="none"
+              autoComplete="password"
+            />
             <SquishyPressable
-              className="bg-gray-900 rounded-lg px-4 py-3"
-              onPress={() => onMagicLink(email)}
+              className="bg-gray-900 rounded-lg px-4 py-3 items-center"
+              onPress={() => onMagicLink(email, password || undefined)}
               disabled={disabled}
             >
               <Text className="font-jakarta-medium text-sm text-white">Send Link</Text>

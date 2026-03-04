@@ -145,7 +145,7 @@ const SettingsScreen = () => {
     }
   };
 
-  const handleLinkMagicLink = async (email: string) => {
+  const handleLinkMagicLink = async (email: string, password?: string) => {
     if (!email.trim()) {
       toast.error('Email Required', 'Please enter your email address');
       return;
@@ -153,8 +153,15 @@ const SettingsScreen = () => {
     setIsLinking(true);
     try {
       trackEvent("link_account_started", { screen: "settings", method: "magic_link" });
-      await sendMagicLink(email);
-      toast.success('Email Sent', 'Check your inbox for the login link');
+      const { autoLogin } = await sendMagicLink(email, password);
+      if (autoLogin) {
+        trackEvent("link_account_success", { screen: "settings", method: "magic_link" });
+        toast.success('Signed In', 'You are now signed in');
+        await refetch();
+        queryClient.invalidateQueries({ queryKey: ['tickets'] });
+      } else {
+        toast.success('Email Sent', 'Check your inbox for the login link');
+      }
     } catch (error) {
       trackEvent("link_account_failed", { screen: "settings", method: "magic_link" });
       toast.error('Send Failed', 'Could not send magic link');
