@@ -1,7 +1,6 @@
 import * as Sentry from '@sentry/nextjs';
 import { db, TicketTier, OnboardingExitReason } from '@parking-ticket-pal/db';
 import { verifyPurchase } from '@/lib/revenuecat';
-import { decrypt } from '@/app/lib/session';
 import { createServerLogger } from '@/lib/logger';
 import { exitOnboardingSequenceForTicket } from '@/services/onboarding-sequence';
 
@@ -19,20 +18,11 @@ export const POST = async (req: Request) =>
     { name: 'iap.confirmPurchase', op: 'payment' },
     async (span) => {
       try {
-        // Authenticate the user
-        const authHeader = req.headers.get('authorization');
-        if (!authHeader || !authHeader.startsWith('Bearer ')) {
+        // Use userId set by middleware (handles both device and session tokens)
+        const userId = req.headers.get('x-user-id');
+        if (!userId) {
           return Response.json({ error: 'Unauthorized' }, { status: 401 });
         }
-
-        const token = authHeader.substring(7);
-        const session = await decrypt(token);
-
-        if (!session || !session.id) {
-          return Response.json({ error: 'Invalid session' }, { status: 401 });
-        }
-
-        const userId = session.id as string;
 
         // Parse request body
         const { ticketId, productId } = await req.json();

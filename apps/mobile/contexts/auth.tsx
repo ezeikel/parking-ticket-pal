@@ -24,7 +24,7 @@ import {
   setUserId,
   logout as authLogout,
 } from '@/lib/auth';
-import { unregisterPushToken } from '@/lib/notifications';
+import { unregisterPushToken, registerForPushNotifications } from '@/lib/notifications';
 import { logger } from '@/lib/logger';
 import { usePurchases } from './purchases';
 
@@ -190,6 +190,9 @@ export const AuthContextProvider = ({ children }: AuthContextProviderProps) => {
       await setUserId(userData.id);
       await identifyUser(userData);
     }
+
+    // Refetch all active queries (tickets, vehicles, etc.) for the new user
+    await queryClient.resetQueries();
   };
 
   const getAndClearReferralCode = async (): Promise<string | null> => {
@@ -332,8 +335,8 @@ export const AuthContextProvider = ({ children }: AuthContextProviderProps) => {
       // 6. Reset the registration promise cache
       resetRegistrationState();
 
-      // 7. Clear React Query cache (removes old user's tickets, vehicles, etc.)
-      queryClient.clear();
+      // 7. Reset React Query cache — clears old data and refetches active queries
+      await queryClient.resetQueries();
 
       // 8. Fetch the new anonymous user data
       const { user: anonUser, isLinked: linked } = await getCurrentUser();
@@ -346,6 +349,13 @@ export const AuthContextProvider = ({ children }: AuthContextProviderProps) => {
       // 10. Identify the new anonymous user in analytics
       if (anonUser) {
         await identifyUser(anonUser);
+      }
+
+      // 11. Re-register push token for the new anonymous user
+      try {
+        await registerForPushNotifications();
+      } catch (error) {
+        logger.error('Error re-registering push token after sign-out', { action: 'auth' }, error instanceof Error ? error : new Error(String(error)));
       }
 
       logger.info('Sign-out complete, switched to anonymous user', { action: 'auth', newUserId });

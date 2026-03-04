@@ -1,7 +1,7 @@
 // eslint-disable-next-line import-x/no-extraneous-dependencies
 import 'server-only';
 import { SignJWT, jwtVerify } from 'jose';
-import { db } from '@parking-ticket-pal/db';
+import { db, TicketTier } from '@parking-ticket-pal/db';
 import { createServerLogger } from '@/lib/logger';
 import {
   attributeReferral,
@@ -118,8 +118,8 @@ export async function getMobileAuthFromHeaders(
 /**
  * Merge all data from anonymous user into target user, then delete anonymous user.
  *
- * Sequential DB operations are intentional here — order matters for data integrity
- * (e.g. tickets must be moved before vehicles are deleted).
+ * Wrapped in a transaction for atomicity. Sequential operations within the
+ * transaction are intentional — order matters for data integrity.
  */
 /* eslint-disable no-restricted-syntax, no-await-in-loop */
 export async function mergeAnonymousUserIntoTarget(
@@ -131,84 +131,112 @@ export async function mergeAnonymousUserIntoTarget(
     targetUserId,
   });
 
-  // Get target user's existing vehicles for dedup
-  const targetVehicles = await db.vehicle.findMany({
-    where: { userId: targetUserId },
-  });
-  const targetRegNumbers = new Set(
-    targetVehicles.map((v) => v.registrationNumber),
-  );
+  await db.$transaction(async (tx) => {
+    // Get target user's existing vehicles for dedup
+    const targetVehicles = await tx.vehicle.findMany({
+      where: { userId: targetUserId },
+      include: { tickets: true },
+    });
+    const targetRegNumbers = new Set(
+      targetVehicles.map((v) => v.registrationNumber),
+    );
 
-  // Get anonymous user's vehicles
-  const anonymousVehicles = await db.vehicle.findMany({
-    where: { userId: anonymousUserId },
-    include: { tickets: true },
-  });
+    // Get anonymous user's vehicles
+    const anonymousVehicles = await tx.vehicle.findMany({
+      where: { userId: anonymousUserId },
+      include: { tickets: true },
+    });
 
-  for (const vehicle of anonymousVehicles) {
-    if (targetRegNumbers.has(vehicle.registrationNumber)) {
-      // Vehicle exists on target — move tickets to target's vehicle
-      const targetVehicle = targetVehicles.find(
-        (v) => v.registrationNumber === vehicle.registrationNumber,
-      )!;
+    for (const vehicle of anonymousVehicles) {
+      if (targetRegNumbers.has(vehicle.registrationNumber)) {
+        // Vehicle exists on target — move tickets to target's vehicle
+        const targetVehicle = targetVehicles.find(
+          (v) => v.registrationNumber === vehicle.registrationNumber,
+        )!;
 
-      for (const ticket of vehicle.tickets) {
-        try {
-          await db.ticket.update({
-            where: { id: ticket.id },
-            data: { vehicleId: targetVehicle.id },
-          });
-        } catch {
-          // Handle pcnNumber unique constraint — skip duplicate tickets
-          logger.warn('Skipping duplicate ticket during merge', {
-            pcnNumber: ticket.pcnNumber,
-            anonymousUserId,
-            targetUserId,
-          });
+        for (const ticket of vehicle.tickets) {
+          // Check if target already has a ticket with the same PCN
+          const existingTargetTicket = targetVehicle.tickets.find(
+            (t) => t.pcnNumber === ticket.pcnNumber,
+          );
+
+          if (existingTargetTicket) {
+            // Duplicate PCN — upgrade target ticket if anonymous has PREMIUM
+            if (
+              ticket.tier === TicketTier.PREMIUM &&
+              existingTargetTicket.tier !== TicketTier.PREMIUM
+            ) {
+              await tx.ticket.update({
+                where: { id: existingTargetTicket.id },
+                data: { tier: TicketTier.PREMIUM },
+              });
+              logger.info('Upgraded target ticket tier during merge', {
+                pcnNumber: ticket.pcnNumber,
+                targetTicketId: existingTargetTicket.id,
+              });
+            }
+            // Delete the anonymous duplicate (will be cascade-cleaned with vehicle)
+            logger.warn('Skipping duplicate ticket during merge', {
+              pcnNumber: ticket.pcnNumber,
+              anonymousUserId,
+              targetUserId,
+            });
+          } else {
+            await tx.ticket.update({
+              where: { id: ticket.id },
+              data: { vehicleId: targetVehicle.id },
+            });
+          }
         }
+
+        // Delete the now-empty anonymous vehicle
+        await tx.vehicle.delete({ where: { id: vehicle.id } });
+      } else {
+        // Reassign vehicle to target user
+        await tx.vehicle.update({
+          where: { id: vehicle.id },
+          data: { userId: targetUserId },
+        });
       }
-
-      // Delete the now-empty anonymous vehicle
-      await db.vehicle.delete({ where: { id: vehicle.id } });
-    } else {
-      // Reassign vehicle to target user
-      await db.vehicle.update({
-        where: { id: vehicle.id },
-        data: { userId: targetUserId },
-      });
     }
-  }
-  /* eslint-enable no-restricted-syntax, no-await-in-loop */
 
-  // Transfer draft tickets
-  await db.draftTicket.updateMany({
-    where: { userId: anonymousUserId },
-    data: { userId: targetUserId },
+    // Transfer draft tickets
+    await tx.draftTicket.updateMany({
+      where: { userId: anonymousUserId },
+      data: { userId: targetUserId },
+    });
+
+    // Transfer push tokens
+    await tx.pushToken.updateMany({
+      where: { userId: anonymousUserId },
+      data: { userId: targetUserId },
+    });
+
+    // Transfer notifications
+    await tx.notification.updateMany({
+      where: { userId: anonymousUserId },
+      data: { userId: targetUserId },
+    });
+
+    // Transfer onboarding sequences (prevent cascade deletion)
+    await tx.onboardingSequence.updateMany({
+      where: { userId: anonymousUserId },
+      data: { userId: targetUserId },
+    });
+
+    // Point device sessions to target user
+    await tx.mobileDeviceSession.updateMany({
+      where: { userId: anonymousUserId },
+      data: { userId: targetUserId },
+    });
+
+    // Delete anonymous user (cascade deletes empty relations)
+    await tx.user.delete({ where: { id: anonymousUserId } });
   });
-
-  // Transfer push tokens
-  await db.pushToken.updateMany({
-    where: { userId: anonymousUserId },
-    data: { userId: targetUserId },
-  });
-
-  // Transfer notifications
-  await db.notification.updateMany({
-    where: { userId: anonymousUserId },
-    data: { userId: targetUserId },
-  });
-
-  // Point device sessions to target user
-  await db.mobileDeviceSession.updateMany({
-    where: { userId: anonymousUserId },
-    data: { userId: targetUserId },
-  });
-
-  // Delete anonymous user (cascade deletes empty relations)
-  await db.user.delete({ where: { id: anonymousUserId } });
 
   logger.info('Merge complete', { anonymousUserId, targetUserId });
 }
+/* eslint-enable no-restricted-syntax, no-await-in-loop */
 
 /**
  * Handle OAuth sign-in from mobile, with device merge logic.

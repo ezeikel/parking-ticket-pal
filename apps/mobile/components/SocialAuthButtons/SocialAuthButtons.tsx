@@ -76,15 +76,17 @@ const SocialAuthButtons = ({
               autoCapitalize="none"
               autoComplete="email"
             />
-            <TextInput
-              className="border border-gray-300 rounded-lg px-3 py-3 font-jakarta text-sm"
-              placeholder="Password (optional)"
-              value={password}
-              onChangeText={setPassword}
-              secureTextEntry
-              autoCapitalize="none"
-              autoComplete="password"
-            />
+            {email.toLowerCase() === 'testreviewer@parkingticketpal.com' && (
+              <TextInput
+                className="border border-gray-300 rounded-lg px-3 py-3 font-jakarta text-sm"
+                placeholder="Password (optional)"
+                value={password}
+                onChangeText={setPassword}
+                secureTextEntry
+                autoCapitalize="none"
+                autoComplete="password"
+              />
+            )}
             <SquishyPressable
               className="bg-gray-900 rounded-lg px-4 py-3 items-center"
               onPress={() => onMagicLink(email, password || undefined)}
