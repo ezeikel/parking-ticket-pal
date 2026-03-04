@@ -457,17 +457,106 @@ function markdownToPortableText(markdown: string): any[] {
   let inList = false;
   let listType: 'bullet' | 'number' = 'bullet';
   let listItems: any[] = [];
+  let spanCounter = 0;
+  let linkCounter = 0;
+
+  /**
+   * Parse inline markdown formatting (bold, italic, links) into Portable Text spans.
+   * Returns { children, markDefs } for a block.
+   */
+  const parseInlineFormatting = (
+    text: string,
+  ): { children: any[]; markDefs: any[] } => {
+    const children: any[] = [];
+    const markDefs: any[] = [];
+    // Regex to match: **bold**, *italic*, [link text](url)
+    const inlineRegex = /\*\*(.+?)\*\*|\*(.+?)\*|\[([^\]]+)\]\(([^)]+)\)/g;
+    let lastIndex = 0;
+    let match = inlineRegex.exec(text);
+
+    while (match !== null) {
+      // Add plain text before this match
+      if (match.index > lastIndex) {
+        const plain = text.slice(lastIndex, match.index);
+        if (plain) {
+          children.push({
+            _type: 'span',
+            _key: `span-${spanCounter++}`,
+            text: plain,
+            marks: [],
+          });
+        }
+      }
+
+      if (match[1] !== undefined) {
+        // Bold: **text**
+        children.push({
+          _type: 'span',
+          _key: `span-${spanCounter++}`,
+          text: match[1],
+          marks: ['strong'],
+        });
+      } else if (match[2] !== undefined) {
+        // Italic: *text*
+        children.push({
+          _type: 'span',
+          _key: `span-${spanCounter++}`,
+          text: match[2],
+          marks: ['em'],
+        });
+      } else if (match[3] !== undefined && match[4] !== undefined) {
+        // Link: [text](url)
+        const linkKey = `link-${linkCounter++}`;
+        markDefs.push({ _type: 'link', _key: linkKey, href: match[4] });
+        children.push({
+          _type: 'span',
+          _key: `span-${spanCounter++}`,
+          text: match[3],
+          marks: [linkKey],
+        });
+      }
+
+      lastIndex = match.index + match[0].length;
+      match = inlineRegex.exec(text);
+    }
+
+    // Add remaining plain text
+    if (lastIndex < text.length) {
+      const remaining = text.slice(lastIndex);
+      if (remaining) {
+        children.push({
+          _type: 'span',
+          _key: `span-${spanCounter++}`,
+          text: remaining,
+          marks: [],
+        });
+      }
+    }
+
+    // If no inline formatting found, return single plain span
+    if (children.length === 0) {
+      children.push({
+        _type: 'span',
+        _key: `span-${spanCounter++}`,
+        text,
+        marks: [],
+      });
+    }
+
+    return { children, markDefs };
+  };
 
   const flushParagraph = () => {
     if (currentParagraph.length > 0) {
       const text = currentParagraph.join(' ').trim();
       if (text) {
+        const { children, markDefs } = parseInlineFormatting(text);
         blocks.push({
           _type: 'block',
           _key: `block-${blocks.length}`,
           style: 'normal',
-          markDefs: [],
-          children: [{ _type: 'span', _key: 'span-0', text, marks: [] }],
+          markDefs,
+          children,
         });
       }
       currentParagraph = [];
@@ -515,20 +604,27 @@ function markdownToPortableText(markdown: string): any[] {
       continue;
     }
 
+    // Horizontal rule
+    if (/^---+$/.test(line.trim()) || /^\*\*\*+$/.test(line.trim())) {
+      flushParagraph();
+      flushList();
+      // Skip horizontal rules — they don't add value in blog content
+      continue;
+    }
+
     // Headers
     const headerMatch = line.match(/^(#{1,6})\s+(.+)$/);
     if (headerMatch) {
       flushParagraph();
       flushList();
       const level = headerMatch[1].length;
+      const { children, markDefs } = parseInlineFormatting(headerMatch[2]);
       blocks.push({
         _type: 'block',
         _key: `block-${blocks.length}`,
         style: `h${level}`,
-        markDefs: [],
-        children: [
-          { _type: 'span', _key: 'span-0', text: headerMatch[2], marks: [] },
-        ],
+        markDefs,
+        children,
       });
       continue;
     }
@@ -542,16 +638,15 @@ function markdownToPortableText(markdown: string): any[] {
         inList = true;
         listType = 'bullet';
       }
+      const { children, markDefs } = parseInlineFormatting(bulletMatch[1]);
       listItems.push({
         _type: 'block',
         _key: `list-${blocks.length + listItems.length}`,
         style: 'normal',
         listItem: 'bullet',
         level: 1,
-        markDefs: [],
-        children: [
-          { _type: 'span', _key: 'span-0', text: bulletMatch[1], marks: [] },
-        ],
+        markDefs,
+        children,
       });
       continue;
     }
@@ -565,16 +660,15 @@ function markdownToPortableText(markdown: string): any[] {
         inList = true;
         listType = 'number';
       }
+      const { children, markDefs } = parseInlineFormatting(numberMatch[1]);
       listItems.push({
         _type: 'block',
         _key: `list-${blocks.length + listItems.length}`,
         style: 'normal',
         listItem: 'number',
         level: 1,
-        markDefs: [],
-        children: [
-          { _type: 'span', _key: 'span-0', text: numberMatch[1], marks: [] },
-        ],
+        markDefs,
+        children,
       });
       continue;
     }
@@ -583,14 +677,13 @@ function markdownToPortableText(markdown: string): any[] {
     if (line.startsWith('> ')) {
       flushParagraph();
       flushList();
+      const { children, markDefs } = parseInlineFormatting(line.slice(2));
       blocks.push({
         _type: 'block',
         _key: `block-${blocks.length}`,
         style: 'blockquote',
-        markDefs: [],
-        children: [
-          { _type: 'span', _key: 'span-0', text: line.slice(2), marks: [] },
-        ],
+        markDefs,
+        children,
       });
       continue;
     }
