@@ -446,6 +446,23 @@ export const deleteEvidence = async (ticketId: string, mediaId: string) => {
   return response.data;
 };
 
+// Update ticket fields
+export const updateTicket = async (
+  ticketId: string,
+  data: {
+    pcnNumber?: string;
+    vehicleReg?: string;
+    issuer?: string;
+    issuedAt?: Date;
+    initialAmount?: number;
+    contraventionCode?: string | null;
+    location?: any;
+  },
+) => {
+  const response = await api.patch(`/tickets/${ticketId}`, data);
+  return response.data;
+};
+
 // Ticket status
 export const updateTicketStatus = async (ticketId: string, status: string) => {
   const response = await api.patch(`/tickets/${ticketId}/status`, { status });

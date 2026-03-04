@@ -1,5 +1,9 @@
 import { NextRequest } from 'next/server';
-import { getTicket, deleteTicketById } from '@/app/actions/ticket';
+import {
+  getTicket,
+  deleteTicketById,
+  updateTicket,
+} from '@/app/actions/ticket';
 import { getUserId } from '@/utils/user';
 import { createServerLogger } from '@/lib/logger';
 
@@ -147,11 +151,71 @@ export const DELETE = async (
     {
       headers: {
         'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Methods': 'GET, DELETE, OPTIONS',
+        'Access-Control-Allow-Methods': 'GET, DELETE, PATCH, OPTIONS',
         'Access-Control-Allow-Headers': 'Content-Type, Authorization',
         'Content-Type': 'application/json',
       },
       status: 200,
     },
   );
+};
+
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Methods': 'GET, DELETE, PATCH, OPTIONS',
+  'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+  'Content-Type': 'application/json',
+};
+
+export const PATCH = async (
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> },
+) => {
+  const { id } = await params;
+
+  if (!id) {
+    return Response.json(
+      { error: 'Ticket ID is required' },
+      { headers: corsHeaders, status: 400 },
+    );
+  }
+
+  const userId = await getUserId('update a ticket');
+
+  if (!userId) {
+    return Response.json(
+      { error: 'Unauthorized' },
+      { headers: corsHeaders, status: 401 },
+    );
+  }
+
+  try {
+    const body = await request.json();
+
+    // Parse issuedAt string to Date if provided
+    if (body.issuedAt && typeof body.issuedAt === 'string') {
+      body.issuedAt = new Date(body.issuedAt);
+    }
+
+    const ticket = await updateTicket(id, body);
+
+    if (!ticket) {
+      return Response.json(
+        { error: 'Failed to update ticket' },
+        { headers: corsHeaders, status: 500 },
+      );
+    }
+
+    return Response.json({ ticket }, { headers: corsHeaders, status: 200 });
+  } catch (error) {
+    log.error(
+      'Error updating ticket',
+      { ticketId: id },
+      error instanceof Error ? error : undefined,
+    );
+    return Response.json(
+      { error: 'Failed to update ticket' },
+      { headers: corsHeaders, status: 500 },
+    );
+  }
 };

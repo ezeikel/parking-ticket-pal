@@ -1,13 +1,18 @@
 import { View, Text, TextInput, ScrollView, Platform } from 'react-native';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import DateTimePicker, {
   type DateTimePickerEvent,
 } from '@react-native-community/datetimepicker';
 import { KeyboardToolbar } from 'react-native-keyboard-controller';
+import BottomSheet from '@gorhom/bottom-sheet';
+import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
+import { faChevronDown } from '@fortawesome/pro-solid-svg-icons';
 import type { Address } from '@parking-ticket-pal/types';
+import { CONTRAVENTION_CODES } from '@parking-ticket-pal/constants';
 import SquishyPressable from '@/components/SquishyPressable/SquishyPressable';
 import IssuerInput from '@/components/IssuerInput/IssuerInput';
 import AddressInput from '@/components/AddressInput/AddressInput';
+import ContraventionCodePicker from '@/components/ContraventionCodePicker/ContraventionCodePicker';
 import type { WizardStepProps } from '../types';
 
 const DetailsStep = ({ wizardData, onNext }: WizardStepProps) => {
@@ -21,6 +26,8 @@ const DetailsStep = ({ wizardData, onNext }: WizardStepProps) => {
   const [location, setLocation] = useState<Address | null>(
     wizardData.location,
   );
+  const [contraventionCode, setContraventionCode] = useState(wizardData.contraventionCode);
+  const codePickerRef = useRef<BottomSheet>(null);
 
   const [pcnTouched, setPcnTouched] = useState(false);
   const [regTouched, setRegTouched] = useState(false);
@@ -211,6 +218,42 @@ const DetailsStep = ({ wizardData, onNext }: WizardStepProps) => {
         </Text>
       </View>
 
+      {/* Contravention Code */}
+      <View className="mb-4">
+        <Text className="font-jakarta-medium text-sm text-gray-900 mb-2">
+          Contravention Code
+        </Text>
+        <SquishyPressable
+          testID="details-contravention-code"
+          className="border border-gray-300 rounded-lg px-4 py-3 flex-row items-center justify-between"
+          onPress={() => codePickerRef.current?.snapToIndex(0)}
+        >
+          {contraventionCode ? (
+            <View className="flex-row items-center flex-1 mr-2">
+              <View className="bg-gray-100 rounded px-2 py-0.5 mr-2">
+                <Text className="font-jakarta-bold text-sm text-gray-900">
+                  {contraventionCode}
+                </Text>
+              </View>
+              <Text
+                className="font-jakarta text-sm text-gray-600 flex-1"
+                numberOfLines={1}
+              >
+                {CONTRAVENTION_CODES[contraventionCode]?.description ?? ''}
+              </Text>
+            </View>
+          ) : (
+            <Text className="font-jakarta text-base text-gray-400">
+              Select contravention code
+            </Text>
+          )}
+          <FontAwesomeIcon icon={faChevronDown} size={14} color="#9CA3AF" />
+        </SquishyPressable>
+        <Text className="font-jakarta text-xs text-gray-400 mt-1">
+          The code on the ticket describing the offence (optional)
+        </Text>
+      </View>
+
       {/* Location */}
       <View className="mb-6">
         <Text className="font-jakarta-medium text-sm text-gray-900 mb-2">
@@ -238,6 +281,7 @@ const DetailsStep = ({ wizardData, onNext }: WizardStepProps) => {
             issuer,
             issuedAt,
             initialAmount: amountInPence,
+            contraventionCode: contraventionCode.trim(),
             location,
           })
         }
@@ -254,6 +298,11 @@ const DetailsStep = ({ wizardData, onNext }: WizardStepProps) => {
       </SquishyPressable>
     </ScrollView>
     <KeyboardToolbar />
+    <ContraventionCodePicker
+      ref={codePickerRef}
+      value={contraventionCode}
+      onSelect={setContraventionCode}
+    />
   </>
   );
 };
