@@ -179,7 +179,8 @@ const Scanner = ({ onClose, onImageScanned, onOCRComplete }: ScannerProps) => {
 
       const { scannedImages, status } = await DocumentScanner.scanDocument({
         responseType: ResponseType.Base64,
-        maxNumDocuments: 1
+        maxNumDocuments: 1,
+        letUserAdjustCrop: false,
       });
 
       if (status === 'cancel') {
