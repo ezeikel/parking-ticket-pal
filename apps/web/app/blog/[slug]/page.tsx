@@ -4,6 +4,7 @@ import {
   getPostBySlug,
   getAllPosts,
 } from '@/lib/queries/blog';
+import { SITE_URL } from '@/constants';
 import BlogPostClient from '@/components/blog/BlogPostClient';
 import JsonLd, {
   createArticleSchema,
@@ -30,17 +31,36 @@ export const generateMetadata = async ({
   if (!post) {
     return {};
   }
+
+  const title =
+    post.seo?.metaTitle ?? `${post.meta.title} | Parking Ticket Pal`;
+  const description = post.seo?.metaDescription ?? post.meta.summary;
+
   return {
-    title: `${post.meta.title} | Parking Ticket Pal`,
-    description: post.meta.summary,
+    title,
+    description,
+    keywords: post.meta.tags,
+    alternates: {
+      canonical: `/blog/${slug}`,
+    },
     openGraph: {
       type: 'article',
+      title,
+      description,
       publishedTime: post.meta.date,
       authors: [post.meta.author.name],
       tags: post.meta.tags,
+      ...(post.meta.image && {
+        images: [{ url: post.meta.image }],
+      }),
     },
     twitter: {
       card: 'summary_large_image',
+      title,
+      description,
+      ...(post.meta.image && {
+        images: [post.meta.image],
+      }),
     },
   };
 };
@@ -68,7 +88,7 @@ const BlogPostPage = async ({
     .slice(0, 3)
     .map((p) => ({ slug: p.meta.slug, title: p.meta.title }));
 
-  const postUrl = `https://parkingticketpal.co.uk/blog/${slug}`;
+  const postUrl = `${SITE_URL}/blog/${slug}`;
 
   return (
     <>
@@ -79,12 +99,15 @@ const BlogPostPage = async ({
           url: postUrl,
           datePublished: post.meta.date,
           dateModified: post.meta.date,
+          authorName: post.meta.author.name,
+          image: post.meta.image,
+          keywords: post.meta.tags,
         })}
       />
       <JsonLd
         data={createBreadcrumbSchema([
-          { name: 'Home', url: 'https://parkingticketpal.co.uk' },
-          { name: 'Blog', url: 'https://parkingticketpal.co.uk/blog' },
+          { name: 'Home', url: SITE_URL },
+          { name: 'Blog', url: `${SITE_URL}/blog` },
           { name: post.meta.title, url: postUrl },
         ])}
       />

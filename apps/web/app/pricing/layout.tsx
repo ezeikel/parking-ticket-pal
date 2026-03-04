@@ -4,6 +4,7 @@ import JsonLd, {
   createBreadcrumbSchema,
 } from '@/components/JsonLd/JsonLd';
 import { FAQ_ITEMS } from '@/lib/pricing-data';
+import { SITE_URL } from '@/constants';
 
 export const metadata: Metadata = {
   title: 'Pricing | Parking Ticket Pal',
@@ -21,8 +22,8 @@ export default function PricingLayout({
       <JsonLd data={createFAQSchema(FAQ_ITEMS)} />
       <JsonLd
         data={createBreadcrumbSchema([
-          { name: 'Home', url: 'https://parkingticketpal.co.uk' },
-          { name: 'Pricing', url: 'https://parkingticketpal.co.uk/pricing' },
+          { name: 'Home', url: SITE_URL },
+          { name: 'Pricing', url: `${SITE_URL}/pricing` },
         ])}
       />
       {children}

@@ -1,3 +1,5 @@
+import { SITE_URL } from '@/constants';
+
 type JsonLdProps = {
   data: Record<string, unknown>;
 };
@@ -17,8 +19,8 @@ export const organizationSchema = {
   '@context': 'https://schema.org',
   '@type': 'Organization',
   name: 'Parking Ticket Pal',
-  url: 'https://parkingticketpal.co.uk',
-  logo: 'https://parkingticketpal.co.uk/images/logo.png',
+  url: SITE_URL,
+  logo: `${SITE_URL}/images/logo.png`,
   description:
     'AI-powered parking ticket appeal service helping UK motorists challenge unfair PCNs.',
   sameAs: [
@@ -31,11 +33,10 @@ export const websiteSchema = {
   '@context': 'https://schema.org',
   '@type': 'WebSite',
   name: 'Parking Ticket Pal',
-  url: 'https://parkingticketpal.co.uk',
+  url: SITE_URL,
   potentialAction: {
     '@type': 'SearchAction',
-    target:
-      'https://parkingticketpal.co.uk/tools/reference/contravention-codes?search={search_term_string}',
+    target: `${SITE_URL}/tools/reference/contravention-codes?search={search_term_string}`,
     'query-input': 'required name=search_term_string',
   },
 };
@@ -91,12 +92,18 @@ export const createArticleSchema = ({
   url,
   datePublished,
   dateModified,
+  authorName,
+  image,
+  keywords,
 }: {
   title: string;
   description: string;
   url: string;
   datePublished: string;
   dateModified: string;
+  authorName?: string;
+  image?: string;
+  keywords?: string[];
 }) => ({
   '@context': 'https://schema.org',
   '@type': 'Article',
@@ -105,18 +112,19 @@ export const createArticleSchema = ({
   url,
   datePublished,
   dateModified,
+  ...(image && { image }),
+  ...(keywords && keywords.length > 0 && { keywords: keywords.join(', ') }),
   author: {
-    '@type': 'Organization',
-    name: 'Parking Ticket Pal',
-    url: 'https://parkingticketpal.co.uk',
+    '@type': 'Person',
+    name: authorName ?? 'Parking Ticket Pal',
   },
   publisher: {
     '@type': 'Organization',
     name: 'Parking Ticket Pal',
-    url: 'https://parkingticketpal.co.uk',
+    url: SITE_URL,
     logo: {
       '@type': 'ImageObject',
-      url: 'https://parkingticketpal.co.uk/images/logo.png',
+      url: `${SITE_URL}/images/logo.png`,
     },
   },
 });

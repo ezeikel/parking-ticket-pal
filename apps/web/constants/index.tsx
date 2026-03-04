@@ -30,6 +30,8 @@ export * from './timelines';
 export * from './stripe';
 export * from './blog';
 
+export const SITE_URL = 'https://www.parkingticketpal.com';
+
 export {
   LOCAL_AUTHORITY_IDS,
   PRIVATE_COMPANY_IDS,

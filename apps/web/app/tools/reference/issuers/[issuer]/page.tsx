@@ -19,6 +19,7 @@ import {
   TRANSPORT_AUTHORITIES,
   LOCAL_AUTHORITIES,
   AUTOMATIONS,
+  SITE_URL,
 } from '@/constants';
 import type { Metadata } from 'next';
 import JsonLd, {
@@ -214,15 +215,15 @@ export default async function IssuerPage({ params }: Props) {
   const relatedIssuers = getRelatedIssuers();
 
   const breadcrumbs = [
-    { name: 'Home', url: 'https://parkingticketpal.co.uk' },
-    { name: 'Tools', url: 'https://parkingticketpal.co.uk/tools' },
+    { name: 'Home', url: SITE_URL },
+    { name: 'Tools', url: `${SITE_URL}/tools` },
     {
       name: 'Issuer Directory',
-      url: 'https://parkingticketpal.co.uk/tools/reference/issuers',
+      url: `${SITE_URL}/tools/reference/issuers`,
     },
     {
       name: issuer.name,
-      url: `https://parkingticketpal.co.uk/tools/reference/issuers/${issuerId}`,
+      url: `${SITE_URL}/tools/reference/issuers/${issuerId}`,
     },
   ];
 

@@ -39,7 +39,7 @@ const resourceLinks: FooterLink[] = [
 ];
 
 const companyLinks: FooterLink[] = [
-  { label: 'Contact', href: 'mailto:hello@parkingticketpal.co.uk' },
+  { label: 'Contact', href: 'mailto:hello@parkingticketpal.com' },
 ];
 
 type SocialLink = {

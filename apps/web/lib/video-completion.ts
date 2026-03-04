@@ -7,9 +7,9 @@ import {
   generateNewsBlogPost,
   generateTribunalBlogPost,
 } from '@/app/actions/blog';
+import { SITE_URL as DEFAULT_SITE_URL } from '@/constants';
 
-const SITE_URL =
-  process.env.NEXT_PUBLIC_APP_URL || 'https://parkingticketpal.com';
+const SITE_URL = process.env.NEXT_PUBLIC_APP_URL || DEFAULT_SITE_URL;
 
 // ============================================================================
 // Caption generation

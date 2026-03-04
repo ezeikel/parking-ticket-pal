@@ -5,6 +5,7 @@ import JsonLd, {
   createHowToSchema,
   createBreadcrumbSchema,
 } from '@/components/JsonLd/JsonLd';
+import { SITE_URL } from '@/constants';
 import MotoringTemplateClient from './MotoringTemplateClient';
 
 type MotoringTemplatePageProps = {
@@ -93,19 +94,19 @@ const MotoringTemplatePage = async ({ params }: MotoringTemplatePageProps) => {
 
   const breadcrumbs = template
     ? [
-        { name: 'Home', url: 'https://parkingticketpal.co.uk' },
-        { name: 'Tools', url: 'https://parkingticketpal.co.uk/tools' },
+        { name: 'Home', url: SITE_URL },
+        { name: 'Tools', url: `${SITE_URL}/tools` },
         {
           name: 'Letter Templates',
-          url: 'https://parkingticketpal.co.uk/tools/letters',
+          url: `${SITE_URL}/tools/letters`,
         },
         {
           name: 'Motoring Letters',
-          url: 'https://parkingticketpal.co.uk/tools/letters/motoring',
+          url: `${SITE_URL}/tools/letters/motoring`,
         },
         {
           name: template.title,
-          url: `https://parkingticketpal.co.uk/tools/letters/motoring/${template.id}`,
+          url: `${SITE_URL}/tools/letters/motoring/${template.id}`,
         },
       ]
     : [];

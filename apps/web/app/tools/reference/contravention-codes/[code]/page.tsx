@@ -26,6 +26,7 @@ import JsonLd, {
 } from '@/components/JsonLd/JsonLd';
 import { getEducationalContentForCode } from '@/data/contravention-codes/educational-content';
 import { getTribunalCaseCountByCode } from '@/lib/queries/tribunal-counts';
+import { SITE_URL } from '@/constants';
 
 type Props = {
   params: Promise<{ code: string }>;
@@ -162,15 +163,15 @@ export default async function ContraventionCodePage({ params }: Props) {
 
   // Breadcrumb schema
   const breadcrumbs = [
-    { name: 'Home', url: 'https://parkingticketpal.co.uk' },
-    { name: 'Tools', url: 'https://parkingticketpal.co.uk/tools' },
+    { name: 'Home', url: SITE_URL },
+    { name: 'Tools', url: `${SITE_URL}/tools` },
     {
       name: 'Contravention Codes',
-      url: 'https://parkingticketpal.co.uk/tools/reference/contravention-codes',
+      url: `${SITE_URL}/tools/reference/contravention-codes`,
     },
     {
       name: `Code ${codeData.code}`,
-      url: `https://parkingticketpal.co.uk/tools/reference/contravention-codes/${codeData.code}`,
+      url: `${SITE_URL}/tools/reference/contravention-codes/${codeData.code}`,
     },
   ];
 

@@ -8,6 +8,7 @@ import {
 import type { Metadata } from 'next';
 import JsonLd, { createBreadcrumbSchema } from '@/components/JsonLd/JsonLd';
 import { getAllGuides } from '@/data/guides';
+import { SITE_URL } from '@/constants';
 
 export const metadata: Metadata = {
   title: 'Parking Ticket Appeal Guides | How to Appeal | Parking Ticket Pal',
@@ -31,8 +32,8 @@ export const metadata: Metadata = {
 };
 
 const breadcrumbs = [
-  { name: 'Home', url: 'https://parkingticketpal.co.uk' },
-  { name: 'Guides', url: 'https://parkingticketpal.co.uk/guides' },
+  { name: 'Home', url: SITE_URL },
+  { name: 'Guides', url: `${SITE_URL}/guides` },
 ];
 
 export default function GuidesIndexPage() {

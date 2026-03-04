@@ -7,6 +7,7 @@ import {
   LOCAL_AUTHORITY_IDS,
   PRIVATE_COMPANY_IDS,
   TRANSPORT_AUTHORITY_IDS,
+  SITE_URL,
 } from '@/constants';
 import { client } from '@/lib/sanity/client';
 import { sitemapPostsQuery } from '@/lib/sanity/queries';
@@ -14,7 +15,7 @@ import { competitors } from '@/data/competitors';
 import { getAllRegionSlugs } from '@/data/regions';
 import { getAllGuideSlugs } from '@/data/guides';
 
-const BASE_URL = 'https://www.parkingticketpal.com';
+const BASE_URL = SITE_URL;
 
 async function getAllBlogPosts() {
   try {

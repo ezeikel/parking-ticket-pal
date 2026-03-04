@@ -11,6 +11,7 @@ import FundAccountDialog from '@/components/dialogs/FundAccountDialog/FundAccoun
 import Footer from '@/components/Footer/Footer';
 import PendingActionHandler from '@/components/PendingActionHandler';
 import { FacebookPixel } from '@/components/analytics/FacebookPixel';
+import { SITE_URL } from '@/constants';
 import Providers from './providers';
 import { plusJakartaSans, robotoSlab, ukNumberPlate } from './fonts';
 import '@/global.css';
@@ -18,6 +19,7 @@ import '@/global.css';
 config.autoAddCss = false;
 
 export const metadata: Metadata = {
+  metadataBase: new URL(SITE_URL),
   title: 'Parking Ticket Pal: Track, Manage & Challenge UK Parking Tickets',
   description:
     'Track your parking tickets, get deadline reminders, and avoid increased fines. Parking Ticket Pal helps you manage PCNs and Penalty Charge Notices in one place — with optional challenge tools, success scores based on real tribunal data, and appeal letter generation when you need them.',

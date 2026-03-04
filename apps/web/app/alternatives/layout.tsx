@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import JsonLd, { createBreadcrumbSchema } from '@/components/JsonLd/JsonLd';
+import { SITE_URL } from '@/constants';
 
 export const metadata: Metadata = {
   title: 'Parking Ticket Appeal Alternatives | Find the Best Option',
@@ -22,10 +23,10 @@ export default function AlternativesLayout({
     <>
       <JsonLd
         data={createBreadcrumbSchema([
-          { name: 'Home', url: 'https://parkingticketpal.co.uk' },
+          { name: 'Home', url: SITE_URL },
           {
             name: 'Alternatives',
-            url: 'https://parkingticketpal.co.uk/alternatives',
+            url: `${SITE_URL}/alternatives`,
           },
         ])}
       />

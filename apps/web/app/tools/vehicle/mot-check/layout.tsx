@@ -3,6 +3,7 @@ import JsonLd, {
   createBreadcrumbSchema,
   createHowToSchema,
 } from '@/components/JsonLd/JsonLd';
+import { SITE_URL } from '@/constants';
 
 export const metadata: Metadata = {
   title: 'Free MOT History Check | Check Any UK Vehicle | Parking Ticket Pal',
@@ -31,19 +32,28 @@ type MOTCheckLayoutProps = {
 
 const MOTCheckLayout = ({ children }: MOTCheckLayoutProps) => {
   const breadcrumbData = createBreadcrumbSchema([
-    { name: 'Home', url: 'https://parkingticketpal.co.uk' },
-    { name: 'Tools', url: 'https://parkingticketpal.co.uk/tools' },
-    { name: 'Vehicle Tools', url: 'https://parkingticketpal.co.uk/tools/vehicle' },
-    { name: 'MOT History Check', url: 'https://parkingticketpal.co.uk/tools/vehicle/mot-check' },
+    { name: 'Home', url: SITE_URL },
+    { name: 'Tools', url: `${SITE_URL}/tools` },
+    { name: 'Vehicle Tools', url: `${SITE_URL}/tools/vehicle` },
+    { name: 'MOT History Check', url: `${SITE_URL}/tools/vehicle/mot-check` },
   ]);
 
   const howToData = createHowToSchema(
     'How to Check MOT History',
     'Check the full MOT history of any UK vehicle using its registration number.',
     [
-      { name: 'Enter Registration', text: 'Type the vehicle registration number in the search box.' },
-      { name: 'Click Search', text: 'Click the search button to fetch the MOT history.' },
-      { name: 'View Results', text: 'See the complete MOT history including test results, advisories, and mileage.' },
+      {
+        name: 'Enter Registration',
+        text: 'Type the vehicle registration number in the search box.',
+      },
+      {
+        name: 'Click Search',
+        text: 'Click the search button to fetch the MOT history.',
+      },
+      {
+        name: 'View Results',
+        text: 'See the complete MOT history including test results, advisories, and mileage.',
+      },
     ],
   );
 

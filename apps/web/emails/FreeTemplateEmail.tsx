@@ -182,7 +182,7 @@ const FreeTemplateEmail = ({
                   Our AI writes personalised letters using real tribunal wins.
                   Upload your ticket to see your predicted success rate.
                 </Text>
-                <EmailButton href="https://parkingticketpal.co.uk">
+                <EmailButton href="https://www.parkingticketpal.com">
                   Upload Your Ticket
                 </EmailButton>
               </Section>

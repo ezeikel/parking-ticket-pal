@@ -8,7 +8,11 @@ import {
   postBySlugQuery,
   postSlugsQuery,
 } from '@/lib/sanity/queries';
-import type { SanityPost, SanityPostSummary } from '@/lib/sanity/types';
+import type {
+  SanityPost,
+  SanityPostSummary,
+  SanitySeo,
+} from '@/lib/sanity/types';
 import {
   transformSanityPostToLegacy,
   transformSanityPostsToLegacy,
@@ -22,13 +26,16 @@ const logger = createServerLogger({ action: 'blog-query' });
  * Transform a Sanity post with Portable Text body to a legacy Post type
  * This maintains backwards compatibility with existing components
  */
-function toPost(post: SanityPost): Post & { bodyBlocks: PortableTextBlock[] } {
+function toPost(
+  post: SanityPost,
+): Post & { bodyBlocks: PortableTextBlock[]; seo?: SanitySeo } {
   const transformed = transformSanityPostToLegacy(post);
   return {
     meta: transformed.meta,
     content: '', // Legacy MDX content string - not used for Sanity posts
     readingTime: transformed.readingTime,
     bodyBlocks: transformed.content, // Portable Text blocks for rendering
+    ...(post.seo && { seo: post.seo }),
   };
 }
 
@@ -37,7 +44,9 @@ function toPost(post: SanityPost): Post & { bodyBlocks: PortableTextBlock[] } {
  */
 export const getPostBySlug = async (
   slug: string,
-): Promise<(Post & { bodyBlocks: PortableTextBlock[] }) | null> => {
+): Promise<
+  (Post & { bodyBlocks: PortableTextBlock[]; seo?: SanitySeo }) | null
+> => {
   cacheLife('blog');
   cacheTag('blog', `blog-post-${slug}`);
 

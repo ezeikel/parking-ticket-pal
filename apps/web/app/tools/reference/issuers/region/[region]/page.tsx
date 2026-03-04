@@ -9,7 +9,7 @@ import {
   faMapLocationDot,
 } from '@fortawesome/pro-solid-svg-icons';
 import type { Metadata } from 'next';
-import { LOCAL_AUTHORITIES } from '@/constants';
+import { LOCAL_AUTHORITIES, SITE_URL } from '@/constants';
 import JsonLd, { createBreadcrumbSchema } from '@/components/JsonLd/JsonLd';
 import {
   getAllRegions,
@@ -87,19 +87,19 @@ export default async function RegionPage({ params }: Props) {
   const otherRegions = getAllRegions().filter((r) => r.slug !== region.slug);
 
   const breadcrumbs = [
-    { name: 'Home', url: 'https://parkingticketpal.co.uk' },
-    { name: 'Tools', url: 'https://parkingticketpal.co.uk/tools' },
+    { name: 'Home', url: SITE_URL },
+    { name: 'Tools', url: `${SITE_URL}/tools` },
     {
       name: 'Issuer Directory',
-      url: 'https://parkingticketpal.co.uk/tools/reference/issuers',
+      url: `${SITE_URL}/tools/reference/issuers`,
     },
     {
       name: 'By Region',
-      url: 'https://parkingticketpal.co.uk/tools/reference/issuers/region',
+      url: `${SITE_URL}/tools/reference/issuers/region`,
     },
     {
       name: region.name,
-      url: `https://parkingticketpal.co.uk/tools/reference/issuers/region/${region.slug}`,
+      url: `${SITE_URL}/tools/reference/issuers/region/${region.slug}`,
     },
   ];
 

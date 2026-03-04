@@ -5,6 +5,7 @@ import JsonLd, {
   createSoftwareApplicationSchema,
 } from '@/components/JsonLd/JsonLd';
 import AdBannerServer from '@/components/AdBanner/AdBannerServer';
+import { SITE_URL } from '@/constants';
 
 export const metadata: Metadata = {
   title: 'Free Car Tools & Letter Templates | Parking Ticket Pal',
@@ -33,8 +34,8 @@ type ToolsLayoutProps = {
 
 const ToolsLayout = ({ children }: ToolsLayoutProps) => {
   const breadcrumbData = createBreadcrumbSchema([
-    { name: 'Home', url: 'https://parkingticketpal.co.uk' },
-    { name: 'Tools', url: 'https://parkingticketpal.co.uk/tools' },
+    { name: 'Home', url: SITE_URL },
+    { name: 'Tools', url: `${SITE_URL}/tools` },
   ]);
 
   const appData = createSoftwareApplicationSchema();

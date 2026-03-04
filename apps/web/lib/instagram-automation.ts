@@ -1,10 +1,10 @@
 import { db } from '@parking-ticket-pal/db';
 import { createServerLogger } from '@/lib/logger';
+import { SITE_URL as DEFAULT_SITE_URL } from '@/constants';
 
 const logger = createServerLogger({ action: 'instagram-automation' });
 
-const SITE_URL =
-  process.env.NEXT_PUBLIC_APP_URL || 'https://parkingticketpal.com';
+const SITE_URL = process.env.NEXT_PUBLIC_APP_URL || DEFAULT_SITE_URL;
 const { INSTAGRAM_ACCOUNT_ID } = process.env;
 const PAGE_ACCESS_TOKEN = process.env.FACEBOOK_PAGE_ACCESS_TOKEN;
 

@@ -16,6 +16,7 @@ import JsonLd, {
   createArticleSchema,
 } from '@/components/JsonLd/JsonLd';
 import { getGuideBySlug, getAllGuideSlugs } from '@/data/guides';
+import { SITE_URL } from '@/constants';
 
 type Props = {
   params: Promise<{ slug: string }>;
@@ -58,11 +59,11 @@ export default async function GuidePage({ params }: Props) {
     .filter(Boolean);
 
   const breadcrumbs = [
-    { name: 'Home', url: 'https://parkingticketpal.co.uk' },
-    { name: 'Guides', url: 'https://parkingticketpal.co.uk/guides' },
+    { name: 'Home', url: SITE_URL },
+    { name: 'Guides', url: `${SITE_URL}/guides` },
     {
       name: guide.title,
-      url: `https://parkingticketpal.co.uk/guides/${guide.slug}`,
+      url: `${SITE_URL}/guides/${guide.slug}`,
     },
   ];
 
@@ -83,7 +84,7 @@ export default async function GuidePage({ params }: Props) {
         data={createArticleSchema({
           title: guide.metaTitle,
           description: guide.metaDescription,
-          url: `https://parkingticketpal.co.uk/guides/${guide.slug}`,
+          url: `${SITE_URL}/guides/${guide.slug}`,
           datePublished: guide.lastUpdated,
           dateModified: guide.lastUpdated,
         })}

@@ -5,6 +5,7 @@ import JsonLd, {
   createHowToSchema,
   createBreadcrumbSchema,
 } from '@/components/JsonLd/JsonLd';
+import { SITE_URL } from '@/constants';
 import BailiffTemplateClient from './BailiffTemplateClient';
 
 type BailiffTemplatePageProps = {
@@ -93,19 +94,19 @@ const BailiffTemplatePage = async ({ params }: BailiffTemplatePageProps) => {
 
   const breadcrumbs = template
     ? [
-        { name: 'Home', url: 'https://parkingticketpal.co.uk' },
-        { name: 'Tools', url: 'https://parkingticketpal.co.uk/tools' },
+        { name: 'Home', url: SITE_URL },
+        { name: 'Tools', url: `${SITE_URL}/tools` },
         {
           name: 'Letter Templates',
-          url: 'https://parkingticketpal.co.uk/tools/letters',
+          url: `${SITE_URL}/tools/letters`,
         },
         {
           name: 'Bailiff Response',
-          url: 'https://parkingticketpal.co.uk/tools/letters/bailiff',
+          url: `${SITE_URL}/tools/letters/bailiff`,
         },
         {
           name: template.title,
-          url: `https://parkingticketpal.co.uk/tools/letters/bailiff/${template.id}`,
+          url: `${SITE_URL}/tools/letters/bailiff/${template.id}`,
         },
       ]
     : [];
