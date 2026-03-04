@@ -19,7 +19,7 @@ export const PREMIUM_PLAN: PricingPlan = {
   name: "Premium",
   subtitle: "Everything you need to challenge and win",
   rcProductPrefix: "premium_ticket",
-  popular: false,
+  popular: true,
   features: [
     { text: "Challenge/appeal letter with AI assist", included: true },
     { text: "Auto-submission to council", included: true },

@@ -7,7 +7,7 @@ import { useState, useRef, useCallback } from 'react';
 import { useFeatureFlag } from 'posthog-react-native';
 import { router } from 'expo-router';
 import { FontAwesomeIcon } from "@fortawesome/react-native-fontawesome";
-import { faSignOut, faUser, faEnvelope, faInfoCircle, faHeart, faBookOpen, faTrashCan, faCrown, faRotateRight, faPencil, faSignature, faBell as faBellRegular, faComment, faCircleQuestion, faStar, faShieldCheck, faFileLines, faGift, faUserPlus } from "@fortawesome/pro-regular-svg-icons";
+import { faSignOut, faUser, faEnvelope, faInfoCircle, faHeart, faBookOpen, faTrashCan, faRotateRight, faPencil, faSignature, faBell as faBellRegular, faComment, faCircleQuestion, faStar, faShieldCheck, faFileLines, faGift, faUserPlus } from "@fortawesome/pro-regular-svg-icons";
 import SocialAuthButtons from '@/components/SocialAuthButtons/SocialAuthButtons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import BottomSheet from '@gorhom/bottom-sheet';
@@ -360,13 +360,6 @@ const SettingsScreen = () => {
     }
   };
 
-  const getSubscriptionStatus = () => {
-    if (hasPremiumAccess) {
-      return 'Premium';
-    }
-
-    return 'Free';
-  };
 
   const handleToggleNotification = (key: 'inApp' | 'email' | 'sms' | 'push') => {
     // SMS requires Premium
@@ -561,12 +554,6 @@ const SettingsScreen = () => {
               />
             </SquishyPressable>
 
-            {/* Plan status */}
-            <SettingRow
-              icon={faCrown}
-              title="Plan"
-              value={getSubscriptionStatus()}
-            />
 
             <SquishyPressable
               className="flex-row items-center p-4 border-t border-gray-100 active:bg-gray-50"
