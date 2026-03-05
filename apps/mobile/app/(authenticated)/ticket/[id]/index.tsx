@@ -1,8 +1,10 @@
 import { View, Text, ScrollView, useWindowDimensions, Linking } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, router } from 'expo-router';
+import * as Clipboard from 'expo-clipboard';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { faArrowLeft, faTriangleExclamation } from '@fortawesome/pro-solid-svg-icons';
+import { faCopy } from '@fortawesome/pro-regular-svg-icons';
 import { useRef, useState } from 'react';
 import BottomSheet from '@gorhom/bottom-sheet';
 import useTicket from '@/hooks/api/useTicket';
@@ -18,7 +20,7 @@ import { toast } from '@/lib/toast';
 import Loader from '@/components/Loader/Loader';
 import SquishyPressable from '@/components/SquishyPressable/SquishyPressable';
 import PremiumActionsBottomSheet from '@/components/PremiumActionsBottomSheet';
-import ChallengeLetterBottomSheet from '@/components/ChallengeLetterBottomSheet';
+import ChallengeWizard from '@/components/ChallengeWizard/ChallengeWizard';
 import FormsBottomSheet from '@/components/FormsBottomSheet';
 import { FormType } from '@/constants/challenges';
 import { usePurchases } from '@/contexts/purchases';
@@ -218,11 +220,23 @@ export default function TicketDetailScreen() {
           </SquishyPressable>
         </View>
 
-        {/* PCN + status badge */}
+        {/* PCN + copy + status badge */}
         <View className="flex-row items-center gap-2 mb-1">
-          <Text className="text-2xl font-jakarta-bold text-dark">
-            {ticketData.pcnNumber}
-          </Text>
+          <SquishyPressable
+            onPress={async () => {
+              await Clipboard.setStringAsync(ticketData.pcnNumber);
+              toast.success('PCN copied to clipboard');
+            }}
+            accessibilityRole="button"
+            accessibilityLabel="Copy PCN to clipboard"
+          >
+            <View className="flex-row items-center gap-2">
+              <Text className="text-2xl font-jakarta-bold text-dark">
+                {ticketData.pcnNumber}
+              </Text>
+              <FontAwesomeIcon icon={faCopy} size={16} color="#717171" />
+            </View>
+          </SquishyPressable>
           <View
             className="rounded-full px-3 py-1"
             style={{ backgroundColor: statusConfig.bgColor }}
@@ -327,10 +341,13 @@ export default function TicketDetailScreen() {
         onClose={() => setIsPremiumActionsVisible(false)}
       />
 
-      <ChallengeLetterBottomSheet
+      <ChallengeWizard
         visible={isChallengeLetterVisible}
         pcnNumber={ticketData.pcnNumber}
+        ticketId={ticket.id}
         issuerType={ticketData.issuerType}
+        contraventionCode={ticketData.contraventionCode}
+        prediction={ticketData.prediction}
         onSuccess={handleSuccess}
         onClose={() => setIsChallengeLetterVisible(false)}
       />

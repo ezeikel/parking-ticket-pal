@@ -4,6 +4,8 @@ import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faArrowLeft, faPen, faBolt } from '@fortawesome/pro-solid-svg-icons';
+import { faCopy } from '@fortawesome/pro-regular-svg-icons';
+import { toast } from 'sonner';
 import { TicketStatus } from '@parking-ticket-pal/db/types';
 import { Button } from '@/components/ui/button';
 
@@ -166,9 +168,23 @@ const TicketDetailHeader = ({
       <div className="mt-4">
         {/* Title row with PCN number */}
         <div className="flex flex-wrap items-center gap-2">
-          <h1 className="text-2xl font-bold text-dark md:text-3xl">
-            {pcnNumber}
-          </h1>
+          <button
+            type="button"
+            className="group flex items-center gap-2 cursor-pointer"
+            onClick={() => {
+              navigator.clipboard.writeText(pcnNumber);
+              toast.success('PCN copied to clipboard');
+            }}
+            title="Copy PCN to clipboard"
+          >
+            <h1 className="text-2xl font-bold text-dark md:text-3xl">
+              {pcnNumber}
+            </h1>
+            <FontAwesomeIcon
+              icon={faCopy}
+              className="text-base text-gray opacity-0 transition-opacity group-hover:opacity-100"
+            />
+          </button>
           <span
             className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-sm font-semibold ${statusStyle.bg} ${statusStyle.text}`}
           >

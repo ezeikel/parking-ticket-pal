@@ -120,6 +120,9 @@ importers:
       expo-checkbox:
         specifier: ~55.0.3
         version: 55.0.3(react-native-web@0.21.2(react-dom@19.2.0(react@19.2.0))(react@19.2.0))(react-native@0.83.2(@babel/core@7.28.5)(@types/react@19.2.14)(bufferutil@4.1.0)(react@19.2.0))(react@19.2.0)
+      expo-clipboard:
+        specifier: ~55.0.8
+        version: 55.0.8(expo@55.0.3)(react-native@0.83.2(@babel/core@7.28.5)(@types/react@19.2.14)(bufferutil@4.1.0)(react@19.2.0))(react@19.2.0)
       expo-constants:
         specifier: ~55.0.7
         version: 55.0.7(expo@55.0.3)(react-native@0.83.2(@babel/core@7.28.5)(@types/react@19.2.14)(bufferutil@4.1.0)(react@19.2.0))(typescript@5.9.3)
@@ -8803,6 +8806,13 @@ packages:
     peerDependenciesMeta:
       react-native-web:
         optional: true
+
+  expo-clipboard@55.0.8:
+    resolution: {integrity: sha512-s0Hkop+dc6m09LwzUAWweNI0gzLAaX5CgEGR8TMdOdSPKTPc2rCl8h8Ji/cUNM1wYoJQ4Wysa15E8If/Vlu7WA==}
+    peerDependencies:
+      expo: '*'
+      react: 19.2.0
+      react-native: '*'
 
   expo-constants@55.0.7:
     resolution: {integrity: sha512-kdcO4TsQRRqt0USvjaY5vgQMO9H52K3kBZ/ejC7F6rz70mv08GoowrZ1CYOr5O4JpPDRlIpQfZJUucaS/c+KWQ==}
@@ -24772,6 +24782,12 @@ snapshots:
       react-native: 0.83.2(@babel/core@7.28.5)(@types/react@19.2.14)(bufferutil@4.1.0)(react@19.2.0)
     optionalDependencies:
       react-native-web: 0.21.2(react-dom@19.2.0(react@19.2.0))(react@19.2.0)
+
+  expo-clipboard@55.0.8(expo@55.0.3)(react-native@0.83.2(@babel/core@7.28.5)(@types/react@19.2.14)(bufferutil@4.1.0)(react@19.2.0))(react@19.2.0):
+    dependencies:
+      expo: 55.0.3(@babel/core@7.28.5)(@expo/dom-webview@55.0.3)(@expo/metro-runtime@55.0.5)(bufferutil@4.1.0)(expo-router@55.0.3)(react-dom@19.2.0(react@19.2.0))(react-native@0.83.2(@babel/core@7.28.5)(@types/react@19.2.14)(bufferutil@4.1.0)(react@19.2.0))(react@19.2.0)(typescript@5.9.3)
+      react: 19.2.0
+      react-native: 0.83.2(@babel/core@7.28.5)(@types/react@19.2.14)(bufferutil@4.1.0)(react@19.2.0)
 
   expo-constants@55.0.7(expo@55.0.3)(react-native@0.83.2(@babel/core@7.28.5)(@types/react@19.2.14)(bufferutil@4.1.0)(react@19.2.0))(typescript@5.9.3):
     dependencies:
