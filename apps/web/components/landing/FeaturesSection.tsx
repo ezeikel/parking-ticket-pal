@@ -37,7 +37,7 @@ const features: Feature[] = [
     icon: faChartPie,
     title: 'Success Score',
     description:
-      'Thinking about challenging? See how likely it is to succeed first. We analyse real UK tribunal decisions to give you a data-backed success score.',
+      "Thinking about challenging? See how likely it is to succeed first. We've studied thousands of real parking dispute outcomes to give you a data-backed success score.",
     size: 'medium',
     visual: 'progress',
   },

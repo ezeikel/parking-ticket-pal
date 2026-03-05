@@ -46,8 +46,7 @@ const Newsletter = () => {
             Stay ahead of UK parking law changes
           </h2>
           <p className="mt-3 text-base text-gray">
-            Get monthly tips, tribunal insights, and success stories. No spam,
-            ever.
+            Get monthly tips, case insights, and success stories. No spam, ever.
           </p>
 
           {/* Form */}

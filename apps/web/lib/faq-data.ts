@@ -12,7 +12,7 @@ export const HOMEPAGE_FAQS: FAQ[] = [
   {
     question: 'How does the AI know my appeal will succeed?',
     answer:
-      "We've analyzed thousands of real tribunal decisions from London and other UK tribunals. For each contravention code, we know what arguments have worked historically and use that to both predict your success rate and craft your appeal letter.",
+      "We've studied thousands of real parking dispute outcomes across the UK. For each contravention code, we know what arguments have worked historically and use that to both predict your success rate and craft your appeal letter.",
   },
   {
     question: 'What are PE2, PE3, TE7, and TE9 forms?',

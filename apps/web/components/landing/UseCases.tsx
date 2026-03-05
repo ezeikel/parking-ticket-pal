@@ -27,7 +27,7 @@ const useCases: UseCase[] = [
     icon: faScaleBalanced,
     title: 'I think my ticket was unfair',
     description:
-      'Check your success score based on real tribunal data. If the odds are in your favour, generate an appeal letter and submit it — or let us auto-submit to supported councils.',
+      'Check your success score based on thousands of real case outcomes. If the odds are in your favour, generate an appeal letter and submit it — or let us auto-submit to supported councils.',
   },
   {
     icon: faTruckFront,

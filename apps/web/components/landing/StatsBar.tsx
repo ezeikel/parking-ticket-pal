@@ -45,7 +45,7 @@ const stats: StatItem[] = [
     value: 10000,
     suffix: '+',
     prefix: '',
-    label: 'Tribunal Decisions Analysed',
+    label: 'Real Case Outcomes Analysed',
     icon: faDatabase,
   },
 ];
