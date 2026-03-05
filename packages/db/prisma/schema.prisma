@@ -557,6 +557,7 @@ enum FormType {
   PE3
   TE7
   TE9
+  N244
 }
 
 enum PredictionType {

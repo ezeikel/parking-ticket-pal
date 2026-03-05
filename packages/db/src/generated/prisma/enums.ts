@@ -175,7 +175,8 @@ export const FormType = {
   PE2: 'PE2',
   PE3: 'PE3',
   TE7: 'TE7',
-  TE9: 'TE9'
+  TE9: 'TE9',
+  N244: 'N244'
 } as const
 
 export type FormType = (typeof FormType)[keyof typeof FormType]

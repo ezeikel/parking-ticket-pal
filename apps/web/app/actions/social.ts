@@ -209,7 +209,7 @@ Create an engaging Instagram caption that:
 The caption should be informative but accessible, helping people understand their parking rights and responsibilities.`;
 
   try {
-    const tracedModel = getTracedModel(models.text, {
+    const tracedModel = getTracedModel(models.creative, {
       properties: { feature: 'social_instagram_caption', slug: post.meta.slug },
     });
 
@@ -259,7 +259,7 @@ Create a professional LinkedIn post that:
 The post should position you as a thought leader in UK parking/traffic law.`;
 
   try {
-    const tracedModel = getTracedModel(models.text, {
+    const tracedModel = getTracedModel(models.creative, {
       properties: { feature: 'social_linkedin_caption', slug: post.meta.slug },
     });
 
@@ -314,7 +314,7 @@ Create an engaging Facebook post that:
 The post should provide real value while encouraging clicks to read more.`;
 
   try {
-    const tracedModel = getTracedModel(models.text, {
+    const tracedModel = getTracedModel(models.creative, {
       properties: { feature: 'social_facebook_caption', slug: post.meta.slug },
     });
 
@@ -367,7 +367,7 @@ Summary: ${post.meta.summary}
 Blog URL: ${blogUrl}`;
 
   try {
-    const tracedModel = getTracedModel(models.text, {
+    const tracedModel = getTracedModel(models.creative, {
       properties: {
         feature: 'social_facebook_reel_caption',
         slug: post.meta.slug,
@@ -413,7 +413,7 @@ Title: ${post.meta.title}
 Summary: ${post.meta.summary}`;
 
   try {
-    const tracedModel = getTracedModel(models.text, {
+    const tracedModel = getTracedModel(models.creative, {
       properties: { feature: 'social_tiktok_caption', slug: post.meta.slug },
     });
 
@@ -467,7 +467,7 @@ Summary: ${post.meta.summary}
 Blog URL: ${blogUrl}`;
 
   try {
-    const tracedModel = getTracedModel(models.text, {
+    const tracedModel = getTracedModel(models.creative, {
       properties: {
         feature: 'social_youtube_shorts_caption',
         slug: post.meta.slug,
@@ -527,7 +527,7 @@ Summary: ${post.meta.summary}
 Blog URL: ${blogUrl}`;
 
   try {
-    const tracedModel = getTracedModel(models.text, {
+    const tracedModel = getTracedModel(models.creative, {
       properties: { feature: 'social_threads_caption', slug: post.meta.slug },
     });
 
@@ -679,7 +679,7 @@ Title: ${post.meta.title}
 Summary: ${post.meta.summary}`;
 
   try {
-    const tracedModel = getTracedModel(models.text, {
+    const tracedModel = getTracedModel(models.creative, {
       properties: {
         feature: 'social_instagram_reel_caption',
         slug: post.meta.slug,

@@ -1,19 +1,71 @@
 'use server';
 
+import { generateText } from 'ai';
 import fillPE2Form from '@/utils/automation/forms/PE2';
 import fillPE3Form from '@/utils/automation/forms/PE3';
 import fillTE7Form from '@/utils/automation/forms/TE7';
 import fillTE9Form from '@/utils/automation/forms/TE9';
+import { render } from '@react-email/render';
 import FormEmail from '@/emails/FormEmail';
 import { FormType, db } from '@parking-ticket-pal/db';
 import { PdfFormFields } from '@/types';
 import { Address } from '@parking-ticket-pal/types';
 import { put } from '@/lib/storage';
 import { STORAGE_PATHS } from '@/constants';
-import resend from '@/lib/resend';
+import { sendEmail } from '@/lib/email';
 import { createServerLogger } from '@/lib/logger';
+import { getTracedModel, models } from '@/lib/ai/models';
+import { FORM_TEXT_IMPROVE_PROMPTS } from '@/lib/ai/prompts';
 
 const logger = createServerLogger({ action: 'form' });
+
+/**
+ * Polish user-provided text using AI before filling into the PDF form.
+ * Uses form-type-specific prompts to ensure the text is appropriate.
+ * Falls back to original text if AI fails.
+ */
+const polishFormText = async (
+  text: string,
+  formType: string,
+  userId?: string,
+): Promise<string> => {
+  if (!text.trim()) return text;
+
+  const systemPrompt = FORM_TEXT_IMPROVE_PROMPTS[formType];
+  if (!systemPrompt) return text;
+
+  try {
+    const tracedModel = getTracedModel(models.creative, {
+      userId,
+      properties: { feature: 'form_text_improve', formType },
+    });
+
+    const result = await generateText({
+      model: tracedModel,
+      system: systemPrompt,
+      prompt: text.trim(),
+    });
+
+    const improved = result.text.trim();
+
+    if (improved) {
+      logger.info('Form text polished', {
+        formType,
+        originalLength: text.length,
+        improvedLength: improved.length,
+      });
+      return improved;
+    }
+  } catch (error) {
+    logger.error(
+      'Failed to polish form text, using original',
+      { formType },
+      error instanceof Error ? error : new Error(String(error)),
+    );
+  }
+
+  return text;
+};
 
 // generic function to fill a form and follow subsequent steps e.g. upload to blob, save to db, send email
 const handleFormGeneration = async (
@@ -23,8 +75,18 @@ const handleFormGeneration = async (
 ) => {
   // TODO: make try/catches more granular
   try {
+    // Polish user-provided text fields before filling the form
+    const polishedFields = { ...formFields };
+    if (polishedFields.reasonText?.trim()) {
+      polishedFields.reasonText = await polishFormText(
+        polishedFields.reasonText,
+        formType,
+        polishedFields.userId,
+      );
+    }
+
     // fill pdf form
-    const filledFormBytes = await fillFormFn(formFields);
+    const filledFormBytes = await fillFormFn(polishedFields);
 
     if (!filledFormBytes) {
       return { success: false, error: `Failed to generate ${formType} form` };
@@ -73,15 +135,18 @@ const handleFormGeneration = async (
 
     // send email if email is provided
     if (formFields.userEmail) {
-      await resend.emails.send({
-        from: `Parking Ticket Pal <${process.env.DEFAULT_FROM_EMAIL}>`,
-        to: formFields.userEmail,
-        subject: `Your ${formType} Form`,
-        react: FormEmail({
+      const emailHtml = await render(
+        FormEmail({
           formType,
           userName: formFields.userName,
           downloadUrl: blob.url,
         }),
+      );
+
+      await sendEmail({
+        to: formFields.userEmail,
+        subject: `Your ${formType} Form`,
+        html: emailHtml,
         attachments: [
           {
             filename: fileName,

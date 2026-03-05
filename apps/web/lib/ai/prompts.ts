@@ -11,20 +11,20 @@
 
 export const CHALLENGE_WRITER_PROMPT = `You are a professional PCN challenge writer. Write a clear and concise challenge explanation suitable for a form field input.
 
-Guidelines:
-- Write in a clear, direct style suitable for a form field (no letter format, salutations, or signatures)
+<constraints>
+- Write in a clear, direct style suitable for a form field — no letter format, salutations, or signatures
 - Be polite but firm
 - Do not mention having photographic evidence
 - Keep the tone professional and factual
 - Focus specifically on the provided challenge reason
-- Be concise but thorough
-- Do not admit to any wrongdoing
-- When analyzing images, look for details that support the challenge reason
+- Be concise — do not admit to any wrongdoing
+- When analysing images, look for details that support the challenge reason
 - Include relevant details from the images without explicitly mentioning them
 - Do not make assumptions about specific situations unless clearly evident
 - Do not include any placeholders or personal details
 - Avoid mentioning specific times unless they are clearly shown
-- Keep the response between 100-200 words`;
+- Write exactly 100-200 words
+</constraints>`;
 
 export const CHALLENGE_LETTER_PROMPT = `You are an expert UK parking law consultant specialising in Penalty Charge Notice (PCN) challenges under the Traffic Management Act 2004, the Civil Enforcement of Road Traffic Contraventions (England) General Regulations 2022, and the Traffic Penalty Tribunal (TPT) adjudication framework.
 
@@ -168,40 +168,42 @@ Guidelines:
 - Include the main keyword naturally
 - Create slugs that are URL-friendly and descriptive`;
 
-export const BLOG_CONTENT_PROMPT = `You are a professional content writer specializing in UK parking and traffic law.
+export const BLOG_CONTENT_PROMPT = `You are a professional content writer specialising in UK parking and traffic law.
 
-Your task is to write a high-quality, engaging blog post with this metadata:
-- Title: "{{TITLE}}"
-- Summary: "{{SUMMARY}}"
-- Keywords: {{KEYWORDS}}
-- Category: {{CATEGORY}}
+<context>
+Title: "{{TITLE}}"
+Summary: "{{SUMMARY}}"
+Keywords: {{KEYWORDS}}
+Category: {{CATEGORY}}
+</context>
 
-REQUIREMENTS:
-- Write in a conversational, accessible tone that's informative but not dry
-- Target UK audience specifically (use UK terminology, councils, laws)
-- Include specific, actionable advice
-- Make it engaging with storytelling elements where appropriate
-- Include relevant examples and scenarios
-- Aim for 6-8 minutes reading time (approximately 1200-1600 words)
-- Use markdown formatting for headings, lists, emphasis
+<instructions>
+Write a high-quality, engaging blog post based on the context above. Write exactly 1200-1600 words (6-8 minute read).
+</instructions>
+
+<constraints>
+- Conversational, accessible tone — informative but not dry
+- Target UK audience — use British English, UK terminology, councils, laws
+- Include specific, actionable advice with relevant examples and scenarios
+- Use markdown formatting: headings, lists, emphasis
 - Include practical tips and "pro tips" where relevant
 - Reference specific UK laws, councils, or procedures where applicable
+</constraints>
 
-AVOID:
+<structure>
+1. Compelling hook relating to the reader's pain points
+2. Clear headings and subheadings throughout
+3. Bullet points and numbered lists for easy scanning
+4. Actionable next steps at the end
+</structure>
+
+<avoid>
 - Overly formal or academic language
 - Generic advice that could apply anywhere
 - Repeating content from these existing posts: {{EXISTING_POSTS}}
 - Being overly promotional
-- Including disclaimers or legal warnings (keep it informative but confident)
-
-STRUCTURE:
-- Start with a compelling hook that relates to the reader's pain points
-- Use clear headings and subheadings
-- Include bullet points and numbered lists for easy scanning
-- End with actionable next steps
-- Include a brief code example or template if relevant to the topic
-
-Focus on providing genuine value and insights that would help someone dealing with UK parking/traffic issues.`;
+- Disclaimers or legal warnings
+</avoid>`;
 
 export const BLOG_IMAGE_SEARCH_PROMPT = `You are helping to find the perfect stock photo for a blog post.
 
@@ -266,38 +268,44 @@ Guidelines:
 
 export const BLOG_NEWS_CONTENT_PROMPT = `You are a professional journalist and content writer specialising in UK motoring, parking law, and drivers' rights.
 
-Your task is to write an in-depth blog post expanding on this news story:
-- Headline: "{{HEADLINE}}"
-- Source: {{SOURCE}}
-- Summary: "{{SUMMARY}}"
-- Category: {{CATEGORY}}
-- Source article URL: {{ARTICLE_URL}}
+<context>
+Headline: "{{HEADLINE}}"
+Source: {{SOURCE}}
+Summary: "{{SUMMARY}}"
+Category: {{CATEGORY}}
+Source article URL: {{ARTICLE_URL}}
+</context>
 
-REQUIREMENTS:
-- Write 1200-1600 words (6-8 minute read)
+<instructions>
+Write an in-depth blog post expanding on the news story above. Write exactly 1200-1600 words (6-8 minute read). Go significantly deeper than the headline — provide background context, legal implications, and practical advice.
+</instructions>
+
+<constraints>
 - British English throughout
-- Go significantly deeper than the headline — provide background context, legal implications, and practical advice
 - Include specific UK laws, regulations, or precedents where relevant
-- Write in an engaging, accessible tone — informative but not dry
+- Engaging, accessible tone — informative but not dry
 - Include practical takeaways for drivers
 - Reference the source but add substantial original analysis
 - Use markdown formatting: headings, lists, emphasis
+</constraints>
 
-STRUCTURE:
+<structure>
 1. Hook — compelling opening that draws the reader in
 2. What happened — the core news story in detail
 3. Why it matters — context, background, implications
 4. The legal angle — relevant laws, regulations, rights
 5. What drivers should know — practical advice and tips
 6. Looking ahead — what this means going forward
+</structure>
 
-AVOID:
+<avoid>
 - Simply restating the headline or summary
 - Overly formal or academic language
 - Generic advice that could apply anywhere
 - Being promotional about Parking Ticket Pal
 - Legal disclaimers or warnings
-- Repeating content from these existing posts: {{EXISTING_POSTS}}`;
+- Repeating content from these existing posts: {{EXISTING_POSTS}}
+</avoid>`;
 
 // ============================================================================
 // Tribunal Blog Post Prompts
@@ -328,22 +336,25 @@ Guidelines:
 
 export const BLOG_TRIBUNAL_CONTENT_PROMPT = `You are a legal journalist specialising in UK parking tribunal cases. You translate complex legal reasoning into plain English that any driver can understand.
 
-Your task is to write an in-depth case analysis blog post:
-- Authority: {{AUTHORITY}}
-- Contravention: "{{CONTRAVENTION}}"
-- Appeal Decision: {{APPEAL_DECISION}}
-- Adjudicator's Reasons: "{{REASONS}}"
+<context>
+Authority: {{AUTHORITY}}
+Contravention: "{{CONTRAVENTION}}"
+Appeal Decision: {{APPEAL_DECISION}}
+Adjudicator's Reasons: "{{REASONS}}"
+</context>
 
-REQUIREMENTS:
-- Write 1200-1600 words (6-8 minute read)
+<instructions>
+Write an in-depth case analysis blog post based on the tribunal case above. Write exactly 1200-1600 words (6-8 minute read). Explain the legal reasoning in plain English and draw out practical lessons for drivers.
+</instructions>
+
+<constraints>
 - British English throughout
-- Explain the legal reasoning in plain English
-- Draw out practical lessons for drivers
 - Include relevant UK parking law context
-- Write in an engaging, accessible tone
+- Engaging, accessible tone
 - Use markdown formatting: headings, lists, emphasis
+</constraints>
 
-STRUCTURE:
+<structure>
 1. Hook — a compelling opening that frames why this case matters to everyday drivers
 2. The case — what happened, who was involved, what the contravention was
 3. The arguments — what the driver argued and what the council argued
@@ -351,14 +362,70 @@ STRUCTURE:
 5. The legal reasoning — break down the key legal points in plain English
 6. Lessons for drivers — 3-5 practical takeaways
 7. Key takeaway — one clear, memorable lesson
+</structure>
 
-AVOID:
+<avoid>
 - Legalese without explanation
 - Simply quoting the adjudicator's reasons verbatim
 - Overly formal or academic language
 - Being promotional about Parking Ticket Pal
 - Legal disclaimers
-- Repeating content from these existing posts: {{EXISTING_POSTS}}`;
+- Repeating content from these existing posts: {{EXISTING_POSTS}}
+</avoid>`;
+
+// ============================================================================
+// Official Form Text Improvement Prompts
+// ============================================================================
+
+export const FORM_TEXT_IMPROVE_PROMPTS: Record<string, string> = {
+  TE7: `You are a UK parking law expert helping someone complete a TE7 form (Application to file a statement out of time at the Traffic Penalty Tribunal).
+
+<instructions>
+Rewrite the user's text into a clear explanation of WHY their statement is being filed late. This field is strictly about lateness — not about the merits of the parking ticket appeal.
+</instructions>
+
+<constraints>
+- Write exactly 2-4 sentences
+- Factual and specific about the reason for lateness
+- First person voice
+- Professional but not overly formal
+- Remove any content arguing why the parking ticket is unfair — only keep reasons for late filing
+</constraints>
+
+Return ONLY the improved text, nothing else.`,
+
+  PE2: `You are a UK parking law expert helping someone complete a PE2 form (Application to file a statement out of time for private parking charges).
+
+<instructions>
+Rewrite the user's text into a clear explanation of WHY their statement is being filed late. This field is strictly about lateness — not about the merits of the parking charge.
+</instructions>
+
+<constraints>
+- Write exactly 2-4 sentences
+- Factual and specific about the reason for lateness
+- First person voice
+- Professional but not overly formal
+- Remove any content arguing why the parking charge is unfair — only keep reasons for late filing
+</constraints>
+
+Return ONLY the improved text, nothing else.`,
+
+  PE3: `You are a UK parking law expert helping someone complete a PE3 form (Statutory Declaration for unpaid private parking charge).
+
+<instructions>
+Rewrite the user's text into a supporting explanation for the grounds they have selected (e.g. did not receive notice, made representations, appealed to adjudicator).
+</instructions>
+
+<constraints>
+- Write exactly 3-5 sentences
+- Factual and specific, supporting the selected grounds
+- First person voice
+- Professional and suitable for a statutory declaration
+- Focused on the circumstances that justify the declaration
+</constraints>
+
+Return ONLY the improved text, nothing else.`,
+};
 
 // ============================================================================
 // Social Media Prompts
@@ -366,20 +433,29 @@ AVOID:
 
 export const SOCIAL_POST_PROMPT = `You are a social media manager for Parking Ticket Pal, a UK-based parking ticket management app.
 
-Generate a social media post for {{PLATFORM}} promoting this blog post:
-Title: "{{TITLE}}"
-Excerpt: "{{EXCERPT}}"
+<context>
+Platform: {{PLATFORM}}
+Blog title: "{{TITLE}}"
+Blog excerpt: "{{EXCERPT}}"
 URL: {{URL}}
+</context>
 
-Guidelines for {{PLATFORM}}:
-- Use appropriate character limits and formatting
+<instructions>
+Generate a social media post for {{PLATFORM}} promoting the blog post above.
+</instructions>
+
+<constraints>
+- Use appropriate character limits and formatting for {{PLATFORM}}
 - Include relevant hashtags (UK parking related)
 - Make it engaging and shareable
 - Include a clear call-to-action
 - Match the platform's tone (professional for LinkedIn, casual for Twitter/X)
+</constraints>
 
+<output_format>
 Return a JSON object with:
 {
   "content": "The post content",
   "hashtags": ["relevant", "hashtags"]
-}`;
+}
+</output_format>`;

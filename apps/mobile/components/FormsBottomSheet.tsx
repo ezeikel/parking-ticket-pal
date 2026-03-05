@@ -70,6 +70,9 @@ const FormsBottomSheet = forwardRef<BottomSheet, FormsBottomSheetProps>(
           case 'PE3':
             result = await generatePE3Form(pcnNumber, grounds);
             break;
+          case 'N244':
+            toast.info('Coming Soon', 'N244 form generation is not yet available');
+            return;
           default:
             throw new Error('Invalid form type');
         }
@@ -257,6 +260,18 @@ const FormsBottomSheet = forwardRef<BottomSheet, FormsBottomSheetProps>(
         );
       }
 
+      // N244 - Coming soon placeholder
+      if (formType === 'N244') {
+        return (
+          <View className="mb-6 bg-gray-50 border border-gray-200 rounded-lg p-4 items-center">
+            <Text className="text-sm font-jakarta-semibold text-gray-700 mb-2">Coming Soon</Text>
+            <Text className="text-xs text-gray-500 text-center">
+              N244 form generation is under development and will be available in a future update.
+            </Text>
+          </View>
+        );
+      }
+
       return null;
     };
 
@@ -293,10 +308,10 @@ const FormsBottomSheet = forwardRef<BottomSheet, FormsBottomSheetProps>(
             </View>
 
             {/* Generate Button */}
-            <SquishyPressable onPress={handleGenerate} disabled={isLoading}>
+            <SquishyPressable onPress={handleGenerate} disabled={isLoading || formType === 'N244'}>
               <View
                 className={`rounded-lg p-4 items-center justify-center ${
-                  isLoading ? 'bg-purple-400' : 'bg-purple-600'
+                  isLoading || formType === 'N244' ? 'bg-purple-400' : 'bg-purple-600'
                 }`}
               >
                 {isLoading ? (

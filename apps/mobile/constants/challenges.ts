@@ -133,6 +133,12 @@ export const FORM_TYPES = {
     description: 'Statutory declaration - Unpaid penalty charge',
     issuerTypes: [IssuerType.PRIVATE_COMPANY],
   },
+  N244: {
+    id: 'N244',
+    name: 'N244 Form',
+    description: 'Application to set aside a county court judgment',
+    issuerTypes: [IssuerType.COUNCIL, IssuerType.TFL, IssuerType.PRIVATE_COMPANY],
+  },
 } as const;
 
 export type FormType = keyof typeof FORM_TYPES;

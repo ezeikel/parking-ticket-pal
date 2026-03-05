@@ -35,7 +35,7 @@ export const MODEL_IDS = {
   GEMINI_3_PRO_IMAGE: 'gemini-3-pro-image-preview',
 
   // Anthropic Claude models
-  CLAUDE_SONNET_4_5: 'claude-sonnet-4-5-20250929',
+  CLAUDE_SONNET_4_6: 'claude-sonnet-4-6',
 
   // Perplexity Sonar models (search-augmented)
   PERPLEXITY_SONAR: 'sonar',
@@ -65,9 +65,9 @@ export const models = {
   // Best for: blog featured images when Pexels doesn't have suitable photos
   geminiImage: google(MODEL_IDS.GEMINI_3_PRO_IMAGE),
 
-  // Creative writing model (Claude Sonnet 4.5)
-  // Best for: engaging scripts, storytelling, creative content generation
-  creative: anthropic(MODEL_IDS.CLAUDE_SONNET_4_5),
+  // Creative writing model (Claude Sonnet 4.6)
+  // Best for: engaging scripts, storytelling, creative content generation, legal writing
+  creative: anthropic(MODEL_IDS.CLAUDE_SONNET_4_6),
 
   // Search-augmented model (Perplexity Sonar)
   // Best for: discovering current news, research with citations

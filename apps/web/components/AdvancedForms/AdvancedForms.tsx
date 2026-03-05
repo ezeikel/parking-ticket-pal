@@ -72,6 +72,11 @@ const formOptions: {
     label: 'TE9: Witness Statement - Unpaid penalty charge',
     requiresSignature: true,
   },
+  {
+    value: FormType.N244,
+    label: 'N244: Application to set aside a county court judgment',
+    requiresSignature: false,
+  },
 ];
 
 // This component will render the specific fields for the TE9 form
@@ -383,6 +388,9 @@ const AdvancedForms = ({ ticket, hasSignature }: AdvancedFormsProps) => {
         case FormType.TE9:
           result = await generateTE9Form(finalFormData);
           break;
+        case FormType.N244:
+          toast.info('N244 form generation is coming soon.');
+          return;
         default:
           toast.error('Invalid form type selected.');
           return;
@@ -423,8 +431,19 @@ const AdvancedForms = ({ ticket, hasSignature }: AdvancedFormsProps) => {
       case FormType.TE7:
         FormComponent = <TE7Fields onDataChange={setFormData} />;
         break;
-      case FormType.PE2: // assuming PE2 has similar fields to TE7 for this example
+      case FormType.PE2:
         FormComponent = <TE7Fields onDataChange={setFormData} />;
+        break;
+      case FormType.N244:
+        FormComponent = (
+          <div className="rounded-md border bg-muted/50 p-4 text-center">
+            <p className="font-medium text-muted-foreground">Coming Soon</p>
+            <p className="mt-1 text-sm text-muted-foreground">
+              N244 form generation is under development and will be available in
+              a future update.
+            </p>
+          </div>
+        );
         break;
       default:
         return null;
@@ -494,7 +513,14 @@ const AdvancedForms = ({ ticket, hasSignature }: AdvancedFormsProps) => {
             className="w-full"
           >
             <div className="flex w-full justify-end">
-              <Button type="submit" disabled={!selectedForm || isGenerating}>
+              <Button
+                type="submit"
+                disabled={
+                  !selectedForm ||
+                  isGenerating ||
+                  selectedForm === FormType.N244
+                }
+              >
                 <FontAwesomeIcon
                   icon={isGenerating ? faSpinnerThird : faFilePdf}
                   size="lg"

@@ -431,11 +431,11 @@ const generateBlogContent = async (
   const contentPrompt = createContentPrompt(meta, existingPosts);
 
   const { text: content } = await generateText({
-    model: getTracedModel(models.text, {
+    model: getTracedModel(models.creative, {
       properties: { feature: 'blog_content_generation', title: meta.title },
     }),
     system:
-      'You are a professional content writer specializing in UK parking and traffic law.',
+      'You are a professional content writer specialising in UK parking and traffic law.',
     prompt: contentPrompt,
     temperature: 0.7,
   });
@@ -1211,7 +1211,7 @@ export const generateNewsBlogPost = async (newsData: {
       .replace('{{EXISTING_POSTS}}', coveredTopics.join(', '));
 
     const { text: content } = await generateText({
-      model: getTracedModel(models.text, {
+      model: getTracedModel(models.creative, {
         properties: { feature: 'blog_news_content', title: meta.title },
       }),
       system:
@@ -1356,7 +1356,7 @@ export const generateTribunalBlogPost = async (caseData: {
       .replace('{{EXISTING_POSTS}}', coveredTopics.join(', '));
 
     const { text: content } = await generateText({
-      model: getTracedModel(models.text, {
+      model: getTracedModel(models.creative, {
         properties: { feature: 'blog_tribunal_content', title: meta.title },
       }),
       system:

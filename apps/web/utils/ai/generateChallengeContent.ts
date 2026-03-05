@@ -247,8 +247,8 @@ async function generateChallengeContent(
       issuerEvidenceImageUrls = [],
     } = params;
 
-    // Generate text for form field input using Vercel AI SDK
-    const tracedModel = getTracedModel(models.text, {
+    // Generate text for form field input using Claude Sonnet
+    const tracedModel = getTracedModel(models.creative, {
       userId: userId || 'system',
       properties: { feature: 'challenge_form_field', pcnNumber },
     });
@@ -290,6 +290,7 @@ async function generateChallengeContent(
 
       return text;
     } catch (error) {
+      // eslint-disable-next-line no-console
       console.error('Error generating challenge text for form field:', error);
       return null;
     }

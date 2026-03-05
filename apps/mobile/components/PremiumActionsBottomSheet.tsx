@@ -1,13 +1,13 @@
 import React, { useMemo } from 'react';
 import { View, Text, Modal, Pressable } from 'react-native';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
-import { faFileLines, faFileContract, faXmark } from '@fortawesome/pro-regular-svg-icons';
+import { faFileLines, faFileContract, faXmark, faRobot } from '@fortawesome/pro-regular-svg-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { IssuerType } from '@/types';
 import { getAvailableForms, FORM_TYPES, FormType } from '@/constants/challenges';
 import SquishyPressable from './SquishyPressable/SquishyPressable';
 
-type PremiumAction = 'challenge-letter' | FormType;
+export type PremiumAction = 'auto-challenge' | 'challenge-letter' | FormType;
 
 interface PremiumActionsBottomSheetProps {
   visible: boolean;
@@ -40,8 +40,36 @@ const PremiumActionsBottomSheet = ({
           </Pressable>
         </View>
         <Text className="text-sm text-gray-600 mb-6">
-          Generate professional documents to challenge your parking ticket
+          Challenge your parking ticket automatically or generate professional documents
         </Text>
+
+        {/* Auto-Submit Challenge */}
+        <SquishyPressable
+          onPress={() => onActionSelect('auto-challenge')}
+          className="mb-3 active:opacity-70"
+          testID="action-auto-challenge"
+        >
+          <View className="bg-white border border-gray-200 rounded-xl p-4 flex-row items-center">
+            <View className="w-12 h-12 bg-teal/10 rounded-lg items-center justify-center mr-3">
+              <FontAwesomeIcon icon={faRobot} size={20} color="#14b8a6" />
+            </View>
+            <View className="flex-1">
+              <View className="flex-row items-center gap-2 mb-1">
+                <Text className="text-base font-jakarta-semibold text-gray-900">
+                  Auto-Submit Challenge
+                </Text>
+                <View className="bg-teal/10 rounded-full px-2 py-0.5">
+                  <Text className="text-xs font-jakarta-medium text-teal">
+                    Recommended
+                  </Text>
+                </View>
+              </View>
+              <Text className="text-sm text-gray-600">
+                We submit the challenge on the issuer's website for you
+              </Text>
+            </View>
+          </View>
+        </SquishyPressable>
 
         {/* Challenge Letter */}
         <SquishyPressable
@@ -50,15 +78,15 @@ const PremiumActionsBottomSheet = ({
           testID="action-challenge-letter"
         >
           <View className="bg-white border border-gray-200 rounded-xl p-4 flex-row items-center">
-            <View className="w-12 h-12 bg-teal/10 rounded-lg items-center justify-center mr-3">
-              <FontAwesomeIcon icon={faFileLines} size={20} color="#3b82f6" />
+            <View className="w-12 h-12 bg-orange-50 rounded-lg items-center justify-center mr-3">
+              <FontAwesomeIcon icon={faFileLines} size={20} color="#f97316" />
             </View>
             <View className="flex-1">
               <Text className="text-base font-jakarta-semibold text-gray-900 mb-1">
                 Challenge Letter
               </Text>
               <Text className="text-sm text-gray-600">
-                Generate a formal appeal letter
+                Generate a formal appeal letter to send by email or post
               </Text>
             </View>
           </View>
