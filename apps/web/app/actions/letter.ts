@@ -39,7 +39,12 @@ import { render } from '@react-email/render';
 import generatePDF from '@/utils/generatePDF';
 import streamToBuffer from '@/utils/streamToBuffer';
 import generateChallengeContent from '@/utils/ai/generateChallengeContent';
+import type { LetterEnrichment } from '@/utils/ai/generateChallengeContent';
 import { createServerLogger } from '@/lib/logger';
+import { calculatePrediction } from '@/services/prediction-service';
+import { getStatutoryGroundById } from '@/constants/statutory-grounds';
+import { getEducationalContentForCode } from '@/data/contravention-codes/educational-content';
+import { getContraventionDetails } from '@parking-ticket-pal/constants';
 
 const logger = createServerLogger({ action: 'letter' });
 
@@ -577,6 +582,99 @@ const generateChallengeLetterByTicketId = async (
       address: user.address as Address,
     };
 
+    // Fetch enrichment data for AI letter generation
+    const REASON_TO_STATUTORY_GROUND: Record<string, string> = {
+      CONTRAVENTION_DID_NOT_OCCUR: 'contravention-did-not-occur',
+      NOT_VEHICLE_OWNER: 'not-owner-at-time',
+      VEHICLE_STOLEN: 'vehicle-taken-without-consent',
+      HIRE_FIRM: 'hired-vehicle',
+      EXCEEDED_AMOUNT: 'penalty-exceeded',
+      INVALID_TMO: 'invalid-tro',
+      PROCEDURAL_IMPROPRIETY: 'procedural-impropriety',
+      UNCLEAR_SIGNAGE: 'inadequate-signage',
+      NO_BREACH_CONTRACT: 'contravention-did-not-occur',
+      MITIGATING_CIRCUMSTANCES: 'medical-emergency',
+    };
+
+    let enrichment: LetterEnrichment | undefined;
+    try {
+      const [prediction, exampleCases] = await Promise.all([
+        calculatePrediction({
+          contraventionCode: ticket.contraventionCode,
+          issuer: ticket.issuer,
+        }),
+        // Fetch 1-2 example winning tribunal cases for this contravention + issuer
+        db.londonTribunalCase.findMany({
+          where: {
+            normalizedContraventionCode: ticket.contraventionCode || undefined,
+            appealDecision: 'ALLOWED',
+            reasons: { not: '' },
+          },
+          select: { reasons: true },
+          orderBy: { decisionDate: 'desc' },
+          take: 2,
+        }),
+      ]);
+
+      // Get statutory ground for selected reason
+      const statutoryGroundId = REASON_TO_STATUTORY_GROUND[challengeReason];
+      const statutoryGround = statutoryGroundId
+        ? getStatutoryGroundById(statutoryGroundId)
+        : undefined;
+
+      // Get educational content / appeal guidance
+      let appealGuidance: string[] | undefined;
+      if (ticket.contraventionCode) {
+        const codeDetails = getContraventionDetails(ticket.contraventionCode);
+        const educationalContent = getEducationalContentForCode(
+          ticket.contraventionCode,
+          codeDetails.category,
+        );
+        appealGuidance = educationalContent.appealApproach;
+      }
+
+      enrichment = {
+        successRate:
+          prediction.numberOfCases > 0
+            ? {
+                percentage: prediction.percentage,
+                numberOfCases: prediction.numberOfCases,
+              }
+            : undefined,
+        winningPatterns:
+          prediction.metadata.winningPatterns.length > 0
+            ? prediction.metadata.winningPatterns
+            : undefined,
+        losingPatterns:
+          prediction.metadata.losingPatterns.length > 0
+            ? prediction.metadata.losingPatterns
+            : undefined,
+        statutoryGround: statutoryGround
+          ? {
+              label: statutoryGround.label,
+              description: statutoryGround.description,
+            }
+          : undefined,
+        appealGuidance,
+        exampleWinningReasons:
+          exampleCases.length > 0
+            ? exampleCases.map((c) =>
+                c.reasons.length > 500
+                  ? `${c.reasons.slice(0, 500)}...`
+                  : c.reasons,
+              )
+            : undefined,
+      };
+    } catch (enrichmentError) {
+      logger.error(
+        'Failed to fetch enrichment data for challenge letter (continuing without)',
+        { ticketId, challengeReason },
+        enrichmentError instanceof Error
+          ? enrichmentError
+          : new Error(String(enrichmentError)),
+      );
+    }
+
     // generate challenge letter using shared utility
     const letterData = await generateChallengeContent({
       pcnNumber: ticket.pcnNumber,
@@ -586,6 +684,7 @@ const generateChallengeLetterByTicketId = async (
       ticket: ticketForChallenge,
       user: userForChallenge,
       contraventionCodes: CONTRAVENTION_CODES,
+      enrichment,
     });
 
     if (!letterData) {

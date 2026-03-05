@@ -43,10 +43,13 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     marginBottom: 20,
   },
-  body: {
+  bodyContainer: {
+    marginBottom: 30,
+  },
+  bodyParagraph: {
     fontSize: 11,
     lineHeight: 1.6,
-    marginBottom: 30,
+    marginBottom: 10,
   },
   closing: {
     fontSize: 11,
@@ -95,10 +98,18 @@ const ChallengeLetterDocument = ({ content }: ChallengeLetterDocumentProps) => (
       {/* Header with recipient on left and sender on right */}
       <View style={styles.header}>
         <View style={styles.recipientInfo}>
-          <Text style={styles.addressLine}>{content.recipientName}</Text>
-          <Text style={styles.addressLine}>{content.recipientAddress}</Text>
-          <Text style={styles.addressLine}>{content.recipientCity}</Text>
-          <Text style={styles.addressLine}>{content.recipientPostcode}</Text>
+          {!!content.recipientName && (
+            <Text style={styles.addressLine}>{content.recipientName}</Text>
+          )}
+          {!!content.recipientAddress && (
+            <Text style={styles.addressLine}>{content.recipientAddress}</Text>
+          )}
+          {!!content.recipientCity && (
+            <Text style={styles.addressLine}>{content.recipientCity}</Text>
+          )}
+          {!!content.recipientPostcode && (
+            <Text style={styles.addressLine}>{content.recipientPostcode}</Text>
+          )}
         </View>
         <View style={styles.senderInfo}>
           <Text style={[styles.addressLine, styles.senderInfo]}>
@@ -136,7 +147,13 @@ const ChallengeLetterDocument = ({ content }: ChallengeLetterDocumentProps) => (
       <Text style={styles.subject}>{content.subject}</Text>
 
       {/* Body */}
-      <Text style={styles.body}>{content.body}</Text>
+      <View style={styles.bodyContainer}>
+        {content.body.split('\n\n').map((paragraph, index) => (
+          <Text key={index} style={styles.bodyParagraph}>
+            {paragraph.trim()}
+          </Text>
+        ))}
+      </View>
 
       {/* Closing */}
       <Text style={styles.closing}>{content.closing}</Text>
