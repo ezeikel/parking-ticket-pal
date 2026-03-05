@@ -241,17 +241,17 @@ const CameraSheet = ({ isVisible, onClose, onboardingMode, onOCRComplete }: Came
 
     // Scanning phase
     return (
-      <View style={{ flex: 1, backgroundColor: 'black' }}>
+      <View style={{ flex: 1, backgroundColor: 'white' }}>
         {isLoadingPermissions ? (
           <View style={{
             flex: 1,
             justifyContent: 'center',
             alignItems: 'center',
-            backgroundColor: 'black'
+            backgroundColor: 'white'
           }}>
-            <Loader size={48} color="white" />
+            <Loader size={48} color="#222222" />
             <Text style={{
-              color: 'white',
+              color: '#6B7280',
               marginTop: 16,
               fontSize: 16,
               fontFamily: 'Inter18pt-Regular'
@@ -271,7 +271,7 @@ const CameraSheet = ({ isVisible, onClose, onboardingMode, onOCRComplete }: Came
         ) : (
           <View style={{
             flex: 1,
-            backgroundColor: 'black'
+            backgroundColor: 'white'
           }} />
         )}
       </View>

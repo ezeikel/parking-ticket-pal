@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import type { PressableProps } from 'react-native';
+import type { PressableProps, StyleProp, ViewStyle } from 'react-native';
 import { Platform } from 'react-native';
 import * as Haptics from 'expo-haptics';
 import Animated, {
@@ -18,6 +18,7 @@ type SquishyPressableProps = PressableProps & {
   onPress?: () => void;
   scaleTo?: number;
   disabled?: boolean;
+  style?: StyleProp<ViewStyle>;
 };
 
 const SquishyPressable = ({
@@ -25,6 +26,7 @@ const SquishyPressable = ({
   disabled,
   children,
   scaleTo = 0.95,
+  style,
   ...props
 }: SquishyPressableProps) => {
   const pressed = useSharedValue(false);
@@ -47,7 +49,7 @@ const SquishyPressable = ({
   });
 
   return (
-    <Animated.View style={[animatedStyle]}>
+    <Animated.View style={[animatedStyle, style]}>
       <OptionalPressable
         onPress={onPress}
         onPressOut={() => pressed.set(false)}

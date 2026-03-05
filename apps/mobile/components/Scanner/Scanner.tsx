@@ -20,6 +20,7 @@ type ScannerProps = {
 
 const Scanner = ({ onClose, onImageScanned, onOCRComplete }: ScannerProps) => {
   const [scannedImage, setScannedImage] = useState<string>();
+  const [displayUri, setDisplayUri] = useState<string>();
 
   const ocrMutation = useOCR();
   const { trackEvent, trackError } = useAnalytics();
@@ -41,6 +42,7 @@ const Scanner = ({ onClose, onImageScanned, onOCRComplete }: ScannerProps) => {
 
     return () => {
       setScannedImage(undefined);
+      setDisplayUri(undefined);
     };
   }, []);
 
@@ -98,9 +100,12 @@ const Scanner = ({ onClose, onImageScanned, onOCRComplete }: ScannerProps) => {
       }
 
       if (!result.canceled) {
-        const imageUri = result.assets?.[0]?.base64;
-        if (imageUri) {
-          setScannedImage(imageUri);
+        const asset = result.assets?.[0];
+        const imageBase64 = asset?.base64;
+        const imageFileUri = asset?.uri;
+        if (imageBase64) {
+          setScannedImage(imageBase64);
+          setDisplayUri(imageFileUri);
           trackEvent("ticket_scan_success", {
             screen: "scanner",
             scan_method: "image_picker"
@@ -292,6 +297,7 @@ const Scanner = ({ onClose, onImageScanned, onOCRComplete }: ScannerProps) => {
   const handleRetry = () => {
     trackEvent("ticket_scan_retry", { screen: "scanner" });
     setScannedImage(undefined);
+    setDisplayUri(undefined);
     scanDocument();
   };
 
@@ -300,12 +306,17 @@ const Scanner = ({ onClose, onImageScanned, onOCRComplete }: ScannerProps) => {
     return null;
   }
 
+  // Use file URI for display if available, otherwise fall back to base64 data URI
+  const imageSource = displayUri
+    ? { uri: displayUri }
+    : { uri: `data:image/jpeg;base64,${scannedImage}` };
+
   return (
-    <View className="flex-1 items-center justify-between py-4">
-      <View className="flex-1 justify-center">
+    <View className="flex-1 justify-between py-4 bg-white">
+      <View style={{ flex: 1, marginHorizontal: 16 }}>
         <Image
-          source={{ uri: `data:image/jpeg;base64,${scannedImage}` }}
-          className="w-72 h-96 rounded-lg"
+          source={imageSource}
+          style={{ flex: 1, borderRadius: 8 }}
           contentFit="contain"
         />
         {ocrMutation.isPending && (
@@ -321,10 +332,11 @@ const Scanner = ({ onClose, onImageScanned, onOCRComplete }: ScannerProps) => {
       <View className="w-full px-4 flex-row justify-center gap-4">
         <SquishyPressable
           onPress={handleRetry}
-          className="flex-1 py-3 border border-gray-300 rounded-lg"
+          className="py-3 border border-gray-300 rounded-lg"
+          style={{ flex: 1 }}
           disabled={ocrMutation.isPending}
         >
-          <Text className="text-center font-jakarta-medium">
+          <Text className="text-dark text-center font-jakarta-medium">
             Retry Scan
           </Text>
         </SquishyPressable>
@@ -332,7 +344,8 @@ const Scanner = ({ onClose, onImageScanned, onOCRComplete }: ScannerProps) => {
         <SquishyPressable
           testID="scanner-process"
           onPress={handleProcess}
-          className="flex-1 bg-dark py-3 rounded-lg"
+          className="bg-dark py-3 rounded-lg"
+          style={{ flex: 1 }}
           disabled={ocrMutation.isPending}
         >
           {ocrMutation.isPending ? (
