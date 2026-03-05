@@ -9,6 +9,7 @@ import {
   faFileLines,
   faPen,
   faCreditCard,
+  faCircleCheck,
   faTrash,
   faLock,
   faRobot,
@@ -30,6 +31,9 @@ type ActionsCardProps = {
   onMarkAsPaid?: () => void;
   onDelete?: () => void;
   onUpgrade?: () => void;
+  showPay?: boolean;
+  currentAmount?: number;
+  onPay?: () => void;
 };
 
 const isNeedsAction = (status: TicketStatus) =>
@@ -59,6 +63,9 @@ const ActionsCard = ({
   onMarkAsPaid,
   onDelete,
   onUpgrade,
+  showPay = false,
+  currentAmount,
+  onPay,
 }: ActionsCardProps) => {
   const needsAction = isNeedsAction(status);
   const submitted = isSubmitted(status);
@@ -74,6 +81,18 @@ const ActionsCard = ({
       <h2 className="text-lg font-semibold text-dark">Actions</h2>
 
       <div className="mt-4 space-y-3">
+        {/* Pay button - behind feature flag */}
+        {showPay && needsAction && currentAmount !== undefined && (
+          <Button
+            variant="outline"
+            className="w-full gap-2 bg-transparent"
+            onClick={onPay}
+          >
+            <FontAwesomeIcon icon={faCreditCard} />
+            Pay £{(currentAmount / 100).toFixed(2)}
+          </Button>
+        )}
+
         {/* Primary Actions - Conditional on status, tier, and letter existence */}
         {isPremium && needsAction && (
           <>
@@ -163,7 +182,7 @@ const ActionsCard = ({
             className="w-full justify-start text-gray hover:text-dark"
             onClick={onMarkAsPaid}
           >
-            <FontAwesomeIcon icon={faCreditCard} className="mr-2" />
+            <FontAwesomeIcon icon={faCircleCheck} className="mr-2 text-teal" />
             Mark as Paid
           </Button>
           <Button

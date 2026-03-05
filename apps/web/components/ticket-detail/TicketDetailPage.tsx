@@ -1,8 +1,10 @@
 'use client';
 
-import { useState, useTransition } from 'react';
+import { useEffect, useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
+import posthog from 'posthog-js';
 import { toast } from 'sonner';
+import { FLAG_SHOW_PAY_TICKET } from '@parking-ticket-pal/constants';
 import {
   MediaSource,
   TicketStatus,
@@ -71,6 +73,7 @@ const TicketDetailPage = ({
 }: TicketDetailPageProps) => {
   const router = useRouter();
   const [, startTransition] = useTransition();
+  const [showPayTicket, setShowPayTicket] = useState(false);
   const [lightboxImage, setLightboxImage] = useState<string | null>(null);
   const [selectedLetter, setSelectedLetter] = useState<LetterWithMedia | null>(
     null,
@@ -85,6 +88,17 @@ const TicketDetailPage = ({
   const [retryCustomReason, setRetryCustomReason] = useState<
     string | undefined
   >();
+
+  useEffect(
+    () =>
+      // onFeatureFlags fires immediately if flags are already loaded, and again on reload
+      posthog.onFeatureFlags(() => {
+        setShowPayTicket(
+          posthog.isFeatureEnabled(FLAG_SHOW_PAY_TICKET) === true,
+        );
+      }),
+    [],
+  );
 
   // Helper to open dialog for retry
   const openAutoChallengeDialogForRetry = (
@@ -545,6 +559,9 @@ const TicketDetailPage = ({
                   tier={ticket.tier}
                   hasLetter={ticket.letters.length > 0}
                   deadlineDays={deadlineDays}
+                  showPay={showPayTicket}
+                  currentAmount={currentAmount}
+                  onPay={() => toast.info('Pay feature coming soon')}
                   onAutoChallenge={() => setIsAutoChallengeDialogOpen(true)}
                   onGenerateLetter={handleOpenGenerateLetterDialog}
                   onPreviewLetter={() => {
@@ -605,6 +622,7 @@ const TicketDetailPage = ({
 
       {/* Mobile Sticky Footer */}
       <MobileStickyFooter
+        showPay={showPayTicket}
         currentAmount={currentAmount}
         onPay={() => {
           // Navigate to payment or show payment options

@@ -39,6 +39,8 @@ import TicketJourneyCard from '@/components/ticket-detail/TicketJourneyCard';
 import ActivityTimelineCard, {
   type TimelineEvent,
 } from '@/components/ticket-detail/ActivityTimelineCard';
+import { useFeatureFlag } from 'posthog-react-native';
+import { FLAG_SHOW_PAY_TICKET } from '@parking-ticket-pal/constants';
 import StickyBottomCTA from '@/components/ticket-detail/StickyBottomCTA';
 
 const padding = 16;
@@ -50,6 +52,7 @@ export default function TicketDetailScreen() {
   const { data, isLoading, isError, refetch } = useTicket(id!);
   const { hasPremiumAccess } =
     usePurchases();
+  const showPayTicket = useFeatureFlag(FLAG_SHOW_PAY_TICKET) === true;
 
   // Bottom sheet refs
   const formsSheetRef = useRef<BottomSheet>(null);
@@ -331,6 +334,7 @@ export default function TicketDetailScreen() {
       {/* Sticky Bottom CTA - Pay & Challenge (outside SafeAreaView so it handles its own bottom inset) */}
       {!isTerminal && (
         <StickyBottomCTA
+          showPay={showPayTicket}
           currentAmount={currentAmount}
           onPay={handlePay}
           onChallenge={handleChallenge}

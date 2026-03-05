@@ -5,8 +5,9 @@ import { faCreditCard, faPaperPlane } from '@fortawesome/pro-solid-svg-icons';
 import SquishyPressable from '@/components/SquishyPressable/SquishyPressable';
 
 type StickyBottomCTAProps = {
-  currentAmount: number;
-  onPay: () => void;
+  showPay?: boolean;
+  currentAmount?: number;
+  onPay?: () => void;
   onChallenge: () => void;
 };
 
@@ -14,6 +15,7 @@ const formatAmount = (pence: number) =>
   `£${(pence / 100).toFixed(2)}`;
 
 export default function StickyBottomCTA({
+  showPay = false,
   currentAmount,
   onPay,
   onChallenge,
@@ -30,31 +32,33 @@ export default function StickyBottomCTA({
         paddingTop: 12,
         paddingBottom: Math.max(insets.bottom, 12),
         flexDirection: 'row',
-        columnGap: 12,
+        columnGap: showPay ? 12 : 0,
       }}
     >
       {/* Pay button */}
-      <View style={{ flex: 1 }}>
-        <SquishyPressable onPress={onPay}>
-          <View
-            style={{
-              borderRadius: 12,
-              borderCurve: 'continuous',
-              borderWidth: 1,
-              borderColor: '#E2E8F0',
-              paddingVertical: 14,
-              flexDirection: 'row',
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
-          >
-            <FontAwesomeIcon icon={faCreditCard} size={16} color="#222222" style={{ marginRight: 8 }} />
-            <Text style={{ fontFamily: 'PlusJakartaSans-SemiBold', fontSize: 14, color: '#222222' }}>
-              Pay {formatAmount(currentAmount)}
-            </Text>
-          </View>
-        </SquishyPressable>
-      </View>
+      {showPay && currentAmount !== undefined && (
+        <View style={{ flex: 1 }}>
+          <SquishyPressable onPress={onPay}>
+            <View
+              style={{
+                borderRadius: 12,
+                borderCurve: 'continuous',
+                borderWidth: 1,
+                borderColor: '#E2E8F0',
+                paddingVertical: 14,
+                flexDirection: 'row',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              <FontAwesomeIcon icon={faCreditCard} size={16} color="#222222" style={{ marginRight: 8 }} />
+              <Text style={{ fontFamily: 'PlusJakartaSans-SemiBold', fontSize: 14, color: '#222222' }}>
+                Pay {formatAmount(currentAmount)}
+              </Text>
+            </View>
+          </SquishyPressable>
+        </View>
+      )}
 
       {/* Challenge button */}
       <View style={{ flex: 1 }}>
