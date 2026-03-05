@@ -1,19 +1,22 @@
-/* eslint-disable import-x/prefer-default-export */
-
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import {
   db,
   TicketStatus,
+  TicketTier,
   VerificationStatus,
   AmountIncreaseSourceType,
   NotificationEventType,
 } from '@parking-ticket-pal/db';
-import { auth } from '@/auth';
+import { getUserId } from '@/utils/user';
 import { createServerLogger } from '@/lib/logger';
-import { pollStatusCheck } from '@/utils/automation/workerClient';
+import {
+  pollStatusCheck,
+  startStatusCheck,
+} from '@/utils/automation/workerClient';
 import { revalidatePath } from 'next/cache';
 import { getCurrentAmountDue } from '@/utils/getCurrentAmountDue';
 import { createAndSendNotification } from '@/lib/notifications/create';
+import { findIssuer } from '@/constants/index';
 
 const logger = createServerLogger({ action: 'live-status-poll' });
 
@@ -26,12 +29,12 @@ const logger = createServerLogger({ action: 'live-status-poll' });
  * If the job is complete, updates the verification record and returns the result.
  */
 export async function GET(
-  _request: Request,
+  _request: NextRequest,
   { params }: { params: Promise<{ id: string }> },
 ) {
   try {
-    const session = await auth();
-    if (!session?.user?.id) {
+    const userId = await getUserId('check live status');
+    if (!userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
@@ -56,7 +59,7 @@ export async function GET(
     }
 
     // Verify ownership
-    if (ticket.vehicle.user.id !== session.user.id) {
+    if (ticket.vehicle.user.id !== userId) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
@@ -285,6 +288,134 @@ export async function GET(
 
     return NextResponse.json(
       { error: 'Internal server error' },
+      { status: 500 },
+    );
+  }
+}
+
+/**
+ * Start a live status check
+ *
+ * POST /api/tickets/[id]/live-status
+ *
+ * Starts a new status check job on the worker and returns the jobId.
+ * The frontend polls GET for results.
+ */
+export async function POST(
+  _request: NextRequest,
+  { params }: { params: Promise<{ id: string }> },
+) {
+  try {
+    const userId = await getUserId('start live status check');
+    if (!userId) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const { id: ticketId } = await params;
+
+    const ticket = await db.ticket.findUnique({
+      where: { id: ticketId },
+      include: {
+        vehicle: {
+          include: {
+            user: true,
+          },
+        },
+      },
+    });
+
+    if (!ticket) {
+      return NextResponse.json(
+        { success: false, error: 'Ticket not found.' },
+        { status: 404 },
+      );
+    }
+
+    if (ticket.vehicle.user.id !== userId) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'You do not have permission to check this ticket.',
+        },
+        { status: 403 },
+      );
+    }
+
+    if (ticket.tier !== TicketTier.PREMIUM) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'Live status check is only available for PREMIUM tickets.',
+        },
+        { status: 403 },
+      );
+    }
+
+    const issuer = ticket.issuer ? findIssuer(ticket.issuer) : undefined;
+    const issuerId =
+      issuer?.id || (ticket.issuer ?? '').toLowerCase().replace(/\s+/g, '-');
+
+    logger.info('Starting live status check (API)', {
+      ticketId,
+      pcnNumber: ticket.pcnNumber,
+      issuerId,
+    });
+
+    const { jobId } = await startStatusCheck({
+      ticketId,
+      pcnNumber: ticket.pcnNumber,
+      vehicleReg: ticket.vehicle.registrationNumber,
+      issuerId,
+    });
+
+    logger.info('Status check job started (API)', { ticketId, jobId });
+
+    // Store the pending verification with jobId
+    await db.verification.upsert({
+      where: { ticketId },
+      create: {
+        type: 'TICKET',
+        ticketId,
+        status: VerificationStatus.UNVERIFIED,
+        verifiedAt: new Date(),
+        metadata: {
+          jobId,
+          checkedAt: new Date().toISOString(),
+          issuerId,
+        },
+      },
+      update: {
+        status: VerificationStatus.UNVERIFIED,
+        verifiedAt: new Date(),
+        metadata: {
+          jobId,
+          checkedAt: new Date().toISOString(),
+          issuerId,
+        },
+      },
+    });
+
+    revalidatePath('/tickets/[id]', 'page');
+
+    return NextResponse.json({
+      success: true,
+      jobId,
+    });
+  } catch (error) {
+    logger.error(
+      'Error starting live status check',
+      {},
+      error instanceof Error ? error : new Error(String(error)),
+    );
+
+    return NextResponse.json(
+      {
+        success: false,
+        error:
+          error instanceof Error
+            ? error.message
+            : 'Failed to start status check.',
+      },
       { status: 500 },
     );
   }
