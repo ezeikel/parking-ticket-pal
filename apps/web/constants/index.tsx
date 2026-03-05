@@ -19,6 +19,8 @@ import {
   PRIVATE_COMPANY_IDS,
   TRANSPORT_AUTHORITY_IDS,
   slugToDisplayName,
+  displayNameToSlug,
+  ISSUER_ADDRESSES,
   type LocalAuthorityId,
   type PrivateCompanyId,
   type TransportAuthorityId,
@@ -242,10 +244,34 @@ export const isAutomationSupported = (
 ): issuerId is AutomationIssuerId =>
   !!AUTOMATIONS[issuerId as AutomationIssuerId];
 
-export const findIssuer = (text: string) =>
-  ISSUERS.find((issuer) =>
+export const findIssuer = (text: string) => {
+  // First try matchPatterns on the known ISSUERS array
+  const patternMatch = ISSUERS.find((issuer) =>
     issuer.matchPatterns.some((pattern: RegExp) => pattern.test(text)),
   );
+  if (patternMatch) return patternMatch;
+
+  // Fall back to displayNameToSlug which handles formal names,
+  // stripped prefixes ("London Borough of X"), and ISSUER_ADDRESSES formalName
+  const slug = displayNameToSlug(text);
+  if (!slug) return undefined;
+
+  // Check if the slug matches a known issuer in the ISSUERS array
+  const slugMatch = ISSUERS.find((issuer) => issuer.id === slug);
+  if (slugMatch) return slugMatch;
+
+  // Slug found but not in ISSUERS array — synthesize a minimal issuer object
+  const formalName = ISSUER_ADDRESSES[slug]?.formalName;
+  const name = formalName || slugToDisplayName(slug);
+  let type: IssuerType = IssuerType.COUNCIL;
+  if ((PRIVATE_COMPANY_IDS as readonly string[]).includes(slug)) {
+    type = IssuerType.PRIVATE_COMPANY;
+  } else if ((TRANSPORT_AUTHORITY_IDS as readonly string[]).includes(slug)) {
+    type = IssuerType.TFL;
+  }
+
+  return { id: slug, name, type, matchPatterns: [] as RegExp[] };
+};
 
 export const COUNCIL_CHALLENGE_REASONS = {
   CONTRAVENTION_DID_NOT_OCCUR: {

@@ -20,7 +20,9 @@ import { toast } from '@/lib/toast';
 import Loader from '@/components/Loader/Loader';
 import SquishyPressable from '@/components/SquishyPressable/SquishyPressable';
 import PremiumActionsBottomSheet from '@/components/PremiumActionsBottomSheet';
+import type { PremiumAction } from '@/components/PremiumActionsBottomSheet';
 import ChallengeWizard from '@/components/ChallengeWizard/ChallengeWizard';
+import AutoChallengeWizard from '@/components/AutoChallengeWizard/AutoChallengeWizard';
 import FormsBottomSheet from '@/components/FormsBottomSheet';
 import { FormType } from '@/constants/challenges';
 import { usePurchases } from '@/contexts/purchases';
@@ -54,17 +56,18 @@ export default function TicketDetailScreen() {
 
   const [isPremiumActionsVisible, setIsPremiumActionsVisible] = useState(false);
   const [isChallengeLetterVisible, setIsChallengeLetterVisible] = useState(false);
+  const [isAutoChallengeVisible, setIsAutoChallengeVisible] = useState(false);
   const [selectedFormType, setSelectedFormType] = useState<FormType | null>(
     null,
   );
 
-  const handlePremiumActionSelect = (
-    action: 'challenge-letter' | FormType,
-  ) => {
+  const handlePremiumActionSelect = (action: PremiumAction) => {
     setIsPremiumActionsVisible(false);
     // Use setTimeout to let modal dismiss before opening next modal/sheet
     setTimeout(() => {
-      if (action === 'challenge-letter') {
+      if (action === 'auto-challenge') {
+        setIsAutoChallengeVisible(true);
+      } else if (action === 'challenge-letter') {
         setIsChallengeLetterVisible(true);
       } else {
         setSelectedFormType(action);
@@ -75,6 +78,7 @@ export default function TicketDetailScreen() {
 
   const handleSuccess = () => {
     setIsChallengeLetterVisible(false);
+    setIsAutoChallengeVisible(false);
     formsSheetRef.current?.close();
     refetch();
   };
@@ -339,6 +343,15 @@ export default function TicketDetailScreen() {
         issuerType={ticketData.issuerType}
         onActionSelect={handlePremiumActionSelect}
         onClose={() => setIsPremiumActionsVisible(false)}
+      />
+
+      <AutoChallengeWizard
+        visible={isAutoChallengeVisible}
+        ticketId={ticket.id}
+        issuerName={ticketData.issuer || 'the issuer'}
+        issuerType={ticketData.issuerType}
+        onSuccess={handleSuccess}
+        onClose={() => setIsAutoChallengeVisible(false)}
       />
 
       <ChallengeWizard

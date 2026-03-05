@@ -82,7 +82,7 @@ const ChallengeOptionsDialog = ({
       const result = await initiateAutoChallenge(
         ticketId,
         reason,
-        reason === 'OTHER' ? customReason : undefined,
+        customReason.trim() || undefined,
       );
 
       if (result.success) {
@@ -135,7 +135,8 @@ const ChallengeOptionsDialog = ({
   };
 
   const getDialogDescription = () => {
-    if (step === 'choose') return 'Choose how you want to challenge this ticket';
+    if (step === 'choose')
+      return 'Choose how you want to challenge this ticket';
     if (step === 'letter-details')
       return "We'll create a professional challenge letter and email it to you.";
     return `Submit your challenge to ${issuerName}`;
@@ -147,7 +148,10 @@ const ChallengeOptionsDialog = ({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             {step === 'letter-details' && (
-              <FontAwesomeIcon icon={faWandMagicSparkles} className="text-teal" />
+              <FontAwesomeIcon
+                icon={faWandMagicSparkles}
+                className="text-teal"
+              />
             )}
             {step === 'auto-details' && (
               <FontAwesomeIcon icon={faRobot} className="text-teal" />
@@ -157,7 +161,7 @@ const ChallengeOptionsDialog = ({
           <DialogDescription>{getDialogDescription()}</DialogDescription>
         </DialogHeader>
 
-        {step === 'choose' ? (
+        {step === 'choose' && (
           <div className="space-y-3 py-4">
             {/* Auto Challenge Option */}
             <button
@@ -178,7 +182,8 @@ const ChallengeOptionsDialog = ({
                     </span>
                   </div>
                   <p className="mt-1 text-sm text-gray">
-                    We&apos;ll automatically fill and submit the challenge form on the issuer&apos;s website
+                    We&apos;ll automatically fill and submit the challenge form
+                    on the issuer&apos;s website
                   </p>
                 </div>
                 <FontAwesomeIcon
@@ -212,7 +217,9 @@ const ChallengeOptionsDialog = ({
               </div>
             </button>
           </div>
-        ) : step === 'auto-details' ? (
+        )}
+
+        {step === 'auto-details' && (
           <div className="space-y-4 py-4">
             {/* Reason Select */}
             <div className="space-y-2">
@@ -232,28 +239,28 @@ const ChallengeOptionsDialog = ({
                 </SelectContent>
               </Select>
               {selectedReason && (
-                <p className="text-xs text-gray">{selectedReason.description}</p>
+                <p className="text-xs text-gray">
+                  {selectedReason.description}
+                </p>
               )}
             </div>
 
-            {/* Custom reason textarea */}
-            {reason === 'OTHER' && (
-              <div className="space-y-2">
-                <label
-                  htmlFor="customReason"
-                  className="text-sm font-medium text-dark"
-                >
-                  Describe your reason
-                </label>
-                <Textarea
-                  id="customReason"
-                  value={customReason}
-                  onChange={(e) => setCustomReason(e.target.value)}
-                  placeholder="Explain why you believe this ticket should be cancelled..."
-                  rows={3}
-                />
-              </div>
-            )}
+            {/* Additional details textarea */}
+            <div className="space-y-2">
+              <label
+                htmlFor="customReason"
+                className="text-sm font-medium text-dark"
+              >
+                Additional Details (optional)
+              </label>
+              <Textarea
+                id="customReason"
+                value={customReason}
+                onChange={(e) => setCustomReason(e.target.value)}
+                placeholder="Add any specific details about your situation..."
+                rows={3}
+              />
+            </div>
 
             {/* Info box */}
             <div className="rounded-lg bg-teal/5 p-3">
@@ -281,11 +288,7 @@ const ChallengeOptionsDialog = ({
               </Button>
               <Button
                 onClick={handleAutoSubmit}
-                disabled={
-                  !reason ||
-                  (reason === 'OTHER' && !customReason.trim()) ||
-                  isSubmitting
-                }
+                disabled={!reason || isSubmitting}
                 className="flex-1 gap-2 bg-teal text-white hover:bg-teal-dark"
               >
                 {isSubmitting ? (
@@ -305,8 +308,9 @@ const ChallengeOptionsDialog = ({
               </Button>
             </div>
           </div>
-        ) : (
-          /* Letter details step */
+        )}
+
+        {step === 'letter-details' && (
           <div className="space-y-4 py-4">
             {/* Reason Select */}
             <div className="space-y-2">
@@ -326,7 +330,9 @@ const ChallengeOptionsDialog = ({
                 </SelectContent>
               </Select>
               {selectedReason && (
-                <p className="text-xs text-gray">{selectedReason.description}</p>
+                <p className="text-xs text-gray">
+                  {selectedReason.description}
+                </p>
               )}
             </div>
 

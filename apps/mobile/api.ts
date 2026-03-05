@@ -470,6 +470,21 @@ export const updateTicketStatus = async (ticketId: string, status: string) => {
   return response.data;
 };
 
+// Auto-challenge
+export const startAutoChallenge = async (
+  ticketId: string,
+  challengeReason: string,
+  customReason?: string,
+  existingChallengeId?: string,
+) => {
+  const response = await api.post(`/tickets/${ticketId}/auto-challenge`, {
+    challengeReason,
+    customReason,
+    existingChallengeId,
+  });
+  return response.data;
+};
+
 // Live status
 export const checkTicketLiveStatus = async (ticketId: string) => {
   const response = await api.post(`/tickets/${ticketId}/live-status`);
