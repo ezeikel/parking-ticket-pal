@@ -9,21 +9,13 @@ import {
   slugToDisplayName,
 } from '@parking-ticket-pal/constants';
 
-const getPlaceholder = (issuerType: 'council' | 'private' | null) => {
-  if (issuerType === 'council') return 'e.g. Lewisham, Westminster...';
-  if (issuerType === 'private') return 'e.g. ParkingEye, Horizon...';
-  return 'Search for issuer...';
-};
-
 type IssuerComboboxProps = {
-  issuerType: 'council' | 'private' | null;
   value: string;
   onSelect: (name: string) => void;
   className?: string;
 };
 
 const IssuerCombobox = ({
-  issuerType,
   value,
   onSelect,
   className,
@@ -31,6 +23,7 @@ const IssuerCombobox = ({
   const [query, setQuery] = useState(value);
   const [isOpen, setIsOpen] = useState(false);
   const [highlightedIndex, setHighlightedIndex] = useState(0);
+  const [manualMode, setManualMode] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const listRef = useRef<HTMLUListElement>(null);
 
@@ -39,23 +32,15 @@ const IssuerCombobox = ({
     setQuery(value);
   }, [value]);
 
-  const allOptions = useMemo(() => {
-    if (issuerType === 'council') {
-      return LOCAL_AUTHORITY_IDS.map((slug) => slugToDisplayName(slug));
-    }
-    if (issuerType === 'private') {
-      return [
+  const allOptions = useMemo(
+    () =>
+      [
+        ...LOCAL_AUTHORITY_IDS.map((slug) => slugToDisplayName(slug)),
         ...PRIVATE_COMPANIES.map((c) => c.name),
         ...TRANSPORT_AUTHORITIES.map((t) => t.name),
-      ];
-    }
-    // No filter — show all
-    return [
-      ...LOCAL_AUTHORITY_IDS.map((slug) => slugToDisplayName(slug)),
-      ...PRIVATE_COMPANIES.map((c) => c.name),
-      ...TRANSPORT_AUTHORITIES.map((t) => t.name),
-    ];
-  }, [issuerType]);
+      ].sort((a, b) => a.localeCompare(b)),
+    [],
+  );
 
   const filtered = useMemo(() => {
     if (query.length < 2) return [];
@@ -98,44 +83,71 @@ const IssuerCombobox = ({
     onSelect(name);
   };
 
+  const handleEnterManually = () => {
+    setManualMode(true);
+    setIsOpen(false);
+  };
+
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (!isOpen || filtered.length === 0) return;
+    if (!isOpen) return;
+
+    const totalItems = filtered.length + (query.length >= 2 ? 1 : 0); // +1 for "not listed"
+    if (totalItems === 0) return;
 
     if (e.key === 'ArrowDown') {
       e.preventDefault();
-      setHighlightedIndex((i) => Math.min(i + 1, filtered.length - 1));
+      setHighlightedIndex((i) => Math.min(i + 1, totalItems - 1));
     } else if (e.key === 'ArrowUp') {
       e.preventDefault();
       setHighlightedIndex((i) => Math.max(i - 1, 0));
     } else if (e.key === 'Enter') {
       e.preventDefault();
-      handleSelect(filtered[highlightedIndex]);
+      if (highlightedIndex === filtered.length) {
+        handleEnterManually();
+      } else if (filtered[highlightedIndex]) {
+        handleSelect(filtered[highlightedIndex]);
+      }
     } else if (e.key === 'Escape') {
       setIsOpen(false);
     }
   };
+
+  const showNotListed = query.length >= 2;
 
   return (
     <div ref={containerRef} className={`relative ${className || ''}`}>
       <Input
         value={query}
         onChange={(e) => {
-          setQuery(e.target.value);
-          setIsOpen(true);
+          const newValue = e.target.value;
+          setQuery(newValue);
+          if (!manualMode) {
+            setIsOpen(true);
+          }
+          // In manual mode, update the value directly
+          if (manualMode) {
+            onSelect(newValue);
+          }
           // Clear selection if user edits after selecting
-          if (value && e.target.value !== value) {
+          if (value && newValue !== value && !manualMode) {
             onSelect('');
           }
         }}
         onFocus={() => {
-          if (query.length >= 2) setIsOpen(true);
+          if (!manualMode && query.length >= 2) setIsOpen(true);
+        }}
+        onBlur={() => {
+          // In manual mode, accept whatever was typed
+          if (manualMode && query) {
+            onSelect(query);
+          }
         }}
         onKeyDown={handleKeyDown}
-        placeholder={getPlaceholder(issuerType)}
+        placeholder="Search for issuer..."
         className="h-11"
         autoComplete="off"
       />
-      {isOpen && filtered.length > 0 && (
+      {isOpen && (filtered.length > 0 || showNotListed) && !manualMode && (
         <ul
           ref={listRef}
           className="absolute z-50 mt-1 max-h-48 w-full overflow-y-auto rounded-md border border-input bg-background shadow-md"
@@ -159,6 +171,25 @@ const IssuerCombobox = ({
               </button>
             </li>
           ))}
+          {showNotListed && (
+            <li>
+              <button
+                type="button"
+                onMouseDown={(e) => {
+                  e.preventDefault();
+                  handleEnterManually();
+                }}
+                onMouseEnter={() => setHighlightedIndex(filtered.length)}
+                className={`w-full px-3 py-2 text-left text-sm italic ${
+                  highlightedIndex === filtered.length
+                    ? 'bg-teal/10 text-teal'
+                    : 'text-muted-foreground hover:bg-light'
+                }`}
+              >
+                Not on this list? Enter manually
+              </button>
+            </li>
+          )}
         </ul>
       )}
     </div>

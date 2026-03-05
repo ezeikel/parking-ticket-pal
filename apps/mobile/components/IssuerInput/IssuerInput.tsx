@@ -11,13 +11,11 @@ import {
 type IssuerEntry = {
   id: string;
   name: string;
-  type: 'council' | 'private';
 };
 
 type IssuerInputProps = {
   onSelect: (issuer: string) => void;
   initialValue?: string;
-  issuerType?: 'council' | 'private' | null;
   placeholder?: string;
   testID?: string;
 };
@@ -26,35 +24,27 @@ const ALL_ISSUERS: IssuerEntry[] = [
   ...LOCAL_AUTHORITY_IDS.map((id) => ({
     id,
     name: slugToDisplayName(id),
-    type: 'council' as const,
   })),
   ...TRANSPORT_AUTHORITIES.map((ta) => ({
     id: ta.id,
     name: ta.name,
-    type: 'council' as const,
   })),
   ...PRIVATE_COMPANIES.map((pc) => ({
     id: pc.id,
     name: pc.name,
-    type: 'private' as const,
   })),
 ].sort((a, b) => a.name.localeCompare(b.name));
 
 const IssuerInput = ({
   onSelect,
   initialValue = '',
-  issuerType = null,
-  placeholder = 'Search for issuer',
+  placeholder = 'Search for issuer...',
   testID,
 }: IssuerInputProps) => {
   const [query, setQuery] = useState(initialValue);
   const [showSuggestions, setShowSuggestions] = useState(false);
+  const [manualMode, setManualMode] = useState(false);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  const filteredByType = useMemo(() => {
-    if (!issuerType) return ALL_ISSUERS;
-    return ALL_ISSUERS.filter((i) => i.type === issuerType);
-  }, [issuerType]);
 
   const [suggestions, setSuggestions] = useState<IssuerEntry[]>([]);
 
@@ -66,17 +56,22 @@ const IssuerInput = ({
     }
 
     const lower = searchQuery.toLowerCase();
-    const matches = filteredByType.filter(
+    const matches = ALL_ISSUERS.filter(
       (i) =>
         i.name.toLowerCase().includes(lower) ||
         i.id.toLowerCase().includes(lower),
     );
     setSuggestions(matches.slice(0, 20));
-    setShowSuggestions(matches.length > 0);
+    setShowSuggestions(true);
   };
 
   const handleTextChange = (text: string) => {
     setQuery(text);
+
+    if (manualMode) {
+      onSelect(text);
+      return;
+    }
 
     if (debounceRef.current) clearTimeout(debounceRef.current);
     debounceRef.current = setTimeout(() => {
@@ -95,9 +90,23 @@ const IssuerInput = ({
     Keyboard.dismiss();
   };
 
+  const handleEnterManually = () => {
+    setManualMode(true);
+    setShowSuggestions(false);
+    setSuggestions([]);
+    // Accept current query as the value
+    if (query) {
+      onSelect(query);
+    }
+  };
+
   const handleBlur = () => {
+    if (manualMode) {
+      if (query) onSelect(query);
+      return;
+    }
     // Auto-select if typed text exactly matches an issuer name (case-insensitive)
-    const exactMatch = filteredByType.find(
+    const exactMatch = ALL_ISSUERS.find(
       (i) => i.name.toLowerCase() === query.trim().toLowerCase(),
     );
     if (exactMatch) {
@@ -116,7 +125,7 @@ const IssuerInput = ({
           value={query}
           onChangeText={handleTextChange}
           onFocus={() => {
-            if (suggestions.length > 0) {
+            if (!manualMode && suggestions.length > 0) {
               setShowSuggestions(true);
             }
           }}
@@ -124,7 +133,7 @@ const IssuerInput = ({
         />
       </View>
 
-      {showSuggestions && suggestions.length > 0 && (
+      {showSuggestions && !manualMode && (
         <View
           className="bg-white border border-gray-300 rounded-lg mt-2"
           style={{ maxHeight: 200 }}
@@ -144,6 +153,16 @@ const IssuerInput = ({
                 </Text>
               </Pressable>
             ))}
+            {query.length >= 2 && (
+              <Pressable
+                className="px-3 py-3 border-b border-gray-100"
+                onPress={handleEnterManually}
+              >
+                <Text className="text-base text-gray-500 font-jakarta italic">
+                  Not on this list? Enter manually
+                </Text>
+              </Pressable>
+            )}
           </ScrollView>
         </View>
       )}

@@ -14,6 +14,7 @@ import {
   TanstackFormDescription,
 } from '@/components/ui/tanstack-form';
 import { Calendar } from '@/components/ui/calendar';
+import IssuerCombobox from '@/components/forms/inputs/IssuerCombobox/IssuerCombobox';
 import {
   Popover,
   PopoverContent,
@@ -315,11 +316,9 @@ const CreateTicketForm = ({ tier, source }: CreateTicketFormProps) => {
               <TanstackFormItem field={field}>
                 <TanstackFormLabel>Issuer</TanstackFormLabel>
                 <TanstackFormControl>
-                  <Input
-                    placeholder="Local Council"
+                  <IssuerCombobox
                     value={field.state.value ?? ''}
-                    onChange={(e) => field.handleChange(e.target.value)}
-                    onBlur={field.handleBlur}
+                    onSelect={(name) => field.handleChange(name)}
                   />
                 </TanstackFormControl>
                 <TanstackFormDescription>

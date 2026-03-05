@@ -155,7 +155,6 @@ function EditForm({
             <IssuerInput
               onSelect={setIssuer}
               initialValue={issuer}
-              issuerType={ticketData.issuerType === 'PRIVATE_COMPANY' ? 'private' : 'council'}
               placeholder="Search for council or company"
             />
           </View>

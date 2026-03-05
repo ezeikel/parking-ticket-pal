@@ -491,11 +491,7 @@ const AddDocumentWizard = ({
                     <label className="mb-1.5 block text-sm font-medium text-dark">
                       Issuer *
                     </label>
-                    <IssuerCombobox
-                      issuerType={issuerType}
-                      value={issuer}
-                      onSelect={setIssuer}
-                    />
+                    <IssuerCombobox value={issuer} onSelect={setIssuer} />
                   </div>
 
                   <div>
@@ -701,11 +697,7 @@ const AddDocumentWizard = ({
                     <label className="mb-1.5 block text-sm font-medium text-dark">
                       Issuer *
                     </label>
-                    <IssuerCombobox
-                      issuerType={issuerType}
-                      value={issuer}
-                      onSelect={setIssuer}
-                    />
+                    <IssuerCombobox value={issuer} onSelect={setIssuer} />
                   </div>
 
                   <div>

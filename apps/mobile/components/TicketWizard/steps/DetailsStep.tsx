@@ -120,7 +120,6 @@ const DetailsStep = ({ wizardData, onNext }: WizardStepProps) => {
           testID="details-issuer"
           onSelect={setIssuer}
           initialValue={issuer}
-          issuerType={wizardData.issuerType}
           placeholder="Search for council or company"
         />
         <Text className="font-jakarta text-xs text-gray-400 mt-1">

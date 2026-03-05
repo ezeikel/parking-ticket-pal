@@ -5,6 +5,7 @@ import { useForm } from '@tanstack/react-form';
 import DateTimePicker, { DateTimePickerEvent } from '@react-native-community/datetimepicker';
 import { Picker } from '@react-native-picker/picker';
 import AddressInput from '@/components/AddressInput/AddressInput';
+import IssuerInput from '@/components/IssuerInput/IssuerInput';
 import { CONTRAVENTION_CODES_OPTIONS } from '@parking-ticket-pal/constants';
 import { ticketFormSchema, type TicketFormData } from '@parking-ticket-pal/types';
 import { useAnalytics } from '@/lib/analytics';
@@ -251,12 +252,10 @@ const TicketForm = ({ initialData, onSubmit, onCancel, isLoading = false }: Tick
           {(field) => (
             <View className="mb-4">
               <Text className="text-base font-jakarta-medium mb-2">Issuer *</Text>
-              <TextInput
-                className="border border-gray-300 rounded-lg px-3 py-3 text-base"
-                placeholder="Local Council"
-                value={field.state.value}
-                onChangeText={field.handleChange}
-                onBlur={field.handleBlur}
+              <IssuerInput
+                onSelect={(name) => field.handleChange(name)}
+                initialValue={field.state.value}
+                placeholder="Search for issuer..."
               />
               <Text className="text-gray-500 text-xs mt-1">The council or company that issued the ticket</Text>
               {field.state.meta.errors.length > 0 && (

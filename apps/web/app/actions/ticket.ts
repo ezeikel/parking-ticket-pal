@@ -22,6 +22,7 @@ import getVehicleInfo from '@/utils/getVehicleInfo';
 import type { TicketFormData } from '@parking-ticket-pal/types';
 import { runVerify, runChallenge } from '@/utils/automation/workerClient';
 import { generateReminders } from '@/app/actions/reminder';
+import { getIssuerType } from '@parking-ticket-pal/constants';
 import { STORAGE_PATHS } from '@/constants';
 import { track } from '@/utils/analytics-server';
 import { TRACKING_EVENTS } from '@/constants/events';
@@ -150,7 +151,9 @@ export const createTicket = async (
         type: TicketType.PENALTY_CHARGE_NOTICE, // TODO: hardcoded for now
         initialAmount: values.initialAmount ?? null,
         issuer: values.issuer ?? null,
-        issuerType: IssuerType.COUNCIL, // TODO: hardcoded for now
+        issuerType: (values.issuer
+          ? getIssuerType(values.issuer)
+          : 'COUNCIL') as IssuerType,
         extractedText: values.extractedText || '',
         vehicle: {
           connectOrCreate: {
