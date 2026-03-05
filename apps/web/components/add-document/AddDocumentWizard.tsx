@@ -31,6 +31,7 @@ import {
 } from '@/components/ui/select';
 import AddressInput from '@/components/forms/inputs/AddressInput/AddressInput';
 import IssuerCombobox from '@/components/forms/inputs/IssuerCombobox/IssuerCombobox';
+import ContraventionCodeSelect from '@/components/forms/inputs/ContraventionCodeSelect';
 import { Address } from '@parking-ticket-pal/types';
 
 type IssuerType = 'council' | 'private' | null;
@@ -127,6 +128,9 @@ const AddDocumentWizard = ({
     extractedData?.initialAmount,
   );
   const [issuer, setIssuer] = useState(extractedData?.issuer || '');
+  const [contraventionCode, setContraventionCode] = useState(
+    extractedData?.contraventionCode || '',
+  );
 
   const goToStep = (step: 'issuer' | 'stage' | 'details' | 'confirm') => {
     const stepOrder = ['issuer', 'stage', 'details', 'confirm'];
@@ -166,6 +170,7 @@ const AddDocumentWizard = ({
         location,
         initialAmount,
         issuer,
+        contraventionCode,
         imageUrl: extractedData?.imageUrl,
         tempImagePath: extractedData?.tempImagePath,
         extractedText: extractedData?.extractedText,
@@ -550,6 +555,21 @@ const AddDocumentWizard = ({
 
                   <div>
                     <label className="mb-1.5 block text-sm font-medium text-dark">
+                      Contravention Code
+                    </label>
+                    <ContraventionCodeSelect
+                      value={contraventionCode}
+                      onChange={setContraventionCode}
+                      placeholder="Select contravention code"
+                      className="h-11"
+                    />
+                    <p className="mt-1 text-xs text-gray">
+                      The code on the ticket describing the offence (optional)
+                    </p>
+                  </div>
+
+                  <div>
+                    <label className="mb-1.5 block text-sm font-medium text-dark">
                       Location *
                     </label>
                     <AddressInput
@@ -752,6 +772,21 @@ const AddDocumentWizard = ({
                       step="0.01"
                       className="h-11"
                     />
+                  </div>
+
+                  <div>
+                    <label className="mb-1.5 block text-sm font-medium text-dark">
+                      Contravention Code
+                    </label>
+                    <ContraventionCodeSelect
+                      value={contraventionCode}
+                      onChange={setContraventionCode}
+                      placeholder="Select contravention code"
+                      className="h-11"
+                    />
+                    <p className="mt-1 text-xs text-gray">
+                      The code on the ticket describing the offence (optional)
+                    </p>
                   </div>
 
                   <div>

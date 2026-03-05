@@ -307,6 +307,7 @@ const Hero = () => {
       issuer: data.issuer,
       issuedAt: data.issuedAt?.toISOString() ?? null,
       initialAmount: data.initialAmount,
+      contraventionCode: data.contraventionCode,
       location: data.location,
       intent: data.intent,
       challengeReason: data.challengeReason,

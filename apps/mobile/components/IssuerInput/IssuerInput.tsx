@@ -4,6 +4,7 @@ import {
   LOCAL_AUTHORITY_IDS,
   PRIVATE_COMPANIES,
   TRANSPORT_AUTHORITIES,
+  ISSUER_ADDRESSES,
   slugToDisplayName,
 } from '@parking-ticket-pal/constants';
 
@@ -11,6 +12,7 @@ import {
 type IssuerEntry = {
   id: string;
   name: string;
+  shortName: string;
 };
 
 type IssuerInputProps = {
@@ -23,15 +25,18 @@ type IssuerInputProps = {
 const ALL_ISSUERS: IssuerEntry[] = [
   ...LOCAL_AUTHORITY_IDS.map((id) => ({
     id,
-    name: slugToDisplayName(id),
+    name: ISSUER_ADDRESSES[id]?.formalName || slugToDisplayName(id),
+    shortName: slugToDisplayName(id),
   })),
   ...TRANSPORT_AUTHORITIES.map((ta) => ({
     id: ta.id,
-    name: ta.name,
+    name: ISSUER_ADDRESSES[ta.id]?.formalName || ta.name,
+    shortName: ta.name,
   })),
   ...PRIVATE_COMPANIES.map((pc) => ({
     id: pc.id,
-    name: pc.name,
+    name: ISSUER_ADDRESSES[pc.id]?.formalName || pc.name,
+    shortName: pc.name,
   })),
 ].sort((a, b) => a.name.localeCompare(b.name));
 
@@ -59,6 +64,7 @@ const IssuerInput = ({
     const matches = ALL_ISSUERS.filter(
       (i) =>
         i.name.toLowerCase().includes(lower) ||
+        i.shortName.toLowerCase().includes(lower) ||
         i.id.toLowerCase().includes(lower),
     );
     setSuggestions(matches.slice(0, 20));

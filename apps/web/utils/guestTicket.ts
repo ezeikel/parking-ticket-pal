@@ -14,6 +14,7 @@ export type GuestTicketData = {
   tempImagePath?: string;
   initialAmount?: number;
   issuer?: string;
+  contraventionCode?: string;
   createdAt: string;
   // Optional email for pre-filling claim page
   email?: string;

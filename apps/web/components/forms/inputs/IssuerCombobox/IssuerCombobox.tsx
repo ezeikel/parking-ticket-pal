@@ -6,6 +6,7 @@ import {
   LOCAL_AUTHORITY_IDS,
   PRIVATE_COMPANIES,
   TRANSPORT_AUTHORITIES,
+  ISSUER_ADDRESSES,
   slugToDisplayName,
 } from '@parking-ticket-pal/constants';
 
@@ -35,10 +36,31 @@ const IssuerCombobox = ({
   const allOptions = useMemo(
     () =>
       [
-        ...LOCAL_AUTHORITY_IDS.map((slug) => slugToDisplayName(slug)),
-        ...PRIVATE_COMPANIES.map((c) => c.name),
-        ...TRANSPORT_AUTHORITIES.map((t) => t.name),
-      ].sort((a, b) => a.localeCompare(b)),
+        ...LOCAL_AUTHORITY_IDS.map((slug) => ({
+          name: ISSUER_ADDRESSES[slug]?.formalName || slugToDisplayName(slug),
+          searchTerms: [
+            ISSUER_ADDRESSES[slug]?.formalName?.toLowerCase() || '',
+            slugToDisplayName(slug).toLowerCase(),
+            slug.toLowerCase(),
+          ],
+        })),
+        ...PRIVATE_COMPANIES.map((c) => ({
+          name: ISSUER_ADDRESSES[c.id]?.formalName || c.name,
+          searchTerms: [
+            ISSUER_ADDRESSES[c.id]?.formalName?.toLowerCase() || '',
+            c.name.toLowerCase(),
+            c.id.toLowerCase(),
+          ],
+        })),
+        ...TRANSPORT_AUTHORITIES.map((t) => ({
+          name: ISSUER_ADDRESSES[t.id]?.formalName || t.name,
+          searchTerms: [
+            ISSUER_ADDRESSES[t.id]?.formalName?.toLowerCase() || '',
+            t.name.toLowerCase(),
+            t.id.toLowerCase(),
+          ],
+        })),
+      ].sort((a, b) => a.name.localeCompare(b.name)),
     [],
   );
 
@@ -46,7 +68,8 @@ const IssuerCombobox = ({
     if (query.length < 2) return [];
     const lower = query.toLowerCase();
     return allOptions
-      .filter((name) => name.toLowerCase().includes(lower))
+      .filter((opt) => opt.searchTerms.some((term) => term.includes(lower)))
+      .map((opt) => opt.name)
       .slice(0, 20);
   }, [query, allOptions]);
 

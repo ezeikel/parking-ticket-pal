@@ -104,6 +104,7 @@ const GuestCreateTicketPage = () => {
           tempImagePath: data.tempImagePath,
           initialAmount: data.initialAmount,
           issuer: data.issuer,
+          contraventionCode: data.contraventionCode,
           // No vehicle data provided - will auto-lookup from registration
           autoLookupVehicle: true,
         });

@@ -224,6 +224,7 @@ type CreateTicketFromGuestDataInput = {
   tempImagePath?: string;
   initialAmount?: number;
   issuer?: string;
+  contraventionCode?: string;
   // Vehicle data - can be provided or auto-looked up
   vehicleMake?: string;
   vehicleModel?: string;
@@ -334,7 +335,7 @@ export const createTicketFromGuestData = async (
       data: {
         pcnNumber: input.pcnNumber,
         vehicleId: vehicle.id,
-        contraventionCode: 'UNKNOWN', // Will be updated when user provides more details
+        contraventionCode: input.contraventionCode || 'UNKNOWN',
         location: {
           line1: 'Location to be confirmed',
           city: '',

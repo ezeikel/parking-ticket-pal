@@ -30,6 +30,7 @@ import ScoreGauge from '@/components/ui/ScoreGauge';
 import { useAnalytics } from '@/utils/analytics-client';
 import { TRACKING_EVENTS } from '@/constants/events';
 import IssuerCombobox from '@/components/forms/inputs/IssuerCombobox/IssuerCombobox';
+import ContraventionCodeSelect from '@/components/forms/inputs/ContraventionCodeSelect';
 import AddressInput from '@/components/forms/inputs/AddressInput/AddressInput';
 import { Address } from '@parking-ticket-pal/types';
 
@@ -54,6 +55,7 @@ export type ExtractedData = {
   location?: Address;
   initialAmount?: number;
   issuer?: string;
+  contraventionCode?: string;
   imageUrl?: string;
   tempImagePath?: string;
 };
@@ -73,6 +75,7 @@ export type WizardCompleteData = {
   issuer: string;
   issuedAt: Date | null;
   initialAmount: number | null;
+  contraventionCode: string;
   location: Address | null;
   intent: UserIntent;
   challengeReason: ChallengeReason;
@@ -176,6 +179,9 @@ const TicketWizard = ({
   );
   const [location, setLocation] = useState<Address | null>(
     extractedData?.location ?? null,
+  );
+  const [contraventionCode, setContraventionCode] = useState(
+    extractedData?.contraventionCode || '',
   );
   const [userIntent, setUserIntent] = useState<UserIntent>(null);
   const [challengeReason, setChallengeReason] = useState<ChallengeReason>(null);
@@ -316,6 +322,7 @@ const TicketWizard = ({
         issuer,
         issuedAt,
         initialAmount,
+        contraventionCode,
         location,
         intent: 'challenge',
         challengeReason,
@@ -343,6 +350,7 @@ const TicketWizard = ({
         issuer,
         issuedAt,
         initialAmount,
+        contraventionCode,
         location,
         intent: 'track',
         challengeReason: null,
@@ -661,7 +669,7 @@ const TicketWizard = ({
                   You can find these on your ticket or letter.
                 </p>
 
-                <div className="mt-6 flex max-h-[320px] flex-col gap-4 overflow-y-auto pr-2">
+                <div className="mt-6 flex max-h-[420px] flex-col gap-4 overflow-y-auto pr-2">
                   <div>
                     <label className="mb-1.5 block text-sm font-medium text-dark">
                       PCN / Reference Number *
@@ -751,6 +759,21 @@ const TicketWizard = ({
 
                   <div>
                     <label className="mb-1.5 block text-sm font-medium text-dark">
+                      Contravention Code
+                    </label>
+                    <ContraventionCodeSelect
+                      value={contraventionCode}
+                      onChange={setContraventionCode}
+                      placeholder="Select contravention code"
+                      className="h-11"
+                    />
+                    <p className="mt-1 text-xs text-gray">
+                      The code on the ticket describing the offence (optional)
+                    </p>
+                  </div>
+
+                  <div>
+                    <label className="mb-1.5 block text-sm font-medium text-dark">
                       Location *
                     </label>
                     <AddressInput
@@ -807,7 +830,7 @@ const TicketWizard = ({
                   We extracted these details. Please check they&apos;re correct.
                 </p>
 
-                <div className="mt-6 flex max-h-[320px] flex-col gap-4 overflow-y-auto pr-2">
+                <div className="mt-6 flex max-h-[420px] flex-col gap-4 overflow-y-auto pr-2">
                   <div>
                     <label className="mb-1.5 block text-sm font-medium text-dark">
                       PCN Reference *
@@ -943,6 +966,21 @@ const TicketWizard = ({
                       step="0.01"
                       className="h-11"
                     />
+                  </div>
+
+                  <div>
+                    <label className="mb-1.5 block text-sm font-medium text-dark">
+                      Contravention Code
+                    </label>
+                    <ContraventionCodeSelect
+                      value={contraventionCode}
+                      onChange={setContraventionCode}
+                      placeholder="Select contravention code"
+                      className="h-11"
+                    />
+                    <p className="mt-1 text-xs text-gray">
+                      The code on the ticket describing the offence (optional)
+                    </p>
                   </div>
 
                   <div>
