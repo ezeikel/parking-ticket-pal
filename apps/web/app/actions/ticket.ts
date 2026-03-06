@@ -23,7 +23,7 @@ import type { TicketFormData } from '@parking-ticket-pal/types';
 import { runVerify, runChallenge } from '@/utils/automation/workerClient';
 import { generateReminders } from '@/app/actions/reminder';
 import { getIssuerType } from '@parking-ticket-pal/constants';
-import { STORAGE_PATHS } from '@/constants';
+import { STORAGE_PATHS, findIssuer } from '@/constants';
 import { track } from '@/utils/analytics-server';
 import { TRACKING_EVENTS } from '@/constants/events';
 import { getUserId } from '@/utils/user';
@@ -763,6 +763,7 @@ export const getTicket = async (id: string) => {
       type: true,
       extractedText: true,
       tier: true,
+      verified: true,
       notes: true,
       vehicle: {
         select: {
@@ -916,7 +917,9 @@ export const verifyTicket = async (pcnNumber: string, ticketId?: string) => {
     }
 
     // Determine issuer ID from ticket
-    const issuerId = ticket.issuer.toLowerCase().replace(/\s+/g, '-');
+    const issuer = findIssuer(ticket.issuer);
+    const issuerId =
+      issuer?.id || ticket.issuer.toLowerCase().replace(/\s+/g, '-');
 
     const result = await runVerify({
       issuerId,
@@ -924,6 +927,13 @@ export const verifyTicket = async (pcnNumber: string, ticketId?: string) => {
       vehicleReg: ticket.vehicle.registrationNumber,
       ticketId: ticket.id,
     });
+
+    if (result.success) {
+      await db.ticket.update({
+        where: { id: ticket.id },
+        data: { verified: true },
+      });
+    }
 
     return result.success;
   } catch (error) {
@@ -982,7 +992,9 @@ export const challengeTicket = async (
 
     try {
       // Determine issuer ID from ticket
-      const issuerId = ticket.issuer.toLowerCase().replace(/\s+/g, '-');
+      const challengeIssuer = findIssuer(ticket.issuer);
+      const issuerId =
+        challengeIssuer?.id || ticket.issuer.toLowerCase().replace(/\s+/g, '-');
       const { user } = ticket.vehicle;
       const userAddress = user.address as {
         line1?: string;

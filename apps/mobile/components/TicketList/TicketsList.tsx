@@ -14,6 +14,7 @@ import {
   faCardsBlank,
   faCrown,
   faPlus,
+  faBadgeCheck,
 } from '@fortawesome/pro-solid-svg-icons';
 import { addDays, format } from 'date-fns';
 import useTickets from '@/hooks/api/useTickets';
@@ -82,12 +83,21 @@ const TicketItem = memo(function TicketItem({
               </Text>
             </View>
             <View className="flex-1">
-              <Text
-                className="font-jakarta-bold text-base text-dark"
-                numberOfLines={1}
-              >
-                {ticket.pcnNumber}
-              </Text>
+              <View className="flex-row items-center gap-1.5">
+                <Text
+                  className="font-jakarta-bold text-base text-dark"
+                  numberOfLines={1}
+                >
+                  {ticket.pcnNumber}
+                </Text>
+                {ticket.verified && (
+                  <FontAwesomeIcon
+                    icon={faBadgeCheck}
+                    size={14}
+                    color="#22c55e"
+                  />
+                )}
+              </View>
               <Text
                 className="font-jakarta text-sm text-gray"
                 numberOfLines={1}

@@ -19,6 +19,7 @@ import {
   faMoneyBill,
   faMapMarkerAlt,
 } from '@fortawesome/pro-regular-svg-icons';
+import { faBadgeCheck } from '@fortawesome/pro-solid-svg-icons';
 import { Prisma, TicketStatus } from '@parking-ticket-pal/db/types';
 import { formatDateWithDueStatus, getAmountStatus } from '@/utils/dates';
 import { getDisplayAmount } from '@/utils/getCurrentAmountDue';
@@ -91,7 +92,7 @@ const TicketCard = ({ ticket }: TicketCardProps) => {
   const currentAmount = getDisplayAmount(ticket);
   const amountStatus = getAmountStatus(issuedAtString);
 
-  const statusInfo = getStatusInfo(ticket.status as TicketStatus);
+  const statusInfo = getStatusInfo(ticket.status);
 
   // Terminal statuses where success score and deadline are not relevant
   const isTerminalStatus = [
@@ -112,7 +113,16 @@ const TicketCard = ({ ticket }: TicketCardProps) => {
               </AvatarFallback>
             </Avatar>
             <div>
-              <CardTitle>{ticket.pcnNumber}</CardTitle>
+              <CardTitle className="flex items-center gap-1.5">
+                {ticket.pcnNumber}
+                {ticket.verified && (
+                  <FontAwesomeIcon
+                    icon={faBadgeCheck}
+                    className="h-4 w-4 text-success"
+                    title="Verified"
+                  />
+                )}
+              </CardTitle>
               <CardDescription>{ticket.issuer}</CardDescription>
             </div>
           </div>

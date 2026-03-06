@@ -2,6 +2,8 @@
 
 import { PredictionType, Ticket, db } from '@parking-ticket-pal/db';
 import { createServerLogger } from '@/lib/logger';
+import { runVerify, isIssuerSupported } from '@/utils/automation/workerClient';
+import { findIssuer } from '@/constants/index';
 import { calculatePrediction } from './prediction-service';
 
 const log = createServerLogger({ action: 'ticket-service' });
@@ -93,10 +95,58 @@ const createTicketPrediction = async (ticket: Ticket) => {
 };
 
 /**
- * Handles post-creation tasks for a new ticket (creates prediction)
+ * Auto-verify a ticket by checking the issuer portal.
+ * Only runs if the issuer supports automation.
+ */
+const autoVerifyTicket = async (ticket: Ticket) => {
+  try {
+    if (!ticket.issuer) return;
+
+    const issuer = findIssuer(ticket.issuer);
+    const issuerId =
+      issuer?.id || ticket.issuer.toLowerCase().replace(/\s+/g, '-');
+
+    const supported = await isIssuerSupported(issuerId);
+    if (!supported) return;
+
+    const fullTicket = await db.ticket.findUnique({
+      where: { id: ticket.id },
+      include: { vehicle: true },
+    });
+    if (!fullTicket?.vehicle) return;
+
+    const result = await runVerify({
+      issuerId,
+      pcnNumber: fullTicket.pcnNumber,
+      vehicleReg: fullTicket.vehicle.registrationNumber,
+      ticketId: fullTicket.id,
+    });
+
+    if (result.success) {
+      await db.ticket.update({
+        where: { id: ticket.id },
+        data: { verified: true },
+      });
+    }
+  } catch (error) {
+    log.error(
+      `Auto-verify failed for ticket ${ticket.id}`,
+      undefined,
+      error instanceof Error ? error : undefined,
+    );
+  }
+};
+
+/**
+ * Handles post-creation tasks for a new ticket (creates prediction, auto-verifies)
  */
 export const afterTicketCreation = async (ticket: Ticket) => {
   await createTicketPrediction(ticket);
+
+  if (!ticket.verified && ticket.issuer) {
+    await autoVerifyTicket(ticket);
+  }
+
   return ticket;
 };
 

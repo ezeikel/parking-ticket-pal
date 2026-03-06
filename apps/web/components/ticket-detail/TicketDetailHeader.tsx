@@ -3,7 +3,12 @@
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faArrowLeft, faPen, faBolt } from '@fortawesome/pro-solid-svg-icons';
+import {
+  faArrowLeft,
+  faPen,
+  faBolt,
+  faBadgeCheck,
+} from '@fortawesome/pro-solid-svg-icons';
 import { faCopy } from '@fortawesome/pro-regular-svg-icons';
 import { toast } from 'sonner';
 import { TicketStatus } from '@parking-ticket-pal/db/types';
@@ -12,6 +17,7 @@ import { Button } from '@/components/ui/button';
 type TicketDetailHeaderProps = {
   pcnNumber: string;
   status: TicketStatus;
+  verified: boolean;
   issuer: string;
   onEdit?: () => void;
   onChallenge?: () => void;
@@ -140,6 +146,7 @@ const statusConfig: Record<
 const TicketDetailHeader = ({
   pcnNumber,
   status,
+  verified,
   issuer,
   onEdit,
   onChallenge,
@@ -185,6 +192,14 @@ const TicketDetailHeader = ({
               className="text-base text-gray opacity-0 transition-opacity group-hover:opacity-100"
             />
           </button>
+          {verified && (
+            <span title="Verified on issuer portal">
+              <FontAwesomeIcon
+                icon={faBadgeCheck}
+                className="text-2xl text-teal md:text-3xl"
+              />
+            </span>
+          )}
           <span
             className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-sm font-semibold ${statusStyle.bg} ${statusStyle.text}`}
           >

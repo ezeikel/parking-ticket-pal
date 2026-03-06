@@ -109,6 +109,7 @@ export type TicketWithRelations = Prisma.TicketGetPayload<{
     type: true;
     extractedText: true;
     tier: true;
+    verified: true;
     notes: true;
     vehicle: {
       select: {

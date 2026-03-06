@@ -3,7 +3,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, router } from 'expo-router';
 import * as Clipboard from 'expo-clipboard';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
-import { faArrowLeft, faTriangleExclamation } from '@fortawesome/pro-solid-svg-icons';
+import { faArrowLeft, faTriangleExclamation, faBadgeCheck } from '@fortawesome/pro-solid-svg-icons';
 import { faCopy } from '@fortawesome/pro-regular-svg-icons';
 import { useRef, useState } from 'react';
 import BottomSheet from '@gorhom/bottom-sheet';
@@ -255,6 +255,14 @@ export default function TicketDetailScreen() {
               {statusConfig.label}
             </Text>
           </View>
+          {ticketData.verified && (
+            <View className="flex-row items-center gap-1 rounded-full bg-success/10 px-2.5 py-1">
+              <FontAwesomeIcon icon={faBadgeCheck} size={12} color="#22c55e" />
+              <Text className="font-jakarta-medium text-xs text-success">
+                Verified
+              </Text>
+            </View>
+          )}
         </View>
         <Text className="font-jakarta text-gray">{ticketData.issuer}</Text>
       </View>

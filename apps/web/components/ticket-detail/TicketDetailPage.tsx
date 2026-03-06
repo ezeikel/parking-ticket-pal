@@ -40,6 +40,7 @@ import LetterContentModal from './LetterContentModal';
 import AutoChallengeDialog from './AutoChallengeDialog';
 import GenerateLetterDialog from './GenerateLetterDialog';
 import AutoChallengeStatusCard from './AutoChallengeStatusCard';
+import VerificationPrompt from './VerificationPrompt';
 import LiveStatusCard from './LiveStatusCard';
 
 type TicketDetailPageProps = {
@@ -334,6 +335,7 @@ const TicketDetailPage = ({
         <TicketDetailHeader
           pcnNumber={ticket.pcnNumber}
           status={ticket.status}
+          verified={ticket.verified}
           issuer={ticket.issuer ?? ''}
           onEdit={handleEdit}
           onChallenge={handleChallenge}
@@ -357,6 +359,14 @@ const TicketDetailPage = ({
                 onEdit={handleEdit}
               />
             </div>
+
+            {/* Verification Prompt - show when ticket has issuer but isn't verified */}
+            {!ticket.verified && ticket.issuer && (
+              <VerificationPrompt
+                ticketId={ticket.id}
+                pcnNumber={ticket.pcnNumber}
+              />
+            )}
 
             {/* Live Portal Status Card - PREMIUM only */}
             <LiveStatusCard
