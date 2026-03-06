@@ -1,7 +1,15 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { View, Text } from 'react-native';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { faShieldExclamation, faSpinnerThird } from '@fortawesome/pro-solid-svg-icons';
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withRepeat,
+  withTiming,
+  Easing,
+  cancelAnimation,
+} from 'react-native-reanimated';
 import { verifyTicket } from '@/api';
 import { toast } from '@/lib/toast';
 import SquishyPressable from '@/components/SquishyPressable/SquishyPressable';
@@ -18,6 +26,24 @@ export default function VerificationPrompt({
   onVerified,
 }: VerificationPromptProps) {
   const [isVerifying, setIsVerifying] = useState(false);
+  const rotation = useSharedValue(0);
+
+  useEffect(() => {
+    if (isVerifying) {
+      rotation.value = 0;
+      rotation.value = withRepeat(
+        withTiming(360, { duration: 800, easing: Easing.linear }),
+        -1,
+      );
+    } else {
+      cancelAnimation(rotation);
+      rotation.value = 0;
+    }
+  }, [isVerifying, rotation]);
+
+  const spinStyle = useAnimatedStyle(() => ({
+    transform: [{ rotate: `${rotation.value}deg` }],
+  }));
 
   const handleVerify = async () => {
     setIsVerifying(true);
@@ -65,7 +91,9 @@ export default function VerificationPrompt({
         >
           {isVerifying ? (
             <View className="flex-row items-center gap-1.5">
-              <FontAwesomeIcon icon={faSpinnerThird} size={12} color="#6B7280" />
+              <Animated.View style={spinStyle}>
+                <FontAwesomeIcon icon={faSpinnerThird} size={12} color="#6B7280" />
+              </Animated.View>
               <Text className="font-jakarta-medium text-xs text-gray">
                 Verifying...
               </Text>

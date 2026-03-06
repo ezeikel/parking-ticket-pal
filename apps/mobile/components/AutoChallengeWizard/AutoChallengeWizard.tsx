@@ -3,13 +3,13 @@ import { View, Text, Modal, Pressable, ScrollView, TextInput } from 'react-nativ
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { faXmark, faRobot, faCircleInfo } from '@fortawesome/pro-regular-svg-icons';
-import { faSpinnerThird } from '@fortawesome/pro-solid-svg-icons';
 import { IssuerType } from '@/types';
 import { getChallengeReasons } from '@/constants/challenges';
 import { startAutoChallenge } from '@/api';
 import { toast } from '@/lib/toast';
 import { logger } from '@/lib/logger';
 import SquishyPressable from '@/components/SquishyPressable/SquishyPressable';
+import Loader from '@/components/Loader/Loader';
 
 interface AutoChallengeWizardProps {
   visible: boolean;
@@ -210,7 +210,7 @@ const AutoChallengeWizard = ({
             >
               {isSubmitting ? (
                 <>
-                  <FontAwesomeIcon icon={faSpinnerThird} size={18} color="#FFFFFF" />
+                  <Loader size={18} color="#FFFFFF" />
                   <Text className="font-jakarta-semibold text-base text-white">
                     Submitting...
                   </Text>
