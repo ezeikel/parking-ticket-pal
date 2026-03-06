@@ -11,6 +11,7 @@ import {
   faWhatsapp,
   faApple,
   faGooglePlay,
+  faChrome,
 } from '@fortawesome/free-brands-svg-icons';
 import cn from '@/utils/cn';
 
@@ -29,6 +30,7 @@ const productLinks: FooterLink[] = [
   { label: 'How It Works', href: '/#how-it-works' },
   { label: 'Dashboard', href: '/dashboard' },
   { label: 'Refer a Friend', href: '/referrals' },
+  { label: 'Chrome Extension', href: '#' },
 ];
 
 const resourceLinks: FooterLink[] = [
@@ -141,6 +143,25 @@ const Footer = ({ className }: FooterProps) => (
                   </span>
                   <span className="text-xs font-semibold leading-tight text-white">
                     Google Play
+                  </span>
+                </div>
+              </div>
+            </a>
+            <a
+              href="#"
+              className="opacity-70 transition-opacity hover:opacity-100"
+            >
+              <div className="flex h-10 w-32 items-center gap-2 rounded-lg border border-white/20 bg-white/5 px-3">
+                <FontAwesomeIcon
+                  icon={faChrome}
+                  className="text-lg text-white"
+                />
+                <div className="flex flex-col text-left">
+                  <span className="text-[8px] leading-tight text-white/60">
+                    Available on
+                  </span>
+                  <span className="text-xs font-semibold leading-tight text-white">
+                    Chrome
                   </span>
                 </div>
               </div>

@@ -45,6 +45,7 @@ export const createTicket = async (
     tempImageUrl?: string;
     tempImagePath?: string;
     extractedText?: string;
+    verified?: boolean;
   },
 ) => {
   const userId = await getUserId('create a ticket');
@@ -154,6 +155,7 @@ export const createTicket = async (
         issuerType: (values.issuer
           ? getIssuerType(values.issuer)
           : 'COUNCIL') as IssuerType,
+        verified: values.verified ?? false,
         extractedText: values.extractedText || '',
         vehicle: {
           connectOrCreate: {

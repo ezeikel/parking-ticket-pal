@@ -31,6 +31,7 @@ export async function POST(request: NextRequest) {
       tempImageUrl: body.tempImageUrl,
       tempImagePath: body.tempImagePath,
       extractedText: body.extractedText,
+      verified: body.verified === true,
     };
 
     const result = await createTicket(ticketData);
@@ -58,7 +59,8 @@ export async function POST(request: NextRequest) {
         headers: {
           'Access-Control-Allow-Origin': '*',
           'Access-Control-Allow-Methods': 'POST, OPTIONS',
-          'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+          'Access-Control-Allow-Headers':
+            'Content-Type, Authorization, x-user-id',
           'Content-Type': 'application/json',
         },
       },
@@ -94,7 +96,7 @@ export async function OPTIONS() {
     headers: {
       'Access-Control-Allow-Origin': '*',
       'Access-Control-Allow-Methods': 'POST, OPTIONS',
-      'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+      'Access-Control-Allow-Headers': 'Content-Type, Authorization, x-user-id',
     },
   });
 }

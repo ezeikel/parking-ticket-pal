@@ -9,6 +9,7 @@ import PortalAutomationSection from '@/components/landing/PortalAutomationSectio
 // import Testimonials from '@/components/landing/Testimonials';
 import UseCases from '@/components/landing/UseCases';
 import Authorities from '@/components/landing/Authorities';
+import PlatformsSection from '@/components/landing/PlatformsSection';
 import FAQSection from '@/components/landing/FAQSection';
 import Newsletter from '@/components/landing/Newsletter';
 import FinalCTA from '@/components/landing/FinalCTA';
@@ -28,6 +29,7 @@ const HomePage = () => (
     <PortalAutomationSection />
     <UseCases />
     <Authorities />
+    <PlatformsSection />
     <FAQSection />
     <Newsletter />
     <FinalCTA />
