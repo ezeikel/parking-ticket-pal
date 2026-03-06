@@ -90,8 +90,7 @@ const ScanTicketSlide = ({ isActive, onScanNow, onManualEntry, onSkip }: ScanTic
       <Animated.View entering={FadeInUp.delay(400).duration(500)}>
         <SquishyPressable
           onPress={onScanNow}
-          className="py-4 rounded-xl items-center justify-center mb-4 flex-row gap-x-3"
-          style={{ backgroundColor: '#1ABC9C' }}
+          className="py-4 rounded-lg items-center justify-center mb-4 flex-row gap-x-3 bg-teal"
         >
           <FontAwesomeIcon icon={faCamera} size={18} color="#fff" />
           <Text className="font-jakarta-semibold text-white text-lg">
@@ -101,8 +100,7 @@ const ScanTicketSlide = ({ isActive, onScanNow, onManualEntry, onSkip }: ScanTic
 
         <SquishyPressable
           onPress={onManualEntry}
-          className="py-4 rounded-xl items-center justify-center flex-row gap-x-2 mb-3"
-          style={{ backgroundColor: '#F3F4F6' }}
+          className="py-4 rounded-lg items-center justify-center flex-row gap-x-2 mb-3 bg-gray-100"
         >
           <FontAwesomeIcon icon={faPenToSquare} size={14} color="#6B7280" />
           <Text className="font-jakarta-medium text-gray-500 text-base">
@@ -112,7 +110,7 @@ const ScanTicketSlide = ({ isActive, onScanNow, onManualEntry, onSkip }: ScanTic
 
         <SquishyPressable
           onPress={onSkip}
-          className="py-4 rounded-xl items-center justify-center flex-row gap-x-2"
+          className="py-4 rounded-lg items-center justify-center flex-row gap-x-2"
         >
           <FontAwesomeIcon icon={faForward} size={14} color="#9CA3AF" />
           <Text className="font-jakarta-medium text-gray-400 text-base">

@@ -33,11 +33,10 @@ const PaginationDot = ({ index, activeIndex }: PaginationDotProps) => {
   const animatedStyle = useAnimatedStyle(() => {
     const inputRange = [index - 1, index, index + 1];
 
-    // Animate scaleX instead of width to avoid layout recalculation every frame
-    const scaleX = interpolate(
+    const width = interpolate(
       activeIndex.get(),
       inputRange,
-      [8 / 24, 1, 8 / 24],
+      [8, 24, 8],
       'clamp',
     );
 
@@ -67,7 +66,7 @@ const PaginationDot = ({ index, activeIndex }: PaginationDotProps) => {
     const b = Math.round(grayB + (tealB - grayB) * backgroundColor);
 
     return {
-      transform: [{ scaleX }],
+      width,
       opacity,
       backgroundColor: `rgb(${r}, ${g}, ${b})`,
     };
@@ -77,12 +76,10 @@ const PaginationDot = ({ index, activeIndex }: PaginationDotProps) => {
     <Animated.View
       style={[
         {
-          width: 24,
           height: 8,
           borderRadius: 4,
           borderCurve: 'continuous',
           marginHorizontal: 4,
-          transformOrigin: 'center',
         },
         animatedStyle,
       ]}
@@ -263,8 +260,7 @@ const OnboardingCarousel = ({ onComplete, onTicketCreated }: OnboardingCarouselP
 
           {showNextButton && (
             <SquishyPressable
-              className="py-4 rounded-xl items-center justify-center"
-              style={{ backgroundColor: '#1ABC9C' }}
+              className="py-4 rounded-lg items-center justify-center bg-teal"
               onPress={() => {
                 trackEvent('onboarding_next_clicked', {
                   screen: 'onboarding',
