@@ -137,6 +137,56 @@ export const createTicket = async (
         );
       }
     }
+
+    // auto-verify ticket against issuer portal
+    if (ticket && ticket.issuer) {
+      try {
+        const issuer = findIssuer(ticket.issuer);
+        const issuerId =
+          issuer?.id || ticket.issuer.toLowerCase().replace(/\s+/g, '-');
+
+        const result = await runVerify({
+          issuerId,
+          pcnNumber: ticket.pcnNumber,
+          vehicleReg: values.vehicleReg,
+          ticketId: ticket.id,
+        });
+
+        if (result.success) {
+          await db.ticket.update({
+            where: { id: ticket.id },
+            data: { verified: true },
+          });
+
+          const evidencePrefix = `tickets/${ticket.id}/evidence/`;
+          const { blobs } = await list({ prefix: evidencePrefix });
+
+          if (blobs.length > 0) {
+            const existingMedia = await db.media.count({
+              where: { ticketId: ticket.id, source: MediaSource.EVIDENCE },
+            });
+
+            if (existingMedia === 0) {
+              await db.media.createMany({
+                data: blobs.map((blob) => ({
+                  ticketId: ticket.id,
+                  url: blob.url,
+                  type: MediaType.IMAGE,
+                  source: MediaSource.EVIDENCE,
+                  description: 'Portal evidence image',
+                })),
+              });
+            }
+          }
+        }
+      } catch (error) {
+        logger.error(
+          'Auto-verify failed after ticket creation',
+          { ticketId: ticket.id, pcnNumber: ticket.pcnNumber },
+          error instanceof Error ? error : new Error(String(error)),
+        );
+      }
+    }
   });
 
   try {
