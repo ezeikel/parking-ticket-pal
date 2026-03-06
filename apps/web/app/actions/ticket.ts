@@ -3,7 +3,7 @@
 import { cache } from 'react';
 import { revalidatePath } from 'next/cache';
 import { after } from 'next/server';
-import { del, put } from '@/lib/storage';
+import { del, put, list } from '@/lib/storage';
 import {
   IssuerType,
   MediaSource,
@@ -933,6 +933,29 @@ export const verifyTicket = async (pcnNumber: string, ticketId?: string) => {
         where: { id: ticket.id },
         data: { verified: true },
       });
+
+      // Create media records for evidence images uploaded by the worker
+      const evidencePrefix = `tickets/${ticket.id}/evidence/`;
+      const { blobs } = await list({ prefix: evidencePrefix });
+
+      if (blobs.length > 0) {
+        // Check for existing evidence to avoid duplicates
+        const existingMedia = await db.media.count({
+          where: { ticketId: ticket.id, source: MediaSource.EVIDENCE },
+        });
+
+        if (existingMedia === 0) {
+          await db.media.createMany({
+            data: blobs.map((blob) => ({
+              ticketId: ticket.id,
+              url: blob.url,
+              type: MediaType.IMAGE,
+              source: MediaSource.EVIDENCE,
+              description: 'Portal evidence image',
+            })),
+          });
+        }
+      }
     }
 
     return result.success;
