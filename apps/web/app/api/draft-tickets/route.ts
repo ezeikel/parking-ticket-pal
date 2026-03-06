@@ -1,6 +1,6 @@
 import { db } from '@parking-ticket-pal/db';
-import { decrypt } from '@/app/lib/session';
 import { createServerLogger } from '@/lib/logger';
+import { getUserId } from '@/utils/user';
 
 const log = createServerLogger({ action: 'draft-tickets' });
 
@@ -10,21 +10,13 @@ const log = createServerLogger({ action: 'draft-tickets' });
  * Returns all draft tickets for the authenticated user.
  */
 // eslint-disable-next-line import-x/prefer-default-export
-export const GET = async (req: Request) => {
+export const GET = async () => {
   try {
-    const authHeader = req.headers.get('authorization');
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    const userId = await getUserId('get draft tickets');
+
+    if (!userId) {
       return Response.json({ error: 'Unauthorized' }, { status: 401 });
     }
-
-    const token = authHeader.substring(7);
-    const session = await decrypt(token);
-
-    if (!session || !session.id) {
-      return Response.json({ error: 'Invalid session' }, { status: 401 });
-    }
-
-    const userId = session.id as string;
 
     const draftTickets = await db.draftTicket.findMany({
       where: { userId },
