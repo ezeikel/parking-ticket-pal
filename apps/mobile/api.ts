@@ -427,6 +427,12 @@ export const unregisterPushToken = async (token: string) => {
   return response.data;
 };
 
+// Verification
+export const verifyTicket = async (pcnNumber: string, ticketId: string) => {
+  const response = await api.post('/tickets/verify', { pcnNumber, ticketId });
+  return response.data;
+};
+
 // Evidence
 export const uploadEvidence = async (
   ticketId: string,

@@ -35,6 +35,7 @@ import EvidenceCard from '@/components/ticket-detail/EvidenceCard';
 import SuccessPredictionCard from '@/components/ticket-detail/SuccessPredictionCard';
 import ActionsCard from '@/components/ticket-detail/ActionsCard';
 import DeadlineAlertCard from '@/components/ticket-detail/DeadlineAlertCard';
+import VerificationPrompt from '@/components/ticket-detail/VerificationPrompt';
 import TicketJourneyCard from '@/components/ticket-detail/TicketJourneyCard';
 import ActivityTimelineCard, {
   type TimelineEvent,
@@ -244,6 +245,9 @@ export default function TicketDetailScreen() {
               <FontAwesomeIcon icon={faCopy} size={16} color="#717171" />
             </View>
           </SquishyPressable>
+          {ticketData.verified && (
+            <FontAwesomeIcon icon={faBadgeCheck} size={22} color="#1abc9c" />
+          )}
           <View
             className="rounded-full px-3 py-1"
             style={{ backgroundColor: statusConfig.bgColor }}
@@ -255,14 +259,6 @@ export default function TicketDetailScreen() {
               {statusConfig.label}
             </Text>
           </View>
-          {ticketData.verified && (
-            <View className="flex-row items-center gap-1 rounded-full bg-success/10 px-2.5 py-1">
-              <FontAwesomeIcon icon={faBadgeCheck} size={12} color="#22c55e" />
-              <Text className="font-jakarta-medium text-xs text-success">
-                Verified
-              </Text>
-            </View>
-          )}
         </View>
         <Text className="font-jakarta text-gray">{ticketData.issuer}</Text>
       </View>
@@ -283,6 +279,15 @@ export default function TicketDetailScreen() {
       >
         {/* 1. Ticket Info Card */}
         <TicketInfoCard ticket={ticket} />
+
+        {/* Verification Prompt - show when ticket has issuer but isn't verified */}
+        {!ticketData.verified && ticketData.issuer && (
+          <VerificationPrompt
+            ticketId={ticket.id}
+            pcnNumber={ticketData.pcnNumber}
+            onVerified={refetch}
+          />
+        )}
 
         {/* 2. Live Portal Status */}
         <LiveStatusCard

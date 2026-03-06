@@ -98,6 +98,7 @@ const DashboardTicketsSection = async () => {
       successPrediction: ticket.prediction?.percentage,
       vehicleReg: ticket.vehicle?.registrationNumber,
       tier: ticket.tier,
+      verified: ticket.verified,
       coordinates: location?.coordinates
         ? {
             lat: location.coordinates.latitude,

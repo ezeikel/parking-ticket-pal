@@ -1,22 +1,19 @@
-/* eslint-disable import/prefer-default-export */
-
 import { verifyTicket } from '@/app/actions/ticket';
 
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Methods': 'POST, OPTIONS',
+  'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+  'Content-Type': 'application/json',
+};
+
+export const OPTIONS = () =>
+  new Response(null, { status: 204, headers: corsHeaders });
+
 export const POST = async (req: Request) => {
-  const { pcnNumber } = await req.json();
+  const { pcnNumber, ticketId } = await req.json();
 
-  const valid = await verifyTicket(pcnNumber);
+  const valid = await verifyTicket(pcnNumber, ticketId);
 
-  return Response.json(
-    { valid },
-    {
-      headers: {
-        'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Methods': 'POST, OPTIONS',
-        'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-        'Content-Type': 'application/json',
-      },
-      status: 200,
-    },
-  );
+  return Response.json({ valid }, { headers: corsHeaders, status: 200 });
 };

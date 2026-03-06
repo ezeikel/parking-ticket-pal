@@ -30,6 +30,7 @@ type Ticket = {
   successPrediction?: number;
   vehicleReg?: string;
   tier: TicketTier;
+  verified?: boolean;
   coordinates?: { lat: number; lng: number };
 };
 

@@ -118,7 +118,7 @@ const TicketCard = ({ ticket }: TicketCardProps) => {
                 {ticket.verified && (
                   <FontAwesomeIcon
                     icon={faBadgeCheck}
-                    className="h-4 w-4 text-success"
+                    className="h-4 w-4 text-teal"
                     title="Verified"
                   />
                 )}

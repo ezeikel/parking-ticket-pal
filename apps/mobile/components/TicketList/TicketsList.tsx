@@ -94,7 +94,7 @@ const TicketItem = memo(function TicketItem({
                   <FontAwesomeIcon
                     icon={faBadgeCheck}
                     size={14}
-                    color="#22c55e"
+                    color="#1abc9c"
                   />
                 )}
               </View>
@@ -208,7 +208,7 @@ const TicketItem = memo(function TicketItem({
 
         {/* Bottom row: score gauge + CTA */}
         {!isTerminal && (
-          <View className="border-t border-border mx-4 pt-3 pb-4 flex-row items-center justify-between">
+          <View className="border-t border-border mx-4 pt-3 pb-4" style={{ gap: 10 }}>
             {/* Score gauge section */}
             <View className="flex-row items-center">
               {hasPrediction && isPremium ? (
@@ -230,20 +230,20 @@ const TicketItem = memo(function TicketItem({
 
             {/* CTA button */}
             {isPremium ? (
-              <View className="bg-teal rounded-full px-4 py-2">
-                <Text className="font-jakarta-semibold text-xs text-white">
+              <View className="bg-teal rounded-lg py-2.5 items-center">
+                <Text className="font-jakarta-semibold text-sm text-white">
                   Challenge Now
                 </Text>
               </View>
             ) : (
-              <View className="bg-teal rounded-full px-3 py-2 flex-row items-center">
+              <View className="bg-teal rounded-lg py-2.5 flex-row items-center justify-center">
                 <FontAwesomeIcon
                   icon={faLock}
-                  size={10}
+                  size={11}
                   color="#ffffff"
-                  style={{ marginRight: 4 }}
+                  style={{ marginRight: 6 }}
                 />
-                <Text className="font-jakarta-semibold text-xs text-white">
+                <Text className="font-jakarta-semibold text-sm text-white">
                   Upgrade to Challenge
                 </Text>
               </View>
@@ -309,7 +309,7 @@ const DraftTicketItem = memo(function DraftTicketItem({
           <Text className="font-jakarta text-sm text-gray">
             Add your details to get started
           </Text>
-          <View className="bg-teal rounded-full px-4 py-2 flex-row items-center">
+          <View className="bg-teal rounded-lg px-4 py-2 flex-row items-center">
             <FontAwesomeIcon
               icon={faPlus}
               size={10}

@@ -11,6 +11,7 @@ import {
   faClock,
   faUnlock,
   faLock,
+  faBadgeCheck,
 } from '@fortawesome/pro-solid-svg-icons';
 import { TicketTier, IssuerType } from '@parking-ticket-pal/db/types';
 import { Button } from '@/components/ui/button';
@@ -64,6 +65,7 @@ type Ticket = {
   successPrediction?: number;
   vehicleReg?: string;
   tier: TicketTier;
+  verified?: boolean;
 };
 
 type DashboardTicketsListProps = {
@@ -208,8 +210,15 @@ const DashboardTicketsList = ({
                         {ticket.issuer.substring(0, 2).toUpperCase()}
                       </div>
                       <div>
-                        <p className="font-mono text-sm font-semibold text-dark">
+                        <p className="flex items-center gap-1.5 font-mono text-sm font-semibold text-dark">
                           {ticket.pcnNumber}
+                          {ticket.verified && (
+                            <FontAwesomeIcon
+                              icon={faBadgeCheck}
+                              className="text-sm text-teal"
+                              title="Verified"
+                            />
+                          )}
                         </p>
                         <p className="text-xs text-gray">{ticket.issuer}</p>
                       </div>

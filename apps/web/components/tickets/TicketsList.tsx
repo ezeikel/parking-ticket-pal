@@ -14,6 +14,7 @@ import {
   faLock,
   faPlus,
   faSearch,
+  faBadgeCheck,
 } from '@fortawesome/pro-solid-svg-icons';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -384,8 +385,15 @@ const TicketsList = ({
                         {ticket.issuer?.substring(0, 2).toUpperCase() || 'XX'}
                       </div>
                       <div>
-                        <p className="text-base font-bold text-dark">
+                        <p className="flex items-center gap-1.5 text-base font-bold text-dark">
                           {ticket.pcnNumber}
+                          {ticket.verified && (
+                            <FontAwesomeIcon
+                              icon={faBadgeCheck}
+                              className="text-sm text-teal"
+                              title="Verified"
+                            />
+                          )}
                         </p>
                         <p className="text-sm text-gray">
                           {ticket.issuer || 'Unknown Issuer'}
