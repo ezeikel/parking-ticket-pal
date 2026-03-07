@@ -222,12 +222,14 @@ export const signInWithApple = async (
   authorizationCode: string,
   deviceId?: string,
   referralCode?: string | null,
+  fullName?: { givenName?: string | null; familyName?: string | null } | null,
 ) => {
   const response = await axios.post(`${apiUrlFromEnv}/auth/mobile/apple`, {
     identityToken,
     authorizationCode,
     deviceId,
     ...(referralCode ? { referralCode } : {}),
+    ...(fullName ? { fullName } : {}),
   });
 
   return response.data;

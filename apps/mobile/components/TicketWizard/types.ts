@@ -1,5 +1,6 @@
 import type { Address } from '@parking-ticket-pal/types';
 import type { OCRProcessingResult } from '@/hooks/api/useOCR';
+import { getIssuerType } from '@parking-ticket-pal/constants';
 
 export type WizardStep =
   | 'issuer'
@@ -86,7 +87,9 @@ export function buildWizardDataFromOCR(ocrResult: OCRProcessingResult): WizardDa
   return {
     pcnNumber: ocrResult.data?.pcnNumber ?? '',
     vehicleReg: ocrResult.data?.vehicleReg ?? '',
-    issuerType: null,
+    issuerType: ocrResult.data?.issuer
+      ? getIssuerType(ocrResult.data.issuer) === 'PRIVATE_COMPANY' ? 'private' : 'council'
+      : null,
     ticketStage: null,
     issuedAt: ocrResult.data?.issuedAt ? new Date(ocrResult.data.issuedAt) : null,
     contraventionCode: ocrResult.data?.contraventionCode ?? '',

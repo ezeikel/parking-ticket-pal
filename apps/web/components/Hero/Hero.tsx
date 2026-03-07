@@ -17,6 +17,7 @@ import { useAnalytics } from '@/utils/analytics-client';
 import { TRACKING_EVENTS } from '@/constants/events';
 import { compressImage } from '@/utils/compressImage';
 import { useScrollDepthTracking } from '@/hooks/useScrollDepthTracking';
+import { getIssuerType } from '@parking-ticket-pal/constants';
 
 const R2_ASSETS_URL = 'https://assets.parkingticketpal.com';
 
@@ -192,7 +193,11 @@ const Hero = () => {
           setExtractedData({
             pcnNumber: result.data.pcnNumber || '',
             vehicleReg: result.data.vehicleReg || '',
-            issuerType: 'council',
+            issuerType:
+              result.data.issuer &&
+              getIssuerType(result.data.issuer) === 'PRIVATE_COMPANY'
+                ? 'private'
+                : 'council',
             ticketStage: 'initial',
             issueDate: result.data.issuedAt
               ? new Date(result.data.issuedAt).toISOString()

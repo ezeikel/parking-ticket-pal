@@ -12,6 +12,13 @@ import type { Address } from '@parking-ticket-pal/types';
 
 const logger = createServerLogger({ action: 'user' });
 
+const titleCase = (str: string) =>
+  str
+    .trim()
+    .split(/\s+/)
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+    .join(' ');
+
 type UpdateUserData = {
   name?: string;
   phoneNumber?: string;
@@ -110,25 +117,26 @@ const updateUserProfileInternal = async (
     }
 
     // Handle address - support both full Address object and legacy flat fields
+    // Normalize empty strings to undefined to avoid storing ""
     let addressData = null;
     if (address) {
-      // New format: full Address object with coordinates
-      addressData = address;
+      addressData = Object.fromEntries(
+        Object.entries(address).map(([k, v]) => [k, v === '' ? undefined : v]),
+      );
     } else if (addressLine1 || addressLine2 || city || county || postcode) {
-      // Legacy format: flat fields (for backward compatibility)
       addressData = {
-        line1: addressLine1,
-        line2: addressLine2,
-        city,
-        county,
-        postcode,
+        line1: addressLine1 || undefined,
+        line2: addressLine2 || undefined,
+        city: city || undefined,
+        county: county || undefined,
+        postcode: postcode || undefined,
       };
     }
 
     const updatedUser = await db.user.update({
       where: { id: userId },
       data: {
-        name,
+        name: name ? titleCase(name) : name,
         phoneNumber,
         address: addressData || undefined,
         signatureUrl: signatureUrl || undefined,

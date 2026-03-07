@@ -2,7 +2,7 @@
 
 import { motion } from 'framer-motion';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faPen } from '@fortawesome/pro-solid-svg-icons';
+import { faPen, faTriangleExclamation } from '@fortawesome/pro-solid-svg-icons';
 import { Button } from '@/components/ui/button';
 import { Address } from '@parking-ticket-pal/types';
 
@@ -49,6 +49,15 @@ const TicketInfoCard = ({
   const isDiscounted = currentAmount < originalAmount;
   const isOverdue = currentAmount > originalAmount;
 
+  const missingFields: string[] = [];
+  if (!issuer || issuer === 'Unknown') missingFields.push('issuer');
+  if (!location?.line1 || location.line1 === 'Unknown')
+    missingFields.push('location');
+  if (!originalAmount) missingFields.push('amount');
+  if (!contraventionCode || contraventionCode === 'UNKNOWN')
+    missingFields.push('contravention code');
+  const hasIncompleteData = missingFields.length > 0;
+
   // Calculate discount deadline (14 days from issue)
   const computedDiscountDeadline =
     discountDeadline ||
@@ -80,6 +89,33 @@ const TicketInfoCard = ({
           </Button>
         )}
       </div>
+
+      {hasIncompleteData && (
+        <div className="mt-4 flex items-start gap-3 rounded-lg border border-amber-200 bg-amber-50 p-3">
+          <FontAwesomeIcon
+            icon={faTriangleExclamation}
+            className="mt-0.5 text-amber-500"
+          />
+          <div className="flex-1">
+            <p className="text-sm font-medium text-amber-800">
+              Incomplete ticket details
+            </p>
+            <p className="mt-0.5 text-xs text-amber-700">
+              We couldn&apos;t extract the {missingFields.join(', ')} from your
+              ticket. Please edit the ticket to add the missing details or
+              upload a clearer image.
+            </p>
+            {onEdit && (
+              <button
+                onClick={onEdit}
+                className="mt-2 text-xs font-medium text-amber-800 underline hover:text-amber-900"
+              >
+                Edit ticket details
+              </button>
+            )}
+          </div>
+        </div>
+      )}
 
       <div className="mt-5 grid grid-cols-1 gap-4 sm:grid-cols-2">
         <div>

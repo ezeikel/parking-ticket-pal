@@ -278,6 +278,7 @@ export const AuthContextProvider = ({ children }: AuthContextProviderProps) => {
           appleAuthRequestResponse.authorizationCode || '',
           deviceId,
           referralCode,
+          appleAuthRequestResponse.fullName,
         );
         await handlePostSignIn(sessionToken);
       }

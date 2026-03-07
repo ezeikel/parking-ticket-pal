@@ -1,7 +1,12 @@
 import { View, Text, TextInput, ScrollView } from 'react-native';
 import { useState } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
-import { faCheckCircle, faChevronDown, faChevronUp } from '@fortawesome/pro-solid-svg-icons';
+import {
+  faCheckCircle,
+  faChevronDown,
+  faChevronUp,
+  faTriangleExclamation,
+} from '@fortawesome/pro-solid-svg-icons';
 import SquishyPressable from '@/components/SquishyPressable/SquishyPressable';
 import type { WizardStepProps, IssuerType, TicketStage } from '../types';
 
@@ -20,6 +25,13 @@ const ConfirmStep = ({ wizardData, onNext }: WizardStepProps) => {
   const pcnError = pcnTouched && !pcnNumber.trim();
   const regError = regTouched && !vehicleReg.trim();
 
+  const missingFields: string[] = [];
+  if (!wizardData.issuer || wizardData.issuer === 'Unknown') missingFields.push('issuer');
+  if (!wizardData.location?.line1 || wizardData.location.line1 === 'Unknown') missingFields.push('location');
+  if (!wizardData.initialAmount) missingFields.push('amount');
+  if (!wizardData.contraventionCode || wizardData.contraventionCode === 'UNKNOWN') missingFields.push('contravention code');
+  const hasIncompleteData = missingFields.length > 0;
+
   const stageLabels: Record<string, string> = {
     initial: 'Initial Ticket',
     nto: 'Notice to Owner',
@@ -30,15 +42,27 @@ const ConfirmStep = ({ wizardData, onNext }: WizardStepProps) => {
   return (
     <ScrollView showsVerticalScrollIndicator={false}>
       {/* Badge */}
-      <View
-        className="flex-row items-center gap-x-2 rounded-full px-3 py-1.5 self-start mb-4"
-        style={{ backgroundColor: '#F0FDF4' }}
-      >
-        <FontAwesomeIcon icon={faCheckCircle} size={14} color="#1ABC9C" />
-        <Text className="font-jakarta-medium text-xs" style={{ color: '#1ABC9C' }}>
-          Details extracted from your photo
-        </Text>
-      </View>
+      {hasIncompleteData ? (
+        <View
+          className="flex-row items-center gap-x-2 rounded-lg px-3 py-2 self-stretch mb-4"
+          style={{ backgroundColor: '#FFFBEB', borderWidth: 1, borderColor: '#FDE68A' }}
+        >
+          <FontAwesomeIcon icon={faTriangleExclamation} size={14} color="#D97706" />
+          <Text className="font-jakarta-medium text-xs flex-1" style={{ color: '#92400E' }}>
+            We couldn't extract the {missingFields.join(', ')} from your ticket. You can add these details in the next step.
+          </Text>
+        </View>
+      ) : (
+        <View
+          className="flex-row items-center gap-x-2 rounded-full px-3 py-1.5 self-start mb-4"
+          style={{ backgroundColor: '#F0FDF4' }}
+        >
+          <FontAwesomeIcon icon={faCheckCircle} size={14} color="#1ABC9C" />
+          <Text className="font-jakarta-medium text-xs" style={{ color: '#1ABC9C' }}>
+            Details extracted from your photo
+          </Text>
+        </View>
+      )}
 
       {/* Key fields */}
       <View className="mb-4">

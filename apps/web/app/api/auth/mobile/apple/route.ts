@@ -7,7 +7,7 @@ const log = createServerLogger({ action: 'auth-apple' });
 
 // eslint-disable-next-line import-x/prefer-default-export
 export const POST = async (req: Request) => {
-  const { identityToken, deviceId, referralCode } = await req.json();
+  const { identityToken, deviceId, referralCode, fullName } = await req.json();
 
   try {
     // Decode the Apple identity token (without verification for simplicity)
@@ -18,10 +18,18 @@ export const POST = async (req: Request) => {
       return Response.json({ error: 'Invalid Apple token' }, { status: 400 });
     }
 
+    // Build name from Apple's fullName (only provided on first auth)
+    const givenName = fullName?.givenName;
+    const familyName = fullName?.familyName;
+    const name =
+      givenName || familyName
+        ? [givenName, familyName].filter(Boolean).join(' ')
+        : decoded.email.split('@')[0];
+
     const { userId, isNewUser, wasMerged } = await handleMobileOAuthSignIn(
       deviceId,
       decoded.email,
-      decoded.email.split('@')[0],
+      name,
       referralCode,
     );
 

@@ -177,9 +177,17 @@ const config = {
           account?.provider === 'facebook'
         ) {
           name = profile?.name;
-        } else if (account?.provider === 'apple' && appleProfile?.user) {
-          // Apple only returns the user object this first time the user authorises the app - subsequent authorisations don't return the user object
-          name = `${appleProfile.user.firstName} ${appleProfile.user.lastName}`;
+        } else if (account?.provider === 'apple') {
+          // Apple only returns the user object the first time the user authorises the app
+          const firstName = appleProfile?.user?.firstName;
+          const lastName = appleProfile?.user?.lastName;
+
+          if (firstName || lastName) {
+            name = [firstName, lastName].filter(Boolean).join(' ');
+          } else {
+            // Fallback to email prefix when Apple doesn't provide a name
+            name = profile?.email?.split('@')[0];
+          }
         }
 
         const newUser = await db.user.create({

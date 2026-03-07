@@ -71,6 +71,10 @@ const EditVehicleDialog = ({
                 id="registrationNumber"
                 name="registrationNumber"
                 defaultValue={vehicle.registrationNumber}
+                className="uppercase"
+                onChange={(e) => {
+                  e.target.value = e.target.value.toUpperCase();
+                }}
               />
             </div>
             <div className="grid grid-cols-2 gap-4">

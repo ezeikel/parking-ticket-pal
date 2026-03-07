@@ -499,6 +499,18 @@ export const displayNameToSlug = (name: string): string | undefined => {
   );
   if (formalMatch) return formalMatch;
 
+  // Partial match for private companies — OCR may extract "Euro Car Parks (UK) Ltd" but list has "Euro Car Parks"
+  const privatePartialMatch = PRIVATE_COMPANIES.find(
+    (c) => lower.includes(c.name.toLowerCase()) || c.name.toLowerCase().includes(lower),
+  );
+  if (privatePartialMatch) return privatePartialMatch.id;
+
+  // Partial match for transport authorities
+  const transportPartialMatch = TRANSPORT_AUTHORITIES.find(
+    (t) => lower.includes(t.name.toLowerCase()) || t.name.toLowerCase().includes(lower),
+  );
+  if (transportPartialMatch) return transportPartialMatch.id;
+
   // Strip common suffixes/prefixes and retry: "Lewisham Council" → "Lewisham", "Borough of X" → "X"
   const stripped = lower
     .replace(/\b(borough|city|county|district|metropolitan|unitary)\s+(council|authority)\b/g, '')
