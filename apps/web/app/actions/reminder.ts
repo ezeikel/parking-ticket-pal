@@ -8,16 +8,11 @@ import {
   NotificationType,
   Prisma,
 } from '@parking-ticket-pal/db';
-import twilio from 'twilio';
 import { addDays, isAfter, isSameDay } from 'date-fns';
 import { createServerLogger } from '@/lib/logger';
 import { createAndSendNotification } from '@/lib/notifications/create';
 import { sendEmail } from '@/lib/email';
-
-const twilioClient = twilio(
-  process.env.TWILIO_ACCOUNT_SID,
-  process.env.TWILIO_AUTH_TOKEN,
-);
+import { sendSms } from '@/lib/sms';
 
 export const generateReminders = async (ticket: {
   id: string;
@@ -171,23 +166,24 @@ export const sendReminder = async (reminderId: string) => {
     }
 
     // sms
-    if (
-      reminder.notificationType === NotificationType.SMS &&
-      user.phoneNumber
-    ) {
-      const text = `Reminder: Your parking ticket ${reminder.ticket.pcnNumber} for vehicle registration ${reminder.ticket.vehicle.registrationNumber} issued on ${reminder.ticket.issuedAt.toLocaleDateString()} by ${reminder.ticket.issuer} is approaching the ${reminderLabel} deadline. Please check the app.`;
+    if (reminder.notificationType === NotificationType.SMS) {
+      if (user.phoneNumber) {
+        const text = `Reminder: Your parking ticket ${reminder.ticket.pcnNumber} for vehicle registration ${reminder.ticket.vehicle.registrationNumber} issued on ${reminder.ticket.issuedAt.toLocaleDateString()} by ${reminder.ticket.issuer} is approaching the ${reminderLabel} deadline. Please check the app.`;
 
-      await twilioClient.messages.create({
-        from: process.env.TWILIO_PHONE_NUMBER!,
-        to: user.phoneNumber,
-        body: text,
-      });
-    } else {
-      // TODO: skip SMS reminders if user has no phone number (don't treat as error)
-      logger.warn('Skipping SMS reminder - user has no phone number', {
-        reminderId,
-        userId: reminder.ticket.vehicle?.user.id,
-      });
+        const smsResult = await sendSms({
+          to: user.phoneNumber,
+          body: text,
+        });
+
+        if (!smsResult.success) {
+          throw new Error(`SMS failed: ${smsResult.error}`);
+        }
+      } else {
+        logger.warn('Skipping SMS reminder - user has no phone number', {
+          reminderId,
+          userId: user.id,
+        });
+      }
     }
 
     // mark as sent

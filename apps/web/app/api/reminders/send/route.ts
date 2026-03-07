@@ -1,17 +1,28 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@parking-ticket-pal/db';
 import { sendReminder } from '@/app/actions/reminder';
 import { startOfDay, endOfDay } from 'date-fns';
+import { createServerLogger } from '@/lib/logger';
 
-const handleRequest = async () => {
+const logger = createServerLogger({ action: 'cron:reminders-send' });
+
+const handleRequest = async (request: NextRequest) => {
+  const authHeader = request.headers.get('authorization');
+  const cronSecret = process.env.CRON_SECRET;
+
+  if (cronSecret && authHeader !== `Bearer ${cronSecret}`) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
   const now = new Date();
   const start = startOfDay(now);
   const end = endOfDay(now);
 
-  // DEBUG:
-  console.log('now', now);
-  console.log('start', start);
-  console.log('end', end);
+  logger.debug('Checking for due reminders', {
+    now: now.toISOString(),
+    start: start.toISOString(),
+    end: end.toISOString(),
+  });
 
   // Only send reminders that are due today
   // For EMAIL and SMS: only send for PREMIUM tickets
@@ -35,8 +46,7 @@ const handleRequest = async () => {
     select: { id: true },
   });
 
-  // DEBUG:
-  console.log('dueReminders', dueReminders);
+  logger.info('Found due reminders', { count: dueReminders.length });
 
   const results = await Promise.all(
     dueReminders.map(async (reminder) => {
