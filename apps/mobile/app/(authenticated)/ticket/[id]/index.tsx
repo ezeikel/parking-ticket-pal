@@ -79,9 +79,6 @@ export default function TicketDetailScreen() {
         setIsAutoChallengeVisible(true);
       } else if (action === 'challenge-letter') {
         setIsChallengeLetterVisible(true);
-      } else {
-        setSelectedFormType(action);
-        formsSheetRef.current?.snapToIndex(0);
       }
     }, 300);
   };
@@ -398,7 +395,6 @@ export default function TicketDetailScreen() {
       {/* Bottom Sheets */}
       <PremiumActionsBottomSheet
         visible={isPremiumActionsVisible}
-        issuerType={ticketData.issuerType}
         onActionSelect={handlePremiumActionSelect}
         onClose={() => setIsPremiumActionsVisible(false)}
       />
