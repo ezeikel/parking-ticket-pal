@@ -111,7 +111,7 @@ const PricingPage = () => {
                 {/* Price anchoring for Premium */}
                 {tier.title === 'Premium' && (
                   <p className="mb-2 text-xs font-medium text-teal">
-                    Challenge your £100 ticket for just £14.99
+                    Your ticket could cost you £130+. Challenge it for £14.99
                   </p>
                 )}
 
@@ -295,7 +295,7 @@ const PricingPage = () => {
             transition={{ delay: 0.1 }}
             className="mx-auto mt-4 max-w-xl text-lg text-white/70"
           >
-            Start free. Upgrade when you need to challenge.
+            Track for free. Challenge for £14.99.
           </motion.p>
           <motion.div
             initial="hidden"

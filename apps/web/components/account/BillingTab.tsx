@@ -140,7 +140,7 @@ const BillingTab = ({ user }: BillingTabProps) => {
           <ul className="space-y-2">
             {[
               'Unlimited tickets',
-              'Email + push reminders',
+              'Email and push notification reminders',
               'Timeline tracking',
               'Document storage',
               'Key deadline notifications',

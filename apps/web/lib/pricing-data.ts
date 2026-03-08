@@ -15,7 +15,7 @@ export const PRICING_TIERS: Omit<PriceCardProps, 'dataAttrs'>[] = [
     period: 'forever',
     features: [
       'Unlimited tickets',
-      'Email + push reminders',
+      'Email and push notification reminders',
       'Timeline tracking',
       'Document storage',
       'Key deadline notifications',
@@ -32,7 +32,7 @@ export const PRICING_TIERS: Omit<PriceCardProps, 'dataAttrs'>[] = [
       'Everything in Free',
       'Challenge/appeal letter with optional AI assist',
       'Pre-filled legal forms (PE2, PE3, TE7, TE9, N244)',
-      'Auto-submission to council',
+      'Automatic challenge submission',
       'Success prediction score',
       'SMS reminders',
       '30-day ad-free experience',
@@ -53,7 +53,7 @@ export const FAQ_ITEMS = [
   {
     question: 'What does Premium include?',
     answer:
-      'Premium unlocks challenge/appeal letter generation with optional AI assist, pre-filled legal forms (PE2, PE3, TE7, TE9, N244), automatic submission to the council, a success prediction score, SMS reminders, 30 days ad-free, and priority support — all for a one-time £14.99 per ticket.',
+      'Premium gives you everything to challenge your ticket and win: AI-assisted letter generation, automatic challenge submission, pre-filled legal forms (PE2, PE3, TE7, TE9, N244), a success prediction score, SMS reminders, 30 days ad-free, and priority support — all for a one-time £14.99.',
   },
   {
     question: 'Is it a subscription?',
@@ -63,12 +63,12 @@ export const FAQ_ITEMS = [
   {
     question: 'Is it worth £14.99?',
     answer:
-      "Most parking tickets are £60–£130. One successful challenge saves you far more than £14.99. If you think there's a case, it pays for itself.",
+      'Most parking tickets are £65–£130+. One successful challenge saves you far more than £14.99 — it pays for itself.',
   },
   {
     question: 'What happens after I pay?',
     answer:
-      'Your ticket is instantly upgraded to Premium. You get access to the challenge letter generator, auto-submission, success prediction, SMS reminders, and 30 days ad-free across web and mobile.',
+      'Your ticket is instantly upgraded to Premium. You get access to the challenge letter generator, automatic submission, success prediction, SMS reminders, and 30 days ad-free across web and mobile.',
   },
   {
     question: 'What are the pre-filled legal forms?',
@@ -84,14 +84,13 @@ export const FAQ_ITEMS = [
 
 export const COMPARISON_FEATURES = [
   { name: 'Unlimited tickets', free: true, premium: true },
-  { name: 'Email + push reminders', free: true, premium: true },
+  { name: 'Email and push notification reminders', free: true, premium: true },
   { name: 'Timeline tracking', free: true, premium: true },
   { name: 'Document storage', free: true, premium: true },
   { name: 'Key deadline notifications', free: true, premium: true },
-  { name: 'Challenge/appeal letter', free: false, premium: true },
-  { name: 'AI-assisted letter generation', free: false, premium: true },
+  { name: 'AI-assisted challenge letter', free: false, premium: true },
   { name: 'Pre-filled legal forms', free: false, premium: true },
-  { name: 'Auto-submission to council', free: false, premium: true },
+  { name: 'Automatic challenge submission', free: false, premium: true },
   { name: 'Success prediction score', free: false, premium: true },
   { name: 'SMS reminders', free: false, premium: true },
   { name: '30-day ad-free experience', free: false, premium: true },

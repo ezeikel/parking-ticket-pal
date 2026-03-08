@@ -22,7 +22,7 @@ export const PREMIUM_PLAN: PricingPlan = {
   popular: true,
   features: [
     { text: "Challenge/appeal letter with AI assist", included: true },
-    { text: "Auto-submission to council", included: true },
+    { text: "Automatic challenge submission", included: true },
     { text: "Success prediction score", included: true },
     { text: "SMS reminders", included: true },
     { text: "30-day ad-free experience", included: true },

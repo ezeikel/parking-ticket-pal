@@ -27,7 +27,7 @@ const tiers: PricingTier[] = [
     subtitle: 'Track & manage your tickets',
     features: [
       'Unlimited tickets',
-      'Email + push reminders',
+      'Email and push notification reminders',
       'Timeline tracking',
       'Document storage',
       'Key deadline notifications',
@@ -45,7 +45,7 @@ const tiers: PricingTier[] = [
     features: [
       'Everything in Free',
       'Challenge/appeal letter with AI assist',
-      'Auto-submission to council',
+      'Automatic challenge submission',
       'Success prediction score',
       'SMS reminders',
       '30-day ad-free experience',
