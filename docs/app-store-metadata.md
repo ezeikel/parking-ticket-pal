@@ -3,7 +3,7 @@
 ## App Identity
 
 - **App Name:** Parking Ticket Pal
-- **Subtitle (30 chars):** Stop Your Fine From Growing
+- **Subtitle (30 chars):** Track, Appeal & Beat Your PCN
 - **Bundle ID (iOS):** com.chewybytes.parkingticketpal.app
 - **Package (Android):** com.chewybytes.parkingticketpal.app
 - **Category:** Utilities (primary) / Lifestyle (secondary)
@@ -75,7 +75,7 @@ A parking ticket doesn't have to cost you a penny more than it should.
 ## Keywords (100 chars max)
 
 ```
-fine,challenge,dispute,fight,FPN,council,TfL,private,POPLA,unfair,letter,evidence,NTO,penalty,warden
+PCN,challenge,dispute,fine,FPN,council,TfL,private,POPLA,unfair,letter,evidence,NTO,penalty,tracker
 ```
 
 ---
@@ -83,7 +83,7 @@ fine,challenge,dispute,fight,FPN,council,TfL,private,POPLA,unfair,letter,evidenc
 ## Promotional Text (170 chars, changeable without app update)
 
 ```
-A £60 ticket can become £300+ if you miss a deadline. Upload yours now — we'll track it, show your options, and handle the challenge for you. One-time purchase, no subscription.
+Miss one deadline and a £60 ticket becomes £300+. Upload yours — we'll track every deadline, handle the challenge for you. One-time purchase, no subscription.
 ```
 
 ---
