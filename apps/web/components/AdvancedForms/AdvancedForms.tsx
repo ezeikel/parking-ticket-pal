@@ -35,6 +35,7 @@ import {
   generatePE3Form,
   generateTE7Form,
   generateTE9Form,
+  generateN244Form,
   getFormFillDataFromTicket,
 } from '@/app/actions/form';
 import { TicketWithRelations } from '@/types';
@@ -75,7 +76,7 @@ const formOptions: {
   {
     value: FormType.N244,
     label: 'N244: Application to set aside a county court judgment',
-    requiresSignature: false,
+    requiresSignature: true,
   },
 ];
 
@@ -329,6 +330,89 @@ const TE7Fields = ({ onDataChange }: { onDataChange: (data: any) => void }) => {
   );
 };
 
+// This component will render the specific fields for the N244 form
+const N244Fields = ({
+  onDataChange,
+}: {
+  onDataChange: (data: any) => void;
+}) => {
+  const [orderRequest, setOrderRequest] = useState('');
+  const [evidence, setEvidence] = useState('');
+  const [orderTouched, setOrderTouched] = useState(false);
+  const [evidenceTouched, setEvidenceTouched] = useState(false);
+
+  const handleOrderChange = (value: string) => {
+    setOrderRequest(value);
+    onDataChange({ orderRequestText: value, reasonText: evidence });
+  };
+
+  const handleEvidenceChange = (value: string) => {
+    setEvidence(value);
+    onDataChange({ orderRequestText: orderRequest, reasonText: value });
+  };
+
+  return (
+    <div className="space-y-4">
+      <div className="space-y-2">
+        <Label htmlFor="n244-order" className="font-medium">
+          What order are you asking the court to make? (Q3)
+        </Label>
+        <Alert>
+          <FontAwesomeIcon icon={faInfoCircle} size="lg" />
+          <AlertTitle>Guidance</AlertTitle>
+          <AlertDescription>
+            Explain what you want the court to do and why. Typically, you are
+            asking the court to set aside a county court judgment (CCJ) related
+            to a parking penalty charge.
+          </AlertDescription>
+        </Alert>
+        <Textarea
+          id="n244-order"
+          placeholder="e.g. I am asking the court to set aside the CCJ because I did not receive the original penalty charge notice and was unaware of the proceedings..."
+          rows={4}
+          value={orderRequest}
+          onChange={(e) => handleOrderChange(e.target.value)}
+          onBlur={() => setOrderTouched(true)}
+        />
+        {orderTouched && !orderRequest.trim() && (
+          <p className="text-sm font-medium text-destructive">
+            Please describe the order you are requesting
+          </p>
+        )}
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="n244-evidence" className="font-medium">
+          Evidence in support (Q10)
+        </Label>
+        <Alert>
+          <FontAwesomeIcon icon={faInfoCircle} size="lg" />
+          <AlertTitle>Important</AlertTitle>
+          <AlertDescription>
+            Provide the facts that support your application. Explain why the CCJ
+            should be set aside — for example, you did not receive notices, were
+            unaware of proceedings, or have a real prospect of defending the
+            claim.
+          </AlertDescription>
+        </Alert>
+        <Textarea
+          id="n244-evidence"
+          placeholder="Explain your circumstances and why the judgment should be set aside..."
+          rows={5}
+          value={evidence}
+          onChange={(e) => handleEvidenceChange(e.target.value)}
+          onBlur={() => setEvidenceTouched(true)}
+        />
+        {evidenceTouched && !evidence.trim() && (
+          <p className="text-sm font-medium text-destructive">
+            Please provide supporting evidence
+          </p>
+        )}
+      </div>
+    </div>
+  );
+};
+
 const AdvancedForms = ({ ticket, hasSignature }: AdvancedFormsProps) => {
   const [selectedForm, setSelectedForm] = useState<FormType | ''>('');
   const [isGenerating, setIsGenerating] = useState(false);
@@ -389,8 +473,8 @@ const AdvancedForms = ({ ticket, hasSignature }: AdvancedFormsProps) => {
           result = await generateTE9Form(finalFormData);
           break;
         case FormType.N244:
-          toast.info('N244 form generation is coming soon.');
-          return;
+          result = await generateN244Form(finalFormData);
+          break;
         default:
           toast.error('Invalid form type selected.');
           return;
@@ -435,15 +519,7 @@ const AdvancedForms = ({ ticket, hasSignature }: AdvancedFormsProps) => {
         FormComponent = <TE7Fields onDataChange={setFormData} />;
         break;
       case FormType.N244:
-        FormComponent = (
-          <div className="rounded-md border bg-muted/50 p-4 text-center">
-            <p className="font-medium text-muted-foreground">Coming Soon</p>
-            <p className="mt-1 text-sm text-muted-foreground">
-              N244 form generation is under development and will be available in
-              a future update.
-            </p>
-          </div>
-        );
+        FormComponent = <N244Fields onDataChange={setFormData} />;
         break;
       default:
         return null;
@@ -462,10 +538,10 @@ const AdvancedForms = ({ ticket, hasSignature }: AdvancedFormsProps) => {
   return (
     <Card className="shadow-md">
       <CardHeader>
-        <CardTitle>Advanced Forms</CardTitle>
+        <CardTitle className="text-lg">Advanced Forms</CardTitle>
         <CardDescription>
-          Generate statutory declarations (PE2, PE3) or witness statements (TE7,
-          TE9) for later-stage appeals.
+          Generate statutory declarations (PE2, PE3), witness statements (TE7,
+          TE9), or court applications (N244) for later-stage appeals.
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -513,14 +589,7 @@ const AdvancedForms = ({ ticket, hasSignature }: AdvancedFormsProps) => {
             className="w-full"
           >
             <div className="flex w-full justify-end">
-              <Button
-                type="submit"
-                disabled={
-                  !selectedForm ||
-                  isGenerating ||
-                  selectedForm === FormType.N244
-                }
-              >
+              <Button type="submit" disabled={!selectedForm || isGenerating}>
                 <FontAwesomeIcon
                   icon={isGenerating ? faSpinnerThird : faFilePdf}
                   size="lg"

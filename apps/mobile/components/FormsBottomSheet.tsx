@@ -7,7 +7,7 @@ import Checkbox from 'expo-checkbox';
 import { FormType, FORM_TYPES } from '@/constants/challenges';
 import SquishyPressable from '@/components/SquishyPressable/SquishyPressable';
 import Loader from '@/components/Loader/Loader';
-import { generateTE7Form, generateTE9Form, generatePE2Form, generatePE3Form } from '@/api';
+import { generateTE7Form, generateTE9Form, generatePE2Form, generatePE3Form, generateN244Form } from '@/api';
 import { logger } from '@/lib/logger';
 
 interface FormsBottomSheetProps {
@@ -34,10 +34,18 @@ const FormsBottomSheet = forwardRef<BottomSheet, FormsBottomSheetProps>(
     });
     const [reasonTouched, setReasonTouched] = useState(false);
     const [groundsTouched, setGroundsTouched] = useState(false);
+    // N244 fields
+    const [orderRequestText, setOrderRequestText] = useState('');
+    const [evidenceText, setEvidenceText] = useState('');
+    const [orderTouched, setOrderTouched] = useState(false);
+    const [evidenceTouched, setEvidenceTouched] = useState(false);
 
     const reasonError = reasonTouched && !reasonText.trim();
     const hasSelectedGround = Object.values(grounds).some(Boolean);
     const groundsError = groundsTouched && !hasSelectedGround;
+
+    const orderError = orderTouched && !orderRequestText.trim();
+    const evidenceError = evidenceTouched && !evidenceText.trim();
 
     const handleGenerate = async () => {
       // Validate based on form type
@@ -49,6 +57,14 @@ const FormsBottomSheet = forwardRef<BottomSheet, FormsBottomSheetProps>(
       if ((formType === 'TE9' || formType === 'PE3')) {
         if (!hasSelectedGround) {
           setGroundsTouched(true);
+          return;
+        }
+      }
+
+      if (formType === 'N244') {
+        if (!orderRequestText.trim() || !evidenceText.trim()) {
+          setOrderTouched(true);
+          setEvidenceTouched(true);
           return;
         }
       }
@@ -71,8 +87,8 @@ const FormsBottomSheet = forwardRef<BottomSheet, FormsBottomSheetProps>(
             result = await generatePE3Form(pcnNumber, grounds);
             break;
           case 'N244':
-            toast.info('Coming Soon', 'N244 form generation is not yet available');
-            return;
+            result = await generateN244Form(pcnNumber, orderRequestText, evidenceText);
+            break;
           default:
             throw new Error('Invalid form type');
         }
@@ -92,6 +108,10 @@ const FormsBottomSheet = forwardRef<BottomSheet, FormsBottomSheetProps>(
           });
           setReasonTouched(false);
           setGroundsTouched(false);
+          setOrderRequestText('');
+          setEvidenceText('');
+          setOrderTouched(false);
+          setEvidenceTouched(false);
           onSuccess();
         } else {
           // API returned but indicated failure
@@ -260,14 +280,63 @@ const FormsBottomSheet = forwardRef<BottomSheet, FormsBottomSheetProps>(
         );
       }
 
-      // N244 - Coming soon placeholder
+      // N244 - Order request and evidence fields
       if (formType === 'N244') {
         return (
-          <View className="mb-6 bg-gray-50 border border-gray-200 rounded-lg p-4 items-center">
-            <Text className="text-sm font-jakarta-semibold text-gray-700 mb-2">Coming Soon</Text>
-            <Text className="text-xs text-gray-500 text-center">
-              N244 form generation is under development and will be available in a future update.
+          <View className="mb-6">
+            <Text className="text-sm font-jakarta-semibold text-gray-700 mb-2">
+              What order are you asking the court to make? <Text className="text-red-500">*</Text>
             </Text>
+            <View className="bg-teal/10 border border-teal/20 rounded-lg p-3 mb-3">
+              <Text className="text-xs text-teal-dark font-jakarta-semibold mb-1">Guidance</Text>
+              <Text className="text-xs text-teal-dark leading-4">
+                Explain what you want the court to do. Typically, you are asking the court to set aside a CCJ related to a parking penalty charge.
+              </Text>
+            </View>
+            <TextInput
+              className={`border rounded-lg p-3 bg-white text-gray-900 min-h-[100px] ${orderError ? 'border-red-500' : 'border-gray-300'}`}
+              placeholder="e.g. I am asking the court to set aside the CCJ because I did not receive the original penalty charge notice..."
+              placeholderTextColor="#9ca3af"
+              multiline
+              numberOfLines={4}
+              textAlignVertical="top"
+              value={orderRequestText}
+              onChangeText={setOrderRequestText}
+              onBlur={() => setOrderTouched(true)}
+              editable={!isLoading}
+            />
+            {orderError && (
+              <Text className="text-red-500 text-xs mt-1">
+                Please describe the order you are requesting
+              </Text>
+            )}
+
+            <Text className="text-sm font-jakarta-semibold text-gray-700 mb-2 mt-4">
+              Evidence in support <Text className="text-red-500">*</Text>
+            </Text>
+            <View className="bg-teal/10 border border-teal/20 rounded-lg p-3 mb-3">
+              <Text className="text-xs text-teal-dark font-jakarta-semibold mb-1">Important</Text>
+              <Text className="text-xs text-teal-dark leading-4">
+                Provide the facts that support your application. Explain why the CCJ should be set aside.
+              </Text>
+            </View>
+            <TextInput
+              className={`border rounded-lg p-3 bg-white text-gray-900 min-h-[120px] ${evidenceError ? 'border-red-500' : 'border-gray-300'}`}
+              placeholder="Explain your circumstances and why the judgment should be set aside..."
+              placeholderTextColor="#9ca3af"
+              multiline
+              numberOfLines={5}
+              textAlignVertical="top"
+              value={evidenceText}
+              onChangeText={setEvidenceText}
+              onBlur={() => setEvidenceTouched(true)}
+              editable={!isLoading}
+            />
+            {evidenceError && (
+              <Text className="text-red-500 text-xs mt-1">
+                Please provide supporting evidence
+              </Text>
+            )}
           </View>
         );
       }
@@ -308,10 +377,10 @@ const FormsBottomSheet = forwardRef<BottomSheet, FormsBottomSheetProps>(
             </View>
 
             {/* Generate Button */}
-            <SquishyPressable onPress={handleGenerate} disabled={isLoading || formType === 'N244'}>
+            <SquishyPressable onPress={handleGenerate} disabled={isLoading}>
               <View
                 className={`rounded-lg p-4 items-center justify-center ${
-                  isLoading || formType === 'N244' ? 'bg-purple-400' : 'bg-purple-600'
+                  isLoading ? 'bg-purple-400' : 'bg-purple-600'
                 }`}
               >
                 {isLoading ? (

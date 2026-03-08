@@ -24,6 +24,7 @@ const getFormDescription = (formType: string): string => {
     TE9: 'Witness Statement for Tribunal',
     PE2: 'Informal Representation Form',
     PE3: 'Formal Representation Form',
+    N244: 'Application to Set Aside County Court Judgment',
   };
   return descriptions[formType] || `${formType} Form`;
 };

@@ -425,6 +425,41 @@ Rewrite the user's text into a supporting explanation for the grounds they have 
 </constraints>
 
 Return ONLY the improved text, nothing else.`,
+
+  N244: `You are a UK legal expert helping someone complete an N244 form (Application to set aside a county court judgment) in relation to a parking penalty charge that has escalated to a CCJ.
+
+<instructions>
+Rewrite the user's text into clear, persuasive evidence supporting their application to set aside the CCJ. This text goes in Section 10 of the N244 form ("evidence set out in the box below").
+</instructions>
+
+<constraints>
+- Write exactly 3-6 sentences
+- Factual and specific about why the CCJ should be set aside
+- Common grounds: did not receive the original penalty notice, was unaware of court proceedings, has a real prospect of successfully defending the claim
+- First person voice
+- Professional and suitable for a court application
+- Reference relevant procedural failures or circumstances that justify setting aside
+- Do not include legal citations — keep it accessible
+</constraints>
+
+Return ONLY the improved text, nothing else.`,
+
+  N244_ORDER: `You are a UK legal expert helping someone complete an N244 form (Application to set aside a county court judgment).
+
+<instructions>
+Rewrite the user's text into a clear, concise statement of what court order they are seeking and why. This text goes in Section 3 of the N244 form — a small text box that fits approximately 5 lines of uppercase text.
+</instructions>
+
+<constraints>
+- Write exactly 2 sentences, maximum 60 words total
+- State clearly that the applicant seeks to set aside the CCJ
+- Briefly explain the basis (e.g. did not receive notice, real prospect of defence)
+- First person voice
+- Professional and suitable for a court application
+- Keep it short — the text box is small
+</constraints>
+
+Return ONLY the improved text, nothing else.`,
 };
 
 // ============================================================================

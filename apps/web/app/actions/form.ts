@@ -5,6 +5,7 @@ import fillPE2Form from '@/utils/automation/forms/PE2';
 import fillPE3Form from '@/utils/automation/forms/PE3';
 import fillTE7Form from '@/utils/automation/forms/TE7';
 import fillTE9Form from '@/utils/automation/forms/TE9';
+import fillN244Form from '@/utils/automation/forms/N244';
 import { render } from '@react-email/render';
 import FormEmail from '@/emails/FormEmail';
 import { FormType, db } from '@parking-ticket-pal/db';
@@ -81,6 +82,13 @@ const handleFormGeneration = async (
       polishedFields.reasonText = await polishFormText(
         polishedFields.reasonText,
         formType,
+        polishedFields.userId,
+      );
+    }
+    if (polishedFields.orderRequestText?.trim()) {
+      polishedFields.orderRequestText = await polishFormText(
+        polishedFields.orderRequestText,
+        `${formType}_ORDER`,
         polishedFields.userId,
       );
     }
@@ -188,6 +196,9 @@ export const generateTE7Form = async (formFields: PdfFormFields) =>
 export const generateTE9Form = async (formFields: PdfFormFields) =>
   handleFormGeneration(FormType.TE9, formFields, fillTE9Form);
 
+export const generateN244Form = async (formFields: PdfFormFields) =>
+  handleFormGeneration(FormType.N244, formFields, fillN244Form);
+
 export const getFormFillDataFromTicket = async (
   pcnNumber: string,
   userId?: string,
@@ -277,6 +288,12 @@ export const getFormFillDataFromTicket = async (
       fullNameAndAddress,
       reasonText: '', // This would need to be provided separately
       signatureUrl: user.signatureUrl || null,
+      // Individual address components (for N244 separate address fields)
+      addressLine1: (user.address as Address)?.line1 || '',
+      addressLine2: (user.address as Address)?.line2 || '',
+      city: (user.address as Address)?.city || '',
+      county: (user.address as Address)?.county || '',
+      userPhone: user.phoneNumber || '',
     };
   } catch (error) {
     logger.error(

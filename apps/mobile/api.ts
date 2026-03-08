@@ -374,6 +374,19 @@ export const generatePE3Form = async (
   return response.data;
 };
 
+export const generateN244Form = async (
+  pcnNumber: string,
+  orderRequestText: string,
+  evidenceText: string,
+) => {
+  const response = await api.post('/forms/n244', {
+    pcnNumber,
+    orderRequestText,
+    evidenceText,
+  });
+  return response.data;
+};
+
 export const deleteTicket = async (ticketId: string) => {
   const response = await api.delete(`/tickets/${ticketId}`);
   return response.data;

@@ -42,6 +42,7 @@ import GenerateLetterDialog from './GenerateLetterDialog';
 import AutoChallengeStatusCard from './AutoChallengeStatusCard';
 import VerificationPrompt from './VerificationPrompt';
 import LiveStatusCard from './LiveStatusCard';
+import LegalFormsCard from './LegalFormsCard';
 
 type TicketDetailPageProps = {
   ticket: TicketWithRelations;
@@ -481,6 +482,13 @@ const TicketDetailPage = ({
               currentStatus={ticket.status}
               issuerType={ticket.issuerType}
               onStatusChange={handleStatusChange}
+            />
+
+            {/* Legal Forms Card - stage-based form generation */}
+            <LegalFormsCard
+              ticket={ticket}
+              hasSignature={!!ticket.vehicle.user.signatureUrl}
+              onUpgrade={handleUpgrade}
             />
 
             {/* Challenge Letters Card (generated appeal letters) */}

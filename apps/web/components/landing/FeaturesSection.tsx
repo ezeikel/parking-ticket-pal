@@ -191,7 +191,7 @@ const FeatureCard = ({ feature, index, isInView }: FeatureCardProps) => {
 
         {feature.visual === 'forms' && (
           <div className="mt-4 flex justify-center gap-2">
-            {['PE2', 'PE3', 'TE7', 'TE9'].map((form, i) => (
+            {['PE2', 'PE3', 'TE7', 'TE9', 'N244'].map((form, i) => (
               <motion.div
                 key={form}
                 initial={{ opacity: 0, y: 10 }}

@@ -31,6 +31,7 @@ export const PRICING_TIERS: Omit<PriceCardProps, 'dataAttrs'>[] = [
     features: [
       'Everything in Free',
       'Challenge/appeal letter with optional AI assist',
+      'Pre-filled legal forms (PE2, PE3, TE7, TE9, N244)',
       'Auto-submission to council',
       'Success prediction score',
       'SMS reminders',
@@ -52,7 +53,7 @@ export const FAQ_ITEMS = [
   {
     question: 'What does Premium include?',
     answer:
-      'Premium unlocks challenge/appeal letter generation with optional AI assist, automatic submission to the council, a success prediction score, SMS reminders, 30 days ad-free, and priority support — all for a one-time £14.99 per ticket.',
+      'Premium unlocks challenge/appeal letter generation with optional AI assist, pre-filled legal forms (PE2, PE3, TE7, TE9, N244), automatic submission to the council, a success prediction score, SMS reminders, 30 days ad-free, and priority support — all for a one-time £14.99 per ticket.',
   },
   {
     question: 'Is it a subscription?',
@@ -70,6 +71,11 @@ export const FAQ_ITEMS = [
       'Your ticket is instantly upgraded to Premium. You get access to the challenge letter generator, auto-submission, success prediction, SMS reminders, and 30 days ad-free across web and mobile.',
   },
   {
+    question: 'What are the pre-filled legal forms?',
+    answer:
+      'Premium includes pre-filled versions of official legal forms you may need at later stages of a parking dispute: PE2 and TE7 (late filing applications), PE3 and TE9 (statutory declarations for unpaid charges), and N244 (application to set aside a county court judgment). We auto-fill your personal details from your profile, and AI polishes the text you provide — so you get a ready-to-submit PDF with your signature.',
+  },
+  {
     question: 'Can I use it on mobile too?',
     answer:
       'Yes! Parking Ticket Pal works on both web and mobile. Your Premium upgrade applies to the specific ticket, accessible from any device.',
@@ -84,6 +90,7 @@ export const COMPARISON_FEATURES = [
   { name: 'Key deadline notifications', free: true, premium: true },
   { name: 'Challenge/appeal letter', free: false, premium: true },
   { name: 'AI-assisted letter generation', free: false, premium: true },
+  { name: 'Pre-filled legal forms', free: false, premium: true },
   { name: 'Auto-submission to council', free: false, premium: true },
   { name: 'Success prediction score', free: false, premium: true },
   { name: 'SMS reminders', free: false, premium: true },
