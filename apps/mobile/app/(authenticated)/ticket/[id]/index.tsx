@@ -38,6 +38,7 @@ import ActionsCard from '@/components/ticket-detail/ActionsCard';
 import DeadlineAlertCard from '@/components/ticket-detail/DeadlineAlertCard';
 import VerificationPrompt from '@/components/ticket-detail/VerificationPrompt';
 import TicketJourneyCard from '@/components/ticket-detail/TicketJourneyCard';
+import LegalFormsCard from '@/components/ticket-detail/LegalFormsCard';
 import ActivityTimelineCard, {
   type TimelineEvent,
 } from '@/components/ticket-detail/ActivityTimelineCard';
@@ -363,7 +364,23 @@ export default function TicketDetailScreen() {
           issuerType={ticket.issuerType}
         />
 
-        {/* 10. Activity Timeline */}
+        {/* 10. Legal Forms */}
+        <LegalFormsCard
+          isPremium={hasPremiumFeatures}
+          issuerType={ticketData.issuerType}
+          onSelectForm={(formType) => {
+            setSelectedFormType(formType);
+            formsSheetRef.current?.snapToIndex(0);
+          }}
+          onUpgrade={() => {
+            router.push({
+              pathname: '/(authenticated)/paywall' as any,
+              params: { mode: 'ticket_upgrades', ticketId: ticket.id },
+            });
+          }}
+        />
+
+        {/* 11. Activity Timeline */}
         <ActivityTimelineCard events={timelineEvents} />
       </ScrollView>
     </SafeAreaView>
