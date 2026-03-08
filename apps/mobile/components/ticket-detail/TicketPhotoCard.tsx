@@ -1,12 +1,14 @@
 import { View, Text } from 'react-native';
 import { Image } from 'expo-image';
 import { Media } from '@/types';
+import SquishyPressable from '@/components/SquishyPressable/SquishyPressable';
 
 type TicketPhotoCardProps = {
   media: Media[];
+  onImagePress?: (imageUrl: string) => void;
 };
 
-export default function TicketPhotoCard({ media }: TicketPhotoCardProps) {
+export default function TicketPhotoCard({ media, onImagePress }: TicketPhotoCardProps) {
   if (media.length === 0) return null;
 
   return (
@@ -15,13 +17,18 @@ export default function TicketPhotoCard({ media }: TicketPhotoCardProps) {
         Ticket Photo
       </Text>
       {media.map((image) => (
-        <View key={image.id} className="rounded-xl overflow-hidden mb-2">
-          <Image
-            source={{ uri: image.url }}
-            style={{ width: '100%', aspectRatio: 4 / 3 }}
-            contentFit="cover"
-          />
-        </View>
+        <SquishyPressable
+          key={image.id}
+          onPress={() => onImagePress?.(image.url)}
+        >
+          <View className="rounded-xl overflow-hidden mb-2">
+            <Image
+              source={{ uri: image.url }}
+              style={{ width: '100%', aspectRatio: 4 / 3 }}
+              contentFit="cover"
+            />
+          </View>
+        </SquishyPressable>
       ))}
     </View>
   );

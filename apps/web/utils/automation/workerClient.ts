@@ -227,6 +227,19 @@ export type IssuerMetadata = {
 /**
  * Parameters for running a challenge automation
  */
+/**
+ * Enrichment data from tribunal intelligence and statutory grounds.
+ * Gathered by the web app (which has DB access) and passed to the worker.
+ */
+export type ChallengeEnrichment = {
+  successRate?: { percentage: number; numberOfCases: number };
+  winningPatterns?: { pattern: string; frequency: number }[];
+  losingPatterns?: { pattern: string; frequency: number }[];
+  statutoryGround?: { label: string; description: string };
+  appealGuidance?: string[];
+  exampleWinningReasons?: string[];
+};
+
 export type ChallengeParams = {
   issuerId: string;
   pcnNumber: string;
@@ -239,6 +252,9 @@ export type ChallengeParams = {
   challengeId?: string;
   user: UserInfo;
   dryRun?: boolean;
+  ticketImageUrls?: string[];
+  evidenceImageUrls?: string[];
+  enrichment?: ChallengeEnrichment;
 };
 
 /**
@@ -423,6 +439,9 @@ export async function runChallenge(
             challengeId: params.challengeId,
             user: params.user,
             dryRun: params.dryRun ?? false,
+            ticketImageUrls: params.ticketImageUrls,
+            evidenceImageUrls: params.evidenceImageUrls,
+            enrichment: params.enrichment,
           }),
         });
 
@@ -623,6 +642,9 @@ export async function startChallenge(
             dryRun: params.dryRun ?? false,
             webhookUrl,
             webhookSecret,
+            ticketImageUrls: params.ticketImageUrls,
+            evidenceImageUrls: params.evidenceImageUrls,
+            enrichment: params.enrichment,
           }),
         });
 

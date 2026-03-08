@@ -75,7 +75,10 @@ const TicketDetailPage = ({
   const router = useRouter();
   const [, startTransition] = useTransition();
   const [showPayTicket, setShowPayTicket] = useState(false);
-  const [lightboxImage, setLightboxImage] = useState<string | null>(null);
+  const [lightbox, setLightbox] = useState<{
+    images: string[];
+    index: number;
+  } | null>(null);
   const [selectedLetter, setSelectedLetter] = useState<LetterWithMedia | null>(
     null,
   );
@@ -133,6 +136,20 @@ const TicketDetailPage = ({
   const userEvidence = ticket.media.filter(
     (m) => m.source === MediaSource.EVIDENCE,
   );
+
+  // Collect all image URLs for the lightbox carousel
+  const allImages: string[] = [
+    ...ticketImages.map((m) => m.url).filter(Boolean),
+    ...userEvidence
+      .filter((m) => m.url.match(/\.(jpeg|jpg|gif|png|webp)$/i))
+      .map((m) => m.url),
+    ...ticket.letters.flatMap((l) => l.media.map((m) => m.url)),
+  ];
+
+  const openLightbox = (imageUrl: string) => {
+    const index = allImages.indexOf(imageUrl);
+    setLightbox({ images: allImages, index: index >= 0 ? index : 0 });
+  };
 
   // Build activity timeline
   const letterEvents: HistoryEvent[] = ticket.letters.map((l) => ({
@@ -427,7 +444,7 @@ const TicketDetailPage = ({
                     }
                   : null
               }
-              onViewScreenshot={setLightboxImage}
+              onViewScreenshot={openLightbox}
               onStatusChange={() => {
                 // Page will revalidate automatically after status update
               }}
@@ -436,7 +453,7 @@ const TicketDetailPage = ({
             {/* Ticket Photo Card */}
             <TicketPhotoCard
               images={ticketImages}
-              onImageClick={setLightboxImage}
+              onImageClick={openLightbox}
               onReplace={handleReplaceTicketPhoto}
               onUpload={handleUploadTicketPhoto}
             />
@@ -448,7 +465,7 @@ const TicketDetailPage = ({
             <EvidenceCard
               ticketId={ticket.id}
               evidence={userEvidence}
-              onImageClick={setLightboxImage}
+              onImageClick={openLightbox}
             />
 
             {/* Uploaded Letters Card (letters received from council) */}
@@ -456,7 +473,7 @@ const TicketDetailPage = ({
               ticketId={ticket.id}
               letters={ticket.letters}
               onViewLetter={setSelectedLetter}
-              onImageClick={setLightboxImage}
+              onImageClick={openLightbox}
             />
 
             {/* PCN Journey Timeline */}
@@ -502,7 +519,7 @@ const TicketDetailPage = ({
                   }}
                   onViewScreenshots={(urls) => {
                     if (urls.length > 0) {
-                      setLightboxImage(urls[0]);
+                      setLightbox({ images: urls, index: 0 });
                     }
                   }}
                 />
@@ -643,8 +660,9 @@ const TicketDetailPage = ({
 
       {/* Lightbox Modal */}
       <LightboxModal
-        imageUrl={lightboxImage}
-        onClose={() => setLightboxImage(null)}
+        images={lightbox?.images ?? []}
+        index={lightbox?.index ?? 0}
+        onClose={() => setLightbox(null)}
       />
 
       {/* Letter Content Modal */}
@@ -653,7 +671,7 @@ const TicketDetailPage = ({
         onClose={() => setSelectedLetter(null)}
         onViewImage={(url) => {
           setSelectedLetter(null);
-          setLightboxImage(url);
+          openLightbox(url);
         }}
       />
 

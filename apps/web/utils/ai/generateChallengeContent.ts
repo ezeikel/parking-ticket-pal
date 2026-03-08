@@ -40,6 +40,8 @@ type LetterParams = BaseParams & {
   user: any;
   contraventionCodes: Record<string, { description: string }>;
   enrichment?: LetterEnrichment;
+  ticketImageUrls?: string[];
+  evidenceImageUrls?: string[];
   formFieldPlaceholderText?: never;
   userEvidenceImageUrls?: never;
   issuerEvidenceImageUrls?: never;
@@ -295,13 +297,64 @@ async function generateChallengeContent(
       return null;
     }
   } else if (contentType === 'letter') {
-    const { ticket, user, contraventionCodes, enrichment } = params;
+    const {
+      ticket,
+      user,
+      contraventionCodes,
+      enrichment,
+      ticketImageUrls = [],
+      evidenceImageUrls = [],
+    } = params;
 
     // Generate structured letter content using Claude for legally stronger output
     const tracedModel = getTracedModel(models.creative, {
       userId: userId || 'system',
       properties: { feature: 'challenge_letter', pcnNumber },
     });
+
+    const letterPrompt = await generateChallengeLetterPrompt(
+      ticket,
+      user,
+      contraventionCodes,
+      combinedReasonText,
+      enrichment,
+    );
+
+    // Build multimodal content when images are available
+    const allImageUrls = [...ticketImageUrls, ...evidenceImageUrls];
+
+    if (allImageUrls.length > 0) {
+      const userContent: (
+        | { type: 'text'; text: string }
+        | { type: 'image'; image: URL }
+      )[] = [
+        {
+          type: 'text',
+          text: `${letterPrompt}\n\nThe following images are the ticket photo(s) and any supporting evidence uploaded by the vehicle owner. Analyse them for details that strengthen the challenge — such as unclear signage, obstructions, time-limited restrictions, road markings, or any other visual evidence. Reference specific observations naturally in the letter body without explicitly stating "as shown in the photograph". Do not mention having photographic evidence.`,
+        },
+        ...ticketImageUrls.map((url) => ({
+          type: 'image' as const,
+          image: new URL(url),
+        })),
+        ...evidenceImageUrls.map((url) => ({
+          type: 'image' as const,
+          image: new URL(url),
+        })),
+      ];
+
+      const { output: letter } = await generateText({
+        model: tracedModel,
+        output: Output.object({
+          schema: ChallengeLetterSchema,
+          name: 'letter',
+          description: 'A formal challenge letter for a parking penalty notice',
+        }),
+        system: CHALLENGE_LETTER_PROMPT,
+        messages: [{ role: 'user', content: userContent }],
+      });
+
+      return letter;
+    }
 
     const { output: letter } = await generateText({
       model: tracedModel,
@@ -311,13 +364,7 @@ async function generateChallengeContent(
         description: 'A formal challenge letter for a parking penalty notice',
       }),
       system: CHALLENGE_LETTER_PROMPT,
-      prompt: await generateChallengeLetterPrompt(
-        ticket,
-        user,
-        contraventionCodes,
-        combinedReasonText,
-        enrichment,
-      ),
+      prompt: letterPrompt,
     });
 
     return letter;

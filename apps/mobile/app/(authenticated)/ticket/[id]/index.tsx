@@ -5,8 +5,9 @@ import * as Clipboard from 'expo-clipboard';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { faArrowLeft, faTriangleExclamation, faBadgeCheck } from '@fortawesome/pro-solid-svg-icons';
 import { faCopy } from '@fortawesome/pro-regular-svg-icons';
-import { useRef, useState } from 'react';
+import { useRef, useState, useMemo } from 'react';
 import BottomSheet from '@gorhom/bottom-sheet';
+import ImageLightbox from '@/components/ImageLightbox';
 import useTicket from '@/hooks/api/useTicket';
 import { Address } from '@parking-ticket-pal/types';
 import {
@@ -64,6 +65,10 @@ export default function TicketDetailScreen() {
   const [selectedFormType, setSelectedFormType] = useState<FormType | null>(
     null,
   );
+  const [lightbox, setLightbox] = useState<{
+    images: string[];
+    index: number;
+  } | null>(null);
 
   const handlePremiumActionSelect = (action: PremiumAction) => {
     setIsPremiumActionsVisible(false);
@@ -148,6 +153,22 @@ export default function TicketDetailScreen() {
   const userEvidence = (ticket.media || []).filter(
     (m: any) => m.source === 'EVIDENCE',
   );
+
+  // Collect all image URLs for lightbox
+  const allImages = useMemo(() => {
+    const images = [
+      ...ticketImages.map((m: any) => m.url),
+      ...userEvidence
+        .filter((m: any) => /\.(jpeg|jpg|gif|png|webp)$/i.test(m.url))
+        .map((m: any) => m.url),
+    ];
+    return images.filter(Boolean) as string[];
+  }, [ticketImages, userEvidence]);
+
+  const openLightbox = (imageUrl: string) => {
+    const index = allImages.indexOf(imageUrl);
+    setLightbox({ images: allImages, index: index >= 0 ? index : 0 });
+  };
 
   // Build activity timeline from available data
   const timelineEvents: TimelineEvent[] = [];
@@ -298,7 +319,9 @@ export default function TicketDetailScreen() {
         />
 
         {/* 3. Ticket Photo */}
-        {ticketImages.length > 0 && <TicketPhotoCard media={ticketImages} />}
+        {ticketImages.length > 0 && (
+          <TicketPhotoCard media={ticketImages} onImagePress={openLightbox} />
+        )}
 
         {/* 4. Ticket Location */}
         <LocationCard location={location} />
@@ -307,6 +330,7 @@ export default function TicketDetailScreen() {
         <EvidenceCard
           ticketId={ticket.id}
           evidence={userEvidence}
+          onImagePress={openLightbox}
           onRefetch={refetch}
         />
 
@@ -388,6 +412,15 @@ export default function TicketDetailScreen() {
         formType={selectedFormType || 'TE7'}
         onSuccess={handleSuccess}
       />
+
+      {/* Image Lightbox */}
+      {lightbox && (
+        <ImageLightbox
+          images={lightbox.images}
+          initialIndex={lightbox.index}
+          onClose={() => setLightbox(null)}
+        />
+      )}
     </View>
   );
 }

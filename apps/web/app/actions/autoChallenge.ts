@@ -5,6 +5,7 @@ import {
   db,
   Prisma,
   ChallengeStatus,
+  MediaSource,
   PendingIssuerStatus,
   TicketStatus,
 } from '@parking-ticket-pal/db';
@@ -20,6 +21,7 @@ import {
 } from '@/utils/automation/workerClient';
 import { track } from '@/utils/analytics-server';
 import { TRACKING_EVENTS } from '@/constants/events';
+import gatherEnrichment from '@/utils/ai/enrichment';
 
 const logger = createServerLogger({ action: 'autoChallenge' });
 
@@ -101,6 +103,12 @@ export async function initiateAutoChallenge(
         vehicle: {
           include: {
             user: true,
+          },
+        },
+        media: {
+          select: {
+            url: true,
+            source: true,
           },
         },
       },
@@ -217,6 +225,21 @@ export async function initiateAutoChallenge(
       country?: string | null;
     } | null;
 
+    // Collect image URLs for the worker to use in challenge text generation
+    const ticketImageUrls = ticket.media
+      .filter((m) => m.source === MediaSource.TICKET && m.url)
+      .map((m) => m.url);
+    const evidenceImageUrls = ticket.media
+      .filter((m) => m.source === MediaSource.EVIDENCE && m.url)
+      .map((m) => m.url);
+
+    // Gather tribunal intelligence and enrichment data for the worker
+    const enrichment = await gatherEnrichment({
+      contraventionCode: ticket.contraventionCode,
+      issuer: ticket.issuer,
+      challengeReason,
+    });
+
     const ticketForChallenge: TicketForChallenge = {
       id: ticket.id,
       pcnNumber: ticket.pcnNumber,
@@ -232,6 +255,9 @@ export async function initiateAutoChallenge(
           address: userAddress,
         },
       },
+      ticketImageUrls,
+      evidenceImageUrls,
+      enrichment,
     };
 
     // ========================================
@@ -448,6 +474,16 @@ type TicketForChallenge = {
       } | null;
     };
   };
+  ticketImageUrls?: string[];
+  evidenceImageUrls?: string[];
+  enrichment?: {
+    successRate?: { percentage: number; numberOfCases: number };
+    winningPatterns?: { pattern: string; frequency: number }[];
+    losingPatterns?: { pattern: string; frequency: number }[];
+    statutoryGround?: { label: string; description: string };
+    appealGuidance?: string[];
+    exampleWinningReasons?: string[];
+  };
 };
 
 /**
@@ -499,6 +535,9 @@ async function runWorkerChallengeAsync(
         address: userAddress,
       },
       dryRun: false,
+      ticketImageUrls: ticket.ticketImageUrls,
+      evidenceImageUrls: ticket.evidenceImageUrls,
+      enrichment: ticket.enrichment,
     });
 
     if (result.success && result.jobId) {
@@ -626,6 +665,9 @@ async function runWorkerChallengeLegacy(
         address: userAddress,
       },
       dryRun,
+      ticketImageUrls: ticket.ticketImageUrls,
+      evidenceImageUrls: ticket.evidenceImageUrls,
+      enrichment: ticket.enrichment,
     });
 
     if (result && result.success) {

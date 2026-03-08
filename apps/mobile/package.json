@@ -96,6 +96,7 @@
     "react": "19.2.0",
     "react-dom": "19.2.0",
     "react-native": "0.83.2",
+    "react-native-awesome-gallery": "^0.4.3",
     "react-native-css": "^3.0.4",
     "react-native-document-scanner-plugin": "^2.0.4",
     "react-native-fbsdk-next": "^13.4.1",
