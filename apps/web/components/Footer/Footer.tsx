@@ -47,6 +47,7 @@ const resourceLinks: FooterLink[] = [
 ];
 
 const companyLinks: FooterLink[] = [
+  { label: 'About', href: '/about' },
   { label: 'Contact', href: 'mailto:support@parkticketpal.com' },
 ];
 
