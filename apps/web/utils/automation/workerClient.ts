@@ -6,6 +6,7 @@
  */
 
 import * as Sentry from '@sentry/nextjs';
+import type { Enrichment } from '@parking-ticket-pal/types';
 import { createServerLogger } from '@/lib/logger';
 
 const logger = createServerLogger({ action: 'worker-client' });
@@ -227,19 +228,6 @@ export type IssuerMetadata = {
 /**
  * Parameters for running a challenge automation
  */
-/**
- * Enrichment data from tribunal intelligence and statutory grounds.
- * Gathered by the web app (which has DB access) and passed to the worker.
- */
-export type ChallengeEnrichment = {
-  successRate?: { percentage: number; numberOfCases: number };
-  winningPatterns?: { pattern: string; frequency: number }[];
-  losingPatterns?: { pattern: string; frequency: number }[];
-  statutoryGround?: { label: string; description: string };
-  appealGuidance?: string[];
-  exampleWinningReasons?: string[];
-};
-
 export type ChallengeParams = {
   issuerId: string;
   pcnNumber: string;
@@ -254,7 +242,7 @@ export type ChallengeParams = {
   dryRun?: boolean;
   ticketImageUrls?: string[];
   evidenceImageUrls?: string[];
-  enrichment?: ChallengeEnrichment;
+  enrichment?: Enrichment;
 };
 
 /**

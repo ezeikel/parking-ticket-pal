@@ -21,6 +21,7 @@ import {
 } from '@/utils/automation/workerClient';
 import { track } from '@/utils/analytics-server';
 import { TRACKING_EVENTS } from '@/constants/events';
+import type { Enrichment } from '@parking-ticket-pal/types';
 import gatherEnrichment from '@/utils/ai/enrichment';
 
 const logger = createServerLogger({ action: 'autoChallenge' });
@@ -476,14 +477,7 @@ type TicketForChallenge = {
   };
   ticketImageUrls?: string[];
   evidenceImageUrls?: string[];
-  enrichment?: {
-    successRate?: { percentage: number; numberOfCases: number };
-    winningPatterns?: { pattern: string; frequency: number }[];
-    losingPatterns?: { pattern: string; frequency: number }[];
-    statutoryGround?: { label: string; description: string };
-    appealGuidance?: string[];
-    exampleWinningReasons?: string[];
-  };
+  enrichment?: Enrichment;
 };
 
 /**

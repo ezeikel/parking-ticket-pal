@@ -7,6 +7,8 @@ import {
   displayNameToSlug,
   type IssuerAddress,
 } from '@parking-ticket-pal/constants';
+import type { Enrichment } from '@parking-ticket-pal/types';
+import { buildEnrichmentPromptSection } from '@parking-ticket-pal/types';
 
 type BaseParams = {
   pcnNumber: string;
@@ -25,21 +27,12 @@ type FormFieldParams = BaseParams & {
   contraventionCodes?: never;
 };
 
-export type LetterEnrichment = {
-  successRate?: { percentage: number; numberOfCases: number };
-  winningPatterns?: { pattern: string; frequency: number }[];
-  losingPatterns?: { pattern: string; frequency: number }[];
-  statutoryGround?: { label: string; description: string };
-  appealGuidance?: string[];
-  exampleWinningReasons?: string[];
-};
-
 type LetterParams = BaseParams & {
   contentType: 'letter';
   ticket: any;
   user: any;
   contraventionCodes: Record<string, { description: string }>;
-  enrichment?: LetterEnrichment;
+  enrichment?: Enrichment;
   ticketImageUrls?: string[];
   evidenceImageUrls?: string[];
   formFieldPlaceholderText?: never;
@@ -108,7 +101,7 @@ const generateChallengeLetterPrompt = async (
   user: any,
   contraventionCodes: Record<string, { description: string }>,
   challengeReason: string,
-  enrichment?: LetterEnrichment,
+  enrichment?: Enrichment,
 ) => {
   const userAddress = user.address;
   const userAddressLine1 = userAddress?.line1 || '';
@@ -154,40 +147,10 @@ Today's Date (use as the letter date): ${today}
 Challenge Reason: ${challengeReason}`;
 
   // Add enrichment data when available
-  if (enrichment) {
-    if (enrichment.statutoryGround) {
-      prompt += `\n\nStatutory Ground: ${enrichment.statutoryGround.label}
-Description: ${enrichment.statutoryGround.description}`;
-    }
-
-    if (enrichment.successRate && enrichment.successRate.numberOfCases > 0) {
-      prompt += `\n\nTribunal Intelligence:
-- Success rate for similar cases: ${enrichment.successRate.percentage}% (based on ${enrichment.successRate.numberOfCases} tribunal cases)`;
-    }
-
-    if (enrichment.winningPatterns && enrichment.winningPatterns.length > 0) {
-      prompt += `\n- Winning patterns in similar cases: ${enrichment.winningPatterns.map((p) => p.pattern.replace(/_/g, ' ').toLowerCase()).join(', ')}`;
-    }
-
-    if (enrichment.losingPatterns && enrichment.losingPatterns.length > 0) {
-      prompt += `\n- Arguments that tend to lose: ${enrichment.losingPatterns.map((p) => p.pattern.replace(/_/g, ' ').toLowerCase()).join(', ')}`;
-    }
-
-    if (
-      enrichment.exampleWinningReasons &&
-      enrichment.exampleWinningReasons.length > 0
-    ) {
-      prompt += `\n\nExample reasoning from successful tribunal appeals (use as inspiration, not verbatim):`;
-      enrichment.exampleWinningReasons.forEach((reason, i) => {
-        prompt += `\n${i + 1}. ${reason}`;
-      });
-    }
-
-    if (enrichment.appealGuidance && enrichment.appealGuidance.length > 0) {
-      prompt += `\n\nAppeal guidance for this contravention type:`;
-      enrichment.appealGuidance.forEach((tip) => {
-        prompt += `\n- ${tip}`;
-      });
+  if (enrichment && enrichment.items.length > 0) {
+    const enrichmentSection = buildEnrichmentPromptSection(enrichment);
+    if (enrichmentSection) {
+      prompt += `\n\n${enrichmentSection}`;
     }
   }
 
