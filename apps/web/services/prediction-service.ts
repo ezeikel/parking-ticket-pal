@@ -253,9 +253,9 @@ export async function calculatePrediction(ticket: {
  * Calculate prediction from pre-gathered enrichment data.
  * Used when enrichment is already available (avoids duplicate DB queries).
  */
-export function calculatePredictionFromEnrichment(
+export async function calculatePredictionFromEnrichment(
   enrichment: Enrichment,
-): PredictionResult {
+): Promise<PredictionResult> {
   return predictionFromEnrichment(enrichment);
 }
 
