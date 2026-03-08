@@ -193,7 +193,7 @@ const FormsBottomSheet = forwardRef<BottomSheet, FormsBottomSheetProps>(
                     if (!groundsTouched) setGroundsTouched(true);
                     setGrounds({ ...grounds, didNotReceiveNotice: value });
                   }}
-                  color={grounds.didNotReceiveNotice ? '#9333ea' : undefined}
+                  color={grounds.didNotReceiveNotice ? '#1abc9c' : undefined}
                   disabled={isLoading}
                 />
                 <Text className="flex-1 ml-3 text-sm text-gray-900">
@@ -208,7 +208,7 @@ const FormsBottomSheet = forwardRef<BottomSheet, FormsBottomSheetProps>(
                     if (!groundsTouched) setGroundsTouched(true);
                     setGrounds({ ...grounds, madeRepresentations: value });
                   }}
-                  color={grounds.madeRepresentations ? '#9333ea' : undefined}
+                  color={grounds.madeRepresentations ? '#1abc9c' : undefined}
                   disabled={isLoading}
                 />
                 <Text className="flex-1 ml-3 text-sm text-gray-900">
@@ -223,7 +223,7 @@ const FormsBottomSheet = forwardRef<BottomSheet, FormsBottomSheetProps>(
                     if (!groundsTouched) setGroundsTouched(true);
                     setGrounds({ ...grounds, hadNoResponse: value });
                   }}
-                  color={grounds.hadNoResponse ? '#9333ea' : undefined}
+                  color={grounds.hadNoResponse ? '#1abc9c' : undefined}
                   disabled={isLoading}
                 />
                 <Text className="flex-1 ml-3 text-sm text-gray-900">
@@ -238,7 +238,7 @@ const FormsBottomSheet = forwardRef<BottomSheet, FormsBottomSheetProps>(
                     if (!groundsTouched) setGroundsTouched(true);
                     setGrounds({ ...grounds, appealNotDetermined: value });
                   }}
-                  color={grounds.appealNotDetermined ? '#9333ea' : undefined}
+                  color={grounds.appealNotDetermined ? '#1abc9c' : undefined}
                   disabled={isLoading}
                 />
                 <Text className="flex-1 ml-3 text-sm text-gray-900">
@@ -253,7 +253,7 @@ const FormsBottomSheet = forwardRef<BottomSheet, FormsBottomSheetProps>(
                     if (!groundsTouched) setGroundsTouched(true);
                     setGrounds({ ...grounds, appealInFavour: value });
                   }}
-                  color={grounds.appealInFavour ? '#9333ea' : undefined}
+                  color={grounds.appealInFavour ? '#1abc9c' : undefined}
                   disabled={isLoading}
                 />
                 <Text className="flex-1 ml-3 text-sm text-gray-900">
@@ -268,7 +268,7 @@ const FormsBottomSheet = forwardRef<BottomSheet, FormsBottomSheetProps>(
                     if (!groundsTouched) setGroundsTouched(true);
                     setGrounds({ ...grounds, paidInFull: value });
                   }}
-                  color={grounds.paidInFull ? '#9333ea' : undefined}
+                  color={grounds.paidInFull ? '#1abc9c' : undefined}
                   disabled={isLoading}
                 />
                 <Text className="flex-1 ml-3 text-sm text-gray-900">
@@ -380,7 +380,7 @@ const FormsBottomSheet = forwardRef<BottomSheet, FormsBottomSheetProps>(
             <SquishyPressable onPress={handleGenerate} disabled={isLoading}>
               <View
                 className={`rounded-lg p-4 items-center justify-center ${
-                  isLoading ? 'bg-purple-400' : 'bg-purple-600'
+                  isLoading ? 'bg-teal/60' : 'bg-teal'
                 }`}
               >
                 {isLoading ? (

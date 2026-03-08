@@ -376,7 +376,7 @@ const addSvgSignatureToField = async (
           y: fieldRect.y + transform.offsetY - viewBox.y * transform.scale,
           scale: transform.scale,
           // Don't fill the path (transparent fill)
-          color: undefined,
+          color: rgb(1, 1, 1),
           opacity: 0,
           // Use stroke instead (outline)
           borderColor: rgb(0, 0, 0),
@@ -409,7 +409,7 @@ const addSvgSignatureToField = async (
               y: fieldRect.y + transform.offsetY - viewBox.y * transform.scale,
               scale: transform.scale,
               // Use stroke rendering for simplified path too
-              color: undefined,
+              color: rgb(1, 1, 1),
               opacity: 0,
               borderColor: rgb(0, 0, 0),
               borderWidth: 2.0, // Thicker stroke for better visibility

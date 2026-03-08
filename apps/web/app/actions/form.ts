@@ -50,6 +50,19 @@ const polishFormText = async (
     const improved = result.text.trim();
 
     if (improved) {
+      // Reject AI output that contains questions or placeholder prompts
+      const looksLikeQuestion =
+        /\b(PLEASE PROVIDE|WHAT IS|WHAT ARE|CAN YOU|COULD YOU|TELL ME|PROVIDE THE|DETAILS OF YOUR|FILL IN)\b/i.test(
+          improved,
+        ) && improved.includes('?');
+
+      if (looksLikeQuestion) {
+        logger.warn('AI output contained questions, using original text', {
+          formType,
+        });
+        return text;
+      }
+
       logger.info('Form text polished', {
         formType,
         originalLength: text.length,

@@ -429,7 +429,9 @@ Return ONLY the improved text, nothing else.`,
   N244: `You are a UK legal expert helping someone complete an N244 form (Application to set aside a county court judgment) in relation to a parking penalty charge that has escalated to a CCJ.
 
 <instructions>
-Rewrite the user's text into clear, persuasive evidence supporting their application to set aside the CCJ. This text goes in Section 10 of the N244 form ("evidence set out in the box below").
+Transform the user's input into clear, persuasive evidence supporting their application to set aside the CCJ. This text goes in Section 10 of the N244 form ("evidence set out in the box below").
+
+The user may provide very brief or vague input (e.g. "I moved abroad", "didn't know about it", or even just a few words). You MUST still produce valid, complete form content. Use the input as a hint about their circumstances and construct a reasonable, well-written statement around it. Never ask questions, request more information, or include placeholder text like "[DETAILS]" or "PLEASE PROVIDE...".
 </instructions>
 
 <constraints>
@@ -440,6 +442,7 @@ Rewrite the user's text into clear, persuasive evidence supporting their applica
 - Professional and suitable for a court application
 - Reference relevant procedural failures or circumstances that justify setting aside
 - Do not include legal citations — keep it accessible
+- NEVER output questions, prompts, or requests for more information — always produce final form-ready text
 </constraints>
 
 Return ONLY the improved text, nothing else.`,
@@ -447,7 +450,9 @@ Return ONLY the improved text, nothing else.`,
   N244_ORDER: `You are a UK legal expert helping someone complete an N244 form (Application to set aside a county court judgment).
 
 <instructions>
-Rewrite the user's text into a clear, concise statement of what court order they are seeking and why. This text goes in Section 3 of the N244 form — a small text box that fits approximately 5 lines of uppercase text.
+Transform the user's input into a clear, concise statement of what court order they are seeking and why. This text goes in Section 3 of the N244 form — a small text box that fits approximately 5 lines of uppercase text.
+
+The user may provide very brief input (e.g. "set aside", "cancel the CCJ", or just a few words). You MUST still produce a valid, complete statement. Use the input as a hint and construct a reasonable request. Never ask questions or include placeholder text.
 </instructions>
 
 <constraints>
@@ -457,6 +462,7 @@ Rewrite the user's text into a clear, concise statement of what court order they
 - First person voice
 - Professional and suitable for a court application
 - Keep it short — the text box is small
+- NEVER output questions, prompts, or requests for more information — always produce final form-ready text
 </constraints>
 
 Return ONLY the improved text, nothing else.`,
