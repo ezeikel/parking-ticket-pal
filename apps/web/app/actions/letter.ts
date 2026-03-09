@@ -45,31 +45,9 @@ import { createServerLogger } from '@/lib/logger';
 const logger = createServerLogger({ action: 'letter' });
 
 export const createLetter = async (
-  values: z.infer<typeof letterFormSchema> & {
-    tempImageUrl?: string;
-    tempImagePath?: string;
-    extractedText?: string;
-    currentAmount?: number | null; // Amount in pence from OCR
-    issuer?: string;
-    issuerType?: string;
-    location?: any; // Address object from OCR
-    initialAmount?: number;
-    contraventionCode?: string;
-  },
+  values: z.infer<typeof letterFormSchema>,
 ): Promise<Letter | null> => {
-  const validatedData = letterFormSchema.parse(values) as z.infer<
-    typeof letterFormSchema
-  > & {
-    tempImageUrl?: string;
-    tempImagePath?: string;
-    extractedText?: string;
-    currentAmount?: number | null;
-    issuer?: string;
-    issuerType?: string;
-    location?: any;
-    initialAmount?: number;
-    contraventionCode?: string;
-  };
+  const validatedData = letterFormSchema.parse(values);
 
   const userId = await getUserId('create a letter');
 
@@ -109,8 +87,8 @@ export const createLetter = async (
       pcnNumber: validatedData.pcnNumber,
       contraventionCode: validatedData.contraventionCode || 'UNKNOWN',
       location: ticketLocation,
-      issuedAt: new Date(),
-      contraventionAt: new Date(),
+      issuedAt: validatedData.sentAt,
+      contraventionAt: validatedData.sentAt,
       status: TicketStatus.ISSUED_DISCOUNT_PERIOD,
       type: TicketType.PENALTY_CHARGE_NOTICE,
       initialAmount: validatedData.initialAmount || 0,
@@ -199,10 +177,11 @@ export const createLetter = async (
           },
         );
 
-        // Create media record with permanent URL
+        // Create media record with permanent URL, linked to both ticket and letter
         await db.media.create({
           data: {
             ticketId: ticket.id,
+            letterId: letter.id,
             url: permanentBlob.url,
             type: MediaType.IMAGE,
             source: MediaSource.LETTER,
