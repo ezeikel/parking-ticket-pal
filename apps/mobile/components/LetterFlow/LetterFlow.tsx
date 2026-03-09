@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { View, Text, TextInput, ScrollView, ActivityIndicator, Platform } from 'react-native';
+import { View, Text, TextInput, ScrollView, Platform } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import {
@@ -9,8 +9,8 @@ import {
   faArrowLeft,
   faChevronDown,
   faCalendar,
-  faSpinnerThird,
 } from '@fortawesome/pro-solid-svg-icons';
+import Loader from '@/components/Loader/Loader';
 import { useMutation } from '@tanstack/react-query';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { format } from 'date-fns';
@@ -172,7 +172,7 @@ const LetterFlow = ({ ocrData, onComplete, onCancel }: LetterFlowProps) => {
   if (isSubmitting) {
     return (
       <View className="flex-1 items-center justify-center bg-white" style={{ paddingTop: insets.top }}>
-        <ActivityIndicator size="large" color="#1ABC9C" />
+        <Loader size={32} color="#1ABC9C" />
         <Text className="font-jakarta-medium text-base text-gray-500 mt-4">
           Adding letter to ticket...
         </Text>
@@ -286,7 +286,7 @@ const LetterFlow = ({ ocrData, onComplete, onCancel }: LetterFlowProps) => {
           />
           {isLookingUp && (
             <View className="flex-row items-center gap-x-1.5 mt-1.5">
-              <ActivityIndicator size="small" color="#6B7280" />
+              <Loader size={14} color="#6B7280" />
               <Text className="font-jakarta text-xs text-gray-500">
                 Looking up ticket...
               </Text>
