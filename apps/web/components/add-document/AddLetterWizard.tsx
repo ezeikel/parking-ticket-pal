@@ -37,6 +37,7 @@ export type LetterExtractedData = {
   letterType?: string;
   summary?: string;
   sentAt?: Date;
+  issuedAt?: Date;
   currentAmount?: number | null;
   imageUrl?: string;
   tempImagePath?: string;
@@ -54,6 +55,7 @@ export type LetterWizardFormData = {
   type: LetterType;
   summary: string;
   sentAt: Date;
+  issuedAt?: Date;
   currentAmount?: number | null;
   imageUrl?: string;
   tempImagePath?: string;
@@ -177,6 +179,7 @@ const AddLetterWizard = ({
         type: letterType,
         summary: summary.trim(),
         sentAt,
+        issuedAt: extractedData?.issuedAt,
         currentAmount: currentAmount ?? null,
         imageUrl: extractedData?.imageUrl,
         tempImagePath: extractedData?.tempImagePath,

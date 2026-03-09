@@ -530,6 +530,7 @@ export const createLetterForTicket = async (data: {
   letterType: string;
   summary: string;
   sentAt: string;
+  issuedAt?: string;
   tempImageUrl?: string;
   tempImagePath?: string;
   extractedText?: string;

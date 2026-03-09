@@ -96,6 +96,7 @@ const GuestCreateLetterPage = () => {
           letterType: data.letterType,
           summary: data.summary,
           sentAt: data.sentAt,
+          issuedAt: data.issuedAt,
           currentAmount: data.currentAmount,
           imageUrl: data.imageUrl,
           tempImagePath: data.tempImagePath,

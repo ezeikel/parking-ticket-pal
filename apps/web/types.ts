@@ -42,6 +42,7 @@ export const letterFormSchema = z.object({
   type: z.nativeEnum(LetterType),
   summary: z.string().min(1, { message: 'Summary is required' }),
   sentAt: z.date({ message: 'Date sent is required' }),
+  issuedAt: z.date().optional(), // Original PCN issue date (from OCR)
   extractedText: z.string().optional(),
   tempImageUrl: z.string().optional(),
   tempImagePath: z.string().optional(),

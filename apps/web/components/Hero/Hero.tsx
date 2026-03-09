@@ -214,6 +214,9 @@ const Hero = () => {
               sentAt: result.data.sentAt
                 ? new Date(result.data.sentAt)
                 : undefined,
+              issuedAt: result.data.issuedAt
+                ? new Date(result.data.issuedAt)
+                : undefined,
               currentAmount: result.data.currentAmount,
               imageUrl: result.imageUrl,
               tempImagePath: result.tempImagePath,
@@ -347,6 +350,7 @@ const Hero = () => {
       letterType: data.letterType,
       summary: data.summary,
       sentAt: data.sentAt.toISOString(),
+      issuedAt: data.issuedAt?.toISOString(),
       currentAmount: data.currentAmount ?? undefined,
       imageUrl: data.imageUrl,
       tempImagePath: data.tempImagePath,

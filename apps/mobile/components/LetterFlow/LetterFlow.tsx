@@ -122,6 +122,9 @@ const LetterFlow = ({ ocrData, onComplete, onCancel }: LetterFlowProps) => {
         letterType,
         summary: summary.trim() || 'Letter from council',
         sentAt: sentAt.toISOString(),
+        issuedAt: ocrData.data?.issuedAt
+          ? new Date(ocrData.data.issuedAt).toISOString()
+          : undefined,
         tempImageUrl: ocrData.imageUrl,
         tempImagePath: ocrData.tempImagePath,
         extractedText: ocrData.data?.extractedText,

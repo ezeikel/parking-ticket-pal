@@ -137,6 +137,9 @@ const AddDocumentPage = () => {
                   sentAt: result.data.sentAt
                     ? new Date(result.data.sentAt)
                     : new Date(),
+                  issuedAt: result.data.issuedAt
+                    ? new Date(result.data.issuedAt)
+                    : undefined,
                   currentAmount: result.data.currentAmount,
                   imageUrl: result.imageUrl || undefined,
                   tempImagePath: result.tempImagePath || undefined,
@@ -318,6 +321,7 @@ const AddDocumentPage = () => {
           type: data.type,
           summary: data.summary,
           sentAt: data.sentAt,
+          issuedAt: data.issuedAt,
           tempImageUrl: data.imageUrl,
           tempImagePath: data.tempImagePath,
           extractedText: data.extractedText,

@@ -6,6 +6,7 @@ export type GuestLetterData = {
   letterType: string; // LetterType enum value
   summary: string;
   sentAt: string; // ISO string
+  issuedAt?: string; // ISO string - original PCN issue date
   currentAmount?: number; // pence
   imageUrl?: string;
   tempImagePath?: string;

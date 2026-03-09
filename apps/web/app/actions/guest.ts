@@ -403,6 +403,7 @@ type CreateLetterFromGuestDataInput = {
   letterType: string;
   summary: string;
   sentAt: string; // ISO string
+  issuedAt?: string; // ISO string - original PCN issue date
   currentAmount?: number; // pence
   imageUrl?: string;
   tempImagePath?: string;
@@ -444,6 +445,7 @@ export const createLetterFromGuestData = async (
       type: resolvedType,
       summary: input.summary,
       sentAt: new Date(input.sentAt),
+      issuedAt: input.issuedAt ? new Date(input.issuedAt) : undefined,
       extractedText: input.extractedText,
       currentAmount: input.currentAmount ?? null,
       tempImageUrl: input.imageUrl,

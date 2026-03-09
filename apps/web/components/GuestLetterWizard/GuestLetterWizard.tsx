@@ -34,6 +34,7 @@ export type GuestLetterExtractedData = {
   letterType?: string;
   summary?: string;
   sentAt?: Date;
+  issuedAt?: Date;
   currentAmount?: number | null;
   imageUrl?: string;
   tempImagePath?: string;
@@ -51,6 +52,7 @@ export type GuestLetterWizardCompleteData = {
   letterType: string;
   summary: string;
   sentAt: Date;
+  issuedAt?: Date;
   currentAmount?: number | null;
   imageUrl?: string;
   tempImagePath?: string;
@@ -119,6 +121,7 @@ const GuestLetterWizard = ({
       letterType,
       summary: summary.trim(),
       sentAt,
+      issuedAt: extractedData?.issuedAt,
       currentAmount: currentAmount ?? null,
       imageUrl: extractedData?.imageUrl,
       tempImagePath: extractedData?.tempImagePath,
