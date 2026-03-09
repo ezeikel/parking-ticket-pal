@@ -141,6 +141,11 @@ const AddDocumentPage = () => {
                   imageUrl: result.imageUrl || undefined,
                   tempImagePath: result.tempImagePath || undefined,
                   extractedText: result.data.extractedText || undefined,
+                  issuer: result.data.issuer || undefined,
+                  issuerType: result.data.issuerType || undefined,
+                  location: result.data.location || undefined,
+                  initialAmount: result.data.initialAmount || undefined,
+                  contraventionCode: result.data.contraventionCode || undefined,
                 });
                 setPageState('letter-wizard');
                 toast.success('Letter details extracted');
@@ -169,6 +174,11 @@ const AddDocumentPage = () => {
               imageUrl: result.imageUrl || undefined,
               tempImagePath: result.tempImagePath || undefined,
               extractedText: result.data.extractedText || undefined,
+              issuer: result.data.issuer || undefined,
+              issuerType: result.data.issuerType || undefined,
+              location: result.data.location || undefined,
+              initialAmount: result.data.initialAmount || undefined,
+              contraventionCode: result.data.contraventionCode || undefined,
             });
             setPageState('letter-wizard');
             toast.success('Letter details extracted');
@@ -312,6 +322,11 @@ const AddDocumentPage = () => {
           tempImagePath: data.tempImagePath,
           extractedText: data.extractedText,
           currentAmount: data.currentAmount ?? undefined,
+          issuer: data.issuer,
+          issuerType: data.issuerType,
+          location: data.location,
+          initialAmount: data.initialAmount,
+          contraventionCode: data.contraventionCode,
         });
 
         if (!letter) {

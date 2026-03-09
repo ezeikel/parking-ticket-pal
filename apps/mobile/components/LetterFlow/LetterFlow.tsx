@@ -126,6 +126,11 @@ const LetterFlow = ({ ocrData, onComplete, onCancel }: LetterFlowProps) => {
         tempImagePath: ocrData.tempImagePath,
         extractedText: ocrData.data?.extractedText,
         currentAmount: amountInPence ?? null,
+        issuer: ocrData.data?.issuer || undefined,
+        issuerType: ocrData.data?.issuerType || undefined,
+        location: ocrData.data?.location || undefined,
+        initialAmount: ocrData.data?.initialAmount || undefined,
+        contraventionCode: ocrData.data?.contraventionCode || undefined,
       });
       return result;
     },

@@ -87,7 +87,7 @@ export default function EvidenceCard({
     <View className="rounded-2xl border border-border bg-white p-4 mb-4">
       <View className="flex-row items-center justify-between mb-4">
         <Text className="font-jakarta-semibold text-lg text-dark">
-          Evidence & Documents
+          Evidence
         </Text>
         <SquishyPressable
           onPress={handlePickImage}

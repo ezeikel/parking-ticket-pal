@@ -39,6 +39,11 @@ export const POST = async (request: NextRequest) => {
       tempImagePath,
       extractedText,
       currentAmount,
+      issuer,
+      issuerType,
+      location,
+      initialAmount,
+      contraventionCode,
     } = body;
 
     if (!pcnNumber || !vehicleReg) {
@@ -67,6 +72,11 @@ export const POST = async (request: NextRequest) => {
       tempImagePath,
       extractedText,
       currentAmount: currentAmount || undefined,
+      issuer: issuer || undefined,
+      issuerType: issuerType || undefined,
+      location: location || undefined,
+      initialAmount: initialAmount || undefined,
+      contraventionCode: contraventionCode || undefined,
     });
 
     if (!letter) {

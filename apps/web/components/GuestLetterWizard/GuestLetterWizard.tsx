@@ -38,6 +38,11 @@ export type GuestLetterExtractedData = {
   imageUrl?: string;
   tempImagePath?: string;
   extractedText?: string;
+  issuer?: string;
+  issuerType?: string;
+  location?: any;
+  initialAmount?: number;
+  contraventionCode?: string;
 };
 
 export type GuestLetterWizardCompleteData = {
@@ -50,6 +55,11 @@ export type GuestLetterWizardCompleteData = {
   imageUrl?: string;
   tempImagePath?: string;
   extractedText?: string;
+  issuer?: string;
+  issuerType?: string;
+  location?: any;
+  initialAmount?: number;
+  contraventionCode?: string;
 };
 
 type GuestLetterWizardProps = {
@@ -113,6 +123,11 @@ const GuestLetterWizard = ({
       imageUrl: extractedData?.imageUrl,
       tempImagePath: extractedData?.tempImagePath,
       extractedText: extractedData?.extractedText,
+      issuer: extractedData?.issuer,
+      issuerType: extractedData?.issuerType,
+      location: extractedData?.location,
+      initialAmount: extractedData?.initialAmount,
+      contraventionCode: extractedData?.contraventionCode,
     });
   };
 

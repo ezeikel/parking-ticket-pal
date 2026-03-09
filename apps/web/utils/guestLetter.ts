@@ -12,6 +12,11 @@ export type GuestLetterData = {
   extractedText?: string;
   createdAt: string; // ISO string
   paymentCompleted?: boolean;
+  issuer?: string;
+  issuerType?: string;
+  location?: any;
+  initialAmount?: number;
+  contraventionCode?: string;
 };
 
 export const saveGuestLetterData = (data: GuestLetterData): void => {

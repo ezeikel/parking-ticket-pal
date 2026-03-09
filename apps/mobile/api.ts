@@ -534,6 +534,11 @@ export const createLetterForTicket = async (data: {
   tempImagePath?: string;
   extractedText?: string;
   currentAmount?: number | null;
+  issuer?: string;
+  issuerType?: string;
+  location?: any;
+  initialAmount?: number;
+  contraventionCode?: string;
 }) => {
   const response = await api.post('/letters/create', data);
   return response.data;

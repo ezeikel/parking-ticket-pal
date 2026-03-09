@@ -43,6 +43,11 @@ export const letterFormSchema = z.object({
   summary: z.string().min(1, { message: 'Summary is required' }),
   sentAt: z.date({ message: 'Date sent is required' }),
   extractedText: z.string().optional(),
+  issuer: z.string().optional(),
+  issuerType: z.string().optional(),
+  location: z.any().optional(),
+  initialAmount: z.number().optional(),
+  contraventionCode: z.string().optional(),
 });
 
 export const ChallengeLetterSchema = z.object({

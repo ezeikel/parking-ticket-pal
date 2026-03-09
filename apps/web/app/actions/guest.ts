@@ -407,6 +407,11 @@ type CreateLetterFromGuestDataInput = {
   imageUrl?: string;
   tempImagePath?: string;
   extractedText?: string;
+  issuer?: string;
+  issuerType?: string;
+  location?: any;
+  initialAmount?: number;
+  contraventionCode?: string;
 };
 
 export const createLetterFromGuestData = async (
@@ -443,6 +448,11 @@ export const createLetterFromGuestData = async (
       currentAmount: input.currentAmount ?? null,
       tempImageUrl: input.imageUrl,
       tempImagePath: input.tempImagePath,
+      issuer: input.issuer,
+      issuerType: input.issuerType,
+      location: input.location,
+      initialAmount: input.initialAmount,
+      contraventionCode: input.contraventionCode,
     });
 
     if (!letter) {

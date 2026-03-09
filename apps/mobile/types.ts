@@ -6,8 +6,20 @@ export enum TicketType {
 }
 
 export enum LetterType {
-  CHALLENGE = 'CHALLENGE',
-  APPEAL = 'APPEAL',
+  INITIAL_NOTICE = 'INITIAL_NOTICE',
+  NOTICE_TO_OWNER = 'NOTICE_TO_OWNER',
+  CHARGE_CERTIFICATE = 'CHARGE_CERTIFICATE',
+  ORDER_FOR_RECOVERY = 'ORDER_FOR_RECOVERY',
+  CCJ_NOTICE = 'CCJ_NOTICE',
+  FINAL_DEMAND = 'FINAL_DEMAND',
+  BAILIFF_NOTICE = 'BAILIFF_NOTICE',
+  APPEAL_RESPONSE = 'APPEAL_RESPONSE',
+  APPEAL_ACCEPTED = 'APPEAL_ACCEPTED',
+  APPEAL_REJECTED = 'APPEAL_REJECTED',
+  TE_FORM_RESPONSE = 'TE_FORM_RESPONSE',
+  PE_FORM_RESPONSE = 'PE_FORM_RESPONSE',
+  GENERIC = 'GENERIC',
+  CHALLENGE_LETTER = 'CHALLENGE_LETTER',
 }
 
 export enum MediaType {
@@ -154,12 +166,21 @@ export type Ticket = {
   issuedAt: string;
 }
 
+export enum MediaSource {
+  ISSUER = 'ISSUER',
+  TICKET = 'TICKET',
+  LETTER = 'LETTER',
+  USER = 'USER',
+  EVIDENCE = 'EVIDENCE',
+}
+
 export type Media = {
   id: string;
   url: string;
   name: string;
   description?: string;
   type: MediaType;
+  source?: MediaSource;
   ticket: Ticket;
   ticketId: string;
   createdAt: string;
@@ -179,11 +200,11 @@ export type Contravention = {
 export type Letter = {
   id: string;
   type: LetterType;
-  ticket: Ticket;
   ticketId: string;
-  content: string;
-  appeal?: Appeal;
-  appealId?: string;
+  extractedText: string | null;
+  summary: string | null;
+  sentAt: string;
+  media: Media[];
   createdAt: string;
   updatedAt: string;
 }

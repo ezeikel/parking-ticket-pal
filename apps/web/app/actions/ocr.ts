@@ -133,7 +133,7 @@ export const extractOCRTextWithOpenAI = async (
   }
 
   // send the image URL and OCR text to OpenAI for analysis using Vercel AI SDK
-  const tracedModel = getTracedModel(models.text, {
+  const tracedModel = getTracedModel(models.textFast, {
     userId: effectiveUserId,
     properties: { feature: 'ocr_openai_direct' },
   });
@@ -186,6 +186,7 @@ export const extractOCRTextWithOpenAI = async (
     location,
     initialAmount,
     issuer,
+    issuerType,
     sentAt,
     summary,
     extractedText,
@@ -325,6 +326,7 @@ export const extractOCRTextWithOpenAI = async (
       contraventionCode,
       initialAmount: Math.round(Number(initialAmount) * 100),
       issuer,
+      issuerType,
       location: fullAddress,
       summary,
       sentAt: sentAt ? createUTCDate(new Date(sentAt)) : null,
@@ -465,7 +467,7 @@ export const extractOCRTextWithVision = async (
   }
 
   // send the Google Vision OCR text to OpenAI for structured analysis using Vercel AI SDK
-  const tracedModel = getTracedModel(models.text, {
+  const tracedModel = getTracedModel(models.textFast, {
     userId: effectiveUserId,
     properties: { feature: 'ocr_vision_analysis' },
   });
@@ -505,6 +507,7 @@ export const extractOCRTextWithVision = async (
     location,
     initialAmount,
     issuer,
+    issuerType,
     sentAt,
     summary,
     extractedText,
@@ -660,6 +663,7 @@ export const extractOCRTextWithVision = async (
       contraventionCode,
       initialAmount: Math.round(Number(initialAmount) * 100),
       issuer,
+      issuerType,
       location: fullAddress,
       summary,
       sentAt: sentAt ? createUTCDate(new Date(sentAt)) : null,

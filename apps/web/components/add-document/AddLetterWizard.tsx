@@ -41,6 +41,11 @@ export type LetterExtractedData = {
   imageUrl?: string;
   tempImagePath?: string;
   extractedText?: string;
+  issuer?: string;
+  issuerType?: string;
+  location?: any; // Address object from OCR
+  initialAmount?: number;
+  contraventionCode?: string;
 };
 
 export type LetterWizardFormData = {
@@ -53,6 +58,11 @@ export type LetterWizardFormData = {
   imageUrl?: string;
   tempImagePath?: string;
   extractedText?: string;
+  issuer?: string;
+  issuerType?: string;
+  location?: any; // Address object from OCR
+  initialAmount?: number;
+  contraventionCode?: string;
 };
 
 type MatchedTicket = {
@@ -171,6 +181,11 @@ const AddLetterWizard = ({
         imageUrl: extractedData?.imageUrl,
         tempImagePath: extractedData?.tempImagePath,
         extractedText: extractedData?.extractedText,
+        issuer: extractedData?.issuer,
+        issuerType: extractedData?.issuerType,
+        location: extractedData?.location,
+        initialAmount: extractedData?.initialAmount,
+        contraventionCode: extractedData?.contraventionCode,
       });
     } finally {
       setIsSubmitting(false);

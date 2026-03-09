@@ -54,13 +54,14 @@ const EvidenceCard = ({
   const [showUploadForm, setShowUploadForm] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  useEffect(() => {
-    return () => {
+  useEffect(
+    () => () => {
       if (stagedFile) {
         URL.revokeObjectURL(stagedFile.previewUrl);
       }
-    };
-  }, [stagedFile]);
+    },
+    [stagedFile],
+  );
 
   const handleFileSelect = (selectedFile: File | null) => {
     if (selectedFile) {
@@ -142,9 +143,8 @@ const EvidenceCard = ({
     setShowUploadForm(false);
   };
 
-  const isImage = (url: string) => {
-    return url.match(/\.(jpeg|jpg|gif|png|webp)$/i) != null;
-  };
+  const isImage = (url: string) =>
+    url.match(/\.(jpeg|jpg|gif|png|webp)$/i) != null;
 
   return (
     <motion.div
@@ -154,9 +154,7 @@ const EvidenceCard = ({
       className="rounded-xl border border-border bg-white p-5 md:p-6"
     >
       <div className="flex items-center justify-between">
-        <h2 className="text-lg font-semibold text-dark">
-          Evidence & Documents
-        </h2>
+        <h2 className="text-lg font-semibold text-dark">Evidence</h2>
         <Button
           variant="outline"
           size="sm"
@@ -317,7 +315,7 @@ const EvidenceCard = ({
       )}
 
       {/* Evidence Grid */}
-      {evidence.length > 0 ? (
+      {evidence.length > 0 && (
         <div className="mt-4 grid grid-cols-3 gap-3 sm:grid-cols-4">
           {evidence.map((item) => (
             <div key={item.id} className="group relative">
@@ -369,7 +367,9 @@ const EvidenceCard = ({
             </button>
           )}
         </div>
-      ) : !showUploadForm ? (
+      )}
+
+      {evidence.length === 0 && !showUploadForm && (
         <div
           className="mt-4 flex cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-border py-6 transition-colors hover:border-teal"
           onClick={() => setShowUploadForm(true)}
@@ -383,7 +383,7 @@ const EvidenceCard = ({
           />
           <p className="mt-2 text-sm text-gray">Add supporting evidence</p>
         </div>
-      ) : null}
+      )}
     </motion.div>
   );
 };

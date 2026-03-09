@@ -12,6 +12,7 @@ export type OCRProcessingResult = {
     contraventionCode: string;
     initialAmount: number;
     issuer: string;
+    issuerType: string;
     location: {
       line1: string;
       city: string;

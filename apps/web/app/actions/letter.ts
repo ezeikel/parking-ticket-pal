@@ -50,6 +50,11 @@ export const createLetter = async (
     tempImagePath?: string;
     extractedText?: string;
     currentAmount?: number | null; // Amount in pence from OCR
+    issuer?: string;
+    issuerType?: string;
+    location?: any; // Address object from OCR
+    initialAmount?: number;
+    contraventionCode?: string;
   },
 ): Promise<Letter | null> => {
   const validatedData = letterFormSchema.parse(values) as z.infer<
@@ -59,6 +64,11 @@ export const createLetter = async (
     tempImagePath?: string;
     extractedText?: string;
     currentAmount?: number | null;
+    issuer?: string;
+    issuerType?: string;
+    location?: any;
+    initialAmount?: number;
+    contraventionCode?: string;
   };
 
   const userId = await getUserId('create a letter');
@@ -70,15 +80,16 @@ export const createLetter = async (
   // Get vehicle information
   const vehicleInfo = await getVehicleInfo(validatedData.vehicleReg);
 
-  // Find or create the ticket associated with this PCN number
-  const ticket = await db.ticket.upsert({
-    where: {
-      pcnNumber: validatedData.pcnNumber,
-    },
-    create: {
-      pcnNumber: validatedData.pcnNumber,
-      contraventionCode: 'UNKNOWN', // Default value since we don't have this info
-      location: {
+  // Resolve issuerType from OCR string to IssuerType enum
+  const resolvedIssuerType =
+    validatedData.issuerType && validatedData.issuerType in IssuerType
+      ? IssuerType[validatedData.issuerType as keyof typeof IssuerType]
+      : IssuerType.COUNCIL;
+
+  // Build location from OCR data or use defaults
+  const ticketLocation = validatedData.location?.line1
+    ? validatedData.location
+    : {
         line1: 'Unknown',
         city: 'Unknown',
         postcode: 'Unknown',
@@ -87,14 +98,24 @@ export const createLetter = async (
           latitude: 0,
           longitude: 0,
         },
-      },
+      };
+
+  // Find or create the ticket associated with this PCN number
+  const ticket = await db.ticket.upsert({
+    where: {
+      pcnNumber: validatedData.pcnNumber,
+    },
+    create: {
+      pcnNumber: validatedData.pcnNumber,
+      contraventionCode: validatedData.contraventionCode || 'UNKNOWN',
+      location: ticketLocation,
       issuedAt: new Date(),
       contraventionAt: new Date(),
       status: TicketStatus.ISSUED_DISCOUNT_PERIOD,
       type: TicketType.PENALTY_CHARGE_NOTICE,
-      initialAmount: 0, // Default value since we don't have this info
-      issuer: 'Unknown', // Default value since we don't have this info
-      issuerType: IssuerType.COUNCIL,
+      initialAmount: validatedData.initialAmount || 0,
+      issuer: validatedData.issuer || 'Unknown',
+      issuerType: resolvedIssuerType,
       extractedText: '',
       vehicle: {
         connectOrCreate: {

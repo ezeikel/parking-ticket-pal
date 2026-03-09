@@ -218,6 +218,11 @@ const Hero = () => {
               imageUrl: result.imageUrl,
               tempImagePath: result.tempImagePath,
               extractedText: result.data.extractedText || undefined,
+              issuer: result.data.issuer || undefined,
+              issuerType: result.data.issuerType || undefined,
+              location: result.data.location || undefined,
+              initialAmount: result.data.initialAmount || undefined,
+              contraventionCode: result.data.contraventionCode || undefined,
             });
             setIsLetterWizardOpen(true);
           } else {
@@ -348,6 +353,11 @@ const Hero = () => {
       extractedText: data.extractedText,
       createdAt: new Date().toISOString(),
       paymentCompleted: true,
+      issuer: data.issuer,
+      issuerType: data.issuerType,
+      location: data.location,
+      initialAmount: data.initialAmount,
+      contraventionCode: data.contraventionCode,
     });
 
     window.location.href = '/guest/signup?source=letter-wizard';

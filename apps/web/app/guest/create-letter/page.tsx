@@ -100,6 +100,11 @@ const GuestCreateLetterPage = () => {
           imageUrl: data.imageUrl,
           tempImagePath: data.tempImagePath,
           extractedText: data.extractedText,
+          issuer: data.issuer,
+          issuerType: data.issuerType,
+          location: data.location,
+          initialAmount: data.initialAmount,
+          contraventionCode: data.contraventionCode,
         });
 
         if (result.success && result.ticketId) {

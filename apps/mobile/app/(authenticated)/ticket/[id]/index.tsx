@@ -33,6 +33,7 @@ import LiveStatusCard from '@/components/ticket-detail/LiveStatusCard';
 import TicketPhotoCard from '@/components/ticket-detail/TicketPhotoCard';
 import LocationCard from '@/components/ticket-detail/LocationCard';
 import EvidenceCard from '@/components/ticket-detail/EvidenceCard';
+import LettersReceivedCard from '@/components/ticket-detail/LettersReceivedCard';
 import SuccessPredictionCard from '@/components/ticket-detail/SuccessPredictionCard';
 import ActionsCard from '@/components/ticket-detail/ActionsCard';
 import DeadlineAlertCard from '@/components/ticket-detail/DeadlineAlertCard';
@@ -152,16 +153,22 @@ export default function TicketDetailScreen() {
     (m: any) => m.source === 'EVIDENCE',
   );
 
-  // Collect all image URLs for lightbox
+  // Collect all image URLs for lightbox (including letter images)
   const allImages = useMemo(() => {
+    const letterMediaUrls = (ticketData.letters || []).flatMap(
+      (l: any) => (l.media || []).filter(
+        (m: any) => /\.(jpeg|jpg|gif|png|webp)$/i.test(m.url),
+      ).map((m: any) => m.url),
+    );
     const images = [
       ...ticketImages.map((m: any) => m.url),
       ...userEvidence
         .filter((m: any) => /\.(jpeg|jpg|gif|png|webp)$/i.test(m.url))
         .map((m: any) => m.url),
+      ...letterMediaUrls,
     ];
     return images.filter(Boolean) as string[];
-  }, [ticketImages, userEvidence]);
+  }, [ticketImages, userEvidence, ticketData.letters]);
 
   const openLightbox = (imageUrl: string) => {
     const index = allImages.indexOf(imageUrl);
@@ -324,13 +331,21 @@ export default function TicketDetailScreen() {
         {/* 4. Ticket Location */}
         <LocationCard location={location} />
 
-        {/* 5. Evidence & Documents */}
+        {/* 5. Evidence */}
         <EvidenceCard
           ticketId={ticket.id}
           evidence={userEvidence}
           onImagePress={openLightbox}
           onRefetch={refetch}
         />
+
+        {/* 5b. Letters Received */}
+        {ticketData.letters && ticketData.letters.length > 0 && (
+          <LettersReceivedCard
+            letters={ticketData.letters}
+            onImagePress={openLightbox}
+          />
+        )}
 
         {/* 6. Success Prediction */}
         <SuccessPredictionCard
