@@ -9,10 +9,11 @@ export const WON_STATUSES = [
 ] as const;
 
 export const LOST_STATUSES = [
-  'NOTICE_OF_REJECTION',
   'APPEAL_REJECTED_BY_OPERATOR',
   'APPEAL_REJECTED',
 ] as const;
+
+export const CHALLENGE_REJECTED_STATUSES = ['NOTICE_OF_REJECTION'] as const;
 
 export const PENDING_STATUSES = [
   'FORMAL_REPRESENTATION',
@@ -30,3 +31,5 @@ export const CLOSED_STATUSES = [
   'PAID',
   'CANCELLED',
 ] as const;
+
+export const NEEDS_ACTION_STATUSES = [...CHALLENGE_REJECTED_STATUSES] as const;

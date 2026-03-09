@@ -31,9 +31,9 @@ const STATUS_CONFIG: Record<TicketStatus, StatusConfig> = {
   [TicketStatus.APPEAL_SUCCESSFUL]: { label: 'Won', bgColor: '#DCFCE7', textColor: '#16A34A' },
 
   // Lost (coral)
-  [TicketStatus.NOTICE_OF_REJECTION]: { label: 'Lost', bgColor: '#FFE4E6', textColor: '#E11D48' },
+  [TicketStatus.NOTICE_OF_REJECTION]: { label: 'Challenge Rejected', bgColor: '#FEF3C7', textColor: '#D97706' },
   [TicketStatus.APPEAL_REJECTED_BY_OPERATOR]: { label: 'Lost', bgColor: '#FFE4E6', textColor: '#E11D48' },
-  [TicketStatus.APPEAL_REJECTED]: { label: 'Lost', bgColor: '#FFE4E6', textColor: '#E11D48' },
+  [TicketStatus.APPEAL_REJECTED]: { label: 'Appeal Lost', bgColor: '#FFE4E6', textColor: '#E11D48' },
 
   // Overdue (coral)
   [TicketStatus.CHARGE_CERTIFICATE]: { label: 'Overdue', bgColor: '#FFE4E6', textColor: '#E11D48' },
@@ -63,6 +63,7 @@ const TERMINAL_STATUSES = new Set<TicketStatus>([
   TicketStatus.REPRESENTATION_ACCEPTED,
   TicketStatus.APPEAL_UPHELD,
   TicketStatus.APPEAL_SUCCESSFUL,
+  TicketStatus.APPEAL_REJECTED,
 ]);
 
 const NEEDS_ACTION_STATUSES = new Set<TicketStatus>([
@@ -70,6 +71,7 @@ const NEEDS_ACTION_STATUSES = new Set<TicketStatus>([
   TicketStatus.ISSUED_FULL_CHARGE,
   TicketStatus.NOTICE_TO_OWNER,
   TicketStatus.NOTICE_TO_KEEPER,
+  TicketStatus.NOTICE_OF_REJECTION,
   TicketStatus.REDUCED_PAYMENT_DUE,
   TicketStatus.FULL_PAYMENT_DUE,
 ]);

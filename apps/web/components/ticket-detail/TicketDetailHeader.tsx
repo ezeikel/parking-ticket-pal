@@ -94,10 +94,10 @@ const statusConfig: Record<
     icon: 'fa-circle-check',
   },
   NOTICE_OF_REJECTION: {
-    label: 'Rejected',
-    bg: 'bg-coral/10',
-    text: 'text-coral',
-    icon: 'fa-circle-xmark',
+    label: 'Challenge Rejected',
+    bg: 'bg-amber-50',
+    text: 'text-amber-600',
+    icon: 'fa-circle-exclamation',
   },
   APPEAL_REJECTED_BY_OPERATOR: {
     label: 'Rejected',
@@ -106,7 +106,7 @@ const statusConfig: Record<
     icon: 'fa-circle-xmark',
   },
   APPEAL_REJECTED: {
-    label: 'Lost',
+    label: 'Appeal Lost',
     bg: 'bg-coral/10',
     text: 'text-coral',
     icon: 'fa-circle-xmark',

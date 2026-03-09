@@ -81,6 +81,7 @@ const LETTER_TYPE_LABELS: Record<string, string> = {
   [LetterType.BAILIFF_NOTICE]: 'Bailiff Notice',
   [LetterType.APPEAL_RESPONSE]: 'Appeal Response',
   [LetterType.APPEAL_ACCEPTED]: 'Appeal Accepted',
+  [LetterType.CHALLENGE_REJECTED]: 'Challenge Rejected',
   [LetterType.APPEAL_REJECTED]: 'Appeal Rejected',
   [LetterType.TE_FORM_RESPONSE]: 'Revoking Order (TE7/TE9)',
   [LetterType.PE_FORM_RESPONSE]: 'Revoking Order (PE2/PE3)',

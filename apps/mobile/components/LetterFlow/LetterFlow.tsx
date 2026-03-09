@@ -44,6 +44,7 @@ const LETTER_TYPES = [
   { value: 'BAILIFF_NOTICE', label: 'Bailiff Notice' },
   { value: 'APPEAL_RESPONSE', label: 'Appeal Response' },
   { value: 'APPEAL_ACCEPTED', label: 'Appeal Accepted' },
+  { value: 'CHALLENGE_REJECTED', label: 'Challenge Rejected' },
   { value: 'APPEAL_REJECTED', label: 'Appeal Rejected' },
   { value: 'TE_FORM_RESPONSE', label: 'Revoking Order (TE7/TE9)' },
   { value: 'PE_FORM_RESPONSE', label: 'Revoking Order (PE2/PE3)' },

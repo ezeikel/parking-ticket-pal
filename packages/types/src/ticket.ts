@@ -56,6 +56,7 @@ export const DocumentSchema = z.object({
       'BAILIFF_NOTICE',
       'APPEAL_RESPONSE',
       'APPEAL_ACCEPTED',
+      'CHALLENGE_REJECTED',
       'APPEAL_REJECTED',
       'TE_FORM_RESPONSE',
       'PE_FORM_RESPONSE',

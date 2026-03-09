@@ -33,6 +33,7 @@ const STATUS_TO_EXPECTED_LETTERS: Partial<Record<TicketStatus, LetterType[]>> =
       LetterType.INITIAL_NOTICE,
       LetterType.APPEAL_RESPONSE,
       LetterType.APPEAL_ACCEPTED,
+      LetterType.CHALLENGE_REJECTED,
       LetterType.APPEAL_REJECTED,
       LetterType.GENERIC,
     ],
@@ -41,6 +42,7 @@ const STATUS_TO_EXPECTED_LETTERS: Partial<Record<TicketStatus, LetterType[]>> =
       LetterType.NOTICE_TO_OWNER,
       LetterType.APPEAL_RESPONSE,
       LetterType.APPEAL_ACCEPTED,
+      LetterType.CHALLENGE_REJECTED,
       LetterType.APPEAL_REJECTED,
       LetterType.GENERIC,
     ],
@@ -51,6 +53,7 @@ const STATUS_TO_EXPECTED_LETTERS: Partial<Record<TicketStatus, LetterType[]>> =
       LetterType.CHARGE_CERTIFICATE,
       LetterType.APPEAL_RESPONSE,
       LetterType.APPEAL_ACCEPTED,
+      LetterType.CHALLENGE_REJECTED,
       LetterType.APPEAL_REJECTED,
       LetterType.GENERIC,
     ],
@@ -59,7 +62,7 @@ const STATUS_TO_EXPECTED_LETTERS: Partial<Record<TicketStatus, LetterType[]>> =
     [TicketStatus.FORMAL_REPRESENTATION]: [
       LetterType.APPEAL_RESPONSE,
       LetterType.APPEAL_ACCEPTED,
-      LetterType.APPEAL_REJECTED,
+      LetterType.CHALLENGE_REJECTED,
       LetterType.NOTICE_TO_OWNER,
       LetterType.GENERIC,
     ],
@@ -96,7 +99,7 @@ const STATUS_TO_EXPECTED_LETTERS: Partial<Record<TicketStatus, LetterType[]>> =
     [TicketStatus.TEC_OUT_OF_TIME_APPLICATION]: [
       LetterType.TE_FORM_RESPONSE,
       LetterType.PE_FORM_RESPONSE,
-      LetterType.APPEAL_REJECTED, // TEC Refusal Order
+      LetterType.CHALLENGE_REJECTED, // TEC Refusal Order
       LetterType.ORDER_FOR_RECOVERY,
       LetterType.CCJ_NOTICE,
       LetterType.GENERIC,
@@ -104,7 +107,7 @@ const STATUS_TO_EXPECTED_LETTERS: Partial<Record<TicketStatus, LetterType[]>> =
     [TicketStatus.PE2_PE3_APPLICATION]: [
       LetterType.PE_FORM_RESPONSE,
       LetterType.TE_FORM_RESPONSE,
-      LetterType.APPEAL_REJECTED, // TEC Refusal Order
+      LetterType.CHALLENGE_REJECTED, // TEC Refusal Order
       LetterType.ORDER_FOR_RECOVERY,
       LetterType.CCJ_NOTICE,
       LetterType.GENERIC,
@@ -225,6 +228,7 @@ function formatLetterType(letterType: LetterType): string {
     [LetterType.BAILIFF_NOTICE]: 'Bailiff Notice',
     [LetterType.APPEAL_RESPONSE]: 'Appeal Response',
     [LetterType.APPEAL_ACCEPTED]: 'Appeal Accepted',
+    [LetterType.CHALLENGE_REJECTED]: 'Challenge Rejected',
     [LetterType.APPEAL_REJECTED]: 'Appeal Rejected',
     [LetterType.TE_FORM_RESPONSE]: 'Revoking Order (TE7/TE9)',
     [LetterType.PE_FORM_RESPONSE]: 'Revoking Order (PE2/PE3)',
