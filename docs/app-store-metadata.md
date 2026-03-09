@@ -63,8 +63,10 @@ That's less than what most tickets increase by when you miss a single deadline.
 
 IMPORTANT NOTES
 
+• This app is not affiliated with, endorsed by, or connected to any government body, local council, or official parking authority. It is an independent tool made by Chewy Bytes Ltd.
 • This app provides tools to help you manage parking tickets. It does not provide legal advice.
-• Success scores are estimates based on historical tribunal data and do not guarantee outcomes.
+• Success scores are estimates based on historical tribunal data from the Traffic Penalty Tribunal (https://www.trafficpenaltytribunal.gov.uk) and do not guarantee outcomes.
+• Information about PCN processes and deadlines is based on publicly available guidance from GOV.UK (https://www.gov.uk/parking-tickets) and the Traffic Penalty Tribunal.
 • Available for UK parking tickets — council PCNs, FPNs, and private parking charges.
 
 A parking ticket doesn't have to cost you a penny more than it should.

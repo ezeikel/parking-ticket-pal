@@ -738,7 +738,7 @@ const SettingsScreen = () => {
               icon={faCircleQuestion}
               title="Help & FAQ"
               value="Get answers to common questions"
-              onPress={() => Linking.openURL('mailto:support@parkingticketpal.com')}
+              onPress={() => Linking.openURL('https://www.parkingticketpal.com/#faq')}
             />
 
             <SettingRow
@@ -748,6 +748,7 @@ const SettingsScreen = () => {
               onPress={() => Linking.openURL('mailto:support@parkingticketpal.com')}
             />
 
+            {/* TODO: Uncomment once app is published on stores
             <SettingRow
               icon={faStar}
               title="Rate the App"
@@ -755,11 +756,12 @@ const SettingsScreen = () => {
               onPress={() => {
                 const storeUrl = Platform.select({
                   ios: 'https://apps.apple.com/app/parking-ticket-pal',
-                  android: 'https://play.google.com/store/apps/details?id=com.parkingticketpal',
+                  android: 'https://play.google.com/store/apps/details?id=com.chewybytes.parkingticketpal.app',
                 });
                 if (storeUrl) Linking.openURL(storeUrl);
               }}
             />
+            */}
 
             <SettingRow
               icon={faShieldCheck}

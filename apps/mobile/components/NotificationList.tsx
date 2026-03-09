@@ -1,4 +1,4 @@
-import { View, ScrollView } from 'react-native';
+import { View, ScrollView, RefreshControl } from 'react-native';
 import { FlashList } from '@shopify/flash-list';
 import { useCallback } from 'react';
 import { useNotifications } from '@/hooks/api/useNotifications';
@@ -6,7 +6,6 @@ import NotificationItem from './NotificationItem';
 import { faBell } from '@fortawesome/pro-regular-svg-icons';
 import Loader from './Loader/Loader';
 import EmptyState from './EmptyState/EmptyState';
-import CustomRefreshControl from './CustomRefreshControl/CustomRefreshControl';
 
 interface NotificationListProps {
   unreadOnly?: boolean;
@@ -41,7 +40,7 @@ const NotificationList = ({ unreadOnly = false }: NotificationListProps) => {
         contentContainerStyle={{ flexGrow: 1, alignItems: 'center', justifyContent: 'center' }}
         contentInsetAdjustmentBehavior="automatic"
         refreshControl={
-          <CustomRefreshControl refreshing={isRefetching} onRefresh={onRefresh} />
+          <RefreshControl refreshing={isRefetching} onRefresh={onRefresh} />
         }
       >
         <EmptyState
@@ -63,6 +62,7 @@ const NotificationList = ({ unreadOnly = false }: NotificationListProps) => {
       renderItem={renderNotificationItem}
       keyExtractor={(item) => item.id}
       getItemType={(item) => item.read ? 'read' : 'unread'}
+      estimatedItemSize={80}
       showsVerticalScrollIndicator={false}
       contentContainerStyle={{
         paddingHorizontal: 16,
@@ -70,7 +70,7 @@ const NotificationList = ({ unreadOnly = false }: NotificationListProps) => {
         paddingBottom: 24,
       }}
       refreshControl={
-        <CustomRefreshControl refreshing={isRefetching} onRefresh={onRefresh} />
+        <RefreshControl refreshing={isRefetching} onRefresh={onRefresh} />
       }
     />
   );

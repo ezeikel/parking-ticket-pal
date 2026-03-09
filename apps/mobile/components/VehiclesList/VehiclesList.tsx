@@ -1,5 +1,5 @@
 import { useCallback, memo } from 'react';
-import { View, Text, ScrollView } from 'react-native';
+import { View, Text, ScrollView, RefreshControl } from 'react-native';
 import { FlashList } from "@shopify/flash-list";
 import useVehicles from '@/hooks/api/useVehicles';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
@@ -8,7 +8,6 @@ import { Vehicle } from '@/types';
 import { Typography } from '../Typography/Typography';
 import Loader from '../Loader/Loader';
 import EmptyState from '../EmptyState/EmptyState';
-import CustomRefreshControl from '../CustomRefreshControl/CustomRefreshControl';
 
 const gridGap = 16;
 const vehicleItemStyle = { marginBottom: gridGap };
@@ -144,7 +143,7 @@ const VehiclesList = () => {
         contentContainerStyle={{ flexGrow: 1, alignItems: 'center', justifyContent: 'center' }}
         contentInsetAdjustmentBehavior="automatic"
         refreshControl={
-          <CustomRefreshControl refreshing={isRefetching} onRefresh={onRefresh} />
+          <RefreshControl refreshing={isRefetching} onRefresh={onRefresh} />
         }
       >
         <EmptyState
@@ -163,8 +162,9 @@ const VehiclesList = () => {
         renderItem={renderItem}
         keyExtractor={(item) => item.id.toString()}
         contentContainerStyle={{ padding: 16 }}
+        estimatedItemSize={200}
         refreshControl={
-          <CustomRefreshControl refreshing={isRefetching} onRefresh={onRefresh} />
+          <RefreshControl refreshing={isRefetching} onRefresh={onRefresh} />
         }
       />
     </View>
