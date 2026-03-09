@@ -138,6 +138,7 @@ export const createLetter = async (
     select: {
       id: true,
       issuedAt: true,
+      status: true,
       statusUpdatedAt: true,
       initialAmount: true,
     },
@@ -235,6 +236,7 @@ export const createLetter = async (
         validatedData.sentAt,
         ticket.statusUpdatedAt,
         ticket.issuedAt,
+        ticket.status,
       )
     ) {
       await db.ticket.update({

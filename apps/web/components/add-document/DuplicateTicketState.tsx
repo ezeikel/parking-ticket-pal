@@ -1,28 +1,64 @@
 'use client';
 
+import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
   faTicket,
   faCircleInfo,
   faArrowRight,
+  faCamera,
+  faSpinnerThird,
 } from '@fortawesome/pro-solid-svg-icons';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
+import { toast } from 'sonner';
 
 type DuplicateTicketStateProps = {
   ticketId: string;
   pcnNumber: string;
   issuer?: string;
+  hasTicketImage?: boolean;
+  tempImageUrl?: string;
+  tempImagePath?: string;
   onUploadDifferent: () => void;
+  onImageAttached?: () => void;
 };
 
 const DuplicateTicketState = ({
   ticketId,
   pcnNumber,
   issuer,
+  hasTicketImage = true,
+  tempImageUrl,
+  tempImagePath,
   onUploadDifferent,
+  onImageAttached,
 }: DuplicateTicketStateProps) => {
+  const [isAttaching, setIsAttaching] = useState(false);
+
+  const handleAttachImage = async () => {
+    if (!tempImageUrl || !tempImagePath) return;
+
+    setIsAttaching(true);
+    try {
+      const response = await fetch(`/api/tickets/${ticketId}/image`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ tempImageUrl, tempImagePath }),
+      });
+
+      if (!response.ok) throw new Error('Failed to attach image');
+
+      toast.success('Image added to ticket');
+      onImageAttached?.();
+    } catch {
+      toast.error('Failed to add image. Please try again.');
+    } finally {
+      setIsAttaching(false);
+    }
+  };
+
   return (
     <motion.div
       initial={{ opacity: 0, scale: 0.95 }}
@@ -37,10 +73,14 @@ const DuplicateTicketState = ({
       {/* Message */}
       <div className="mt-6 text-center">
         <h2 className="text-xl font-bold text-dark">
-          This ticket is already in your account
+          {hasTicketImage
+            ? 'This ticket is already in your account'
+            : 'Ticket found — no image yet'}
         </h2>
         <p className="mt-2 text-gray">
-          We found an existing ticket with this PCN number
+          {hasTicketImage
+            ? 'We found an existing ticket with this PCN number'
+            : 'This ticket was created without an image. Would you like to add this scan?'}
         </p>
       </div>
 
@@ -59,7 +99,34 @@ const DuplicateTicketState = ({
 
       {/* Action Buttons */}
       <div className="mt-8 flex w-full max-w-sm flex-col gap-3">
-        <Button asChild className="h-12 bg-teal text-white hover:bg-teal-dark">
+        {!hasTicketImage && tempImageUrl && tempImagePath && (
+          <Button
+            onClick={handleAttachImage}
+            disabled={isAttaching}
+            className="h-12 bg-teal text-white hover:bg-teal-dark"
+          >
+            {isAttaching ? (
+              <>
+                <FontAwesomeIcon
+                  icon={faSpinnerThird}
+                  className="mr-2 animate-spin"
+                />
+                Adding image...
+              </>
+            ) : (
+              <>
+                <FontAwesomeIcon icon={faCamera} className="mr-2" />
+                Add image to this ticket
+              </>
+            )}
+          </Button>
+        )}
+
+        <Button
+          asChild
+          className={`h-12 ${hasTicketImage ? 'bg-teal text-white hover:bg-teal-dark' : 'border-border bg-transparent text-dark hover:bg-light'}`}
+          variant={hasTicketImage ? 'default' : 'outline'}
+        >
           <Link href={`/tickets/${ticketId}`}>
             View Ticket
             <FontAwesomeIcon icon={faArrowRight} className="ml-2" />

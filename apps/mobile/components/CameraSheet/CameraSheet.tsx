@@ -12,14 +12,19 @@ import Animated, {
 } from 'react-native-reanimated';
 import { Gesture, GestureDetector, GestureHandlerRootView } from 'react-native-gesture-handler';
 import { router } from 'expo-router';
+import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
+import { faTicket } from '@fortawesome/pro-solid-svg-icons';
 import Scanner from '@/components/Scanner/Scanner';
 import TicketWizard from '@/components/TicketWizard/TicketWizard';
+import LetterFlow from '@/components/LetterFlow/LetterFlow';
 import { Paywall } from '@/components/Paywall/Paywall';
 import { useCameraContext } from '@/contexts/CameraContext';
 import { useAuthContext } from '@/contexts/auth';
 import { useAnalytics } from '@/lib/analytics';
 import { adService } from '@/services/AdService';
+import { lookupTicketByPcn, addImageToTicket } from '@/api';
 import { toast } from '@/lib/toast';
+import SquishyPressable from '@/components/SquishyPressable/SquishyPressable';
 import Loader from '../Loader/Loader';
 import type { OCRProcessingResult } from '@/hooks/api/useOCR';
 import type { WizardResult } from '@/components/TicketWizard/types';
@@ -28,7 +33,7 @@ const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 const SHEET_ANIMATION_DURATION = 300;
 const DISMISS_THRESHOLD = SCREEN_HEIGHT * 0.3; // 30% of screen height
 
-type CameraSheetPhase = 'scanning' | 'wizard' | 'paywall';
+type CameraSheetPhase = 'scanning' | 'wizard' | 'letter' | 'duplicate' | 'paywall';
 
 type CameraSheetProps = {
   isVisible: boolean;
@@ -119,14 +124,52 @@ const CameraSheet = ({ isVisible, onClose, onboardingMode, onOCRComplete }: Came
     onClose();
   }, [onClose]);
 
-  const handleOCRComplete = useCallback((result: OCRProcessingResult) => {
+  const handleOCRComplete = useCallback(async (result: OCRProcessingResult) => {
     if (onboardingMode && onOCRComplete) {
       // In onboarding mode, hand off to the parent (OnboardingCarousel manages wizard/paywall)
       onOCRComplete(result);
       return;
     }
 
-    // Non-onboarding: manage wizard internally
+    const documentType = result.data?.documentType || 'ticket';
+
+    // Handle unrelated documents
+    if (documentType === 'unrelated') {
+      toast.info('Not a parking document', "This doesn't appear to be a parking ticket or related letter.");
+      setScannerKey(prev => prev + 1);
+      return;
+    }
+
+    // Handle letters
+    if (documentType === 'letter') {
+      setOcrData(result);
+      setPhase('letter');
+      return;
+    }
+
+    // Handle tickets — check for duplicates
+    if (result.data?.pcnNumber) {
+      try {
+        const lookupResult = await lookupTicketByPcn(result.data.pcnNumber);
+        if (lookupResult.ticket) {
+          // Existing ticket found
+          if (!lookupResult.ticket.hasTicketImage && result.imageUrl && result.tempImagePath) {
+            // Ticket exists but has no image — offer to add the scanned image
+            setOcrData(result);
+            setPhase('duplicate');
+            return;
+          }
+          // Ticket already has an image — show duplicate warning
+          toast.info('Duplicate ticket', 'This ticket is already in your account.');
+          setScannerKey(prev => prev + 1);
+          return;
+        }
+      } catch {
+        // Lookup failed — proceed with normal wizard flow
+      }
+    }
+
+    // No existing ticket — proceed with normal wizard flow
     setOcrData(result);
     setPhase('wizard');
   }, [onboardingMode, onOCRComplete]);
@@ -159,6 +202,40 @@ const CameraSheet = ({ isVisible, onClose, onboardingMode, onOCRComplete }: Came
     setPhase('scanning');
     setScannerKey(prev => prev + 1);
   }, []);
+
+  const handleLetterComplete = useCallback((ticketId: string) => {
+    handleClose();
+    router.push(`/ticket/${ticketId}`);
+  }, [handleClose]);
+
+  const handleLetterCancel = useCallback(() => {
+    setOcrData(null);
+    setPhase('scanning');
+    setScannerKey(prev => prev + 1);
+  }, []);
+
+  const handleAddImageToExisting = useCallback(async () => {
+    if (!ocrData?.data?.pcnNumber || !ocrData.imageUrl || !ocrData.tempImagePath) return;
+
+    try {
+      const lookupResult = await lookupTicketByPcn(ocrData.data.pcnNumber);
+      if (!lookupResult.ticket) {
+        toast.error('Error', 'Could not find ticket');
+        return;
+      }
+
+      await addImageToTicket(lookupResult.ticket.id, {
+        tempImageUrl: ocrData.imageUrl,
+        tempImagePath: ocrData.tempImagePath,
+      });
+
+      toast.success('Image added', 'Ticket image has been updated');
+      handleClose();
+      router.push(`/ticket/${lookupResult.ticket.id}`);
+    } catch {
+      toast.error('Error', 'Failed to add image to ticket');
+    }
+  }, [ocrData, handleClose]);
 
   const handlePaywallClose = useCallback(() => {
     handleClose();
@@ -222,6 +299,98 @@ const CameraSheet = ({ isVisible, onClose, onboardingMode, onOCRComplete }: Came
             onComplete={handleWizardComplete}
             onCancel={handleWizardCancel}
           />
+        </View>
+      );
+    }
+
+    if (phase === 'letter' && ocrData) {
+      return (
+        <View style={{ flex: 1, backgroundColor: 'white' }}>
+          <LetterFlow
+            ocrData={ocrData}
+            onComplete={handleLetterComplete}
+            onCancel={handleLetterCancel}
+          />
+        </View>
+      );
+    }
+
+    if (phase === 'duplicate' && ocrData) {
+      return (
+        <View style={{ flex: 1, backgroundColor: 'white', justifyContent: 'center', alignItems: 'center', paddingHorizontal: 24 }}>
+          <View style={{
+            width: 80,
+            height: 80,
+            borderRadius: 40,
+            backgroundColor: '#FEF3C7',
+            justifyContent: 'center',
+            alignItems: 'center',
+            marginBottom: 24,
+          }}>
+            <FontAwesomeIcon icon={faTicket} size={32} color="#F59E0B" />
+          </View>
+          <Text style={{
+            fontFamily: 'Inter18pt-Bold',
+            fontSize: 20,
+            color: '#111827',
+            textAlign: 'center',
+            marginBottom: 8,
+          }}>
+            Ticket already exists
+          </Text>
+          <Text style={{
+            fontFamily: 'Inter18pt-Regular',
+            fontSize: 16,
+            color: '#6B7280',
+            textAlign: 'center',
+            marginBottom: 32,
+            lineHeight: 24,
+          }}>
+            This ticket has no image yet. Would you like to add this scan to it?
+          </Text>
+          <SquishyPressable
+            onPress={handleAddImageToExisting}
+            style={{
+              backgroundColor: '#1ABC9C',
+              borderRadius: 12,
+              paddingVertical: 16,
+              paddingHorizontal: 24,
+              width: '100%',
+              alignItems: 'center',
+              marginBottom: 12,
+            }}
+          >
+            <Text style={{
+              fontFamily: 'Inter18pt-SemiBold',
+              fontSize: 16,
+              color: 'white',
+            }}>
+              Add image to existing ticket
+            </Text>
+          </SquishyPressable>
+          <SquishyPressable
+            onPress={() => {
+              setOcrData(null);
+              setPhase('scanning');
+              setScannerKey(prev => prev + 1);
+            }}
+            style={{
+              backgroundColor: '#F3F4F6',
+              borderRadius: 12,
+              paddingVertical: 16,
+              paddingHorizontal: 24,
+              width: '100%',
+              alignItems: 'center',
+            }}
+          >
+            <Text style={{
+              fontFamily: 'Inter18pt-SemiBold',
+              fontSize: 16,
+              color: '#374151',
+            }}>
+              Scan different document
+            </Text>
+          </SquishyPressable>
         </View>
       );
     }

@@ -62,6 +62,10 @@ const letterTypeLabels: Record<LetterType, string> = {
   [LetterType.FINAL_DEMAND]: 'Final Demand',
   [LetterType.BAILIFF_NOTICE]: 'Bailiff Notice',
   [LetterType.APPEAL_RESPONSE]: 'Appeal Response',
+  [LetterType.APPEAL_ACCEPTED]: 'Appeal Accepted',
+  [LetterType.APPEAL_REJECTED]: 'Appeal Rejected',
+  [LetterType.TE_FORM_RESPONSE]: 'Revoking Order (TE7/TE9)',
+  [LetterType.PE_FORM_RESPONSE]: 'Revoking Order (PE2/PE3)',
   [LetterType.GENERIC]: 'Other Letter',
   [LetterType.CHALLENGE_LETTER]: 'Challenge Letter',
 };
@@ -87,13 +91,14 @@ const UploadedLettersCard = ({
   const [showUploadForm, setShowUploadForm] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  useEffect(() => {
-    return () => {
+  useEffect(
+    () => () => {
       if (stagedFile) {
         URL.revokeObjectURL(stagedFile.previewUrl);
       }
-    };
-  }, [stagedFile]);
+    },
+    [stagedFile],
+  );
 
   const handleFileSelect = (selectedFile: File | null) => {
     if (selectedFile) {
@@ -355,7 +360,7 @@ const UploadedLettersCard = ({
       )}
 
       {/* Letters List */}
-      {councilLetters.length > 0 ? (
+      {councilLetters.length > 0 && (
         <div className="mt-4 space-y-3">
           {councilLetters.map((letter) => (
             <div
@@ -440,7 +445,9 @@ const UploadedLettersCard = ({
             </div>
           ))}
         </div>
-      ) : !showUploadForm ? (
+      )}
+
+      {councilLetters.length === 0 && !showUploadForm && (
         <div
           className="mt-4 flex cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-border py-6 transition-colors hover:border-teal"
           onClick={() => setShowUploadForm(true)}
@@ -456,7 +463,7 @@ const UploadedLettersCard = ({
             Upload letters from the council
           </p>
         </div>
-      ) : null}
+      )}
     </motion.div>
   );
 };

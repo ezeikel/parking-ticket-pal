@@ -516,3 +516,34 @@ export const pollTicketLiveStatus = async (ticketId: string) => {
   const response = await api.get(`/tickets/${ticketId}/live-status`);
   return response.data;
 };
+
+// Ticket lookup by PCN
+export const lookupTicketByPcn = async (pcnNumber: string) => {
+  const response = await api.get(`/tickets/lookup?pcnNumber=${encodeURIComponent(pcnNumber)}`);
+  return response.data;
+};
+
+// Create letter for a ticket
+export const createLetterForTicket = async (data: {
+  pcnNumber: string;
+  vehicleReg: string;
+  letterType: string;
+  summary: string;
+  sentAt: string;
+  tempImageUrl?: string;
+  tempImagePath?: string;
+  extractedText?: string;
+  currentAmount?: number | null;
+}) => {
+  const response = await api.post('/letters/create', data);
+  return response.data;
+};
+
+// Add image to existing ticket
+export const addImageToTicket = async (ticketId: string, data: {
+  tempImageUrl: string;
+  tempImagePath: string;
+}) => {
+  const response = await api.post(`/tickets/${ticketId}/image`, data);
+  return response.data;
+};

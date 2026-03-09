@@ -934,10 +934,24 @@ export const getTicketByPcnNumber = async (pcnNumber: string) => {
           registrationNumber: true,
         },
       },
+      media: {
+        where: {
+          source: MediaSource.TICKET,
+        },
+        select: {
+          id: true,
+        },
+        take: 1,
+      },
     },
   });
 
-  return ticket;
+  if (!ticket) return null;
+
+  return {
+    ...ticket,
+    hasTicketImage: ticket.media.length > 0,
+  };
 };
 
 export const verifyTicket = async (pcnNumber: string, ticketId?: string) => {

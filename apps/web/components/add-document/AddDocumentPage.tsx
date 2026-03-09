@@ -3,7 +3,6 @@
 import { useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
-import { LetterType } from '@parking-ticket-pal/db/types';
 import { extractOCRTextWithVision } from '@/app/actions/ocr';
 import { createTicket, getTicketByPcnNumber } from '@/app/actions/ticket';
 import { createLetter } from '@/app/actions/letter';
@@ -17,12 +16,22 @@ import AddDocumentWizard, {
   type ExtractedData,
   type WizardFormData,
 } from './AddDocumentWizard';
+import AddLetterWizard, {
+  type LetterExtractedData,
+  type LetterWizardFormData,
+} from './AddLetterWizard';
 import SuccessState from './SuccessState';
 import DuplicateTicketState from './DuplicateTicketState';
 
-type DocumentType = 'ticket' | 'letter' | 'unknown';
+type DocumentType = 'ticket' | 'letter' | 'unrelated' | 'unknown';
 
-type PageState = 'upload' | 'processing' | 'wizard' | 'success' | 'duplicate';
+type PageState =
+  | 'upload'
+  | 'processing'
+  | 'wizard'
+  | 'letter-wizard'
+  | 'success'
+  | 'duplicate';
 
 type SuccessData = {
   ticketId: string;
@@ -34,6 +43,7 @@ type ExistingTicketData = {
   ticketId: string;
   pcnNumber: string;
   issuer?: string;
+  hasTicketImage?: boolean;
 };
 
 const AddDocumentPage = () => {
@@ -47,6 +57,9 @@ const AddDocumentPage = () => {
   const [successData, setSuccessData] = useState<SuccessData | null>(null);
   const [existingTicket, setExistingTicket] =
     useState<ExistingTicketData | null>(null);
+  const [letterExtractedData, setLetterExtractedData] = useState<
+    LetterExtractedData | undefined
+  >(undefined);
 
   const handleFileSelect = useCallback(
     async (file: File) => {
@@ -72,6 +85,15 @@ const AddDocumentPage = () => {
           const detectedType =
             (result.data.documentType as DocumentType) || 'ticket';
 
+          // Handle unrelated documents
+          if (detectedType === 'unrelated') {
+            toast.error(
+              "This doesn't appear to be a parking ticket or related letter.",
+            );
+            setPageState('upload');
+            return;
+          }
+
           // Check if we have a PCN and if a ticket with this PCN already exists
           if (result.data.pcnNumber) {
             const existingTicketData = await getTicketByPcnNumber(
@@ -84,6 +106,7 @@ const AddDocumentPage = () => {
                 ticketId: existingTicketData.id,
                 pcnNumber: existingTicketData.pcnNumber,
                 issuer: existingTicketData.issuer || undefined,
+                hasTicketImage: existingTicketData.hasTicketImage,
               });
 
               // Store extracted data for potential letter attachment
@@ -105,56 +128,22 @@ const AddDocumentPage = () => {
               });
 
               if (detectedType === 'letter') {
-                // It's a letter - automatically add it to the existing ticket
-                // Map OCR letterType string to LetterType enum, fallback to GENERIC
-                const detectedLetterType =
-                  (result.data.letterType as keyof typeof LetterType) &&
-                  LetterType[result.data.letterType as keyof typeof LetterType]
-                    ? LetterType[
-                        result.data.letterType as keyof typeof LetterType
-                      ]
-                    : LetterType.GENERIC;
-
-                try {
-                  const letter = await createLetter({
-                    pcnNumber: existingTicketData.pcnNumber,
-                    vehicleReg: result.data.vehicleReg || '',
-                    type: detectedLetterType,
-                    summary: result.data.summary || 'Letter from council',
-                    sentAt: result.data.sentAt
-                      ? new Date(result.data.sentAt)
-                      : new Date(),
-                    tempImageUrl: result.imageUrl || undefined,
-                    tempImagePath: result.tempImagePath || undefined,
-                    extractedText: result.data.extractedText || undefined,
-                    currentAmount: result.data.currentAmount || undefined,
-                  });
-
-                  if (letter) {
-                    await track(TRACKING_EVENTS.LETTER_UPLOADED, {
-                      ticket_id: existingTicketData.id,
-                      letter_type: letter.type,
-                    });
-
-                    toast.success('Letter added to ticket');
-                    setSuccessData({
-                      ticketId: existingTicketData.id,
-                      pcnNumber: existingTicketData.pcnNumber,
-                      documentType: 'letter',
-                    });
-                    setPageState('success');
-                  } else {
-                    throw new Error('Failed to create letter');
-                  }
-                } catch (error) {
-                  logger.error(
-                    'Error adding letter to ticket',
-                    { pcnNumber: existingTicketData.pcnNumber },
-                    error instanceof Error ? error : undefined,
-                  );
-                  toast.error('Failed to add letter. Please try again.');
-                  setPageState('upload');
-                }
+                // It's a letter — show letter wizard for user to confirm/edit
+                setLetterExtractedData({
+                  pcnNumber: result.data.pcnNumber,
+                  vehicleReg: result.data.vehicleReg,
+                  letterType: result.data.letterType || undefined,
+                  summary: result.data.summary || '',
+                  sentAt: result.data.sentAt
+                    ? new Date(result.data.sentAt)
+                    : new Date(),
+                  currentAmount: result.data.currentAmount,
+                  imageUrl: result.imageUrl || undefined,
+                  tempImagePath: result.tempImagePath || undefined,
+                  extractedText: result.data.extractedText || undefined,
+                });
+                setPageState('letter-wizard');
+                toast.success('Letter details extracted');
                 return;
               }
               // It's a ticket - show duplicate warning
@@ -165,7 +154,28 @@ const AddDocumentPage = () => {
             }
           }
 
-          // No existing ticket found - proceed with normal wizard flow
+          // No existing ticket found
+          if (detectedType === 'letter') {
+            // Letter with no existing ticket — show letter wizard for user to confirm/edit
+            setLetterExtractedData({
+              pcnNumber: result.data.pcnNumber,
+              vehicleReg: result.data.vehicleReg,
+              letterType: result.data.letterType || undefined,
+              summary: result.data.summary || '',
+              sentAt: result.data.sentAt
+                ? new Date(result.data.sentAt)
+                : new Date(),
+              currentAmount: result.data.currentAmount,
+              imageUrl: result.imageUrl || undefined,
+              tempImagePath: result.tempImagePath || undefined,
+              extractedText: result.data.extractedText || undefined,
+            });
+            setPageState('letter-wizard');
+            toast.success('Letter details extracted');
+            return;
+          }
+
+          // Ticket or letter without PCN — proceed with wizard flow
           setExtractedData({
             pcnNumber: result.data.pcnNumber,
             vehicleReg: result.data.vehicleReg,
@@ -183,11 +193,7 @@ const AddDocumentPage = () => {
             ticketStage: 'initial',
           });
           setPageState('wizard');
-          toast.success(
-            detectedType === 'letter'
-              ? 'Letter details extracted'
-              : 'Ticket details extracted',
-          );
+          toast.success('Ticket details extracted');
         } else {
           // OCR failed, but let user continue with manual entry
           logger.warn('OCR extraction failed', {
@@ -288,11 +294,61 @@ const AddDocumentPage = () => {
     [track, logger],
   );
 
+  const handleLetterWizardClose = useCallback(() => {
+    setPageState('upload');
+    setLetterExtractedData(undefined);
+  }, []);
+
+  const handleLetterWizardSubmit = useCallback(
+    async (data: LetterWizardFormData) => {
+      try {
+        const letter = await createLetter({
+          pcnNumber: data.pcnNumber,
+          vehicleReg: data.vehicleReg,
+          type: data.type,
+          summary: data.summary,
+          sentAt: data.sentAt,
+          tempImageUrl: data.imageUrl,
+          tempImagePath: data.tempImagePath,
+          extractedText: data.extractedText,
+          currentAmount: data.currentAmount ?? undefined,
+        });
+
+        if (!letter) {
+          toast.error('Failed to create letter. Please try again.');
+          return;
+        }
+
+        await track(TRACKING_EVENTS.LETTER_UPLOADED, {
+          letter_type: letter.type,
+          ticket_id: letter.ticketId,
+        });
+
+        setSuccessData({
+          ticketId: letter.ticketId,
+          pcnNumber: data.pcnNumber,
+          documentType: 'letter',
+        });
+        setPageState('success');
+        toast.success('Letter added successfully');
+      } catch (error) {
+        logger.error(
+          'Error creating letter',
+          { pcnNumber: data.pcnNumber },
+          error instanceof Error ? error : undefined,
+        );
+        toast.error('Failed to create letter. Please try again.');
+      }
+    },
+    [track, logger],
+  );
+
   const handleAddAnother = useCallback(() => {
     setPageState('upload');
     setExtractedData(undefined);
     setSuccessData(null);
     setExistingTicket(null);
+    setLetterExtractedData(undefined);
   }, []);
 
   return (
@@ -354,18 +410,28 @@ const AddDocumentPage = () => {
                 ticketId={existingTicket.ticketId}
                 pcnNumber={existingTicket.pcnNumber}
                 issuer={existingTicket.issuer}
+                hasTicketImage={existingTicket.hasTicketImage}
+                tempImageUrl={extractedData?.imageUrl}
+                tempImagePath={extractedData?.tempImagePath}
                 onUploadDifferent={handleAddAnother}
+                onImageAttached={handleAddAnother}
               />
             </motion.div>
           )}
         </AnimatePresence>
 
-        {/* Wizard Modal */}
+        {/* Wizard Modals */}
         <AddDocumentWizard
           isOpen={pageState === 'wizard'}
           onClose={handleWizardClose}
           extractedData={extractedData}
           onSubmit={handleWizardSubmit}
+        />
+        <AddLetterWizard
+          isOpen={pageState === 'letter-wizard'}
+          onClose={handleLetterWizardClose}
+          extractedData={letterExtractedData}
+          onSubmit={handleLetterWizardSubmit}
         />
       </div>
     </div>

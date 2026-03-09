@@ -296,6 +296,18 @@ const CreateLetterForm = () => {
                     <SelectItem value={LetterType.APPEAL_RESPONSE}>
                       Appeal Response
                     </SelectItem>
+                    <SelectItem value={LetterType.APPEAL_ACCEPTED}>
+                      Appeal Accepted
+                    </SelectItem>
+                    <SelectItem value={LetterType.APPEAL_REJECTED}>
+                      Appeal Rejected
+                    </SelectItem>
+                    <SelectItem value={LetterType.TE_FORM_RESPONSE}>
+                      Revoking Order (TE7/TE9)
+                    </SelectItem>
+                    <SelectItem value={LetterType.PE_FORM_RESPONSE}>
+                      Revoking Order (PE2/PE3)
+                    </SelectItem>
                     <SelectItem value={LetterType.GENERIC}>Generic</SelectItem>
                   </SelectContent>
                 </Select>

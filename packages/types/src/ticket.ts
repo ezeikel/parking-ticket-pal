@@ -19,7 +19,7 @@ export const ticketFormSchema = z.object({
 export type TicketFormData = z.infer<typeof ticketFormSchema>;
 
 export const DocumentSchema = z.object({
-  documentType: z.enum(['TICKET', 'LETTER']), // New field to distinguish between a ticket or letter
+  documentType: z.enum(['TICKET', 'LETTER', 'UNRELATED']), // New field to distinguish between a ticket, letter, or unrelated document
   pcnNumber: z.string(), // The penalty charge notice (PCN) number
   type: z.enum(['PARKING_CHARGE_NOTICE', 'PENALTY_CHARGE_NOTICE']), // Type of ticket
   issuedAt: z.string(), // Date issued in ISO 8601 format
@@ -55,6 +55,10 @@ export const DocumentSchema = z.object({
       'FINAL_DEMAND',
       'BAILIFF_NOTICE',
       'APPEAL_RESPONSE',
+      'APPEAL_ACCEPTED',
+      'APPEAL_REJECTED',
+      'TE_FORM_RESPONSE',
+      'PE_FORM_RESPONSE',
       'GENERIC',
     ])
     .nullable(), // Type of letter based on content

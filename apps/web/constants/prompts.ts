@@ -90,9 +90,11 @@ You will be provided with both an image and OCR-extracted text (when available) 
 Cross-reference both sources of information to ensure the highest accuracy in data extraction.
 If there are discrepancies between the image and OCR text, use your judgment to determine the most likely correct value.
 
+IMPORTANT: First determine if the document is related to parking enforcement. If the document is clearly NOT a parking ticket or parking-related letter (e.g., school reports, utility bills, bank statements, personal correspondence, medical letters, tax documents), set documentType to "UNRELATED" and fill all other fields with sensible defaults (empty strings, zeros, nulls). Only reject obvious non-parking documents — if there is any doubt, attempt extraction.
+
 Your task is to analyze the provided sources and return a JSON object matching this schema:
 {
-  "documentType": "TICKET" or "LETTER", // TICKET: a physical PCN attached to a car (usually smaller and compact); LETTER: a formal document mailed to the registered owner about a PCN (usually A4 size).
+  "documentType": "TICKET", "LETTER", or "UNRELATED", // TICKET: a physical PCN attached to a car (usually smaller and compact); LETTER: a formal document mailed to the registered owner about a PCN (usually A4 size); UNRELATED: not a parking-related document.
   "pcnNumber": "string",
   "type": "PARKING_CHARGE_NOTICE" or "PENALTY_CHARGE_NOTICE",
   "issuedAt": "ISO 8601 string with the following format: YYYY-MM-DDTHH:MM:SSZ",
@@ -111,7 +113,7 @@ Your task is to analyze the provided sources and return a JSON object matching t
 
   // If the documentType is "LETTER", extract the following additional fields:
   "sentAt": "ISO 8601 string with the following format: YYYY-MM-DDTHH:MM:SSZ, required for LETTER type only. Look for phrases like 'Date of this Notice', 'Date sent', 'Date posted', or similar patterns indicating when the letter was actually sent/posted. Do not use the date of issue or contravention date. If no sent date is found, use today's date.",
-  "letterType": "One of: INITIAL_NOTICE, NOTICE_TO_OWNER, CHARGE_CERTIFICATE, ORDER_FOR_RECOVERY, CCJ_NOTICE, FINAL_DEMAND, BAILIFF_NOTICE, APPEAL_RESPONSE, GENERIC. Set to null for TICKET documents.",
+  "letterType": "One of: INITIAL_NOTICE, NOTICE_TO_OWNER, CHARGE_CERTIFICATE, ORDER_FOR_RECOVERY, CCJ_NOTICE, FINAL_DEMAND, BAILIFF_NOTICE, APPEAL_RESPONSE, APPEAL_ACCEPTED, APPEAL_REJECTED, TE_FORM_RESPONSE, PE_FORM_RESPONSE, GENERIC. Set to null for TICKET or UNRELATED documents.",
   "currentAmount": "integer (in pounds) - The amount currently due as shown on the letter. This may be higher than the original amount due to late payment surcharges. Set to null if not a letter or no amount is shown."
 }
 
@@ -145,10 +147,26 @@ Analyze the letter content to determine the type based on these UK PCN stages:
 7. "BAILIFF_NOTICE" - Notice from enforcement agents/bailiffs.
    Keywords: "Enforcement Agent", "Bailiff", "Notice of Enforcement", "visit your property"
 
-8. "APPEAL_RESPONSE" - Response to a challenge/appeal (accepted or rejected).
-   Keywords: "appeal", "representation", "your challenge", "decision", "accepted", "rejected"
+8. "APPEAL_RESPONSE" - Response to a challenge/appeal where the outcome is unclear from the text.
+   Keywords: "appeal", "representation", "your challenge", "decision"
 
-9. "GENERIC" - Use if the letter type cannot be determined from the content.
+9. "APPEAL_ACCEPTED" - Response confirming a challenge/appeal has been ACCEPTED and the PCN is cancelled.
+   Keywords: "accepted", "cancelled", "upheld your appeal", "representation has been accepted", "no further action", "we have decided to cancel"
+
+10. "APPEAL_REJECTED" - Response confirming a challenge/appeal has been REJECTED and the PCN stands.
+   Keywords: "rejected", "not accepted", "your appeal has been unsuccessful", "we have considered your representations and", "notice of rejection"
+
+11. "TE_FORM_RESPONSE" - TEC Revoking Order in response to a TE7/TE9 application (parking contraventions under TMA 2004). The motorist submits TE7 (permission to file out-of-time) + TE9 (witness statement) to TEC. A Revoking Order means TEC accepted the application — it revokes the Order for Recovery, Charge Certificate, and NTO, resetting the PCN back to its initial state as if just received. The PCN is NOT cancelled — the council must restart the enforcement process from scratch.
+   Keywords: "TE7", "TE9", "Traffic Enforcement Centre", "TEC", "Revoking Order", "revoking the order", "order revoked", "witness statement", "out of time", "permission to file"
+   Use "TE_FORM_RESPONSE" ONLY for Revoking Orders (TEC accepted the TE7/TE9 application).
+   If TEC REFUSED (Refusal Order): use "APPEAL_REJECTED" instead — enforcement continues.
+
+12. "PE_FORM_RESPONSE" - TEC Revoking Order in response to a PE2/PE3 application (bus lane and moving traffic contraventions). The motorist submits PE2 (permission to file out-of-time) + PE3 (statutory declaration, must be witnessed) to TEC. Same outcome logic as TE forms — Revoking Order resets the PCN to initial state.
+   Keywords: "PE2", "PE3", "Traffic Enforcement Centre", "TEC", "Revoking Order", "revoking the order", "statutory declaration", "out of time", "permission to file"
+   Use "PE_FORM_RESPONSE" ONLY for Revoking Orders (TEC accepted the PE2/PE3 application).
+   If TEC REFUSED (Refusal Order): use "APPEAL_REJECTED" instead — enforcement continues.
+
+13. "GENERIC" - Use if the letter type cannot be determined from the content.
 
 For amount extraction:
 1. Look for two amounts on the ticket:

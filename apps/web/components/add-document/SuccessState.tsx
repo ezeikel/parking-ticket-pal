@@ -12,7 +12,7 @@ import {
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 
-type DocumentType = 'ticket' | 'letter' | 'unknown';
+type DocumentType = 'ticket' | 'letter' | 'unrelated' | 'unknown';
 
 type SuccessStateProps = {
   ticketId: string;

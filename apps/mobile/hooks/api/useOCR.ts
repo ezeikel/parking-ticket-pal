@@ -5,6 +5,7 @@ export type OCRProcessingResult = {
   success: boolean;
   message?: string;
   data?: {
+    documentType: 'ticket' | 'letter' | 'unrelated';
     pcnNumber: string;
     vehicleReg: string;
     issuedAt: Date;
@@ -25,6 +26,8 @@ export type OCRProcessingResult = {
     summary: string;
     sentAt: Date | null;
     extractedText: string;
+    letterType: string | null;
+    currentAmount: number | null;
   };
   image?: string;
   imageUrl?: string;
@@ -32,7 +35,7 @@ export type OCRProcessingResult = {
   ocrText?: string;
 };
 
-const useOCR = () => 
+const useOCR = () =>
   useMutation<OCRProcessingResult, Error, string>({
     mutationFn: processImageWithOCR,
   });

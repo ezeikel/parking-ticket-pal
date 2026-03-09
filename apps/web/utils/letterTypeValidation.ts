@@ -26,177 +26,160 @@ const LETTER_SEQUENCE: LetterType[] = [
 
 // Map ticket statuses to expected letter types
 // Using Partial since not all statuses need explicit mappings
-const STATUS_TO_EXPECTED_LETTERS: Partial<Record<TicketStatus, LetterType[]>> = {
-  // Early stages - can receive initial notices
-  [TicketStatus.ISSUED_DISCOUNT_PERIOD]: [
-    LetterType.INITIAL_NOTICE,
-    LetterType.APPEAL_RESPONSE,
-    LetterType.GENERIC,
-  ],
-  [TicketStatus.ISSUED_FULL_CHARGE]: [
-    LetterType.INITIAL_NOTICE,
-    LetterType.NOTICE_TO_OWNER,
-    LetterType.APPEAL_RESPONSE,
-    LetterType.GENERIC,
-  ],
+const STATUS_TO_EXPECTED_LETTERS: Partial<Record<TicketStatus, LetterType[]>> =
+  {
+    // Early stages - can receive initial notices
+    [TicketStatus.ISSUED_DISCOUNT_PERIOD]: [
+      LetterType.INITIAL_NOTICE,
+      LetterType.APPEAL_RESPONSE,
+      LetterType.APPEAL_ACCEPTED,
+      LetterType.APPEAL_REJECTED,
+      LetterType.GENERIC,
+    ],
+    [TicketStatus.ISSUED_FULL_CHARGE]: [
+      LetterType.INITIAL_NOTICE,
+      LetterType.NOTICE_TO_OWNER,
+      LetterType.APPEAL_RESPONSE,
+      LetterType.APPEAL_ACCEPTED,
+      LetterType.APPEAL_REJECTED,
+      LetterType.GENERIC,
+    ],
 
-  // After NTO
-  [TicketStatus.NOTICE_TO_OWNER]: [
-    LetterType.NOTICE_TO_OWNER,
-    LetterType.CHARGE_CERTIFICATE,
-    LetterType.APPEAL_RESPONSE,
-    LetterType.GENERIC,
-  ],
+    // After NTO
+    [TicketStatus.NOTICE_TO_OWNER]: [
+      LetterType.NOTICE_TO_OWNER,
+      LetterType.CHARGE_CERTIFICATE,
+      LetterType.APPEAL_RESPONSE,
+      LetterType.APPEAL_ACCEPTED,
+      LetterType.APPEAL_REJECTED,
+      LetterType.GENERIC,
+    ],
 
-  // Formal representation (challenging)
-  [TicketStatus.FORMAL_REPRESENTATION]: [
-    LetterType.APPEAL_RESPONSE,
-    LetterType.NOTICE_TO_OWNER,
-    LetterType.GENERIC,
-  ],
-  [TicketStatus.NOTICE_OF_REJECTION]: [
-    LetterType.APPEAL_RESPONSE,
-    LetterType.CHARGE_CERTIFICATE,
-    LetterType.GENERIC,
-  ],
-  [TicketStatus.REPRESENTATION_ACCEPTED]: [
-    LetterType.APPEAL_RESPONSE,
-    LetterType.GENERIC,
-  ],
+    // Formal representation (challenging)
+    [TicketStatus.FORMAL_REPRESENTATION]: [
+      LetterType.APPEAL_RESPONSE,
+      LetterType.APPEAL_ACCEPTED,
+      LetterType.APPEAL_REJECTED,
+      LetterType.NOTICE_TO_OWNER,
+      LetterType.GENERIC,
+    ],
+    [TicketStatus.NOTICE_OF_REJECTION]: [
+      LetterType.APPEAL_RESPONSE,
+      LetterType.APPEAL_ACCEPTED,
+      LetterType.APPEAL_REJECTED,
+      LetterType.CHARGE_CERTIFICATE,
+      LetterType.GENERIC,
+    ],
+    [TicketStatus.REPRESENTATION_ACCEPTED]: [
+      LetterType.APPEAL_RESPONSE,
+      LetterType.APPEAL_ACCEPTED,
+      LetterType.GENERIC,
+    ],
 
-  // After Charge Certificate
-  [TicketStatus.CHARGE_CERTIFICATE]: [
-    LetterType.CHARGE_CERTIFICATE,
-    LetterType.ORDER_FOR_RECOVERY,
-    LetterType.GENERIC,
-  ],
+    // After Charge Certificate
+    [TicketStatus.CHARGE_CERTIFICATE]: [
+      LetterType.CHARGE_CERTIFICATE,
+      LetterType.ORDER_FOR_RECOVERY,
+      LetterType.GENERIC,
+    ],
 
-  // Court stages
-  [TicketStatus.ORDER_FOR_RECOVERY]: [
-    LetterType.ORDER_FOR_RECOVERY,
-    LetterType.CCJ_NOTICE,
-    LetterType.GENERIC,
-  ],
-  [TicketStatus.TEC_OUT_OF_TIME_APPLICATION]: [
-    LetterType.ORDER_FOR_RECOVERY,
-    LetterType.CCJ_NOTICE,
-    LetterType.GENERIC,
-  ],
-  [TicketStatus.PE2_PE3_APPLICATION]: [
-    LetterType.APPEAL_RESPONSE,
-    LetterType.GENERIC,
-  ],
-  [TicketStatus.APPEAL_TO_TRIBUNAL]: [
-    LetterType.APPEAL_RESPONSE,
-    LetterType.GENERIC,
-  ],
-  [TicketStatus.CCJ_ISSUED]: [
-    LetterType.CCJ_NOTICE,
-    LetterType.BAILIFF_NOTICE,
-    LetterType.FINAL_DEMAND,
-    LetterType.GENERIC,
-  ],
+    // Court stages — TE/PE form responses (TEC Revoking/Refusal Orders) can arrive
+    // at any point after Order for Recovery since that's when TE7/TE9 or PE2/PE3
+    // applications are submitted
+    [TicketStatus.ORDER_FOR_RECOVERY]: [
+      LetterType.ORDER_FOR_RECOVERY,
+      LetterType.CCJ_NOTICE,
+      LetterType.TE_FORM_RESPONSE,
+      LetterType.PE_FORM_RESPONSE,
+      LetterType.GENERIC,
+    ],
+    [TicketStatus.TEC_OUT_OF_TIME_APPLICATION]: [
+      LetterType.TE_FORM_RESPONSE,
+      LetterType.PE_FORM_RESPONSE,
+      LetterType.APPEAL_REJECTED, // TEC Refusal Order
+      LetterType.ORDER_FOR_RECOVERY,
+      LetterType.CCJ_NOTICE,
+      LetterType.GENERIC,
+    ],
+    [TicketStatus.PE2_PE3_APPLICATION]: [
+      LetterType.PE_FORM_RESPONSE,
+      LetterType.TE_FORM_RESPONSE,
+      LetterType.APPEAL_REJECTED, // TEC Refusal Order
+      LetterType.ORDER_FOR_RECOVERY,
+      LetterType.CCJ_NOTICE,
+      LetterType.GENERIC,
+    ],
+    [TicketStatus.APPEAL_TO_TRIBUNAL]: [
+      LetterType.APPEAL_RESPONSE,
+      LetterType.APPEAL_ACCEPTED,
+      LetterType.APPEAL_REJECTED,
+      LetterType.GENERIC,
+    ],
+    [TicketStatus.CCJ_ISSUED]: [
+      LetterType.CCJ_NOTICE,
+      LetterType.BAILIFF_NOTICE,
+      LetterType.FINAL_DEMAND,
+      LetterType.TE_FORM_RESPONSE,
+      LetterType.PE_FORM_RESPONSE,
+      LetterType.GENERIC,
+    ],
 
-  // Enforcement stages
-  [TicketStatus.ENFORCEMENT_BAILIFF_STAGE]: [
-    LetterType.BAILIFF_NOTICE,
-    LetterType.FINAL_DEMAND,
-    LetterType.GENERIC,
-  ],
+    // Enforcement stages
+    [TicketStatus.ENFORCEMENT_BAILIFF_STAGE]: [
+      LetterType.BAILIFF_NOTICE,
+      LetterType.FINAL_DEMAND,
+      LetterType.TE_FORM_RESPONSE,
+      LetterType.PE_FORM_RESPONSE,
+      LetterType.GENERIC,
+    ],
 
-  // Private parking flow
-  [TicketStatus.NOTICE_TO_KEEPER]: [
-    LetterType.NOTICE_TO_OWNER, // Similar to NTO for private
-    LetterType.APPEAL_RESPONSE,
-    LetterType.GENERIC,
-  ],
-  [TicketStatus.APPEAL_SUBMITTED_TO_OPERATOR]: [
-    LetterType.APPEAL_RESPONSE,
-    LetterType.GENERIC,
-  ],
-  [TicketStatus.APPEAL_REJECTED_BY_OPERATOR]: [
-    LetterType.APPEAL_RESPONSE,
-    LetterType.GENERIC,
-  ],
-  [TicketStatus.POPLA_APPEAL]: [LetterType.APPEAL_RESPONSE, LetterType.GENERIC],
-  [TicketStatus.IAS_APPEAL]: [LetterType.APPEAL_RESPONSE, LetterType.GENERIC],
-  [TicketStatus.APPEAL_UPHELD]: [LetterType.APPEAL_RESPONSE, LetterType.GENERIC],
-  [TicketStatus.APPEAL_REJECTED]: [
-    LetterType.APPEAL_RESPONSE,
-    LetterType.CHARGE_CERTIFICATE,
-    LetterType.GENERIC,
-  ],
-  [TicketStatus.DEBT_COLLECTION]: [
-    LetterType.FINAL_DEMAND,
-    LetterType.BAILIFF_NOTICE,
-    LetterType.GENERIC,
-  ],
-  [TicketStatus.COURT_PROCEEDINGS]: [
-    LetterType.ORDER_FOR_RECOVERY,
-    LetterType.CCJ_NOTICE,
-    LetterType.GENERIC,
-  ],
+    // Private parking flow
+    [TicketStatus.NOTICE_TO_KEEPER]: [
+      LetterType.NOTICE_TO_OWNER, // Similar to NTO for private
+      LetterType.APPEAL_RESPONSE,
+      LetterType.GENERIC,
+    ],
+    [TicketStatus.APPEAL_SUBMITTED_TO_OPERATOR]: [
+      LetterType.APPEAL_RESPONSE,
+      LetterType.GENERIC,
+    ],
+    [TicketStatus.APPEAL_REJECTED_BY_OPERATOR]: [
+      LetterType.APPEAL_RESPONSE,
+      LetterType.GENERIC,
+    ],
+    [TicketStatus.POPLA_APPEAL]: [
+      LetterType.APPEAL_RESPONSE,
+      LetterType.GENERIC,
+    ],
+    [TicketStatus.IAS_APPEAL]: [LetterType.APPEAL_RESPONSE, LetterType.GENERIC],
+    [TicketStatus.APPEAL_UPHELD]: [
+      LetterType.APPEAL_RESPONSE,
+      LetterType.GENERIC,
+    ],
+    [TicketStatus.APPEAL_REJECTED]: [
+      LetterType.APPEAL_RESPONSE,
+      LetterType.CHARGE_CERTIFICATE,
+      LetterType.GENERIC,
+    ],
+    [TicketStatus.DEBT_COLLECTION]: [
+      LetterType.FINAL_DEMAND,
+      LetterType.BAILIFF_NOTICE,
+      LetterType.GENERIC,
+    ],
+    [TicketStatus.COURT_PROCEEDINGS]: [
+      LetterType.ORDER_FOR_RECOVERY,
+      LetterType.CCJ_NOTICE,
+      LetterType.GENERIC,
+    ],
 
-  // Terminal states
-  [TicketStatus.PAID]: [LetterType.GENERIC],
-  [TicketStatus.CANCELLED]: [LetterType.APPEAL_RESPONSE, LetterType.GENERIC],
-};
-
-/**
- * Validates if a letter type is expected given the current ticket status.
- *
- * @param letterType - The type of letter being uploaded
- * @param ticketStatus - The current status of the ticket
- * @returns Object with isValid flag and optional warning message
- */
-export function validateLetterType(
-  letterType: LetterType,
-  ticketStatus: TicketStatus,
-): { isValid: boolean; warning?: string } {
-  // CHALLENGE_LETTER is for outgoing letters, not incoming council letters
-  if (letterType === LetterType.CHALLENGE_LETTER) {
-    return {
-      isValid: false,
-      warning:
-        'Challenge letters are for letters you send, not letters from the council.',
-    };
-  }
-
-  const expectedLetters = STATUS_TO_EXPECTED_LETTERS[ticketStatus];
-
-  // If we don't have rules for this status, allow any letter
-  if (!expectedLetters) {
-    return { isValid: true };
-  }
-
-  // Check if the letter type is in the expected list
-  if (expectedLetters.includes(letterType)) {
-    return { isValid: true };
-  }
-
-  // Letter type is unexpected - determine severity
-  const letterIndex = LETTER_SEQUENCE.indexOf(letterType);
-  const currentStatusLetterIndex = getExpectedLetterIndexForStatus(ticketStatus);
-
-  // If the letter is from an earlier stage, it might be a duplicate or late arrival
-  if (letterIndex >= 0 && letterIndex < currentStatusLetterIndex) {
-    return {
-      isValid: true,
-      warning: `This appears to be a ${formatLetterType(letterType)} but your ticket is already at a later stage. It may be a duplicate or delayed letter.`,
-    };
-  }
-
-  // If the letter is from a much later stage, warn about skipping steps
-  if (letterIndex >= 0 && letterIndex > currentStatusLetterIndex + 1) {
-    return {
-      isValid: true,
-      warning: `This ${formatLetterType(letterType)} seems to skip several stages. Please verify this is the correct letter type.`,
-    };
-  }
-
-  // Otherwise allow with no warning
-  return { isValid: true };
-}
+    // Terminal states
+    [TicketStatus.PAID]: [LetterType.GENERIC],
+    [TicketStatus.CANCELLED]: [
+      LetterType.APPEAL_RESPONSE,
+      LetterType.APPEAL_ACCEPTED,
+      LetterType.GENERIC,
+    ],
+  };
 
 /**
  * Gets the expected letter sequence index for a given status.
@@ -241,6 +224,10 @@ function formatLetterType(letterType: LetterType): string {
     [LetterType.FINAL_DEMAND]: 'Final Demand',
     [LetterType.BAILIFF_NOTICE]: 'Bailiff Notice',
     [LetterType.APPEAL_RESPONSE]: 'Appeal Response',
+    [LetterType.APPEAL_ACCEPTED]: 'Appeal Accepted',
+    [LetterType.APPEAL_REJECTED]: 'Appeal Rejected',
+    [LetterType.TE_FORM_RESPONSE]: 'Revoking Order (TE7/TE9)',
+    [LetterType.PE_FORM_RESPONSE]: 'Revoking Order (PE2/PE3)',
     [LetterType.GENERIC]: 'Generic Letter',
     [LetterType.CHALLENGE_LETTER]: 'Challenge Letter',
   };
@@ -248,8 +235,67 @@ function formatLetterType(letterType: LetterType): string {
 }
 
 /**
+ * Validates if a letter type is expected given the current ticket status.
+ *
+ * @param letterType - The type of letter being uploaded
+ * @param ticketStatus - The current status of the ticket
+ * @returns Object with isValid flag and optional warning message
+ */
+export function validateLetterType(
+  letterType: LetterType,
+  ticketStatus: TicketStatus,
+): { isValid: boolean; warning?: string } {
+  // CHALLENGE_LETTER is for outgoing letters, not incoming council letters
+  if (letterType === LetterType.CHALLENGE_LETTER) {
+    return {
+      isValid: false,
+      warning:
+        'Challenge letters are for letters you send, not letters from the council.',
+    };
+  }
+
+  const expectedLetters = STATUS_TO_EXPECTED_LETTERS[ticketStatus];
+
+  // If we don't have rules for this status, allow any letter
+  if (!expectedLetters) {
+    return { isValid: true };
+  }
+
+  // Check if the letter type is in the expected list
+  if (expectedLetters.includes(letterType)) {
+    return { isValid: true };
+  }
+
+  // Letter type is unexpected - determine severity
+  const letterIndex = LETTER_SEQUENCE.indexOf(letterType);
+  const currentStatusLetterIndex =
+    getExpectedLetterIndexForStatus(ticketStatus);
+
+  // If the letter is from an earlier stage, it might be a duplicate or late arrival
+  if (letterIndex >= 0 && letterIndex < currentStatusLetterIndex) {
+    return {
+      isValid: true,
+      warning: `This appears to be a ${formatLetterType(letterType)} but your ticket is already at a later stage. It may be a duplicate or delayed letter.`,
+    };
+  }
+
+  // If the letter is from a much later stage, warn about skipping steps
+  if (letterIndex >= 0 && letterIndex > currentStatusLetterIndex + 1) {
+    return {
+      isValid: true,
+      warning: `This ${formatLetterType(letterType)} seems to skip several stages. Please verify this is the correct letter type.`,
+    };
+  }
+
+  // Otherwise allow with no warning
+  return { isValid: true };
+}
+
+/**
  * Gets a list of expected/recommended letter types for the current ticket status.
  */
-export function getRecommendedLetterTypes(ticketStatus: TicketStatus): LetterType[] {
+export function getRecommendedLetterTypes(
+  ticketStatus: TicketStatus,
+): LetterType[] {
   return STATUS_TO_EXPECTED_LETTERS[ticketStatus] || [LetterType.GENERIC];
 }

@@ -25,6 +25,7 @@ export type AnalyticsEvent =
 
   // Ticket management events
   | "ticket_created"
+  | "letter_created"
   | "ticket_form_opened"
   | "ticket_form_cancelled"
   | "ticket_form_submitted"
@@ -149,6 +150,8 @@ export type AnalyticsProperties = {
   // Ticket properties
   ticket_id?: string
   intent?: string
+  letter_type?: string
+  matched_existing?: boolean
   has_vehicle_reg?: boolean
   has_pcn_number?: boolean
   has_location?: boolean

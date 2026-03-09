@@ -15,6 +15,12 @@ import { models, getTracedModel } from '@/lib/ai/models';
 
 const logger = createServerLogger({ action: 'ocr' });
 
+function mapDocumentType(dt: string): string {
+  if (dt === 'LETTER') return 'letter';
+  if (dt === 'UNRELATED') return 'unrelated';
+  return 'ticket';
+}
+
 const getVisionClient = () => {
   const credentialsBase64 = process.env.GOOGLE_APPLICATION_CREDENTIALS_BASE64;
   if (!credentialsBase64) {
@@ -312,7 +318,7 @@ export const extractOCRTextWithOpenAI = async (
   return {
     success: true,
     data: {
-      documentType: documentType === 'LETTER' ? 'letter' : 'ticket',
+      documentType: mapDocumentType(documentType),
       pcnNumber,
       vehicleReg: vehicleRegistration,
       issuedAt: createUTCDate(new Date(issuedAt)),
@@ -647,7 +653,7 @@ export const extractOCRTextWithVision = async (
   return {
     success: true,
     data: {
-      documentType: documentType === 'LETTER' ? 'letter' : 'ticket',
+      documentType: mapDocumentType(documentType),
       pcnNumber,
       vehicleReg: vehicleRegistration,
       issuedAt: createUTCDate(new Date(issuedAt)),
