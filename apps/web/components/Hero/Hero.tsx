@@ -11,7 +11,12 @@ import TicketWizard, {
   type ExtractedData,
   type WizardCompleteData,
 } from '@/components/TicketWizard/TicketWizard';
+import GuestLetterWizard, {
+  type GuestLetterExtractedData,
+  type GuestLetterWizardCompleteData,
+} from '@/components/GuestLetterWizard/GuestLetterWizard';
 import { extractOCRTextWithVision } from '@/app/actions/ocr';
+import { saveGuestLetterData } from '@/utils/guestLetter';
 import { logger } from '@/lib/logger';
 import { useAnalytics } from '@/utils/analytics-client';
 import { TRACKING_EVENTS } from '@/constants/events';
@@ -73,9 +78,13 @@ const Hero = () => {
   const [activeVideoIndex, setActiveVideoIndex] = useState(0);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [isWizardOpen, setIsWizardOpen] = useState(false);
+  const [isLetterWizardOpen, setIsLetterWizardOpen] = useState(false);
   const [extractedData, setExtractedData] = useState<ExtractedData | undefined>(
     undefined,
   );
+  const [letterExtractedData, setLetterExtractedData] = useState<
+    GuestLetterExtractedData | undefined
+  >(undefined);
   const [isUploading, setIsUploading] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const [hasTrackedView, setHasTrackedView] = useState(false);
@@ -182,6 +191,7 @@ const Hero = () => {
             file_size: file.size,
             duration_ms: Date.now() - startTime,
             ocr_success: true,
+            document_type: result.data.documentType,
             fields_extracted: [
               result.data.pcnNumber ? 'pcnNumber' : null,
               result.data.vehicleReg ? 'vehicleReg' : null,
@@ -190,25 +200,48 @@ const Hero = () => {
             ].filter(Boolean),
           });
 
-          setExtractedData({
-            pcnNumber: result.data.pcnNumber || '',
-            vehicleReg: result.data.vehicleReg || '',
-            issuerType:
-              result.data.issuer &&
-              getIssuerType(result.data.issuer) === 'PRIVATE_COMPANY'
-                ? 'private'
-                : 'council',
-            ticketStage: 'initial',
-            issueDate: result.data.issuedAt
-              ? new Date(result.data.issuedAt).toISOString()
-              : undefined,
-            initialAmount: result.data.initialAmount,
-            issuer: result.data.issuer,
-            location: result.data.location,
-            imageUrl: result.imageUrl,
-            tempImagePath: result.tempImagePath,
-          });
-          setIsWizardOpen(true);
+          // Branch on document type
+          if (result.data.documentType === 'unrelated') {
+            toast.error(
+              "This doesn't appear to be a parking ticket or related letter.",
+            );
+          } else if (result.data.documentType === 'letter') {
+            setLetterExtractedData({
+              pcnNumber: result.data.pcnNumber || '',
+              vehicleReg: result.data.vehicleReg || '',
+              letterType: result.data.letterType || undefined,
+              summary: result.data.summary || '',
+              sentAt: result.data.sentAt
+                ? new Date(result.data.sentAt)
+                : undefined,
+              currentAmount: result.data.currentAmount,
+              imageUrl: result.imageUrl,
+              tempImagePath: result.tempImagePath,
+              extractedText: result.data.extractedText || undefined,
+            });
+            setIsLetterWizardOpen(true);
+          } else {
+            // Default: ticket
+            setExtractedData({
+              pcnNumber: result.data.pcnNumber || '',
+              vehicleReg: result.data.vehicleReg || '',
+              issuerType:
+                result.data.issuer &&
+                getIssuerType(result.data.issuer) === 'PRIVATE_COMPANY'
+                  ? 'private'
+                  : 'council',
+              ticketStage: 'initial',
+              issueDate: result.data.issuedAt
+                ? new Date(result.data.issuedAt).toISOString()
+                : undefined,
+              initialAmount: result.data.initialAmount,
+              issuer: result.data.issuer,
+              location: result.data.location,
+              imageUrl: result.imageUrl,
+              tempImagePath: result.tempImagePath,
+            });
+            setIsWizardOpen(true);
+          }
         } else {
           // Track upload completed but OCR failed
           track(TRACKING_EVENTS.HERO_UPLOAD_COMPLETED, {
@@ -298,6 +331,26 @@ const Hero = () => {
 
   const handleUploadClick = () => {
     fileInputRef.current?.click();
+  };
+
+  const handleLetterWizardComplete = (data: GuestLetterWizardCompleteData) => {
+    setIsLetterWizardOpen(false);
+
+    saveGuestLetterData({
+      pcnNumber: data.pcnNumber,
+      vehicleReg: data.vehicleReg,
+      letterType: data.letterType,
+      summary: data.summary,
+      sentAt: data.sentAt.toISOString(),
+      currentAmount: data.currentAmount ?? undefined,
+      imageUrl: data.imageUrl,
+      tempImagePath: data.tempImagePath,
+      extractedText: data.extractedText,
+      createdAt: new Date().toISOString(),
+      paymentCompleted: true,
+    });
+
+    window.location.href = '/guest/signup?source=letter-wizard';
   };
 
   const handleWizardComplete = (data: WizardCompleteData) => {
@@ -472,8 +525,8 @@ const Hero = () => {
                   </div>
                   <p className="mt-4 text-center text-sm font-medium text-dark">
                     {isDragging
-                      ? 'Drop your ticket here'
-                      : 'Upload your ticket photo or PDF'}
+                      ? 'Drop your document here'
+                      : 'Upload your ticket or letter'}
                   </p>
                   <p className="mt-1 text-center text-xs text-gray">
                     JPG, PNG, or PDF
@@ -482,7 +535,7 @@ const Hero = () => {
                     className="mt-4 bg-teal text-white hover:bg-teal-dark"
                     disabled={isUploading}
                   >
-                    {isUploading ? 'Processing...' : 'Upload Ticket'}
+                    {isUploading ? 'Processing...' : 'Upload Document'}
                   </Button>
                 </div>
 
@@ -505,7 +558,7 @@ const Hero = () => {
         </div>
       </section>
 
-      {/* Wizard Modal */}
+      {/* Ticket Wizard Modal */}
       <AnimatePresence>
         {isWizardOpen && (
           <TicketWizard
@@ -513,6 +566,18 @@ const Hero = () => {
             onClose={() => setIsWizardOpen(false)}
             extractedData={extractedData}
             onComplete={handleWizardComplete}
+          />
+        )}
+      </AnimatePresence>
+
+      {/* Letter Wizard Modal */}
+      <AnimatePresence>
+        {isLetterWizardOpen && (
+          <GuestLetterWizard
+            isOpen={isLetterWizardOpen}
+            onClose={() => setIsLetterWizardOpen(false)}
+            extractedData={letterExtractedData}
+            onComplete={handleLetterWizardComplete}
           />
         )}
       </AnimatePresence>

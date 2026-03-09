@@ -282,6 +282,7 @@ export type EventProperties = {
     file_size: number;
     duration_ms: number;
     ocr_success: boolean;
+    document_type?: string;
     fields_extracted?: (string | null)[];
     ocr_error?: string;
   };

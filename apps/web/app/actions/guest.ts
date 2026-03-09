@@ -7,11 +7,13 @@ import {
   IssuerType,
   TicketStatus,
 } from '@parking-ticket-pal/db';
+import { LetterType } from '@parking-ticket-pal/db/types';
 import { getUserId, getCurrentUser } from '@/utils/user';
 import { createServerLogger } from '@/lib/logger';
 import createUTCDate from '@/utils/createUTCDate';
 import getVehicleInfo from '@/utils/getVehicleInfo';
 import { createOnboardingSequence } from '@/services/onboarding-sequence';
+import { createLetter } from '@/app/actions/letter';
 
 const logger = createServerLogger({ action: 'guest' });
 
@@ -392,5 +394,80 @@ export const createTicketFromGuestData = async (
     }
 
     return { success: false, error: 'Failed to create ticket' };
+  }
+};
+
+type CreateLetterFromGuestDataInput = {
+  pcnNumber: string;
+  vehicleReg: string;
+  letterType: string;
+  summary: string;
+  sentAt: string; // ISO string
+  currentAmount?: number; // pence
+  imageUrl?: string;
+  tempImagePath?: string;
+  extractedText?: string;
+};
+
+export const createLetterFromGuestData = async (
+  input: CreateLetterFromGuestDataInput,
+): Promise<{
+  success: boolean;
+  ticketId?: string;
+  letterId?: string;
+  error?: string;
+}> => {
+  const userId = await getUserId('create letter from guest data');
+
+  if (!userId) {
+    return {
+      success: false,
+      error: 'You must be logged in to create a letter',
+    };
+  }
+
+  try {
+    // Resolve letter type, defaulting to GENERIC
+    const resolvedType =
+      input.letterType in LetterType
+        ? LetterType[input.letterType as keyof typeof LetterType]
+        : LetterType.GENERIC;
+
+    const letter = await createLetter({
+      pcnNumber: input.pcnNumber,
+      vehicleReg: input.vehicleReg,
+      type: resolvedType,
+      summary: input.summary,
+      sentAt: new Date(input.sentAt),
+      extractedText: input.extractedText,
+      currentAmount: input.currentAmount ?? null,
+      tempImageUrl: input.imageUrl,
+      tempImagePath: input.tempImagePath,
+    });
+
+    if (!letter) {
+      return { success: false, error: 'Failed to create letter' };
+    }
+
+    logger.info('Created letter from guest data', {
+      letterId: letter.id,
+      ticketId: letter.ticketId,
+      userId,
+      pcnNumber: input.pcnNumber,
+    });
+
+    return {
+      success: true,
+      ticketId: letter.ticketId,
+      letterId: letter.id,
+    };
+  } catch (error) {
+    logger.error(
+      'Failed to create letter from guest data',
+      { userId, pcnNumber: input.pcnNumber },
+      error instanceof Error ? error : new Error(String(error)),
+    );
+
+    return { success: false, error: 'Failed to create letter' };
   }
 };

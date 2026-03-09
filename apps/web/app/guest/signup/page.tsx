@@ -9,8 +9,9 @@ import {
   faSpinnerThird,
   faBell,
   faCheckCircle,
+  faEnvelope,
 } from '@fortawesome/pro-solid-svg-icons';
-import { faEnvelope } from '@fortawesome/pro-regular-svg-icons';
+import { faEnvelope as faEnvelopeRegular } from '@fortawesome/pro-regular-svg-icons';
 import { faGoogle, faApple } from '@fortawesome/free-brands-svg-icons';
 import {
   Card,
@@ -22,6 +23,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { getGuestTicketData, updateGuestTicketData } from '@/utils/guestTicket';
+import { getGuestLetterData, updateGuestLetterData } from '@/utils/guestLetter';
 import { useAnalytics } from '@/utils/analytics-client';
 import { TRACKING_EVENTS } from '@/constants/events';
 import { trackLead } from '@/lib/facebook-pixel';
@@ -34,6 +36,7 @@ const SignupContent = () => {
   const hasTrackedPageView = useRef(false);
   const [isLoading, setIsLoading] = useState(true);
   const [hasTicketData, setHasTicketData] = useState(false);
+  const [hasLetterData, setHasLetterData] = useState(false);
   const [email, setEmail] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [guestIntent, setGuestIntent] = useState<
@@ -43,9 +46,36 @@ const SignupContent = () => {
     pcnNumber: string;
     vehicleReg: string;
   } | null>(null);
+  const [letterInfo, setLetterInfo] = useState<{
+    pcnNumber: string;
+    letterType: string;
+  } | null>(null);
 
   useEffect(() => {
     const checkGuestData = () => {
+      // Check for letter data first (takes priority)
+      const letterData = getGuestLetterData();
+      if (letterData && letterData.pcnNumber) {
+        updateGuestLetterData({ paymentCompleted: true });
+        setLetterInfo({
+          pcnNumber: letterData.pcnNumber,
+          letterType: letterData.letterType,
+        });
+        setHasLetterData(true);
+        setIsLoading(false);
+
+        if (!hasTrackedPageView.current) {
+          hasTrackedPageView.current = true;
+          track(TRACKING_EVENTS.GUEST_SIGNUP_PAGE_VIEWED, {
+            intent: 'track',
+            has_pcn: true,
+            source: 'letter-wizard',
+          });
+        }
+        return;
+      }
+
+      // Fall back to ticket data
       const guestData = getGuestTicketData();
 
       // Pre-fill email from localStorage if available
@@ -92,12 +122,20 @@ const SignupContent = () => {
     checkGuestData();
   }, [track]);
 
-  // If user is already logged in, redirect to create ticket
+  // If user is already logged in, redirect to create ticket or letter
   useEffect(() => {
-    if (status === 'authenticated' && session?.user && hasTicketData) {
-      router.push('/guest/create-ticket');
+    if (status === 'authenticated' && session?.user) {
+      if (hasLetterData) {
+        router.push('/guest/create-letter');
+      } else if (hasTicketData) {
+        router.push('/guest/create-ticket');
+      }
     }
-  }, [status, session, hasTicketData, router]);
+  }, [status, session, hasTicketData, hasLetterData, router]);
+
+  const callbackUrl = hasLetterData
+    ? '/guest/create-letter'
+    : '/guest/create-ticket';
 
   const handleMagicLink = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -106,17 +144,17 @@ const SignupContent = () => {
     setIsSubmitting(true);
     track(TRACKING_EVENTS.GUEST_SIGNUP_STARTED, {
       method: 'magic_link' as SignInMethod,
-      intent: guestIntent,
+      intent: hasLetterData ? 'track' : guestIntent,
     });
     // Track Facebook Lead event on signup attempt
     trackLead({
       content_name: 'guest_signup',
-      content_category: guestIntent || 'unknown',
+      content_category: hasLetterData ? 'letter' : guestIntent || 'unknown',
     });
     try {
       await signIn('resend', {
         email,
-        callbackUrl: '/guest/create-ticket',
+        callbackUrl,
       });
     } catch {
       setIsSubmitting(false);
@@ -126,15 +164,15 @@ const SignupContent = () => {
   const handleOAuthSignIn = (provider: 'google' | 'apple') => {
     track(TRACKING_EVENTS.GUEST_SIGNUP_STARTED, {
       method: provider as SignInMethod,
-      intent: guestIntent,
+      intent: hasLetterData ? 'track' : guestIntent,
     });
     // Track Facebook Lead event on signup attempt
     trackLead({
       content_name: 'guest_signup',
-      content_category: guestIntent || 'unknown',
+      content_category: hasLetterData ? 'letter' : guestIntent || 'unknown',
     });
     signIn(provider, {
-      callbackUrl: '/guest/create-ticket',
+      callbackUrl,
     });
   };
 
@@ -160,15 +198,15 @@ const SignupContent = () => {
     );
   }
 
-  if (!hasTicketData) {
+  if (!hasTicketData && !hasLetterData) {
     return (
       <div className="container mx-auto py-12 px-4">
         <div className="max-w-md mx-auto">
           <Card>
             <CardHeader>
-              <CardTitle className="text-center">No Ticket Found</CardTitle>
+              <CardTitle className="text-center">No Data Found</CardTitle>
               <CardDescription className="text-center">
-                We couldn&apos;t find your ticket details. Please start again.
+                We couldn&apos;t find your details. Please start again.
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -191,17 +229,46 @@ const SignupContent = () => {
         <Card>
           <CardHeader className="text-center">
             <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-teal/10">
-              <FontAwesomeIcon icon={faTicket} className="h-8 w-8 text-teal" />
+              <FontAwesomeIcon
+                icon={hasLetterData ? faEnvelope : faTicket}
+                className="h-8 w-8 text-teal"
+              />
             </div>
-            <CardTitle>Almost done — sign up to save your ticket</CardTitle>
+            <CardTitle>
+              {hasLetterData
+                ? 'Almost done — sign up to save your letter'
+                : 'Almost done — sign up to save your ticket'}
+            </CardTitle>
             <CardDescription>
               Create a free account to track your deadline and get reminded
               before your fine increases.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
+            {/* Letter summary */}
+            {letterInfo && (
+              <div className="rounded-lg border border-border bg-light/50 p-3">
+                <div className="flex items-center gap-3">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-teal/10">
+                    <FontAwesomeIcon
+                      icon={faEnvelope}
+                      className="text-sm text-teal"
+                    />
+                  </div>
+                  <div>
+                    <p className="font-medium text-dark">
+                      {letterInfo.pcnNumber}
+                    </p>
+                    <p className="text-sm text-gray">
+                      {letterInfo.letterType.replace(/_/g, ' ')}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+
             {/* Ticket summary */}
-            {ticketInfo && (
+            {!hasLetterData && ticketInfo && (
               <div className="rounded-lg border border-border bg-light/50 p-3">
                 <div className="flex items-center gap-3">
                   <div className="flex h-10 w-10 items-center justify-center rounded-full bg-teal/10">
@@ -309,7 +376,10 @@ const SignupContent = () => {
                     className="h-5 w-5 animate-spin"
                   />
                 ) : (
-                  <FontAwesomeIcon icon={faEnvelope} className="h-5 w-5" />
+                  <FontAwesomeIcon
+                    icon={faEnvelopeRegular}
+                    className="h-5 w-5"
+                  />
                 )}
                 {isSubmitting ? 'Sending...' : 'Send Magic Link'}
               </Button>
