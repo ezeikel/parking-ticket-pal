@@ -60,7 +60,6 @@ const SquishyPressable = ({
           }
         }}
         disabled={disabled}
-        style={style}
         {...props}
       >
         {children}

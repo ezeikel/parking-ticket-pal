@@ -329,14 +329,21 @@ const Scanner = ({ onClose, onImageScanned, onOCRComplete }: ScannerProps) => {
         )}
       </View>
 
-      <View className="w-full px-4 flex-row justify-center gap-4">
+      <View style={{ flexDirection: 'row', gap: 16, paddingHorizontal: 16, paddingTop: 16 }}>
         <SquishyPressable
           onPress={handleRetry}
-          className="py-3 border border-gray-300 rounded-lg"
-          style={{ flex: 1 }}
+          style={{
+            flex: 1,
+            paddingVertical: 14,
+            borderWidth: 1,
+            borderColor: '#D1D5DB',
+            borderRadius: 8,
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
           disabled={ocrMutation.isPending}
         >
-          <Text className="text-dark text-center font-jakarta-medium">
+          <Text style={{ color: '#222', textAlign: 'center', fontFamily: 'PlusJakartaSans-Medium', fontSize: 15 }}>
             Retry Scan
           </Text>
         </SquishyPressable>
@@ -344,14 +351,20 @@ const Scanner = ({ onClose, onImageScanned, onOCRComplete }: ScannerProps) => {
         <SquishyPressable
           testID="scanner-process"
           onPress={handleProcess}
-          className="bg-dark py-3 rounded-lg"
-          style={{ flex: 1 }}
+          style={{
+            flex: 1,
+            paddingVertical: 14,
+            backgroundColor: '#222',
+            borderRadius: 8,
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
           disabled={ocrMutation.isPending}
         >
           {ocrMutation.isPending ? (
             <Loader size={20} color="white" />
           ) : (
-            <Text className="text-white text-center font-jakarta-medium">
+            <Text style={{ color: '#fff', textAlign: 'center', fontFamily: 'PlusJakartaSans-Medium', fontSize: 15 }}>
               Process Image
             </Text>
           )}
