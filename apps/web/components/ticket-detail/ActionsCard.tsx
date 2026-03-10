@@ -148,7 +148,7 @@ const ActionsCard = ({
             onClick={onUpgrade}
           >
             <FontAwesomeIcon icon={faLock} />
-            Upgrade to Premium — £14.99
+            Upgrade to Premium
           </Button>
         )}
 

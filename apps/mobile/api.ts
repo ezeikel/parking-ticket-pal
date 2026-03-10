@@ -553,3 +553,32 @@ export const addImageToTicket = async (ticketId: string, data: {
   const response = await api.post(`/tickets/${ticketId}/image`, data);
   return response.data;
 };
+
+// Challenge text generation
+export const generateChallengeTextApi = async (
+  ticketId: string,
+  challengeReason: string,
+  additionalInfo?: string,
+) => {
+  const response = await api.post(`/tickets/${ticketId}/challenge-text`, {
+    challengeReason,
+    additionalInfo,
+  });
+  return response.data as {
+    success: boolean;
+    data?: { challengeId: string; challengeText: string };
+    error?: string;
+  };
+};
+
+export const saveChallengeTextApi = async (
+  ticketId: string,
+  challengeId: string,
+  data: { challengeText?: string; additionalInfo?: string },
+) => {
+  const response = await api.patch(`/tickets/${ticketId}/challenge-text`, {
+    challengeId,
+    ...data,
+  });
+  return response.data as { success: boolean; error?: string };
+};

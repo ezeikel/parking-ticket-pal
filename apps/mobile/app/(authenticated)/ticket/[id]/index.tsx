@@ -39,6 +39,7 @@ import ActionsCard from '@/components/ticket-detail/ActionsCard';
 import DeadlineAlertCard from '@/components/ticket-detail/DeadlineAlertCard';
 import VerificationPrompt from '@/components/ticket-detail/VerificationPrompt';
 import TicketJourneyCard from '@/components/ticket-detail/TicketJourneyCard';
+import ChallengeArgumentCard from '@/components/ticket-detail/ChallengeArgumentCard';
 import LegalFormsCard from '@/components/ticket-detail/LegalFormsCard';
 import ActivityTimelineCard, {
   type TimelineEvent,
@@ -339,7 +340,24 @@ export default function TicketDetailScreen() {
           onRefetch={refetch}
         />
 
-        {/* 5b. Letters Received */}
+        {/* Challenge Argument Generator */}
+        <ChallengeArgumentCard
+          ticketId={ticket.id}
+          issuerType={ticketData.issuerType}
+          isPremium={hasPremiumFeatures}
+          existingChallenge={ticketData.challenges?.[0] || null}
+          onSendLetter={() => setIsChallengeLetterVisible(true)}
+          onAutoChallenge={() => setIsAutoChallengeVisible(true)}
+          onRefresh={refetch}
+          onUpgrade={() => {
+            router.push({
+              pathname: '/(authenticated)/paywall' as any,
+              params: { mode: 'ticket_upgrades', ticketId: ticket.id },
+            });
+          }}
+        />
+
+        {/* Letters Received */}
         {ticketData.letters && ticketData.letters.length > 0 && (
           <LettersReceivedCard
             letters={ticketData.letters}

@@ -53,6 +53,7 @@ function verifySignature(
   return signature === expectedSignature;
 }
 
+// eslint-disable-next-line import-x/prefer-default-export
 export async function POST(request: NextRequest) {
   try {
     // Get the raw body for signature verification
@@ -87,7 +88,10 @@ export async function POST(request: NextRequest) {
     // Validate payload
     if (payload.type !== 'challenge') {
       logger.warn('Invalid webhook type', { type: payload.type });
-      return NextResponse.json({ error: 'Invalid payload type' }, { status: 400 });
+      return NextResponse.json(
+        { error: 'Invalid payload type' },
+        { status: 400 },
+      );
     }
 
     // Find challenge by workerJobId
@@ -119,7 +123,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Update challenge status based on result
-    const result = payload.result;
+    const { result } = payload;
     const newStatus =
       payload.status === 'completed' && result.success
         ? ChallengeStatus.SUCCESS
@@ -131,6 +135,11 @@ export async function POST(request: NextRequest) {
         status: newStatus,
         submittedAt:
           newStatus === ChallengeStatus.SUCCESS ? new Date() : undefined,
+        // Sync challengeText to the dedicated field for cross-feature access
+        ...(result.challengeText && {
+          challengeText: result.challengeText,
+          challengeTextGeneratedAt: new Date(),
+        }),
         metadata: {
           challengeSubmitted: result.success,
           submittedAt: new Date().toISOString(),

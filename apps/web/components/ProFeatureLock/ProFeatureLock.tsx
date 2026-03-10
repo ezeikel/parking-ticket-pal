@@ -17,9 +17,7 @@ const ProFeatureLock = ({ children }: ProFeatureLockProps) => (
         <FontAwesomeIcon icon={faLock} size="lg" className="text-primary" />
         <div className="text-center">
           <h3 className="text-xl font-bold">Unlock with Premium</h3>
-          <p className="text-muted-foreground">
-            Upgrade to Premium — £14.99 per ticket
-          </p>
+          <p className="text-muted-foreground">Upgrade to Premium</p>
         </div>
         <Button>Upgrade to Premium</Button>
       </div>

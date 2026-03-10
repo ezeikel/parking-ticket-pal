@@ -40,6 +40,7 @@ import LetterContentModal from './LetterContentModal';
 import AutoChallengeDialog from './AutoChallengeDialog';
 import GenerateLetterDialog from './GenerateLetterDialog';
 import AutoChallengeStatusCard from './AutoChallengeStatusCard';
+import ChallengeArgumentCard from './ChallengeArgumentCard';
 import VerificationPrompt from './VerificationPrompt';
 import LiveStatusCard from './LiveStatusCard';
 import LegalFormsCard from './LegalFormsCard';
@@ -467,6 +468,29 @@ const TicketDetailPage = ({
               ticketId={ticket.id}
               evidence={userEvidence}
               onImageClick={openLightbox}
+            />
+
+            {/* Challenge Argument Generator */}
+            <ChallengeArgumentCard
+              ticketId={ticket.id}
+              issuerType={ticket.issuerType}
+              tier={ticket.tier}
+              existingChallenge={
+                ticket.challenges[0]
+                  ? {
+                      id: ticket.challenges[0].id,
+                      reason: ticket.challenges[0].reason,
+                      customReason: ticket.challenges[0].customReason,
+                      challengeText: ticket.challenges[0].challengeText,
+                      additionalInfo: ticket.challenges[0].additionalInfo,
+                      challengeTextGeneratedAt:
+                        ticket.challenges[0].challengeTextGeneratedAt,
+                    }
+                  : null
+              }
+              onSendLetter={handleOpenGenerateLetterDialog}
+              onAutoChallenge={() => setIsAutoChallengeDialogOpen(true)}
+              onUpgrade={handleUpgrade}
             />
 
             {/* Uploaded Letters Card (letters received from council) */}

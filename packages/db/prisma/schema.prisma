@@ -296,6 +296,11 @@ model Challenge {
   // async job tracking for auto-challenges
   workerJobId String? // worker job ID for polling status during automation
 
+  // challenge text generation
+  challengeText            String? // the generated/edited challenge argument text
+  additionalInfo           String? // user-provided extra context for generation
+  challengeTextGeneratedAt DateTime? // when challenge text was last generated
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 

@@ -36,7 +36,7 @@ export function TicketUpgradeButton({
       className="bg-dark rounded-xl p-4"
     >
       <Text className="font-jakarta-semibold text-white text-center">
-        Upgrade to Premium — £14.99
+        Upgrade to Premium
       </Text>
       <Text className="font-jakarta text-white text-xs text-center mt-1 opacity-90">
         Challenge letter, success prediction, auto-submit & more

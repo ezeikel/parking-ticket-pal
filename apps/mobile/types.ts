@@ -161,6 +161,7 @@ export type Ticket = {
     confidence: string;
     metadata?: any;
   };
+  challenges?: Challenge[];
   amountIncreases?: { amount: number; effectiveAt: string }[];
   createdAt: string;
   updatedAt: string;
@@ -219,6 +220,20 @@ export type Appeal = {
   letterId: string;
   createdAt: string;
   updatedAt: string;
+}
+
+export type Challenge = {
+  id: string;
+  type: string;
+  reason: string;
+  customReason?: string | null;
+  status: string;
+  metadata?: any;
+  challengeText?: string | null;
+  additionalInfo?: string | null;
+  challengeTextGeneratedAt?: string | null;
+  createdAt: string;
+  submittedAt?: string | null;
 }
 
 export type DraftTicket = {

@@ -680,12 +680,16 @@ async function runWorkerChallengeLegacy(
         };
       }
 
-      // Normal submission - update DB record
+      // Normal submission - update DB record and sync challengeText
       await db.challenge.update({
         where: { id: challengeId! },
         data: {
           status: ChallengeStatus.SUCCESS,
           submittedAt: new Date(),
+          ...(result.challengeText && {
+            challengeText: result.challengeText,
+            challengeTextGeneratedAt: new Date(),
+          }),
           metadata: {
             challengeSubmitted: true,
             submittedAt: new Date().toISOString(),

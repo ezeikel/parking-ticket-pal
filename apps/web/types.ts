@@ -170,6 +170,9 @@ export type TicketWithRelations = Prisma.TicketGetPayload<{
         customReason: true;
         status: true;
         metadata: true;
+        challengeText: true;
+        additionalInfo: true;
+        challengeTextGeneratedAt: true;
         createdAt: true;
         submittedAt: true;
       };

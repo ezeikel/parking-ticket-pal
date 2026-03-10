@@ -702,15 +702,22 @@ const generateChallengeLetterByTicketId = async (
       throw new Error(emailResult.error || 'Failed to send email');
     }
 
-    // update challenge record with success
+    // Extract challenge body text from the structured letter for syncing
+    const letterBodyText = letterData.body || '';
+
+    // update challenge record with success and sync challengeText
     await db.challenge.update({
       where: { id: challenge.id },
       data: {
         status: ChallengeStatus.SUCCESS,
+        challengeText: letterBodyText || undefined,
+        challengeTextGeneratedAt: letterBodyText ? new Date() : undefined,
+        additionalInfo: additionalDetails || undefined,
         metadata: {
           emailSent: true,
           pdfGenerated: true,
           pdfUrl: pdfBlob.url,
+          letterContent: letterBodyText,
         },
       },
     });
