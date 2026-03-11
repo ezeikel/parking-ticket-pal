@@ -105,10 +105,13 @@ You will be provided with both an image and OCR-extracted text (when available) 
 Cross-reference both sources of information to ensure the highest accuracy in data extraction.
 If there are discrepancies between the image and OCR text, use your judgment to determine the most likely correct value.
 
+IMPORTANT: First determine if the document is related to parking enforcement. If the document is clearly NOT a parking ticket or parking-related letter (e.g., school reports, utility bills, bank statements, personal correspondence, medical letters, tax documents), set documentType to "UNRELATED" and fill all other fields with sensible defaults (empty strings, zeros, nulls). Only reject obvious non-parking documents — if there is any doubt, attempt extraction.
+
 Your task is to analyze the provided sources and return a JSON object matching this schema:
 {
-  "documentType": "TICKET" or "LETTER", // TICKET: a physical PCN attached to a car (usually smaller and compact); LETTER: a formal document mailed to the registered owner about a PCN (usually A4 size).
-  "pcnNumber": "string",
+  "documentType": "TICKET", "LETTER", or "UNRELATED", // TICKET: a physical PCN attached to a car (usually smaller and compact); LETTER: a formal document mailed to the registered owner about a PCN (usually A4 size); UNRELATED: not a parking-related document.
+  "pcnNumber": "string - The Penalty Charge Notice number (PCN number). This is the ORIGINAL ticket reference issued by the council/TfL/operator. On bailiff/enforcement agent letters (Newlyn, CDER, Marston), it is usually labelled 'Client Ref', 'PCN Ref', or 'Penalty Charge Notice' — NOT the enforcement agent's own 'Case ID', 'Account Ref', or 'Our Ref'. On TEC/court letters, look for the PCN number in the body text, not the court case number. UK council PCN formats are typically 2 letters + digits (e.g. ZY12501745, WE62200804, BY97126765) or all-numeric for private operators. Strip any spaces from the PCN number.",
+  "vehicleRegistration": "string - The Vehicle Registration Mark (VRM/VRN). Look for fields labelled 'VRM', 'VRN', 'Vehicle Registration', 'Registration Number', or 'Reg'. On bailiff/enforcement letters, this may appear as 'Vehicle Reg' or just a number plate format (e.g. AB12 CDE, LV72EPC). Extract without spaces.",
   "type": "PARKING_CHARGE_NOTICE" or "PENALTY_CHARGE_NOTICE",
   "issuedAt": "ISO 8601 string with the following format: YYYY-MM-DDTHH:MM:SSZ",
   "dateTimeOfContravention": "ISO 8601 string with the following format: YYYY-MM-DDTHH:MM:SSZ",
@@ -117,15 +120,17 @@ Your task is to analyze the provided sources and return a JSON object matching t
   "contraventionCode": "string",
   "contraventionDescription": "string, optional",
   "initialAmount": "integer (in pounds) - This should be the DISCOUNTED amount (50%) that would be due within 14 days. For example, if the ticket shows £70 (discounted) and £140 (full), use 70 as the initialAmount.",
-  "issuer": "string",
-  "issuerType": "COUNCIL", "TFL", or "PRIVATE_COMPANY",
+  "issuer": "string - The ORIGINAL PCN issuer (council name or TfL), not the enforcement agent. For bailiff/enforcement letters from Newlyn, CDER, Marston etc., look for the underlying authority they are acting on behalf of (e.g. 'London Borough of Lewisham', 'Transport for London'). If the original authority is not mentioned, use the enforcement company name.",
+  "issuerType": "COUNCIL", "TFL", or "PRIVATE_COMPANY" - Must reflect the type of the ORIGINAL PCN issuer. If a bailiff company (Newlyn, CDER, Marston) is acting on behalf of a council, set issuerType to "COUNCIL". If acting on behalf of TfL, set to "TFL". Only use "PRIVATE_COMPANY" if the original parking charge was from a private operator.,
   "discountedPaymentDeadline": "ISO 8601 string with the following format: YYYY-MM-DDTHH:MM:SSZ",
   "fullPaymentDeadline": "ISO 8601 string with the following format: YYYY-MM-DDTHH:MM:SSZ",
   "extractedText": "string",  // full text extracted from the document (both tickets and letters)
-  "summary": "string"         // summary of the key points from the document (both tickets and letters)
+  "summary": "string",        // summary of the key points from the document (both tickets and letters)
 
-  // If the documentType is "LETTER", extract the following additional fields
-  "sentAt": "ISO 8601 string with the following format: YYYY-MM-DDTHH:MM:SSZ, required for LETTER type only. Look for phrases like 'Date of this Notice', 'Date sent', 'Date posted', or similar patterns indicating when the letter was actually sent/posted. Do not use the date of issue or contravention date. If no sent date is found, use today's date."
+  // If the documentType is "LETTER", extract the following additional fields:
+  "sentAt": "ISO 8601 string with the following format: YYYY-MM-DDTHH:MM:SSZ, required for LETTER type only. Look for phrases like 'Date of this Notice', 'Date sent', 'Date posted', or similar patterns indicating when the letter was actually sent/posted. Do not use the date of issue or contravention date. If no sent date is found, use today's date.",
+  "letterType": "One of: INITIAL_NOTICE, NOTICE_TO_OWNER, CHARGE_CERTIFICATE, ORDER_FOR_RECOVERY, CCJ_NOTICE, FINAL_DEMAND, BAILIFF_NOTICE, APPEAL_RESPONSE, APPEAL_ACCEPTED, CHALLENGE_REJECTED, APPEAL_REJECTED, TE_FORM_RESPONSE, PE_FORM_RESPONSE, GENERIC. Set to null for TICKET or UNRELATED documents.",
+  "currentAmount": "integer (in pounds) - The amount currently due as shown on the letter. This may be higher than the original amount due to late payment surcharges. Set to null if not a letter or no amount is shown."
 }
 
 When determining whether the document is a "TICKET" or a "LETTER", please consider the following:
@@ -133,6 +138,66 @@ When determining whether the document is a "TICKET" or a "LETTER", please consid
 - A "LETTER" is usually an A4-sized document, more formally structured, sent through the post. It might include salutation text (e.g., 'Dear Sir/Madam') and more detailed legal information related to the penalty charge, and may also include images of the contravention.
 
 Both types of documents will contain similar fields such as PCN number, contravention date, and amount due, but the documentType must be distinguished by the layout, size, and presentation style.
+
+LETTER TYPE DETECTION (for documentType "LETTER" only):
+Analyze the letter content to determine the type based on these UK PCN stages:
+
+1. "INITIAL_NOTICE" - First notification of a PCN, typically sent within 14 days if ticket wasn't served in person.
+   Keywords: "Notice of Penalty Charge", "Initial Notice", "First Notice"
+
+2. "NOTICE_TO_OWNER" (NTO) - Sent to registered keeper, usually 28 days after PCN. Formal notice with appeal rights.
+   Keywords: "Notice to Owner", "NTO", "Notice of Rejection", "Section 81", "appeal within 28 days"
+
+3. "CHARGE_CERTIFICATE" - Sent after NTO period expires without payment/appeal. Adds 50% surcharge.
+   Keywords: "Charge Certificate", "increased by 50%", "Section 82", "increased to"
+
+4. "ORDER_FOR_RECOVERY" - Court order for debt recovery. Amount may include court costs.
+   Keywords: "Order for Recovery", "Traffic Enforcement Centre", "TEC", "warrant", "county court"
+
+5. "CCJ_NOTICE" - County Court Judgment notice. Serious credit implications.
+   Keywords: "County Court Judgment", "CCJ", "judgment has been registered"
+
+6. "FINAL_DEMAND" - Last warning before enforcement action.
+   Keywords: "Final Demand", "Final Notice", "last opportunity", "enforcement action"
+
+7. "BAILIFF_NOTICE" - Notice from enforcement agents/bailiffs.
+   Keywords: "Enforcement Agent", "Bailiff", "Notice of Enforcement", "visit your property"
+
+8. "APPEAL_RESPONSE" - Response to a challenge/appeal where the outcome is unclear from the text. Also use for letters from London Tribunals / "Environment and Traffic Adjudicators" requesting evidence or documents as part of the appeal process (these are procedural, not a decision).
+   Keywords: "appeal", "representation", "your challenge", "decision", "please provide", "evidence requested", "case management"
+   IMPORTANT: Letters from London Tribunals that request evidence or set hearing dates are APPEAL_RESPONSE (procedural). Only use TE_FORM_RESPONSE/PE_FORM_RESPONSE for explicit Revoking Orders.
+
+9. "APPEAL_ACCEPTED" - Response confirming a challenge/appeal has been ACCEPTED and the PCN is cancelled. Also use for any letter from the issuer stating the PCN has been cancelled outright (e.g. due to a processing error, system error, or administrative decision), even if no formal challenge or appeal was made.
+   Keywords: "accepted", "cancelled", "upheld your appeal", "representation has been accepted", "no further action", "we have decided to cancel", "PCN has been cancelled", "processing error", "accept our apologies"
+
+10. "CHALLENGE_REJECTED" - Response from the issuer (council, TfL, or private parking operator) confirming that your challenge/representation has been REJECTED and the PCN stands. This is an issuer-level rejection — NOT a tribunal decision. The motorist can still escalate to an independent tribunal (London Tribunals, POPLA, IAS).
+   Keywords: "rejected", "not accepted", "notice of rejection", "representations have been considered", "your representations", "we have considered", sent FROM a council/operator (not from a tribunal/adjudicator)
+   IMPORTANT: Do NOT confuse with APPEAL_REJECTED. If the letter is from a tribunal, adjudicator, POPLA, IAS, or London Tribunals, use APPEAL_REJECTED instead.
+
+11. "APPEAL_REJECTED" - Response from an independent tribunal or adjudicator confirming that the formal appeal has been REJECTED/dismissed. This is a tribunal-level decision — the final stage. The motorist has exhausted their appeal rights and must pay.
+   Keywords: "tribunal", "adjudicator", "POPLA", "IAS", "London Tribunals", "appeal dismissed", "appeal not upheld", "appeal has been unsuccessful", "adjudicator has decided"
+   IMPORTANT: Only use for tribunal/adjudicator decisions. If the rejection is from the council/operator directly, use CHALLENGE_REJECTED instead.
+
+12. "TE_FORM_RESPONSE" - TEC Revoking Order in response to a TE7/TE9 application (parking contraventions under TMA 2004). The motorist submits TE7 (permission to file out-of-time) + TE9 (witness statement) to TEC. A Revoking Order means TEC accepted the application — it revokes the Order for Recovery, Charge Certificate, and NTO, resetting the PCN back to its initial state as if just received. The PCN is NOT cancelled — the council must restart the enforcement process from scratch.
+   Keywords: "TE7", "TE9", "Traffic Enforcement Centre", "TEC", "Revoking Order", "revoking the order", "order revoked", "witness statement", "out of time", "permission to file"
+   Use "TE_FORM_RESPONSE" ONLY for Revoking Orders (TEC accepted the TE7/TE9 application).
+   If TEC REFUSED (Refusal Order): use "CHALLENGE_REJECTED" instead — enforcement continues.
+   IMPORTANT: Do NOT classify council/NSL cover letters that merely confirm a witness statement was filed or forwarded to TEC. These are acknowledgment letters — they are NOT Revoking Orders. Only classify as TE_FORM_RESPONSE when the letter explicitly states the Order for Recovery has been revoked or the charge certificate cancelled. If the letter is from the council/NSL saying they have forwarded documents to TEC, classify as GENERIC.
+
+13. "PE_FORM_RESPONSE" - TEC Revoking Order in response to a PE2/PE3 application (bus lane and moving traffic contraventions). The motorist submits PE2 (permission to file out-of-time) + PE3 (statutory declaration, must be witnessed) to TEC. Same outcome logic as TE forms — Revoking Order resets the PCN to initial state.
+   Keywords: "PE2", "PE3", "Traffic Enforcement Centre", "TEC", "Revoking Order", "revoking the order", "statutory declaration", "out of time", "permission to file"
+   Use "PE_FORM_RESPONSE" ONLY for Revoking Orders (TEC accepted the PE2/PE3 application).
+   If TEC REFUSED (Refusal Order): use "CHALLENGE_REJECTED" instead — enforcement continues.
+   IMPORTANT: Do NOT classify council cover letters that merely confirm a statutory declaration was filed or forwarded to TEC. Only classify as PE_FORM_RESPONSE when the letter explicitly states the Order for Recovery has been revoked or the charge certificate cancelled.
+
+14. "GENERIC" - Use if the letter type cannot be determined from the content.
+
+BLANK FORMS: If a form appears blank/unfilled (no handwriting, no filled fields, no personal details entered), classify as GENERIC regardless of form type. Blank TE7/TE9/PE2/PE3 forms sent by authorities for the motorist to complete are not actionable documents.
+
+ENFORCEMENT AGENT COMPANIES: Common UK enforcement agent companies include Newlyn, CDER Group, Marston Recovery, Jacobs, Bristow & Sutor, Rossendales, and Empira. Letters from these companies about debt collection, enforcement visits, immobilisation, clamping, or removal of goods are BAILIFF_NOTICE.
+Additional BAILIFF_NOTICE keywords: "immobilisation", "immobilise", "clamped", "clamp", "removal of goods", "removal notice", "notice of removal".
+
+PRIVATE PARKING COMPANIES: Private parking operators (Civil Enforcement, Euro Car Parks, ParkingEye, CP Plus, APCOA, NCP, Indigo, Smart Parking, Britannia Parking, etc.) issue PARKING_CHARGE_NOTICE, not PENALTY_CHARGE_NOTICE. Only councils and TfL issue PENALTY_CHARGE_NOTICE.
 
 For amount extraction:
 1. Look for two amounts on the ticket:
@@ -142,6 +207,18 @@ For amount extraction:
 3. For example:
    - If ticket shows £70 (discounted) and £140 (full), use 70 as initialAmount
    - If ticket shows £60 (discounted) and £120 (full), use 60 as initialAmount
+
+For LETTER currentAmount extraction:
+1. Look for the current amount due shown on the letter
+2. This may be the original amount, or increased due to:
+   - Charge Certificate (50% increase)
+   - Court costs
+   - Enforcement fees
+3. Extract as integer in pounds. For example: £195 -> 195
+
+For LETTER initialAmount extraction (when only an escalated amount is visible):
+- If the letter is a CHARGE_CERTIFICATE showing only the increased amount (e.g. £240), the original full penalty was 2/3 of this (charge cert adds 50%), and the discounted rate is half the original. So initialAmount = amount shown / 3 (e.g. £240 → initialAmount 80).
+- If the letter is an ORDER_FOR_RECOVERY or BAILIFF_NOTICE, you may not be able to determine the original discounted amount. In that case, set initialAmount to 0 and set currentAmount to the amount shown.
 
 Ensure ISO 8601 format for all dates, and calculate the discountedPaymentDeadline as 14 days and fullPaymentDeadline as 28 days after the issuedAt.`;
 

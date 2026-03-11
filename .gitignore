@@ -62,3 +62,7 @@ android/.gradle/
 # Large uncompressed data files (use .gz versions)
 packages/db/data/tribunal-seed/*.json
 !packages/db/data/tribunal-seed/*.json.gz
+
+# Dry-run test images and results (contain real PII)
+scripts/fixtures/images/
+scripts/dry-run-results.json

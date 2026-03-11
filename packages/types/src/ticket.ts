@@ -31,7 +31,7 @@ export const DocumentSchema = z.object({
   firstSeen: z.string().nullable(), // Time when the vehicle was first seen (optional)
   contraventionCode: z.string(), // Code representing the contravention
   contraventionDescription: z.string().nullable(), // Description of the contravention (optional)
-  initialAmount: z.number().int(), // Amount due in pennies
+  initialAmount: z.number().int(), // Discounted amount in pounds (AI extracts in pounds, ocr.ts converts to pence)
   issuer: z.string(), // The entity issuing the ticket (e.g., council, TFL, or private company)
   issuerType: z.enum(['COUNCIL', 'TFL', 'PRIVATE_COMPANY']), // Type of issuer
   // Note: datetime currently not fully supported by OpenAI structured output
@@ -65,5 +65,5 @@ export const DocumentSchema = z.object({
     .nullable(), // Type of letter based on content
 
   // Current amount mentioned in the letter (may be higher than initial amount)
-  currentAmount: z.number().int().nullable(), // Amount currently due in pounds (for letters that show increased amounts)
+  currentAmount: z.number().int().nullable(), // Amount currently due in pounds (AI extracts in pounds, ocr.ts converts to pence)
 });

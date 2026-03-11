@@ -1,5 +1,8 @@
 import { generateText, Output } from 'ai';
-import { CHALLENGE_WRITER_PROMPT, CHALLENGE_LETTER_PROMPT } from '@/constants';
+import {
+  CHALLENGE_WRITER_PROMPT,
+  CHALLENGE_LETTER_PROMPT,
+} from '@/lib/ai/prompts';
 import { ChallengeLetterSchema, ChallengeLetter } from '@/types';
 import { models, getTracedModel } from '@/lib/ai/models';
 import {

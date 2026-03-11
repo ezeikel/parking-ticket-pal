@@ -1,0 +1,1152 @@
+{
+  "_comment": "Expected extraction results for dry-run testing. Any field prefixed with 'expected' is checked \u2014 omit or set to null to skip that check. Add new entries as you collect more documents.",
+  "images": {
+    "IMG_2594": {
+      "group": "Civil Enforcement (Private) \u2014 PCN 149534209687",
+      "description": "Letter Before Action \u2014 Claim for Debt",
+      "expectedDocumentType": "LETTER",
+      "expectedLetterType": "FINAL_DEMAND",
+      "expectedPcn": "149534209687",
+      "expectedIssuerType": "PRIVATE_COMPANY",
+      "expectedType": "PARKING_CHARGE_NOTICE"
+    },
+    "IMG_2595": {
+      "group": "Civil Enforcement (Private) \u2014 PCN 149534209687",
+      "description": "Reminder Before Further Action. \u00a3100.",
+      "expectedDocumentType": "LETTER",
+      "expectedLetterType": "FINAL_DEMAND",
+      "expectedPcn": "149534209687",
+      "expectedIssuerType": "PRIVATE_COMPANY",
+      "expectedType": "PARKING_CHARGE_NOTICE"
+    },
+    "IMG_2596": {
+      "group": "Civil Enforcement (Private) \u2014 PCN 149534209687",
+      "description": "PCN Notice to Keeper. \u00a3100/\u00a360.",
+      "expectedDocumentType": "LETTER",
+      "expectedLetterType": "INITIAL_NOTICE",
+      "expectedPcn": "149534209687",
+      "expectedIssuerType": "PRIVATE_COMPANY",
+      "expectedType": "PARKING_CHARGE_NOTICE"
+    },
+    "IMG_2597": {
+      "group": "Civil Enforcement (Private) \u2014 PCN 149534209687",
+      "description": "Action Needed \u2014 debt outstanding. \u00a3100.",
+      "expectedDocumentType": "LETTER",
+      "expectedLetterType": "FINAL_DEMAND",
+      "expectedPcn": "149534209687",
+      "expectedIssuerType": "PRIVATE_COMPANY",
+      "expectedType": "PARKING_CHARGE_NOTICE"
+    },
+    "IMG_2598": {
+      "group": "Lewisham \u2014 PCN ZY12501745",
+      "description": "Newlyn \u2014 Enforcement Agent Visit. \u00a3690.",
+      "expectedDocumentType": "LETTER",
+      "expectedLetterType": "BAILIFF_NOTICE",
+      "expectedPcn": "ZY12501745",
+      "expectedIssuerType": "COUNCIL"
+    },
+    "IMG_2599": {
+      "group": "Lewisham \u2014 PCN ZY12501745",
+      "description": "Newlyn \u2014 Enforcement Agent Visit. \u00a3485.",
+      "expectedDocumentType": "LETTER",
+      "expectedLetterType": "BAILIFF_NOTICE",
+      "expectedPcn": "ZY12501745",
+      "expectedIssuerType": "COUNCIL"
+    },
+    "IMG_2600": {
+      "group": "Lewisham \u2014 PCN ZY12501745",
+      "description": "Newlyn \u2014 Removal of Goods Notice. \u00a3485.",
+      "expectedDocumentType": "LETTER",
+      "expectedLetterType": "BAILIFF_NOTICE",
+      "expectedPcn": "ZY12501745",
+      "expectedIssuerType": "COUNCIL"
+    },
+    "IMG_2601": {
+      "group": "Lewisham \u2014 PCN ZY20139337 (not in DB)",
+      "description": "NSL/Lewisham \u2014 Acceptance of Representations. Cancelled.",
+      "expectedDocumentType": "LETTER",
+      "expectedLetterType": "APPEAL_ACCEPTED",
+      "expectedPcn": "ZY20139337"
+    },
+    "IMG_2602": {
+      "group": "Lewisham \u2014 PCN ZY10241472",
+      "description": "NSL/Lewisham \u2014 Cancellation (29 Aug 2025).",
+      "expectedDocumentType": "LETTER",
+      "expectedLetterType": "APPEAL_ACCEPTED",
+      "expectedPcn": "ZY10241472"
+    },
+    "IMG_2603": {
+      "group": "Lewisham \u2014 PCN ZY10241472",
+      "description": "NSL/Lewisham \u2014 Cancellation (26 Jan 2026).",
+      "expectedDocumentType": "LETTER",
+      "expectedLetterType": "APPEAL_ACCEPTED",
+      "expectedPcn": "ZY10241472"
+    },
+    "IMG_2604": {
+      "group": "Lewisham \u2014 PCN ZY12571693",
+      "description": "NSL/Lewisham \u2014 Cover letter confirming TE9 filed. NOT a Revoking Order.",
+      "expectedDocumentType": "LETTER",
+      "expectedLetterType": "GENERIC",
+      "expectedPcn": "ZY12571693"
+    },
+    "IMG_2605": {
+      "group": "Lewisham \u2014 PCN ZY21314294 (not in DB)",
+      "description": "NSL/Lewisham \u2014 PCN served by post (camera). \u00a3160/\u00a380.",
+      "expectedDocumentType": "LETTER",
+      "expectedLetterType": "INITIAL_NOTICE",
+      "expectedPcn": "ZY21314294"
+    },
+    "IMG_2606": {
+      "group": "TfL \u2014 PCN GX16084549 (not in DB)",
+      "description": "TfL \u2014 Blank PE3 form (unfilled).",
+      "expectedDocumentType": "LETTER",
+      "expectedLetterType": "GENERIC",
+      "expectedPcn": "GX16084549"
+    },
+    "IMG_2607": {
+      "group": "Lewisham \u2014 PCN ZY20182664 (not in DB)",
+      "description": "Acceptance of Representations \u2014 cancelled.",
+      "expectedDocumentType": "LETTER",
+      "expectedLetterType": "APPEAL_ACCEPTED",
+      "expectedPcn": "ZY20182664"
+    },
+    "IMG_2608": {
+      "group": "Lewisham \u2014 PCN ZY12571693",
+      "description": "Courts & Tribunals Service \u2014 TEC Refusal.",
+      "expectedDocumentType": "LETTER",
+      "expectedLetterType": "CHALLENGE_REJECTED",
+      "expectedPcn": "ZY12571693",
+      "_knownIssue": "Google Vision misreads PCN on this document \u2014 small rotated text"
+    },
+    "IMG_2609": {
+      "group": "Lewisham \u2014 PCN ZY12571693",
+      "description": "Courts & Tribunals Service \u2014 TEC letter (04 Feb 2026).",
+      "expectedDocumentType": "LETTER",
+      "expectedLetterType": "CHALLENGE_REJECTED",
+      "expectedPcn": "ZY12571693",
+      "_knownIssue": "Google Vision misreads PCN \u2014 spaced digits in OCR text"
+    },
+    "IMG_2610": {
+      "group": "Lewisham \u2014 PCN ZY20184058 (not in DB)",
+      "description": "Cancellation \u2014 processing error.",
+      "expectedDocumentType": "LETTER",
+      "expectedLetterType": "APPEAL_ACCEPTED",
+      "expectedPcn": "ZY20184058"
+    },
+    "IMG_2611": {
+      "group": "Lewisham \u2014 PCN ZY20409511 (not in DB)",
+      "description": "Charge Certificate. \u00a3240.",
+      "expectedDocumentType": "LETTER",
+      "expectedLetterType": "CHARGE_CERTIFICATE",
+      "expectedPcn": "ZY20409511"
+    },
+    "IMG_2612": {
+      "group": "TfL \u2014 PCN GX16084549 (not in DB)",
+      "description": "CDER Group \u2014 Notice of Enforcement. \u00a3325.",
+      "expectedDocumentType": "LETTER",
+      "expectedLetterType": "BAILIFF_NOTICE",
+      "expectedPcn": "GX16084549",
+      "expectedIssuerType": "TFL"
+    },
+    "IMG_2613": {
+      "group": "TfL \u2014 PCN GX16084549 (not in DB)",
+      "description": "TfL \u2014 Order for Recovery (PE2 form). \u00a3155.",
+      "expectedDocumentType": "LETTER",
+      "expectedLetterType": "ORDER_FOR_RECOVERY",
+      "expectedPcn": "GX16084549",
+      "expectedIssuerType": "TFL"
+    },
+    "IMG_2614": {
+      "group": "Westminster \u2014 PCN WE62200804",
+      "description": "Westminster \u2014 Notice to Owner. \u00a3160.",
+      "expectedDocumentType": "LETTER",
+      "expectedLetterType": "NOTICE_TO_OWNER",
+      "expectedPcn": "WE62200804"
+    },
+    "IMG_2615": {
+      "group": "Lewisham \u2014 PCN ZY12571693",
+      "description": "NSL/Lewisham \u2014 Order for Recovery (TE8 form). \u00a3165/\u00a3170.",
+      "expectedDocumentType": "LETTER",
+      "expectedLetterType": "ORDER_FOR_RECOVERY",
+      "expectedPcn": "ZY12571693",
+      "_knownIssue": "Google Vision misreads PCN on TE3 form \u2014 small text"
+    },
+    "IMG_2617": {
+      "group": "Bromley \u2014 PCN BY97126765",
+      "description": "Bromley \u2014 TE Form Response (Revoking Order).",
+      "expectedDocumentType": "LETTER",
+      "expectedLetterType": "TE_FORM_RESPONSE",
+      "expectedPcn": "BY97126765"
+    },
+    "IMG_2618": {
+      "group": "Bromley \u2014 PCN BY97126765",
+      "description": "County Court \u2014 TE9B order. Revoking Order.",
+      "expectedDocumentType": "LETTER",
+      "expectedLetterType": "TE_FORM_RESPONSE",
+      "expectedPcn": "BY97126765",
+      "_knownIssue": "Google Vision adds trailing char to PCN"
+    },
+    "IMG_2619": {
+      "group": "Westminster \u2014 PCN WE62200804",
+      "description": "Marston Recovery \u2014 Notice of Enforcement. \u00a3345.",
+      "expectedDocumentType": "LETTER",
+      "expectedLetterType": "BAILIFF_NOTICE",
+      "expectedPcn": "WE62200804",
+      "expectedIssuerType": "COUNCIL"
+    },
+    "IMG_2620": {
+      "group": "Westminster \u2014 PCN WE62200804",
+      "description": "Westminster \u2014 Order for Recovery (TE8 form). \u00a3260.",
+      "expectedDocumentType": "LETTER",
+      "expectedLetterType": "ORDER_FOR_RECOVERY",
+      "expectedPcn": "WE62200804"
+    },
+    "IMG_2621": {
+      "group": "Westminster \u2014 PCN WE62200804",
+      "description": "Westminster windshield PCN. Code 12. \u00a3160/\u00a380.",
+      "expectedDocumentType": "TICKET",
+      "expectedPcn": "WE62200804",
+      "expectedIssuerType": "COUNCIL",
+      "expectedType": "PENALTY_CHARGE_NOTICE",
+      "expectedVrn": "GF25ZGM",
+      "expectedInitialAmount": 80
+    },
+    "IMG_2622": {
+      "group": "Lewisham \u2014 PCN ZY12631638",
+      "description": "Lewisham windshield PCN. Code 01. \u00a3110/\u00a355.",
+      "expectedDocumentType": "TICKET",
+      "expectedPcn": "ZY12631638",
+      "expectedIssuerType": "COUNCIL",
+      "expectedType": "PENALTY_CHARGE_NOTICE",
+      "expectedVrn": "LV72EPC",
+      "expectedInitialAmount": 55
+    },
+    "IMG_2623": {
+      "group": "Lewisham \u2014 PCN ZY10241472",
+      "description": "Lewisham windshield PCN. Code 622. \u00a3110/\u00a355.",
+      "expectedDocumentType": "TICKET",
+      "expectedPcn": "ZY10241472",
+      "expectedIssuerType": "COUNCIL",
+      "expectedType": "PENALTY_CHARGE_NOTICE",
+      "expectedVrn": "LV72EPC",
+      "expectedInitialAmount": 55
+    },
+    "IMG_2624": {
+      "group": "Lewisham \u2014 PCN ZY10305644",
+      "description": "Lewisham windshield PCN. Code 622. \u00a3110/\u00a355.",
+      "expectedDocumentType": "TICKET",
+      "expectedPcn": "ZY10305644",
+      "expectedIssuerType": "COUNCIL",
+      "expectedType": "PENALTY_CHARGE_NOTICE",
+      "expectedVrn": "LV72EPC",
+      "expectedInitialAmount": 55
+    },
+    "IMG_2625": {
+      "group": "Lambeth \u2014 PCN LJ18367293",
+      "description": "Lambeth camera PCN served by post. Code 52m. \u00a3130/\u00a365.",
+      "expectedDocumentType": "TICKET",
+      "expectedPcn": "LJ18367293",
+      "expectedIssuerType": "COUNCIL",
+      "expectedType": "PENALTY_CHARGE_NOTICE",
+      "expectedVrn": "LX68HUP",
+      "expectedInitialAmount": 65
+    },
+    "IMG_2626": {
+      "group": "Bromley \u2014 PCN BY97126765",
+      "description": "Bromley camera PCN served by post. Code 31j. \u00a3130/\u00a365.",
+      "expectedDocumentType": "LETTER",
+      "expectedLetterType": "INITIAL_NOTICE",
+      "expectedPcn": "BY97126765",
+      "expectedIssuerType": "COUNCIL",
+      "expectedType": "PENALTY_CHARGE_NOTICE",
+      "expectedVrn": "LV72EPC",
+      "expectedInitialAmount": 65,
+      "expectedCurrentAmount": 130
+    },
+    "IMG_2627": {
+      "group": "Britannia Parking \u2014 PCN 13615193",
+      "description": "Britannia Parking \u2014 Notice to Keeper. \u00a395/\u00a350.",
+      "expectedDocumentType": "LETTER",
+      "expectedLetterType": "INITIAL_NOTICE",
+      "expectedPcn": "13615193",
+      "expectedIssuerType": "PRIVATE_COMPANY",
+      "expectedType": "PARKING_CHARGE_NOTICE",
+      "expectedVrn": "LV72EPC",
+      "expectedInitialAmount": 50,
+      "expectedCurrentAmount": 95
+    },
+    "IMG_2628": {
+      "group": "Islington \u2014 PCN IZ31112456A",
+      "description": "Islington \u2014 Charge Certificate. \u00a3120.",
+      "expectedDocumentType": "LETTER",
+      "expectedLetterType": "CHARGE_CERTIFICATE",
+      "expectedPcn": "IZ31112456A",
+      "expectedIssuerType": "COUNCIL",
+      "expectedType": "PENALTY_CHARGE_NOTICE",
+      "expectedVrn": "LV72EPC",
+      "expectedInitialAmount": 40,
+      "expectedCurrentAmount": 120,
+      "_knownIssue": "Google Vision drops a digit from Islington PCN IZ31112456A"
+    },
+    "IMG_2629": {
+      "group": "Islington \u2014 PCN IZ31112456A",
+      "description": "Islington windshield PCN. Code 11. \u00a380/\u00a340. Crumpled.",
+      "expectedDocumentType": "TICKET",
+      "expectedPcn": "IZ31112456A",
+      "expectedIssuerType": "COUNCIL",
+      "expectedType": "PENALTY_CHARGE_NOTICE",
+      "expectedVrn": "LV72EPC",
+      "expectedInitialAmount": 40,
+      "_knownIssue": "Google Vision misreads PCN on crumpled document"
+    },
+    "IMG_2630": {
+      "group": "Lewisham \u2014 PCN ZY06953855",
+      "description": "Lewisham camera PCN served by post. Code 53j. \u00a3130/\u00a365.",
+      "expectedDocumentType": "LETTER",
+      "expectedLetterType": "NOTICE_TO_OWNER",
+      "expectedPcn": "ZY06953855",
+      "expectedIssuerType": "COUNCIL",
+      "expectedType": "PENALTY_CHARGE_NOTICE",
+      "expectedVrn": "LV72EPC",
+      "expectedInitialAmount": 65,
+      "expectedCurrentAmount": 130
+    },
+    "IMG_2631": {
+      "group": "Newlyn (enforcement agent)",
+      "description": "Newlyn \u2014 Immobilisation warning placed on windshield. Handwritten.",
+      "expectedDocumentType": "TICKET",
+      "_knownIssue": "Handwritten windshield immobilisation warning \u2014 AI classification varies between runs"
+    },
+    "IMG_2632": {
+      "group": "Lewisham \u2014 PCN ZY06953855",
+      "description": "Lewisham \u2014 PE2 Order for Recovery. \u00a3205.",
+      "expectedDocumentType": "LETTER",
+      "expectedLetterType": "ORDER_FOR_RECOVERY",
+      "expectedPcn": "ZY06953855",
+      "expectedIssuerType": "COUNCIL",
+      "expectedType": "PENALTY_CHARGE_NOTICE",
+      "expectedVrn": "LV72EPC",
+      "expectedCurrentAmount": 205
+    },
+    "IMG_2633": {
+      "group": "Lewisham \u2014 PCN ZY10241472",
+      "description": "Lewisham \u2014 Notice of Rejection. \u00a3110.",
+      "expectedDocumentType": "LETTER",
+      "expectedLetterType": "CHALLENGE_REJECTED",
+      "expectedPcn": "ZY10241472",
+      "expectedIssuerType": "COUNCIL",
+      "expectedType": "PENALTY_CHARGE_NOTICE",
+      "expectedVrn": "LV72EPC",
+      "expectedCurrentAmount": 110
+    },
+    "IMG_2634": {
+      "group": "Lewisham \u2014 PCN ZY12501745",
+      "description": "Newlyn \u2014 Bailiff notice for Lewisham PCN. \u00a3925.",
+      "expectedDocumentType": "LETTER",
+      "expectedLetterType": "BAILIFF_NOTICE",
+      "expectedPcn": "ZY12501745",
+      "expectedIssuerType": "COUNCIL",
+      "expectedType": "PENALTY_CHARGE_NOTICE",
+      "expectedVrn": "LV72EPC",
+      "expectedCurrentAmount": 925,
+      "_knownIssue": "Google Vision misreads handwritten PCN reference"
+    },
+    "IMG_2635": {
+      "group": "TfL \u2014 PCN GX16084549",
+      "description": "TfL \u2014 CCTV footage cover letter. Generic.",
+      "expectedDocumentType": "LETTER",
+      "expectedLetterType": "GENERIC",
+      "expectedPcn": "GX16084549",
+      "expectedIssuerType": "TFL",
+      "expectedType": "PENALTY_CHARGE_NOTICE"
+    },
+    "IMG_2636": {
+      "group": "Lewisham \u2014 PCN ZY12501745",
+      "description": "Newlyn \u2014 Final notice (removal) for Lewisham PCN. \u00a3485.",
+      "expectedDocumentType": "LETTER",
+      "expectedLetterType": "BAILIFF_NOTICE",
+      "expectedPcn": "ZY12501745",
+      "expectedIssuerType": "COUNCIL",
+      "expectedType": "PENALTY_CHARGE_NOTICE",
+      "expectedVrn": "LV72EPC",
+      "expectedCurrentAmount": 485
+    },
+    "IMG_2637": {
+      "group": "Parkingeye \u2014 PCN 046637/389256",
+      "description": "Parkingeye \u2014 Cancellation letter. Charge cancelled.",
+      "expectedDocumentType": "LETTER",
+      "expectedLetterType": "APPEAL_ACCEPTED",
+      "expectedPcn": "046637/389256",
+      "expectedIssuerType": "PRIVATE_COMPANY",
+      "expectedType": "PARKING_CHARGE_NOTICE"
+    },
+    "IMG_2638": {
+      "group": "Islington \u2014 PCN IZ31112456A",
+      "description": "Newlyn \u2014 Notice of attendance/removal. Islington PCN. \u00a3925.",
+      "expectedDocumentType": "LETTER",
+      "expectedLetterType": "BAILIFF_NOTICE",
+      "expectedPcn": "IZ31112456A",
+      "expectedIssuerType": "COUNCIL",
+      "expectedType": "PENALTY_CHARGE_NOTICE",
+      "expectedCurrentAmount": 925,
+      "_knownIssue": "Google Vision drops a digit from Islington PCN"
+    },
+    "IMG_2639": {
+      "group": "Islington \u2014 PCN IZ31112456A",
+      "description": "Newlyn \u2014 Final opportunity. Islington PCN. \u00a3440.",
+      "expectedDocumentType": "LETTER",
+      "expectedLetterType": "BAILIFF_NOTICE",
+      "expectedPcn": "IZ31112456A",
+      "expectedIssuerType": "COUNCIL",
+      "expectedType": "PENALTY_CHARGE_NOTICE",
+      "expectedVrn": "LV72EPC",
+      "expectedCurrentAmount": 440,
+      "_knownIssue": "Google Vision drops a digit from Islington PCN"
+    },
+    "IMG_2640": {
+      "group": "Lewisham \u2014 PCN ZY12571693",
+      "description": "Marston \u2014 Notice of Enforcement. Lewisham PCN. \u00a3500.",
+      "expectedDocumentType": "LETTER",
+      "expectedLetterType": "BAILIFF_NOTICE",
+      "expectedPcn": "ZY12571693",
+      "expectedIssuerType": "COUNCIL",
+      "expectedType": "PENALTY_CHARGE_NOTICE",
+      "expectedVrn": "LV72EPC",
+      "expectedCurrentAmount": 250
+    },
+    "IMG_2641": {
+      "group": "Lewisham \u2014 PCN ZY12501745",
+      "description": "NSL/Lewisham \u2014 Cover letter: opposing late witness statement.",
+      "expectedDocumentType": "LETTER",
+      "expectedLetterType": "GENERIC",
+      "expectedPcn": "ZY12501745",
+      "expectedIssuerType": "COUNCIL",
+      "expectedType": "PENALTY_CHARGE_NOTICE",
+      "expectedVrn": "LV72EPC"
+    },
+    "IMG_2642": {
+      "group": "Westminster \u2014 PCN WE62200804",
+      "description": "Westminster \u2014 Charge Certificate. \u00a3240.",
+      "expectedDocumentType": "LETTER",
+      "expectedLetterType": "CHARGE_CERTIFICATE",
+      "expectedPcn": "WE62200804",
+      "expectedIssuerType": "COUNCIL",
+      "expectedType": "PENALTY_CHARGE_NOTICE",
+      "expectedVrn": "GF25ZGM",
+      "expectedInitialAmount": 80,
+      "expectedCurrentAmount": 240
+    },
+    "IMG_2643": {
+      "group": "TfL \u2014 PCN GX16084549",
+      "description": "TfL \u2014 Charge Certificate. \u00a3240.",
+      "expectedDocumentType": "LETTER",
+      "expectedLetterType": "CHARGE_CERTIFICATE",
+      "expectedPcn": "GX16084549",
+      "expectedIssuerType": "TFL",
+      "expectedType": "PENALTY_CHARGE_NOTICE",
+      "expectedVrn": "LV72EPC",
+      "expectedInitialAmount": 80,
+      "expectedCurrentAmount": 240
+    },
+    "IMG_2644": {
+      "group": "Lewisham \u2014 PCN ZY12571693",
+      "description": "Lewisham \u2014 TE3 Order for Recovery. \u00a3175.",
+      "expectedDocumentType": "LETTER",
+      "expectedLetterType": "ORDER_FOR_RECOVERY",
+      "expectedPcn": "ZY12571693",
+      "expectedIssuerType": "COUNCIL",
+      "expectedType": "PENALTY_CHARGE_NOTICE",
+      "expectedVrn": "LV72EPC",
+      "expectedCurrentAmount": 175
+    },
+    "IMG_2645": {
+      "group": "Lewisham \u2014 PCN ZY10305644",
+      "description": "London Tribunals \u2014 TE Form Response (Revoking Order).",
+      "expectedDocumentType": "LETTER",
+      "expectedLetterType": "TE_FORM_RESPONSE",
+      "expectedPcn": "ZY10305644",
+      "expectedIssuerType": "COUNCIL",
+      "expectedType": "PENALTY_CHARGE_NOTICE",
+      "expectedVrn": "LV72EPC",
+      "expectedInitialAmount": 55,
+      "expectedCurrentAmount": 110
+    },
+    "IMG_2646": {
+      "group": "Lewisham \u2014 PCN ZY10305644",
+      "description": "London Tribunals \u2014 Evidence request letter.",
+      "expectedDocumentType": "LETTER",
+      "expectedLetterType": "APPEAL_RESPONSE",
+      "expectedPcn": "ZY10305644",
+      "expectedIssuerType": "COUNCIL",
+      "expectedType": "PENALTY_CHARGE_NOTICE",
+      "expectedVrn": "LV72EPC"
+    },
+    "IMG_2647": {
+      "group": "TfL \u2014 PCN GX16084549",
+      "description": "TfL \u2014 PCN served by post (Notice to Owner). \u00a3160/\u00a380.",
+      "expectedDocumentType": "LETTER",
+      "expectedLetterType": "INITIAL_NOTICE",
+      "expectedPcn": "GX16084549",
+      "expectedIssuerType": "TFL",
+      "expectedType": "PENALTY_CHARGE_NOTICE",
+      "expectedVrn": "LV72EPC",
+      "expectedInitialAmount": 80,
+      "expectedCurrentAmount": 160
+    },
+    "IMG_2648": {
+      "group": "Lewisham \u2014 PCN ZY10241472",
+      "description": "Lewisham \u2014 Charge Certificate. \u00a3165.",
+      "expectedDocumentType": "LETTER",
+      "expectedLetterType": "CHARGE_CERTIFICATE",
+      "expectedPcn": "ZY10241472",
+      "expectedIssuerType": "COUNCIL",
+      "expectedType": "PENALTY_CHARGE_NOTICE",
+      "expectedVrn": "LV72EPC",
+      "expectedInitialAmount": 55,
+      "expectedCurrentAmount": 165
+    },
+    "IMG_2649": {
+      "group": "Lewisham \u2014 PCN ZY20182664",
+      "description": "Lewisham camera PCN served by post. Code 53j. \u00a3160/\u00a380.",
+      "expectedDocumentType": "TICKET",
+      "expectedPcn": "ZY20182664",
+      "expectedIssuerType": "COUNCIL",
+      "expectedType": "PENALTY_CHARGE_NOTICE",
+      "expectedVrn": "GF25ZGM",
+      "expectedInitialAmount": 80,
+      "expectedCurrentAmount": 160
+    },
+    "IMG_2650": {
+      "group": "Lewisham \u2014 PCN ZY20184058",
+      "description": "Lewisham camera PCN served by post. Code 53j. \u00a3160/\u00a380.",
+      "expectedDocumentType": "LETTER",
+      "expectedLetterType": "INITIAL_NOTICE",
+      "expectedPcn": "ZY20184058",
+      "expectedIssuerType": "COUNCIL",
+      "expectedType": "PENALTY_CHARGE_NOTICE",
+      "expectedVrn": "GF25ZGM",
+      "expectedInitialAmount": 80,
+      "expectedCurrentAmount": 160
+    },
+    "IMG_2651": {
+      "group": "Lewisham \u2014 PCN ZY20139337",
+      "description": "Lewisham camera PCN served by post. Code 53j. \u00a3160/\u00a380.",
+      "expectedDocumentType": "LETTER",
+      "expectedLetterType": "INITIAL_NOTICE",
+      "expectedPcn": "ZY20139337",
+      "expectedIssuerType": "COUNCIL",
+      "expectedType": "PENALTY_CHARGE_NOTICE",
+      "expectedVrn": "GF25ZGM",
+      "expectedInitialAmount": 80,
+      "expectedCurrentAmount": 160
+    },
+    "IMG_2652": {
+      "group": "Empira (enforcement agent)",
+      "description": "Empira \u2014 Notice of removal proceedings. \u00a3515.",
+      "expectedDocumentType": "LETTER",
+      "expectedLetterType": "BAILIFF_NOTICE",
+      "expectedIssuerType": "PRIVATE_COMPANY",
+      "expectedType": "PARKING_CHARGE_NOTICE",
+      "expectedCurrentAmount": 515
+    },
+    "IMG_2653": {
+      "group": "Empira (enforcement agent)",
+      "description": "Empira \u2014 Removal notice (on-site). \u00a3515.",
+      "expectedDocumentType": "LETTER",
+      "expectedLetterType": "BAILIFF_NOTICE",
+      "expectedIssuerType": "PRIVATE_COMPANY",
+      "expectedType": "PARKING_CHARGE_NOTICE",
+      "expectedCurrentAmount": 515
+    },
+    "IMG_2654": {
+      "group": "Empira (enforcement agent)",
+      "description": "Empira \u2014 Notice of Enforcement. \u00a3280.",
+      "expectedDocumentType": "LETTER",
+      "expectedLetterType": "BAILIFF_NOTICE",
+      "expectedIssuerType": "PRIVATE_COMPANY",
+      "expectedType": "PARKING_CHARGE_NOTICE",
+      "expectedCurrentAmount": 280
+    },
+    "IMG_2655": {
+      "group": "Islington \u2014 PCN IZ31112456A",
+      "description": "TEC \u2014 Refusal of late statutory declaration. Islington PCN.",
+      "expectedDocumentType": "LETTER",
+      "expectedLetterType": "CHALLENGE_REJECTED",
+      "expectedPcn": "IZ31112456A",
+      "expectedIssuerType": "COUNCIL",
+      "expectedType": "PENALTY_CHARGE_NOTICE",
+      "_knownIssue": "Google Vision misreads Islington PCN \u2014 extra trailing char"
+    },
+    "IMG_2656": {
+      "group": "Lewisham \u2014 PCN ZY10241472",
+      "description": "Lewisham \u2014 TE3 Order for Recovery. \u00a3175.",
+      "expectedDocumentType": "LETTER",
+      "expectedLetterType": "ORDER_FOR_RECOVERY",
+      "expectedPcn": "ZY10241472",
+      "expectedIssuerType": "COUNCIL",
+      "expectedType": "PENALTY_CHARGE_NOTICE",
+      "expectedVrn": "LV72EPC",
+      "expectedCurrentAmount": 175
+    },
+    "IMG_2657": {
+      "group": "Lewisham \u2014 PCN ZY10305644",
+      "description": "NSL/Lewisham \u2014 Cover letter confirming witness statement filed.",
+      "expectedDocumentType": "LETTER",
+      "expectedLetterType": "GENERIC",
+      "expectedPcn": "ZY10305644",
+      "expectedIssuerType": "COUNCIL",
+      "expectedType": "PENALTY_CHARGE_NOTICE",
+      "expectedVrn": "LV72EPC"
+    },
+    "IMG_2658": {
+      "group": "Lewisham \u2014 PCN ZY10305644",
+      "description": "TEC \u2014 Revoking Order (TE Form Response). Lewisham PCN.",
+      "expectedDocumentType": "LETTER",
+      "expectedLetterType": "TE_FORM_RESPONSE",
+      "expectedPcn": "ZY10305644",
+      "expectedIssuerType": "COUNCIL",
+      "expectedType": "PENALTY_CHARGE_NOTICE",
+      "expectedVrn": "LV72EPC"
+    },
+    "IMG_2659": {
+      "group": "Lewisham \u2014 PCN ZY12631638",
+      "description": "Lewisham \u2014 Charge Certificate. \u00a3165.",
+      "expectedDocumentType": "LETTER",
+      "expectedLetterType": "CHARGE_CERTIFICATE",
+      "expectedPcn": "ZY12631638",
+      "expectedIssuerType": "COUNCIL",
+      "expectedType": "PENALTY_CHARGE_NOTICE",
+      "expectedVrn": "LV72EPC",
+      "expectedInitialAmount": 55,
+      "expectedCurrentAmount": 165
+    },
+    "IMG_2660": {
+      "group": "Lewisham \u2014 PCN ZY10928691",
+      "description": "Lewisham \u2014 Notice to Owner. Code 53j. \u00a3160/\u00a380.",
+      "expectedDocumentType": "LETTER",
+      "expectedLetterType": "NOTICE_TO_OWNER",
+      "expectedPcn": "ZY10928691",
+      "expectedIssuerType": "COUNCIL",
+      "expectedType": "PENALTY_CHARGE_NOTICE",
+      "expectedVrn": "GF25ZGM",
+      "expectedInitialAmount": 80,
+      "expectedCurrentAmount": 160
+    },
+    "IMG_2661": {
+      "group": "Lewisham \u2014 PCN ZY12501745",
+      "description": "Newlyn \u2014 Notice of Enforcement. Lewisham PCN. \u00a3250.",
+      "expectedDocumentType": "LETTER",
+      "expectedLetterType": "BAILIFF_NOTICE",
+      "expectedPcn": "ZY12501745",
+      "expectedIssuerType": "COUNCIL",
+      "expectedType": "PENALTY_CHARGE_NOTICE",
+      "expectedVrn": "LV72EPC",
+      "expectedCurrentAmount": 250
+    },
+    "IMG_2662": {
+      "group": "TfL \u2014 PCN GX16084549",
+      "description": "TfL \u2014 Witness statement filed confirmation letter.",
+      "expectedDocumentType": "LETTER",
+      "expectedLetterType": "GENERIC",
+      "expectedPcn": "GX16084549",
+      "expectedIssuerType": "TFL",
+      "expectedType": "PENALTY_CHARGE_NOTICE",
+      "expectedVrn": "LV72EPC"
+    },
+    "IMG_2663": {
+      "group": "TfL \u2014 PCN GX16084549",
+      "description": "CDER Group \u2014 Notice of Enforcement. TfL PCN. \u00a3325.",
+      "expectedDocumentType": "LETTER",
+      "expectedLetterType": "BAILIFF_NOTICE",
+      "expectedPcn": "GX16084549",
+      "expectedIssuerType": "TFL",
+      "expectedType": "PENALTY_CHARGE_NOTICE",
+      "expectedVrn": "LV72EPC",
+      "expectedCurrentAmount": 325
+    },
+    "IMG_2664": {
+      "group": "TfL \u2014 PCN GX16084549",
+      "description": "CDER Group \u2014 Enforcement demand. TfL PCN. \u00a3560.",
+      "expectedDocumentType": "LETTER",
+      "expectedLetterType": "BAILIFF_NOTICE",
+      "expectedPcn": "GX16084549",
+      "expectedIssuerType": "TFL",
+      "expectedType": "PENALTY_CHARGE_NOTICE",
+      "expectedCurrentAmount": 560
+    },
+    "IMG_2665": {
+      "group": "TfL \u2014 PCN GX16084549",
+      "description": "TEC \u2014 PE Form Response (Revoking Order). TfL PCN.",
+      "expectedDocumentType": "LETTER",
+      "expectedLetterType": "PE_FORM_RESPONSE",
+      "expectedPcn": "GX16084549",
+      "expectedIssuerType": "TFL",
+      "expectedType": "PENALTY_CHARGE_NOTICE",
+      "expectedVrn": "LV72EPC",
+      "_knownIssue": "Google Vision adds trailing digit to PCN"
+    },
+    "IMG_2666": {
+      "group": "Lewisham \u2014 PCN ZY12501745",
+      "description": "Lewisham \u2014 Notice to Owner. Code 01. \u00a3110.",
+      "expectedDocumentType": "LETTER",
+      "expectedLetterType": "NOTICE_TO_OWNER",
+      "expectedPcn": "ZY12501745",
+      "expectedIssuerType": "COUNCIL",
+      "expectedType": "PENALTY_CHARGE_NOTICE",
+      "expectedVrn": "LV72EPC",
+      "expectedInitialAmount": 55,
+      "expectedCurrentAmount": 110
+    },
+    "IMG_2667": {
+      "group": "Lewisham \u2014 PCN ZY12501745",
+      "description": "Lewisham \u2014 Challenge rejected. Code 01.",
+      "expectedDocumentType": "LETTER",
+      "expectedLetterType": "CHALLENGE_REJECTED",
+      "expectedPcn": "ZY12501745",
+      "expectedIssuerType": "COUNCIL",
+      "expectedType": "PENALTY_CHARGE_NOTICE",
+      "expectedVrn": "LV72EPC"
+    },
+    "IMG_2668": {
+      "group": "TfL \u2014 PCN GX16084549",
+      "description": "TfL \u2014 Order for Recovery. \u00a3250.",
+      "expectedDocumentType": "LETTER",
+      "expectedLetterType": "ORDER_FOR_RECOVERY",
+      "expectedPcn": "GX16084549",
+      "expectedIssuerType": "TFL",
+      "expectedType": "PENALTY_CHARGE_NOTICE",
+      "expectedVrn": "LV72EPC",
+      "expectedCurrentAmount": 250
+    },
+    "IMG_2669": {
+      "group": "Islington \u2014 PCN IZ31112456A",
+      "description": "Newlyn \u2014 Notice of Enforcement. Islington PCN. \u00a3205.",
+      "expectedDocumentType": "LETTER",
+      "expectedLetterType": "BAILIFF_NOTICE",
+      "expectedPcn": "IZ31112456A",
+      "expectedIssuerType": "COUNCIL",
+      "expectedType": "PENALTY_CHARGE_NOTICE",
+      "expectedVrn": "LV72EPC",
+      "expectedCurrentAmount": 205,
+      "_knownIssue": "Google Vision drops a digit from Islington PCN"
+    },
+    "IMG_2670": {
+      "group": "Lewisham \u2014 PCN ZY12571693",
+      "description": "Lewisham \u2014 Notice to Owner. Code 01. \u00a3110.",
+      "expectedDocumentType": "LETTER",
+      "expectedLetterType": "NOTICE_TO_OWNER",
+      "expectedPcn": "ZY12571693",
+      "expectedIssuerType": "COUNCIL",
+      "expectedType": "PENALTY_CHARGE_NOTICE",
+      "expectedVrn": "LV72EPC",
+      "expectedInitialAmount": 55,
+      "expectedCurrentAmount": 110
+    },
+    "IMG_2671": {
+      "group": "Lewisham \u2014 PCN ZY10305644",
+      "description": "TEC \u2014 Revoking Order (TE Form Response). Lewisham PCN.",
+      "expectedDocumentType": "LETTER",
+      "expectedLetterType": "TE_FORM_RESPONSE",
+      "expectedPcn": "ZY10305644",
+      "expectedIssuerType": "COUNCIL",
+      "expectedType": "PENALTY_CHARGE_NOTICE",
+      "expectedVrn": "LV72EPC",
+      "_knownIssue": "Google Vision adds trailing digit to PCN"
+    },
+    "IMG_2672": {
+      "group": "Horizon Parking \u2014 PCN HP2687218",
+      "description": "Horizon Parking \u2014 Final Reminder. \u00a380.",
+      "expectedDocumentType": "LETTER",
+      "expectedLetterType": "FINAL_DEMAND",
+      "expectedPcn": "HP2687218",
+      "expectedIssuerType": "PRIVATE_COMPANY",
+      "expectedType": "PARKING_CHARGE_NOTICE",
+      "expectedVrn": "LV72EPC",
+      "expectedInitialAmount": 80,
+      "expectedCurrentAmount": 80
+    },
+    "IMG_2673": {
+      "group": "Islington \u2014 PCN IZ31112456A",
+      "description": "Islington \u2014 TE3 Order for Recovery. \u00a3130.",
+      "expectedDocumentType": "LETTER",
+      "expectedLetterType": "ORDER_FOR_RECOVERY",
+      "expectedPcn": "IZ31112456A",
+      "expectedIssuerType": "COUNCIL",
+      "expectedType": "PENALTY_CHARGE_NOTICE",
+      "expectedVrn": "LV72EPC",
+      "expectedCurrentAmount": 130,
+      "_knownIssue": "Google Vision drops a digit from Islington PCN"
+    },
+    "IMG_2674": {
+      "group": "Lewisham \u2014 PCN ZY10241472",
+      "description": "NSL/Lewisham \u2014 Cover letter: opposing late witness statement.",
+      "expectedDocumentType": "LETTER",
+      "expectedLetterType": "GENERIC",
+      "expectedPcn": "ZY10241472",
+      "expectedIssuerType": "COUNCIL",
+      "expectedType": "PENALTY_CHARGE_NOTICE",
+      "expectedVrn": "LV72EPC"
+    },
+    "IMG_2675": {
+      "group": "Lewisham \u2014 PCN ZY09648290",
+      "description": "Newlyn \u2014 Notice of Enforcement. Lewisham PCN. \u00a3280.",
+      "expectedDocumentType": "LETTER",
+      "expectedLetterType": "BAILIFF_NOTICE",
+      "expectedPcn": "ZY09648290",
+      "expectedIssuerType": "COUNCIL",
+      "expectedType": "PENALTY_CHARGE_NOTICE",
+      "expectedVrn": "LV72EPC",
+      "expectedCurrentAmount": 280
+    },
+    "IMG_2676": {
+      "group": "Lewisham \u2014 PCN ZY09648290",
+      "description": "Newlyn \u2014 Entry/goods notice. Lewisham PCN. \u00a3515.",
+      "expectedDocumentType": "LETTER",
+      "expectedLetterType": "BAILIFF_NOTICE",
+      "expectedPcn": "ZY09648290",
+      "expectedIssuerType": "COUNCIL",
+      "expectedType": "PENALTY_CHARGE_NOTICE",
+      "expectedVrn": "ZV72EPC",
+      "expectedCurrentAmount": 515,
+      "_knownIssue": "Google Vision misreads handwritten PCN reference"
+    },
+    "IMG_2677": {
+      "group": "Horizon Parking \u2014 PCN HP2687218",
+      "description": "Horizon Parking \u2014 Final Reminder. \u00a380.",
+      "expectedDocumentType": "LETTER",
+      "expectedLetterType": "FINAL_DEMAND",
+      "expectedPcn": "HP2687218",
+      "expectedIssuerType": "PRIVATE_COMPANY",
+      "expectedType": "PARKING_CHARGE_NOTICE",
+      "expectedVrn": "LV72EPC",
+      "expectedInitialAmount": 80,
+      "expectedCurrentAmount": 80
+    },
+    "IMG_2678": {
+      "group": "Islington \u2014 PCN IZ31112456A",
+      "description": "Islington \u2014 Notice to Owner.",
+      "expectedDocumentType": "LETTER",
+      "expectedLetterType": "NOTICE_TO_OWNER",
+      "expectedPcn": "IZ31112456A",
+      "expectedIssuerType": "COUNCIL",
+      "expectedType": "PENALTY_CHARGE_NOTICE",
+      "expectedVrn": "LV72EPC",
+      "_knownIssue": "Google Vision drops a digit from Islington PCN"
+    },
+    "IMG_2679": {
+      "group": "TfL \u2014 PCN GX16084549",
+      "description": "TfL PCN served by post. Code 50u. \u00a3160/\u00a380.",
+      "expectedDocumentType": "LETTER",
+      "expectedPcn": "GX16084549",
+      "expectedIssuerType": "TFL",
+      "expectedType": "PENALTY_CHARGE_NOTICE",
+      "expectedVrn": "LV72EPC",
+      "expectedInitialAmount": 80,
+      "expectedLetterType": "INITIAL_NOTICE"
+    },
+    "IMG_2680": {
+      "group": "Lewisham \u2014 PCN ZY09648290",
+      "description": "Lewisham \u2014 Notice to Owner. Code 31j. \u00a3130/\u00a365.",
+      "expectedDocumentType": "LETTER",
+      "expectedLetterType": "NOTICE_TO_OWNER",
+      "expectedPcn": "ZY09648290",
+      "expectedIssuerType": "COUNCIL",
+      "expectedType": "PENALTY_CHARGE_NOTICE",
+      "expectedVrn": "LV72EPC",
+      "expectedInitialAmount": 65,
+      "expectedCurrentAmount": 130
+    },
+    "IMG_2681": {
+      "group": "Lewisham \u2014 PCN ZY06953855",
+      "description": "Lewisham \u2014 Notice to Owner (duplicate). Code 53j. \u00a3130/\u00a365.",
+      "expectedDocumentType": "LETTER",
+      "expectedLetterType": "NOTICE_TO_OWNER",
+      "expectedPcn": "ZY06953855",
+      "expectedIssuerType": "COUNCIL",
+      "expectedType": "PENALTY_CHARGE_NOTICE",
+      "expectedVrn": "LV72EPC",
+      "expectedInitialAmount": 65,
+      "expectedCurrentAmount": 130
+    },
+    "IMG_2682": {
+      "group": "Lewisham \u2014 PCN ZY06953855",
+      "description": "Lewisham \u2014 Challenge rejected. Code 53j. \u00a3130.",
+      "expectedDocumentType": "LETTER",
+      "expectedLetterType": "CHALLENGE_REJECTED",
+      "expectedPcn": "ZY06953855",
+      "expectedIssuerType": "COUNCIL",
+      "expectedType": "PENALTY_CHARGE_NOTICE",
+      "expectedVrn": "LV72EPC",
+      "expectedInitialAmount": 65,
+      "expectedCurrentAmount": 130
+    },
+    "IMG_2683": {
+      "group": "Lewisham \u2014 PCN ZY06953855",
+      "description": "Lewisham \u2014 Charge Certificate. \u00a3195.",
+      "expectedDocumentType": "LETTER",
+      "expectedLetterType": "CHARGE_CERTIFICATE",
+      "expectedPcn": "ZY06953855",
+      "expectedIssuerType": "COUNCIL",
+      "expectedType": "PENALTY_CHARGE_NOTICE",
+      "expectedVrn": "LV72EPC",
+      "expectedInitialAmount": 65,
+      "expectedCurrentAmount": 195
+    },
+    "IMG_2684": {
+      "group": "Lewisham \u2014 PCN ZY10071576",
+      "description": "Lewisham \u2014 Challenge rejected. Code 12r.",
+      "expectedDocumentType": "LETTER",
+      "expectedLetterType": "CHALLENGE_REJECTED",
+      "expectedPcn": "ZY10071576",
+      "expectedIssuerType": "COUNCIL",
+      "expectedType": "PENALTY_CHARGE_NOTICE",
+      "expectedVrn": "LV72EPC"
+    },
+    "IMG_2685": {
+      "group": "Horizon Parking \u2014 PCN HP2687218",
+      "description": "Horizon Parking \u2014 Initial PCN. \u00a370/\u00a340.",
+      "expectedDocumentType": "TICKET",
+      "expectedPcn": "HP2687218",
+      "expectedIssuerType": "PRIVATE_COMPANY",
+      "expectedType": "PARKING_CHARGE_NOTICE",
+      "expectedVrn": "LV72EPC",
+      "expectedInitialAmount": 40
+    },
+    "IMG_2686": {
+      "group": "Horizon Parking \u2014 PCN HP2687218",
+      "description": "Horizon Parking \u2014 Notice to Keeper Reminder. \u00a370.",
+      "expectedDocumentType": "LETTER",
+      "expectedLetterType": "NOTICE_TO_OWNER",
+      "expectedPcn": "HP2687218",
+      "expectedIssuerType": "PRIVATE_COMPANY",
+      "expectedType": "PARKING_CHARGE_NOTICE",
+      "expectedVrn": "LV72EPC",
+      "expectedCurrentAmount": 70
+    },
+    "IMG_2687": {
+      "group": "CDER Group (enforcement agent)",
+      "description": "CDER Group \u2014 Removal notice. ~\u00a3360.",
+      "expectedDocumentType": "LETTER",
+      "expectedLetterType": "BAILIFF_NOTICE",
+      "expectedIssuerType": "PRIVATE_COMPANY"
+    },
+    "IMG_2688": {
+      "group": "Lewisham \u2014 PCN ZY12501745",
+      "description": "Lewisham \u2014 Charge Certificate. Code 01. \u00a3165.",
+      "expectedDocumentType": "LETTER",
+      "expectedLetterType": "CHARGE_CERTIFICATE",
+      "expectedPcn": "ZY12501745",
+      "expectedIssuerType": "COUNCIL",
+      "expectedType": "PENALTY_CHARGE_NOTICE",
+      "expectedVrn": "LV72EPC",
+      "expectedInitialAmount": 55,
+      "expectedCurrentAmount": 165
+    },
+    "IMG_2689": {
+      "group": "Bromley \u2014 PCN BY97126765",
+      "description": "Bromley \u2014 Charge Certificate. Code 31j. \u00a3195.",
+      "expectedDocumentType": "LETTER",
+      "expectedLetterType": "CHARGE_CERTIFICATE",
+      "expectedPcn": "BY97126765",
+      "expectedIssuerType": "COUNCIL",
+      "expectedType": "PENALTY_CHARGE_NOTICE",
+      "expectedVrn": "LV72EPC",
+      "expectedInitialAmount": 65,
+      "expectedCurrentAmount": 195
+    },
+    "IMG_2690": {
+      "group": "Bromley \u2014 PCN BY97126765",
+      "description": "Bromley \u2014 Notice of Rejection (challenge rejected).",
+      "expectedDocumentType": "LETTER",
+      "expectedLetterType": "CHALLENGE_REJECTED",
+      "expectedPcn": "BY97126765",
+      "expectedIssuerType": "COUNCIL",
+      "expectedType": "PENALTY_CHARGE_NOTICE",
+      "expectedVrn": "LV72EPC"
+    },
+    "IMG_2691": {
+      "group": "TfL \u2014 PCN GX16084549",
+      "description": "TfL \u2014 Charge Certificate (second). \u00a3240.",
+      "expectedDocumentType": "LETTER",
+      "expectedLetterType": "CHARGE_CERTIFICATE",
+      "expectedPcn": "GX16084549",
+      "expectedIssuerType": "TFL",
+      "expectedType": "PENALTY_CHARGE_NOTICE",
+      "expectedVrn": "LV72EPC",
+      "expectedInitialAmount": 80,
+      "expectedCurrentAmount": 240
+    },
+    "IMG_2692": {
+      "group": "TfL \u2014 PCN GX16084549",
+      "description": "TfL \u2014 PCN (reissued Notice to Owner). \u00a3160/\u00a380.",
+      "expectedDocumentType": "LETTER",
+      "expectedLetterType": "NOTICE_TO_OWNER",
+      "expectedPcn": "GX16084549",
+      "expectedIssuerType": "TFL",
+      "expectedType": "PENALTY_CHARGE_NOTICE",
+      "expectedVrn": "LV72EPC",
+      "expectedInitialAmount": 80,
+      "expectedCurrentAmount": 160
+    },
+    "IMG_2693": {
+      "group": "TfL \u2014 PCN GX16084549",
+      "description": "TfL \u2014 Witness statement notification letter.",
+      "expectedDocumentType": "LETTER",
+      "expectedLetterType": "GENERIC",
+      "expectedPcn": "GX16084549",
+      "expectedIssuerType": "TFL",
+      "expectedType": "PENALTY_CHARGE_NOTICE",
+      "expectedVrn": "LV72EPC"
+    },
+    "IMG_2694": {
+      "group": "TfL \u2014 PCN GX16084549",
+      "description": "TfL \u2014 Order for Recovery. \u00a3250.",
+      "expectedDocumentType": "LETTER",
+      "expectedLetterType": "ORDER_FOR_RECOVERY",
+      "expectedPcn": "GX16084549",
+      "expectedIssuerType": "TFL",
+      "expectedType": "PENALTY_CHARGE_NOTICE",
+      "expectedVrn": "LV72EPC",
+      "expectedInitialAmount": 80,
+      "expectedCurrentAmount": 250
+    },
+    "IMG_2695": {
+      "group": "TfL \u2014 PCN GX16084549",
+      "description": "TfL \u2014 Charge Certificate (original). \u00a3240.",
+      "expectedDocumentType": "LETTER",
+      "expectedLetterType": "CHARGE_CERTIFICATE",
+      "expectedPcn": "GX16084549",
+      "expectedIssuerType": "TFL",
+      "expectedType": "PENALTY_CHARGE_NOTICE",
+      "expectedVrn": "LV72EPC",
+      "expectedInitialAmount": 80,
+      "expectedCurrentAmount": 240
+    },
+    "IMG_2696": {
+      "group": "Lewisham \u2014 PCN ZY09648290",
+      "description": "Lewisham \u2014 PE2 Order for Recovery. \u00a3205.",
+      "expectedDocumentType": "LETTER",
+      "expectedLetterType": "ORDER_FOR_RECOVERY",
+      "expectedPcn": "ZY09648290",
+      "expectedIssuerType": "COUNCIL",
+      "expectedType": "PENALTY_CHARGE_NOTICE",
+      "expectedVrn": "LV72EPC",
+      "expectedCurrentAmount": 205
+    },
+    "IMG_2697": {
+      "group": "Lewisham \u2014 PCN ZY09648290",
+      "description": "Lewisham \u2014 Charge Certificate. Code 31j. \u00a3195.",
+      "expectedDocumentType": "LETTER",
+      "expectedLetterType": "CHARGE_CERTIFICATE",
+      "expectedPcn": "ZY09648290",
+      "expectedIssuerType": "COUNCIL",
+      "expectedType": "PENALTY_CHARGE_NOTICE",
+      "expectedVrn": "LV72EPC",
+      "expectedInitialAmount": 65,
+      "expectedCurrentAmount": 195
+    },
+    "IMG_2698": {
+      "group": "Lewisham \u2014 PCN ZY09648290",
+      "description": "Lewisham \u2014 Notice to Owner (original). Code 31j. \u00a3130/\u00a365.",
+      "expectedDocumentType": "LETTER",
+      "expectedLetterType": "NOTICE_TO_OWNER",
+      "expectedPcn": "ZY09648290",
+      "expectedIssuerType": "COUNCIL",
+      "expectedType": "PENALTY_CHARGE_NOTICE",
+      "expectedVrn": "LV72EPC",
+      "expectedInitialAmount": 65,
+      "expectedCurrentAmount": 130
+    },
+    "IMG_2699": {
+      "group": "Lewisham \u2014 PCN ZY10305644",
+      "description": "Lewisham \u2014 TE3 Order for Recovery. \u00a3175.",
+      "expectedDocumentType": "LETTER",
+      "expectedLetterType": "ORDER_FOR_RECOVERY",
+      "expectedPcn": "ZY10305644",
+      "expectedIssuerType": "COUNCIL",
+      "expectedType": "PENALTY_CHARGE_NOTICE",
+      "expectedVrn": "LV72EPC",
+      "expectedCurrentAmount": 175
+    },
+    "IMG_2700": {
+      "group": "Lewisham \u2014 PCN ZY10305644",
+      "description": "Lewisham \u2014 Charge Certificate. Code 622. \u00a3165.",
+      "expectedDocumentType": "LETTER",
+      "expectedLetterType": "CHARGE_CERTIFICATE",
+      "expectedPcn": "ZY10305644",
+      "expectedIssuerType": "COUNCIL",
+      "expectedType": "PENALTY_CHARGE_NOTICE",
+      "expectedVrn": "LV72EPC",
+      "expectedInitialAmount": 55,
+      "expectedCurrentAmount": 165
+    },
+    "IMG_2701": {
+      "group": "Lewisham \u2014 PCN ZY10305644",
+      "description": "Lewisham \u2014 Notice to Owner. Code 622. \u00a3110.",
+      "expectedDocumentType": "LETTER",
+      "expectedLetterType": "NOTICE_TO_OWNER",
+      "expectedPcn": "ZY10305644",
+      "expectedIssuerType": "COUNCIL",
+      "expectedType": "PENALTY_CHARGE_NOTICE",
+      "expectedVrn": "LV72EPC",
+      "expectedInitialAmount": 55,
+      "expectedCurrentAmount": 110
+    },
+    "IMG_2702": {
+      "group": "Lewisham \u2014 PCN ZY10305644",
+      "description": "Lewisham \u2014 Challenge rejected. Code 622.",
+      "expectedDocumentType": "LETTER",
+      "expectedLetterType": "CHALLENGE_REJECTED",
+      "expectedPcn": "ZY10305644",
+      "expectedIssuerType": "COUNCIL",
+      "expectedType": "PENALTY_CHARGE_NOTICE",
+      "expectedVrn": "LV72EPC"
+    },
+    "IMG_2703": {
+      "group": "Lewisham \u2014 PCN ZY10241472",
+      "description": "Lewisham \u2014 TE3 Order for Recovery. \u00a3175.",
+      "expectedDocumentType": "LETTER",
+      "expectedLetterType": "ORDER_FOR_RECOVERY",
+      "expectedPcn": "ZY10241472",
+      "expectedIssuerType": "COUNCIL",
+      "expectedType": "PENALTY_CHARGE_NOTICE",
+      "expectedVrn": "LV72EPC",
+      "expectedCurrentAmount": 175
+    },
+    "IMG_2704": {
+      "group": "Lewisham \u2014 PCN ZY10241472",
+      "description": "Lewisham \u2014 Charge Certificate. Code 622. \u00a3165.",
+      "expectedDocumentType": "LETTER",
+      "expectedLetterType": "CHARGE_CERTIFICATE",
+      "expectedPcn": "ZY10241472",
+      "expectedIssuerType": "COUNCIL",
+      "expectedType": "PENALTY_CHARGE_NOTICE",
+      "expectedVrn": "LV72EPC",
+      "expectedInitialAmount": 55,
+      "expectedCurrentAmount": 165
+    },
+    "IMG_2705": {
+      "group": "Lewisham \u2014 PCN ZY10241472",
+      "description": "Lewisham \u2014 Challenge rejected (representations). Code 622. \u00a3110.",
+      "expectedDocumentType": "LETTER",
+      "expectedLetterType": "CHALLENGE_REJECTED",
+      "expectedPcn": "ZY10241472",
+      "expectedIssuerType": "COUNCIL",
+      "expectedType": "PENALTY_CHARGE_NOTICE",
+      "expectedVrn": "LV72EPC",
+      "expectedCurrentAmount": 110
+    },
+    "IMG_2706": {
+      "group": "Lewisham \u2014 PCN ZY10241472",
+      "description": "Lewisham \u2014 Notice to Owner. Code 622. \u00a3110/\u00a355.",
+      "expectedDocumentType": "LETTER",
+      "expectedLetterType": "NOTICE_TO_OWNER",
+      "expectedPcn": "ZY10241472",
+      "expectedIssuerType": "COUNCIL",
+      "expectedType": "PENALTY_CHARGE_NOTICE",
+      "expectedVrn": "LV72EPC",
+      "expectedInitialAmount": 55,
+      "expectedCurrentAmount": 110
+    }
+  }
+}
