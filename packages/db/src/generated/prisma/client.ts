@@ -215,11 +215,6 @@ export type HighwayCodeQuizPost = Prisma.HighwayCodeQuizPostModel
  */
 export type OnboardingSequence = Prisma.OnboardingSequenceModel
 /**
- * Model WaitlistSignup
- * 
- */
-export type WaitlistSignup = Prisma.WaitlistSignupModel
-/**
  * Model InstagramPostBlogMapping
  * 
  */

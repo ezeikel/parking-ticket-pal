@@ -13,6 +13,7 @@ import {
 } from '@fortawesome/free-brands-svg-icons';
 import Link from 'next/link';
 import Image from 'next/image';
+import { appStoreUrl, playStoreUrl } from '@/constants/links';
 
 type FooterLink = {
   label: string;
@@ -93,7 +94,9 @@ const Footer = () => (
           {/* App Store Badges */}
           <div className="mt-6 flex flex-col gap-2">
             <a
-              href="#"
+              href={appStoreUrl({ source: 'landing_footer' })}
+              target="_blank"
+              rel="noopener noreferrer"
               className="opacity-70 transition-opacity hover:opacity-100"
             >
               <div className="flex h-10 w-32 items-center gap-2 rounded-lg border border-white/20 bg-white/5 px-3">
@@ -112,7 +115,9 @@ const Footer = () => (
               </div>
             </a>
             <a
-              href="#"
+              href={playStoreUrl({ source: 'landing_footer' })}
+              target="_blank"
+              rel="noopener noreferrer"
               className="opacity-70 transition-opacity hover:opacity-100"
             >
               <div className="flex h-10 w-32 items-center gap-2 rounded-lg border border-white/20 bg-white/5 px-3">

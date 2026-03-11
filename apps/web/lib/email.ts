@@ -17,9 +17,6 @@ import OnboardingSocialProofEmail from '@/emails/onboarding/OnboardingSocialProo
 import OnboardingHowItWorksEmail from '@/emails/onboarding/OnboardingHowItWorksEmail';
 import OnboardingMathsEmail from '@/emails/onboarding/OnboardingMathsEmail';
 import OnboardingFinalWarningEmail from '@/emails/onboarding/OnboardingFinalWarningEmail';
-import WaitlistWelcomeEmail from '@/emails/waitlist/WaitlistWelcomeEmail';
-import WaitlistValueEmail from '@/emails/waitlist/WaitlistValueEmail';
-import WaitlistLaunchEmail from '@/emails/waitlist/WaitlistLaunchEmail';
 
 const log = createServerLogger({ action: 'email' });
 
@@ -550,71 +547,6 @@ export const sendOnboardingEmail = async (
   const subject = getOnboardingSubject(email);
   const unsubscribeUrl = getUnsubscribeUrl(to);
   const element = getOnboardingElement(email, unsubscribeUrl);
-  const emailHtml = await render(element);
-  const emailText = await render(element, { plainText: true });
-
-  return sendEmail({
-    to,
-    subject,
-    html: emailHtml,
-    text: emailText,
-    headers: getUnsubscribeHeaders(unsubscribeUrl),
-  });
-};
-
-// ============================================================================
-// Waitlist Emails
-// ============================================================================
-
-type WaitlistStep = 1 | 2 | 3;
-
-const WAITLIST_SUBJECTS: Record<WaitlistStep, string> = {
-  1: "You're on the list",
-  2: "Most parking ticket appeals don't need a solicitor",
-  3: 'The app is here — download now',
-};
-
-/* eslint-disable consistent-return, default-case */
-const getWaitlistElement = (
-  step: WaitlistStep,
-  options?: {
-    appStoreUrl?: string;
-    playStoreUrl?: string;
-    unsubscribeUrl?: string;
-  },
-) => {
-  switch (step) {
-    case 1:
-      return WaitlistWelcomeEmail({
-        unsubscribeUrl: options?.unsubscribeUrl,
-      });
-    case 2:
-      return WaitlistValueEmail({ unsubscribeUrl: options?.unsubscribeUrl });
-    case 3:
-      return WaitlistLaunchEmail({
-        appStoreUrl: options?.appStoreUrl,
-        playStoreUrl: options?.playStoreUrl,
-        unsubscribeUrl: options?.unsubscribeUrl,
-      });
-  }
-};
-/* eslint-enable consistent-return, default-case */
-
-export const sendWaitlistEmail = async (
-  to: string,
-  step: WaitlistStep,
-  options?: { appStoreUrl?: string; playStoreUrl?: string },
-): Promise<{
-  success: boolean;
-  messageId?: string;
-  error?: string;
-}> => {
-  const subject = WAITLIST_SUBJECTS[step];
-  const unsubscribeUrl = getUnsubscribeUrl(to);
-  const element = getWaitlistElement(step, {
-    ...options,
-    unsubscribeUrl,
-  });
   const emailHtml = await render(element);
   const emailText = await render(element, { plainText: true });
 

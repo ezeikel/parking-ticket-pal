@@ -14,6 +14,7 @@ import {
   faChrome,
 } from '@fortawesome/free-brands-svg-icons';
 import cn from '@/utils/cn';
+import { appStoreUrl, playStoreUrl } from '@/constants/links';
 
 type FooterProps = {
   className?: string;
@@ -111,7 +112,9 @@ const Footer = ({ className }: FooterProps) => (
           {/* App Store Badges */}
           <div className="mt-6 flex flex-col gap-2">
             <a
-              href="#"
+              href={appStoreUrl({ source: 'footer' })}
+              target="_blank"
+              rel="noopener noreferrer"
               className="opacity-70 transition-opacity hover:opacity-100"
             >
               <div className="flex h-10 w-32 items-center gap-2 rounded-lg border border-white/20 bg-white/5 px-3">
@@ -130,7 +133,9 @@ const Footer = ({ className }: FooterProps) => (
               </div>
             </a>
             <a
-              href="#"
+              href={playStoreUrl({ source: 'footer' })}
+              target="_blank"
+              rel="noopener noreferrer"
               className="opacity-70 transition-opacity hover:opacity-100"
             >
               <div className="flex h-10 w-32 items-center gap-2 rounded-lg border border-white/20 bg-white/5 px-3">

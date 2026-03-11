@@ -14,6 +14,7 @@ import {
   faChrome,
 } from '@fortawesome/free-brands-svg-icons';
 import type { IconDefinition } from '@fortawesome/fontawesome-svg-core';
+import { appStoreUrl, playStoreUrl } from '@/constants/links';
 
 type Platform = {
   icon: IconDefinition;
@@ -127,13 +128,23 @@ const PlatformsSection = () => {
           className="mt-12 flex flex-wrap items-center justify-center gap-3"
         >
           {[
-            { icon: faApple, label: 'App Store', href: '#' },
-            { icon: faGooglePlay, label: 'Google Play', href: '#' },
+            {
+              icon: faApple,
+              label: 'App Store',
+              href: appStoreUrl({ source: 'platforms_section' }),
+            },
+            {
+              icon: faGooglePlay,
+              label: 'Google Play',
+              href: playStoreUrl({ source: 'platforms_section' }),
+            },
             { icon: faChrome, label: 'Chrome Web Store', href: '#' },
           ].map((badge) => (
             <a
               key={badge.label}
               href={badge.href}
+              target={badge.href !== '#' ? '_blank' : undefined}
+              rel={badge.href !== '#' ? 'noopener noreferrer' : undefined}
               className="flex items-center gap-2 rounded-full border border-border px-5 py-2.5 text-sm font-medium text-gray transition-colors hover:border-teal hover:text-dark"
             >
               <FontAwesomeIcon icon={badge.icon} className="text-base" />

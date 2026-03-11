@@ -55,10 +55,6 @@
     {
       "path": "/api/cron/onboarding-sequence",
       "schedule": "0 * * * *"
-    },
-    {
-      "path": "/api/cron/waitlist-sequence",
-      "schedule": "0 * * * *"
     }
   ]
 }

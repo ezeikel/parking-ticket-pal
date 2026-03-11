@@ -3,6 +3,8 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { motion, AnimatePresence, type Variants } from 'framer-motion';
 import { faBolt, faCamera } from '@fortawesome/pro-solid-svg-icons';
+import { faApple, faGooglePlay } from '@fortawesome/free-brands-svg-icons';
+import { appStoreUrl, playStoreUrl } from '@/constants/links';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import Image from 'next/image';
 import { toast } from 'sonner';
@@ -493,7 +495,50 @@ const Hero = () => {
               </Button>
             </motion.div>
 
-            {/* TODO: Add App Store + Google Play buttons back when apps are live */}
+            {/* App Store Badges */}
+            <motion.div
+              variants={fadeUpVariants}
+              className="mt-6 flex flex-wrap justify-center gap-3 lg:justify-start"
+            >
+              <a
+                href={appStoreUrl({ source: 'hero' })}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex h-10 items-center gap-2 rounded-lg border border-white/30 bg-white/10 px-4 transition-colors hover:bg-white/20"
+              >
+                <FontAwesomeIcon
+                  icon={faApple}
+                  className="text-lg text-white"
+                />
+                <div className="flex flex-col text-left">
+                  <span className="text-[8px] leading-tight text-white/60">
+                    Download on the
+                  </span>
+                  <span className="text-xs font-semibold leading-tight text-white">
+                    App Store
+                  </span>
+                </div>
+              </a>
+              <a
+                href={playStoreUrl({ source: 'hero' })}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex h-10 items-center gap-2 rounded-lg border border-white/30 bg-white/10 px-4 transition-colors hover:bg-white/20"
+              >
+                <FontAwesomeIcon
+                  icon={faGooglePlay}
+                  className="text-sm text-white"
+                />
+                <div className="flex flex-col text-left">
+                  <span className="text-[8px] leading-tight text-white/60">
+                    GET IT ON
+                  </span>
+                  <span className="text-xs font-semibold leading-tight text-white">
+                    Google Play
+                  </span>
+                </div>
+              </a>
+            </motion.div>
           </motion.div>
 
           {/* Right Column - Upload Card (Desktop) */}
