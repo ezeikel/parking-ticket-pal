@@ -12,8 +12,7 @@ import {
 
 const logger = createServerLogger({ action: 'cron-onboarding-sequence' });
 
-// eslint-disable-next-line import-x/prefer-default-export
-export async function POST(request: Request) {
+async function handleRequest(request: Request) {
   try {
     // Verify cron secret for security
     const authHeader = request.headers.get('authorization');
@@ -225,3 +224,5 @@ export async function POST(request: Request) {
     );
   }
 }
+
+export { handleRequest as GET, handleRequest as POST };
