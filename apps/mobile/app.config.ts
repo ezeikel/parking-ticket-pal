@@ -2,24 +2,52 @@ import { ExpoConfig, ConfigContext } from 'expo/config';
 import pkg from "./package.json";
 
 export default ({ config }: ConfigContext): ExpoConfig => {
+  const env = process.env.EXPO_PUBLIC_ENVIRONMENT || 'development';
   const facebookAppId = process.env.EXPO_PUBLIC_FACEBOOK_APP_ID || '';
   // reverse the Google iOS Client ID (from xxx.apps.googleusercontent.com to com.googleusercontent.apps.xxx)
   const googleIosClientId = process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID
     ? process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID.split('.').reverse().join('.')
     : '';
 
+  // Environment-specific app name
+  const appName = env === 'production'
+    ? "Parking Ticket Pal"
+    : env === 'preview'
+      ? "PTP Internal"
+      : "PTP Dev";
+
+  // Environment-specific bundle identifiers
+  const bundleId = env === 'production'
+    ? "com.chewybytes.parkingticketpal.app"
+    : env === 'preview'
+      ? "com.chewybytes.parkingticketpal.app.internal"
+      : "com.chewybytes.parkingticketpal.app.dev";
+
+  // Environment-specific icons
+  const icon = env === 'production'
+    ? "./assets/images/icon.png"
+    : env === 'preview'
+      ? "./assets/images/icon-preview.png"
+      : "./assets/images/icon-dev.png";
+
+  const adaptiveIcon = env === 'production'
+    ? "./assets/images/adaptive-icon.png"
+    : env === 'preview'
+      ? "./assets/images/adaptive-icon-preview.png"
+      : "./assets/images/adaptive-icon-dev.png";
+
   return {
     ...config,
-    name: "Parking Ticket Pal",
+    name: appName,
     slug: "parking-ticket-pal",
     owner: "chewybytes",
     version: pkg.version,
     orientation: "portrait",
-    icon: "./assets/images/icon.png",
+    icon,
     scheme: "parkingticketpal",
     userInterfaceStyle: "light",
     ios: {
-      bundleIdentifier: "com.chewybytes.parkingticketpal.app",
+      bundleIdentifier: bundleId,
       supportsTablet: true,
       usesAppleSignIn: true,
       infoPlist: {
@@ -122,10 +150,10 @@ export default ({ config }: ConfigContext): ExpoConfig => {
       },
     },
     android: {
-      package: "com.chewybytes.parkingticketpal.app",
+      package: bundleId,
       adaptiveIcon: {
-        foregroundImage: "./assets/images/adaptive-icon.png",
-        backgroundColor: "#ffffff",
+        foregroundImage: adaptiveIcon,
+        backgroundColor: env === 'production' ? "#ffffff" : "#1a3a3a",
       },
       intentFilters: [
         {
