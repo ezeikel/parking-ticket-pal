@@ -65,6 +65,10 @@ const selectInterestingCase = async () => {
       AND ltc."contraventionLocation" IS NOT NULL
       AND ltc.contravention IS NOT NULL
       AND ltc.id NOT IN (SELECT "caseId" FROM tribunal_case_videos)
+      AND ltc.reasons NOT IN (
+        SELECT ltc2.reasons FROM london_tribunal_cases ltc2
+        JOIN tribunal_case_videos tcv ON tcv."caseId" = ltc2.id
+      )
     ORDER BY RANDOM()
     LIMIT 50
   `;
