@@ -63,6 +63,8 @@ const penaltyAmounts: Record<PenaltyLevel, { full: string; reduced: string }> =
     'n/a': { full: '£65-£130', reduced: 'Varies by authority' },
   };
 
+export const dynamic = 'force-static';
+
 export async function generateStaticParams() {
   return Object.keys(CONTRAVENTION_CODES).map((code) => ({
     code,

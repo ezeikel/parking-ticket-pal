@@ -10,7 +10,7 @@ import HeaderWrapper from '@/components/Header/HeaderWrapper';
 import FundAccountDialog from '@/components/dialogs/FundAccountDialog/FundAccountDialog';
 import Footer from '@/components/Footer/Footer';
 import PendingActionHandler from '@/components/PendingActionHandler';
-import { FacebookPixel } from '@/components/analytics/FacebookPixel';
+import FacebookPixel from '@/components/analytics/FacebookPixel';
 import { SITE_URL } from '@/constants';
 import Providers from './providers';
 import { plusJakartaSans, robotoSlab, ukNumberPlate } from './fonts';

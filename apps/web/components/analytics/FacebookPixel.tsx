@@ -18,7 +18,7 @@ function FacebookPixelEvents() {
   return null;
 }
 
-export function FacebookPixel() {
+export default function FacebookPixel() {
   if (!FB_PIXEL_ID) {
     return null;
   }
@@ -36,7 +36,7 @@ export function FacebookPixel() {
             if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
             n.queue=[];t=b.createElement(e);t.async=!0;
             t.src=v;s=b.getElementsByTagName(e)[0];
-            s.parentNode.insertBefore(t,s)}(window, document,'script',
+            if(s&&s.parentNode){s.parentNode.insertBefore(t,s)}else{b.head.appendChild(t)}}(window, document,'script',
             'https://connect.facebook.net/en_US/fbevents.js');
             fbq('init', '${FB_PIXEL_ID}');
           `,

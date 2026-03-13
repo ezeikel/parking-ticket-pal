@@ -13,9 +13,23 @@ export const OPTIONS = () =>
   new Response(null, { status: 204, headers: corsHeaders });
 
 export const POST = async (req: Request) => {
-  const { pcnNumber, ticketId } = await req.json();
+  try {
+    const { pcnNumber, ticketId } = await req.json();
 
-  const valid = await verifyTicket(pcnNumber, ticketId);
+    if (!pcnNumber && !ticketId) {
+      return Response.json(
+        { valid: false, error: 'pcnNumber or ticketId is required' },
+        { headers: corsHeaders, status: 400 },
+      );
+    }
 
-  return Response.json({ valid }, { headers: corsHeaders, status: 200 });
+    const valid = await verifyTicket(pcnNumber, ticketId);
+
+    return Response.json({ valid }, { headers: corsHeaders, status: 200 });
+  } catch {
+    return Response.json(
+      { valid: false, error: 'Internal server error' },
+      { headers: corsHeaders, status: 500 },
+    );
+  }
 };

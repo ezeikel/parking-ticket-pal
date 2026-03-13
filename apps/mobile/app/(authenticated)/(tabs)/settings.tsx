@@ -160,6 +160,7 @@ const SettingsScreen = () => {
         await refetch();
         queryClient.invalidateQueries({ queryKey: ['tickets'] });
       } else {
+        trackEvent("link_account_success", { screen: "settings", method: "magic_link", via: "email_verification" });
         toast.success('Email Sent', 'Check your inbox for the login link');
       }
     } catch (error) {
