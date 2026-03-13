@@ -419,7 +419,8 @@ export const ModelName = {
   HighwayCodeSign: 'HighwayCodeSign',
   HighwayCodeQuizPost: 'HighwayCodeQuizPost',
   OnboardingSequence: 'OnboardingSequence',
-  InstagramPostBlogMapping: 'InstagramPostBlogMapping'
+  InstagramPostBlogMapping: 'InstagramPostBlogMapping',
+  SocialCommentQueue: 'SocialCommentQueue'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -435,7 +436,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "mobileDeviceSession" | "vehicle" | "ticket" | "draftTicket" | "media" | "letter" | "reminder" | "form" | "prediction" | "amountIncrease" | "verification" | "challenge" | "notification" | "pushToken" | "account" | "session" | "verificationToken" | "referralCode" | "referral" | "referralCredit" | "londonTribunalCase" | "appealDataSource" | "contraventionStats" | "issuerContraventionStats" | "appealPattern" | "pendingIssuer" | "pendingChallenge" | "pendingTicket" | "issuerHealthCheck" | "tribunalCaseVideo" | "newsVideo" | "highwayCodeSign" | "highwayCodeQuizPost" | "onboardingSequence" | "instagramPostBlogMapping"
+    modelProps: "user" | "mobileDeviceSession" | "vehicle" | "ticket" | "draftTicket" | "media" | "letter" | "reminder" | "form" | "prediction" | "amountIncrease" | "verification" | "challenge" | "notification" | "pushToken" | "account" | "session" | "verificationToken" | "referralCode" | "referral" | "referralCredit" | "londonTribunalCase" | "appealDataSource" | "contraventionStats" | "issuerContraventionStats" | "appealPattern" | "pendingIssuer" | "pendingChallenge" | "pendingTicket" | "issuerHealthCheck" | "tribunalCaseVideo" | "newsVideo" | "highwayCodeSign" | "highwayCodeQuizPost" | "onboardingSequence" | "instagramPostBlogMapping" | "socialCommentQueue"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -3103,6 +3104,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    SocialCommentQueue: {
+      payload: Prisma.$SocialCommentQueuePayload<ExtArgs>
+      fields: Prisma.SocialCommentQueueFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.SocialCommentQueueFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SocialCommentQueuePayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.SocialCommentQueueFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SocialCommentQueuePayload>
+        }
+        findFirst: {
+          args: Prisma.SocialCommentQueueFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SocialCommentQueuePayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.SocialCommentQueueFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SocialCommentQueuePayload>
+        }
+        findMany: {
+          args: Prisma.SocialCommentQueueFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SocialCommentQueuePayload>[]
+        }
+        create: {
+          args: Prisma.SocialCommentQueueCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SocialCommentQueuePayload>
+        }
+        createMany: {
+          args: Prisma.SocialCommentQueueCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.SocialCommentQueueCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SocialCommentQueuePayload>[]
+        }
+        delete: {
+          args: Prisma.SocialCommentQueueDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SocialCommentQueuePayload>
+        }
+        update: {
+          args: Prisma.SocialCommentQueueUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SocialCommentQueuePayload>
+        }
+        deleteMany: {
+          args: Prisma.SocialCommentQueueDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.SocialCommentQueueUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.SocialCommentQueueUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SocialCommentQueuePayload>[]
+        }
+        upsert: {
+          args: Prisma.SocialCommentQueueUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SocialCommentQueuePayload>
+        }
+        aggregate: {
+          args: Prisma.SocialCommentQueueAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateSocialCommentQueue>
+        }
+        groupBy: {
+          args: Prisma.SocialCommentQueueGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.SocialCommentQueueGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.SocialCommentQueueCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.SocialCommentQueueCountAggregateOutputType> | number
+        }
+      }
+    }
   }
 } & {
   other: {
@@ -3754,6 +3829,32 @@ export const InstagramPostBlogMappingScalarFieldEnum = {
 export type InstagramPostBlogMappingScalarFieldEnum = (typeof InstagramPostBlogMappingScalarFieldEnum)[keyof typeof InstagramPostBlogMappingScalarFieldEnum]
 
 
+export const SocialCommentQueueScalarFieldEnum = {
+  id: 'id',
+  platform: 'platform',
+  commentId: 'commentId',
+  postId: 'postId',
+  authorId: 'authorId',
+  authorUsername: 'authorUsername',
+  commentText: 'commentText',
+  postCaption: 'postCaption',
+  status: 'status',
+  commentType: 'commentType',
+  processAfter: 'processAfter',
+  processedAt: 'processedAt',
+  replyText: 'replyText',
+  replyCommentId: 'replyCommentId',
+  liked: 'liked',
+  factChecked: 'factChecked',
+  errorMessage: 'errorMessage',
+  retryCount: 'retryCount',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type SocialCommentQueueScalarFieldEnum = (typeof SocialCommentQueueScalarFieldEnum)[keyof typeof SocialCommentQueueScalarFieldEnum]
+
+
 export const SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -4339,6 +4440,48 @@ export type EnumOnboardingExitReasonFieldRefInput<$PrismaModel> = FieldRefInputT
 export type ListEnumOnboardingExitReasonFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'OnboardingExitReason[]'>
     
 
+
+/**
+ * Reference to a field of type 'SocialPlatform'
+ */
+export type EnumSocialPlatformFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'SocialPlatform'>
+    
+
+
+/**
+ * Reference to a field of type 'SocialPlatform[]'
+ */
+export type ListEnumSocialPlatformFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'SocialPlatform[]'>
+    
+
+
+/**
+ * Reference to a field of type 'CommentQueueStatus'
+ */
+export type EnumCommentQueueStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'CommentQueueStatus'>
+    
+
+
+/**
+ * Reference to a field of type 'CommentQueueStatus[]'
+ */
+export type ListEnumCommentQueueStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'CommentQueueStatus[]'>
+    
+
+
+/**
+ * Reference to a field of type 'CommentType'
+ */
+export type EnumCommentTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'CommentType'>
+    
+
+
+/**
+ * Reference to a field of type 'CommentType[]'
+ */
+export type ListEnumCommentTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'CommentType[]'>
+    
+
 /**
  * Batch Payload for updateMany & deleteMany & createMany
  */
@@ -4470,6 +4613,7 @@ export type GlobalOmitConfig = {
   highwayCodeQuizPost?: Prisma.HighwayCodeQuizPostOmit
   onboardingSequence?: Prisma.OnboardingSequenceOmit
   instagramPostBlogMapping?: Prisma.InstagramPostBlogMappingOmit
+  socialCommentQueue?: Prisma.SocialCommentQueueOmit
 }
 
 /* Types for Logging */

@@ -374,3 +374,36 @@ export const OnboardingExitReason = {
 } as const
 
 export type OnboardingExitReason = (typeof OnboardingExitReason)[keyof typeof OnboardingExitReason]
+
+
+export const SocialPlatform = {
+  INSTAGRAM: 'INSTAGRAM',
+  FACEBOOK: 'FACEBOOK'
+} as const
+
+export type SocialPlatform = (typeof SocialPlatform)[keyof typeof SocialPlatform]
+
+
+export const CommentQueueStatus = {
+  PENDING: 'PENDING',
+  PROCESSING: 'PROCESSING',
+  REPLIED: 'REPLIED',
+  SKIPPED: 'SKIPPED',
+  FAILED: 'FAILED'
+} as const
+
+export type CommentQueueStatus = (typeof CommentQueueStatus)[keyof typeof CommentQueueStatus]
+
+
+export const CommentType = {
+  AGREEMENT: 'AGREEMENT',
+  QUESTION: 'QUESTION',
+  CORRECTION: 'CORRECTION',
+  COMBATIVE: 'COMBATIVE',
+  APPRECIATION: 'APPRECIATION',
+  EMOJI_ONLY: 'EMOJI_ONLY',
+  SPAM: 'SPAM',
+  OTHER: 'OTHER'
+} as const
+
+export type CommentType = (typeof CommentType)[keyof typeof CommentType]

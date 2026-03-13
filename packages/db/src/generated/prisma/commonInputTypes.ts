@@ -895,6 +895,57 @@ export type EnumOnboardingExitReasonNullableWithAggregatesFilter<$PrismaModel = 
   _max?: Prisma.NestedEnumOnboardingExitReasonNullableFilter<$PrismaModel>
 }
 
+export type EnumSocialPlatformFilter<$PrismaModel = never> = {
+  equals?: $Enums.SocialPlatform | Prisma.EnumSocialPlatformFieldRefInput<$PrismaModel>
+  in?: $Enums.SocialPlatform[] | Prisma.ListEnumSocialPlatformFieldRefInput<$PrismaModel>
+  notIn?: $Enums.SocialPlatform[] | Prisma.ListEnumSocialPlatformFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumSocialPlatformFilter<$PrismaModel> | $Enums.SocialPlatform
+}
+
+export type EnumCommentQueueStatusFilter<$PrismaModel = never> = {
+  equals?: $Enums.CommentQueueStatus | Prisma.EnumCommentQueueStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.CommentQueueStatus[] | Prisma.ListEnumCommentQueueStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.CommentQueueStatus[] | Prisma.ListEnumCommentQueueStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumCommentQueueStatusFilter<$PrismaModel> | $Enums.CommentQueueStatus
+}
+
+export type EnumCommentTypeNullableFilter<$PrismaModel = never> = {
+  equals?: $Enums.CommentType | Prisma.EnumCommentTypeFieldRefInput<$PrismaModel> | null
+  in?: $Enums.CommentType[] | Prisma.ListEnumCommentTypeFieldRefInput<$PrismaModel> | null
+  notIn?: $Enums.CommentType[] | Prisma.ListEnumCommentTypeFieldRefInput<$PrismaModel> | null
+  not?: Prisma.NestedEnumCommentTypeNullableFilter<$PrismaModel> | $Enums.CommentType | null
+}
+
+export type EnumSocialPlatformWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.SocialPlatform | Prisma.EnumSocialPlatformFieldRefInput<$PrismaModel>
+  in?: $Enums.SocialPlatform[] | Prisma.ListEnumSocialPlatformFieldRefInput<$PrismaModel>
+  notIn?: $Enums.SocialPlatform[] | Prisma.ListEnumSocialPlatformFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumSocialPlatformWithAggregatesFilter<$PrismaModel> | $Enums.SocialPlatform
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumSocialPlatformFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumSocialPlatformFilter<$PrismaModel>
+}
+
+export type EnumCommentQueueStatusWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.CommentQueueStatus | Prisma.EnumCommentQueueStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.CommentQueueStatus[] | Prisma.ListEnumCommentQueueStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.CommentQueueStatus[] | Prisma.ListEnumCommentQueueStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumCommentQueueStatusWithAggregatesFilter<$PrismaModel> | $Enums.CommentQueueStatus
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumCommentQueueStatusFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumCommentQueueStatusFilter<$PrismaModel>
+}
+
+export type EnumCommentTypeNullableWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.CommentType | Prisma.EnumCommentTypeFieldRefInput<$PrismaModel> | null
+  in?: $Enums.CommentType[] | Prisma.ListEnumCommentTypeFieldRefInput<$PrismaModel> | null
+  notIn?: $Enums.CommentType[] | Prisma.ListEnumCommentTypeFieldRefInput<$PrismaModel> | null
+  not?: Prisma.NestedEnumCommentTypeNullableWithAggregatesFilter<$PrismaModel> | $Enums.CommentType | null
+  _count?: Prisma.NestedIntNullableFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumCommentTypeNullableFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumCommentTypeNullableFilter<$PrismaModel>
+}
+
 export type NestedStringFilter<$PrismaModel = never> = {
   equals?: string | Prisma.StringFieldRefInput<$PrismaModel>
   in?: string[] | Prisma.ListStringFieldRefInput<$PrismaModel>
@@ -1738,6 +1789,57 @@ export type NestedEnumOnboardingExitReasonNullableWithAggregatesFilter<$PrismaMo
   _count?: Prisma.NestedIntNullableFilter<$PrismaModel>
   _min?: Prisma.NestedEnumOnboardingExitReasonNullableFilter<$PrismaModel>
   _max?: Prisma.NestedEnumOnboardingExitReasonNullableFilter<$PrismaModel>
+}
+
+export type NestedEnumSocialPlatformFilter<$PrismaModel = never> = {
+  equals?: $Enums.SocialPlatform | Prisma.EnumSocialPlatformFieldRefInput<$PrismaModel>
+  in?: $Enums.SocialPlatform[] | Prisma.ListEnumSocialPlatformFieldRefInput<$PrismaModel>
+  notIn?: $Enums.SocialPlatform[] | Prisma.ListEnumSocialPlatformFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumSocialPlatformFilter<$PrismaModel> | $Enums.SocialPlatform
+}
+
+export type NestedEnumCommentQueueStatusFilter<$PrismaModel = never> = {
+  equals?: $Enums.CommentQueueStatus | Prisma.EnumCommentQueueStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.CommentQueueStatus[] | Prisma.ListEnumCommentQueueStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.CommentQueueStatus[] | Prisma.ListEnumCommentQueueStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumCommentQueueStatusFilter<$PrismaModel> | $Enums.CommentQueueStatus
+}
+
+export type NestedEnumCommentTypeNullableFilter<$PrismaModel = never> = {
+  equals?: $Enums.CommentType | Prisma.EnumCommentTypeFieldRefInput<$PrismaModel> | null
+  in?: $Enums.CommentType[] | Prisma.ListEnumCommentTypeFieldRefInput<$PrismaModel> | null
+  notIn?: $Enums.CommentType[] | Prisma.ListEnumCommentTypeFieldRefInput<$PrismaModel> | null
+  not?: Prisma.NestedEnumCommentTypeNullableFilter<$PrismaModel> | $Enums.CommentType | null
+}
+
+export type NestedEnumSocialPlatformWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.SocialPlatform | Prisma.EnumSocialPlatformFieldRefInput<$PrismaModel>
+  in?: $Enums.SocialPlatform[] | Prisma.ListEnumSocialPlatformFieldRefInput<$PrismaModel>
+  notIn?: $Enums.SocialPlatform[] | Prisma.ListEnumSocialPlatformFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumSocialPlatformWithAggregatesFilter<$PrismaModel> | $Enums.SocialPlatform
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumSocialPlatformFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumSocialPlatformFilter<$PrismaModel>
+}
+
+export type NestedEnumCommentQueueStatusWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.CommentQueueStatus | Prisma.EnumCommentQueueStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.CommentQueueStatus[] | Prisma.ListEnumCommentQueueStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.CommentQueueStatus[] | Prisma.ListEnumCommentQueueStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumCommentQueueStatusWithAggregatesFilter<$PrismaModel> | $Enums.CommentQueueStatus
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumCommentQueueStatusFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumCommentQueueStatusFilter<$PrismaModel>
+}
+
+export type NestedEnumCommentTypeNullableWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.CommentType | Prisma.EnumCommentTypeFieldRefInput<$PrismaModel> | null
+  in?: $Enums.CommentType[] | Prisma.ListEnumCommentTypeFieldRefInput<$PrismaModel> | null
+  notIn?: $Enums.CommentType[] | Prisma.ListEnumCommentTypeFieldRefInput<$PrismaModel> | null
+  not?: Prisma.NestedEnumCommentTypeNullableWithAggregatesFilter<$PrismaModel> | $Enums.CommentType | null
+  _count?: Prisma.NestedIntNullableFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumCommentTypeNullableFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumCommentTypeNullableFilter<$PrismaModel>
 }
 
 

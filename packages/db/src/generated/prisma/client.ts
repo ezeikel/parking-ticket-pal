@@ -219,3 +219,8 @@ export type OnboardingSequence = Prisma.OnboardingSequenceModel
  * 
  */
 export type InstagramPostBlogMapping = Prisma.InstagramPostBlogMappingModel
+/**
+ * Model SocialCommentQueue
+ * 
+ */
+export type SocialCommentQueue = Prisma.SocialCommentQueueModel

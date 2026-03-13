@@ -1,7 +1,12 @@
 /* eslint-disable no-restricted-syntax, no-continue */
 import { NextRequest, NextResponse } from 'next/server';
+import { db } from '@parking-ticket-pal/db';
 import { createServerLogger } from '@/lib/logger';
-import { handleTriggerComment } from '@/lib/instagram-automation';
+import {
+  handleTriggerComment,
+  fetchInstagramPostCaption,
+  fetchFacebookPostMessage,
+} from '@/lib/instagram-automation';
 
 const log = createServerLogger({ action: 'facebook-webhook' });
 
@@ -11,8 +16,64 @@ const VERIFY_TOKEN =
 /** Our own Instagram account ID — ignore comments from ourselves */
 const OWN_IG_ACCOUNT_ID = process.env.INSTAGRAM_ACCOUNT_ID;
 
+/** Our own Facebook Page ID — ignore comments from ourselves */
+const { FACEBOOK_PAGE_ID } = process.env;
+
 /** Comment text patterns that trigger the DM automation */
 const TRIGGER_PATTERNS = /^(ptp|link)$/i;
+
+/**
+ * Queue a comment for AI-powered reply.
+ * Deduplicates on commentId (unique constraint) and adds a random delay of 2-5 min.
+ */
+async function queueCommentForReply({
+  platform,
+  commentId,
+  postId,
+  authorId,
+  authorUsername,
+  commentText,
+  postCaption,
+}: {
+  platform: 'INSTAGRAM' | 'FACEBOOK';
+  commentId: string;
+  postId: string;
+  authorId: string;
+  authorUsername: string | null;
+  commentText: string;
+  postCaption: string | null;
+}): Promise<void> {
+  const delayMs = (120 + Math.random() * 180) * 1000; // 2-5 minutes
+  const processAfter = new Date(Date.now() + delayMs);
+
+  try {
+    await db.socialCommentQueue.create({
+      data: {
+        platform,
+        commentId,
+        postId,
+        authorId,
+        authorUsername,
+        commentText,
+        postCaption,
+        processAfter,
+      },
+    });
+    log.info('Comment queued for AI reply', {
+      platform,
+      commentId,
+      postId,
+      processAfter: processAfter.toISOString(),
+    });
+  } catch (error) {
+    // Unique constraint violation = duplicate webhook, safe to ignore
+    if (error instanceof Error && error.message.includes('Unique constraint')) {
+      log.info('Duplicate comment ignored', { commentId });
+      return;
+    }
+    throw error;
+  }
+}
 
 export const GET = async (req: NextRequest) => {
   const { searchParams } = new URL(req.url);
@@ -35,6 +96,9 @@ export const POST = async (req: NextRequest) => {
     const body = await req.json();
     debugLog.push(`[webhook] FULL BODY: ${JSON.stringify(body)}`);
 
+    // ====================================================================
+    // Instagram comments
+    // ====================================================================
     if (body.object === 'instagram') {
       const promises: Promise<void>[] = [];
 
@@ -83,7 +147,27 @@ export const POST = async (req: NextRequest) => {
                   }),
               );
             } else {
-              debugLog.push(`[webhook] Not a trigger: "${trimmedText}"`);
+              // Non-trigger comment — queue for AI reply
+              debugLog.push(
+                `[webhook] Queueing for AI reply: "${trimmedText}" from=${from.username}`,
+              );
+
+              promises.push(
+                (async () => {
+                  const caption = await fetchInstagramPostCaption(media.id);
+                  await queueCommentForReply({
+                    platform: 'INSTAGRAM',
+                    commentId,
+                    postId: media.id,
+                    authorId: from.id,
+                    authorUsername: from.username,
+                    commentText: trimmedText,
+                    postCaption: caption,
+                  });
+                })().catch((error) => {
+                  debugLog.push(`[webhook] Queue error: ${error}`);
+                }),
+              );
             }
           }
         }
@@ -92,8 +176,65 @@ export const POST = async (req: NextRequest) => {
       if (promises.length > 0) {
         await Promise.all(promises);
       }
-    } else {
-      debugLog.push(`[webhook] Non-instagram object: ${body.object}`);
+    }
+
+    // ====================================================================
+    // Facebook Page feed (comments on Page posts)
+    // ====================================================================
+    if (body.object === 'page') {
+      const promises: Promise<void>[] = [];
+
+      for (const entry of body.entry || []) {
+        for (const change of entry.changes || []) {
+          if (change.field !== 'feed') continue;
+
+          const { value } = change;
+          if (!value || value.item !== 'comment' || value.verb !== 'add')
+            continue;
+
+          const {
+            comment_id: commentId,
+            message,
+            from,
+            post_id: postId,
+            parent_id: parentId,
+          } = value;
+
+          // Skip: missing data, nested replies, empty messages, own comments
+          if (!commentId || !message || !from || !postId) continue;
+          if (parentId) continue; // nested reply
+          if (from.id === FACEBOOK_PAGE_ID) continue; // our own comment
+
+          debugLog.push(
+            `[webhook] FB comment: "${message}" from=${from.name} post=${postId}`,
+          );
+
+          promises.push(
+            (async () => {
+              const caption = await fetchFacebookPostMessage(postId);
+              await queueCommentForReply({
+                platform: 'FACEBOOK',
+                commentId,
+                postId,
+                authorId: from.id,
+                authorUsername: from.name || null,
+                commentText: message.trim(),
+                postCaption: caption,
+              });
+            })().catch((error) => {
+              debugLog.push(`[webhook] FB queue error: ${error}`);
+            }),
+          );
+        }
+      }
+
+      if (promises.length > 0) {
+        await Promise.all(promises);
+      }
+    }
+
+    if (body.object !== 'instagram' && body.object !== 'page') {
+      debugLog.push(`[webhook] Unhandled object type: ${body.object}`);
     }
 
     // Log everything at once

@@ -1045,3 +1045,62 @@ model InstagramPostBlogMapping {
   @@index([instagramMediaId])
   @@map("instagram_post_blog_mappings")
 }
+
+// ============================================================================
+// Social Comment Auto-Reply Queue
+// ============================================================================
+
+enum SocialPlatform {
+  INSTAGRAM
+  FACEBOOK
+}
+
+enum CommentQueueStatus {
+  PENDING
+  PROCESSING
+  REPLIED
+  SKIPPED
+  FAILED
+}
+
+enum CommentType {
+  AGREEMENT
+  QUESTION
+  CORRECTION
+  COMBATIVE
+  APPRECIATION
+  EMOJI_ONLY
+  SPAM
+  OTHER
+}
+
+model SocialCommentQueue {
+  id             String         @id @default(cuid())
+  platform       SocialPlatform
+  commentId      String         @unique
+  postId         String
+  authorId       String
+  authorUsername String?
+  commentText    String
+  postCaption    String?
+
+  status       CommentQueueStatus @default(PENDING)
+  commentType  CommentType?
+  processAfter DateTime
+  processedAt  DateTime?
+
+  replyText      String?
+  replyCommentId String?
+  liked          Boolean @default(false)
+  factChecked    Boolean @default(false)
+
+  errorMessage String?
+  retryCount   Int     @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([status, processAfter])
+  @@index([postId])
+  @@map("social_comment_queue")
+}

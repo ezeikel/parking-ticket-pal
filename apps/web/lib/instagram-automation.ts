@@ -51,7 +51,7 @@ function getRandomCommentReply(username: string): string {
  * Reply to a comment on Instagram.
  * POST /{comment-id}/replies
  */
-async function replyToComment(
+export async function replyToComment(
   commentId: string,
   message: string,
 ): Promise<{ success: boolean; error?: string }> {
@@ -196,6 +196,128 @@ async function sendButtonDM(
   }
 }
 
+/**
+ * Like a comment on Instagram or Facebook.
+ * POST /{comment-id}/likes
+ */
+export async function likeComment(
+  commentId: string,
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    const response = await fetch(
+      `https://graph.facebook.com/v24.0/${commentId}/likes`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          access_token: PAGE_ACCESS_TOKEN,
+        }),
+      },
+    );
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(`Like comment failed: ${JSON.stringify(data)}`);
+    }
+
+    return { success: true };
+  } catch (error) {
+    const err = error instanceof Error ? error : new Error(String(error));
+    logger.error('Failed to like comment', { commentId }, err);
+    return { success: false, error: err.message };
+  }
+}
+
+/**
+ * Fetch the caption for an Instagram post.
+ * GET /{media-id}?fields=caption
+ */
+export async function fetchInstagramPostCaption(
+  mediaId: string,
+): Promise<string | null> {
+  try {
+    const response = await fetch(
+      `https://graph.facebook.com/v24.0/${mediaId}?fields=caption&access_token=${PAGE_ACCESS_TOKEN}`,
+    );
+    const data = await response.json();
+
+    if (!response.ok) {
+      logger.warn('Failed to fetch IG post caption', {
+        mediaId,
+        error: JSON.stringify(data),
+      });
+      return null;
+    }
+
+    return data.caption || null;
+  } catch (_error) {
+    logger.warn('Error fetching IG post caption', { mediaId });
+    return null;
+  }
+}
+
+/**
+ * Fetch the message for a Facebook post.
+ * GET /{post-id}?fields=message
+ */
+export async function fetchFacebookPostMessage(
+  postId: string,
+): Promise<string | null> {
+  try {
+    const response = await fetch(
+      `https://graph.facebook.com/v24.0/${postId}?fields=message&access_token=${PAGE_ACCESS_TOKEN}`,
+    );
+    const data = await response.json();
+
+    if (!response.ok) {
+      logger.warn('Failed to fetch FB post message', {
+        postId,
+        error: JSON.stringify(data),
+      });
+      return null;
+    }
+
+    return data.message || null;
+  } catch (_error) {
+    logger.warn('Error fetching FB post message', { postId });
+    return null;
+  }
+}
+
+/**
+ * Reply to a comment on Facebook.
+ * POST /{comment-id}/comments (FB uses /comments not /replies)
+ */
+export async function replyToFacebookComment(
+  commentId: string,
+  message: string,
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    const response = await fetch(
+      `https://graph.facebook.com/v24.0/${commentId}/comments`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          message,
+          access_token: PAGE_ACCESS_TOKEN,
+        }),
+      },
+    );
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(`FB comment reply failed: ${JSON.stringify(data)}`);
+    }
+
+    return { success: true };
+  } catch (error) {
+    const err = error instanceof Error ? error : new Error(String(error));
+    logger.error('Failed to reply to FB comment', { commentId }, err);
+    return { success: false, error: err.message };
+  }
+}
+
 // ============================================================================
 // DM flow — mirrors ManyChat's multi-step approach
 // ============================================================================
@@ -268,7 +390,7 @@ async function sendDMSequence(
  * 2. Reply to the comment (varied responses)
  * 3. Send multi-step DM sequence (opening, follow CTA, link)
  */
-// eslint-disable-next-line import-x/prefer-default-export
+
 export async function handleTriggerComment({
   commentId,
   commenterId,
