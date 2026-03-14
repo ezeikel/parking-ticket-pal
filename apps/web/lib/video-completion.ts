@@ -16,68 +16,74 @@ const SITE_URL = process.env.NEXT_PUBLIC_APP_URL || DEFAULT_SITE_URL;
 // ============================================================================
 
 const getPlatformGuidelines = (platform: string): string => {
+  // Guidelines based on Perplexity Sonar Deep Research (March 2026)
+  // Key finding: hashtags are now topic verification signals, NOT distribution
+  // drivers across all platforms. Semantic keywords matter more.
   const guidelines: Record<string, string> = {
-    instagram: `Instagram Reels format:
-- 100-150 characters ideal for fast-scrolling feeds
-- Open with a bold question or stat as hook (e.g. "Fined £100 for this parking mistake?")
-- Conversational British English, relatable and authoritative — like a trusted motoring expert
-- 3-5 emoji integrated after key phrases for visual breaks (e.g. 🚗💰⚠️), avoid looking spammy
-- Line breaks every 1-2 sentences; structure as: hook → 2-3 key points → CTA → hashtags
-- CTA: direct prompts like "Save for your next drive 👇" or "Tag a mate who needs this"
-- 5-8 targeted hashtags at the end on a separate line (mix 2-3 broad like #UKParking with 4-5 niche like #PCN #ParkingAppeals)
-- Include primary keyword in first line for algorithm categorisation
-- Do NOT put hashtags inline in the body text`,
+    instagram: `Instagram Reels caption (2026 best practices):
+- Only the first 125 characters show before "See More" — front-load your hook and value prop there
+- Open with a specific, benefit-focused hook (e.g. "New parking rule saves drivers £500+ if you know this one change")
+- Conversational British English — like a trusted motoring expert, NOT corporate tone
+- 2-3 emoji max for functional emphasis (👉 for CTAs, ✅ for steps), not decorative
+- Structure: hook (first 125 chars) → key insight → engagement CTA
+- CTA: specific engagement prompts like "Which parking rule surprised you most?" or "Save this for your next drive" — these drive comments which the algorithm rewards most
+- HASHTAGS: Max 3-5 (Instagram now caps this). Hashtags are topic verification ONLY, not distribution drivers (confirmed by Adam Mosseri). Use niche terms like #PCN #ParkingAppeals not broad ones like #cars
+- Weave keywords naturally into caption text — Instagram's algorithm uses NLP to categorise content, keywords matter more than hashtags
+- Do NOT use 10+ hashtags (platform penalises this), do NOT write press-release tone`,
 
-    facebook: `Facebook Reels format:
-- Up to 250 characters — Facebook's older demographic reads more than Instagram's
-- Open with a problem-solution hook (e.g. "Avoid this £130 PCN trap")
-- Warm, advisory British English — like a community expert, inclusive "we UK drivers" phrasing
-- 2-4 subtle emoji (e.g. 🅿️🚦), keep it practical not flashy
-- Double line breaks between paragraphs; simple structure: hook → tips → CTA
-- CTA: share-focused like "Share with family drivers" or "Comment your worst parking story"
-- 3-5 hashtags max at the end (broad like #MotoringUK plus niche like #ParkingFines)
-- Do NOT overload emoji or hashtags — feels too youthful for FB audience`,
+    facebook: `Facebook Reels caption (2026 best practices):
+- Up to 250 characters — FB's older demographic reads more than Instagram's
+- Open with a problem-solution hook (e.g. "Avoid this £130 PCN trap that catches thousands of drivers")
+- Clear, direct British English — explain the reasoning, not just the rule. FB audience wants context
+- 2-3 subtle emoji for emphasis only (🅿️⚠️), keep it practical
+- Double line breaks between paragraphs; structure: hook → explanation → CTA
+- CTA: share-focused like "Share with anyone who drives" or "Comment your worst parking story"
+- HASHTAGS: 3-5 niche hashtags at end, but these are secondary to keyword-rich caption text. FB algorithm weights engagement signals and keyword relevance over hashtags
+- Include relevant keywords naturally — FB's NLP indexes caption text for search and recommendations
+- Do NOT overload emoji (feels too youthful for FB), do NOT use identical IG caption`,
 
-    tiktok: `TikTok format:
-- Ultra-short 50-100 characters before hashtags — on-video text carries the message, caption is secondary
-- Open with a shocking fact or challenge (e.g. "£200 fine in 10 seconds? Watch 👀")
-- Fun, urgent, youthful British English — punchy and direct
-- 4-6 energetic emoji integrated into the hook (🔥🚗❌👀)
-- Single line or minimal breaks; all-caps key words for emphasis; hook + CTA only
-- CTA: urgent engagement like "Duet your parking fail! 👇" or "Stitch if this saved you"
-- 4-7 hashtags front-loaded: 2 trending (e.g. #ParkingHack) plus 4 niche (#UKMotoring #PCN)
-- Include keywords in first line for For You Page topic matching
-- Do NOT write long paragraphs — users skip; keep it punchy`,
+    tiktok: `TikTok caption (2026 best practices):
+- 50-100 characters for maximum engagement (21% higher than longer captions). For educational content, can extend to 150-250 chars
+- Open with a shocking fact or question (e.g. "£200 fine in 10 seconds? Here's why 👀")
+- Fun, urgent, punchy British English — authentic, not corporate
+- 3-4 energetic emoji in the hook (🔥🚗❌👀)
+- Single line or minimal breaks; hook + keywords + CTA
+- CTA: engagement-driving like "Comment if this has happened to you" or "Stitch this with your parking story" — questions get 44% more comments
+- HASHTAGS: 3-5 optimal (CapCut/ByteDance confirmed). Use the 3-3 strategy: 2 broad (#UKDriving #ParkingFine) + 3 niche content-specific (#PCNAppeal #ParkingTicketPal). Keywords in caption text are MORE powerful than hashtags for TikTok SEO
+- Include searchable keywords naturally — 40% of young users search TikTok instead of Google
+- Do NOT use 20+ hashtags (algorithm treats as spam), do NOT write long paragraphs`,
 
-    youtube: `YouTube Shorts format — return as JSON with "title" and "description" fields:
-- Title: 60-70 characters, keyword-frontloaded for search (e.g. "Is This Parking Legal in 2026? UK Rules Explained")
-- Description: 150-200 characters, SEO-driven with keyword variations
-- Expert, factual British English — informative like an official guide
-- 2-3 informative emoji only (📍⚠️🚗), minimal to keep professional
-- Numbered lists for tips; line breaks between points
-- CTA: "Like & subscribe for more UK motoring laws 👇" or "Comment your area's rules"
-- 3-5 hashtags ABOVE the title line (e.g. #UKParking #MotoringTips #DrivingLaw)
-- Primary keyword must appear in both title and first line of description for search ranking
-- Do NOT overload hashtags (harms SEO); avoid casual slang`,
+    youtube: `YouTube Shorts — return as JSON with "title" and "description" fields (2026 best practices):
+- 70%+ of Shorts traffic now comes from SEARCH, not For You Page. Optimise for search queries
+- Title: 60-70 characters, keyword-frontloaded (e.g. "How to Challenge a Parking Fine in 2026 | UK Guide")
+- Description: 150-200 characters with keyword appearing twice, plus supporting context
+- Expert, factual British English — informative and authoritative
+- 1-2 emoji max in description (📍⚠️), keep professional
+- CTA: "Comment which parking rule confuses you most" or "Subscribe for more UK driving guides"
+- HASHTAGS: Maximum 3, placed ONLY at the END of the title (never in description, never at start of title). Hashtag section must be shorter than the title itself. Use 2 broad + 1 niche (e.g. #ParkingRules #UKDriving #PCN)
+- Primary keyword must appear in title AND first line of description AND tags
+- Do NOT put hashtags in description, do NOT use more than 3, do NOT put them at start of title`,
 
-    threads: `Threads format:
-- 200-300 characters for conversational depth — Threads is text-first
-- Open with a story starter (e.g. "Just saw a driver get a £100 PCN for this — here's why it happened")
-- Chatty, opinionated British English — like a motoring insider sharing a take
-- 1-3 supportive emoji (🤔🛣️⚠️), enhance readability without dominating
-- Paragraph breaks with conversational flow; include questions to invite replies
-- CTA: discussion prompts like "What's your take?" or "Has this happened to you? Reply below"
-- 2-4 niche hashtags at the end (e.g. #ParkingUK #UKDriving)
-- Do NOT use salesy CTAs; don't duplicate the Instagram caption verbatim; give depth not teasers`,
+    threads: `Threads post (2026 best practices):
+- 300-500 characters — Threads is text-first, audience expects conversational depth
+- Open with a story starter or hot take (e.g. "Just saw a driver get a £100 PCN for this — and honestly, the council was wrong")
+- Chatty, opinionated British English — like a motoring insider sharing a genuine take, NOT polished brand content
+- 1-2 supportive emoji (🤔⚠️), enhance tone without dominating
+- Use paragraph breaks and questions to invite thread replies
+- CTA: genuine discussion prompts like "What's your take on this?" or "Has anyone successfully appealed one of these?" — Threads rewards conversation, not broadcasting
+- Use 2-3 topic tags for discoverability, but focus on writing interesting text that invites replies
+- Do NOT copy the Instagram caption — Threads audience expects different, more conversational content. Do NOT use salesy CTAs. Give depth and opinion, not teasers`,
 
-    linkedin: `LinkedIn format:
-- 100-200 characters ideal, scannable with line breaks every 1-2 sentences
-- Open with a hook: a question, surprising stat, or bold claim (e.g. "Can a council really ignore the tribunal?")
-- Professional but accessible British English — credible and insightful, not casual or meme-like
-- 1-2 emoji max, only for emphasis (e.g. a pointing hand for the CTA)
-- End with a networking CTA: "Has this happened to you?" or "What would you have done?" — NOT "follow for more"
-- 3-5 niche hashtags on a final separate line (e.g. #ParkingTicket #PCN #UKDriving #ParkingAppeals #ParkingTicketPal)
-- Do NOT put hashtags inline in the body text`,
+    linkedin: `LinkedIn video post caption (2026 best practices):
+- First 210 characters show before "See More" — front-load the hook there
+- Open with a question, stat, or bold claim (e.g. "Can a council really ignore the tribunal and get away with it?")
+- Professional but accessible British English — expert positioning, insightful, credible
+- Line breaks every 1-2 sentences for scannability
+- 1-2 emoji max, only for functional emphasis (👉 for CTA)
+- CTA: networking-focused like "Has this happened to you?" or "What would you have done in this situation?" — NOT "follow for more". LinkedIn rewards genuine discussion
+- HASHTAGS: Do NOT use hashtags. LinkedIn has deprioritised hashtags entirely in 2026 — they actually SHRINK visibility. Instead, weave relevant keywords naturally into the caption text (e.g. "parking ticket appeal", "penalty charge notice", "council parking fine")
+- Keywords in caption text are how LinkedIn's algorithm categorises and surfaces content
+- Do NOT use Instagram tone, do NOT include hashtags, do NOT write corporate press-release language`,
   };
 
   return guidelines[platform] || '';
