@@ -17,6 +17,8 @@ import {
   attributeReferral,
   issueReferralCredits,
 } from '@/lib/referral-attribution';
+import { posthogServer } from '@/lib/posthog-server';
+import { TRACKING_EVENTS } from '@/constants/events';
 
 type AppleProfile = Profile & {
   user?: {
@@ -197,6 +199,15 @@ const config = {
           },
         });
 
+        posthogServer?.capture({
+          distinctId: newUser.id,
+          event: TRACKING_EVENTS.USER_SIGNED_UP,
+          properties: {
+            method: account.provider,
+            has_email: !!profile?.email,
+          },
+        });
+
         sendWelcomeEmail(profile?.email as string, name as string).catch(
           () => {},
         );
@@ -225,6 +236,15 @@ const config = {
         const newMagicLinkUser = await db.user.create({
           data: {
             email: userEmail,
+          },
+        });
+
+        posthogServer?.capture({
+          distinctId: newMagicLinkUser.id,
+          event: TRACKING_EVENTS.USER_SIGNED_UP,
+          properties: {
+            method: 'resend',
+            has_email: true,
           },
         });
 

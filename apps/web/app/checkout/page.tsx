@@ -65,6 +65,9 @@ const CheckoutContent = () => {
 
           if (!guestData) {
             logger.warn('Guest checkout attempted but no wizard data found');
+            await track(TRACKING_EVENTS.CHECKOUT_FAILED, {
+              reason: 'guest_data_missing',
+            });
             setError(
               'Your session has expired. Please upload your ticket again.',
             );
@@ -75,6 +78,9 @@ const CheckoutContent = () => {
           if (isGuestTicketExpired(guestData)) {
             clearGuestTicketData();
             logger.warn('Guest checkout attempted with expired data');
+            await track(TRACKING_EVENTS.CHECKOUT_FAILED, {
+              reason: 'guest_data_expired',
+            });
             setError(
               'Your session has expired. Please upload your ticket again.',
             );
@@ -109,6 +115,9 @@ const CheckoutContent = () => {
 
           if (!session?.url) {
             logger.error('Guest checkout session created but no URL returned');
+            await track(TRACKING_EVENTS.CHECKOUT_FAILED, {
+              reason: 'no_session_url',
+            });
             setError(
               'Unable to create checkout session. Please try again or contact support.',
             );
@@ -124,6 +133,9 @@ const CheckoutContent = () => {
         // Standard checkout flow (existing ticket)
         if (!ticketId) {
           logger.warn('Checkout attempted without ticket ID');
+          await track(TRACKING_EVENTS.CHECKOUT_FAILED, {
+            reason: 'missing_ticket_id',
+          });
           setError('Missing ticket ID. Please create a ticket first.');
           setIsLoading(false);
           return;
@@ -156,6 +168,9 @@ const CheckoutContent = () => {
             ticketId,
             tier: ticketTier,
           });
+          await track(TRACKING_EVENTS.CHECKOUT_FAILED, {
+            reason: 'no_session_url',
+          });
           setError(
             'Unable to create checkout session. Please try again or contact support.',
           );
@@ -174,6 +189,9 @@ const CheckoutContent = () => {
           },
           err instanceof Error ? err : undefined,
         );
+        await track(TRACKING_EVENTS.CHECKOUT_FAILED, {
+          reason: 'unexpected_error',
+        });
         setError(
           'An unexpected error occurred. Please try again or contact support.',
         );

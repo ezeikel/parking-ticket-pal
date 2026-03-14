@@ -140,6 +140,7 @@ const TicketWizard = ({
   const { track } = useAnalytics();
   const hasTrackedOpen = useRef(false);
   const lastTrackedStep = useRef<string | null>(null);
+  const wizardOpenedAt = useRef<number>(0);
   const hasExtractedData =
     extractedData && Object.keys(extractedData).length > 0;
 
@@ -203,6 +204,7 @@ const TicketWizard = ({
   useEffect(() => {
     if (isOpen && !hasTrackedOpen.current) {
       hasTrackedOpen.current = true;
+      wizardOpenedAt.current = Date.now();
       track(TRACKING_EVENTS.WIZARD_OPENED, {
         source: hasExtractedData ? 'ocr' : 'manual',
         has_image: !!extractedData?.imageUrl,
@@ -366,6 +368,19 @@ const TicketWizard = ({
       last_step: currentStep,
       intent: userIntent,
       step_number: getStepNumber(),
+      time_spent_seconds: wizardOpenedAt.current
+        ? Math.round((Date.now() - wizardOpenedAt.current) / 1000)
+        : null,
+      had_extracted_data: !!extractedData,
+      fields_filled: [
+        pcnNumber ? 'pcn' : null,
+        vehicleReg ? 'reg' : null,
+        issuer ? 'issuer' : null,
+        issuedAt ? 'date' : null,
+        initialAmount ? 'amount' : null,
+        contraventionCode ? 'contravention' : null,
+        location ? 'location' : null,
+      ].filter(Boolean).length,
     });
     onClose();
   };

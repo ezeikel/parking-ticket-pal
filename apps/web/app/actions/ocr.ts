@@ -8,6 +8,7 @@ import { STORAGE_PATHS } from '@/constants';
 import { IMAGE_ANALYSIS_PROMPT } from '@/lib/ai/prompts';
 import { generateOcrAnalysisPrompt } from '@/utils/promptGenerators';
 import { Address, DocumentSchema } from '@parking-ticket-pal/types';
+import * as Sentry from '@sentry/nextjs';
 import { createServerLogger } from '@/lib/logger';
 import { put } from '@/lib/storage';
 import { track } from '@/utils/analytics-server';
@@ -351,206 +352,182 @@ export const extractOCRTextWithVision = async (
         imageType?: 'TICKET' | 'LETTER';
       },
 ) => {
-  const userId = await getUserId('upload an image');
+  try {
+    const userId = await getUserId('upload an image');
 
-  // use generic path for unauthenticated users (testing/Postman)
-  const effectiveUserId = userId || 'nouser';
+    // use generic path for unauthenticated users (testing/Postman)
+    const effectiveUserId = userId || 'nouser';
 
-  // early validation for missing image
-  if (
-    !input ||
-    (input instanceof FormData &&
-      !input.get('image') &&
-      !('scannedImage' in input))
-  ) {
-    return { success: false, message: 'No image provided' };
-  }
-
-  let base64Image: string | undefined;
-  let blobStorageUrl: string;
-  let tempImagePath: string;
-
-  if (input instanceof FormData) {
-    const image = input.get('image') as File | null;
-
-    if (!image) {
-      return { success: false, message: 'No image file provided' };
+    // early validation for missing image
+    if (
+      !input ||
+      (input instanceof FormData &&
+        !input.get('image') &&
+        !('scannedImage' in input))
+    ) {
+      return { success: false, message: 'No image provided' };
     }
 
-    // generate temporary path with timestamp
-    const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-    const extension = image.name.split('.').pop() || 'jpg';
-    tempImagePath = STORAGE_PATHS.TEMP_UPLOAD.replace(/%s/, effectiveUserId)
-      .replace(/%s/, timestamp)
-      .replace(/%s/, extension);
+    let base64Image: string | undefined;
+    let blobStorageUrl: string;
+    let tempImagePath: string;
 
-    // store the image in temporary R2 storage
-    const fileBuffer = Buffer.from(await image.arrayBuffer());
-    const ticketFrontBlob = await put(tempImagePath, fileBuffer, {
-      contentType: image.type,
-    });
+    if (input instanceof FormData) {
+      const image = input.get('image') as File | null;
 
-    // update the Blob storage URL for further processing
-    blobStorageUrl = ticketFrontBlob.url;
-  } else if ('scannedImage' in input) {
-    base64Image = input.scannedImage; // use the scannedImage property from the input object
+      if (!image) {
+        return { success: false, message: 'No image file provided' };
+      }
 
-    // content type guessing from base64 data
-    const match = base64Image.match(/^data:image\/(\w+);base64,/);
-    const ext = match?.[1] || 'png';
-    const mimeType = `image/${ext}`;
+      // generate temporary path with timestamp
+      const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+      const extension = image.name.split('.').pop() || 'jpg';
+      tempImagePath = STORAGE_PATHS.TEMP_UPLOAD.replace(/%s/, effectiveUserId)
+        .replace(/%s/, timestamp)
+        .replace(/%s/, extension);
 
-    // if base64Image starts with "data:", strip the prefix
-    base64Image = base64Image.replace(/^data:image\/[a-z]+;base64,/, '');
+      // store the image in temporary R2 storage
+      const fileBuffer = Buffer.from(await image.arrayBuffer());
+      const ticketFrontBlob = await put(tempImagePath, fileBuffer, {
+        contentType: image.type,
+      });
 
-    // validate base64Image is not empty after processing
-    if (!base64Image || base64Image.trim() === '') {
+      // update the Blob storage URL for further processing
+      blobStorageUrl = ticketFrontBlob.url;
+    } else if ('scannedImage' in input) {
+      base64Image = input.scannedImage; // use the scannedImage property from the input object
+
+      // content type guessing from base64 data
+      const match = base64Image.match(/^data:image\/(\w+);base64,/);
+      const ext = match?.[1] || 'png';
+      const mimeType = `image/${ext}`;
+
+      // if base64Image starts with "data:", strip the prefix
+      base64Image = base64Image.replace(/^data:image\/[a-z]+;base64,/, '');
+
+      // validate base64Image is not empty after processing
+      if (!base64Image || base64Image.trim() === '') {
+        return {
+          success: false,
+          message: 'Invalid base64 image data provided.',
+        };
+      }
+
+      // generate temporary path for base64 upload
+      const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+      tempImagePath = STORAGE_PATHS.TEMP_UPLOAD.replace(/%s/, effectiveUserId)
+        .replace(/%s/, timestamp)
+        .replace(/%s/, ext);
+
+      // upload the base64 string to R2 temporary location
+      const buffer = Buffer.from(base64Image, 'base64');
+      const ticketFrontBlob = await put(tempImagePath, buffer, {
+        contentType: mimeType,
+      });
+
+      // update the Blob storage URL for further processing
+      blobStorageUrl = ticketFrontBlob.url;
+    } else {
       return {
         success: false,
-        message: 'Invalid base64 image data provided.',
+        message: 'Invalid input type. Must be FormData or base64 string.',
       };
     }
 
-    // generate temporary path for base64 upload
-    const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-    tempImagePath = STORAGE_PATHS.TEMP_UPLOAD.replace(/%s/, effectiveUserId)
-      .replace(/%s/, timestamp)
-      .replace(/%s/, ext);
+    // Track OCR processing started
+    await track(TRACKING_EVENTS.OCR_PROCESSING_STARTED, { source: 'web' });
 
-    // upload the base64 string to R2 temporary location
-    const buffer = Buffer.from(base64Image, 'base64');
-    const ticketFrontBlob = await put(tempImagePath, buffer, {
-      contentType: mimeType,
-    });
+    // Use Google Vision for OCR text extraction
+    let googleOcrText: string;
+    try {
+      const visionClient = getVisionClient();
+      const [result] = await visionClient.textDetection(blobStorageUrl);
+      googleOcrText = result.fullTextAnnotation?.text || '';
 
-    // update the Blob storage URL for further processing
-    blobStorageUrl = ticketFrontBlob.url;
-  } else {
-    return {
-      success: false,
-      message: 'Invalid input type. Must be FormData or base64 string.',
-    };
-  }
-
-  // Track OCR processing started
-  await track(TRACKING_EVENTS.OCR_PROCESSING_STARTED, { source: 'web' });
-
-  // Use Google Vision for OCR text extraction
-  let googleOcrText: string;
-  try {
-    const visionClient = getVisionClient();
-    const [result] = await visionClient.textDetection(blobStorageUrl);
-    googleOcrText = result.fullTextAnnotation?.text || '';
-
-    if (!googleOcrText) {
+      if (!googleOcrText) {
+        await track(TRACKING_EVENTS.OCR_PROCESSING_FAILED, {
+          source: 'web',
+          error: 'No text detected in image',
+          reason: 'empty_text',
+        });
+        return { success: false, message: 'No text detected in image' };
+      }
+    } catch (error) {
+      logger.error(
+        'Google Vision OCR failed',
+        {
+          userId: effectiveUserId,
+          blobStorageUrl,
+        },
+        error instanceof Error ? error : new Error(String(error)),
+      );
       await track(TRACKING_EVENTS.OCR_PROCESSING_FAILED, {
         source: 'web',
-        error: 'No text detected in image',
-        reason: 'empty_text',
+        error: error instanceof Error ? error.message : 'Unknown error',
+        reason: 'vision_api_error',
       });
-      return { success: false, message: 'No text detected in image' };
+      return { success: false, message: 'OCR failed with Google Vision API' };
     }
-  } catch (error) {
-    logger.error(
-      'Google Vision OCR failed',
-      {
-        userId: effectiveUserId,
-        blobStorageUrl,
-      },
-      error instanceof Error ? error : new Error(String(error)),
-    );
-    await track(TRACKING_EVENTS.OCR_PROCESSING_FAILED, {
-      source: 'web',
-      error: error instanceof Error ? error.message : 'Unknown error',
-      reason: 'vision_api_error',
-    });
-    return { success: false, message: 'OCR failed with Google Vision API' };
-  }
 
-  // send the Google Vision OCR text to OpenAI for structured analysis using Vercel AI SDK
-  const tracedModel = getTracedModel(models.textFast, {
-    userId: effectiveUserId,
-    properties: { feature: 'ocr_vision_analysis' },
-  });
-
-  let parsed;
-  try {
-    const result = (await generateText({
-      model: tracedModel,
-      output: Output.object({
-        schema: DocumentSchema,
-        name: 'document',
-        description: 'Structured parking ticket or letter document',
-      }),
-      system: IMAGE_ANALYSIS_PROMPT,
-      prompt: generateOcrAnalysisPrompt(googleOcrText),
-    })) as any;
-    parsed = result.output;
-  } catch (error) {
-    logger.error('OpenAI returned invalid document data', {
+    // send the Google Vision OCR text to OpenAI for structured analysis using Vercel AI SDK
+    const tracedModel = getTracedModel(models.textFast, {
       userId: effectiveUserId,
-      error: error instanceof Error ? error.message : 'Unknown error',
+      properties: { feature: 'ocr_vision_analysis' },
     });
-    await track(TRACKING_EVENTS.OCR_PROCESSING_FAILED, {
-      source: 'web',
-      error: 'Invalid data returned from AI',
-      reason: 'parse_error',
-    });
-    return { success: false, message: 'Invalid data returned from AI' };
-  }
 
-  const {
-    documentType,
-    pcnNumber,
-    issuedAt,
-    vehicleRegistration,
-    contraventionCode,
-    location,
-    initialAmount,
-    issuer,
-    issuerType,
-    sentAt,
-    summary,
-    extractedText,
-    letterType,
-    currentAmount,
-  } = parsed;
-
-  // get full address from Mapbox if we have a line1
-  let fullAddress: Address;
-  if (typeof location === 'string') {
+    let parsed;
     try {
-      const mapboxToken = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN;
+      const result = (await generateText({
+        model: tracedModel,
+        output: Output.object({
+          schema: DocumentSchema,
+          name: 'document',
+          description: 'Structured parking ticket or letter document',
+        }),
+        system: IMAGE_ANALYSIS_PROMPT,
+        prompt: generateOcrAnalysisPrompt(googleOcrText),
+      })) as any;
+      parsed = result.output;
+    } catch (error) {
+      logger.error('OpenAI returned invalid document data', {
+        userId: effectiveUserId,
+        error: error instanceof Error ? error.message : 'Unknown error',
+      });
+      await track(TRACKING_EVENTS.OCR_PROCESSING_FAILED, {
+        source: 'web',
+        error: 'Invalid data returned from AI',
+        reason: 'parse_error',
+      });
+      return { success: false, message: 'Invalid data returned from AI' };
+    }
 
-      if (!mapboxToken) {
-        logger.error('Mapbox access token not found', {
-          location,
-          userId: effectiveUserId,
-        });
-        fullAddress = {
-          line1: location,
-          city: '',
-          postcode: '',
-          country: 'United Kingdom',
-          coordinates: {
-            latitude: 0,
-            longitude: 0,
-          },
-        };
-      } else {
-        const mapboxResponse = await fetch(
-          `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(
-            location,
-          )}.json?access_token=${mapboxToken}&country=GB&limit=1`,
-        );
+    const {
+      documentType,
+      pcnNumber,
+      issuedAt,
+      vehicleRegistration,
+      contraventionCode,
+      location,
+      initialAmount,
+      issuer,
+      issuerType,
+      sentAt,
+      summary,
+      extractedText,
+      letterType,
+      currentAmount,
+    } = parsed;
 
-        if (!mapboxResponse.ok) {
-          const errorText = await mapboxResponse.text();
-          logger.error('Mapbox API error', {
+    // get full address from Mapbox if we have a line1
+    let fullAddress: Address;
+    if (typeof location === 'string') {
+      try {
+        const mapboxToken = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN;
+
+        if (!mapboxToken) {
+          logger.error('Mapbox access token not found', {
             location,
             userId: effectiveUserId,
-            status: mapboxResponse.status,
-            errorText,
           });
           fullAddress = {
             line1: location,
@@ -563,33 +540,20 @@ export const extractOCRTextWithVision = async (
             },
           };
         } else {
-          const mapboxData = await mapboxResponse.json();
+          const mapboxResponse = await fetch(
+            `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(
+              location,
+            )}.json?access_token=${mapboxToken}&country=GB&limit=1`,
+          );
 
-          if (mapboxData.features?.[0]) {
-            const feature = mapboxData.features[0];
-            const context = feature.context || [];
-            const city = context.find((c: any) =>
-              c.id.startsWith('place'),
-            )?.text;
-            const postcode = context.find((c: any) =>
-              c.id.startsWith('postcode'),
-            )?.text;
-            const county = context.find((c: any) =>
-              c.id.startsWith('region'),
-            )?.text;
-
-            fullAddress = {
-              line1: feature.text,
-              city,
-              postcode,
-              county,
-              country: 'United Kingdom',
-              coordinates: {
-                latitude: feature.center[1],
-                longitude: feature.center[0],
-              },
-            };
-          } else {
+          if (!mapboxResponse.ok) {
+            const errorText = await mapboxResponse.text();
+            logger.error('Mapbox API error', {
+              location,
+              userId: effectiveUserId,
+              status: mapboxResponse.status,
+              errorText,
+            });
             fullAddress = {
               line1: location,
               city: '',
@@ -600,20 +564,71 @@ export const extractOCRTextWithVision = async (
                 longitude: 0,
               },
             };
+          } else {
+            const mapboxData = await mapboxResponse.json();
+
+            if (mapboxData.features?.[0]) {
+              const feature = mapboxData.features[0];
+              const context = feature.context || [];
+              const city = context.find((c: any) =>
+                c.id.startsWith('place'),
+              )?.text;
+              const postcode = context.find((c: any) =>
+                c.id.startsWith('postcode'),
+              )?.text;
+              const county = context.find((c: any) =>
+                c.id.startsWith('region'),
+              )?.text;
+
+              fullAddress = {
+                line1: feature.text,
+                city,
+                postcode,
+                county,
+                country: 'United Kingdom',
+                coordinates: {
+                  latitude: feature.center[1],
+                  longitude: feature.center[0],
+                },
+              };
+            } else {
+              fullAddress = {
+                line1: location,
+                city: '',
+                postcode: '',
+                country: 'United Kingdom',
+                coordinates: {
+                  latitude: 0,
+                  longitude: 0,
+                },
+              };
+            }
           }
         }
+      } catch (error) {
+        logger.error(
+          'Error getting address from Mapbox',
+          {
+            location,
+            userId: effectiveUserId,
+          },
+          error instanceof Error ? error : new Error(String(error)),
+        );
+        fullAddress = {
+          line1: location,
+          city: '',
+          postcode: '',
+          country: 'United Kingdom',
+          coordinates: {
+            latitude: 0,
+            longitude: 0,
+          },
+        };
       }
-    } catch (error) {
-      logger.error(
-        'Error getting address from Mapbox',
-        {
-          location,
-          userId: effectiveUserId,
-        },
-        error instanceof Error ? error : new Error(String(error)),
-      );
+    } else {
+      // handle null location by providing a default address
       fullAddress = {
-        line1: location,
+        line1: '',
         city: '',
         postcode: '',
         country: 'United Kingdom',
@@ -623,60 +638,63 @@ export const extractOCRTextWithVision = async (
         },
       };
     }
-  } else {
-    // handle null location by providing a default address
-    fullAddress = {
-      line1: '',
-      city: '',
-      postcode: '',
-      country: 'United Kingdom',
-      coordinates: {
-        latitude: 0,
-        longitude: 0,
+
+    // Determine which fields were successfully extracted
+    const fieldsExtracted: string[] = [];
+    if (pcnNumber) fieldsExtracted.push('pcnNumber');
+    if (vehicleRegistration) fieldsExtracted.push('vehicleReg');
+    if (issuer) fieldsExtracted.push('issuer');
+    if (initialAmount) fieldsExtracted.push('initialAmount');
+    if (location) fieldsExtracted.push('location');
+    if (contraventionCode) fieldsExtracted.push('contraventionCode');
+    if (issuedAt) fieldsExtracted.push('issuedAt');
+
+    // Track OCR success
+    await track(TRACKING_EVENTS.OCR_PROCESSING_SUCCESS, {
+      source: 'web',
+      fields_extracted: fieldsExtracted,
+    });
+
+    // return the parsed data
+    return {
+      success: true,
+      data: {
+        documentType: mapDocumentType(documentType),
+        pcnNumber,
+        vehicleReg: vehicleRegistration,
+        issuedAt: createUTCDate(new Date(issuedAt)),
+        contraventionCode,
+        initialAmount: Math.round(Number(initialAmount) * 100),
+        issuer,
+        issuerType,
+        location: fullAddress,
+        summary,
+        sentAt: sentAt ? createUTCDate(new Date(sentAt)) : null,
+        extractedText,
+        letterType: letterType || null,
+        currentAmount: currentAmount
+          ? Math.round(Number(currentAmount) * 100)
+          : null,
       },
+      image: base64Image,
+      imageUrl: blobStorageUrl,
+      tempImagePath,
+      ocrText: googleOcrText, // Include the Google Vision OCR text in response
+    };
+  } catch (error) {
+    Sentry.captureException(error, {
+      tags: { feature: 'ocr_vision' },
+      extra: { source: 'extractOCRTextWithVision' },
+    });
+    logger.error(
+      'Unexpected error in extractOCRTextWithVision',
+      {},
+      error instanceof Error ? error : new Error(String(error)),
+    );
+    return {
+      success: false,
+      message:
+        'Something went wrong while processing your image. Please try again.',
     };
   }
-
-  // Determine which fields were successfully extracted
-  const fieldsExtracted: string[] = [];
-  if (pcnNumber) fieldsExtracted.push('pcnNumber');
-  if (vehicleRegistration) fieldsExtracted.push('vehicleReg');
-  if (issuer) fieldsExtracted.push('issuer');
-  if (initialAmount) fieldsExtracted.push('initialAmount');
-  if (location) fieldsExtracted.push('location');
-  if (contraventionCode) fieldsExtracted.push('contraventionCode');
-  if (issuedAt) fieldsExtracted.push('issuedAt');
-
-  // Track OCR success
-  await track(TRACKING_EVENTS.OCR_PROCESSING_SUCCESS, {
-    source: 'web',
-    fields_extracted: fieldsExtracted,
-  });
-
-  // return the parsed data
-  return {
-    success: true,
-    data: {
-      documentType: mapDocumentType(documentType),
-      pcnNumber,
-      vehicleReg: vehicleRegistration,
-      issuedAt: createUTCDate(new Date(issuedAt)),
-      contraventionCode,
-      initialAmount: Math.round(Number(initialAmount) * 100),
-      issuer,
-      issuerType,
-      location: fullAddress,
-      summary,
-      sentAt: sentAt ? createUTCDate(new Date(sentAt)) : null,
-      extractedText,
-      letterType: letterType || null,
-      currentAmount: currentAmount
-        ? Math.round(Number(currentAmount) * 100)
-        : null,
-    },
-    image: base64Image,
-    imageUrl: blobStorageUrl,
-    tempImagePath,
-    ocrText: googleOcrText, // Include the Google Vision OCR text in response
-  };
 };

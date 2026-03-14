@@ -268,7 +268,10 @@ export type EventProperties = {
     method: 'google' | 'apple' | 'facebook' | 'magic_link';
     location: string;
   };
-  [TRACKING_EVENTS.USER_SIGNED_UP]: { method: SignInMethod };
+  [TRACKING_EVENTS.USER_SIGNED_UP]: {
+    method: string;
+    has_email: boolean;
+  };
   [TRACKING_EVENTS.USER_SIGNED_IN]: { method: SignInMethod };
   [TRACKING_EVENTS.USER_SIGNED_OUT]: Record<string, never>;
   [TRACKING_EVENTS.USER_PROFILE_UPDATED]: {
@@ -301,6 +304,7 @@ export type EventProperties = {
   [TRACKING_EVENTS.HERO_UPLOAD_FAILED]: {
     file_type: string;
     error: string;
+    error_type?: 'network' | 'server' | 'timeout' | 'unknown';
   };
   [TRACKING_EVENTS.HERO_MANUAL_ENTRY_CLICKED]: Record<string, never>;
 
@@ -349,6 +353,9 @@ export type EventProperties = {
     last_step: string;
     step_number: number;
     intent: 'track' | 'challenge' | null;
+    time_spent_seconds: number | null;
+    had_extracted_data: boolean;
+    fields_filled: number;
   };
 
   // Guest Flow
@@ -477,6 +484,18 @@ export type EventProperties = {
     product_type: ProductType;
     ticket_id?: string;
     tier?: TicketTier;
+  };
+  [TRACKING_EVENTS.CHECKOUT_COMPLETED]: {
+    product_type: string;
+    tier: string;
+  };
+  [TRACKING_EVENTS.CHECKOUT_FAILED]: {
+    reason:
+      | 'guest_data_missing'
+      | 'guest_data_expired'
+      | 'no_session_url'
+      | 'missing_ticket_id'
+      | 'unexpected_error';
   };
   [TRACKING_EVENTS.CUSTOMER_PORTAL_CREATED]: {
     user_id: string;

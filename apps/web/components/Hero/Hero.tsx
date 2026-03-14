@@ -268,10 +268,29 @@ const Hero = () => {
           setIsWizardOpen(true);
         }
       } catch (error) {
+        // Classify error type for analytics
+        const errorMessage =
+          error instanceof Error ? error.message : 'Unknown error';
+        let errorType: 'network' | 'server' | 'timeout' | 'unknown' = 'unknown';
+        if (error instanceof TypeError && errorMessage.includes('fetch')) {
+          errorType = 'network';
+        } else if (
+          errorMessage.includes('timeout') ||
+          errorMessage.includes('Timeout')
+        ) {
+          errorType = 'timeout';
+        } else if (
+          errorMessage.includes('server') ||
+          errorMessage.includes('unexpected response')
+        ) {
+          errorType = 'server';
+        }
+
         // Track upload failed
         track(TRACKING_EVENTS.HERO_UPLOAD_FAILED, {
           file_type: file.type,
-          error: error instanceof Error ? error.message : 'Unknown error',
+          error: errorMessage,
+          error_type: errorType,
         });
 
         logger.error(

@@ -67,6 +67,8 @@ export const TRACKING_EVENTS = {
 
   // Payment & Subscription
   CHECKOUT_SESSION_CREATED: 'checkout_session_created',
+  CHECKOUT_COMPLETED: 'checkout_completed',
+  CHECKOUT_FAILED: 'checkout_failed',
   CUSTOMER_PORTAL_CREATED: 'customer_portal_created',
   PAYMENT_COMPLETED: 'payment_completed',
   TICKET_TIER_UPGRADED: 'ticket_tier_upgraded',

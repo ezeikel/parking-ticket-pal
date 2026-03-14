@@ -3,11 +3,14 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCircleCheck, faArrowRight } from '@fortawesome/pro-solid-svg-icons';
 import { Button } from '@/components/ui/button';
 import { PurchaseTracker } from '@/components/analytics/PurchaseTracker';
+import { CheckoutCompletedTracker } from '@/components/analytics/CheckoutCompletedTracker';
 
 const PaymentSuccessPage = () => (
   <>
     {/* Track Facebook Pixel Purchase event */}
     <PurchaseTracker value={14.99} contentName="premium_ticket" />
+    {/* Track PostHog checkout completed event */}
+    <CheckoutCompletedTracker />
     <div className="min-h-screen bg-light flex items-center justify-center px-4">
       <div className="max-w-md w-full">
         {/* Success Card */}
