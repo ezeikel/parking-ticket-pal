@@ -41,6 +41,7 @@ Guidelines:
 - Include a CTA to follow for more
 - ${platform === 'tiktok' ? 'Max 150 characters before hashtags' : ''}
 - ${platform === 'youtube' ? 'Return as JSON with "title" and "description" fields' : ''}
+- ${platform === 'linkedin' ? 'Professional but accessible tone. No hashtags in the body — add 3-5 relevant hashtags at the very end. Focus on the legal insight or lesson from the case. Include a line break before hashtags.' : ''}
 
 Hashtags to consider: #parkingticket #parkingfine #pcn #drivingtips #parkingappeals #ukdriving #parkingticketpal`,
   });
@@ -75,6 +76,7 @@ Guidelines:
 - Include a CTA to follow for more motoring news
 - ${platform === 'tiktok' ? 'Max 150 characters before hashtags' : ''}
 - ${platform === 'youtube' ? 'Return as JSON with "title" and "description" fields' : ''}
+- ${platform === 'linkedin' ? 'Professional but accessible tone. No hashtags in the body — add 3-5 relevant hashtags at the very end. Focus on the insight or takeaway for drivers. Include a line break before hashtags.' : ''}
 
 Hashtags to consider: #uknews #drivingnews #parkingticket #ukdrivers #motoringnews #parkingfine #drivinglaw #carsnews #parkingticketpal`,
   });
@@ -490,12 +492,14 @@ export async function completeTribunalVideo(
     tiktokCaption,
     youtubeCaption,
     threadsCaption,
+    linkedinCaption,
   ] = await Promise.all([
     generateTribunalCaption('instagram', caseData).catch(() => null),
     generateTribunalCaption('facebook', caseData).catch(() => null),
     generateTribunalCaption('tiktok', caseData).catch(() => null),
     generateTribunalCaption('youtube', caseData).catch(() => null),
     generateTribunalCaption('threads', caseData).catch(() => null),
+    generateTribunalCaption('linkedin', caseData).catch(() => null),
   ]);
 
   // Post to platforms
@@ -565,6 +569,14 @@ export async function completeTribunalVideo(
       digestCaptions.push({
         platform: 'threads',
         caption: threadsCaption,
+        autoPosted: false,
+        assetType: 'video',
+      });
+    }
+    if (linkedinCaption) {
+      digestCaptions.push({
+        platform: 'linkedin',
+        caption: linkedinCaption,
         autoPosted: false,
         assetType: 'video',
       });
@@ -718,12 +730,14 @@ export async function completeNewsVideo(
     tiktokCaption,
     youtubeCaption,
     threadsCaption,
+    linkedinCaption,
   ] = await Promise.all([
     generateNewsCaption('instagram', captionData).catch(() => null),
     generateNewsCaption('facebook', captionData).catch(() => null),
     generateNewsCaption('tiktok', captionData).catch(() => null),
     generateNewsCaption('youtube', captionData).catch(() => null),
     generateNewsCaption('threads', captionData).catch(() => null),
+    generateNewsCaption('linkedin', captionData).catch(() => null),
   ]);
 
   // Post to platforms
@@ -793,6 +807,14 @@ export async function completeNewsVideo(
       digestCaptions.push({
         platform: 'threads',
         caption: threadsCaption,
+        autoPosted: false,
+        assetType: 'video',
+      });
+    }
+    if (linkedinCaption) {
+      digestCaptions.push({
+        platform: 'linkedin',
+        caption: linkedinCaption,
         autoPosted: false,
         assetType: 'video',
       });
