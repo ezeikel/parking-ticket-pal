@@ -41,7 +41,19 @@ Guidelines:
 - Include a CTA to follow for more
 - ${platform === 'tiktok' ? 'Max 150 characters before hashtags' : ''}
 - ${platform === 'youtube' ? 'Return as JSON with "title" and "description" fields' : ''}
-- ${platform === 'linkedin' ? 'Professional but accessible tone. No hashtags in the body — add 3-5 relevant hashtags at the very end. Focus on the legal insight or lesson from the case. Include a line break before hashtags.' : ''}
+- ${
+      platform === 'linkedin'
+        ? `LinkedIn-specific format:
+- Open with a hook: a question, surprising stat, or bold claim about the case (e.g. "Can a council really ignore the tribunal?")
+- Use line breaks every 1-2 sentences for scannability
+- Professional but accessible tone — credible and insightful, not casual or meme-like
+- 100-200 characters ideal, focus on the legal insight or practical lesson
+- Use 1-2 emoji max, only for emphasis (e.g. a pointing hand for the CTA)
+- End with a networking CTA: "Has this happened to you?" or "What would you have done?" — NOT "follow for more"
+- Add 3-5 niche hashtags on a final separate line (e.g. #ParkingTicket #PCN #UKDriving #ParkingAppeals #ParkingTicketPal)
+- Do NOT put hashtags inline in the body text`
+        : ''
+    }
 
 Hashtags to consider: #parkingticket #parkingfine #pcn #drivingtips #parkingappeals #ukdriving #parkingticketpal`,
   });
@@ -76,7 +88,19 @@ Guidelines:
 - Include a CTA to follow for more motoring news
 - ${platform === 'tiktok' ? 'Max 150 characters before hashtags' : ''}
 - ${platform === 'youtube' ? 'Return as JSON with "title" and "description" fields' : ''}
-- ${platform === 'linkedin' ? 'Professional but accessible tone. No hashtags in the body — add 3-5 relevant hashtags at the very end. Focus on the insight or takeaway for drivers. Include a line break before hashtags.' : ''}
+- ${
+      platform === 'linkedin'
+        ? `LinkedIn-specific format:
+- Open with a hook: a question, surprising stat, or bold claim about the story (e.g. "New speed camera rules could catch thousands more drivers")
+- Use line breaks every 1-2 sentences for scannability
+- Professional but accessible tone — credible and insightful, not casual or meme-like
+- 100-200 characters ideal, focus on the practical impact for UK drivers
+- Use 1-2 emoji max, only for emphasis
+- End with a networking CTA: "How do you feel about this change?" or "Will this affect your commute?" — NOT "follow for more"
+- Add 3-5 niche hashtags on a final separate line (e.g. #UKDriving #MotoringNews #DrivingLaw #UKDrivers #ParkingTicketPal)
+- Do NOT put hashtags inline in the body text`
+        : ''
+    }
 
 Hashtags to consider: #uknews #drivingnews #parkingticket #ukdrivers #motoringnews #parkingfine #drivinglaw #carsnews #parkingticketpal`,
   });
