@@ -13,12 +13,10 @@ const logger = createServerLogger({ action: 'cron-social-comments' });
 const BATCH_SIZE = parseInt(process.env.SOCIAL_COMMENT_BATCH_SIZE || '10', 10);
 
 /**
- * POST /api/cron/social-comments/process
- *
  * Process queued social media comments — classify, generate AI replies,
  * like and reply via Graph API.
  */
-export async function POST(request: Request) {
+async function processComments(request: Request) {
   try {
     const authHeader = request.headers.get('authorization');
     const cronSecret = process.env.CRON_SECRET;
@@ -202,12 +200,17 @@ export async function POST(request: Request) {
 /**
  * GET /api/cron/social-comments/process
  *
- * Health check — returns pending comment count.
+ * Vercel Cron sends GET requests — process queued comments.
  */
-export async function GET() {
-  const pending = await db.socialCommentQueue.count({
-    where: { status: CommentQueueStatus.PENDING },
-  });
+export async function GET(request: Request) {
+  return processComments(request);
+}
 
-  return NextResponse.json({ pending });
+/**
+ * POST /api/cron/social-comments/process
+ *
+ * Also supports POST for manual triggering.
+ */
+export async function POST(request: Request) {
+  return processComments(request);
 }
