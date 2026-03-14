@@ -14,7 +14,11 @@ import {
   faChrome,
 } from '@fortawesome/free-brands-svg-icons';
 import cn from '@/utils/cn';
-import { appStoreUrl, playStoreUrl } from '@/constants/links';
+import {
+  appStoreUrl,
+  playStoreUrl,
+  chromeWebStoreUrl,
+} from '@/constants/links';
 
 type FooterProps = {
   className?: string;
@@ -31,7 +35,7 @@ const productLinks: FooterLink[] = [
   { label: 'How It Works', href: '/#how-it-works' },
   { label: 'Dashboard', href: '/dashboard' },
   { label: 'Refer a Friend', href: '/referrals' },
-  { label: 'Chrome Extension', href: '#' },
+  { label: 'Chrome Extension', href: chromeWebStoreUrl({ source: 'footer' }) },
 ];
 
 const resourceLinks: FooterLink[] = [
@@ -154,7 +158,9 @@ const Footer = ({ className }: FooterProps) => (
               </div>
             </a>
             <a
-              href="#"
+              href={chromeWebStoreUrl({ source: 'footer_badge' })}
+              target="_blank"
+              rel="noopener noreferrer"
               className="opacity-70 transition-opacity hover:opacity-100"
             >
               <div className="flex h-10 w-32 items-center gap-2 rounded-lg border border-white/20 bg-white/5 px-3">

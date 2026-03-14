@@ -19,6 +19,22 @@ export const appStoreUrl = (
   return `${APP_STORE_BASE}?${params.toString()}`;
 };
 
+const CHROME_WEB_STORE_BASE =
+  'https://chromewebstore.google.com/detail/parking-ticket-pal/nohfojcmpnedhbfohmdibcipappacjeh';
+
+export const chromeWebStoreUrl = (
+  utm: { source: string; medium?: string; campaign?: string } = {
+    source: 'website',
+  },
+) => {
+  const params = new URLSearchParams({
+    utm_source: utm.source,
+    utm_medium: utm.medium ?? 'web',
+    utm_campaign: utm.campaign ?? 'website',
+  });
+  return `${CHROME_WEB_STORE_BASE}?${params.toString()}`;
+};
+
 export const playStoreUrl = (
   utm: { source: string; medium?: string; campaign?: string } = {
     source: 'website',

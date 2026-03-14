@@ -14,7 +14,11 @@ import {
   faChrome,
 } from '@fortawesome/free-brands-svg-icons';
 import type { IconDefinition } from '@fortawesome/fontawesome-svg-core';
-import { appStoreUrl, playStoreUrl } from '@/constants/links';
+import {
+  appStoreUrl,
+  playStoreUrl,
+  chromeWebStoreUrl,
+} from '@/constants/links';
 
 type Platform = {
   icon: IconDefinition;
@@ -138,7 +142,11 @@ const PlatformsSection = () => {
               label: 'Google Play',
               href: playStoreUrl({ source: 'platforms_section' }),
             },
-            { icon: faChrome, label: 'Chrome Web Store', href: '#' },
+            {
+              icon: faChrome,
+              label: 'Chrome Web Store',
+              href: chromeWebStoreUrl({ source: 'platforms_section' }),
+            },
           ].map((badge) => (
             <a
               key={badge.label}
