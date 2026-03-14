@@ -12,8 +12,76 @@ import { SITE_URL as DEFAULT_SITE_URL } from '@/constants';
 const SITE_URL = process.env.NEXT_PUBLIC_APP_URL || DEFAULT_SITE_URL;
 
 // ============================================================================
-// Caption generation
+// Caption generation — platform-specific guidelines
 // ============================================================================
+
+const getPlatformGuidelines = (platform: string): string => {
+  const guidelines: Record<string, string> = {
+    instagram: `Instagram Reels format:
+- 100-150 characters ideal for fast-scrolling feeds
+- Open with a bold question or stat as hook (e.g. "Fined £100 for this parking mistake?")
+- Conversational British English, relatable and authoritative — like a trusted motoring expert
+- 3-5 emoji integrated after key phrases for visual breaks (e.g. 🚗💰⚠️), avoid looking spammy
+- Line breaks every 1-2 sentences; structure as: hook → 2-3 key points → CTA → hashtags
+- CTA: direct prompts like "Save for your next drive 👇" or "Tag a mate who needs this"
+- 5-8 targeted hashtags at the end on a separate line (mix 2-3 broad like #UKParking with 4-5 niche like #PCN #ParkingAppeals)
+- Include primary keyword in first line for algorithm categorisation
+- Do NOT put hashtags inline in the body text`,
+
+    facebook: `Facebook Reels format:
+- Up to 250 characters — Facebook's older demographic reads more than Instagram's
+- Open with a problem-solution hook (e.g. "Avoid this £130 PCN trap")
+- Warm, advisory British English — like a community expert, inclusive "we UK drivers" phrasing
+- 2-4 subtle emoji (e.g. 🅿️🚦), keep it practical not flashy
+- Double line breaks between paragraphs; simple structure: hook → tips → CTA
+- CTA: share-focused like "Share with family drivers" or "Comment your worst parking story"
+- 3-5 hashtags max at the end (broad like #MotoringUK plus niche like #ParkingFines)
+- Do NOT overload emoji or hashtags — feels too youthful for FB audience`,
+
+    tiktok: `TikTok format:
+- Ultra-short 50-100 characters before hashtags — on-video text carries the message, caption is secondary
+- Open with a shocking fact or challenge (e.g. "£200 fine in 10 seconds? Watch 👀")
+- Fun, urgent, youthful British English — punchy and direct
+- 4-6 energetic emoji integrated into the hook (🔥🚗❌👀)
+- Single line or minimal breaks; all-caps key words for emphasis; hook + CTA only
+- CTA: urgent engagement like "Duet your parking fail! 👇" or "Stitch if this saved you"
+- 4-7 hashtags front-loaded: 2 trending (e.g. #ParkingHack) plus 4 niche (#UKMotoring #PCN)
+- Include keywords in first line for For You Page topic matching
+- Do NOT write long paragraphs — users skip; keep it punchy`,
+
+    youtube: `YouTube Shorts format — return as JSON with "title" and "description" fields:
+- Title: 60-70 characters, keyword-frontloaded for search (e.g. "Is This Parking Legal in 2026? UK Rules Explained")
+- Description: 150-200 characters, SEO-driven with keyword variations
+- Expert, factual British English — informative like an official guide
+- 2-3 informative emoji only (📍⚠️🚗), minimal to keep professional
+- Numbered lists for tips; line breaks between points
+- CTA: "Like & subscribe for more UK motoring laws 👇" or "Comment your area's rules"
+- 3-5 hashtags ABOVE the title line (e.g. #UKParking #MotoringTips #DrivingLaw)
+- Primary keyword must appear in both title and first line of description for search ranking
+- Do NOT overload hashtags (harms SEO); avoid casual slang`,
+
+    threads: `Threads format:
+- 200-300 characters for conversational depth — Threads is text-first
+- Open with a story starter (e.g. "Just saw a driver get a £100 PCN for this — here's why it happened")
+- Chatty, opinionated British English — like a motoring insider sharing a take
+- 1-3 supportive emoji (🤔🛣️⚠️), enhance readability without dominating
+- Paragraph breaks with conversational flow; include questions to invite replies
+- CTA: discussion prompts like "What's your take?" or "Has this happened to you? Reply below"
+- 2-4 niche hashtags at the end (e.g. #ParkingUK #UKDriving)
+- Do NOT use salesy CTAs; don't duplicate the Instagram caption verbatim; give depth not teasers`,
+
+    linkedin: `LinkedIn format:
+- 100-200 characters ideal, scannable with line breaks every 1-2 sentences
+- Open with a hook: a question, surprising stat, or bold claim (e.g. "Can a council really ignore the tribunal?")
+- Professional but accessible British English — credible and insightful, not casual or meme-like
+- 1-2 emoji max, only for emphasis (e.g. a pointing hand for the CTA)
+- End with a networking CTA: "Has this happened to you?" or "What would you have done?" — NOT "follow for more"
+- 3-5 niche hashtags on a final separate line (e.g. #ParkingTicket #PCN #UKDriving #ParkingAppeals #ParkingTicketPal)
+- Do NOT put hashtags inline in the body text`,
+  };
+
+  return guidelines[platform] || '';
+};
 
 const generateTribunalCaption = async (
   platform: string,
@@ -24,6 +92,8 @@ const generateTribunalCaption = async (
     hook: string;
   },
 ): Promise<string> => {
+  const platformGuidelines = getPlatformGuidelines(platform);
+
   const { text } = await generateText({
     model: getTracedModel(models.textFast, {
       properties: { feature: `tribunal_video_caption_${platform}` },
@@ -34,28 +104,7 @@ Case: ${caseData.authority} - ${caseData.contravention}
 Decision: ${caseData.appealDecision === 'ALLOWED' ? 'Appeal won' : 'Appeal lost'}
 Hook: ${caseData.hook}
 
-Guidelines:
-- Keep it short and engaging
-- Include relevant hashtags for parking/driving content
-- British English
-- Include a CTA to follow for more
-- ${platform === 'tiktok' ? 'Max 150 characters before hashtags' : ''}
-- ${platform === 'youtube' ? 'Return as JSON with "title" and "description" fields' : ''}
-- ${
-      platform === 'linkedin'
-        ? `LinkedIn-specific format:
-- Open with a hook: a question, surprising stat, or bold claim about the case (e.g. "Can a council really ignore the tribunal?")
-- Use line breaks every 1-2 sentences for scannability
-- Professional but accessible tone — credible and insightful, not casual or meme-like
-- 100-200 characters ideal, focus on the legal insight or practical lesson
-- Use 1-2 emoji max, only for emphasis (e.g. a pointing hand for the CTA)
-- End with a networking CTA: "Has this happened to you?" or "What would you have done?" — NOT "follow for more"
-- Add 3-5 niche hashtags on a final separate line (e.g. #ParkingTicket #PCN #UKDriving #ParkingAppeals #ParkingTicketPal)
-- Do NOT put hashtags inline in the body text`
-        : ''
-    }
-
-Hashtags to consider: #parkingticket #parkingfine #pcn #drivingtips #parkingappeals #ukdriving #parkingticketpal`,
+${platformGuidelines}`,
   });
 
   return text;
@@ -70,6 +119,8 @@ const generateNewsCaption = async (
     hook: string;
   },
 ): Promise<string> => {
+  const platformGuidelines = getPlatformGuidelines(platform);
+
   const { text } = await generateText({
     model: getTracedModel(models.textFast, {
       properties: { feature: `news_video_caption_${platform}` },
@@ -81,28 +132,7 @@ Source: ${article.source}
 Category: ${article.category}
 Hook: ${article.hook}
 
-Guidelines:
-- Keep it short and engaging
-- Include relevant hashtags for UK motoring content
-- British English
-- Include a CTA to follow for more motoring news
-- ${platform === 'tiktok' ? 'Max 150 characters before hashtags' : ''}
-- ${platform === 'youtube' ? 'Return as JSON with "title" and "description" fields' : ''}
-- ${
-      platform === 'linkedin'
-        ? `LinkedIn-specific format:
-- Open with a hook: a question, surprising stat, or bold claim about the story (e.g. "New speed camera rules could catch thousands more drivers")
-- Use line breaks every 1-2 sentences for scannability
-- Professional but accessible tone — credible and insightful, not casual or meme-like
-- 100-200 characters ideal, focus on the practical impact for UK drivers
-- Use 1-2 emoji max, only for emphasis
-- End with a networking CTA: "How do you feel about this change?" or "Will this affect your commute?" — NOT "follow for more"
-- Add 3-5 niche hashtags on a final separate line (e.g. #UKDriving #MotoringNews #DrivingLaw #UKDrivers #ParkingTicketPal)
-- Do NOT put hashtags inline in the body text`
-        : ''
-    }
-
-Hashtags to consider: #uknews #drivingnews #parkingticket #ukdrivers #motoringnews #parkingfine #drivinglaw #carsnews #parkingticketpal`,
+${platformGuidelines}`,
   });
 
   return text;
