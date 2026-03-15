@@ -100,6 +100,19 @@ export type OutcomeSignalData = {
 };
 
 /**
+ * Machine-readable data for evidence analysis items (`evidence_analysis`).
+ *
+ * Produced by running vision models on council evidence images or street view imagery.
+ */
+export type EvidenceAnalysisData = {
+  signageVisible: boolean;
+  signageAdequate: boolean;
+  vehiclePositionClear: boolean;
+  crossReferenceQuality: 'strong' | 'moderate' | 'weak';
+  summary: string;
+};
+
+/**
  * Build a prompt section from enrichment items, grouping by category.
  */
 export function buildEnrichmentPromptSection(enrichment: Enrichment): string {
@@ -114,6 +127,7 @@ export function buildEnrichmentPromptSection(enrichment: Enrichment): string {
     example_case: 'Example Reasoning from Successful Appeals (use as inspiration, not verbatim)',
     guidance: 'Appeal Guidance for This Contravention Type',
     legal_reference: 'Relevant Legal Provisions (cite these accurately in the challenge)',
+    evidence_analysis: 'Visual Evidence Analysis (signage adequacy, evidence quality, and street-level observations — use these findings to strengthen factual arguments)',
   };
 
   // Group items by category, preserving insertion order

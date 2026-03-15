@@ -581,19 +581,25 @@ const generateChallengeLetterByTicketId = async (
       address: user.address as Address,
     };
 
-    // Fetch enrichment data (tribunal intelligence, statutory grounds, appeal guidance)
+    // Fetch enrichment data (tribunal intelligence, statutory grounds, appeal guidance, evidence + street view analysis)
     const enrichment = await gatherEnrichment({
       contraventionCode: ticket.contraventionCode,
       issuer: ticket.issuer,
       challengeReason,
+      ticketId: ticket.id,
     });
 
-    // Collect image URLs for multimodal AI analysis
+    // Collect image URLs for multimodal AI analysis (include street view for signage context)
     const ticketImageUrls = ticket.media
       .filter((m) => m.source === MediaSource.TICKET && m.url)
       .map((m) => m.url);
     const evidenceImageUrls = ticket.media
-      .filter((m) => m.source === MediaSource.EVIDENCE && m.url)
+      .filter(
+        (m) =>
+          (m.source === MediaSource.EVIDENCE ||
+            m.source === ('STREET_VIEW' as MediaSource)) &&
+          m.url,
+      )
       .map((m) => m.url);
 
     // generate challenge letter using shared utility

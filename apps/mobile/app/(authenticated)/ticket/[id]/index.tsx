@@ -47,6 +47,9 @@ import ActivityTimelineCard, {
 import { useFeatureFlag } from 'posthog-react-native';
 import { FLAG_SHOW_PAY_TICKET } from '@parking-ticket-pal/constants';
 import StickyBottomCTA from '@/components/ticket-detail/StickyBottomCTA';
+import useReExtract from '@/hooks/api/useReExtract';
+import * as ImagePicker from 'expo-image-picker';
+import { processImageWithOCR, addImageToTicket } from '@/api';
 
 const padding = 16;
 
@@ -58,6 +61,43 @@ export default function TicketDetailScreen() {
   const { hasPremiumAccess } =
     usePurchases();
   const showPayTicket = useFeatureFlag(FLAG_SHOW_PAY_TICKET) === true;
+
+  const reExtract = useReExtract();
+  const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
+
+  const handlePickAndUploadPhoto = async () => {
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ['images'],
+      quality: 0.8,
+      base64: true,
+    });
+
+    if (result.canceled || !result.assets[0]?.base64) return;
+
+    setIsUploadingPhoto(true);
+    try {
+      const ocrResult = await processImageWithOCR(
+        `data:image/jpeg;base64,${result.assets[0].base64}`,
+      );
+
+      if (!ocrResult.success || !ocrResult.imageUrl || !ocrResult.tempImagePath) {
+        toast.error('Upload failed', 'Could not process image');
+        return;
+      }
+
+      await addImageToTicket(id!, {
+        tempImageUrl: ocrResult.imageUrl,
+        tempImagePath: ocrResult.tempImagePath,
+      });
+
+      toast.success('Photo uploaded');
+      refetch();
+    } catch {
+      toast.error('Upload failed', 'Please try again');
+    } finally {
+      setIsUploadingPhoto(false);
+    }
+  };
 
   // Bottom sheet refs
   const formsSheetRef = useRef<BottomSheet>(null);
@@ -146,12 +186,15 @@ export default function TicketDetailScreen() {
     ticketData.tier === 'PREMIUM' ||
     hasPremiumAccess;
 
-  // Separate ticket images from evidence
+  // Separate ticket images from evidence and street view
   const ticketImages = (ticket.media || []).filter(
     (m: any) => m.source === 'TICKET' || !m.source,
   );
   const userEvidence = (ticket.media || []).filter(
     (m: any) => m.source === 'EVIDENCE',
+  );
+  const streetViewImages = (ticket.media || []).filter(
+    (m: any) => m.source === 'STREET_VIEW',
   );
 
   // Collect all image URLs for lightbox (including letter images)
@@ -166,6 +209,7 @@ export default function TicketDetailScreen() {
       ...userEvidence
         .filter((m: any) => /\.(jpeg|jpg|gif|png|webp)$/i.test(m.url))
         .map((m: any) => m.url),
+      ...streetViewImages.map((m: any) => m.url),
       ...letterMediaUrls,
     ];
     return images.filter(Boolean) as string[];
@@ -324,13 +368,57 @@ export default function TicketDetailScreen() {
           lastCheck={ticketData.verification?.metadata ?? null}
         />
 
+        {/* Incomplete Data Banner */}
+        {(!ticketData.contraventionCode || !ticketData.issuer || !location?.line1 || !ticketData.initialAmount) &&
+          ticketImages.length > 0 && (
+            <View className="rounded-2xl border border-amber-200 bg-amber-50 p-4 mb-4">
+              <Text className="font-jakarta-semibold text-amber-800">
+                Incomplete ticket details
+              </Text>
+              <Text className="font-jakarta text-sm text-amber-700 mt-1">
+                Some fields are missing. Re-extract from the ticket photo to fill them in.
+              </Text>
+              <SquishyPressable
+                onPress={() => {
+                  reExtract.mutate(ticket.id, {
+                    onSuccess: (data) => {
+                      if (data.updatedFields?.length) {
+                        toast.success(`Updated: ${data.updatedFields.join(', ')}`);
+                      } else {
+                        toast.info('Re-extract', data.message || 'No new data found');
+                      }
+                    },
+                    onError: () => {
+                      toast.error('Re-extract failed', 'Please try again');
+                    },
+                  });
+                }}
+                disabled={reExtract.isPending}
+              >
+                <View className="bg-amber-600 rounded-xl px-4 py-2.5 mt-3 self-start">
+                  <Text className="font-jakarta-semibold text-white text-sm">
+                    {reExtract.isPending ? 'Extracting…' : 'Re-extract'}
+                  </Text>
+                </View>
+              </SquishyPressable>
+            </View>
+          )}
+
         {/* 3. Ticket Photo */}
-        {ticketImages.length > 0 && (
-          <TicketPhotoCard media={ticketImages} onImagePress={openLightbox} />
-        )}
+        <TicketPhotoCard
+          media={ticketImages}
+          onImagePress={openLightbox}
+          onReplace={handlePickAndUploadPhoto}
+          onUpload={handlePickAndUploadPhoto}
+          isUploading={isUploadingPhoto}
+        />
 
         {/* 4. Ticket Location */}
-        <LocationCard location={location} />
+        <LocationCard
+          location={location}
+          streetViewImages={streetViewImages}
+          onImagePress={openLightbox}
+        />
 
         {/* 5. Evidence */}
         <EvidenceCard

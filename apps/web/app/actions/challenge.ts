@@ -209,7 +209,12 @@ export const generateChallengeText = async (
       .filter((m) => m.source === MediaSource.TICKET && m.url)
       .map((m) => m.url);
     const evidenceImageUrls = ticket.media
-      .filter((m) => m.source === MediaSource.EVIDENCE && m.url)
+      .filter(
+        (m) =>
+          (m.source === MediaSource.EVIDENCE ||
+            m.source === ('STREET_VIEW' as MediaSource)) &&
+          m.url,
+      )
       .map((m) => m.url);
 
     // Gather enrichment data
@@ -217,6 +222,7 @@ export const generateChallengeText = async (
       contraventionCode: ticket.contraventionCode,
       issuer: ticket.issuer,
       challengeReason,
+      ticketId: ticket.id,
     });
 
     // Build enrichment prompt section for form-field mode

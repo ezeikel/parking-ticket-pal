@@ -2,15 +2,22 @@
 
 import { motion } from 'framer-motion';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faLocationDot } from '@fortawesome/pro-solid-svg-icons';
+import { faLocationDot, faStreetView } from '@fortawesome/pro-solid-svg-icons';
 import { Address } from '@parking-ticket-pal/types';
+import type { Media } from '@parking-ticket-pal/db/types';
 import LocationMap from '@/components/LocationMap/DynamicLocationMap';
 
 type LocationCardProps = {
   location: Address | null;
+  streetViewImages?: Pick<Media, 'id' | 'url' | 'description'>[];
+  onImageClick?: (url: string) => void;
 };
 
-const LocationCard = ({ location }: LocationCardProps) => {
+const LocationCard = ({
+  location,
+  streetViewImages = [],
+  onImageClick,
+}: LocationCardProps) => {
   const hasCoordinates =
     location?.coordinates?.latitude && location?.coordinates?.longitude;
   const addressDisplay = location?.line1 || 'Unknown location';
@@ -58,6 +65,38 @@ const LocationCard = ({ location }: LocationCardProps) => {
                 className="absolute left-1/2 top-[18px] -translate-x-1/2 -translate-y-1/2 text-sm text-teal"
               />
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Street View Images */}
+      {streetViewImages.length > 0 && (
+        <div className="mt-4">
+          <div className="flex items-center gap-2 mb-3">
+            <FontAwesomeIcon
+              icon={faStreetView}
+              className="text-sm text-gray"
+            />
+            <span className="text-sm font-medium text-dark">Street View</span>
+          </div>
+          <div className="grid grid-cols-2 gap-2">
+            {streetViewImages.map((img) => (
+              <button
+                key={img.id}
+                type="button"
+                className="group relative overflow-hidden rounded-lg"
+                onClick={() => onImageClick?.(img.url)}
+              >
+                <div className="aspect-square bg-light">
+                  <img
+                    src={img.url}
+                    alt={img.description || 'Street view'}
+                    className="h-full w-full object-cover"
+                  />
+                </div>
+                <div className="absolute inset-0 bg-dark/0 transition-colors group-hover:bg-dark/20" />
+              </button>
+            ))}
           </div>
         </div>
       )}

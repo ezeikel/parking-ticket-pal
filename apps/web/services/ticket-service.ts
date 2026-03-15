@@ -1,9 +1,18 @@
 'use server';
 
-import { PredictionType, Ticket, db } from '@parking-ticket-pal/db';
+import {
+  MediaSource,
+  MediaType,
+  PredictionType,
+  Ticket,
+  db,
+} from '@parking-ticket-pal/db';
+import type { Address } from '@parking-ticket-pal/types';
 import { createServerLogger } from '@/lib/logger';
 import { runVerify, isIssuerSupported } from '@/utils/automation/workerClient';
 import { findIssuer } from '@/constants/index';
+import fetchStreetViewImages from '@/utils/streetView';
+import { put } from '@/lib/storage';
 import { calculatePrediction } from './prediction-service';
 
 const log = createServerLogger({ action: 'ticket-service' });
@@ -17,6 +26,7 @@ const updateTicketPrediction = async (ticketId: string) => {
     const ticket = await db.ticket.findUnique({
       where: { id: ticketId },
       select: {
+        id: true,
         contraventionCode: true,
         issuer: true,
       },
@@ -29,6 +39,7 @@ const updateTicketPrediction = async (ticketId: string) => {
 
     // Calculate prediction based on historical data
     const prediction = await calculatePrediction({
+      id: ticket.id,
       contraventionCode: ticket.contraventionCode,
       issuer: ticket.issuer,
     });
@@ -69,6 +80,7 @@ const createTicketPrediction = async (ticket: Ticket) => {
   try {
     // Calculate prediction based on historical data
     const prediction = await calculatePrediction({
+      id: ticket.id,
       contraventionCode: ticket.contraventionCode,
       issuer: ticket.issuer,
     });
@@ -140,12 +152,66 @@ const autoVerifyTicket = async (ticket: Ticket) => {
 /**
  * Handles post-creation tasks for a new ticket (creates prediction, auto-verifies)
  */
+/**
+ * Prefetch Google Street View images for the ticket location.
+ * Stores to R2 and creates Media records for later analysis.
+ */
+const prefetchStreetView = async (ticket: Ticket) => {
+  try {
+    const location = ticket.location as Address | null;
+    const lat = location?.coordinates?.latitude;
+    const lng = location?.coordinates?.longitude;
+
+    if (!lat || !lng || (lat === 0 && lng === 0)) return;
+
+    // Check if already cached
+    const existing = await db.media.findFirst({
+      where: { ticketId: ticket.id, source: MediaSource.STREET_VIEW },
+    });
+    if (existing) return;
+
+    const images = await fetchStreetViewImages(lat, lng);
+    if (images.length === 0) return;
+
+    await Promise.all(
+      images.map(async (img) => {
+        const path = `tickets/${ticket.id}/street-view/${img.heading}.jpg`;
+        const result = await put(path, img.buffer, {
+          contentType: img.contentType,
+        });
+
+        await db.media.create({
+          data: {
+            ticketId: ticket.id,
+            url: result.url,
+            type: MediaType.IMAGE,
+            source: MediaSource.STREET_VIEW,
+            description: `Street view heading ${img.heading}°`,
+          },
+        });
+      }),
+    );
+  } catch (error) {
+    log.error(
+      `Street view prefetch failed for ticket ${ticket.id}`,
+      undefined,
+      error instanceof Error ? error : undefined,
+    );
+  }
+};
+
+/**
+ * Handles post-creation tasks for a new ticket (creates prediction, auto-verifies)
+ */
 export const afterTicketCreation = async (ticket: Ticket) => {
   await createTicketPrediction(ticket);
 
   if (!ticket.verified && ticket.issuer) {
     await autoVerifyTicket(ticket);
   }
+
+  // Prefetch street view images (non-blocking)
+  prefetchStreetView(ticket).catch(() => {});
 
   return ticket;
 };
@@ -156,12 +222,6 @@ export const afterTicketCreation = async (ticket: Ticket) => {
 export const afterTicketUpdate = async (ticketId: string) => {
   const ticket = await db.ticket.findUnique({
     where: { id: ticketId },
-    select: {
-      id: true,
-      contraventionCode: true,
-      issuer: true,
-      issuerType: true,
-    },
   });
 
   if (!ticket) {
@@ -169,4 +229,7 @@ export const afterTicketUpdate = async (ticketId: string) => {
   }
 
   await updateTicketPrediction(ticketId);
+
+  // Prefetch street view if location was just added (non-blocking)
+  prefetchStreetView(ticket).catch(() => {});
 };

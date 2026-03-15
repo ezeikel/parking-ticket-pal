@@ -401,6 +401,11 @@ export type EventProperties = {
     success: boolean;
     duration_ms: number;
   };
+  [TRACKING_EVENTS.TICKET_RE_EXTRACTED]: {
+    ticketId: string;
+    updatedFields: string[];
+    source: string;
+  };
 
   // Challenge & Appeal Process
   [TRACKING_EVENTS.CHALLENGE_CREATED]: {

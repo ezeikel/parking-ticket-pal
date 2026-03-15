@@ -1,10 +1,19 @@
 'use server';
 
-import { db } from '@parking-ticket-pal/db';
-import type { EnrichmentItem, Enrichment } from '@parking-ticket-pal/types';
+import { generateObject } from 'ai';
+import { z } from 'zod';
+import { MediaSource, MediaType, db } from '@parking-ticket-pal/db';
+import type {
+  EnrichmentItem,
+  Enrichment,
+  Address,
+} from '@parking-ticket-pal/types';
 import { getStatutoryGroundById } from '@/constants/statutory-grounds';
 import { getEducationalContentForCode } from '@/data/contravention-codes/educational-content';
 import { getContraventionDetails } from '@parking-ticket-pal/constants';
+import { models, getTracedModel } from '@/lib/ai/models';
+import fetchStreetViewImages from '@/utils/streetView';
+import { put } from '@/lib/storage';
 
 const REASON_TO_STATUTORY_GROUND: Record<string, string> = {
   CONTRAVENTION_DID_NOT_OCCUR: 'contravention-did-not-occur',
@@ -27,6 +36,7 @@ type CollectorInput = {
   contraventionCode: string | null;
   issuer: string | null;
   challengeReason: string;
+  ticketId?: string;
 };
 
 // ============================================
@@ -352,6 +362,274 @@ async function collectAppealGuidance(
   }));
 }
 
+/**
+ * Collect evidence image analysis using vision model.
+ * Examines council evidence images for signage adequacy and evidence quality.
+ */
+async function collectEvidenceAnalysis(
+  input: CollectorInput,
+): Promise<EnrichmentItem[]> {
+  if (!input.ticketId) return [];
+
+  try {
+    const evidenceMedia = await db.media.findMany({
+      where: {
+        ticketId: input.ticketId,
+        source: { in: [MediaSource.EVIDENCE, MediaSource.ISSUER] },
+      },
+      orderBy: { createdAt: 'desc' },
+      take: 4,
+    });
+
+    if (evidenceMedia.length === 0) return [];
+
+    const imageUrls = evidenceMedia
+      .filter((m) => /\.(jpeg|jpg|png|webp|gif)$/i.test(m.url))
+      .map((m) => m.url);
+
+    if (imageUrls.length === 0) return [];
+
+    const tracedModel = getTracedModel(models.analytics, {
+      properties: { feature: 'evidence_analysis' },
+    });
+
+    const EvidenceAnalysisSchema = z.object({
+      signageVisible: z
+        .boolean()
+        .describe('Whether road signage/markings are visible in any image'),
+      signageAdequate: z
+        .boolean()
+        .describe(
+          'Whether visible signage is clear, unobstructed, and compliant',
+        ),
+      vehiclePositionClear: z
+        .boolean()
+        .describe(
+          'Whether the vehicle position relative to restrictions is clearly shown',
+        ),
+      crossReferenceQuality: z
+        .enum(['strong', 'moderate', 'weak'])
+        .describe('How well the evidence supports the contravention'),
+      summary: z
+        .string()
+        .describe('Brief 1-2 sentence assessment of evidence quality'),
+    });
+
+    const { object: analysis } = await generateObject({
+      model: tracedModel,
+      schema: EvidenceAnalysisSchema,
+      messages: [
+        {
+          role: 'user',
+          content: [
+            {
+              type: 'text',
+              text: `Analyze these parking enforcement evidence images. Assess signage visibility and adequacy, whether the vehicle position is clearly shown, and overall evidence quality. Consider whether the evidence supports or weakens the enforcement case.`,
+            },
+            ...imageUrls.map((url) => ({
+              type: 'image' as const,
+              image: new URL(url),
+            })),
+          ],
+        },
+      ],
+    });
+
+    const items: EnrichmentItem[] = [];
+
+    // Qualitative item for AI prompts
+    items.push({
+      source: 'evidence_images',
+      category: 'evidence_analysis',
+      content: [
+        `Evidence analysis: ${analysis.summary}`,
+        `Signage visible: ${analysis.signageVisible ? 'Yes' : 'No'}`,
+        `Signage adequate: ${analysis.signageAdequate ? 'Yes' : 'No'}`,
+        `Vehicle position clear: ${analysis.vehiclePositionClear ? 'Yes' : 'No'}`,
+        `Evidence quality: ${analysis.crossReferenceQuality}`,
+      ].join('\n'),
+      data: analysis,
+    });
+
+    // If signage is inadequate, emit a modest challenge outcome boost
+    if (analysis.signageVisible && !analysis.signageAdequate) {
+      items.push({
+        source: 'evidence_images',
+        category: 'challenge_outcome',
+        content:
+          'Evidence images show inadequate signage — increases likelihood of successful challenge',
+        weight: 0.3,
+        data: {
+          percentage: 55,
+          numberOfCases: 0,
+          confidence: 0.3,
+        },
+      });
+    }
+
+    return items;
+  } catch {
+    // Silently fail — evidence analysis is supplementary
+    return [];
+  }
+}
+
+/**
+ * Collect street view analysis for the ticket location.
+ * Fetches street-level imagery, caches to R2, and runs vision analysis.
+ */
+async function collectStreetViewAnalysis(
+  input: CollectorInput,
+): Promise<EnrichmentItem[]> {
+  if (!input.ticketId) return [];
+
+  try {
+    const ticket = await db.ticket.findUnique({
+      where: { id: input.ticketId },
+      select: {
+        id: true,
+        location: true,
+        media: {
+          where: { source: MediaSource.STREET_VIEW },
+          select: { url: true },
+        },
+      },
+    });
+
+    if (!ticket) return [];
+
+    const location = ticket.location as Address | null;
+    const lat = location?.coordinates?.latitude;
+    const lng = location?.coordinates?.longitude;
+
+    if (!lat || !lng || (lat === 0 && lng === 0)) return [];
+
+    // Use cached images or fetch new ones
+    let imageUrls: string[];
+
+    if (ticket.media.length > 0) {
+      imageUrls = ticket.media.map((m) => m.url);
+    } else {
+      const images = await fetchStreetViewImages(lat, lng);
+      if (images.length === 0) return [];
+
+      // Store to R2 and create Media records
+      imageUrls = await Promise.all(
+        images.map(async (img) => {
+          const path = `tickets/${ticket.id}/street-view/${img.heading}.jpg`;
+          const result = await put(path, img.buffer, {
+            contentType: img.contentType,
+          });
+
+          await db.media.create({
+            data: {
+              ticketId: ticket.id,
+              url: result.url,
+              type: MediaType.IMAGE,
+              source: MediaSource.STREET_VIEW,
+              description: `Street view heading ${img.heading}°`,
+            },
+          });
+
+          return result.url;
+        }),
+      );
+    }
+
+    if (imageUrls.length === 0) return [];
+
+    // Run vision analysis
+    const tracedModel = getTracedModel(models.analytics, {
+      properties: { feature: 'street_view_analysis' },
+    });
+
+    const StreetViewAnalysisSchema = z.object({
+      signageVisible: z
+        .boolean()
+        .describe(
+          'Whether parking restriction signage is visible from street level',
+        ),
+      signageAdequate: z
+        .boolean()
+        .describe(
+          'Whether signage is clear, properly positioned, and easily readable from a driver perspective',
+        ),
+      lineMarkingsVisible: z
+        .boolean()
+        .describe(
+          'Whether road line markings (yellow lines, etc.) are visible',
+        ),
+      obstructions: z
+        .string()
+        .describe(
+          'Any obstructions that might affect signage visibility (trees, vehicles, etc.)',
+        ),
+      summary: z
+        .string()
+        .describe(
+          'Brief assessment of signage visibility from driver perspective',
+        ),
+    });
+
+    const { object: analysis } = await generateObject({
+      model: tracedModel,
+      schema: StreetViewAnalysisSchema,
+      messages: [
+        {
+          role: 'user',
+          content: [
+            {
+              type: 'text',
+              text: `These are Google Street View images of a location where a parking ticket was issued. Analyze the signage visibility from the driver's perspective. Look for: parking restriction signs, yellow/red lines, pay & display machines, and any obstructions that might make signage hard to see.`,
+            },
+            ...imageUrls.map((url) => ({
+              type: 'image' as const,
+              image: new URL(url),
+            })),
+          ],
+        },
+      ],
+    });
+
+    const items: EnrichmentItem[] = [];
+
+    items.push({
+      source: 'street_view',
+      category: 'evidence_analysis',
+      content: [
+        `Street View analysis: ${analysis.summary}`,
+        `Signage visible: ${analysis.signageVisible ? 'Yes' : 'No'}`,
+        `Signage adequate: ${analysis.signageAdequate ? 'Yes' : 'No'}`,
+        `Line markings visible: ${analysis.lineMarkingsVisible ? 'Yes' : 'No'}`,
+        analysis.obstructions ? `Obstructions: ${analysis.obstructions}` : '',
+      ]
+        .filter(Boolean)
+        .join('\n'),
+      data: analysis,
+    });
+
+    // Boost challenge outcome if signage is inadequate
+    if (!analysis.signageAdequate) {
+      items.push({
+        source: 'street_view',
+        category: 'challenge_outcome',
+        content:
+          'Street View imagery shows inadequate or obstructed signage at this location',
+        weight: 0.4,
+        data: {
+          percentage: 60,
+          numberOfCases: 0,
+          confidence: 0.35,
+        },
+      });
+    }
+
+    return items;
+  } catch {
+    return [];
+  }
+}
+
 // ============================================
 // Main gather function
 // ============================================
@@ -371,6 +649,8 @@ export default async function gatherEnrichment(
       collectStatutoryGround,
       collectLegalReferences,
       collectAppealGuidance,
+      collectEvidenceAnalysis,
+      collectStreetViewAnalysis,
     ];
 
     const results = await Promise.allSettled(collectors.map((c) => c(input)));

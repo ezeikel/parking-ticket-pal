@@ -7,6 +7,7 @@ import {
   faExpand,
   faCamera,
   faUpload,
+  faSpinnerThird,
 } from '@fortawesome/pro-solid-svg-icons';
 import type { Media } from '@parking-ticket-pal/db/types';
 import { Button } from '@/components/ui/button';
@@ -16,6 +17,7 @@ type TicketPhotoCardProps = {
   onImageClick?: (imageUrl: string) => void;
   onReplace?: () => void;
   onUpload?: () => void;
+  isUploading?: boolean;
 };
 
 const TicketPhotoCard = ({
@@ -23,6 +25,7 @@ const TicketPhotoCard = ({
   onImageClick,
   onReplace,
   onUpload,
+  isUploading = false,
 }: TicketPhotoCardProps) => {
   const primaryImage = images[0];
   const hasImage = !!primaryImage?.url;
@@ -50,25 +53,36 @@ const TicketPhotoCard = ({
       </div>
 
       {hasImage ? (
-        <button
-          type="button"
-          onClick={() => onImageClick?.(primaryImage.url!)}
-          className="group relative mt-4 w-full overflow-hidden rounded-lg"
-        >
-          <div className="aspect-[4/3] bg-light">
-            <img
-              src={primaryImage.url!}
-              alt={primaryImage.description || 'Ticket photo'}
-              className="h-full w-full object-cover"
-            />
-          </div>
-          <div className="absolute inset-0 flex items-center justify-center bg-dark/0 transition-colors group-hover:bg-dark/40">
-            <FontAwesomeIcon
-              icon={faExpand}
-              className="text-xl text-white opacity-0 transition-opacity group-hover:opacity-100"
-            />
-          </div>
-        </button>
+        <div className="relative mt-4">
+          <button
+            type="button"
+            onClick={() => onImageClick?.(primaryImage.url)}
+            className="group relative w-full overflow-hidden rounded-lg"
+            disabled={isUploading}
+          >
+            <div className="aspect-[4/3] bg-light">
+              <img
+                src={primaryImage.url}
+                alt={primaryImage.description || 'Ticket photo'}
+                className="h-full w-full object-cover"
+              />
+            </div>
+            <div className="absolute inset-0 flex items-center justify-center bg-dark/0 transition-colors group-hover:bg-dark/40">
+              <FontAwesomeIcon
+                icon={faExpand}
+                className="text-xl text-white opacity-0 transition-opacity group-hover:opacity-100"
+              />
+            </div>
+          </button>
+          {isUploading && (
+            <div className="absolute inset-0 flex items-center justify-center rounded-lg bg-white/80">
+              <FontAwesomeIcon
+                icon={faSpinnerThird}
+                className="text-2xl text-teal animate-spin"
+              />
+            </div>
+          )}
+        </div>
       ) : (
         <div className="mt-4">
           <div
@@ -111,11 +125,11 @@ const TicketPhotoCard = ({
             <button
               key={image.id}
               type="button"
-              onClick={() => onImageClick?.(image.url!)}
+              onClick={() => onImageClick?.(image.url)}
               className="group relative h-16 w-16 flex-shrink-0 overflow-hidden rounded-lg bg-light"
             >
               <img
-                src={image.url!}
+                src={image.url}
                 alt={image.description || `Ticket photo ${index + 2}`}
                 className="h-full w-full object-cover"
               />

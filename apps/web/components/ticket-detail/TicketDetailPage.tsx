@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useTransition } from 'react';
+import { useEffect, useRef, useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import posthog from 'posthog-js';
 import { toast } from 'sonner';
@@ -16,6 +16,7 @@ import { updateTicketStatus } from '@/app/actions/ticket';
 import { createTicketCheckoutSession } from '@/app/actions/stripe';
 import { initiateAutoChallenge } from '@/app/actions/autoChallenge';
 import { generateChallengeLetter } from '@/app/actions/letter';
+import { reExtractFromImage } from '@/app/actions/ocr';
 import AddressPromptBanner from '@/components/AddressPromptBanner/AddressPromptBanner';
 import AdBanner from '@/components/AdBanner/AdBanner';
 import { getDisplayAmount } from '@/utils/getCurrentAmountDue';
@@ -138,6 +139,9 @@ const TicketDetailPage = ({
   const userEvidence = ticket.media.filter(
     (m) => m.source === MediaSource.EVIDENCE,
   );
+  const streetViewImages = ticket.media.filter(
+    (m) => m.source === ('STREET_VIEW' as MediaSource),
+  );
 
   // Collect all image URLs for the lightbox carousel
   const allImages: string[] = [
@@ -145,6 +149,7 @@ const TicketDetailPage = ({
     ...userEvidence
       .filter((m) => m.url.match(/\.(jpeg|jpg|gif|png|webp)$/i))
       .map((m) => m.url),
+    ...streetViewImages.map((m) => m.url).filter(Boolean),
     ...ticket.letters.flatMap((l) => l.media.map((m) => m.url)),
   ];
 
@@ -334,16 +339,96 @@ const TicketDetailPage = ({
     }
   };
 
+  const [isReExtracting, setIsReExtracting] = useState(false);
+  const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleReExtract = async () => {
+    setIsReExtracting(true);
+    try {
+      const result = await reExtractFromImage(ticket.id);
+      if (result.success) {
+        if (result.updatedFields && result.updatedFields.length > 0) {
+          toast.success(`Updated: ${result.updatedFields.join(', ')}`);
+        } else {
+          toast.info(result.message);
+        }
+        router.refresh();
+      } else {
+        toast.error(result.message || 'Failed to re-extract data');
+      }
+    } catch {
+      toast.error('Something went wrong');
+    } finally {
+      setIsReExtracting(false);
+    }
+  };
+
   const handleReplaceTicketPhoto = () => {
-    // TODO: Implement ticket photo replacement
-    // This would open a file picker and upload a new ticket image
-    toast.info('Photo replacement coming soon');
+    fileInputRef.current?.click();
   };
 
   const handleUploadTicketPhoto = () => {
-    // TODO: Implement ticket photo upload
-    // This would open a file picker and upload a ticket image
-    toast.info('Photo upload coming soon');
+    fileInputRef.current?.click();
+  };
+
+  const handleFileSelected = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setIsUploadingPhoto(true);
+    try {
+      const formData = new FormData();
+      formData.append('image', file);
+
+      // Use OCR to process and get temp URL
+      const { extractOCRTextWithOpenAI } = await import('@/app/actions/ocr');
+      const ocrResult = await extractOCRTextWithOpenAI(formData);
+
+      if (
+        !ocrResult.success ||
+        !ocrResult.imageUrl ||
+        !ocrResult.tempImagePath
+      ) {
+        toast.error('Failed to process image');
+        return;
+      }
+
+      // If replacing, delete existing TICKET media
+      if (ticketImages.length > 0) {
+        const res = await fetch(`/api/tickets/${ticket.id}/image/replace`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            tempImageUrl: ocrResult.imageUrl,
+            tempImagePath: ocrResult.tempImagePath,
+          }),
+        });
+        const data = await res.json();
+        if (!data.success) throw new Error(data.error);
+      } else {
+        // Create new media
+        const res = await fetch(`/api/tickets/${ticket.id}/image`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            tempImageUrl: ocrResult.imageUrl,
+            tempImagePath: ocrResult.tempImagePath,
+          }),
+        });
+        const data = await res.json();
+        if (!data.success) throw new Error(data.error);
+      }
+
+      toast.success('Photo updated');
+      router.refresh();
+    } catch {
+      toast.error('Failed to upload photo');
+    } finally {
+      setIsUploadingPhoto(false);
+      // Reset file input
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    }
   };
 
   return (
@@ -378,6 +463,33 @@ const TicketDetailPage = ({
                 onEdit={handleEdit}
               />
             </div>
+
+            {/* Incomplete Data Banner — re-extract from ticket photo */}
+            {(!ticket.contraventionCode ||
+              !ticket.issuer ||
+              !location?.line1 ||
+              !ticket.initialAmount) &&
+              ticketImages.length > 0 && (
+                <div className="flex items-center justify-between rounded-xl border border-amber-200 bg-amber-50 p-4">
+                  <div>
+                    <p className="font-semibold text-amber-800">
+                      Incomplete ticket details
+                    </p>
+                    <p className="mt-1 text-sm text-amber-700">
+                      Some fields are missing. Re-extract from the ticket photo
+                      to fill them in.
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    className="ml-4 shrink-0 rounded-lg bg-amber-600 px-4 py-2 text-sm font-medium text-white hover:bg-amber-700 disabled:opacity-50"
+                    onClick={handleReExtract}
+                    disabled={isReExtracting}
+                  >
+                    {isReExtracting ? 'Extracting…' : 'Re-extract'}
+                  </button>
+                </div>
+              )}
 
             {/* Verification Prompt - show when ticket has issuer but isn't verified */}
             {!ticket.verified && ticket.issuer && (
@@ -452,16 +564,30 @@ const TicketDetailPage = ({
               }}
             />
 
+            {/* Hidden file input for photo upload/replace */}
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/jpeg,image/png,image/heic,image/webp"
+              className="hidden"
+              onChange={handleFileSelected}
+            />
+
             {/* Ticket Photo Card */}
             <TicketPhotoCard
               images={ticketImages}
               onImageClick={openLightbox}
               onReplace={handleReplaceTicketPhoto}
               onUpload={handleUploadTicketPhoto}
+              isUploading={isUploadingPhoto}
             />
 
             {/* Location Card */}
-            <LocationCard location={location} />
+            <LocationCard
+              location={location}
+              streetViewImages={streetViewImages}
+              onImageClick={openLightbox}
+            />
 
             {/* Evidence Card */}
             <EvidenceCard

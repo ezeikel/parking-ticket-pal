@@ -226,12 +226,17 @@ export async function initiateAutoChallenge(
       country?: string | null;
     } | null;
 
-    // Collect image URLs for the worker to use in challenge text generation
+    // Collect image URLs for the worker to use in challenge text generation (include street view for signage context)
     const ticketImageUrls = ticket.media
       .filter((m) => m.source === MediaSource.TICKET && m.url)
       .map((m) => m.url);
     const evidenceImageUrls = ticket.media
-      .filter((m) => m.source === MediaSource.EVIDENCE && m.url)
+      .filter(
+        (m) =>
+          (m.source === MediaSource.EVIDENCE ||
+            m.source === ('STREET_VIEW' as MediaSource)) &&
+          m.url,
+      )
       .map((m) => m.url);
 
     // Gather tribunal intelligence and enrichment data for the worker
@@ -239,6 +244,7 @@ export async function initiateAutoChallenge(
       contraventionCode: ticket.contraventionCode,
       issuer: ticket.issuer,
       challengeReason,
+      ticketId: ticket.id,
     });
 
     const ticketForChallenge: TicketForChallenge = {

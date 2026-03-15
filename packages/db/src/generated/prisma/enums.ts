@@ -170,7 +170,8 @@ export const MediaSource = {
   TICKET: 'TICKET',
   LETTER: 'LETTER',
   USER: 'USER',
-  EVIDENCE: 'EVIDENCE'
+  EVIDENCE: 'EVIDENCE',
+  STREET_VIEW: 'STREET_VIEW'
 } as const
 
 export type MediaSource = (typeof MediaSource)[keyof typeof MediaSource]

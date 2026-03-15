@@ -174,6 +174,7 @@ export enum MediaSource {
   LETTER = 'LETTER',
   USER = 'USER',
   EVIDENCE = 'EVIDENCE',
+  STREET_VIEW = 'STREET_VIEW',
 }
 
 export type Media = {

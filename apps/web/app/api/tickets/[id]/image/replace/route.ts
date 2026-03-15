@@ -6,7 +6,7 @@ import { STORAGE_PATHS } from '@/constants';
 import { createServerLogger } from '@/lib/logger';
 import { reExtractFromImage } from '@/app/actions/ocr';
 
-const log = createServerLogger({ action: 'ticket-image-api' });
+const log = createServerLogger({ action: 'ticket-image-replace' });
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -31,7 +31,7 @@ export const POST = async (
     );
   }
 
-  const userId = await getUserId('add image to ticket');
+  const userId = await getUserId('replace ticket photo');
 
   if (!userId) {
     return Response.json(
@@ -57,6 +57,11 @@ export const POST = async (
         id: ticketId,
         vehicle: { userId },
       },
+      include: {
+        media: {
+          where: { source: MediaSource.TICKET },
+        },
+      },
     });
 
     if (!ticket) {
@@ -66,28 +71,40 @@ export const POST = async (
       );
     }
 
-    // Extract file extension from temp path
-    const extension = tempImagePath.split('.').pop() || 'jpg';
+    // Delete existing TICKET media records and R2 files
+    await Promise.all(
+      ticket.media.map(async (media) => {
+        try {
+          await del(media.url);
+        } catch (error) {
+          log.error(
+            'Failed to delete old media file from R2',
+            { mediaId: media.id, url: media.url },
+            error instanceof Error ? error : new Error(String(error)),
+          );
+        }
+        await db.media.delete({ where: { id: media.id } });
+      }),
+    );
 
-    // Move file to permanent location
+    // Move new file to permanent location
+    const extension = tempImagePath.split('.').pop() || 'jpg';
     const permanentPath = STORAGE_PATHS.TICKET_IMAGE.replace(
       '%s',
       ticketId,
     ).replace('%s', extension);
 
-    // Download temp file and upload to permanent location
     const tempResponse = await fetch(tempImageUrl);
     if (!tempResponse.ok) {
       throw new Error(`Failed to fetch temp file: ${tempResponse.statusText}`);
     }
 
     const tempBuffer = await tempResponse.arrayBuffer();
-
     const permanentBlob = await put(permanentPath, Buffer.from(tempBuffer), {
       contentType: `image/${extension === 'jpg' ? 'jpeg' : extension}`,
     });
 
-    // Create media record with permanent URL
+    // Create new media record
     await db.media.create({
       data: {
         ticketId,
@@ -98,35 +115,23 @@ export const POST = async (
       },
     });
 
-    // Delete temporary file
+    // Delete temp file
     await del(tempImageUrl);
 
-    log.info('Successfully added image to ticket', {
-      ticketId,
-      permanentPath,
-    });
+    log.info('Successfully replaced ticket photo', { ticketId });
 
-    // Auto-trigger re-extraction if any key fields are missing
-    const location = ticket.location as Record<string, unknown> | null;
-    const hasLocation = location?.line1 && location.line1 !== '';
-    if (
-      !ticket.contraventionCode ||
-      !ticket.issuer ||
-      !hasLocation ||
-      !ticket.initialAmount
-    ) {
-      after(async () => {
-        try {
-          await reExtractFromImage(ticketId);
-        } catch (error) {
-          log.error(
-            'Auto re-extraction failed',
-            { ticketId },
-            error instanceof Error ? error : new Error(String(error)),
-          );
-        }
-      });
-    }
+    // Auto-trigger re-extraction
+    after(async () => {
+      try {
+        await reExtractFromImage(ticketId);
+      } catch (error) {
+        log.error(
+          'Auto re-extraction after replace failed',
+          { ticketId },
+          error instanceof Error ? error : new Error(String(error)),
+        );
+      }
+    });
 
     return Response.json(
       { success: true },
@@ -134,12 +139,12 @@ export const POST = async (
     );
   } catch (error) {
     log.error(
-      'Error adding image to ticket',
+      'Error replacing ticket photo',
       { ticketId, userId },
       error instanceof Error ? error : new Error(String(error)),
     );
     return Response.json(
-      { success: false, error: 'Failed to add image to ticket' },
+      { success: false, error: 'Failed to replace ticket photo' },
       { status: 500, headers: corsHeaders },
     );
   }

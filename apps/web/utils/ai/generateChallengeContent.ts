@@ -223,17 +223,35 @@ async function generateChallengeContent(
 
     try {
       // Build user content with text and images
+      const imageContext = [
+        issuerEvidenceImageUrls.length > 0
+          ? `The first ${issuerEvidenceImageUrls.length} image(s) are the parking ticket itself — check for PCN details, contravention description, and any procedural information.`
+          : '',
+        userEvidenceImageUrls.length > 0
+          ? `The next ${userEvidenceImageUrls.length} image(s) are supporting evidence — these may include user-uploaded photos of signage, the vehicle position, road markings, OR Google Street View imagery showing the location from the driver's perspective. Assess signage visibility, adequacy, and any obstructions.`
+          : '',
+      ]
+        .filter(Boolean)
+        .join('\n');
+
       const userContent: (
         | { type: 'text'; text: string }
         | { type: 'image'; image: URL }
       )[] = [
         {
           type: 'text',
-          text: `Analyze these images and write a challenge for PCN ${pcnNumber}.
+          text: `Write a challenge for PCN ${pcnNumber}.
 
-            Reason for challenge: ${combinedReasonText}
+Reason for challenge: ${combinedReasonText}
 
-            The response should fit this form field hint: "${formFieldPlaceholderText}"`,
+## Available images
+${imageContext}
+
+Analyse all images to identify facts that support the challenge — such as unclear or missing signage, obstructed signs, faded road markings, vehicle position relative to restrictions, or any discrepancy between what the ticket claims and what the images show. Combine these visual observations with the tribunal intelligence and legal grounds provided above to build the strongest possible argument.
+
+Do not mention having photographic evidence or refer to "images" — present observations as facts.
+
+The response should fit this form field hint: "${formFieldPlaceholderText}"`,
         },
         ...issuerEvidenceImageUrls.map((url) => ({
           type: 'image' as const,
@@ -290,13 +308,36 @@ async function generateChallengeContent(
     const allImageUrls = [...ticketImageUrls, ...evidenceImageUrls];
 
     if (allImageUrls.length > 0) {
+      const imageContext = [
+        ticketImageUrls.length > 0
+          ? `The first ${ticketImageUrls.length} image(s) are the parking ticket — check for PCN details, contravention description, and any procedural information.`
+          : '',
+        evidenceImageUrls.length > 0
+          ? `The next ${evidenceImageUrls.length} image(s) are supporting evidence — these may include user-uploaded photos of signage/vehicle position, council enforcement evidence, OR Google Street View imagery showing the location from the driver's perspective.`
+          : '',
+      ]
+        .filter(Boolean)
+        .join('\n');
+
       const userContent: (
         | { type: 'text'; text: string }
         | { type: 'image'; image: URL }
       )[] = [
         {
           type: 'text',
-          text: `${letterPrompt}\n\nThe following images are the ticket photo(s) and any supporting evidence uploaded by the vehicle owner. Analyse them for details that strengthen the challenge — such as unclear signage, obstructions, time-limited restrictions, road markings, or any other visual evidence. Reference specific observations naturally in the letter body without explicitly stating "as shown in the photograph". Do not mention having photographic evidence.`,
+          text: `${letterPrompt}
+
+## Available images
+${imageContext}
+
+Analyse all images to identify facts that support the challenge:
+- **Signage**: Is restriction signage visible, adequate, properly positioned, and unobstructed? Are there missing, faded, or contradictory signs?
+- **Road markings**: Are yellow/red lines clearly visible and correctly applied?
+- **Vehicle position**: Does the vehicle's position relative to restrictions support or contradict the contravention?
+- **Procedural details**: Does the ticket itself contain errors, omissions, or inconsistencies?
+- **Street-level context**: If Street View images are present, assess what a driver would reasonably see when approaching the location.
+
+Combine these visual observations with the tribunal intelligence, legal grounds, and statutory provisions provided above. Reference specific factual observations naturally in the letter body — do not mention "images", "photographs", or "Street View". Present all observations as first-hand factual statements.`,
         },
         ...ticketImageUrls.map((url) => ({
           type: 'image' as const,

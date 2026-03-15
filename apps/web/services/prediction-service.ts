@@ -215,6 +215,7 @@ function predictionFromEnrichment(enrichment: Enrichment): PredictionResult {
 export async function calculatePrediction(ticket: {
   contraventionCode: string | null;
   issuer: string | null;
+  id?: string;
 }): Promise<PredictionResult> {
   const defaultResult: PredictionResult = {
     percentage: 46,
@@ -234,6 +235,7 @@ export async function calculatePrediction(ticket: {
       contraventionCode: ticket.contraventionCode,
       issuer: ticket.issuer,
       challengeReason: '', // Not needed for prediction (only affects statutory ground collector)
+      ticketId: ticket.id,
     });
 
     if (!enrichment) return defaultResult;

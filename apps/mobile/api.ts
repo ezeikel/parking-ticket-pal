@@ -554,6 +554,15 @@ export const addImageToTicket = async (ticketId: string, data: {
   return response.data;
 };
 
+export const reExtractFromImage = async (ticketId: string) => {
+  const response = await api.post(`/tickets/${ticketId}/re-extract`);
+  return response.data as {
+    success: boolean;
+    message?: string;
+    updatedFields?: string[];
+  };
+};
+
 // Challenge text generation
 export const generateChallengeTextApi = async (
   ticketId: string,

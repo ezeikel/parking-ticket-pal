@@ -1,15 +1,19 @@
 import { View, Text, Platform, Linking } from 'react-native';
+import { Image } from 'expo-image';
 import MapView, { Marker, PROVIDER_GOOGLE } from 'react-native-maps';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
-import { faLocationDot } from '@fortawesome/pro-solid-svg-icons';
+import { faLocationDot, faStreetView } from '@fortawesome/pro-solid-svg-icons';
 import { Address } from '@parking-ticket-pal/types';
+import { Media } from '@/types';
 import SquishyPressable from '@/components/SquishyPressable/SquishyPressable';
 
 type LocationCardProps = {
   location: Address | null;
+  streetViewImages?: Media[];
+  onImagePress?: (url: string) => void;
 };
 
-export default function LocationCard({ location }: LocationCardProps) {
+export default function LocationCard({ location, streetViewImages = [], onImagePress }: LocationCardProps) {
   const hasCoordinates = location?.coordinates?.latitude && location?.coordinates?.longitude;
   const addressDisplay = location?.line1 || 'Unknown location';
 
@@ -79,6 +83,32 @@ export default function LocationCard({ location }: LocationCardProps) {
             <Text className="font-jakarta text-sm text-gray mt-2">
               No coordinates available
             </Text>
+          </View>
+        </View>
+      )}
+
+      {/* Street View Images */}
+      {streetViewImages.length > 0 && (
+        <View className="mt-4">
+          <View className="flex-row items-center gap-2 mb-3">
+            <FontAwesomeIcon icon={faStreetView} size={14} color="#717171" />
+            <Text className="font-jakarta-medium text-sm text-dark">Street View</Text>
+          </View>
+          <View className="flex-row flex-wrap gap-2">
+            {streetViewImages.map((img) => (
+              <SquishyPressable
+                key={img.id}
+                onPress={() => onImagePress?.(img.url)}
+              >
+                <View className="rounded-lg overflow-hidden" style={{ width: '48%', aspectRatio: 1 }}>
+                  <Image
+                    source={{ uri: img.url }}
+                    style={{ width: '100%', height: '100%' }}
+                    contentFit="cover"
+                  />
+                </View>
+              </SquishyPressable>
+            ))}
           </View>
         </View>
       )}

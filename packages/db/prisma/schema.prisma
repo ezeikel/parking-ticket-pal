@@ -560,6 +560,7 @@ enum MediaSource {
   LETTER
   USER
   EVIDENCE
+  STREET_VIEW
 }
 
 enum FormType {

@@ -147,6 +147,9 @@ export const TRACKING_EVENTS = {
   AUTOMATION_COMPLETED: 'automation_completed',
   AUTOMATION_FAILED: 'automation_failed',
 
+  // Re-extraction
+  TICKET_RE_EXTRACTED: 'ticket_re_extracted',
+
   // Deadline Tracking
   TICKET_DEADLINE_APPROACHING: 'ticket_deadline_approaching',
 

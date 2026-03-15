@@ -9,11 +9,14 @@ import { IMAGE_ANALYSIS_PROMPT } from '@/lib/ai/prompts';
 import { generateOcrAnalysisPrompt } from '@/utils/promptGenerators';
 import { Address, DocumentSchema } from '@parking-ticket-pal/types';
 import * as Sentry from '@sentry/nextjs';
+import { revalidatePath } from 'next/cache';
+import { MediaSource, db } from '@parking-ticket-pal/db';
 import { createServerLogger } from '@/lib/logger';
 import { put } from '@/lib/storage';
 import { track } from '@/utils/analytics-server';
 import { TRACKING_EVENTS } from '@/constants/events';
 import { models, getTracedModel } from '@/lib/ai/models';
+import { afterTicketUpdate } from '@/services/ticket-service';
 
 const logger = createServerLogger({ action: 'ocr' });
 
@@ -696,5 +699,192 @@ export const extractOCRTextWithVision = async (
       message:
         'Something went wrong while processing your image. Please try again.',
     };
+  }
+};
+
+/**
+ * Re-extract ticket data from an existing ticket image.
+ * Only updates fields that are currently null/empty.
+ */
+export const reExtractFromImage = async (ticketId: string) => {
+  const userId = await getUserId('re-extract ticket data');
+
+  if (!userId) {
+    return { success: false, message: 'Unauthorized' };
+  }
+
+  try {
+    // Verify ticket belongs to user and get current data
+    const ticket = await db.ticket.findFirst({
+      where: {
+        id: ticketId,
+        vehicle: { userId },
+      },
+      include: {
+        media: {
+          where: { source: MediaSource.TICKET },
+          take: 1,
+        },
+      },
+    });
+
+    if (!ticket) {
+      return { success: false, message: 'Ticket not found' };
+    }
+
+    const ticketImage = ticket.media[0];
+    if (!ticketImage?.url) {
+      return { success: false, message: 'No ticket image found' };
+    }
+
+    // Run vision model directly on the existing image URL
+    const tracedModel = getTracedModel(models.textFast, {
+      userId,
+      properties: { feature: 'ocr_re_extract' },
+    });
+
+    const { output: parsed } = (await generateText({
+      model: tracedModel,
+      output: Output.object({
+        schema: DocumentSchema,
+        name: 'document',
+        description: 'Structured parking ticket or letter document',
+      }),
+      system: IMAGE_ANALYSIS_PROMPT,
+      messages: [
+        {
+          role: 'user',
+          content: [
+            {
+              type: 'text',
+              text: 'Please extract the required details from the following parking ticket image.',
+            },
+            {
+              type: 'image',
+              image: new URL(ticketImage.url),
+            },
+          ],
+        },
+      ],
+    })) as any;
+
+    if (!parsed) {
+      return { success: false, message: 'Failed to extract data from image' };
+    }
+
+    const data = {
+      contraventionCode: parsed.contraventionCode as string | null,
+      issuer: parsed.issuer as string | null,
+      issuerType: parsed.issuerType as string | null,
+      initialAmount: parsed.initialAmount
+        ? Math.round(Number(parsed.initialAmount) * 100)
+        : null,
+      location: parsed.location as string | null,
+    };
+
+    // Geocode location if extracted
+    let fullAddress: Address | null = null;
+    if (typeof data.location === 'string' && data.location) {
+      const mapboxToken = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN;
+      if (mapboxToken) {
+        try {
+          const mapboxResponse = await fetch(
+            `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(
+              data.location,
+            )}.json?access_token=${mapboxToken}&country=GB&limit=1`,
+          );
+          if (mapboxResponse.ok) {
+            const mapboxData = await mapboxResponse.json();
+            if (mapboxData.features?.[0]) {
+              const feature = mapboxData.features[0];
+              const context = feature.context || [];
+              fullAddress = {
+                line1: feature.text,
+                city: context.find((c: any) => c.id.startsWith('place'))?.text,
+                postcode: context.find((c: any) => c.id.startsWith('postcode'))
+                  ?.text,
+                county: context.find((c: any) => c.id.startsWith('region'))
+                  ?.text,
+                country: 'United Kingdom',
+                coordinates: {
+                  latitude: feature.center[1],
+                  longitude: feature.center[0],
+                },
+              };
+            }
+          }
+        } catch {
+          // Geocoding failure is non-fatal
+        }
+      }
+    }
+    const updatedFields: string[] = [];
+
+    // Build update object — only fill in missing fields
+    const updateData: Record<string, unknown> = {};
+
+    if (!ticket.contraventionCode && data.contraventionCode) {
+      updateData.contraventionCode = data.contraventionCode;
+      updatedFields.push('contraventionCode');
+    }
+    if (!ticket.issuer && data.issuer) {
+      updateData.issuer = data.issuer;
+      updatedFields.push('issuer');
+    }
+    if (!ticket.issuerType && data.issuerType) {
+      updateData.issuerType = data.issuerType;
+      updatedFields.push('issuerType');
+    }
+    if (!ticket.initialAmount && data.initialAmount) {
+      updateData.initialAmount = data.initialAmount;
+      updatedFields.push('initialAmount');
+    }
+    if (!ticket.location && (fullAddress || data.location)) {
+      updateData.location = fullAddress || {
+        line1: data.location,
+        city: '',
+        postcode: '',
+        country: 'United Kingdom',
+        coordinates: { latitude: 0, longitude: 0 },
+      };
+      updatedFields.push('location');
+    }
+
+    if (Object.keys(updateData).length === 0) {
+      return {
+        success: true,
+        message: 'All fields already populated — nothing to update',
+        updatedFields: [],
+      };
+    }
+
+    await db.ticket.update({
+      where: { id: ticketId },
+      data: updateData,
+    });
+
+    // Re-run prediction with new data
+    await afterTicketUpdate(ticketId);
+
+    await track(TRACKING_EVENTS.TICKET_RE_EXTRACTED, {
+      ticketId,
+      updatedFields,
+      source: 'manual',
+    });
+
+    revalidatePath(`/tickets/${ticketId}`);
+
+    return {
+      success: true,
+      message: `Updated: ${updatedFields.join(', ')}`,
+      updatedFields,
+    };
+  } catch (error) {
+    logger.error(
+      'Re-extraction failed',
+      { ticketId, userId },
+      error instanceof Error ? error : new Error(String(error)),
+    );
+    return { success: false, message: 'Failed to re-extract data from image' };
   }
 };
