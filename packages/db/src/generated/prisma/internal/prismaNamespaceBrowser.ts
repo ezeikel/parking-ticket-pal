@@ -77,6 +77,7 @@ export const ModelName = {
   ContraventionStats: 'ContraventionStats',
   IssuerContraventionStats: 'IssuerContraventionStats',
   AppealPattern: 'AppealPattern',
+  LegalReference: 'LegalReference',
   PendingIssuer: 'PendingIssuer',
   PendingChallenge: 'PendingChallenge',
   PendingTicket: 'PendingTicket',
@@ -521,6 +522,22 @@ export const AppealPatternScalarFieldEnum = {
 } as const
 
 export type AppealPatternScalarFieldEnum = (typeof AppealPatternScalarFieldEnum)[keyof typeof AppealPatternScalarFieldEnum]
+
+
+export const LegalReferenceScalarFieldEnum = {
+  id: 'id',
+  instrumentName: 'instrumentName',
+  instrumentType: 'instrumentType',
+  sectionIdentifier: 'sectionIdentifier',
+  sectionTitle: 'sectionTitle',
+  content: 'content',
+  sourceUrl: 'sourceUrl',
+  topicTags: 'topicTags',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type LegalReferenceScalarFieldEnum = (typeof LegalReferenceScalarFieldEnum)[keyof typeof LegalReferenceScalarFieldEnum]
 
 
 export const PendingIssuerScalarFieldEnum = {

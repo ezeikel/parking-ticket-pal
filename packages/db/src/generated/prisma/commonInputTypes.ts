@@ -766,6 +766,23 @@ export type EnumPatternOutcomeWithAggregatesFilter<$PrismaModel = never> = {
   _max?: Prisma.NestedEnumPatternOutcomeFilter<$PrismaModel>
 }
 
+export type EnumLegalInstrumentTypeFilter<$PrismaModel = never> = {
+  equals?: $Enums.LegalInstrumentType | Prisma.EnumLegalInstrumentTypeFieldRefInput<$PrismaModel>
+  in?: $Enums.LegalInstrumentType[] | Prisma.ListEnumLegalInstrumentTypeFieldRefInput<$PrismaModel>
+  notIn?: $Enums.LegalInstrumentType[] | Prisma.ListEnumLegalInstrumentTypeFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumLegalInstrumentTypeFilter<$PrismaModel> | $Enums.LegalInstrumentType
+}
+
+export type EnumLegalInstrumentTypeWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.LegalInstrumentType | Prisma.EnumLegalInstrumentTypeFieldRefInput<$PrismaModel>
+  in?: $Enums.LegalInstrumentType[] | Prisma.ListEnumLegalInstrumentTypeFieldRefInput<$PrismaModel>
+  notIn?: $Enums.LegalInstrumentType[] | Prisma.ListEnumLegalInstrumentTypeFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumLegalInstrumentTypeWithAggregatesFilter<$PrismaModel> | $Enums.LegalInstrumentType
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumLegalInstrumentTypeFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumLegalInstrumentTypeFilter<$PrismaModel>
+}
+
 export type EnumPendingIssuerStatusFilter<$PrismaModel = never> = {
   equals?: $Enums.PendingIssuerStatus | Prisma.EnumPendingIssuerStatusFieldRefInput<$PrismaModel>
   in?: $Enums.PendingIssuerStatus[] | Prisma.ListEnumPendingIssuerStatusFieldRefInput<$PrismaModel>
@@ -1671,6 +1688,23 @@ export type NestedEnumPatternOutcomeWithAggregatesFilter<$PrismaModel = never> =
   _count?: Prisma.NestedIntFilter<$PrismaModel>
   _min?: Prisma.NestedEnumPatternOutcomeFilter<$PrismaModel>
   _max?: Prisma.NestedEnumPatternOutcomeFilter<$PrismaModel>
+}
+
+export type NestedEnumLegalInstrumentTypeFilter<$PrismaModel = never> = {
+  equals?: $Enums.LegalInstrumentType | Prisma.EnumLegalInstrumentTypeFieldRefInput<$PrismaModel>
+  in?: $Enums.LegalInstrumentType[] | Prisma.ListEnumLegalInstrumentTypeFieldRefInput<$PrismaModel>
+  notIn?: $Enums.LegalInstrumentType[] | Prisma.ListEnumLegalInstrumentTypeFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumLegalInstrumentTypeFilter<$PrismaModel> | $Enums.LegalInstrumentType
+}
+
+export type NestedEnumLegalInstrumentTypeWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.LegalInstrumentType | Prisma.EnumLegalInstrumentTypeFieldRefInput<$PrismaModel>
+  in?: $Enums.LegalInstrumentType[] | Prisma.ListEnumLegalInstrumentTypeFieldRefInput<$PrismaModel>
+  notIn?: $Enums.LegalInstrumentType[] | Prisma.ListEnumLegalInstrumentTypeFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumLegalInstrumentTypeWithAggregatesFilter<$PrismaModel> | $Enums.LegalInstrumentType
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumLegalInstrumentTypeFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumLegalInstrumentTypeFilter<$PrismaModel>
 }
 
 export type NestedEnumPendingIssuerStatusFilter<$PrismaModel = never> = {

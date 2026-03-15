@@ -264,6 +264,71 @@ async function collectStatutoryGround(
   ];
 }
 
+// ============================================
+// Legal reference topic tag mapping
+// ============================================
+
+const REASON_TO_TOPIC_TAGS: Record<string, string[]> = {
+  CONTRAVENTION_DID_NOT_OCCUR: ['representations', 'signage', 'tro'],
+  NOT_VEHICLE_OWNER: ['owner-liability', 'representations'],
+  VEHICLE_STOLEN: ['stolen-vehicle', 'representations'],
+  HIRE_FIRM: ['hire-vehicle', 'representations'],
+  EXCEEDED_AMOUNT: ['penalty-amount', 'discount-period'],
+  INVALID_TMO: ['tro', 'representations'],
+  PROCEDURAL_IMPROPRIETY: ['procedural', 'nto-service', 'representations'],
+  UNCLEAR_SIGNAGE: ['signage', 'tro', 'representations'],
+  NO_BREACH_CONTRACT: ['private-parking'],
+  MITIGATING_CIRCUMSTANCES: ['representations'],
+  PAYMENT_EQUIPMENT_BROKEN: ['representations', 'signage'],
+  CHARGE_EXCESSIVE: ['penalty-amount', 'private-parking'],
+  PAYMENT_MADE: ['representations'],
+};
+
+/**
+ * Collect relevant legislation and guidance sections from LegalReference table.
+ * Matches on topic tags derived from the challenge reason.
+ */
+async function collectLegalReferences(
+  input: CollectorInput,
+): Promise<EnrichmentItem[]> {
+  const tags = REASON_TO_TOPIC_TAGS[input.challengeReason] || [
+    'representations',
+  ];
+
+  try {
+    const refs = await db.legalReference.findMany({
+      where: {
+        topicTags: { hasSome: tags },
+      },
+      orderBy: [
+        { instrumentType: 'asc' }, // ACT first, then SI, then GUIDANCE
+        { instrumentName: 'asc' },
+        { sectionIdentifier: 'asc' },
+      ],
+      take: 8, // Limit to avoid overwhelming the prompt
+    });
+
+    return refs.map((ref) => ({
+      source: 'legislation',
+      category: 'legal_reference',
+      content: [
+        `${ref.instrumentName}, ${ref.sectionIdentifier}${ref.sectionTitle ? `: ${ref.sectionTitle}` : ''}`,
+        ref.content.length > 800
+          ? `${ref.content.slice(0, 800)}...`
+          : ref.content,
+      ].join('\n'),
+      data: {
+        instrumentName: ref.instrumentName,
+        instrumentType: ref.instrumentType,
+        sectionIdentifier: ref.sectionIdentifier,
+        sourceUrl: ref.sourceUrl,
+      },
+    }));
+  } catch {
+    return [];
+  }
+}
+
 /**
  * Collect appeal guidance from educational content for the contravention code.
  */
@@ -304,6 +369,7 @@ export default async function gatherEnrichment(
       collectTribunalStats,
       collectExampleCases,
       collectStatutoryGround,
+      collectLegalReferences,
       collectAppealGuidance,
     ];
 

@@ -148,6 +148,11 @@ export type IssuerContraventionStats = Prisma.IssuerContraventionStatsModel
  */
 export type AppealPattern = Prisma.AppealPatternModel
 /**
+ * Model LegalReference
+ * 
+ */
+export type LegalReference = Prisma.LegalReferenceModel
+/**
  * Model PendingIssuer
  * 
  */

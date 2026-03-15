@@ -738,6 +738,29 @@ model AppealPattern {
   @@map("appeal_patterns")
 }
 
+// Sections of UK parking/traffic legislation and official guidance
+model LegalReference {
+  id                String              @id @default(cuid())
+  instrumentName    String // e.g. "Traffic Management Act 2004"
+  instrumentType    LegalInstrumentType
+  sectionIdentifier String // e.g. "s.72", "reg.4", "sch.7.para.2"
+  sectionTitle      String
+  content           String              @db.Text
+  sourceUrl         String
+  topicTags         String[]
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+
+  @@unique([sourceUrl, sectionIdentifier])
+  @@map("legal_references")
+}
+
+enum LegalInstrumentType {
+  ACT
+  STATUTORY_INSTRUMENT
+  GUIDANCE
+}
+
 enum PatternOutcome {
   WINNING
   LOSING

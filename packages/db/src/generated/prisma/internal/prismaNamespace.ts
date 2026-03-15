@@ -410,6 +410,7 @@ export const ModelName = {
   ContraventionStats: 'ContraventionStats',
   IssuerContraventionStats: 'IssuerContraventionStats',
   AppealPattern: 'AppealPattern',
+  LegalReference: 'LegalReference',
   PendingIssuer: 'PendingIssuer',
   PendingChallenge: 'PendingChallenge',
   PendingTicket: 'PendingTicket',
@@ -436,7 +437,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "mobileDeviceSession" | "vehicle" | "ticket" | "draftTicket" | "media" | "letter" | "reminder" | "form" | "prediction" | "amountIncrease" | "verification" | "challenge" | "notification" | "pushToken" | "account" | "session" | "verificationToken" | "referralCode" | "referral" | "referralCredit" | "londonTribunalCase" | "appealDataSource" | "contraventionStats" | "issuerContraventionStats" | "appealPattern" | "pendingIssuer" | "pendingChallenge" | "pendingTicket" | "issuerHealthCheck" | "tribunalCaseVideo" | "newsVideo" | "highwayCodeSign" | "highwayCodeQuizPost" | "onboardingSequence" | "instagramPostBlogMapping" | "socialCommentQueue"
+    modelProps: "user" | "mobileDeviceSession" | "vehicle" | "ticket" | "draftTicket" | "media" | "letter" | "reminder" | "form" | "prediction" | "amountIncrease" | "verification" | "challenge" | "notification" | "pushToken" | "account" | "session" | "verificationToken" | "referralCode" | "referral" | "referralCredit" | "londonTribunalCase" | "appealDataSource" | "contraventionStats" | "issuerContraventionStats" | "appealPattern" | "legalReference" | "pendingIssuer" | "pendingChallenge" | "pendingTicket" | "issuerHealthCheck" | "tribunalCaseVideo" | "newsVideo" | "highwayCodeSign" | "highwayCodeQuizPost" | "onboardingSequence" | "instagramPostBlogMapping" | "socialCommentQueue"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -2364,6 +2365,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    LegalReference: {
+      payload: Prisma.$LegalReferencePayload<ExtArgs>
+      fields: Prisma.LegalReferenceFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.LegalReferenceFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LegalReferencePayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.LegalReferenceFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LegalReferencePayload>
+        }
+        findFirst: {
+          args: Prisma.LegalReferenceFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LegalReferencePayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.LegalReferenceFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LegalReferencePayload>
+        }
+        findMany: {
+          args: Prisma.LegalReferenceFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LegalReferencePayload>[]
+        }
+        create: {
+          args: Prisma.LegalReferenceCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LegalReferencePayload>
+        }
+        createMany: {
+          args: Prisma.LegalReferenceCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.LegalReferenceCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LegalReferencePayload>[]
+        }
+        delete: {
+          args: Prisma.LegalReferenceDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LegalReferencePayload>
+        }
+        update: {
+          args: Prisma.LegalReferenceUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LegalReferencePayload>
+        }
+        deleteMany: {
+          args: Prisma.LegalReferenceDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.LegalReferenceUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.LegalReferenceUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LegalReferencePayload>[]
+        }
+        upsert: {
+          args: Prisma.LegalReferenceUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LegalReferencePayload>
+        }
+        aggregate: {
+          args: Prisma.LegalReferenceAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateLegalReference>
+        }
+        groupBy: {
+          args: Prisma.LegalReferenceGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.LegalReferenceGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.LegalReferenceCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.LegalReferenceCountAggregateOutputType> | number
+        }
+      }
+    }
     PendingIssuer: {
       payload: Prisma.$PendingIssuerPayload<ExtArgs>
       fields: Prisma.PendingIssuerFieldRefs
@@ -3634,6 +3709,22 @@ export const AppealPatternScalarFieldEnum = {
 export type AppealPatternScalarFieldEnum = (typeof AppealPatternScalarFieldEnum)[keyof typeof AppealPatternScalarFieldEnum]
 
 
+export const LegalReferenceScalarFieldEnum = {
+  id: 'id',
+  instrumentName: 'instrumentName',
+  instrumentType: 'instrumentType',
+  sectionIdentifier: 'sectionIdentifier',
+  sectionTitle: 'sectionTitle',
+  content: 'content',
+  sourceUrl: 'sourceUrl',
+  topicTags: 'topicTags',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type LegalReferenceScalarFieldEnum = (typeof LegalReferenceScalarFieldEnum)[keyof typeof LegalReferenceScalarFieldEnum]
+
+
 export const PendingIssuerScalarFieldEnum = {
   id: 'id',
   issuerId: 'issuerId',
@@ -4372,6 +4463,20 @@ export type ListEnumPatternOutcomeFieldRefInput<$PrismaModel> = FieldRefInputTyp
 
 
 /**
+ * Reference to a field of type 'LegalInstrumentType'
+ */
+export type EnumLegalInstrumentTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'LegalInstrumentType'>
+    
+
+
+/**
+ * Reference to a field of type 'LegalInstrumentType[]'
+ */
+export type ListEnumLegalInstrumentTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'LegalInstrumentType[]'>
+    
+
+
+/**
  * Reference to a field of type 'PendingIssuerStatus'
  */
 export type EnumPendingIssuerStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'PendingIssuerStatus'>
@@ -4603,6 +4708,7 @@ export type GlobalOmitConfig = {
   contraventionStats?: Prisma.ContraventionStatsOmit
   issuerContraventionStats?: Prisma.IssuerContraventionStatsOmit
   appealPattern?: Prisma.AppealPatternOmit
+  legalReference?: Prisma.LegalReferenceOmit
   pendingIssuer?: Prisma.PendingIssuerOmit
   pendingChallenge?: Prisma.PendingChallengeOmit
   pendingTicket?: Prisma.PendingTicketOmit

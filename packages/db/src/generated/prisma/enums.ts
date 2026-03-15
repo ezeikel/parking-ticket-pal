@@ -281,6 +281,15 @@ export const UserTitle = {
 export type UserTitle = (typeof UserTitle)[keyof typeof UserTitle]
 
 
+export const LegalInstrumentType = {
+  ACT: 'ACT',
+  STATUTORY_INSTRUMENT: 'STATUTORY_INSTRUMENT',
+  GUIDANCE: 'GUIDANCE'
+} as const
+
+export type LegalInstrumentType = (typeof LegalInstrumentType)[keyof typeof LegalInstrumentType]
+
+
 export const PatternOutcome = {
   WINNING: 'WINNING',
   LOSING: 'LOSING'

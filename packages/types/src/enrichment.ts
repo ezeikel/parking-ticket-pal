@@ -113,6 +113,7 @@ export function buildEnrichmentPromptSection(enrichment: Enrichment): string {
     losing_pattern: 'Losing Patterns (avoid these arguments)',
     example_case: 'Example Reasoning from Successful Appeals (use as inspiration, not verbatim)',
     guidance: 'Appeal Guidance for This Contravention Type',
+    legal_reference: 'Relevant Legal Provisions (cite these accurately in the challenge)',
   };
 
   // Group items by category, preserving insertion order
