@@ -13,6 +13,8 @@ type PostHogServerLike = {
 };
 
 let posthogServerCache: PostHogServerLike | null | undefined;
+let posthogServerImportPromise: Promise<PostHogServerLike | null> | null = null;
+
 const getPostHogServer = () => {
   if (posthogServerCache !== undefined) return posthogServerCache;
   if (typeof window !== 'undefined') {
@@ -23,8 +25,32 @@ const getPostHogServer = () => {
     // eslint-disable-next-line @typescript-eslint/no-require-imports
     const mod = require('@/lib/posthog-server');
     posthogServerCache = mod.posthogServer ?? null;
-  } catch {
+    if (!posthogServerCache) {
+      // eslint-disable-next-line no-console
+      console.warn(
+        '[logger] posthog-server module loaded but posthogServer is null (missing NEXT_PUBLIC_POSTHOG_KEY?)',
+      );
+    }
+  } catch (err) {
+    // eslint-disable-next-line no-console
+    console.warn(
+      '[logger] Failed to load posthog-server module:',
+      err instanceof Error ? err.message : err,
+    );
     posthogServerCache = null;
+
+    // Fallback: try dynamic import (works better with Turbopack)
+    if (!posthogServerImportPromise) {
+      posthogServerImportPromise = import('@/lib/posthog-server')
+        .then((mod) => {
+          posthogServerCache = mod.posthogServer ?? null;
+          return posthogServerCache;
+        })
+        .catch(() => {
+          posthogServerCache = null;
+          return null;
+        });
+    }
   }
   return posthogServerCache;
 };
@@ -43,7 +69,12 @@ const getOtelLogger = (): OtelLogger | null => {
     // eslint-disable-next-line @typescript-eslint/no-require-imports
     const { loggerProvider } = require('@/instrumentation');
     otelLoggerCache = loggerProvider?.getLogger?.('ptp-web') ?? null;
-  } catch {
+  } catch (err) {
+    // eslint-disable-next-line no-console
+    console.warn(
+      '[logger] Failed to load OTLP logger from instrumentation:',
+      err instanceof Error ? err.message : err,
+    );
     otelLoggerCache = null;
   }
   return otelLoggerCache;

@@ -638,28 +638,50 @@ const generateVoiceoverWithTimestamps = async (
   });
 
   let result;
-  try {
-    result = await elevenlabs.textToSpeech.convertWithTimestamps(
-      ELEVENLABS_VOICE_ID,
-      {
-        text: script,
-        model_id: 'eleven_v3',
-        output_format: 'mp3_44100_128',
-        voice_settings: {
-          stability: 0.5,
-          similarity_boost: 0.75,
-          style: 0.3,
-          use_speaker_boost: true,
-          speed: 0.95,
+  const maxRetries = 3;
+
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      // eslint-disable-next-line no-await-in-loop
+      result = await elevenlabs.textToSpeech.convertWithTimestamps(
+        ELEVENLABS_VOICE_ID,
+        {
+          text: script,
+          model_id: 'eleven_v3',
+          output_format: 'mp3_44100_128',
+          voice_settings: {
+            stability: 0.5,
+            similarity_boost: 0.75,
+            style: 0.3,
+            use_speaker_boost: true,
+            speed: 0.95,
+          },
         },
-      },
-    );
-  } catch (error) {
-    throw new Error(
-      `ElevenLabs voiceover generation failed: ${error instanceof Error ? error.message : String(error)}`,
-    );
+      );
+      break;
+    } catch (error) {
+      const msg = error instanceof Error ? error.message : String(error);
+      if (attempt < maxRetries) {
+        logger.warn(
+          `ElevenLabs voiceover attempt ${attempt}/${maxRetries} failed, retrying`,
+          {
+            error: msg,
+            attempt,
+          },
+        );
+        // eslint-disable-next-line no-await-in-loop
+        await new Promise<void>((resolve) => {
+          setTimeout(resolve, attempt * 2000);
+        });
+      } else {
+        throw new Error(
+          `ElevenLabs voiceover generation failed after ${maxRetries} attempts: ${msg}`,
+        );
+      }
+    }
   }
 
+  // result is guaranteed assigned (loop throws on final failure)
   const audioBase64 = result.audio_base64;
   if (!audioBase64) {
     throw new Error('No audio returned from ElevenLabs');
