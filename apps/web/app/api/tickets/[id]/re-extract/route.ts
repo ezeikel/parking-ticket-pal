@@ -2,6 +2,8 @@ import { NextRequest } from 'next/server';
 import { getUserId } from '@/utils/user';
 import { reExtractFromImage } from '@/app/actions/ocr';
 
+export const maxDuration = 60;
+
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
