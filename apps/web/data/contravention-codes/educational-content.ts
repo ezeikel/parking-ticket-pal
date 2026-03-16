@@ -1,4 +1,5 @@
 import type { CodeCategory } from '@parking-ticket-pal/constants';
+import GENERATED_CODE_OVERRIDES from './educational-content-generated';
 
 type FaqItem = {
   question: string;
@@ -185,18 +186,35 @@ export function getEducationalContentForCode(
   category: CodeCategory,
 ): CodeEducationalContent {
   const categoryDefaults = CATEGORY_CONTENT[category];
-  const override = CODE_OVERRIDES[code];
+  // Manual overrides take precedence over generated ones
+  const manualOverride = CODE_OVERRIDES[code];
+  const generatedOverride = GENERATED_CODE_OVERRIDES[code];
+
+  const override = manualOverride || generatedOverride;
 
   if (!override) {
     return categoryDefaults;
   }
 
+  // If we have both manual and generated, manual wins per field
+  const merged =
+    generatedOverride && manualOverride
+      ? {
+          commonScenarios:
+            manualOverride.commonScenarios ?? generatedOverride.commonScenarios,
+          appealApproach:
+            manualOverride.appealApproach ?? generatedOverride.appealApproach,
+          additionalFaqItems:
+            manualOverride.additionalFaqItems ??
+            generatedOverride.additionalFaqItems,
+        }
+      : override;
+
   return {
-    commonScenarios:
-      override.commonScenarios ?? categoryDefaults.commonScenarios,
-    appealApproach: override.appealApproach ?? categoryDefaults.appealApproach,
+    commonScenarios: merged.commonScenarios ?? categoryDefaults.commonScenarios,
+    appealApproach: merged.appealApproach ?? categoryDefaults.appealApproach,
     additionalFaqItems:
-      override.additionalFaqItems ?? categoryDefaults.additionalFaqItems,
+      merged.additionalFaqItems ?? categoryDefaults.additionalFaqItems,
   };
 }
 

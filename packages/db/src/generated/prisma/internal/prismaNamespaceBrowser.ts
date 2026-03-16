@@ -88,7 +88,8 @@ export const ModelName = {
   HighwayCodeQuizPost: 'HighwayCodeQuizPost',
   OnboardingSequence: 'OnboardingSequence',
   InstagramPostBlogMapping: 'InstagramPostBlogMapping',
-  SocialCommentQueue: 'SocialCommentQueue'
+  SocialCommentQueue: 'SocialCommentQueue',
+  ChallengeArgument: 'ChallengeArgument'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -759,6 +760,20 @@ export const SocialCommentQueueScalarFieldEnum = {
 } as const
 
 export type SocialCommentQueueScalarFieldEnum = (typeof SocialCommentQueueScalarFieldEnum)[keyof typeof SocialCommentQueueScalarFieldEnum]
+
+
+export const ChallengeArgumentScalarFieldEnum = {
+  id: 'id',
+  contraventionCode: 'contraventionCode',
+  argumentType: 'argumentType',
+  heading: 'heading',
+  content: 'content',
+  signDiagramUrls: 'signDiagramUrls',
+  sourceUrl: 'sourceUrl',
+  createdAt: 'createdAt'
+} as const
+
+export type ChallengeArgumentScalarFieldEnum = (typeof ChallengeArgumentScalarFieldEnum)[keyof typeof ChallengeArgumentScalarFieldEnum]
 
 
 export const SortOrder = {

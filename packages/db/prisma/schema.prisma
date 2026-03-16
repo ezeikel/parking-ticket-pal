@@ -1128,3 +1128,19 @@ model SocialCommentQueue {
   @@index([postId])
   @@map("social_comment_queue")
 }
+
+model ChallengeArgument {
+  id                String   @id @default(cuid())
+  contraventionCode String
+  argumentType      String // "legal_point" | "sign_requirement" | "case_precedent" | "procedural_tip"
+  heading           String
+  content           String   @db.Text
+  signDiagramUrls   String[]
+  sourceUrl         String
+  createdAt         DateTime @default(now())
+
+  @@unique([sourceUrl, heading])
+  @@index([contraventionCode])
+  @@index([contraventionCode, argumentType])
+  @@map("challenge_arguments")
+}

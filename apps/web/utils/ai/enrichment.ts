@@ -630,6 +630,76 @@ async function collectStreetViewAnalysis(
   }
 }
 
+/**
+ * Mapping from challenge reasons to keywords found in PCN UK expert arguments.
+ * Used to detect when a user's challenge reason aligns with strong expert-backed arguments.
+ */
+const REASON_TO_ARGUMENT_KEYWORDS: Record<string, string[]> = {
+  UNCLEAR_SIGNAGE: ['sign', 'signage', 'marking', 'line', 'cpz', 'zone'],
+  CONTRAVENTION_DID_NOT_OCCUR: ['loading', 'grace', 'observation', 'bay'],
+  INVALID_TMO: ['tro', 'traffic regulation', 'order'],
+  PROCEDURAL_IMPROPRIETY: ['procedur', 'pcn', 'notice', 'defect', 'served'],
+  MITIGATING_CIRCUMSTANCES: ['compassionate', 'emergency', 'medical'],
+  PAYMENT_EQUIPMENT_BROKEN: ['meter', 'machine', 'pay and display', 'faulty'],
+};
+
+/**
+ * Collect challenge arguments from PCN UK expert data.
+ * Provides code-specific legal points, sign requirements, and case precedents.
+ */
+async function collectChallengeArguments(
+  input: CollectorInput,
+): Promise<EnrichmentItem[]> {
+  if (!input.contraventionCode) return [];
+
+  try {
+    const args = await db.challengeArgument.findMany({
+      where: { contraventionCode: input.contraventionCode },
+      orderBy: { argumentType: 'asc' },
+      take: 15,
+    });
+
+    if (args.length === 0) return [];
+
+    const items: EnrichmentItem[] = args.map((arg) => ({
+      source: 'pcn_uk',
+      category: 'contravention_argument',
+      content: `[${arg.heading}] ${arg.content}`.slice(0, 1200),
+    }));
+
+    // If the user's challenge reason matches known strong arguments for this code,
+    // emit a modest challenge_outcome signal
+    const keywords = REASON_TO_ARGUMENT_KEYWORDS[input.challengeReason] || [];
+    if (keywords.length > 0) {
+      const reasonMatches = args.filter((a) =>
+        keywords.some(
+          (kw) =>
+            a.heading.toLowerCase().includes(kw) ||
+            a.content.toLowerCase().includes(kw),
+        ),
+      );
+
+      if (reasonMatches.length >= 2) {
+        items.push({
+          source: 'pcn_uk',
+          category: 'challenge_outcome',
+          content: `Expert analysis confirms strong legal grounds for this challenge reason on code ${input.contraventionCode}`,
+          weight: 0.2,
+          data: {
+            percentage: 55,
+            numberOfCases: 0,
+            confidence: 0.25,
+          },
+        });
+      }
+    }
+
+    return items;
+  } catch {
+    return [];
+  }
+}
+
 // ============================================
 // Main gather function
 // ============================================
@@ -651,6 +721,7 @@ export default async function gatherEnrichment(
       collectAppealGuidance,
       collectEvidenceAnalysis,
       collectStreetViewAnalysis,
+      collectChallengeArguments,
     ];
 
     const results = await Promise.allSettled(collectors.map((c) => c(input)));

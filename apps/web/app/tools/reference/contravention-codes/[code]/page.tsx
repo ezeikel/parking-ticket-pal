@@ -11,6 +11,9 @@ import {
   faTriangleExclamation,
   faLightbulb,
   faFileLines,
+  faScaleBalanced,
+  faSignHanging,
+  faGavel,
 } from '@fortawesome/pro-solid-svg-icons';
 import {
   CONTRAVENTION_CODES,
@@ -26,7 +29,9 @@ import JsonLd, {
 } from '@/components/JsonLd/JsonLd';
 import { getEducationalContentForCode } from '@/data/contravention-codes/educational-content';
 import { getTribunalCaseCountByCode } from '@/lib/queries/tribunal-counts';
+import { getChallengeArgumentsByCode } from '@/lib/queries/challenge-arguments';
 import { SITE_URL } from '@/constants';
+import Image from 'next/image';
 
 type Props = {
   params: Promise<{ code: string }>;
@@ -136,7 +141,10 @@ export default async function ContraventionCodePage({ params }: Props) {
     codeData.code,
     codeData.category,
   );
-  const tribunalCount = await getTribunalCaseCountByCode(codeData.code);
+  const [tribunalCount, challengeArguments] = await Promise.all([
+    getTribunalCaseCountByCode(codeData.code),
+    getChallengeArgumentsByCode(codeData.code),
+  ]);
 
   // FAQ schema
   const faqs = [
@@ -367,6 +375,117 @@ export default async function ContraventionCodePage({ params }: Props) {
                   case.
                 </p>
               </div>
+
+              {/* Specific Grounds of Appeal */}
+              {challengeArguments.legalPoints.length > 0 && (
+                <div className="rounded-xl border border-border p-6">
+                  <h2 className="flex items-center gap-2 text-lg font-bold text-dark">
+                    <FontAwesomeIcon
+                      icon={faScaleBalanced}
+                      className="text-teal"
+                    />
+                    Specific Grounds of Appeal
+                  </h2>
+                  <p className="mt-2 text-sm text-gray">
+                    These are specific legal arguments that apply to Code{' '}
+                    {codeData.code} contraventions, based on expert analysis of
+                    UK parking law and tribunal decisions.
+                  </p>
+                  <ol className="mt-4 space-y-4 text-gray">
+                    {challengeArguments.legalPoints.map((arg, index) => (
+                      <li key={arg.id} className="flex items-start gap-3">
+                        <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-teal/10 text-xs font-bold text-teal">
+                          {index + 1}
+                        </span>
+                        <div>
+                          <p className="font-medium text-dark">{arg.heading}</p>
+                          <p className="mt-1 text-sm leading-relaxed">
+                            {arg.content.slice(0, 600)}
+                            {arg.content.length > 600 ? '...' : ''}
+                          </p>
+                        </div>
+                      </li>
+                    ))}
+                  </ol>
+                </div>
+              )}
+
+              {/* Sign & Marking Requirements */}
+              {challengeArguments.signRequirements.length > 0 && (
+                <div className="rounded-xl border border-border p-6">
+                  <h2 className="flex items-center gap-2 text-lg font-bold text-dark">
+                    <FontAwesomeIcon
+                      icon={faSignHanging}
+                      className="text-amber"
+                    />
+                    Sign &amp; Marking Requirements
+                  </h2>
+                  <p className="mt-2 text-sm text-gray">
+                    For a Code {codeData.code} contravention to be enforceable,
+                    the following signs and markings must be correctly in place.
+                  </p>
+                  <div className="mt-4 space-y-6">
+                    {challengeArguments.signRequirements.map((arg) => (
+                      <div key={arg.id}>
+                        <h3 className="font-medium text-dark">{arg.heading}</h3>
+                        <p className="mt-1 text-sm text-gray leading-relaxed">
+                          {arg.content.slice(0, 500)}
+                          {arg.content.length > 500 ? '...' : ''}
+                        </p>
+                        {arg.signDiagramUrls.length > 0 && (
+                          <div className="mt-3 flex flex-wrap gap-3">
+                            {arg.signDiagramUrls.map((url, i) => (
+                              <div
+                                key={i}
+                                className="overflow-hidden rounded-lg border border-border bg-white p-2"
+                              >
+                                <Image
+                                  src={url}
+                                  alt={`Sign diagram for ${arg.heading}`}
+                                  width={200}
+                                  height={200}
+                                  className="h-auto max-h-48 w-auto"
+                                  unoptimized
+                                />
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Adjudicator Case Summaries */}
+              {challengeArguments.casePrecedents.length > 0 && (
+                <div className="rounded-xl border border-border p-6">
+                  <h2 className="flex items-center gap-2 text-lg font-bold text-dark">
+                    <FontAwesomeIcon icon={faGavel} className="text-teal" />
+                    Adjudicator Case Summaries
+                  </h2>
+                  <p className="mt-2 text-sm text-gray">
+                    Real tribunal decisions relevant to Code {codeData.code}{' '}
+                    where motorists have successfully appealed. Each case is
+                    decided on its own merits.
+                  </p>
+                  <div className="mt-4 divide-y divide-border">
+                    {challengeArguments.casePrecedents
+                      .slice(0, 5)
+                      .map((arg) => (
+                        <div key={arg.id} className="py-4 first:pt-0 last:pb-0">
+                          <h3 className="font-medium text-dark">
+                            {arg.heading}
+                          </h3>
+                          <p className="mt-1 text-sm text-gray leading-relaxed">
+                            {arg.content.slice(0, 400)}
+                            {arg.content.length > 400 ? '...' : ''}
+                          </p>
+                        </div>
+                      ))}
+                  </div>
+                </div>
+              )}
 
               {/* Enhanced FAQ */}
               <div className="rounded-xl border border-border p-6">

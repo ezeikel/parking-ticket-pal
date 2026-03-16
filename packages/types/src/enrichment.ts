@@ -128,6 +128,7 @@ export function buildEnrichmentPromptSection(enrichment: Enrichment): string {
     guidance: 'Appeal Guidance for This Contravention Type',
     legal_reference: 'Relevant Legal Provisions (cite these accurately in the challenge)',
     evidence_analysis: 'Visual Evidence Analysis (signage adequacy, evidence quality, and street-level observations — use these findings to strengthen factual arguments)',
+    contravention_argument: 'Expert Contravention Analysis (specific legal arguments, sign requirements, and case precedents for this contravention code — use these to build detailed, code-specific arguments)',
   };
 
   // Group items by category, preserving insertion order

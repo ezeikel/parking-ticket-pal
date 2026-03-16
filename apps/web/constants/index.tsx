@@ -849,6 +849,7 @@ export const STORAGE_PATHS = {
   // Static marketing assets
   // ============================================================================
   HERO_VIDEO: 'static/videos/hero/%s', // static/videos/hero/{filename}
+  SIGN_DIAGRAM: 'static/reference/sign-diagrams/%s', // static/reference/sign-diagrams/{filename}
 
   // ============================================================================
   // Temporary uploads (auto-cleanup)

@@ -421,7 +421,8 @@ export const ModelName = {
   HighwayCodeQuizPost: 'HighwayCodeQuizPost',
   OnboardingSequence: 'OnboardingSequence',
   InstagramPostBlogMapping: 'InstagramPostBlogMapping',
-  SocialCommentQueue: 'SocialCommentQueue'
+  SocialCommentQueue: 'SocialCommentQueue',
+  ChallengeArgument: 'ChallengeArgument'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -437,7 +438,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "mobileDeviceSession" | "vehicle" | "ticket" | "draftTicket" | "media" | "letter" | "reminder" | "form" | "prediction" | "amountIncrease" | "verification" | "challenge" | "notification" | "pushToken" | "account" | "session" | "verificationToken" | "referralCode" | "referral" | "referralCredit" | "londonTribunalCase" | "appealDataSource" | "contraventionStats" | "issuerContraventionStats" | "appealPattern" | "legalReference" | "pendingIssuer" | "pendingChallenge" | "pendingTicket" | "issuerHealthCheck" | "tribunalCaseVideo" | "newsVideo" | "highwayCodeSign" | "highwayCodeQuizPost" | "onboardingSequence" | "instagramPostBlogMapping" | "socialCommentQueue"
+    modelProps: "user" | "mobileDeviceSession" | "vehicle" | "ticket" | "draftTicket" | "media" | "letter" | "reminder" | "form" | "prediction" | "amountIncrease" | "verification" | "challenge" | "notification" | "pushToken" | "account" | "session" | "verificationToken" | "referralCode" | "referral" | "referralCredit" | "londonTribunalCase" | "appealDataSource" | "contraventionStats" | "issuerContraventionStats" | "appealPattern" | "legalReference" | "pendingIssuer" | "pendingChallenge" | "pendingTicket" | "issuerHealthCheck" | "tribunalCaseVideo" | "newsVideo" | "highwayCodeSign" | "highwayCodeQuizPost" | "onboardingSequence" | "instagramPostBlogMapping" | "socialCommentQueue" | "challengeArgument"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -3253,6 +3254,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    ChallengeArgument: {
+      payload: Prisma.$ChallengeArgumentPayload<ExtArgs>
+      fields: Prisma.ChallengeArgumentFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.ChallengeArgumentFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ChallengeArgumentPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.ChallengeArgumentFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ChallengeArgumentPayload>
+        }
+        findFirst: {
+          args: Prisma.ChallengeArgumentFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ChallengeArgumentPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.ChallengeArgumentFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ChallengeArgumentPayload>
+        }
+        findMany: {
+          args: Prisma.ChallengeArgumentFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ChallengeArgumentPayload>[]
+        }
+        create: {
+          args: Prisma.ChallengeArgumentCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ChallengeArgumentPayload>
+        }
+        createMany: {
+          args: Prisma.ChallengeArgumentCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.ChallengeArgumentCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ChallengeArgumentPayload>[]
+        }
+        delete: {
+          args: Prisma.ChallengeArgumentDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ChallengeArgumentPayload>
+        }
+        update: {
+          args: Prisma.ChallengeArgumentUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ChallengeArgumentPayload>
+        }
+        deleteMany: {
+          args: Prisma.ChallengeArgumentDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.ChallengeArgumentUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.ChallengeArgumentUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ChallengeArgumentPayload>[]
+        }
+        upsert: {
+          args: Prisma.ChallengeArgumentUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ChallengeArgumentPayload>
+        }
+        aggregate: {
+          args: Prisma.ChallengeArgumentAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateChallengeArgument>
+        }
+        groupBy: {
+          args: Prisma.ChallengeArgumentGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ChallengeArgumentGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.ChallengeArgumentCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ChallengeArgumentCountAggregateOutputType> | number
+        }
+      }
+    }
   }
 } & {
   other: {
@@ -3944,6 +4019,20 @@ export const SocialCommentQueueScalarFieldEnum = {
 } as const
 
 export type SocialCommentQueueScalarFieldEnum = (typeof SocialCommentQueueScalarFieldEnum)[keyof typeof SocialCommentQueueScalarFieldEnum]
+
+
+export const ChallengeArgumentScalarFieldEnum = {
+  id: 'id',
+  contraventionCode: 'contraventionCode',
+  argumentType: 'argumentType',
+  heading: 'heading',
+  content: 'content',
+  signDiagramUrls: 'signDiagramUrls',
+  sourceUrl: 'sourceUrl',
+  createdAt: 'createdAt'
+} as const
+
+export type ChallengeArgumentScalarFieldEnum = (typeof ChallengeArgumentScalarFieldEnum)[keyof typeof ChallengeArgumentScalarFieldEnum]
 
 
 export const SortOrder = {
@@ -4720,6 +4809,7 @@ export type GlobalOmitConfig = {
   onboardingSequence?: Prisma.OnboardingSequenceOmit
   instagramPostBlogMapping?: Prisma.InstagramPostBlogMappingOmit
   socialCommentQueue?: Prisma.SocialCommentQueueOmit
+  challengeArgument?: Prisma.ChallengeArgumentOmit
 }
 
 /* Types for Logging */

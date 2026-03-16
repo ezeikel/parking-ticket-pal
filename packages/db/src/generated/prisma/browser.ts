@@ -207,3 +207,8 @@ export type InstagramPostBlogMapping = Prisma.InstagramPostBlogMappingModel
  * 
  */
 export type SocialCommentQueue = Prisma.SocialCommentQueueModel
+/**
+ * Model ChallengeArgument
+ * 
+ */
+export type ChallengeArgument = Prisma.ChallengeArgumentModel
