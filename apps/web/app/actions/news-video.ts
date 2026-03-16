@@ -681,7 +681,10 @@ const generateVoiceoverWithTimestamps = async (
     }
   }
 
-  // result is guaranteed assigned (loop throws on final failure)
+  if (!result) {
+    throw new Error('ElevenLabs voiceover generation returned no result');
+  }
+
   const audioBase64 = result.audio_base64;
   if (!audioBase64) {
     throw new Error('No audio returned from ElevenLabs');
