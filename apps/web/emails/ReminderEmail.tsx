@@ -24,7 +24,7 @@ import {
 
 type ReminderEmailProps = {
   name: string;
-  reminderType: '14-day' | '28-day';
+  reminderType: string;
   pcnNumber: string;
   vehicleRegistration: string;
   issueDate: string;
@@ -118,14 +118,12 @@ const ReminderEmail = ({
   issueDate,
   issuer,
 }: ReminderEmailProps) => {
-  const is14Day = reminderType === '14-day';
-  const deadlineText = is14Day
-    ? '14-Day Reduced Payment Deadline'
-    : '28-Day Final Payment Deadline';
+  const is14Day = reminderType === '14-day discount';
+  const deadlineText = `${reminderType.charAt(0).toUpperCase()}${reminderType.slice(1)} deadline`;
 
   const headerSubtitle = is14Day
-    ? 'Pay now to save 50% on your fine'
-    : 'Final deadline approaching';
+    ? 'Pay now to save 50% on your penalty'
+    : 'Deadline approaching';
 
   return (
     <Html lang="en">

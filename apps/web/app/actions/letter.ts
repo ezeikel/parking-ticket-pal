@@ -41,6 +41,7 @@ import streamToBuffer from '@/utils/streamToBuffer';
 import generateChallengeContent from '@/utils/ai/generateChallengeContent';
 import gatherEnrichment from '@/utils/ai/enrichment';
 import { createServerLogger } from '@/lib/logger';
+import { generateLetterReminders } from '@/app/actions/reminder';
 
 const logger = createServerLogger({ action: 'letter' });
 
@@ -140,6 +141,7 @@ export const createLetter = async (
       status: true,
       statusUpdatedAt: true,
       initialAmount: true,
+      contraventionCode: true,
     },
   });
 
@@ -282,6 +284,15 @@ export const createLetter = async (
         newAmount: validatedData.currentAmount,
       });
     }
+
+    // Generate event-driven deadline reminders based on letter type
+    // e.g. NTO received → 28-day representation deadline
+    await generateLetterReminders({
+      type: validatedData.type,
+      sentAt: validatedData.sentAt,
+      ticketId: ticket.id,
+      contraventionCode: ticket.contraventionCode,
+    });
 
     // Revalidate ticket page to show updated status
     revalidatePath(`/tickets/${ticket.id}`);
