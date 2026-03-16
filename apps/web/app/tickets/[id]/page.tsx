@@ -5,6 +5,8 @@ import { isAdFree } from '@/lib/subscription';
 import TicketDetailPage from '@/components/ticket-detail/TicketDetailPage';
 import PaymentRedirectHandler from '@/components/PaymentRedirectHandler/PaymentRedirectHandler';
 
+export const maxDuration = 60;
+
 type TicketPageProps = {
   params: Promise<{ id: string }>;
 };
