@@ -8,6 +8,8 @@ import {
   likeComment,
 } from '@/lib/instagram-automation';
 
+export const maxDuration = 60;
+
 const logger = createServerLogger({ action: 'cron-social-comments' });
 
 const BATCH_SIZE = parseInt(process.env.SOCIAL_COMMENT_BATCH_SIZE || '10', 10);
