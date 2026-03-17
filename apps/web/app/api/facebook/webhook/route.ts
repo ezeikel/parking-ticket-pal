@@ -185,12 +185,30 @@ export const POST = async (req: NextRequest) => {
       const promises: Promise<void>[] = [];
 
       for (const entry of body.entry || []) {
+        debugLog.push(
+          `[webhook] FB entry keys: ${Object.keys(entry).join(',')}`,
+        );
+        debugLog.push(`[webhook] FB entry: ${JSON.stringify(entry)}`);
+
         for (const change of entry.changes || []) {
-          if (change.field !== 'feed') continue;
+          debugLog.push(
+            `[webhook] FB change field="${change.field}" value=${JSON.stringify(change.value)}`,
+          );
+
+          if (change.field !== 'feed') {
+            debugLog.push(
+              `[webhook] FB skipping: field is "${change.field}", not "feed"`,
+            );
+            continue;
+          }
 
           const { value } = change;
-          if (!value || value.item !== 'comment' || value.verb !== 'add')
+          if (!value || value.item !== 'comment' || value.verb !== 'add') {
+            debugLog.push(
+              `[webhook] FB skipping: item="${value?.item}" verb="${value?.verb}"`,
+            );
             continue;
+          }
 
           const {
             comment_id: commentId,
@@ -201,9 +219,22 @@ export const POST = async (req: NextRequest) => {
           } = value;
 
           // Skip: missing data, nested replies, empty messages, own comments
-          if (!commentId || !message || !from || !postId) continue;
-          if (parentId) continue; // nested reply
-          if (from.id === FACEBOOK_PAGE_ID) continue; // our own comment
+          if (!commentId || !message || !from || !postId) {
+            debugLog.push(
+              `[webhook] FB skipping: missing data commentId=${!!commentId} message=${!!message} from=${!!from} postId=${!!postId}`,
+            );
+            continue;
+          }
+          if (parentId) {
+            debugLog.push(
+              `[webhook] FB skipping nested reply: parentId=${parentId} message="${message}"`,
+            );
+            continue;
+          }
+          if (from.id === FACEBOOK_PAGE_ID) {
+            debugLog.push('[webhook] FB skipping: own comment');
+            continue;
+          }
 
           debugLog.push(
             `[webhook] FB comment: "${message}" from=${from.name} post=${postId}`,
