@@ -332,42 +332,44 @@ const Scanner = ({ onClose, onImageScanned, onOCRComplete }: ScannerProps) => {
       <View style={{ flexDirection: 'row', gap: 16, paddingHorizontal: 16, paddingTop: 16 }}>
         <SquishyPressable
           onPress={handleRetry}
-          style={{
-            flex: 1,
+          style={{ flex: 1 }}
+          disabled={ocrMutation.isPending}
+        >
+          <View style={{
             paddingVertical: 14,
             borderWidth: 1,
             borderColor: '#D1D5DB',
             borderRadius: 8,
             alignItems: 'center',
             justifyContent: 'center',
-          }}
-          disabled={ocrMutation.isPending}
-        >
-          <Text style={{ color: '#222', textAlign: 'center', fontFamily: 'PlusJakartaSans-Medium', fontSize: 15 }}>
-            Retry Scan
-          </Text>
+          }}>
+            <Text style={{ color: '#222', textAlign: 'center', fontFamily: 'PlusJakartaSans-Medium', fontSize: 15 }}>
+              Retry Scan
+            </Text>
+          </View>
         </SquishyPressable>
 
         <SquishyPressable
           testID="scanner-process"
           onPress={handleProcess}
-          style={{
-            flex: 1,
+          style={{ flex: 1 }}
+          disabled={ocrMutation.isPending}
+        >
+          <View style={{
             paddingVertical: 14,
             backgroundColor: '#222',
             borderRadius: 8,
             alignItems: 'center',
             justifyContent: 'center',
-          }}
-          disabled={ocrMutation.isPending}
-        >
-          {ocrMutation.isPending ? (
-            <Loader size={20} color="white" />
-          ) : (
-            <Text style={{ color: '#fff', textAlign: 'center', fontFamily: 'PlusJakartaSans-Medium', fontSize: 15 }}>
-              Process Image
-            </Text>
-          )}
+          }}>
+            {ocrMutation.isPending ? (
+              <Loader size={20} color="white" />
+            ) : (
+              <Text style={{ color: '#fff', textAlign: 'center', fontFamily: 'PlusJakartaSans-Medium', fontSize: 15 }}>
+                Process Image
+              </Text>
+            )}
+          </View>
         </SquishyPressable>
       </View>
     </View>

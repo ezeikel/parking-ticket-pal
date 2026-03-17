@@ -114,16 +114,16 @@ export default function EvidenceCard({
             <View key={item.id} style={{ width: '31%', aspectRatio: 1 }}>
               <SquishyPressable
                 onPress={() => onImagePress?.(item.url)}
-                style={{ flex: 1 }}
+                style={{ width: '100%', height: '100%' }}
               >
                 {isImageUrl(item.url) ? (
                   <Image
                     source={{ uri: item.url }}
-                    style={{ flex: 1, borderRadius: 8 }}
+                    style={{ width: '100%', height: '100%', borderRadius: 8 }}
                     contentFit="cover"
                   />
                 ) : (
-                  <View className="flex-1 rounded-lg bg-light items-center justify-center">
+                  <View style={{ width: '100%', height: '100%', borderRadius: 8, backgroundColor: '#F5F5F5', alignItems: 'center', justifyContent: 'center' }}>
                     <FontAwesomeIcon icon={faFile} size={24} color="#D1D5DB" />
                   </View>
                 )}
