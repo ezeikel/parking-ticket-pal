@@ -244,6 +244,16 @@ export const sitemapPostsQuery = groq`
 `;
 
 /**
+ * Get the most recent general blog post (excludes tribunal and news posts
+ * which are already posted to social as Reels by their video completion handlers)
+ */
+export const mostRecentGeneralPostSlugQuery = groq`
+  *[_type == "post" && status == "published" && !defined(generationMeta.contentSource)] | order(publishedAt desc) [0] {
+    slug
+  }
+`;
+
+/**
  * Get posts for RSS feed
  */
 export const rssFeedQuery = groq`

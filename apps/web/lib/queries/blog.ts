@@ -7,6 +7,7 @@ import {
   postsQuery,
   postBySlugQuery,
   postSlugsQuery,
+  mostRecentGeneralPostSlugQuery,
 } from '@/lib/sanity/queries';
 import type {
   SanityPost,
@@ -118,6 +119,31 @@ export const getAllPostSlugs = async (): Promise<string[]> => {
       error instanceof Error ? error : new Error(String(error)),
     );
     return [];
+  }
+};
+
+/**
+ * Get the most recent general blog post slug (excludes tribunal/news posts
+ * which are already posted to social via their video completion handlers)
+ */
+export const getMostRecentGeneralPostSlug = async (): Promise<
+  string | null
+> => {
+  cacheLife('blog');
+  cacheTag('blog', 'blog-general-latest');
+
+  try {
+    const result = await client.fetch<{ slug: { current: string } } | null>(
+      mostRecentGeneralPostSlugQuery,
+    );
+    return result?.slug?.current ?? null;
+  } catch (error) {
+    logger.error(
+      'Error fetching most recent general post slug from Sanity',
+      {},
+      error instanceof Error ? error : new Error(String(error)),
+    );
+    return null;
   }
 };
 

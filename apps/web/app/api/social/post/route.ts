@@ -2,7 +2,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { toPlainText } from '@portabletext/toolkit';
 import { postToSocialMedia } from '@/app/actions/social';
-import { getPostBySlug, getAllPosts } from '@/lib/queries/blog';
+import {
+  getPostBySlug,
+  getMostRecentGeneralPostSlug,
+} from '@/lib/queries/blog';
 import { PostPlatform } from '@/types';
 import { createServerLogger } from '@/lib/logger';
 
@@ -41,19 +44,20 @@ const handleRequest = async (request: NextRequest) => {
     // Get the blog post slug
     let postSlug = slug;
     if (!postSlug) {
-      // If no slug provided, get the most recent blog post
-      log.info('No slug provided, getting most recent blog post');
-      const allPosts = await getAllPosts();
+      // Get the most recent general blog post (excludes tribunal/news posts
+      // which are already posted to social as Reels by their video completion handlers)
+      log.info('No slug provided, getting most recent general blog post');
+      const generalSlug = await getMostRecentGeneralPostSlug();
 
-      if (allPosts.length === 0) {
+      if (!generalSlug) {
         return NextResponse.json(
-          { error: 'No blog posts found' },
+          { error: 'No general blog posts found' },
           { status: 404 },
         );
       }
 
-      postSlug = allPosts[0].meta.slug; // most recent post slug
-      log.info('Using most recent post', { postSlug });
+      postSlug = generalSlug;
+      log.info('Using most recent general post', { postSlug });
     }
 
     // Get full blog post by slug (includes bodyBlocks for content)
