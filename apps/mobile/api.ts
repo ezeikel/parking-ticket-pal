@@ -273,7 +273,8 @@ export const mobileLogout = async (
 };
 
 export const processImageWithOCR = async (scannedImage: string) => {
-  const response = await api.post('/ocr/upload-image', { scannedImage });
+  // Server-side maxDuration is 60s — allow extra time for base64 upload + network latency
+  const response = await api.post('/ocr/upload-image', { scannedImage }, { timeout: 120_000 });
   return response.data;
 };
 
