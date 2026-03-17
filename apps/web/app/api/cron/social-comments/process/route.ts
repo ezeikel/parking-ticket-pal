@@ -82,29 +82,6 @@ async function processComments(request: Request) {
             return { status: 'skipped' as const };
           }
 
-          // Like the comment
-          const likeResult = await likeComment(comment.commentId);
-
-          // Check for rate limiting
-          if (
-            !likeResult.success &&
-            likeResult.error &&
-            (likeResult.error.includes('"code":4') ||
-              likeResult.error.includes('"code":32'))
-          ) {
-            rateLimited = true;
-            // Reset to pending for retry
-            await db.socialCommentQueue.update({
-              where: { id: comment.id },
-              data: {
-                status: CommentQueueStatus.PENDING,
-                processAfter: new Date(Date.now() + 5 * 60 * 1000),
-              },
-            });
-            failed += 1;
-            return { status: 'rate_limited' as const };
-          }
-
           // Post reply (platform-specific)
           let replyResult;
           if (comment.platform === 'INSTAGRAM') {
@@ -142,17 +119,31 @@ async function processComments(request: Request) {
             throw new Error(replyResult.error || 'Reply failed');
           }
 
+          // Mark as REPLIED immediately to prevent double-replies on timeout
           await db.socialCommentQueue.update({
             where: { id: comment.id },
             data: {
               status: CommentQueueStatus.REPLIED,
               commentType: result.commentType,
               replyText: result.reply,
-              liked: likeResult.success,
               factChecked: result.factChecked,
               processedAt: new Date(),
             },
           });
+
+          // Like is best-effort — don't fail the whole comment if it errors
+          const likeResult = await likeComment(comment.commentId).catch(() => ({
+            success: false,
+          }));
+          if (likeResult.success) {
+            await db.socialCommentQueue
+              .update({
+                where: { id: comment.id },
+                data: { liked: true },
+              })
+              .catch(() => {});
+          }
+
           replied += 1;
           return { status: 'replied' as const };
         } catch (error) {
