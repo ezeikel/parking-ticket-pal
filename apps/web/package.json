@@ -65,6 +65,7 @@
     "@fortawesome/pro-solid-svg-icons": "^7.1.0",
     "@fortawesome/react-fontawesome": "^3.1.1",
     "@google-cloud/vision": "^5.3.4",
+    "@googlemaps/js-api-loader": "^2.0.2",
     "@mapbox/mapbox-gl-geocoder": "^5.1.2",
     "@opentelemetry/api-logs": "^0.212.0",
     "@opentelemetry/exporter-logs-otlp-http": "^0.212.0",

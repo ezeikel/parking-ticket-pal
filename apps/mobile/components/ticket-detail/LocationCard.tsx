@@ -11,9 +11,10 @@ type LocationCardProps = {
   location: Address | null;
   streetViewImages?: Media[];
   onImagePress?: (url: string) => void;
+  onLookAround?: () => void;
 };
 
-export default function LocationCard({ location, streetViewImages = [], onImagePress }: LocationCardProps) {
+export default function LocationCard({ location, streetViewImages = [], onImagePress, onLookAround }: LocationCardProps) {
   const hasCoordinates = location?.coordinates?.latitude && location?.coordinates?.longitude;
   const addressDisplay = location?.line1 || 'Unknown location';
 
@@ -94,13 +95,14 @@ export default function LocationCard({ location, streetViewImages = [], onImageP
             <FontAwesomeIcon icon={faStreetView} size={14} color="#717171" />
             <Text className="font-jakarta-medium text-sm text-dark">Street View</Text>
           </View>
-          <View className="flex-row flex-wrap gap-2">
+          <View className="flex-row flex-wrap" style={{ gap: 8 }}>
             {streetViewImages.map((img) => (
               <SquishyPressable
                 key={img.id}
                 onPress={() => onImagePress?.(img.url)}
+                style={{ width: '48.5%' }}
               >
-                <View className="rounded-lg overflow-hidden" style={{ width: '48%', aspectRatio: 1 }}>
+                <View className="rounded-lg overflow-hidden" style={{ aspectRatio: 1 }}>
                   <Image
                     source={{ uri: img.url }}
                     style={{ width: '100%', height: '100%' }}
@@ -111,6 +113,18 @@ export default function LocationCard({ location, streetViewImages = [], onImageP
             ))}
           </View>
         </View>
+      )}
+
+      {/* Look Around button */}
+      {hasCoordinates && onLookAround && (
+        <SquishyPressable onPress={onLookAround}>
+          <View className="mt-4 bg-teal/10 border border-teal/20 rounded-xl p-3 flex-row items-center justify-center gap-2">
+            <FontAwesomeIcon icon={faStreetView} size={14} color="#0d8a6f" />
+            <Text className="text-teal-dark text-sm font-jakarta-medium">
+              Look around
+            </Text>
+          </View>
+        </SquishyPressable>
       )}
 
       <View className="flex-row items-center gap-2 mt-3">

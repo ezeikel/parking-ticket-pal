@@ -197,6 +197,7 @@ export default ({ config }: ConfigContext): ExpoConfig => {
     plugins: [
       "expo-router",
       "expo-tracking-transparency",
+      ["./plugins/withGoogleMapsIos", { apiKey: process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY }],
     [
       'expo-splash-screen',
       {

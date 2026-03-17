@@ -50,6 +50,7 @@ import StickyBottomCTA from '@/components/ticket-detail/StickyBottomCTA';
 import useReExtract from '@/hooks/api/useReExtract';
 import * as ImagePicker from 'expo-image-picker';
 import { processImageWithOCR, addImageToTicket } from '@/api';
+import StreetViewModal from '@/components/StreetViewModal';
 
 const padding = 16;
 
@@ -108,6 +109,33 @@ export default function TicketDetailScreen() {
   const [selectedFormType, setSelectedFormType] = useState<FormType | null>(
     null,
   );
+  const [streetViewOpen, setStreetViewOpen] = useState(false);
+
+  // Collect all image URLs for lightbox (including letter images)
+  // Must be before early returns to keep hook order consistent
+  const allImages = useMemo(() => {
+    const ticket = data?.ticket;
+    if (!ticket) return [];
+    const media = ticket.media || [];
+    const tImages = media.filter((m: any) => m.source === 'TICKET' || !m.source);
+    const uEvidence = media.filter((m: any) => m.source === 'EVIDENCE');
+    const svImages = media.filter((m: any) => m.source === 'STREET_VIEW');
+    const letterMediaUrls = ((ticket as any)?.letters || []).flatMap(
+      (l: any) => (l.media || []).filter(
+        (m: any) => /\.(jpeg|jpg|gif|png|webp)$/i.test(m.url),
+      ).map((m: any) => m.url),
+    );
+    const images = [
+      ...tImages.map((m: any) => m.url),
+      ...uEvidence
+        .filter((m: any) => /\.(jpeg|jpg|gif|png|webp)$/i.test(m.url))
+        .map((m: any) => m.url),
+      ...svImages.map((m: any) => m.url),
+      ...letterMediaUrls,
+    ];
+    return images.filter(Boolean) as string[];
+  }, [data?.ticket]);
+
   const [lightbox, setLightbox] = useState<{
     images: string[];
     index: number;
@@ -197,23 +225,6 @@ export default function TicketDetailScreen() {
     (m: any) => m.source === 'STREET_VIEW',
   );
 
-  // Collect all image URLs for lightbox (including letter images)
-  const allImages = useMemo(() => {
-    const letterMediaUrls = (ticketData.letters || []).flatMap(
-      (l: any) => (l.media || []).filter(
-        (m: any) => /\.(jpeg|jpg|gif|png|webp)$/i.test(m.url),
-      ).map((m: any) => m.url),
-    );
-    const images = [
-      ...ticketImages.map((m: any) => m.url),
-      ...userEvidence
-        .filter((m: any) => /\.(jpeg|jpg|gif|png|webp)$/i.test(m.url))
-        .map((m: any) => m.url),
-      ...streetViewImages.map((m: any) => m.url),
-      ...letterMediaUrls,
-    ];
-    return images.filter(Boolean) as string[];
-  }, [ticketImages, userEvidence, ticketData.letters]);
 
   const openLightbox = (imageUrl: string) => {
     const index = allImages.indexOf(imageUrl);
@@ -418,6 +429,11 @@ export default function TicketDetailScreen() {
           location={location}
           streetViewImages={streetViewImages}
           onImagePress={openLightbox}
+          onLookAround={
+            location?.coordinates?.latitude && location?.coordinates?.longitude
+              ? () => setStreetViewOpen(true)
+              : undefined
+          }
         />
 
         {/* 5. Evidence */}
@@ -546,6 +562,16 @@ export default function TicketDetailScreen() {
         formType={selectedFormType || 'TE7'}
         onSuccess={handleSuccess}
       />
+
+      {/* Street View Modal */}
+      {location?.coordinates?.latitude && location?.coordinates?.longitude && (
+        <StreetViewModal
+          visible={streetViewOpen}
+          onClose={() => setStreetViewOpen(false)}
+          latitude={location.coordinates.latitude}
+          longitude={location.coordinates.longitude}
+        />
+      )}
 
       {/* Image Lightbox */}
       {lightbox && (

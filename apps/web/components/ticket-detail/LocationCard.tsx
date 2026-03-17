@@ -11,12 +11,14 @@ type LocationCardProps = {
   location: Address | null;
   streetViewImages?: Pick<Media, 'id' | 'url' | 'description'>[];
   onImageClick?: (url: string) => void;
+  onLookAround?: () => void;
 };
 
 const LocationCard = ({
   location,
   streetViewImages = [],
   onImageClick,
+  onLookAround,
 }: LocationCardProps) => {
   const hasCoordinates =
     location?.coordinates?.latitude && location?.coordinates?.longitude;
@@ -99,6 +101,18 @@ const LocationCard = ({
             ))}
           </div>
         </div>
+      )}
+
+      {/* Look Around button */}
+      {hasCoordinates && onLookAround && (
+        <button
+          type="button"
+          className="mt-4 flex w-full items-center justify-center gap-2 rounded-lg border border-teal/20 bg-teal/10 px-4 py-2.5 text-sm font-medium text-teal-dark transition-colors hover:bg-teal/20"
+          onClick={onLookAround}
+        >
+          <FontAwesomeIcon icon={faStreetView} />
+          Look around
+        </button>
       )}
 
       <p className="mt-3 flex items-center gap-2 text-sm text-gray">

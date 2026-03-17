@@ -45,6 +45,7 @@ import ChallengeArgumentCard from './ChallengeArgumentCard';
 import VerificationPrompt from './VerificationPrompt';
 import LiveStatusCard from './LiveStatusCard';
 import LegalFormsCard from './LegalFormsCard';
+import DynamicStreetViewModal from './DynamicStreetViewModal';
 
 type TicketDetailPageProps = {
   ticket: TicketWithRelations;
@@ -89,6 +90,7 @@ const TicketDetailPage = ({
     useState(false);
   const [isGenerateLetterDialogOpen, setIsGenerateLetterDialogOpen] =
     useState(false);
+  const [streetViewOpen, setStreetViewOpen] = useState(false);
   // For retry functionality
   const [retryChallengeId, setRetryChallengeId] = useState<string | null>(null);
   const [retryReason, setRetryReason] = useState<string | undefined>();
@@ -587,6 +589,12 @@ const TicketDetailPage = ({
               location={location}
               streetViewImages={streetViewImages}
               onImageClick={openLightbox}
+              onLookAround={
+                location?.coordinates?.latitude &&
+                location?.coordinates?.longitude
+                  ? () => setStreetViewOpen(true)
+                  : undefined
+              }
             />
 
             {/* Evidence Card */}
@@ -848,6 +856,16 @@ const TicketDetailPage = ({
         initialReason={retryReason}
         initialCustomReason={retryCustomReason}
       />
+
+      {/* Street View Modal */}
+      {location?.coordinates?.latitude && location?.coordinates?.longitude && (
+        <DynamicStreetViewModal
+          open={streetViewOpen}
+          onOpenChange={setStreetViewOpen}
+          latitude={location.coordinates.latitude}
+          longitude={location.coordinates.longitude}
+        />
+      )}
 
       {/* Generate Letter Dialog */}
       <GenerateLetterDialog
