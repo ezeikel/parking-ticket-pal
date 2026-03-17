@@ -9,6 +9,7 @@ import { IMAGE_ANALYSIS_PROMPT } from '@/lib/ai/prompts';
 import { generateOcrAnalysisPrompt } from '@/utils/promptGenerators';
 import { Address, DocumentSchema } from '@parking-ticket-pal/types';
 import * as Sentry from '@sentry/nextjs';
+import { after } from 'next/server';
 import { revalidatePath } from 'next/cache';
 import { MediaSource, db } from '@parking-ticket-pal/db';
 import { createServerLogger } from '@/lib/logger';
@@ -437,8 +438,9 @@ export const extractOCRTextWithVision = async (
       };
     }
 
-    // Track OCR processing started
-    await track(TRACKING_EVENTS.OCR_PROCESSING_STARTED, { source: 'web' });
+    after(() =>
+      track(TRACKING_EVENTS.OCR_PROCESSING_STARTED, { source: 'web' }),
+    );
 
     // Use Google Vision for OCR text extraction
     let googleOcrText: string;
@@ -448,11 +450,13 @@ export const extractOCRTextWithVision = async (
       googleOcrText = result.fullTextAnnotation?.text || '';
 
       if (!googleOcrText) {
-        await track(TRACKING_EVENTS.OCR_PROCESSING_FAILED, {
-          source: 'web',
-          error: 'No text detected in image',
-          reason: 'empty_text',
-        });
+        after(() =>
+          track(TRACKING_EVENTS.OCR_PROCESSING_FAILED, {
+            source: 'web',
+            error: 'No text detected in image',
+            reason: 'empty_text',
+          }),
+        );
         return { success: false, message: 'No text detected in image' };
       }
     } catch (error) {
@@ -464,11 +468,13 @@ export const extractOCRTextWithVision = async (
         },
         error instanceof Error ? error : new Error(String(error)),
       );
-      await track(TRACKING_EVENTS.OCR_PROCESSING_FAILED, {
-        source: 'web',
-        error: error instanceof Error ? error.message : 'Unknown error',
-        reason: 'vision_api_error',
-      });
+      after(() =>
+        track(TRACKING_EVENTS.OCR_PROCESSING_FAILED, {
+          source: 'web',
+          error: error instanceof Error ? error.message : 'Unknown error',
+          reason: 'vision_api_error',
+        }),
+      );
       return { success: false, message: 'OCR failed with Google Vision API' };
     }
 
@@ -496,11 +502,13 @@ export const extractOCRTextWithVision = async (
         userId: effectiveUserId,
         error: error instanceof Error ? error.message : 'Unknown error',
       });
-      await track(TRACKING_EVENTS.OCR_PROCESSING_FAILED, {
-        source: 'web',
-        error: 'Invalid data returned from AI',
-        reason: 'parse_error',
-      });
+      after(() =>
+        track(TRACKING_EVENTS.OCR_PROCESSING_FAILED, {
+          source: 'web',
+          error: 'Invalid data returned from AI',
+          reason: 'parse_error',
+        }),
+      );
       return { success: false, message: 'Invalid data returned from AI' };
     }
 
@@ -652,11 +660,12 @@ export const extractOCRTextWithVision = async (
     if (contraventionCode) fieldsExtracted.push('contraventionCode');
     if (issuedAt) fieldsExtracted.push('issuedAt');
 
-    // Track OCR success
-    await track(TRACKING_EVENTS.OCR_PROCESSING_SUCCESS, {
-      source: 'web',
-      fields_extracted: fieldsExtracted,
-    });
+    after(() =>
+      track(TRACKING_EVENTS.OCR_PROCESSING_SUCCESS, {
+        source: 'web',
+        fields_extracted: fieldsExtracted,
+      }),
+    );
 
     // return the parsed data
     return {
@@ -866,11 +875,13 @@ export const reExtractFromImage = async (ticketId: string) => {
     // Re-run prediction with new data
     await afterTicketUpdate(ticketId);
 
-    await track(TRACKING_EVENTS.TICKET_RE_EXTRACTED, {
-      ticketId,
-      updatedFields,
-      source: 'manual',
-    });
+    after(() =>
+      track(TRACKING_EVENTS.TICKET_RE_EXTRACTED, {
+        ticketId,
+        updatedFields,
+        source: 'manual',
+      }),
+    );
 
     revalidatePath(`/tickets/${ticketId}`);
 
