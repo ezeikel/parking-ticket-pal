@@ -1083,6 +1083,7 @@ enum CommentQueueStatus {
   PENDING
   PROCESSING
   REPLIED
+  LIKED
   SKIPPED
   FAILED
 }
@@ -1107,6 +1108,10 @@ model SocialCommentQueue {
   authorUsername String?
   commentText    String
   postCaption    String?
+
+  isThreadReply     Boolean @default(false)
+  parentCommentId   String?
+  parentCommentText String?
 
   status       CommentQueueStatus @default(PENDING)
   commentType  CommentType?

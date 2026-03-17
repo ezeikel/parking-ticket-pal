@@ -285,6 +285,41 @@ export async function fetchFacebookPostMessage(
 }
 
 /**
+ * Fetch details of a Facebook comment (to check authorship for thread replies).
+ */
+export async function fetchFacebookCommentDetails(commentId: string): Promise<{
+  id: string;
+  message: string;
+  fromId: string;
+  fromName: string;
+} | null> {
+  try {
+    const response = await fetch(
+      `https://graph.facebook.com/v24.0/${commentId}?fields=id,message,from&access_token=${PAGE_ACCESS_TOKEN}`,
+    );
+    const data = await response.json();
+
+    if (!response.ok || !data.from) {
+      logger.warn('Failed to fetch FB comment details', {
+        commentId,
+        error: JSON.stringify(data),
+      });
+      return null;
+    }
+
+    return {
+      id: data.id,
+      message: data.message || '',
+      fromId: data.from.id,
+      fromName: data.from.name || '',
+    };
+  } catch (_error) {
+    logger.warn('Error fetching FB comment details', { commentId });
+    return null;
+  }
+}
+
+/**
  * Reply to a comment on Facebook.
  * POST /{comment-id}/comments (FB uses /comments not /replies)
  */

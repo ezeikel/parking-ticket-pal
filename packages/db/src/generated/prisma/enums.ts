@@ -398,6 +398,7 @@ export const CommentQueueStatus = {
   PENDING: 'PENDING',
   PROCESSING: 'PROCESSING',
   REPLIED: 'REPLIED',
+  LIKED: 'LIKED',
   SKIPPED: 'SKIPPED',
   FAILED: 'FAILED'
 } as const

@@ -26,6 +26,7 @@ type ReplyResult = {
   factChecked: boolean;
   skipped: boolean;
   skipReason?: string;
+  likeOnly?: boolean;
 };
 
 // ============================================================================
@@ -117,6 +118,60 @@ POST_CORRECT: [true/false - whether the original post's claims are accurate]`,
 }
 
 // ============================================================================
+// Thread reply classification
+// ============================================================================
+
+const threadClassifySchema = z.object({
+  action: z.enum(['LIKE_ONLY', 'REPLY']),
+  commentType: z.enum([
+    'AGREEMENT',
+    'QUESTION',
+    'CORRECTION',
+    'COMBATIVE',
+    'APPRECIATION',
+    'EMOJI_ONLY',
+    'SPAM',
+    'OTHER',
+  ]),
+  reason: z.string(),
+});
+
+async function classifyThreadReply(
+  commentText: string,
+  ourPreviousReply: string,
+  postCaption: string | null,
+): Promise<{
+  action: 'LIKE_ONLY' | 'REPLY';
+  commentType: CommentType;
+  reason: string;
+}> {
+  const { object } = await generateObject({
+    model: getTracedModel(models.analytics, {
+      properties: { feature: 'social_thread_classify' },
+    }),
+    schema: threadClassifySchema,
+    prompt: `This is a follow-up reply to one of our previous comments on a UK parking law post. We already engaged with this person once. Decide whether to just like their reply or respond with a text reply.
+
+Post caption: ${postCaption || '(not available)'}
+Our previous reply: "${ourPreviousReply}"
+Their follow-up: "${commentText}"
+
+Default action is LIKE_ONLY. Only choose REPLY if:
+1. They asked a direct follow-up question that needs answering
+2. They pointed out we were specifically wrong about something factual
+3. They shared useful additional info worth a brief acknowledgement
+
+Choose LIKE_ONLY for: "thanks", "ok", "makes sense", general agreement, emojis, tagging friends, combative pushback, opinions, or anything that doesn't need a text response. When in doubt, LIKE_ONLY.`,
+  });
+
+  return object as {
+    action: 'LIKE_ONLY' | 'REPLY';
+    commentType: CommentType;
+    reason: string;
+  };
+}
+
+// ============================================================================
 // Reply generation (orchestrator)
 // ============================================================================
 
@@ -124,11 +179,71 @@ export async function generateCommentReply({
   commentText,
   postCaption,
   platform,
+  threadContext,
 }: {
   commentText: string;
   postCaption: string | null;
   platform: 'INSTAGRAM' | 'FACEBOOK';
+  threadContext?: {
+    isThreadReply: boolean;
+    ourPreviousReply: string | null;
+  };
 }): Promise<ReplyResult> {
+  // Thread replies: classify with like-only bias
+  if (threadContext?.isThreadReply && threadContext.ourPreviousReply) {
+    const threadClassification = await classifyThreadReply(
+      commentText,
+      threadContext.ourPreviousReply,
+      postCaption,
+    );
+
+    if (threadClassification.action === 'LIKE_ONLY') {
+      return {
+        reply: null,
+        commentType: threadClassification.commentType,
+        factChecked: false,
+        skipped: false,
+        likeOnly: true,
+      };
+    }
+
+    // AI decided to reply — generate a short thread reply
+    const { text: reply } = await generateText({
+      model: getTracedModel(models.creative, {
+        properties: { feature: 'social_thread_reply' },
+      }),
+      system: BRAND_VOICE,
+      prompt: `Write a brief follow-up reply on ${platform.toLowerCase()}. This is a continued conversation — we already replied once so keep it SHORT (one sentence max). Don't repeat what you already said.
+
+Post caption: ${postCaption || '(not available)'}
+Our previous reply: "${threadContext.ourPreviousReply}"
+Their follow-up: "${commentText}"
+
+Reply type: ${threadClassification.commentType}
+
+Reply with ONLY the reply text. If you can't add value, reply with exactly "SKIP".`,
+    });
+
+    const trimmedReply = reply.trim();
+    if (trimmedReply === 'SKIP' || trimmedReply === '') {
+      return {
+        reply: null,
+        commentType: threadClassification.commentType,
+        factChecked: false,
+        skipped: false,
+        likeOnly: true,
+      };
+    }
+
+    return {
+      reply: trimmedReply,
+      commentType: threadClassification.commentType,
+      factChecked: false,
+      skipped: false,
+    };
+  }
+
+  // Standard top-level comment flow
   // Step 1: Classify
   const classification = await classifyComment(commentText, postCaption);
 

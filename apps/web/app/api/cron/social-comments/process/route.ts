@@ -46,6 +46,7 @@ async function processComments(request: Request) {
 
     let replied = 0;
     let skipped = 0;
+    let likedOnly = 0;
     let failed = 0;
     let rateLimited = false;
 
@@ -66,6 +67,12 @@ async function processComments(request: Request) {
             commentText: comment.commentText,
             postCaption: comment.postCaption,
             platform: comment.platform,
+            threadContext: comment.isThreadReply
+              ? {
+                  isThreadReply: true,
+                  ourPreviousReply: comment.parentCommentText,
+                }
+              : undefined,
           });
 
           if (result.skipped) {
@@ -80,6 +87,24 @@ async function processComments(request: Request) {
             });
             skipped += 1;
             return { status: 'skipped' as const };
+          }
+
+          // Thread reply: like only (no text reply)
+          if (result.likeOnly) {
+            const likeResult = await likeComment(comment.commentId).catch(
+              () => ({ success: false }),
+            );
+            await db.socialCommentQueue.update({
+              where: { id: comment.id },
+              data: {
+                status: CommentQueueStatus.LIKED,
+                commentType: result.commentType,
+                liked: likeResult.success,
+                processedAt: new Date(),
+              },
+            });
+            likedOnly += 1;
+            return { status: 'liked' as const };
           }
 
           // Post reply (platform-specific)
@@ -175,7 +200,13 @@ async function processComments(request: Request) {
       }),
     );
 
-    const summary = { processed: comments.length, replied, skipped, failed };
+    const summary = {
+      processed: comments.length,
+      replied,
+      likedOnly,
+      skipped,
+      failed,
+    };
     logger.info('Social comments batch complete', summary);
 
     if (rateLimited) {

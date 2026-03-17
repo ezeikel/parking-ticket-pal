@@ -6,6 +6,7 @@ import {
   handleTriggerComment,
   fetchInstagramPostCaption,
   fetchFacebookPostMessage,
+  fetchFacebookCommentDetails,
 } from '@/lib/instagram-automation';
 
 const log = createServerLogger({ action: 'facebook-webhook' });
@@ -34,6 +35,9 @@ async function queueCommentForReply({
   authorUsername,
   commentText,
   postCaption,
+  isThreadReply = false,
+  parentCommentId,
+  parentCommentText,
 }: {
   platform: 'INSTAGRAM' | 'FACEBOOK';
   commentId: string;
@@ -42,8 +46,14 @@ async function queueCommentForReply({
   authorUsername: string | null;
   commentText: string;
   postCaption: string | null;
+  isThreadReply?: boolean;
+  parentCommentId?: string;
+  parentCommentText?: string;
 }): Promise<void> {
-  const delayMs = (120 + Math.random() * 180) * 1000; // 2-5 minutes
+  // Thread replies get a longer delay (4-8 min) to look more natural
+  const delayMs = isThreadReply
+    ? (240 + Math.random() * 240) * 1000
+    : (120 + Math.random() * 180) * 1000;
   const processAfter = new Date(Date.now() + delayMs);
 
   try {
@@ -56,6 +66,9 @@ async function queueCommentForReply({
         authorUsername,
         commentText,
         postCaption,
+        isThreadReply,
+        parentCommentId: parentCommentId || null,
+        parentCommentText: parentCommentText || null,
         processAfter,
       },
     });
@@ -218,16 +231,10 @@ export const POST = async (req: NextRequest) => {
             parent_id: parentId,
           } = value;
 
-          // Skip: missing data, nested replies, empty messages, own comments
+          // Skip: missing data, empty messages, own comments
           if (!commentId || !message || !from || !postId) {
             debugLog.push(
               `[webhook] FB skipping: missing data commentId=${!!commentId} message=${!!message} from=${!!from} postId=${!!postId}`,
-            );
-            continue;
-          }
-          if (parentId && parentId !== postId) {
-            debugLog.push(
-              `[webhook] FB skipping nested reply: parentId=${parentId} postId=${postId} message="${message}"`,
             );
             continue;
           }
@@ -236,12 +243,66 @@ export const POST = async (req: NextRequest) => {
             continue;
           }
 
+          const isNestedReply = !!(parentId && parentId !== postId);
+
           debugLog.push(
-            `[webhook] FB comment: "${message}" from=${from.name} post=${postId}`,
+            `[webhook] FB comment: "${message}" from=${from.name} post=${postId} nested=${isNestedReply}`,
           );
 
           promises.push(
             (async () => {
+              // For nested replies, check if parent is our comment
+              let threadReplyData:
+                | {
+                    isThreadReply: true;
+                    parentCommentId: string;
+                    parentCommentText: string;
+                  }
+                | undefined;
+
+              if (isNestedReply) {
+                const parentComment =
+                  await fetchFacebookCommentDetails(parentId);
+
+                if (
+                  !parentComment ||
+                  parentComment.fromId !== FACEBOOK_PAGE_ID
+                ) {
+                  debugLog.push(
+                    `[webhook] FB skipping nested reply: parent is not our comment`,
+                  );
+                  return;
+                }
+
+                // Loop prevention: max 1 thread exchange per user per post per 24h
+                const recentThreadReply = await db.socialCommentQueue.findFirst(
+                  {
+                    where: {
+                      postId,
+                      authorId: from.id,
+                      isThreadReply: true,
+                      status: { in: ['REPLIED', 'LIKED'] },
+                      createdAt: {
+                        gte: new Date(Date.now() - 24 * 60 * 60 * 1000),
+                      },
+                    },
+                  },
+                );
+
+                if (recentThreadReply) {
+                  debugLog.push(
+                    `[webhook] FB skipping: already had thread exchange with user on this post`,
+                  );
+                  return;
+                }
+
+                threadReplyData = {
+                  isThreadReply: true,
+                  parentCommentId: parentId,
+                  parentCommentText: parentComment.message,
+                };
+              }
+
               const caption = await fetchFacebookPostMessage(postId);
               await queueCommentForReply({
                 platform: 'FACEBOOK',
@@ -251,6 +312,7 @@ export const POST = async (req: NextRequest) => {
                 authorUsername: from.name || null,
                 commentText: message.trim(),
                 postCaption: caption,
+                ...threadReplyData,
               });
             })().catch((error) => {
               debugLog.push(`[webhook] FB queue error: ${error}`);

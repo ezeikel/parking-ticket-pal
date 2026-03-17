@@ -43,6 +43,9 @@ export type SocialCommentQueueMinAggregateOutputType = {
   authorUsername: string | null
   commentText: string | null
   postCaption: string | null
+  isThreadReply: boolean | null
+  parentCommentId: string | null
+  parentCommentText: string | null
   status: $Enums.CommentQueueStatus | null
   commentType: $Enums.CommentType | null
   processAfter: Date | null
@@ -66,6 +69,9 @@ export type SocialCommentQueueMaxAggregateOutputType = {
   authorUsername: string | null
   commentText: string | null
   postCaption: string | null
+  isThreadReply: boolean | null
+  parentCommentId: string | null
+  parentCommentText: string | null
   status: $Enums.CommentQueueStatus | null
   commentType: $Enums.CommentType | null
   processAfter: Date | null
@@ -89,6 +95,9 @@ export type SocialCommentQueueCountAggregateOutputType = {
   authorUsername: number
   commentText: number
   postCaption: number
+  isThreadReply: number
+  parentCommentId: number
+  parentCommentText: number
   status: number
   commentType: number
   processAfter: number
@@ -122,6 +131,9 @@ export type SocialCommentQueueMinAggregateInputType = {
   authorUsername?: true
   commentText?: true
   postCaption?: true
+  isThreadReply?: true
+  parentCommentId?: true
+  parentCommentText?: true
   status?: true
   commentType?: true
   processAfter?: true
@@ -145,6 +157,9 @@ export type SocialCommentQueueMaxAggregateInputType = {
   authorUsername?: true
   commentText?: true
   postCaption?: true
+  isThreadReply?: true
+  parentCommentId?: true
+  parentCommentText?: true
   status?: true
   commentType?: true
   processAfter?: true
@@ -168,6 +183,9 @@ export type SocialCommentQueueCountAggregateInputType = {
   authorUsername?: true
   commentText?: true
   postCaption?: true
+  isThreadReply?: true
+  parentCommentId?: true
+  parentCommentText?: true
   status?: true
   commentType?: true
   processAfter?: true
@@ -278,6 +296,9 @@ export type SocialCommentQueueGroupByOutputType = {
   authorUsername: string | null
   commentText: string
   postCaption: string | null
+  isThreadReply: boolean
+  parentCommentId: string | null
+  parentCommentText: string | null
   status: $Enums.CommentQueueStatus
   commentType: $Enums.CommentType | null
   processAfter: Date
@@ -324,6 +345,9 @@ export type SocialCommentQueueWhereInput = {
   authorUsername?: Prisma.StringNullableFilter<"SocialCommentQueue"> | string | null
   commentText?: Prisma.StringFilter<"SocialCommentQueue"> | string
   postCaption?: Prisma.StringNullableFilter<"SocialCommentQueue"> | string | null
+  isThreadReply?: Prisma.BoolFilter<"SocialCommentQueue"> | boolean
+  parentCommentId?: Prisma.StringNullableFilter<"SocialCommentQueue"> | string | null
+  parentCommentText?: Prisma.StringNullableFilter<"SocialCommentQueue"> | string | null
   status?: Prisma.EnumCommentQueueStatusFilter<"SocialCommentQueue"> | $Enums.CommentQueueStatus
   commentType?: Prisma.EnumCommentTypeNullableFilter<"SocialCommentQueue"> | $Enums.CommentType | null
   processAfter?: Prisma.DateTimeFilter<"SocialCommentQueue"> | Date | string
@@ -347,6 +371,9 @@ export type SocialCommentQueueOrderByWithRelationInput = {
   authorUsername?: Prisma.SortOrderInput | Prisma.SortOrder
   commentText?: Prisma.SortOrder
   postCaption?: Prisma.SortOrderInput | Prisma.SortOrder
+  isThreadReply?: Prisma.SortOrder
+  parentCommentId?: Prisma.SortOrderInput | Prisma.SortOrder
+  parentCommentText?: Prisma.SortOrderInput | Prisma.SortOrder
   status?: Prisma.SortOrder
   commentType?: Prisma.SortOrderInput | Prisma.SortOrder
   processAfter?: Prisma.SortOrder
@@ -373,6 +400,9 @@ export type SocialCommentQueueWhereUniqueInput = Prisma.AtLeast<{
   authorUsername?: Prisma.StringNullableFilter<"SocialCommentQueue"> | string | null
   commentText?: Prisma.StringFilter<"SocialCommentQueue"> | string
   postCaption?: Prisma.StringNullableFilter<"SocialCommentQueue"> | string | null
+  isThreadReply?: Prisma.BoolFilter<"SocialCommentQueue"> | boolean
+  parentCommentId?: Prisma.StringNullableFilter<"SocialCommentQueue"> | string | null
+  parentCommentText?: Prisma.StringNullableFilter<"SocialCommentQueue"> | string | null
   status?: Prisma.EnumCommentQueueStatusFilter<"SocialCommentQueue"> | $Enums.CommentQueueStatus
   commentType?: Prisma.EnumCommentTypeNullableFilter<"SocialCommentQueue"> | $Enums.CommentType | null
   processAfter?: Prisma.DateTimeFilter<"SocialCommentQueue"> | Date | string
@@ -396,6 +426,9 @@ export type SocialCommentQueueOrderByWithAggregationInput = {
   authorUsername?: Prisma.SortOrderInput | Prisma.SortOrder
   commentText?: Prisma.SortOrder
   postCaption?: Prisma.SortOrderInput | Prisma.SortOrder
+  isThreadReply?: Prisma.SortOrder
+  parentCommentId?: Prisma.SortOrderInput | Prisma.SortOrder
+  parentCommentText?: Prisma.SortOrderInput | Prisma.SortOrder
   status?: Prisma.SortOrder
   commentType?: Prisma.SortOrderInput | Prisma.SortOrder
   processAfter?: Prisma.SortOrder
@@ -427,6 +460,9 @@ export type SocialCommentQueueScalarWhereWithAggregatesInput = {
   authorUsername?: Prisma.StringNullableWithAggregatesFilter<"SocialCommentQueue"> | string | null
   commentText?: Prisma.StringWithAggregatesFilter<"SocialCommentQueue"> | string
   postCaption?: Prisma.StringNullableWithAggregatesFilter<"SocialCommentQueue"> | string | null
+  isThreadReply?: Prisma.BoolWithAggregatesFilter<"SocialCommentQueue"> | boolean
+  parentCommentId?: Prisma.StringNullableWithAggregatesFilter<"SocialCommentQueue"> | string | null
+  parentCommentText?: Prisma.StringNullableWithAggregatesFilter<"SocialCommentQueue"> | string | null
   status?: Prisma.EnumCommentQueueStatusWithAggregatesFilter<"SocialCommentQueue"> | $Enums.CommentQueueStatus
   commentType?: Prisma.EnumCommentTypeNullableWithAggregatesFilter<"SocialCommentQueue"> | $Enums.CommentType | null
   processAfter?: Prisma.DateTimeWithAggregatesFilter<"SocialCommentQueue"> | Date | string
@@ -450,6 +486,9 @@ export type SocialCommentQueueCreateInput = {
   authorUsername?: string | null
   commentText: string
   postCaption?: string | null
+  isThreadReply?: boolean
+  parentCommentId?: string | null
+  parentCommentText?: string | null
   status?: $Enums.CommentQueueStatus
   commentType?: $Enums.CommentType | null
   processAfter: Date | string
@@ -473,6 +512,9 @@ export type SocialCommentQueueUncheckedCreateInput = {
   authorUsername?: string | null
   commentText: string
   postCaption?: string | null
+  isThreadReply?: boolean
+  parentCommentId?: string | null
+  parentCommentText?: string | null
   status?: $Enums.CommentQueueStatus
   commentType?: $Enums.CommentType | null
   processAfter: Date | string
@@ -496,6 +538,9 @@ export type SocialCommentQueueUpdateInput = {
   authorUsername?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   commentText?: Prisma.StringFieldUpdateOperationsInput | string
   postCaption?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isThreadReply?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  parentCommentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  parentCommentText?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumCommentQueueStatusFieldUpdateOperationsInput | $Enums.CommentQueueStatus
   commentType?: Prisma.NullableEnumCommentTypeFieldUpdateOperationsInput | $Enums.CommentType | null
   processAfter?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -519,6 +564,9 @@ export type SocialCommentQueueUncheckedUpdateInput = {
   authorUsername?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   commentText?: Prisma.StringFieldUpdateOperationsInput | string
   postCaption?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isThreadReply?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  parentCommentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  parentCommentText?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumCommentQueueStatusFieldUpdateOperationsInput | $Enums.CommentQueueStatus
   commentType?: Prisma.NullableEnumCommentTypeFieldUpdateOperationsInput | $Enums.CommentType | null
   processAfter?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -542,6 +590,9 @@ export type SocialCommentQueueCreateManyInput = {
   authorUsername?: string | null
   commentText: string
   postCaption?: string | null
+  isThreadReply?: boolean
+  parentCommentId?: string | null
+  parentCommentText?: string | null
   status?: $Enums.CommentQueueStatus
   commentType?: $Enums.CommentType | null
   processAfter: Date | string
@@ -565,6 +616,9 @@ export type SocialCommentQueueUpdateManyMutationInput = {
   authorUsername?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   commentText?: Prisma.StringFieldUpdateOperationsInput | string
   postCaption?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isThreadReply?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  parentCommentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  parentCommentText?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumCommentQueueStatusFieldUpdateOperationsInput | $Enums.CommentQueueStatus
   commentType?: Prisma.NullableEnumCommentTypeFieldUpdateOperationsInput | $Enums.CommentType | null
   processAfter?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -588,6 +642,9 @@ export type SocialCommentQueueUncheckedUpdateManyInput = {
   authorUsername?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   commentText?: Prisma.StringFieldUpdateOperationsInput | string
   postCaption?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isThreadReply?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  parentCommentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  parentCommentText?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumCommentQueueStatusFieldUpdateOperationsInput | $Enums.CommentQueueStatus
   commentType?: Prisma.NullableEnumCommentTypeFieldUpdateOperationsInput | $Enums.CommentType | null
   processAfter?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -611,6 +668,9 @@ export type SocialCommentQueueCountOrderByAggregateInput = {
   authorUsername?: Prisma.SortOrder
   commentText?: Prisma.SortOrder
   postCaption?: Prisma.SortOrder
+  isThreadReply?: Prisma.SortOrder
+  parentCommentId?: Prisma.SortOrder
+  parentCommentText?: Prisma.SortOrder
   status?: Prisma.SortOrder
   commentType?: Prisma.SortOrder
   processAfter?: Prisma.SortOrder
@@ -638,6 +698,9 @@ export type SocialCommentQueueMaxOrderByAggregateInput = {
   authorUsername?: Prisma.SortOrder
   commentText?: Prisma.SortOrder
   postCaption?: Prisma.SortOrder
+  isThreadReply?: Prisma.SortOrder
+  parentCommentId?: Prisma.SortOrder
+  parentCommentText?: Prisma.SortOrder
   status?: Prisma.SortOrder
   commentType?: Prisma.SortOrder
   processAfter?: Prisma.SortOrder
@@ -661,6 +724,9 @@ export type SocialCommentQueueMinOrderByAggregateInput = {
   authorUsername?: Prisma.SortOrder
   commentText?: Prisma.SortOrder
   postCaption?: Prisma.SortOrder
+  isThreadReply?: Prisma.SortOrder
+  parentCommentId?: Prisma.SortOrder
+  parentCommentText?: Prisma.SortOrder
   status?: Prisma.SortOrder
   commentType?: Prisma.SortOrder
   processAfter?: Prisma.SortOrder
@@ -702,6 +768,9 @@ export type SocialCommentQueueSelect<ExtArgs extends runtime.Types.Extensions.In
   authorUsername?: boolean
   commentText?: boolean
   postCaption?: boolean
+  isThreadReply?: boolean
+  parentCommentId?: boolean
+  parentCommentText?: boolean
   status?: boolean
   commentType?: boolean
   processAfter?: boolean
@@ -725,6 +794,9 @@ export type SocialCommentQueueSelectCreateManyAndReturn<ExtArgs extends runtime.
   authorUsername?: boolean
   commentText?: boolean
   postCaption?: boolean
+  isThreadReply?: boolean
+  parentCommentId?: boolean
+  parentCommentText?: boolean
   status?: boolean
   commentType?: boolean
   processAfter?: boolean
@@ -748,6 +820,9 @@ export type SocialCommentQueueSelectUpdateManyAndReturn<ExtArgs extends runtime.
   authorUsername?: boolean
   commentText?: boolean
   postCaption?: boolean
+  isThreadReply?: boolean
+  parentCommentId?: boolean
+  parentCommentText?: boolean
   status?: boolean
   commentType?: boolean
   processAfter?: boolean
@@ -771,6 +846,9 @@ export type SocialCommentQueueSelectScalar = {
   authorUsername?: boolean
   commentText?: boolean
   postCaption?: boolean
+  isThreadReply?: boolean
+  parentCommentId?: boolean
+  parentCommentText?: boolean
   status?: boolean
   commentType?: boolean
   processAfter?: boolean
@@ -785,7 +863,7 @@ export type SocialCommentQueueSelectScalar = {
   updatedAt?: boolean
 }
 
-export type SocialCommentQueueOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "platform" | "commentId" | "postId" | "authorId" | "authorUsername" | "commentText" | "postCaption" | "status" | "commentType" | "processAfter" | "processedAt" | "replyText" | "replyCommentId" | "liked" | "factChecked" | "errorMessage" | "retryCount" | "createdAt" | "updatedAt", ExtArgs["result"]["socialCommentQueue"]>
+export type SocialCommentQueueOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "platform" | "commentId" | "postId" | "authorId" | "authorUsername" | "commentText" | "postCaption" | "isThreadReply" | "parentCommentId" | "parentCommentText" | "status" | "commentType" | "processAfter" | "processedAt" | "replyText" | "replyCommentId" | "liked" | "factChecked" | "errorMessage" | "retryCount" | "createdAt" | "updatedAt", ExtArgs["result"]["socialCommentQueue"]>
 
 export type $SocialCommentQueuePayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "SocialCommentQueue"
@@ -799,6 +877,9 @@ export type $SocialCommentQueuePayload<ExtArgs extends runtime.Types.Extensions.
     authorUsername: string | null
     commentText: string
     postCaption: string | null
+    isThreadReply: boolean
+    parentCommentId: string | null
+    parentCommentText: string | null
     status: $Enums.CommentQueueStatus
     commentType: $Enums.CommentType | null
     processAfter: Date
@@ -1242,6 +1323,9 @@ export interface SocialCommentQueueFieldRefs {
   readonly authorUsername: Prisma.FieldRef<"SocialCommentQueue", 'String'>
   readonly commentText: Prisma.FieldRef<"SocialCommentQueue", 'String'>
   readonly postCaption: Prisma.FieldRef<"SocialCommentQueue", 'String'>
+  readonly isThreadReply: Prisma.FieldRef<"SocialCommentQueue", 'Boolean'>
+  readonly parentCommentId: Prisma.FieldRef<"SocialCommentQueue", 'String'>
+  readonly parentCommentText: Prisma.FieldRef<"SocialCommentQueue", 'String'>
   readonly status: Prisma.FieldRef<"SocialCommentQueue", 'CommentQueueStatus'>
   readonly commentType: Prisma.FieldRef<"SocialCommentQueue", 'CommentType'>
   readonly processAfter: Prisma.FieldRef<"SocialCommentQueue", 'DateTime'>
