@@ -225,9 +225,9 @@ export const POST = async (req: NextRequest) => {
             );
             continue;
           }
-          if (parentId) {
+          if (parentId && parentId !== postId) {
             debugLog.push(
-              `[webhook] FB skipping nested reply: parentId=${parentId} message="${message}"`,
+              `[webhook] FB skipping nested reply: parentId=${parentId} postId=${postId} message="${message}"`,
             );
             continue;
           }
