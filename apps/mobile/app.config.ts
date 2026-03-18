@@ -64,7 +64,8 @@ export default ({ config }: ConfigContext): ExpoConfig => {
         "ITSAppUsesNonExemptEncryption": false,
         "NSCameraUsageDescription": "This app uses your camera to scan parking tickets and related documents.",
         "NSPhotoLibraryUsageDescription": "This app allows you to upload existing photos of parking tickets and related documents from your library.",
-        "NSUserTrackingUsageDescription": "This identifier helps us understand how you use the app to improve your experience and show relevant ads."
+        "NSUserTrackingUsageDescription": "This identifier helps us understand how you use the app to improve your experience and show relevant ads.",
+        "NSLocationWhenInUseUsageDescription": "This app uses your location to show where your parking ticket was issued on a map."
       },
       associatedDomains: [
         "applinks:parkingticketpal.com",
