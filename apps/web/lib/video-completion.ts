@@ -1,4 +1,6 @@
+import { Readable } from 'stream';
 import { generateText } from 'ai';
+import { google } from 'googleapis';
 import { db } from '@parking-ticket-pal/db';
 import { createServerLogger } from '@/lib/logger';
 import { models, getTracedModel } from '@/lib/ai/models';
@@ -268,6 +270,64 @@ const postReelToFacebook = async (
   } catch (error) {
     const err = error instanceof Error ? error : new Error(String(error));
     logger?.error('Facebook Reel posting failed', {}, err);
+    return { success: false, error: err.message };
+  }
+};
+
+export const postShortToYouTube = async (
+  videoUrl: string,
+  title: string,
+  description: string,
+  logger?: ReturnType<typeof createServerLogger>,
+): Promise<{ success: boolean; videoId?: string; error?: string }> => {
+  try {
+    const clientId =
+      process.env.YOUTUBE_CLIENT_ID || process.env.GOOGLE_CLIENT_ID;
+    const clientSecret =
+      process.env.YOUTUBE_CLIENT_SECRET || process.env.GOOGLE_CLIENT_SECRET;
+
+    if (!clientId || !clientSecret || !process.env.YOUTUBE_REFRESH_TOKEN) {
+      throw new Error('YouTube credentials not configured');
+    }
+
+    const oauth2Client = new google.auth.OAuth2(clientId, clientSecret);
+    oauth2Client.setCredentials({
+      refresh_token: process.env.YOUTUBE_REFRESH_TOKEN,
+    });
+
+    // Download video from URL
+    const videoResponse = await fetch(videoUrl);
+    if (!videoResponse.ok) {
+      throw new Error(`Failed to download video: ${videoResponse.status}`);
+    }
+    const videoBuffer = Buffer.from(await videoResponse.arrayBuffer());
+    const videoStream = Readable.from(videoBuffer);
+
+    const youtube = google.youtube({ version: 'v3', auth: oauth2Client });
+
+    const response = await youtube.videos.insert({
+      part: ['snippet', 'status'],
+      requestBody: {
+        snippet: {
+          title,
+          description,
+          categoryId: '27', // Education
+        },
+        status: {
+          privacyStatus: 'public',
+          selfDeclaredMadeForKids: false,
+        },
+      },
+      media: {
+        body: videoStream,
+      },
+    });
+
+    logger?.info('YouTube Short posted', { videoId: response.data.id });
+    return { success: true, videoId: response.data.id ?? undefined };
+  } catch (error) {
+    const err = error instanceof Error ? error : new Error(String(error));
+    logger?.error('YouTube Short posting failed', {}, err);
     return { success: false, error: err.message };
   }
 };
@@ -588,6 +648,26 @@ export async function completeTribunalVideo(
     postingResults.facebook = fbResult;
   }
 
+  if (youtubeCaption) {
+    let ytTitle = '';
+    let ytDescription = '';
+    try {
+      const parsed = JSON.parse(youtubeCaption);
+      ytTitle = parsed.title;
+      ytDescription = parsed.description;
+    } catch {
+      ytTitle = `Tribunal Case: ${caseData.authority} - ${caseData.contravention}`;
+      ytDescription = youtubeCaption;
+    }
+    const ytResult = await postShortToYouTube(
+      videoUrl,
+      ytTitle,
+      ytDescription,
+      logger,
+    );
+    postingResults.youtube = ytResult;
+  }
+
   // Send email digest
   const digestEmail = process.env.SOCIAL_DIGEST_EMAIL;
   if (digestEmail) {
@@ -621,7 +701,7 @@ export async function completeTribunalVideo(
       digestCaptions.push({
         platform: 'youtubeShorts',
         caption: youtubeCaption,
-        autoPosted: false,
+        autoPosted: postingResults.youtube?.success ?? false,
         assetType: 'video',
       });
     }
@@ -826,6 +906,26 @@ export async function completeNewsVideo(
     postingResults.facebook = fbResult;
   }
 
+  if (youtubeCaption) {
+    let ytTitle = '';
+    let ytDescription = '';
+    try {
+      const parsed = JSON.parse(youtubeCaption);
+      ytTitle = parsed.title;
+      ytDescription = parsed.description;
+    } catch {
+      ytTitle = `UK News: ${videoRecord.headline}`;
+      ytDescription = youtubeCaption;
+    }
+    const ytResult = await postShortToYouTube(
+      videoUrl,
+      ytTitle,
+      ytDescription,
+      logger,
+    );
+    postingResults.youtube = ytResult;
+  }
+
   // Send email digest
   const digestEmail = process.env.SOCIAL_DIGEST_EMAIL;
   if (digestEmail) {
@@ -859,7 +959,7 @@ export async function completeNewsVideo(
       digestCaptions.push({
         platform: 'youtubeShorts',
         caption: youtubeCaption,
-        autoPosted: false,
+        autoPosted: postingResults.youtube?.success ?? false,
         assetType: 'video',
       });
     }

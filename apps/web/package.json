@@ -120,6 +120,7 @@
     "framer-motion": "^12.29.0",
     "geist": "^1.5.1",
     "google-auth-library": "^10.5.0",
+    "googleapis": "^171.4.0",
     "gray-matter": "^4.0.3",
     "heic-to": "^1.4.2",
     "jose": "^6.1.3",
