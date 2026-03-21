@@ -4,10 +4,7 @@ import { AddressSchema } from './address';
 export const ticketFormSchema = z.object({
   vehicleReg: z
     .string()
-    .min(1, { message: 'Vehicle registration is required' })
-    .regex(/^[A-Z]{2}[0-9]{2}\s?[A-Z]{3}$/, {
-      message: 'Invalid UK vehicle registration format. Example: AB12 CDE',
-    }),
+    .min(1, { message: 'Vehicle registration is required' }),
   pcnNumber: z.string().min(1, { message: 'PCN number is required' }),
   issuedAt: z.date({ required_error: 'Date issued is required' }),
   contraventionCode: z.string().optional().nullable(),
