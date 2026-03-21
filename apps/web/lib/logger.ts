@@ -13,24 +13,21 @@ type PostHogServerLike = {
 };
 
 let posthogServerCache: PostHogServerLike | null | undefined;
-let posthogServerImportPromise: Promise<PostHogServerLike | null> | null = null;
 
-const getPostHogServer = () => {
+const getPostHogServerClient = (): PostHogServerLike | null => {
   if (posthogServerCache !== undefined) return posthogServerCache;
   if (typeof window !== 'undefined') {
     posthogServerCache = null;
     return null;
   }
+  // Use the lazy singleton from posthog-server.ts (avoids require() issues)
   try {
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const mod = require('@/lib/posthog-server');
-    posthogServerCache = mod.posthogServer ?? null;
-    if (!posthogServerCache) {
-      // eslint-disable-next-line no-console
-      console.warn(
-        '[logger] posthog-server module loaded but posthogServer is null (missing NEXT_PUBLIC_POSTHOG_KEY?)',
-      );
-    }
+    // Dynamic import isn't possible synchronously, so we use the getter pattern
+    // from posthog-server.ts which creates the client on first access
+    const { getPostHogServer } =
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
+      require('@/lib/posthog-server') as typeof import('@/lib/posthog-server');
+    posthogServerCache = getPostHogServer();
   } catch (err) {
     // eslint-disable-next-line no-console
     console.warn(
@@ -38,19 +35,6 @@ const getPostHogServer = () => {
       err instanceof Error ? err.message : err,
     );
     posthogServerCache = null;
-
-    // Fallback: try dynamic import (works better with Turbopack)
-    if (!posthogServerImportPromise) {
-      posthogServerImportPromise = import('@/lib/posthog-server')
-        .then((mod) => {
-          posthogServerCache = mod.posthogServer ?? null;
-          return posthogServerCache;
-        })
-        .catch(() => {
-          posthogServerCache = null;
-          return null;
-        });
-    }
   }
   return posthogServerCache;
 };
@@ -66,8 +50,9 @@ const getOtelLogger = (): OtelLogger | null => {
     return null;
   }
   try {
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const { loggerProvider } = require('@/instrumentation');
+    const { loggerProvider } =
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
+      require('@/instrumentation') as typeof import('@/instrumentation');
     otelLoggerCache = loggerProvider?.getLogger?.('ptp-web') ?? null;
   } catch (err) {
     // eslint-disable-next-line no-console
@@ -251,7 +236,7 @@ class Logger {
 
       // Server-side: use PostHog Node SDK directly
       if (typeof window === 'undefined') {
-        const phServer = getPostHogServer();
+        const phServer = getPostHogServerClient();
         if (phServer) {
           phServer.capture({
             distinctId: (entry.context?.userId as string) || 'server',
@@ -458,15 +443,16 @@ export function createServerLogger(context?: Partial<LogContext>) {
       logger.warn(message, { ...baseContext, ...additionalContext }, error),
     error: (message: string, additionalContext?: LogContext, error?: Error) =>
       logger.error(message, { ...baseContext, ...additionalContext }, error),
-    /** Flush queued PostHog events and OTLP logs — call before serverless function exits */
+    /** Flush queued PostHog events and OTLP logs — call via after() in route handlers */
     flush: async () => {
-      const phServer = getPostHogServer();
+      const phServer = getPostHogServerClient();
       if (phServer) {
         await phServer.shutdown();
       }
       try {
-        // eslint-disable-next-line @typescript-eslint/no-require-imports
-        const { loggerProvider } = require('@/instrumentation');
+        const { loggerProvider } =
+          // eslint-disable-next-line @typescript-eslint/no-require-imports
+          require('@/instrumentation') as typeof import('@/instrumentation');
         if (loggerProvider?.forceFlush) {
           await loggerProvider.forceFlush();
         }

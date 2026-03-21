@@ -1,4 +1,4 @@
-import { NextRequest } from 'next/server';
+import { NextRequest, after } from 'next/server';
 import { createTicket } from '@/app/actions/ticket';
 import { ticketFormSchema } from '@parking-ticket-pal/types';
 import { getUserId } from '@/utils/user';
@@ -7,6 +7,9 @@ import { createServerLogger } from '@/lib/logger';
 const log = createServerLogger({ action: 'ticket-create' });
 
 export async function POST(request: NextRequest) {
+  // Flush logs after the response is sent (before serverless freezes)
+  after(() => log.flush());
+
   try {
     const userId = await getUserId('create a ticket');
 
@@ -18,6 +21,16 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
+
+    log.info('Ticket create request body', {
+      vehicleReg: body.vehicleReg,
+      pcnNumber: body.pcnNumber,
+      issuedAt: body.issuedAt,
+      contraventionCode: body.contraventionCode,
+      initialAmount: body.initialAmount,
+      issuer: body.issuer,
+      location: body.location,
+    });
 
     // Validate the request body matches the ticket form schema
     const validatedData = ticketFormSchema.parse({
@@ -73,6 +86,9 @@ export async function POST(request: NextRequest) {
     );
 
     if (error instanceof Error && error.name === 'ZodError') {
+      log.error('Zod validation failed', {
+        zodErrors: error.message,
+      });
       return Response.json(
         {
           success: false,
