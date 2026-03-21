@@ -2,7 +2,8 @@ import * as Sentry from '@sentry/nextjs';
 import { SeverityNumber } from '@opentelemetry/api-logs';
 import type { Logger as OtelLogger } from '@opentelemetry/api-logs';
 
-// Lazy-loaded server-side PostHog — avoids importing posthog-node in client bundles
+// Lazy-loaded server-side PostHog — avoids importing posthog-node in client bundles.
+// Uses dynamic import() instead of require() for Turbopack compatibility.
 type PostHogServerLike = {
   capture: (opts: {
     distinctId: string;
@@ -13,56 +14,59 @@ type PostHogServerLike = {
 };
 
 let posthogServerCache: PostHogServerLike | null | undefined;
+let posthogServerLoading: Promise<void> | null = null;
+
+function warmPostHogServer(): void {
+  if (posthogServerCache !== undefined || typeof window !== 'undefined') return;
+  if (posthogServerLoading) return;
+  posthogServerLoading = import('@/lib/posthog-server')
+    .then((mod) => {
+      posthogServerCache = mod.getPostHogServer() ?? null;
+    })
+    .catch((err) => {
+      // eslint-disable-next-line no-console
+      console.warn(
+        '[logger] Failed to load posthog-server module:',
+        err instanceof Error ? err.message : err,
+      );
+      posthogServerCache = null;
+    });
+}
 
 const getPostHogServerClient = (): PostHogServerLike | null => {
   if (posthogServerCache !== undefined) return posthogServerCache;
-  if (typeof window !== 'undefined') {
-    posthogServerCache = null;
-    return null;
-  }
-  // Use the lazy singleton from posthog-server.ts (avoids require() issues)
-  try {
-    // Dynamic import isn't possible synchronously, so we use the getter pattern
-    // from posthog-server.ts which creates the client on first access
-    const { getPostHogServer } =
-      // eslint-disable-next-line @typescript-eslint/no-require-imports
-      require('@/lib/posthog-server') as typeof import('@/lib/posthog-server');
-    posthogServerCache = getPostHogServer();
-  } catch (err) {
-    // eslint-disable-next-line no-console
-    console.warn(
-      '[logger] Failed to load posthog-server module:',
-      err instanceof Error ? err.message : err,
-    );
-    posthogServerCache = null;
-  }
-  return posthogServerCache;
+  if (typeof window !== 'undefined') return null;
+  // Kick off async load; will be available on next call
+  warmPostHogServer();
+  return null;
 };
 
-// Lazy-loaded OTLP logger — sends structured logs to PostHog Logs product
+// Lazy-loaded OTLP logger — sends structured logs to PostHog Logs product.
+// Uses dynamic import() instead of require() for Turbopack compatibility.
 let otelLoggerCache: OtelLogger | null = null;
-let otelLoggerInitialized = false;
+let otelLoggerLoading: Promise<void> | null = null;
+
+function warmOtelLogger(): void {
+  if (otelLoggerCache !== null || typeof window !== 'undefined') return;
+  if (otelLoggerLoading) return;
+  otelLoggerLoading = import('@/instrumentation')
+    .then((mod) => {
+      otelLoggerCache = mod.loggerProvider?.getLogger?.('ptp-web') ?? null;
+    })
+    .catch((err) => {
+      // eslint-disable-next-line no-console
+      console.warn(
+        '[logger] Failed to load OTLP logger from instrumentation:',
+        err instanceof Error ? err.message : err,
+      );
+    });
+}
+
 const getOtelLogger = (): OtelLogger | null => {
-  if (otelLoggerInitialized) return otelLoggerCache;
-  otelLoggerInitialized = true;
-  if (typeof window !== 'undefined') {
-    otelLoggerCache = null;
-    return null;
-  }
-  try {
-    const { loggerProvider } =
-      // eslint-disable-next-line @typescript-eslint/no-require-imports
-      require('@/instrumentation') as typeof import('@/instrumentation');
-    otelLoggerCache = loggerProvider?.getLogger?.('ptp-web') ?? null;
-  } catch (err) {
-    // eslint-disable-next-line no-console
-    console.warn(
-      '[logger] Failed to load OTLP logger from instrumentation:',
-      err instanceof Error ? err.message : err,
-    );
-    otelLoggerCache = null;
-  }
-  return otelLoggerCache;
+  if (otelLoggerCache) return otelLoggerCache;
+  if (typeof window !== 'undefined') return null;
+  warmOtelLogger();
+  return null;
 };
 
 const LOG_LEVEL_TO_SEVERITY: Record<string, SeverityNumber> = {
@@ -445,14 +449,16 @@ export function createServerLogger(context?: Partial<LogContext>) {
       logger.error(message, { ...baseContext, ...additionalContext }, error),
     /** Flush queued PostHog events and OTLP logs — call via after() in route handlers */
     flush: async () => {
+      // Ensure modules are loaded before flushing
+      if (posthogServerLoading) await posthogServerLoading;
+      if (otelLoggerLoading) await otelLoggerLoading;
+
       const phServer = getPostHogServerClient();
       if (phServer) {
         await phServer.shutdown();
       }
       try {
-        const { loggerProvider } =
-          // eslint-disable-next-line @typescript-eslint/no-require-imports
-          require('@/instrumentation') as typeof import('@/instrumentation');
+        const { loggerProvider } = await import('@/instrumentation');
         if (loggerProvider?.forceFlush) {
           await loggerProvider.forceFlush();
         }
