@@ -68,8 +68,9 @@ const CreatingStep = ({ wizardData, onComplete, onCancel }: CreatingStepProps) =
         });
       }
     } catch (err: any) {
+      const rawError = err?.response?.data?.error;
       const message =
-        err?.response?.data?.error ||
+        (typeof rawError === 'string' ? rawError : rawError?.message) ||
         (err instanceof Error ? err.message : 'An unexpected error occurred.');
       setError(message);
       trackError(err instanceof Error ? err : new Error(message), {

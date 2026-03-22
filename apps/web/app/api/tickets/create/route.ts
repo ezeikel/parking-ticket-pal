@@ -6,6 +6,8 @@ import { createServerLogger } from '@/lib/logger';
 
 const log = createServerLogger({ action: 'ticket-create' });
 
+export const maxDuration = 60;
+
 export async function POST(request: NextRequest) {
   // Flush logs after the response is sent (before serverless freezes)
   after(() => log.flush());
