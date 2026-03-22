@@ -54,15 +54,37 @@ export const createTicket = async (
     return null;
   }
 
+  // Try to get vehicle info quickly (5s timeout) — fall back to defaults if slow
+  let vehicleInfo = await Promise.race([
+    getVehicleInfo(values.vehicleReg),
+    new Promise<null>((resolve) => {
+      setTimeout(() => {
+        resolve(null);
+      }, 5_000);
+    }),
+  ]);
+
   let ticket: Ticket;
 
   // schedule post-creation tasks after response is sent
   after(async () => {
     if (ticket) {
+      // If vehicle info wasn't fetched in time, do it now in the background
+      if (!vehicleInfo) {
+        try {
+          vehicleInfo = await getVehicleInfo(values.vehicleReg);
+        } catch (error) {
+          logger.error(
+            'Failed to fetch vehicle info in background',
+            { ticketId: ticket.id, vehicleReg: values.vehicleReg },
+            error instanceof Error ? error : new Error(String(error)),
+          );
+        }
+      }
+
       // Enrich vehicle with DVLA/Motorway data
       try {
-        const vehicleInfo = await getVehicleInfo(values.vehicleReg);
-        if (vehicleInfo.verification.status === 'VERIFIED') {
+        if (vehicleInfo && vehicleInfo.verification.status === 'VERIFIED') {
           await db.vehicle.update({
             where: {
               registrationNumber_userId: {
@@ -319,17 +341,30 @@ export const createTicket = async (
             },
             create: {
               registrationNumber: values.vehicleReg,
-              make: 'Unknown',
-              model: 'Unknown',
-              bodyType: 'Unknown',
-              fuelType: 'Unknown',
-              year: 0,
-              color: 'Unknown',
+              make: vehicleInfo?.make ?? 'Unknown',
+              model: vehicleInfo?.model ?? 'Unknown',
+              bodyType: vehicleInfo?.bodyType ?? 'Unknown',
+              fuelType: vehicleInfo?.fuelType ?? 'Unknown',
+              year: vehicleInfo?.year ?? 0,
+              color: vehicleInfo?.color ?? 'Unknown',
               user: {
                 connect: {
                   id: userId,
                 },
               },
+              verification:
+                vehicleInfo?.verification.status === 'VERIFIED'
+                  ? {
+                      create: {
+                        type: VerificationType.VEHICLE,
+                        status: VerificationStatus.VERIFIED,
+                        verifiedAt: new Date(),
+                        metadata:
+                          (vehicleInfo.verification
+                            .metadata as Prisma.JsonValue) || undefined,
+                      },
+                    }
+                  : undefined,
             },
           },
         },
