@@ -54,14 +54,116 @@ export const createTicket = async (
     return null;
   }
 
-  const vehicleInfo = await getVehicleInfo(values.vehicleReg);
-
-  const vehicleVerified = vehicleInfo.verification.status === 'VERIFIED';
-
   let ticket: Ticket;
 
-  // schedule file move, media record creation, and reminder generation after response
+  // schedule post-creation tasks after response is sent
   after(async () => {
+    if (ticket) {
+      // Enrich vehicle with DVLA/Motorway data
+      try {
+        const vehicleInfo = await getVehicleInfo(values.vehicleReg);
+        if (vehicleInfo.verification.status === 'VERIFIED') {
+          await db.vehicle.update({
+            where: {
+              registrationNumber_userId: {
+                registrationNumber: values.vehicleReg,
+                userId: userId!,
+              },
+            },
+            data: {
+              make: vehicleInfo.make,
+              model: vehicleInfo.model,
+              year: vehicleInfo.year,
+              bodyType: vehicleInfo.bodyType,
+              fuelType: vehicleInfo.fuelType,
+              color: vehicleInfo.color,
+              verification: {
+                upsert: {
+                  create: {
+                    type: VerificationType.VEHICLE,
+                    status: VerificationStatus.VERIFIED,
+                    verifiedAt: new Date(),
+                    metadata:
+                      (vehicleInfo.verification.metadata as Prisma.JsonValue) ||
+                      undefined,
+                  },
+                  update: {
+                    status: VerificationStatus.VERIFIED,
+                    verifiedAt: new Date(),
+                    metadata:
+                      (vehicleInfo.verification.metadata as Prisma.JsonValue) ||
+                      undefined,
+                  },
+                },
+              },
+            },
+          });
+        }
+      } catch (error) {
+        logger.error(
+          'Failed to enrich vehicle info',
+          { ticketId: ticket.id, vehicleReg: values.vehicleReg },
+          error instanceof Error ? error : new Error(String(error)),
+        );
+      }
+
+      // Track events
+      try {
+        await track(TRACKING_EVENTS.TICKET_CREATED, {
+          ticket_id: ticket.id,
+          pcn_number: ticket.pcnNumber,
+          issuer: ticket.issuer,
+          issuer_type: ticket.issuerType,
+          prefilled: !!ticket.extractedText,
+        });
+
+        const ticketCount = await db.ticket.count({
+          where: { vehicle: { userId: userId! } },
+        });
+        if (ticketCount === 1) {
+          const user = await db.user.findUnique({
+            where: { id: userId! },
+            select: { createdAt: true },
+          });
+          await track(TRACKING_EVENTS.FIRST_TICKET_CREATED, {
+            ticket_id: ticket.id,
+            time_since_signup_ms: user
+              ? Date.now() - user.createdAt.getTime()
+              : 0,
+            method: ticket.extractedText ? 'camera' : 'manual',
+            platform: 'web',
+          });
+        }
+      } catch (error) {
+        logger.error(
+          'Failed to track ticket creation',
+          { ticketId: ticket.id },
+          error instanceof Error ? error : new Error(String(error)),
+        );
+      }
+
+      // Post-creation tasks (prediction, onboarding sequence)
+      try {
+        await afterTicketCreation(ticket);
+      } catch (error) {
+        logger.error(
+          'Failed post-creation tasks',
+          { ticketId: ticket.id },
+          error instanceof Error ? error : new Error(String(error)),
+        );
+      }
+
+      if (ticket.tier === 'FREE') {
+        await createOnboardingSequence(userId, ticket.id).catch((err) =>
+          logger.error(
+            'Failed to create onboarding sequence',
+            { ticketId: ticket.id },
+            err instanceof Error ? err : new Error(String(err)),
+          ),
+        );
+      }
+    }
+
     if (ticket && values.tempImagePath && values.tempImageUrl) {
       try {
         // extract file extension from temp path
@@ -217,73 +319,22 @@ export const createTicket = async (
             },
             create: {
               registrationNumber: values.vehicleReg,
-              make: vehicleInfo.make,
-              model: vehicleInfo.model,
-              year: vehicleInfo.year,
-              bodyType: vehicleInfo.bodyType,
-              fuelType: vehicleInfo.fuelType,
-              color: vehicleInfo.color,
+              make: 'Unknown',
+              model: 'Unknown',
+              bodyType: 'Unknown',
+              fuelType: 'Unknown',
+              year: 0,
+              color: 'Unknown',
               user: {
                 connect: {
                   id: userId,
                 },
               },
-              verification: vehicleVerified
-                ? {
-                    create: {
-                      type: VerificationType.VEHICLE,
-                      status: VerificationStatus.VERIFIED,
-                      verifiedAt: new Date(),
-                      metadata:
-                        (vehicleInfo.verification
-                          .metadata as Prisma.JsonValue) || undefined,
-                    },
-                  }
-                : undefined,
             },
           },
         },
       },
     });
-
-    await track(TRACKING_EVENTS.TICKET_CREATED, {
-      ticket_id: ticket.id,
-      pcn_number: ticket.pcnNumber,
-      issuer: ticket.issuer,
-      issuer_type: ticket.issuerType,
-      prefilled: !!ticket.extractedText,
-    });
-
-    // Check if this is the user's first ticket
-    const ticketCount = await db.ticket.count({
-      where: { vehicle: { userId } },
-    });
-    if (ticketCount === 1) {
-      const user = await db.user.findUnique({
-        where: { id: userId },
-        select: { createdAt: true },
-      });
-      await track(TRACKING_EVENTS.FIRST_TICKET_CREATED, {
-        ticket_id: ticket.id,
-        time_since_signup_ms: user ? Date.now() - user.createdAt.getTime() : 0,
-        method: ticket.extractedText ? 'camera' : 'manual',
-        platform: 'web',
-      });
-    }
-
-    // handle post-creation tasks e.g create prediction
-    await afterTicketCreation(ticket);
-
-    // Start onboarding email sequence for FREE tier tickets
-    if (ticket.tier === 'FREE') {
-      await createOnboardingSequence(userId, ticket.id).catch((err) =>
-        logger.error(
-          'Failed to create onboarding sequence',
-          { ticketId: ticket.id },
-          err instanceof Error ? err : new Error(String(err)),
-        ),
-      );
-    }
 
     return ticket;
   } catch (error: any) {
