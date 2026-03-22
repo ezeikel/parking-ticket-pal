@@ -59,6 +59,10 @@
     {
       "path": "/api/cron/social-comments/process",
       "schedule": "*/2 * * * *"
+    },
+    {
+      "path": "/api/cron/social-comments/catch-up",
+      "schedule": "0 20 * * *"
     }
   ]
 }
