@@ -71,11 +71,16 @@ class PurchaseService {
   }
 
   async purchasePackage(pkg: PurchasesPackage): Promise<{ customerInfo: CustomerInfo }> {
-    if (!this.isInitialized) {
-      await this.initialize();
-    }
+    try {
+      if (!this.isInitialized) {
+        await this.initialize();
+      }
 
-    return await Purchases.purchasePackage(pkg);
+      return await Purchases.purchasePackage(pkg);
+    } catch (error) {
+      logger.error('Failed to purchase package', { action: 'purchases' }, error instanceof Error ? error : new Error(String(error)));
+      throw error instanceof Error ? error : new Error(String(error));
+    }
   }
 
   async restorePurchases(): Promise<CustomerInfo> {

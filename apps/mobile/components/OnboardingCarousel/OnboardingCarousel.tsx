@@ -192,11 +192,13 @@ const OnboardingCarousel = ({ onComplete, onTicketCreated }: OnboardingCarouselP
 
   if (phase === 'wizard') {
     return (
-      <TicketWizard
-        ocrData={ocrData}
-        onComplete={handleWizardComplete}
-        onCancel={handleWizardCancel}
-      />
+      <View style={{ flex: 1, backgroundColor: 'white' }}>
+        <TicketWizard
+          ocrData={ocrData}
+          onComplete={handleWizardComplete}
+          onCancel={handleWizardCancel}
+        />
+      </View>
     );
   }
 
