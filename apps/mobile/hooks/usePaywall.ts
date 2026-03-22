@@ -4,6 +4,7 @@ import { PurchasesPackage, PURCHASES_ERROR_CODE } from 'react-native-purchases';
 import { useQueryClient } from '@tanstack/react-query';
 import { usePurchases } from '@/contexts/purchases';
 import { useAnalytics } from '@/lib/analytics';
+import { logger } from '@/lib/logger';
 import { ONE_TIME_PLANS, type PricingPlan } from '@/constants/pricing';
 
 interface UsePaywallOptions {
@@ -106,7 +107,7 @@ export function usePaywall({ ticketId, onPurchaseComplete }: UsePaywallOptions) 
             mode: 'ticket_upgrades',
           });
         } else {
-          console.error('[usePaywall] Purchase error:', error);
+          logger.error('Purchase error in usePaywall', { action: 'purchases', errorCode: error.code, errorMessage: error.message }, error instanceof Error ? error : new Error(String(error)));
           toast.error('Purchase Failed', 'Please try again');
         }
       } finally {
@@ -134,7 +135,7 @@ export function usePaywall({ ticketId, onPurchaseComplete }: UsePaywallOptions) 
         onPurchaseComplete?.();
       }
     } catch (error) {
-      console.error('[usePaywall] Restore error:', error);
+      logger.error('Restore error in usePaywall', { action: 'purchases' }, error instanceof Error ? error : new Error(String(error)));
       toast.error('Restore Failed', 'Please try again');
     } finally {
       setIsPurchasing(false);

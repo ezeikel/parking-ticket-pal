@@ -27,10 +27,7 @@ class PurchaseService {
         await Purchases.setLogLevel(LOG_LEVEL.DEBUG);
       }
 
-      Purchases.configure({
-        apiKey,
-        usesStoreKit2IfAvailable: true,
-      });
+      Purchases.configure({ apiKey });
       this.isInitialized = true;
 
       logger.info('RevenueCat initialized successfully', { action: 'purchases', environment: process.env.EXPO_PUBLIC_ENVIRONMENT });
