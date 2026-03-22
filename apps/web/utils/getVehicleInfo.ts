@@ -28,7 +28,7 @@ const FALLBACK_VEHICLE_INFO: VehicleInfo = {
 
 export default async (vehicleRegistration: string): Promise<VehicleInfo> => {
   try {
-    // get vehicle information from multiple sources
+    // get vehicle information from multiple sources (10s timeout per request)
     const [mwayResponse, dvlaResponse] = await Promise.all([
       fetch(process.env.MWAY_VRM_CHECK_API_URL as string, {
         method: 'POST',
@@ -36,6 +36,7 @@ export default async (vehicleRegistration: string): Promise<VehicleInfo> => {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ vrm: vehicleRegistration }),
+        signal: AbortSignal.timeout(10_000),
       }),
       fetch(process.env.DVLA_VEHICLE_ENQUIRY_API_URL as string, {
         method: 'POST',
@@ -44,6 +45,7 @@ export default async (vehicleRegistration: string): Promise<VehicleInfo> => {
           'x-api-key': process.env.DVLA_API_KEY as string,
         },
         body: JSON.stringify({ registrationNumber: vehicleRegistration }),
+        signal: AbortSignal.timeout(10_000),
       }),
     ]);
 
