@@ -9,7 +9,7 @@ const config: Config = {
       lines: 29,
     },
   },
-  projects: ['./test/jest.client.ts'],
+  projects: ['./test/jest.client.ts', './test/jest.server.ts'],
 };
 
 export default config;

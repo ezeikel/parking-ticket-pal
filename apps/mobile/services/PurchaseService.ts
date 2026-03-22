@@ -1,6 +1,8 @@
-import Purchases, { CustomerInfo, PurchasesOffering, PurchasesPackage } from 'react-native-purchases';
+import Purchases, { CustomerInfo, LOG_LEVEL, PurchasesOffering, PurchasesPackage } from 'react-native-purchases';
 import { Platform } from 'react-native';
 import { logger } from '@/lib/logger';
+
+const IS_PRODUCTION = process.env.EXPO_PUBLIC_ENVIRONMENT === 'production';
 
 class PurchaseService {
   private isInitialized = false;
@@ -21,10 +23,17 @@ class PurchaseService {
         return;
       }
 
-      Purchases.configure({ apiKey });
+      if (!IS_PRODUCTION) {
+        await Purchases.setLogLevel(LOG_LEVEL.DEBUG);
+      }
+
+      Purchases.configure({
+        apiKey,
+        usesStoreKit2IfAvailable: true,
+      });
       this.isInitialized = true;
 
-      logger.info('RevenueCat initialized successfully', { action: 'purchases' });
+      logger.info('RevenueCat initialized successfully', { action: 'purchases', environment: process.env.EXPO_PUBLIC_ENVIRONMENT });
     } catch (error) {
       logger.error('Failed to initialize RevenueCat', { action: 'purchases' }, error instanceof Error ? error : new Error(String(error)));
     }
