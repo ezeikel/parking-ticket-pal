@@ -57,14 +57,15 @@ const getPlatformGuidelines = (platform: string): string => {
 
     youtube: `YouTube Shorts — return as JSON with "title" and "description" fields (2026 best practices):
 - 70%+ of Shorts traffic now comes from SEARCH, not For You Page. Optimise for search queries
-- Title: 60-70 characters, keyword-frontloaded (e.g. "How to Challenge a Parking Fine in 2026 | UK Guide")
+- CRITICAL: Title MUST be under 100 characters total (including hashtags and spaces). YouTube API rejects titles of 100+ characters. Aim for 60-70 characters to leave room for hashtags
+- Title: keyword-frontloaded (e.g. "How to Challenge a Parking Fine in 2026 | UK Guide")
 - Description: 150-200 characters with keyword appearing twice, plus supporting context
 - Expert, factual British English — informative and authoritative
 - 1-2 emoji max in description (📍⚠️), keep professional
 - CTA: "Comment which parking rule confuses you most" or "Subscribe for more UK driving guides"
-- HASHTAGS: Maximum 3, placed ONLY at the END of the title (never in description, never at start of title). Hashtag section must be shorter than the title itself. Use 2 broad + 1 niche (e.g. #ParkingRules #UKDriving #PCN)
+- HASHTAGS: Maximum 2, placed ONLY at the END of the title (never in description, never at start of title). Keep title + hashtags under 100 characters total. Use 1 broad + 1 niche (e.g. #UKDriving #PCN)
 - Primary keyword must appear in title AND first line of description AND tags
-- Do NOT put hashtags in description, do NOT use more than 3, do NOT put them at start of title`,
+- Do NOT put hashtags in description, do NOT exceed 100 characters in the title`,
 
     threads: `Threads post (2026 best practices):
 - 300-500 characters — Threads is text-first, audience expects conversational depth
@@ -327,7 +328,20 @@ export const postShortToYouTube = async (
     return { success: true, videoId: response.data.id ?? undefined };
   } catch (error) {
     const err = error instanceof Error ? error : new Error(String(error));
-    logger?.error('YouTube Short posting failed', {}, err);
+    // Capture full YouTube API error details
+    const apiErrors = (error as { errors?: unknown })?.errors;
+    const responseData = (error as { response?: { data?: unknown } })?.response
+      ?.data;
+    logger?.error(
+      'YouTube Short posting failed',
+      {
+        titleLength: title.length,
+        titleBytes: Buffer.byteLength(title, 'utf8'),
+        ...(apiErrors ? { apiErrors: JSON.stringify(apiErrors) } : {}),
+        ...(responseData ? { responseData: JSON.stringify(responseData) } : {}),
+      },
+      err,
+    );
     return { success: false, error: err.message };
   }
 };
@@ -649,15 +663,23 @@ export async function completeTribunalVideo(
   }
 
   if (youtubeCaption) {
-    let ytTitle = '';
-    let ytDescription = '';
+    const fallbackTitle = `Tribunal Case: ${caseData.authority} - ${caseData.contravention}`;
+    let ytTitle = fallbackTitle;
+    let ytDescription = youtubeCaption;
     try {
       const parsed = JSON.parse(youtubeCaption);
-      ytTitle = parsed.title;
-      ytDescription = parsed.description;
+      if (parsed.title) ytTitle = parsed.title;
+      if (parsed.description) ytDescription = parsed.description;
     } catch {
-      ytTitle = `Tribunal Case: ${caseData.authority} - ${caseData.contravention}`;
-      ytDescription = youtubeCaption;
+      // fallback already set
+    }
+    // YouTube API rejects titles >= 100 characters
+    if (ytTitle.length >= 100) {
+      logger?.warn('YouTube title too long, truncating', {
+        original: ytTitle,
+        length: ytTitle.length,
+      });
+      ytTitle = `${ytTitle.slice(0, 97)}...`;
     }
     const ytResult = await postShortToYouTube(
       videoUrl,
@@ -907,15 +929,23 @@ export async function completeNewsVideo(
   }
 
   if (youtubeCaption) {
-    let ytTitle = '';
-    let ytDescription = '';
+    const fallbackTitle = `UK News: ${videoRecord.headline}`;
+    let ytTitle = fallbackTitle;
+    let ytDescription = youtubeCaption;
     try {
       const parsed = JSON.parse(youtubeCaption);
-      ytTitle = parsed.title;
-      ytDescription = parsed.description;
+      if (parsed.title) ytTitle = parsed.title;
+      if (parsed.description) ytDescription = parsed.description;
     } catch {
-      ytTitle = `UK News: ${videoRecord.headline}`;
-      ytDescription = youtubeCaption;
+      // fallback already set
+    }
+    // YouTube API rejects titles >= 100 characters
+    if (ytTitle.length >= 100) {
+      logger?.warn('YouTube title too long, truncating', {
+        original: ytTitle,
+        length: ytTitle.length,
+      });
+      ytTitle = `${ytTitle.slice(0, 97)}...`;
     }
     const ytResult = await postShortToYouTube(
       videoUrl,
