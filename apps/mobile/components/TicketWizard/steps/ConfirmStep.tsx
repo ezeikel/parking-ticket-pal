@@ -113,33 +113,41 @@ const ConfirmStep = ({ wizardData, onNext }: WizardStepProps) => {
         <View className="flex-row gap-x-2">
           <SquishyPressable
             onPress={() => setIssuerType('council')}
-            className="flex-1 rounded-lg border-2 px-4 py-2.5 items-center"
-            style={{
-              borderColor: issuerType === 'council' ? '#1ABC9C' : '#E5E7EB',
-              backgroundColor: issuerType === 'council' ? '#F0FDF4' : 'transparent',
-            }}
+            style={{ flex: 1 }}
           >
-            <Text
-              className="font-jakarta-medium text-sm"
-              style={{ color: issuerType === 'council' ? '#1ABC9C' : '#6B7280' }}
+            <View
+              className="rounded-lg border-2 px-4 py-2.5 items-center"
+              style={{
+                borderColor: issuerType === 'council' ? '#1ABC9C' : '#E5E7EB',
+                backgroundColor: issuerType === 'council' ? '#F0FDF4' : 'transparent',
+              }}
             >
-              Council PCN
-            </Text>
+              <Text
+                className="font-jakarta-medium text-sm"
+                style={{ color: issuerType === 'council' ? '#1ABC9C' : '#6B7280' }}
+              >
+                Council PCN
+              </Text>
+            </View>
           </SquishyPressable>
           <SquishyPressable
             onPress={() => setIssuerType('private')}
-            className="flex-1 rounded-lg border-2 px-4 py-2.5 items-center"
-            style={{
-              borderColor: issuerType === 'private' ? '#1ABC9C' : '#E5E7EB',
-              backgroundColor: issuerType === 'private' ? '#F0FDF4' : 'transparent',
-            }}
+            style={{ flex: 1 }}
           >
-            <Text
-              className="font-jakarta-medium text-sm"
-              style={{ color: issuerType === 'private' ? '#1ABC9C' : '#6B7280' }}
+            <View
+              className="rounded-lg border-2 px-4 py-2.5 items-center"
+              style={{
+                borderColor: issuerType === 'private' ? '#1ABC9C' : '#E5E7EB',
+                backgroundColor: issuerType === 'private' ? '#F0FDF4' : 'transparent',
+              }}
             >
-              Private PCN
-            </Text>
+              <Text
+                className="font-jakarta-medium text-sm"
+                style={{ color: issuerType === 'private' ? '#1ABC9C' : '#6B7280' }}
+              >
+                Private PCN
+              </Text>
+            </View>
           </SquishyPressable>
         </View>
       </View>
@@ -152,18 +160,21 @@ const ConfirmStep = ({ wizardData, onNext }: WizardStepProps) => {
             <SquishyPressable
               key={stage}
               onPress={() => setTicketStage(stage)}
-              className="rounded-lg border-2 px-4 py-2.5"
-              style={{
-                borderColor: ticketStage === stage ? '#1ABC9C' : '#E5E7EB',
-                backgroundColor: ticketStage === stage ? '#F0FDF4' : 'transparent',
-              }}
             >
-              <Text
-                className="font-jakarta-medium text-sm"
-                style={{ color: ticketStage === stage ? '#1ABC9C' : '#6B7280' }}
+              <View
+                className="rounded-lg border-2 px-4 py-2.5"
+                style={{
+                  borderColor: ticketStage === stage ? '#1ABC9C' : '#E5E7EB',
+                  backgroundColor: ticketStage === stage ? '#F0FDF4' : 'transparent',
+                }}
               >
-                {stageLabels[stage]}
-              </Text>
+                <Text
+                  className="font-jakarta-medium text-sm"
+                  style={{ color: ticketStage === stage ? '#1ABC9C' : '#6B7280' }}
+                >
+                  {stageLabels[stage]}
+                </Text>
+              </View>
             </SquishyPressable>
           ))}
         </View>

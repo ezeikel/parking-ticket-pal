@@ -49,7 +49,7 @@ const SquishyPressable = ({
   });
 
   return (
-    <Animated.View style={animatedStyle}>
+    <Animated.View style={[animatedStyle, style]}>
       <OptionalPressable
         onPress={onPress}
         onPressOut={() => pressed.set(false)}
@@ -60,7 +60,6 @@ const SquishyPressable = ({
           }
         }}
         disabled={disabled}
-        style={style}
         {...props}
       >
         {children}
