@@ -1,7 +1,7 @@
 {
   "name": "@parking-ticket-pal/mobile",
   "main": "expo-router/entry",
-  "version": "1.0.1",
+  "version": "1.0.3",
   "scripts": {
     "clean": "git clean -xdf .expo node_modules",
     "start": "expo start",
@@ -68,6 +68,7 @@
     "date-fns": "^3.6.0",
     "expo": "55.0.3",
     "expo-application": "~55.0.8",
+    "expo-blur": "~55.0.10",
     "expo-build-properties": "~55.0.9",
     "expo-checkbox": "~55.0.3",
     "expo-clipboard": "~55.0.8",
