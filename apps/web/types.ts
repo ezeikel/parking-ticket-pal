@@ -529,6 +529,18 @@ export type EventProperties = {
     destination: string;
   };
   [TRACKING_EVENTS.FEATURE_LOCKED_VIEWED]: { feature_name: string };
+  [TRACKING_EVENTS.UPGRADE_NUDGE_SHOWN]: {
+    ticket_id: string;
+    platform: string;
+  };
+  [TRACKING_EVENTS.UPGRADE_NUDGE_DISMISSED]: {
+    ticket_id: string;
+    platform: string;
+  };
+  [TRACKING_EVENTS.UPGRADE_NUDGE_UPGRADE_TAPPED]: {
+    ticket_id: string;
+    platform: string;
+  };
   [TRACKING_EVENTS.APP_STORE_BUTTON_CLICKED]: {
     platform: 'ios' | 'android';
     location: string;

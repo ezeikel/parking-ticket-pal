@@ -46,6 +46,7 @@ import VerificationPrompt from './VerificationPrompt';
 import LiveStatusCard from './LiveStatusCard';
 import LegalFormsCard from './LegalFormsCard';
 import DynamicStreetViewModal from './DynamicStreetViewModal';
+import UpgradeBanner from './UpgradeBanner';
 
 type TicketDetailPageProps = {
   ticket: TicketWithRelations;
@@ -446,6 +447,14 @@ const TicketDetailPage = ({
           onEdit={handleEdit}
           onChallenge={handleChallenge}
         />
+
+        {/* Upgrade Banner (FREE tickets only) */}
+        {!isPremiumTier && (
+          <UpgradeBanner
+            ticketId={ticket.id}
+            daysUntilDiscount={deadlineDays}
+          />
+        )}
 
         {/* Two Column Layout */}
         <div className="grid gap-6 lg:grid-cols-5">

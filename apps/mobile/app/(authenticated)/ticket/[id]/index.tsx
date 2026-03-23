@@ -5,7 +5,8 @@ import * as Clipboard from 'expo-clipboard';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { faArrowLeft, faTriangleExclamation, faBadgeCheck } from '@fortawesome/pro-solid-svg-icons';
 import { faCopy } from '@fortawesome/pro-regular-svg-icons';
-import { useRef, useState, useMemo } from 'react';
+import { useRef, useState, useMemo, useEffect, useCallback } from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import BottomSheet from '@gorhom/bottom-sheet';
 import ImageLightbox from '@/components/ImageLightbox';
 import useTicket from '@/hooks/api/useTicket';
@@ -47,7 +48,9 @@ import ActivityTimelineCard, {
 import { useFeatureFlag } from 'posthog-react-native';
 import { FLAG_SHOW_PAY_TICKET } from '@parking-ticket-pal/constants';
 import StickyBottomCTA from '@/components/ticket-detail/StickyBottomCTA';
+import UpgradeNudgeSheet from '@/components/ticket-detail/UpgradeNudgeSheet';
 import useReExtract from '@/hooks/api/useReExtract';
+import { useAnalytics } from '@/lib/analytics';
 import * as ImagePicker from 'expo-image-picker';
 import { processImageWithOCR, addImageToTicket } from '@/api';
 import StreetViewModal from '@/components/StreetViewModal';
@@ -110,6 +113,41 @@ export default function TicketDetailScreen() {
     null,
   );
   const [streetViewOpen, setStreetViewOpen] = useState(false);
+  const [showUpgradeNudge, setShowUpgradeNudge] = useState(false);
+  const { trackEvent } = useAnalytics();
+
+  // Show upgrade nudge for FREE tickets on first visit
+  useEffect(() => {
+    if (!data?.ticket || hasPremiumAccess) return;
+    const ticket = data.ticket as any;
+    if (ticket.tier === 'PREMIUM') return;
+
+    const key = `upgrade_nudge_dismissed_${id}`;
+    AsyncStorage.getItem(key).then((dismissed) => {
+      if (!dismissed) {
+        const timer = setTimeout(() => {
+          setShowUpgradeNudge(true);
+          trackEvent('upgrade_nudge_shown', { ticket_id: id });
+        }, 1500);
+        return () => clearTimeout(timer);
+      }
+    });
+  }, [data?.ticket, hasPremiumAccess, id]);
+
+  const handleUpgradeNudgeDismiss = useCallback(() => {
+    setShowUpgradeNudge(false);
+    AsyncStorage.setItem(`upgrade_nudge_dismissed_${id}`, 'true');
+    trackEvent('upgrade_nudge_dismissed', { ticket_id: id });
+  }, [id, trackEvent]);
+
+  const handleUpgradeNudgeTap = useCallback(() => {
+    setShowUpgradeNudge(false);
+    trackEvent('upgrade_nudge_upgrade_tapped', { ticket_id: id });
+    router.push({
+      pathname: '/(authenticated)/paywall',
+      params: { mode: 'ticket_upgrades', ticketId: id, source: 'upgrade_nudge' },
+    });
+  }, [id, trackEvent]);
 
   // Collect all image URLs for lightbox (including letter images)
   // Must be before early returns to keep hook order consistent
@@ -581,6 +619,14 @@ export default function TicketDetailScreen() {
           onClose={() => setLightbox(null)}
         />
       )}
+
+      {/* Upgrade Nudge (first visit, FREE tickets only) */}
+      <UpgradeNudgeSheet
+        visible={showUpgradeNudge}
+        onUpgrade={handleUpgradeNudgeTap}
+        onClose={handleUpgradeNudgeDismiss}
+        daysUntilDiscount={deadlineDays}
+      />
     </View>
   );
 }

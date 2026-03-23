@@ -82,6 +82,11 @@ export const TRACKING_EVENTS = {
   DASHBOARD_VIEWED: 'dashboard_viewed',
   SCROLL_DEPTH_REACHED: 'scroll_depth_reached',
 
+  // Upgrade Nudge
+  UPGRADE_NUDGE_SHOWN: 'upgrade_nudge_shown',
+  UPGRADE_NUDGE_DISMISSED: 'upgrade_nudge_dismissed',
+  UPGRADE_NUDGE_UPGRADE_TAPPED: 'upgrade_nudge_upgrade_tapped',
+
   // Pricing & Plans
   PRICING_PAGE_VIEWED: 'pricing_page_viewed',
   PRICING_TAB_CHANGED: 'pricing_tab_changed',
