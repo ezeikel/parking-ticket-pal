@@ -40,4 +40,22 @@ export async function register() {
   }
 }
 
-export const onRequestError = Sentry.captureRequestError;
+export const onRequestError: typeof Sentry.captureRequestError = (
+  error,
+  request,
+  context,
+) => {
+  // Skip Next.js notFound() errors — these are intentional 404s, not bugs.
+  // Also skip empty "Error" from 'use cache' revalidation (no message, internal runtime stack).
+  if (error instanceof Error) {
+    if (error.message === 'NEXT_NOT_FOUND') return;
+    if (
+      error.message === '' &&
+      error.stack?.includes('app-page-turbo.runtime.prod')
+    ) {
+      return;
+    }
+  }
+
+  Sentry.captureRequestError(error, request, context);
+};
