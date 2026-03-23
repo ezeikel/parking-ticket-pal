@@ -30,7 +30,7 @@ type TicketMatch = {
 
 type LetterFlowProps = {
   ocrData: OCRProcessingResult;
-  onComplete: (ticketId: string) => void;
+  onComplete: (ticketId: string, isNewTicket: boolean) => void;
   onCancel: () => void;
 };
 
@@ -147,8 +147,9 @@ const LetterFlow = ({ ocrData, onComplete, onCancel }: LetterFlowProps) => {
         });
         const letterLabel = LETTER_TYPE_LABELS[letterType] || 'Letter';
         toast.success('Letter added', `${letterLabel} attached to ticket`);
+        const isNewTicket = !matchedTicket;
         const ticketId = matchedTicket?.id || result.letter.ticketId;
-        onComplete(ticketId);
+        onComplete(ticketId, isNewTicket);
       } else {
         toast.error('Error', 'Failed to add letter');
       }

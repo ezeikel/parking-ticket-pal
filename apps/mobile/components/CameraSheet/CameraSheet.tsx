@@ -203,10 +203,18 @@ const CameraSheet = ({ isVisible, onClose, onboardingMode, onOCRComplete }: Came
     setScannerKey(prev => prev + 1);
   }, []);
 
-  const handleLetterComplete = useCallback((ticketId: string) => {
-    handleClose();
-    router.push(`/ticket/${ticketId}`);
-  }, [handleClose]);
+  const handleLetterComplete = useCallback((ticketId: string, isNewTicket: boolean) => {
+    if (isNewTicket) {
+      (async () => {
+        await adService.showAd(user?.lastPremiumPurchaseAt);
+        handleClose();
+        router.push(`/ticket/${ticketId}`);
+      })();
+    } else {
+      handleClose();
+      router.push(`/ticket/${ticketId}`);
+    }
+  }, [handleClose, user?.lastPremiumPurchaseAt]);
 
   const handleLetterCancel = useCallback(() => {
     setOcrData(null);
