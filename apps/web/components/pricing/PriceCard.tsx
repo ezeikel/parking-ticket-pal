@@ -98,7 +98,7 @@ const PriceCard = ({
           </Badge>
         )}
         <CardTitle className="flex flex-col gap-1">
-          <span className="font-slab text-2xl">{title}</span>
+          <span className="text-2xl font-semibold">{title}</span>
           {subtitle && (
             <span className="text-base font-normal text-muted-foreground">
               {subtitle}

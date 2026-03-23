@@ -207,7 +207,7 @@ const CheckoutContent = () => {
       <div className="max-w-md mx-auto">
         <Card>
           <CardHeader>
-            <CardTitle className="font-slab text-center">
+            <CardTitle className="text-center">
               {isLoading ? 'Preparing Checkout...' : 'Checkout Error'}
             </CardTitle>
             <CardDescription className="text-center">
@@ -264,9 +264,7 @@ const CheckoutPage = () => (
         <div className="max-w-md mx-auto">
           <Card>
             <CardHeader>
-              <CardTitle className="font-slab text-center">
-                Loading...
-              </CardTitle>
+              <CardTitle className="text-center">Loading...</CardTitle>
               <CardDescription className="text-center">
                 Please wait
               </CardDescription>

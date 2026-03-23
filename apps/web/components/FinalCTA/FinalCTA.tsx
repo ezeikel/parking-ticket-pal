@@ -18,7 +18,7 @@ const FinalCTA = () => (
             className="text-primary mx-auto mb-6"
           />{' '}
           {/* Icon color now primary for light background */}
-          <h2 className="text-4xl sm:text-5xl md:text-6xl font-bold font-slab leading-tight text-slate-800 dark:text-slate-100">
+          <h2 className="text-4xl sm:text-5xl md:text-6xl font-bold leading-tight text-slate-800 dark:text-slate-100">
             Ready to Take Control?
           </h2>
           <p className="text-lg md:text-xl text-muted-foreground leading-relaxed">

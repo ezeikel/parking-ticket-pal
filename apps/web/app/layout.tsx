@@ -13,7 +13,7 @@ import PendingActionHandler from '@/components/PendingActionHandler';
 import FacebookPixel from '@/components/analytics/FacebookPixel';
 import { SITE_URL } from '@/constants';
 import Providers from './providers';
-import { plusJakartaSans, robotoSlab, ukNumberPlate } from './fonts';
+import { plusJakartaSans, ukNumberPlate } from './fonts';
 import '@/global.css';
 
 config.autoAddCss = false;
@@ -40,7 +40,6 @@ const RootLayout = ({
     className={cn(
       'antialiased relative',
       plusJakartaSans.variable,
-      robotoSlab.variable,
       ukNumberPlate.variable,
       'font-sans',
     )}

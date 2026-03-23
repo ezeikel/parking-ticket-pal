@@ -45,7 +45,7 @@ const TicketsContainer = ({ tickets }: TicketsContainerProps) => {
   return (
     <>
       <div className="flex items-center justify-between">
-        <h1 className="font-slab font-bold text-3xl">Your Tickets</h1>
+        <h1 className="font-bold text-3xl">Your Tickets</h1>
         <div className="flex items-center gap-4">
           <ViewToggle activeView={activeView} onChange={setActiveView} />
           <Link href="/new">
