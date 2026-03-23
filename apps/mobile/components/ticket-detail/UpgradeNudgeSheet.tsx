@@ -68,11 +68,23 @@ const UpgradeNudgeSheet = ({
 
         {/* Score gauge teaser (locked) */}
         <View className="items-center mb-6">
-          <View className="relative" style={{ opacity: 0.4 }}>
-            <ScoreGauge score={65} size="lg" showLabel locked={false} />
-          </View>
-          <View className="absolute items-center justify-center" style={{ top: 0, left: 0, right: 0, bottom: 0 }}>
-            <FontAwesomeIcon icon={faLock} size={24} color="#9CA3AF" />
+          <View className="relative">
+            <View style={{ opacity: 0.15 }}>
+              <ScoreGauge score={65} size="lg" locked={false} />
+            </View>
+            <View
+              style={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              <FontAwesomeIcon icon={faLock} size={20} color="#9CA3AF" />
+            </View>
           </View>
           <Text className="text-xs text-gray-400 mt-2 font-jakarta-medium">
             See your chances of winning
