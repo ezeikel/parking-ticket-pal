@@ -1,6 +1,5 @@
 import React from 'react';
 import { View, Text, Modal, Pressable } from 'react-native';
-import { BlurView } from 'expo-blur';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { faXmark } from '@fortawesome/pro-regular-svg-icons';
@@ -61,36 +60,9 @@ const UpgradeNudgeSheet = ({
           30,000+ cases analysed · 46% average win rate
         </Text>
 
-        {/* Score gauge teaser (blurred) */}
+        {/* Score gauge teaser (locked state) */}
         <View className="items-center mb-6">
-          <View
-            className="relative"
-            style={{ overflow: 'hidden', borderRadius: 12 }}
-          >
-            <ScoreGauge score={65} size="lg" showLabel locked={false} />
-            <BlurView
-              intensity={25}
-              tint="light"
-              style={{
-                position: 'absolute',
-                top: 0,
-                left: 0,
-                right: 0,
-                bottom: 0,
-              }}
-            />
-            <View
-              style={{
-                position: 'absolute',
-                left: 0,
-                right: 0,
-                bottom: 8,
-                alignItems: 'center',
-              }}
-            >
-              <FontAwesomeIcon icon={faLock} size={16} color="#9CA3AF" />
-            </View>
-          </View>
+          <ScoreGauge score={0} size="lg" showLabel locked />
           <Text className="text-xs text-gray-400 mt-2 font-jakarta-medium">
             See your chances
           </Text>
