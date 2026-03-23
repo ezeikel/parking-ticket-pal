@@ -11,6 +11,7 @@ import {
   faXmark,
   faLock,
 } from '@fortawesome/pro-regular-svg-icons';
+import { faCircleCheck } from '@fortawesome/pro-solid-svg-icons';
 import { useAnalytics } from '@/utils/analytics-client';
 import { TRACKING_EVENTS } from '@/constants/events';
 
@@ -66,26 +67,22 @@ export default function UpgradeBanner({
   if (dismissed) return null;
 
   return (
-    <div className="relative mb-6 overflow-hidden rounded-2xl border border-teal/20 bg-gradient-to-r from-teal/5 to-white p-6">
+    <div className="relative mb-6 rounded-xl border border-border bg-white p-5 md:p-6">
       {/* Dismiss */}
       <button
         onClick={handleDismiss}
-        className="absolute right-4 top-4 text-gray-400 hover:text-gray-600"
+        className="absolute right-4 top-4 text-gray-400 hover:text-gray-600 transition-colors"
         aria-label="Dismiss"
         type="button"
       >
         <FontAwesomeIcon icon={faXmark} className="h-4 w-4" />
       </button>
 
-      <div className="flex flex-col gap-6 md:flex-row md:items-center">
-        {/* Left: Blurred gauge teaser */}
-        <div className="flex flex-col items-center md:w-48">
-          <div className="relative flex h-24 w-24 items-center justify-center rounded-full bg-gray-100">
-            <div className="absolute inset-0 rounded-full bg-gradient-to-br from-teal/20 to-teal/5 blur-sm" />
-            <FontAwesomeIcon
-              icon={faLock}
-              className="relative h-8 w-8 text-gray-400"
-            />
+      <div className="flex flex-col gap-6 md:flex-row md:items-start">
+        {/* Left: Locked gauge teaser */}
+        <div className="flex flex-col items-center md:w-40 shrink-0">
+          <div className="relative flex h-20 w-20 items-center justify-center rounded-full border-[6px] border-gray-100">
+            <FontAwesomeIcon icon={faLock} className="h-6 w-6 text-gray-300" />
           </div>
           <p className="mt-2 text-center text-xs text-gray-500">
             See your chances
@@ -113,12 +110,12 @@ export default function UpgradeBanner({
           )}
 
           {/* Features */}
-          <div className="mb-4 grid grid-cols-2 gap-2">
+          <div className="mb-5 space-y-2">
             {features.map((f) => (
-              <div key={f.label} className="flex items-center gap-2">
+              <div key={f.label} className="flex items-center gap-2.5">
                 <FontAwesomeIcon
-                  icon={f.icon}
-                  className="h-3.5 w-3.5 text-teal"
+                  icon={faCircleCheck}
+                  className="h-4 w-4 text-teal"
                 />
                 <span className="text-sm text-gray-700">{f.label}</span>
               </div>
@@ -129,14 +126,14 @@ export default function UpgradeBanner({
           <div className="flex items-center gap-4">
             <button
               onClick={handleUpgrade}
-              className="rounded-xl bg-teal px-6 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-teal/90"
+              className="rounded-lg bg-dark px-6 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-dark/90"
               type="button"
             >
               Upgrade — £14.99
             </button>
             <button
               onClick={handleDismiss}
-              className="text-sm text-gray-400 hover:text-gray-600"
+              className="text-sm text-gray-400 hover:text-gray-600 transition-colors"
               type="button"
             >
               Not now
