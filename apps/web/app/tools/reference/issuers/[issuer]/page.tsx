@@ -105,7 +105,10 @@ const getIssuerInfo = (issuerId: string): IssuerInfo | null => {
   return null;
 };
 
-// Generate static params for all issuers
+// Only allow pre-generated issuer slugs — return 404 for unknown ones
+// without running the page component (prevents Sentry noise from bots)
+export const dynamicParams = false;
+
 export async function generateStaticParams() {
   const councilIds = LOCAL_AUTHORITY_IDS.map((id) => ({ issuer: id }));
   const privateIds = PRIVATE_COMPANIES.map((pc) => ({ issuer: pc.id }));
