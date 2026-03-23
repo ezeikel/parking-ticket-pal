@@ -3,14 +3,8 @@ import { View, Text, Modal, Pressable } from 'react-native';
 import { BlurView } from 'expo-blur';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
-import {
-  faXmark,
-  faChartLine,
-  faFileLines,
-  faPaperPlane,
-  faBan,
-} from '@fortawesome/pro-regular-svg-icons';
-import { faLock } from '@fortawesome/pro-solid-svg-icons';
+import { faXmark } from '@fortawesome/pro-regular-svg-icons';
+import { faLock, faCircleCheck } from '@fortawesome/pro-solid-svg-icons';
 import ScoreGauge from '@/components/ScoreGauge/ScoreGauge';
 import SquishyPressable from '@/components/SquishyPressable/SquishyPressable';
 
@@ -22,10 +16,10 @@ interface UpgradeNudgeSheetProps {
 }
 
 const features = [
-  { icon: faChartLine, label: 'Success prediction score' },
-  { icon: faFileLines, label: 'AI-drafted challenge letter' },
-  { icon: faPaperPlane, label: 'Automatic submission' },
-  { icon: faBan, label: '30-day ad-free experience' },
+  'Success prediction score',
+  'AI-drafted challenge letter',
+  'Automatic submission',
+  '30-day ad-free experience',
 ];
 
 const UpgradeNudgeSheet = ({
@@ -69,10 +63,13 @@ const UpgradeNudgeSheet = ({
 
         {/* Score gauge teaser (blurred) */}
         <View className="items-center mb-6">
-          <View className="relative" style={{ overflow: 'hidden', borderRadius: 12 }}>
+          <View
+            className="relative"
+            style={{ overflow: 'hidden', borderRadius: 12 }}
+          >
             <ScoreGauge score={65} size="lg" showLabel locked={false} />
             <BlurView
-              intensity={30}
+              intensity={25}
               tint="light"
               style={{
                 position: 'absolute',
@@ -85,19 +82,17 @@ const UpgradeNudgeSheet = ({
             <View
               style={{
                 position: 'absolute',
-                top: 0,
                 left: 0,
                 right: 0,
-                bottom: 0,
+                bottom: 8,
                 alignItems: 'center',
-                justifyContent: 'center',
               }}
             >
-              <FontAwesomeIcon icon={faLock} size={20} color="#9CA3AF" />
+              <FontAwesomeIcon icon={faLock} size={16} color="#9CA3AF" />
             </View>
           </View>
           <Text className="text-xs text-gray-400 mt-2 font-jakarta-medium">
-            See your chances of winning
+            See your chances
           </Text>
         </View>
 
@@ -112,22 +107,17 @@ const UpgradeNudgeSheet = ({
           </View>
         )}
 
-        {/* Feature list */}
-        <Text className="text-base font-jakarta-semibold text-dark mb-3">
-          Premium Ticket includes:
-        </Text>
-        <View className="gap-3 mb-8">
-          {features.map((feature) => (
-            <View key={feature.label} className="flex-row items-center gap-3">
-              <View className="w-8 h-8 bg-teal/10 rounded-lg items-center justify-center">
-                <FontAwesomeIcon
-                  icon={feature.icon}
-                  size={16}
-                  color="#14b8a6"
-                />
-              </View>
+        {/* Feature list — matching web checkmark style */}
+        <View className="gap-2.5 mb-8">
+          {features.map((label) => (
+            <View key={label} className="flex-row items-center gap-2.5">
+              <FontAwesomeIcon
+                icon={faCircleCheck}
+                size={16}
+                color="#14b8a6"
+              />
               <Text className="text-sm text-gray-700 font-jakarta-medium flex-1">
-                {feature.label}
+                {label}
               </Text>
             </View>
           ))}
@@ -136,10 +126,10 @@ const UpgradeNudgeSheet = ({
         {/* Spacer */}
         <View className="flex-1" />
 
-        {/* CTA */}
+        {/* CTA — dark button matching web */}
         <SquishyPressable
           onPress={onUpgrade}
-          className="rounded-xl py-3.5 bg-teal mb-3"
+          className="rounded-xl py-3.5 bg-dark mb-3"
         >
           <Text className="font-jakarta-semibold text-white text-center text-base">
             Upgrade — £14.99
