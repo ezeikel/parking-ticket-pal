@@ -3,14 +3,9 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import {
-  faChartLine,
-  faFileLines,
-  faPaperPlane,
-  faBan,
-  faXmark,
-} from '@fortawesome/pro-regular-svg-icons';
-import { faCircleCheck, faLock } from '@fortawesome/pro-solid-svg-icons';
+import { faXmark } from '@fortawesome/pro-regular-svg-icons';
+import { faCircleCheck } from '@fortawesome/pro-solid-svg-icons';
+import ScoreGauge from '@/components/ui/ScoreGauge';
 import { useAnalytics } from '@/utils/analytics-client';
 import { TRACKING_EVENTS } from '@/constants/events';
 
@@ -20,10 +15,10 @@ type UpgradeBannerProps = {
 };
 
 const features = [
-  { icon: faChartLine, label: 'Success prediction score' },
-  { icon: faFileLines, label: 'AI-drafted challenge letter' },
-  { icon: faPaperPlane, label: 'Automatic submission' },
-  { icon: faBan, label: '30-day ad-free experience' },
+  'Success prediction score',
+  'AI-drafted challenge letter',
+  'Automatic submission',
+  '30-day ad-free experience',
 ];
 
 export default function UpgradeBanner({
@@ -78,30 +73,10 @@ export default function UpgradeBanner({
       </button>
 
       <div className="flex flex-col gap-6 md:flex-row md:items-start">
-        {/* Left: Locked gauge teaser */}
+        {/* Left: Locked gauge (reuses ScoreGauge component) */}
         <div className="flex flex-col items-center md:w-40 shrink-0">
-          <div className="relative">
-            <svg width="120" height="72" viewBox="0 0 120 72">
-              {/* Background arc */}
-              <path
-                d="M 8 68 A 52 52 0 0 1 112 68"
-                fill="none"
-                stroke="#f0f0f0"
-                strokeWidth="8"
-                strokeLinecap="round"
-              />
-            </svg>
-            {/* Lock + placeholder at baseline */}
-            <div className="absolute bottom-0 left-0 right-0 flex flex-col items-center">
-              <div className="flex items-center gap-1 text-gray-300">
-                <FontAwesomeIcon icon={faLock} className="h-3 w-3" />
-                <span className="text-sm font-semibold tracking-widest">
-                  — —
-                </span>
-              </div>
-            </div>
-          </div>
-          <p className="mt-2 text-center text-xs text-gray-500">
+          <ScoreGauge score={0} size="lg" showLabel locked />
+          <p className="mt-1 text-center text-xs text-gray-500">
             See your chances
           </p>
         </div>
@@ -128,13 +103,13 @@ export default function UpgradeBanner({
 
           {/* Features */}
           <div className="mb-5 space-y-2">
-            {features.map((f) => (
-              <div key={f.label} className="flex items-center gap-2.5">
+            {features.map((label) => (
+              <div key={label} className="flex items-center gap-2.5">
                 <FontAwesomeIcon
                   icon={faCircleCheck}
                   className="h-4 w-4 text-teal"
                 />
-                <span className="text-sm text-gray-700">{f.label}</span>
+                <span className="text-sm text-gray-700">{label}</span>
               </div>
             ))}
           </div>
