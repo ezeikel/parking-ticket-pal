@@ -8,6 +8,9 @@ import {
   Text,
   Link,
   Hr,
+  Img,
+  Row,
+  Column,
 } from '@react-email/components';
 import EmailHeader from './EmailHeader';
 import EmailFooter from './EmailFooter';
@@ -26,11 +29,13 @@ type RevenueData = {
 
 type UserMetrics = {
   wau: number;
+  wauTrend: number[]; // last 4 weeks for sparkline
   newSignups7d: number;
   totalUsers: number;
   totalTickets: number;
   totalChallenges: number;
   ticketsCreated7d: number;
+  ticketsTrend: number[]; // last 4 weeks
 };
 
 type FunnelMetrics = {
@@ -62,6 +67,7 @@ type SocialMetrics = {
 
 type ContentMetrics = {
   blogViews7d: number;
+  blogViewsTrend: number[]; // last 4 weeks
   topBlogPosts: { title: string; views: number }[];
 };
 
@@ -89,7 +95,7 @@ const main = {
     '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif',
 };
 
-const container = {
+const containerStyle = {
   margin: '0 auto',
   padding: '20px',
   maxWidth: '600px',
@@ -101,54 +107,15 @@ const sectionTitle = {
   color: '#222222',
   fontSize: '18px',
   fontWeight: '600' as const,
-  margin: '0 0 12px 0',
+  margin: '24px 0 12px 0',
   lineHeight: '24px',
-};
-
-const metricRow = {
-  display: 'flex' as const,
-  justifyContent: 'space-between' as const,
-  padding: '8px 0',
-  borderBottom: '1px solid #f0f0f0',
-};
-
-const metricLabel = {
-  color: '#717171',
-  fontSize: '14px',
-  margin: '0',
-};
-
-const metricValue = {
-  color: '#222222',
-  fontSize: '14px',
-  fontWeight: '600' as const,
-  margin: '0',
 };
 
 const sectionBox = {
   backgroundColor: '#f9fafb',
   borderRadius: '8px',
   padding: '16px 20px',
-  margin: '0 0 24px 0',
-};
-
-const issueRow = {
-  padding: '8px 0',
-  borderBottom: '1px solid #f0f0f0',
-};
-
-const issueTitle = {
-  color: '#222222',
-  fontSize: '13px',
-  fontWeight: '500' as const,
-  margin: '0 0 2px 0',
-  lineHeight: '18px',
-};
-
-const issueMeta = {
-  color: '#999999',
-  fontSize: '12px',
-  margin: '0',
+  margin: '0 0 8px 0',
 };
 
 const actionHigh = {
@@ -182,9 +149,74 @@ const actionText = {
   lineHeight: '20px',
 };
 
-const hr = {
+const hrStyle = {
   borderColor: '#ebebeb',
   margin: '24px 0',
+};
+
+const issueTitle = {
+  color: '#222222',
+  fontSize: '13px',
+  fontWeight: '500' as const,
+  margin: '0 0 2px 0',
+  lineHeight: '18px',
+  textDecoration: 'none' as const,
+};
+
+const issueMeta = {
+  color: '#999999',
+  fontSize: '12px',
+  margin: '0 0 8px 0',
+};
+
+// KPI card styles
+const kpiCard = {
+  backgroundColor: '#ffffff',
+  border: '1px solid #e5e7eb',
+  borderRadius: '8px',
+  padding: '16px',
+  textAlign: 'center' as const,
+};
+
+const kpiValue = {
+  color: '#222222',
+  fontSize: '28px',
+  fontWeight: '700' as const,
+  margin: '0',
+  lineHeight: '32px',
+};
+
+const kpiLabel = {
+  color: '#717171',
+  fontSize: '12px',
+  fontWeight: '500' as const,
+  margin: '4px 0 0 0',
+  textTransform: 'uppercase' as const,
+  letterSpacing: '0.5px',
+};
+
+// Table row styles
+const tableStyle = {
+  width: '100%',
+  borderCollapse: 'collapse' as const,
+};
+
+const tdLabel = {
+  color: '#717171',
+  fontSize: '14px',
+  padding: '8px 0',
+  borderBottom: '1px solid #f0f0f0',
+  verticalAlign: 'middle' as const,
+};
+
+const tdValue = {
+  color: '#222222',
+  fontSize: '14px',
+  fontWeight: '600' as const,
+  padding: '8px 0',
+  borderBottom: '1px solid #f0f0f0',
+  textAlign: 'right' as const,
+  verticalAlign: 'middle' as const,
 };
 
 // --- Helpers ---
@@ -197,14 +229,62 @@ const getActionStyle = (priority: 'high' | 'medium' | 'low') => {
   return actionLow;
 };
 
-// --- Component ---
+/**
+ * Generate a QuickChart sparkline URL.
+ * Returns an <img> tag with a tiny inline chart.
+ */
+const buildSparklineUrl = (data: number[], color = '#1ABC9C') => {
+  if (!data || data.length === 0) return null;
+  const config = {
+    type: 'sparkline',
+    data: {
+      datasets: [{ data, fill: false, borderColor: color, borderWidth: 2 }],
+    },
+  };
+  return `https://quickchart.io/chart?c=${encodeURIComponent(JSON.stringify(config))}&w=120&h=30&bkg=transparent`;
+};
 
-const MetricLine = ({ label, value }: { label: string; value: string }) => (
-  <div style={metricRow}>
-    <Text style={metricLabel}>{label}</Text>
-    <Text style={metricValue}>{value}</Text>
-  </div>
+// --- Components ---
+
+const MetricRow = ({ label, value }: { label: string; value: string }) => (
+  <tr>
+    <td style={tdLabel}>{label}</td>
+    <td style={tdValue}>{value}</td>
+  </tr>
 );
+
+const KpiCard = ({
+  value,
+  label,
+  trend,
+  color,
+}: {
+  value: string;
+  label: string;
+  trend?: number[];
+  color?: string;
+}) => {
+  const sparkUrl = trend ? buildSparklineUrl(trend, color) : null;
+  return (
+    <Column style={{ width: '50%', paddingRight: '6px', paddingLeft: '6px' }}>
+      <div style={kpiCard}>
+        <Text style={kpiValue}>{value}</Text>
+        <Text style={kpiLabel}>{label}</Text>
+        {sparkUrl && (
+          <Img
+            src={sparkUrl}
+            alt={`${label} trend`}
+            width={120}
+            height={30}
+            style={{ margin: '8px auto 0', display: 'block' }}
+          />
+        )}
+      </div>
+    </Column>
+  );
+};
+
+// --- Main Component ---
 
 const WeeklyStatusEmail = ({
   weekEnding,
@@ -215,204 +295,296 @@ const WeeklyStatusEmail = ({
   social,
   content,
   actionItems,
-}: WeeklyStatusEmailProps) => (
-  <Html lang="en">
-    <Head />
-    <Preview>
-      {`PTP Weekly Status — ${weekEnding} | MRR: ${formatCurrency(revenue.stripeMrr + revenue.revenuecatMrr)} | ${users.wau} WAU`}
-    </Preview>
-    <Body style={main}>
-      <Container style={container}>
-        <EmailHeader
-          title="Weekly Status"
-          subtitle={`Week ending ${weekEnding}`}
-        />
+}: WeeklyStatusEmailProps) => {
+  const totalMrr = revenue.stripeMrr + revenue.revenuecatMrr;
+  const funnelTotal = funnel.paywallOpened7d + funnel.checkoutStarted7d;
+  const conversionRate =
+    funnelTotal > 0
+      ? ((funnel.purchaseCompleted7d / funnelTotal) * 100).toFixed(0)
+      : '0';
 
-        {/* Action Items */}
-        {actionItems.length > 0 && (
-          <Section>
-            <Text style={sectionTitle}>Action Items</Text>
-            {actionItems.map((item, i) => (
-              <div key={i} style={getActionStyle(item.priority)}>
-                <Text style={actionText}>{item.message}</Text>
-              </div>
-            ))}
-            <Hr style={hr} />
+  return (
+    <Html lang="en">
+      <Head />
+      <Preview>
+        {`PTP Weekly — ${weekEnding} | MRR: ${formatCurrency(totalMrr)} | ${users.wau} WAU | ${users.ticketsCreated7d} tickets`}
+      </Preview>
+      <Body style={main}>
+        <Container style={containerStyle}>
+          <EmailHeader
+            title="Weekly Status"
+            subtitle={`Week ending ${weekEnding}`}
+          />
+
+          {/* KPI Hero Cards */}
+          <Section style={{ margin: '0 0 24px 0' }}>
+            <Row>
+              <KpiCard value={formatCurrency(totalMrr)} label="MRR" />
+              <KpiCard
+                value={String(users.wau)}
+                label="Weekly Active Users"
+                trend={users.wauTrend}
+                color="#1ABC9C"
+              />
+            </Row>
+            <Row style={{ marginTop: '12px' }}>
+              <KpiCard
+                value={String(users.ticketsCreated7d)}
+                label="Tickets This Week"
+                trend={users.ticketsTrend}
+                color="#3b82f6"
+              />
+              <KpiCard
+                value={`${conversionRate}%`}
+                label="Checkout Conversion"
+              />
+            </Row>
           </Section>
-        )}
 
-        {/* Revenue */}
-        <Section>
-          <Text style={sectionTitle}>Revenue</Text>
-          <div style={sectionBox}>
-            <MetricLine
-              label="MRR (Stripe + RevenueCat)"
-              value={formatCurrency(revenue.stripeMrr + revenue.revenuecatMrr)}
-            />
-            <MetricLine
-              label="Web revenue (7d)"
-              value={formatCurrency(revenue.stripeRevenue7d)}
-            />
-            <MetricLine
-              label="Web paying customers"
-              value={String(revenue.stripeCustomers)}
-            />
-            <MetricLine
-              label="Mobile active users (28d)"
-              value={String(revenue.revenuecatActiveUsers)}
-            />
-            <MetricLine
-              label="Mobile new customers (28d)"
-              value={String(revenue.revenuecatNewCustomers)}
-            />
-            <MetricLine
-              label="Mobile transactions (28d)"
-              value={String(revenue.revenuecatTransactions)}
-            />
-          </div>
-        </Section>
-
-        {/* User Metrics */}
-        <Section>
-          <Text style={sectionTitle}>Users</Text>
-          <div style={sectionBox}>
-            <MetricLine label="Weekly active users" value={String(users.wau)} />
-            <MetricLine
-              label="New signups (7d)"
-              value={String(users.newSignups7d)}
-            />
-            <MetricLine
-              label="Tickets created (7d)"
-              value={String(users.ticketsCreated7d)}
-            />
-            <MetricLine label="Total users" value={String(users.totalUsers)} />
-            <MetricLine
-              label="Total tickets"
-              value={String(users.totalTickets)}
-            />
-            <MetricLine
-              label="Total challenges"
-              value={String(users.totalChallenges)}
-            />
-          </div>
-        </Section>
-
-        {/* Conversion Funnel */}
-        <Section>
-          <Text style={sectionTitle}>Conversion Funnel (7d)</Text>
-          <div style={sectionBox}>
-            <MetricLine
-              label="Paywall opened (mobile)"
-              value={String(funnel.paywallOpened7d)}
-            />
-            <MetricLine
-              label="Checkout started (web)"
-              value={String(funnel.checkoutStarted7d)}
-            />
-            <MetricLine
-              label="Purchase completed"
-              value={String(funnel.purchaseCompleted7d)}
-            />
-            <MetricLine
-              label="Purchase cancelled"
-              value={String(funnel.purchaseCancelled7d)}
-            />
-          </div>
-        </Section>
-
-        {/* Sentry */}
-        <Section>
-          <Text style={sectionTitle}>Bugs &amp; Errors</Text>
-          <div style={sectionBox}>
-            <MetricLine
-              label="Unresolved issues"
-              value={String(sentry.unresolvedCount)}
-            />
-            <MetricLine
-              label="New this week"
-              value={String(sentry.newThisWeek)}
-            />
-          </div>
-          {sentry.topIssues.length > 0 && (
-            <div style={{ marginTop: '8px' }}>
-              {sentry.topIssues.map((issue) => (
-                <div key={issue.id} style={issueRow}>
-                  <Link href={issue.url} style={issueTitle}>
-                    {issue.title.slice(0, 80)}
-                    {issue.title.length > 80 ? '...' : ''}
-                  </Link>
-                  <Text style={issueMeta}>
-                    {issue.events} events · {issue.users} users ·{' '}
-                    {issue.culprit}
-                  </Text>
+          {/* Action Items */}
+          {actionItems.length > 0 && (
+            <Section>
+              <Text style={sectionTitle}>Action Items</Text>
+              {actionItems.map((item, i) => (
+                <div key={i} style={getActionStyle(item.priority)}>
+                  <Text style={actionText}>{item.message}</Text>
                 </div>
               ))}
-            </div>
+            </Section>
           )}
-        </Section>
 
-        <Hr style={hr} />
+          <Hr style={hrStyle} />
 
-        {/* Social Media */}
-        <Section>
-          <Text style={sectionTitle}>Social Media</Text>
-          <div style={sectionBox}>
-            <MetricLine
-              label="Facebook followers"
-              value={
-                social.facebookFollowers !== null
-                  ? String(social.facebookFollowers)
-                  : 'N/A'
-              }
-            />
-            <MetricLine
-              label="Instagram followers"
-              value={
-                social.instagramFollowers !== null
-                  ? String(social.instagramFollowers)
-                  : 'N/A'
-              }
-            />
-          </div>
-        </Section>
+          {/* Conversion Funnel */}
+          <Section>
+            <Text style={sectionTitle}>Conversion Funnel (7d)</Text>
+            <div style={sectionBox}>
+              <table style={tableStyle}>
+                <tbody>
+                  <MetricRow
+                    label="Paywall opened (mobile)"
+                    value={String(funnel.paywallOpened7d)}
+                  />
+                  <MetricRow
+                    label="Checkout started (web)"
+                    value={String(funnel.checkoutStarted7d)}
+                  />
+                  <MetricRow
+                    label="Purchase completed"
+                    value={String(funnel.purchaseCompleted7d)}
+                  />
+                  <MetricRow
+                    label="Purchase cancelled"
+                    value={String(funnel.purchaseCancelled7d)}
+                  />
+                </tbody>
+              </table>
+            </div>
+          </Section>
 
-        {/* Content */}
-        <Section>
-          <Text style={sectionTitle}>Content</Text>
-          <div style={sectionBox}>
-            <MetricLine
-              label="Blog views (7d)"
-              value={String(content.blogViews7d)}
-            />
-          </div>
+          {/* Revenue */}
+          <Section>
+            <Text style={sectionTitle}>Revenue</Text>
+            <div style={sectionBox}>
+              <table style={tableStyle}>
+                <tbody>
+                  <MetricRow
+                    label="MRR (Stripe + RevenueCat)"
+                    value={formatCurrency(totalMrr)}
+                  />
+                  <MetricRow
+                    label="Web revenue (7d)"
+                    value={formatCurrency(revenue.stripeRevenue7d)}
+                  />
+                  <MetricRow
+                    label="Web paying customers"
+                    value={String(revenue.stripeCustomers)}
+                  />
+                  <MetricRow
+                    label="Mobile active users (28d)"
+                    value={String(revenue.revenuecatActiveUsers)}
+                  />
+                  <MetricRow
+                    label="Mobile new customers (28d)"
+                    value={String(revenue.revenuecatNewCustomers)}
+                  />
+                </tbody>
+              </table>
+            </div>
+          </Section>
+
+          {/* Users */}
+          <Section>
+            <Text style={sectionTitle}>Users</Text>
+            <div style={sectionBox}>
+              <table style={tableStyle}>
+                <tbody>
+                  <MetricRow
+                    label="Weekly active users"
+                    value={String(users.wau)}
+                  />
+                  <MetricRow
+                    label="New signups (7d)"
+                    value={String(users.newSignups7d)}
+                  />
+                  <MetricRow
+                    label="Tickets created (7d)"
+                    value={String(users.ticketsCreated7d)}
+                  />
+                  <MetricRow
+                    label="Total users"
+                    value={String(users.totalUsers)}
+                  />
+                  <MetricRow
+                    label="Total tickets"
+                    value={String(users.totalTickets)}
+                  />
+                  <MetricRow
+                    label="Total challenges"
+                    value={String(users.totalChallenges)}
+                  />
+                </tbody>
+              </table>
+            </div>
+          </Section>
+
+          {/* Bugs & Errors */}
+          <Section>
+            <Text style={sectionTitle}>Bugs &amp; Errors</Text>
+            <div style={sectionBox}>
+              <table style={tableStyle}>
+                <tbody>
+                  <MetricRow
+                    label="Unresolved issues"
+                    value={String(sentry.unresolvedCount)}
+                  />
+                  <MetricRow
+                    label="New this week"
+                    value={String(sentry.newThisWeek)}
+                  />
+                </tbody>
+              </table>
+            </div>
+            {sentry.topIssues.length > 0 && (
+              <div style={{ marginTop: '8px' }}>
+                <Text
+                  style={{
+                    color: '#717171',
+                    fontSize: '13px',
+                    fontWeight: '500' as const,
+                    margin: '0 0 8px 0',
+                  }}
+                >
+                  Top issues by frequency:
+                </Text>
+                {sentry.topIssues.map((issue) => (
+                  <div
+                    key={issue.id}
+                    style={{
+                      padding: '8px 0',
+                      borderBottom: '1px solid #f0f0f0',
+                    }}
+                  >
+                    <Link href={issue.url} style={issueTitle}>
+                      {issue.id}: {issue.title.slice(0, 70)}
+                      {issue.title.length > 70 ? '...' : ''}
+                    </Link>
+                    <Text style={issueMeta}>
+                      {issue.events} events · {issue.users} users ·{' '}
+                      {issue.culprit}
+                    </Text>
+                  </div>
+                ))}
+              </div>
+            )}
+          </Section>
+
+          <Hr style={hrStyle} />
+
+          {/* Social & Content side by side */}
+          <Section>
+            <Row>
+              <Column style={{ width: '50%', paddingRight: '8px' }}>
+                <Text style={sectionTitle}>Social</Text>
+                <div style={sectionBox}>
+                  <table style={tableStyle}>
+                    <tbody>
+                      <MetricRow
+                        label="Facebook"
+                        value={
+                          social.facebookFollowers !== null
+                            ? String(social.facebookFollowers)
+                            : 'N/A'
+                        }
+                      />
+                      <MetricRow
+                        label="Instagram"
+                        value={
+                          social.instagramFollowers !== null
+                            ? String(social.instagramFollowers)
+                            : 'N/A'
+                        }
+                      />
+                    </tbody>
+                  </table>
+                </div>
+              </Column>
+              <Column style={{ width: '50%', paddingLeft: '8px' }}>
+                <Text style={sectionTitle}>Content</Text>
+                <div style={sectionBox}>
+                  <table style={tableStyle}>
+                    <tbody>
+                      <MetricRow
+                        label="Blog views (7d)"
+                        value={String(content.blogViews7d)}
+                      />
+                    </tbody>
+                  </table>
+                </div>
+              </Column>
+            </Row>
+          </Section>
+
+          {/* Top Blog Posts */}
           {content.topBlogPosts.length > 0 && (
-            <div style={{ marginTop: '8px' }}>
+            <Section>
               <Text
                 style={{
-                  ...metricLabel,
+                  color: '#717171',
+                  fontSize: '13px',
                   fontWeight: '500' as const,
-                  marginBottom: '8px',
+                  margin: '12px 0 8px 0',
                 }}
               >
                 Top posts by views:
               </Text>
-              {content.topBlogPosts.map((post, i) => (
-                <div key={i} style={metricRow}>
-                  <Text style={{ ...metricLabel, maxWidth: '400px' }}>
-                    {post.title.slice(0, 60)}
-                    {post.title.length > 60 ? '...' : ''}
-                  </Text>
-                  <Text style={metricValue}>{post.views}</Text>
-                </div>
-              ))}
-            </div>
+              <div style={sectionBox}>
+                <table style={tableStyle}>
+                  <tbody>
+                    {content.topBlogPosts
+                      .filter((p) => !p.title.includes('$$_posthog_breakdown'))
+                      .map((post, i) => (
+                        <MetricRow
+                          key={i}
+                          label={
+                            post.title.length > 45
+                              ? `${post.title.slice(0, 45)}...`
+                              : post.title
+                          }
+                          value={String(post.views)}
+                        />
+                      ))}
+                  </tbody>
+                </table>
+              </div>
+            </Section>
           )}
-        </Section>
 
-        <EmailFooter />
-      </Container>
-    </Body>
-  </Html>
-);
+          <EmailFooter />
+        </Container>
+      </Body>
+    </Html>
+  );
+};
 
 export default WeeklyStatusEmail;

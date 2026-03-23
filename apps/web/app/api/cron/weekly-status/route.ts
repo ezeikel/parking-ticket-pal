@@ -128,12 +128,12 @@ async function fetchPostHogMetrics() {
   };
 
   try {
-    // Run trend queries for key events
+    // Run trend queries for key events — 28d with weekly interval for sparklines
     const trendQuery = {
       kind: 'InsightVizNode',
       source: {
         kind: 'TrendsQuery',
-        dateRange: { date_from: '-7d' },
+        dateRange: { date_from: '-28d' },
         series: [
           {
             kind: 'EventsNode',
@@ -179,11 +179,19 @@ async function fetchPostHogMetrics() {
     const trendResult = await runQuery(trendQuery);
     const results = trendResult?.results ?? [];
 
-    const getTotal = (index: number) =>
-      results[index]?.data?.reduce((a: number, b: number) => a + b, 0) ?? 0;
+    // Get weekly data arrays (last 4 weeks)
+    const getWeeklyData = (index: number): number[] =>
+      (results[index]?.data ?? []).slice(-4);
 
-    // Get max DAU across the week as WAU approximation
-    const wau = Math.max(...(results[0]?.data ?? [0]));
+    // Last week's value (last element)
+    const getLastWeek = (index: number) => {
+      const data = results[index]?.data ?? [0];
+      return data[data.length - 1] ?? 0;
+    };
+
+    // WAU = max DAU from the last week's daily data
+    const wauData = getWeeklyData(0);
+    const wau = wauData[wauData.length - 1] ?? 0;
 
     // Blog post breakdown
     const blogQuery = {
@@ -255,13 +263,16 @@ async function fetchPostHogMetrics() {
 
     return {
       wau,
+      wauTrend: wauData,
       newSignups7d,
-      ticketsCreated7d: getTotal(1),
-      paywallOpened7d: getTotal(2),
-      checkoutStarted7d: getTotal(3),
-      purchaseCompleted7d: getTotal(4),
-      purchaseCancelled7d: getTotal(5),
-      blogViews7d: getTotal(6),
+      ticketsCreated7d: getLastWeek(1),
+      ticketsTrend: getWeeklyData(1),
+      paywallOpened7d: getLastWeek(2),
+      checkoutStarted7d: getLastWeek(3),
+      purchaseCompleted7d: getLastWeek(4),
+      purchaseCancelled7d: getLastWeek(5),
+      blogViews7d: getLastWeek(6),
+      blogViewsTrend: getWeeklyData(6),
       topBlogPosts,
     };
   } catch (error) {
@@ -272,13 +283,16 @@ async function fetchPostHogMetrics() {
     );
     return {
       wau: 0,
+      wauTrend: [],
       newSignups7d: 0,
       ticketsCreated7d: 0,
+      ticketsTrend: [],
       paywallOpened7d: 0,
       checkoutStarted7d: 0,
       purchaseCompleted7d: 0,
       purchaseCancelled7d: 0,
       blogViews7d: 0,
+      blogViewsTrend: [],
       topBlogPosts: [],
     };
   }
@@ -520,11 +534,13 @@ async function handleRequest(request: Request) {
       },
       users: {
         wau: posthog.wau,
+        wauTrend: posthog.wauTrend ?? [],
         newSignups7d: posthog.newSignups7d,
         totalUsers: dbStats.totalUsers,
         totalTickets: dbStats.totalTickets,
         totalChallenges: dbStats.totalChallenges,
         ticketsCreated7d: posthog.ticketsCreated7d,
+        ticketsTrend: posthog.ticketsTrend ?? [],
       },
       funnel: {
         paywallOpened7d: posthog.paywallOpened7d,
@@ -536,6 +552,7 @@ async function handleRequest(request: Request) {
       social,
       content: {
         blogViews7d: posthog.blogViews7d,
+        blogViewsTrend: posthog.blogViewsTrend ?? [],
         topBlogPosts: posthog.topBlogPosts,
       },
     };
