@@ -101,7 +101,7 @@ export default function UpgradeBanner({
                 opacity="0.15"
               />
             </svg>
-            <div className="absolute inset-0 flex flex-col items-center justify-center pt-2">
+            <div className="absolute bottom-0 left-0 right-0 flex flex-col items-center">
               <span
                 className="text-2xl font-bold text-teal select-none"
                 style={{ filter: 'blur(5px)' }}
@@ -110,7 +110,7 @@ export default function UpgradeBanner({
               </span>
               <FontAwesomeIcon
                 icon={faLock}
-                className="h-4 w-4 text-gray-400 -mt-1"
+                className="h-3.5 w-3.5 text-gray-400 -mt-1"
               />
             </div>
           </div>
