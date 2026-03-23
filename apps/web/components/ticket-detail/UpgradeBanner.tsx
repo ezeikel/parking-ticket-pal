@@ -94,7 +94,7 @@ export default function UpgradeBanner({
 
         {/* Right: Content */}
         <div className="flex-1">
-          <h3 className="mb-1 font-slab text-lg font-semibold text-dark">
+          <h3 className="mb-1 text-lg font-semibold text-dark">
             Your ticket has been analysed
           </h3>
           <p className="mb-4 text-sm text-gray-500">
