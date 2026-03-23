@@ -7,4 +7,9 @@ Sentry.init({
   sendDefaultPii: false,
   tracesSampleRate: process.env.NODE_ENV === 'development' ? 1.0 : 0.2,
   environment: process.env.VERCEL_ENV || process.env.NODE_ENV || 'development',
+  ignoreErrors: [
+    // Next.js internal errors for notFound() and redirect() — intentional control flow
+    'NEXT_NOT_FOUND',
+    'NEXT_REDIRECT',
+  ],
 });
