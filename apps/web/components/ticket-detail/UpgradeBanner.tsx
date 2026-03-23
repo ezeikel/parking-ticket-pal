@@ -79,12 +79,36 @@ export default function UpgradeBanner({
       </button>
 
       <div className="flex flex-col gap-6 md:flex-row md:items-start">
-        {/* Left: Locked gauge teaser */}
+        {/* Left: Locked gauge teaser (semi-circle arc) */}
         <div className="flex flex-col items-center md:w-40 shrink-0">
-          <div className="relative flex h-20 w-20 items-center justify-center rounded-full border-[6px] border-gray-100">
-            <FontAwesomeIcon icon={faLock} className="h-6 w-6 text-gray-300" />
+          <div className="relative">
+            <svg width="120" height="72" viewBox="0 0 120 72">
+              <path
+                d="M 8 68 A 52 52 0 0 1 112 68"
+                fill="none"
+                stroke="#f0f0f0"
+                strokeWidth="8"
+                strokeLinecap="round"
+              />
+              <path
+                d="M 8 68 A 52 52 0 0 1 112 68"
+                fill="none"
+                stroke="#1abc9c"
+                strokeWidth="8"
+                strokeLinecap="round"
+                strokeDasharray="163.4"
+                strokeDashoffset="70"
+                opacity="0.15"
+              />
+            </svg>
+            <div className="absolute inset-0 flex items-center justify-center pt-3">
+              <FontAwesomeIcon
+                icon={faLock}
+                className="h-5 w-5 text-gray-300"
+              />
+            </div>
           </div>
-          <p className="mt-2 text-center text-xs text-gray-500">
+          <p className="mt-1 text-center text-xs text-gray-500">
             See your chances
           </p>
         </div>
