@@ -285,15 +285,19 @@ const DetailsStep = ({ wizardData, onNext }: WizardStepProps) => {
           })
         }
         disabled={!isValid}
-        className="py-4 rounded-xl items-center justify-center mb-8"
-        style={{ backgroundColor: isValid ? '#1ABC9C' : '#D1D5DB' }}
+        style={{ marginBottom: 32 }}
       >
-        <Text
-          className="font-jakarta-semibold text-lg"
-          style={{ color: isValid ? '#fff' : '#9CA3AF' }}
+        <View
+          className="py-4 rounded-xl items-center justify-center"
+          style={{ backgroundColor: isValid ? '#1ABC9C' : '#D1D5DB' }}
         >
-          Continue
-        </Text>
+          <Text
+            className="font-jakarta-semibold text-lg"
+            style={{ color: isValid ? '#fff' : '#9CA3AF' }}
+          >
+            Continue
+          </Text>
+        </View>
       </SquishyPressable>
     </ScrollView>
     <KeyboardToolbar />
