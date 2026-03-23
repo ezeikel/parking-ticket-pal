@@ -9,9 +9,8 @@ import {
   faPaperPlane,
   faBan,
   faXmark,
-  faLock,
 } from '@fortawesome/pro-regular-svg-icons';
-import { faCircleCheck } from '@fortawesome/pro-solid-svg-icons';
+import { faCircleCheck, faLock } from '@fortawesome/pro-solid-svg-icons';
 import { useAnalytics } from '@/utils/analytics-client';
 import { TRACKING_EVENTS } from '@/constants/events';
 
