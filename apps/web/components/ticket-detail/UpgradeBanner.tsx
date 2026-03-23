@@ -82,7 +82,8 @@ export default function UpgradeBanner({
         {/* Left: Locked gauge teaser (semi-circle arc) */}
         <div className="flex flex-col items-center md:w-40 shrink-0">
           <div className="relative">
-            <svg width="120" height="72" viewBox="0 0 120 72">
+            <svg width="120" height="80" viewBox="0 0 120 80">
+              {/* Background arc */}
               <path
                 d="M 8 68 A 52 52 0 0 1 112 68"
                 fill="none"
@@ -90,6 +91,7 @@ export default function UpgradeBanner({
                 strokeWidth="8"
                 strokeLinecap="round"
               />
+              {/* Teal progress arc (faint teaser) */}
               <path
                 d="M 8 68 A 52 52 0 0 1 112 68"
                 fill="none"
@@ -100,17 +102,29 @@ export default function UpgradeBanner({
                 strokeDashoffset="70"
                 opacity="0.15"
               />
-            </svg>
-            <div className="absolute bottom-0 left-0 right-0 flex flex-col items-center">
-              <span
-                className="text-2xl font-bold text-teal select-none"
-                style={{ filter: 'blur(5px)' }}
+              {/* Blurred score text at arc baseline */}
+              <text
+                x="60"
+                y="64"
+                textAnchor="middle"
+                fontSize="24"
+                fontWeight="700"
+                fill="#1abc9c"
+                filter="url(#blur)"
               >
                 65%
-              </span>
+              </text>
+              <defs>
+                <filter id="blur">
+                  <feGaussianBlur stdDeviation="4" />
+                </filter>
+              </defs>
+            </svg>
+            {/* Lock icon at baseline */}
+            <div className="absolute bottom-2 left-0 right-0 flex justify-center">
               <FontAwesomeIcon
                 icon={faLock}
-                className="h-3.5 w-3.5 text-gray-400 -mt-1"
+                className="h-3.5 w-3.5 text-gray-400"
               />
             </div>
           </div>
