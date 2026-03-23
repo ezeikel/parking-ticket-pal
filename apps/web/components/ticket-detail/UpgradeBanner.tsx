@@ -3,8 +3,8 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faXmark } from '@fortawesome/pro-regular-svg-icons';
-import { faCircleCheck } from '@fortawesome/pro-solid-svg-icons';
+import { faXmark, faQuoteLeft } from '@fortawesome/pro-regular-svg-icons';
+import { faCircleCheck, faStar } from '@fortawesome/pro-solid-svg-icons';
 import ScoreGauge from '@/components/ui/ScoreGauge';
 import { useAnalytics } from '@/utils/analytics-client';
 import { TRACKING_EVENTS } from '@/constants/events';
@@ -112,6 +112,40 @@ export default function UpgradeBanner({
                 <span className="text-sm text-gray-700">{label}</span>
               </div>
             ))}
+          </div>
+
+          {/* Testimonial */}
+          <div className="mb-5 flex items-start gap-3 rounded-lg bg-gray-50 p-3">
+            <FontAwesomeIcon
+              icon={faQuoteLeft}
+              className="h-3 w-3 text-gray-300 mt-0.5 shrink-0"
+            />
+            <div className="flex-1">
+              <p className="text-sm text-gray-600 leading-snug mb-2">
+                &quot;Deadline reminders saved me — had no idea fines double
+                after 14 days!&quot;
+              </p>
+              <div className="flex items-center gap-2">
+                <div className="flex h-6 w-6 items-center justify-center rounded-full bg-teal/20">
+                  <span className="text-[10px] font-semibold text-teal">
+                    PS
+                  </span>
+                </div>
+                <span className="text-xs font-medium text-gray-700">
+                  Priya S.
+                </span>
+                <span className="text-xs text-gray-400">· Saved £110</span>
+                <div className="ml-auto flex gap-0.5">
+                  {[1, 2, 3, 4, 5].map((i) => (
+                    <FontAwesomeIcon
+                      key={i}
+                      icon={faStar}
+                      className="h-2.5 w-2.5 text-amber-400"
+                    />
+                  ))}
+                </div>
+              </div>
+            </div>
           </div>
 
           {/* CTA */}
