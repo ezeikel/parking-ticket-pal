@@ -950,6 +950,12 @@ export const generateAndPostNewsVideo = async () => {
       },
     });
 
+    if (voiceover.durationSeconds < 30 || voiceover.durationSeconds > 120) {
+      logger.warn('Voiceover duration outside expected range (30-120s)', {
+        durationSeconds: voiceover.durationSeconds,
+      });
+    }
+
     logger.info('Audio + images ready, calling worker to render', {
       durationSeconds: voiceover.durationSeconds,
       wordCount: voiceover.wordTimestamps.length,

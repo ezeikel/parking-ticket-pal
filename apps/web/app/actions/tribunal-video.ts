@@ -622,6 +622,12 @@ export const generateAndPostTribunalVideo = async () => {
       },
     });
 
+    if (voiceover.durationSeconds < 30 || voiceover.durationSeconds > 120) {
+      logger.warn('Voiceover duration outside expected range (30-120s)', {
+        durationSeconds: voiceover.durationSeconds,
+      });
+    }
+
     logger.info('Audio ready, calling worker to render video', {
       durationSeconds: voiceover.durationSeconds,
       wordCount: voiceover.wordTimestamps.length,
