@@ -299,7 +299,7 @@ async function fetchPostHogMetrics() {
 }
 
 async function fetchSentryData() {
-  const sentryToken = process.env.SENTRY_AUTH_TOKEN;
+  const sentryToken = process.env.SENTRY_API_TOKEN;
   const org = 'chewybytes';
   if (!sentryToken) {
     return { unresolvedCount: 0, newThisWeek: 0, topIssues: [] };
