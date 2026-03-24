@@ -657,11 +657,20 @@ export async function completeTribunalVideo(
   });
 
   // Generate captions — pass transcript + scene images for richer context
-  const sceneImages = (videoRecord.sceneImages as string[] | null) || [];
+  // sceneImages is stored as a JSON object with named URL fields, not an array
+  const sceneImagesObj = videoRecord.sceneImages as Record<
+    string,
+    string | null
+  > | null;
+  const sceneImageUrls = sceneImagesObj
+    ? Object.values(sceneImagesObj).filter(
+        (url): url is string => typeof url === 'string',
+      )
+    : [];
   // Limit to 3 images to keep costs reasonable (cover + 2 key scenes)
   const captionImageUrls = [
     ...(coverImageUrl ? [coverImageUrl] : []),
-    ...sceneImages.slice(0, 2),
+    ...sceneImageUrls.slice(0, 2),
   ];
 
   const caseData = {
@@ -932,10 +941,18 @@ export async function completeNewsVideo(
   });
 
   // Generate captions — pass transcript + scene images for richer context
-  const newsSceneImages = (videoRecord.sceneImages as string[] | null) || [];
+  const newsSceneImagesObj = videoRecord.sceneImages as Record<
+    string,
+    string | null
+  > | null;
+  const newsSceneImageUrls = newsSceneImagesObj
+    ? Object.values(newsSceneImagesObj).filter(
+        (url): url is string => typeof url === 'string',
+      )
+    : [];
   const newsCaptionImageUrls = [
     ...(coverImageUrl ? [coverImageUrl] : []),
-    ...newsSceneImages.slice(0, 2),
+    ...newsSceneImageUrls.slice(0, 2),
   ];
 
   const captionData = {
