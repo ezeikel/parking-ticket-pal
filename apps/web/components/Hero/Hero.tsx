@@ -523,6 +523,12 @@ const Hero = () => {
                 href={appStoreUrl({ source: 'hero' })}
                 target="_blank"
                 rel="noopener noreferrer"
+                onClick={() =>
+                  track(TRACKING_EVENTS.APP_STORE_BUTTON_CLICKED, {
+                    platform: 'ios',
+                    location: 'hero',
+                  })
+                }
                 className="flex h-10 items-center gap-2 rounded-lg border border-white/30 bg-white/10 px-4 transition-colors hover:bg-white/20"
               >
                 <FontAwesomeIcon
@@ -542,6 +548,12 @@ const Hero = () => {
                 href={playStoreUrl({ source: 'hero' })}
                 target="_blank"
                 rel="noopener noreferrer"
+                onClick={() =>
+                  track(TRACKING_EVENTS.APP_STORE_BUTTON_CLICKED, {
+                    platform: 'android',
+                    location: 'hero',
+                  })
+                }
                 className="flex h-10 items-center gap-2 rounded-lg border border-white/30 bg-white/10 px-4 transition-colors hover:bg-white/20"
               >
                 <FontAwesomeIcon

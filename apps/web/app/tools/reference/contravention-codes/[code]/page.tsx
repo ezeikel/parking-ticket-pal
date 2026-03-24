@@ -28,6 +28,7 @@ import JsonLd, {
   createBreadcrumbSchema,
 } from '@/components/JsonLd/JsonLd';
 import { getEducationalContentForCode } from '@/data/contravention-codes/educational-content';
+import ToolsCTA from '@/components/ToolsCTA/ToolsCTA';
 import { getTribunalCaseCountByCode } from '@/lib/queries/tribunal-counts';
 import { getChallengeArgumentsByCode } from '@/lib/queries/challenge-arguments';
 import { SITE_URL } from '@/constants';
@@ -333,26 +334,14 @@ export default async function ContraventionCodePage({ params }: Props) {
 
               {/* Tribunal Authority Teaser */}
               {tribunalCount > 0 && (
-                <div className="rounded-xl border-2 border-teal/20 bg-teal/5 p-6">
-                  <h2 className="text-lg font-bold text-dark">
-                    Tribunal Case Data
-                  </h2>
-                  <p className="mt-2 text-gray">
-                    We&apos;ve analysed{' '}
-                    <span className="font-semibold text-teal">
-                      {tribunalCount.toLocaleString()}
-                    </span>{' '}
-                    tribunal cases for Code {codeData.code}. Upload your ticket
-                    to get a personalised analysis based on real outcomes.
-                  </p>
-                  <Link
-                    href="/"
-                    className="mt-4 inline-flex items-center gap-2 rounded-lg bg-teal px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-teal-dark"
-                  >
-                    Get Your Personalised Analysis
-                    <FontAwesomeIcon icon={faArrowRight} className="text-xs" />
-                  </Link>
-                </div>
+                <ToolsCTA
+                  context={codeData.code}
+                  location="contravention_code_tribunal_teaser"
+                  headline="Tribunal Case Data"
+                  tribunalCount={tribunalCount}
+                  buttonText="Get Your Personalised Analysis"
+                  variant="teal"
+                />
               )}
 
               {/* Appeal Tips */}
@@ -516,20 +505,12 @@ export default async function ContraventionCodePage({ params }: Props) {
             {/* Right Column - Sidebar */}
             <div className="space-y-6">
               {/* CTA Card */}
-              <div className="rounded-xl bg-dark p-6 text-white">
-                <h3 className="text-lg font-bold">Got Code {codeData.code}?</h3>
-                <p className="mt-2 text-sm text-white/80">
-                  Upload your PCN and our AI will write a personalised appeal
-                  letter using real tribunal wins for this code.
-                </p>
-                <Link
-                  href="/"
-                  className="mt-4 flex items-center justify-center gap-2 rounded-lg bg-teal px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-teal-dark"
-                >
-                  Upload Your Ticket
-                  <FontAwesomeIcon icon={faArrowRight} className="text-xs" />
-                </Link>
-              </div>
+              <ToolsCTA
+                context={codeData.code}
+                location="contravention_code_sidebar"
+                tribunalCount={tribunalCount}
+                variant="dark"
+              />
 
               {/* Free Templates */}
               <div className="rounded-xl border border-border p-6">

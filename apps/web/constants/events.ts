@@ -79,6 +79,7 @@ export const TRACKING_EVENTS = {
   QUICK_ACTION_CLICKED: 'quick_action_clicked',
   FEATURE_LOCKED_VIEWED: 'feature_locked_viewed',
   APP_STORE_BUTTON_CLICKED: 'app_store_button_clicked',
+  CHROME_EXTENSION_CLICKED: 'chrome_extension_clicked',
   DASHBOARD_VIEWED: 'dashboard_viewed',
   SCROLL_DEPTH_REACHED: 'scroll_depth_reached',
 

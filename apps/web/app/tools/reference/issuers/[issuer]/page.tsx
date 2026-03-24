@@ -1,3 +1,4 @@
+import ToolsCTA from '@/components/ToolsCTA/ToolsCTA';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -517,26 +518,14 @@ export default async function IssuerPage({ params }: Props) {
 
               {/* Tribunal Authority Teaser */}
               {tribunalCount > 0 && (
-                <div className="rounded-xl border-2 border-teal/20 bg-teal/5 p-6">
-                  <h2 className="text-lg font-bold text-dark">
-                    Tribunal Case Data
-                  </h2>
-                  <p className="mt-2 text-gray">
-                    We&apos;ve analysed{' '}
-                    <span className="font-semibold text-teal">
-                      {tribunalCount.toLocaleString()}
-                    </span>{' '}
-                    tribunal cases involving {issuer.name}. Upload your ticket
-                    to get a personalised analysis based on real outcomes.
-                  </p>
-                  <Link
-                    href="/"
-                    className="mt-4 inline-flex items-center gap-2 rounded-lg bg-teal px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-teal-dark"
-                  >
-                    Get Your Personalised Analysis
-                    <FontAwesomeIcon icon={faArrowRight} className="text-xs" />
-                  </Link>
-                </div>
+                <ToolsCTA
+                  context={issuer.name}
+                  location="issuer_tribunal_teaser"
+                  headline="Tribunal Case Data"
+                  tribunalCount={tribunalCount}
+                  buttonText="Get Your Personalised Analysis"
+                  variant="teal"
+                />
               )}
 
               {/* Common Contravention Codes */}
@@ -637,22 +626,13 @@ export default async function IssuerPage({ params }: Props) {
             {/* Right Column - Sidebar */}
             <div className="space-y-6">
               {/* CTA Card */}
-              <div className="rounded-xl bg-dark p-6 text-white">
-                <h3 className="text-lg font-bold">
-                  Got a ticket from {issuer.name}?
-                </h3>
-                <p className="mt-2 text-sm text-white/80">
-                  Upload your ticket and our AI will write a personalised appeal
-                  letter using winning arguments for this issuer.
-                </p>
-                <Link
-                  href="/"
-                  className="mt-4 flex items-center justify-center gap-2 rounded-lg bg-teal px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-teal-dark"
-                >
-                  Upload Your Ticket
-                  <FontAwesomeIcon icon={faArrowRight} className="text-xs" />
-                </Link>
-              </div>
+              <ToolsCTA
+                context={issuer.name}
+                location="issuer_sidebar"
+                headline={`Got a ticket from ${issuer.name}?`}
+                description="Upload your ticket and our AI will write a personalised appeal letter using winning arguments for this issuer."
+                variant="dark"
+              />
 
               {/* Free Templates */}
               <div className="rounded-xl border border-border p-6">

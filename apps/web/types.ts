@@ -545,6 +545,9 @@ export type EventProperties = {
     platform: 'ios' | 'android';
     location: string;
   };
+  [TRACKING_EVENTS.CHROME_EXTENSION_CLICKED]: {
+    location: string;
+  };
   [TRACKING_EVENTS.DASHBOARD_VIEWED]: Record<string, never>;
   [TRACKING_EVENTS.SCROLL_DEPTH_REACHED]: {
     page: string;

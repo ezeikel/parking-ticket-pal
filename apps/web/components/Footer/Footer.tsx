@@ -19,6 +19,8 @@ import {
   playStoreUrl,
   chromeWebStoreUrl,
 } from '@/constants/links';
+import { useAnalytics } from '@/utils/analytics-client';
+import { TRACKING_EVENTS } from '@/constants/events';
 
 type FooterProps = {
   className?: string;
@@ -90,200 +92,221 @@ const socialLinks: SocialLink[] = [
   },
 ];
 
-const Footer = ({ className }: FooterProps) => (
-  <footer className={cn('bg-footer py-16 mt-auto', className)}>
-    <div className="mx-auto max-w-[1280px] px-6">
-      {/* Main Footer Content */}
-      <div className="grid gap-12 md:grid-cols-2 lg:grid-cols-4">
-        {/* Brand Column */}
-        <div>
-          <Link href="/" className="flex items-center gap-2">
-            <Image
-              src="/logos/ptp.svg"
-              alt="Parking Ticket Pal"
-              width={32}
-              height={32}
-              className="h-8 w-auto"
-            />
-            <span className="font-display font-bold text-lg text-white">
-              Parking Ticket Pal
-            </span>
-          </Link>
-          <p className="mt-4 text-sm text-white/60">
-            Fight unfair parking tickets with AI. Track, challenge, and win.
-          </p>
+const Footer = ({ className }: FooterProps) => {
+  const { track } = useAnalytics();
 
-          {/* App Store Badges */}
-          <div className="mt-6 flex flex-col gap-2">
-            <a
-              href={appStoreUrl({ source: 'footer' })}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="opacity-70 transition-opacity hover:opacity-100"
-            >
-              <div className="flex h-10 w-32 items-center gap-2 rounded-lg border border-white/20 bg-white/5 px-3">
-                <FontAwesomeIcon
-                  icon={faApple}
-                  className="text-lg text-white"
-                />
-                <div className="flex flex-col text-left">
-                  <span className="text-[8px] leading-tight text-white/60">
-                    Download on the
-                  </span>
-                  <span className="text-xs font-semibold leading-tight text-white">
-                    App Store
-                  </span>
+  return (
+    <footer className={cn('bg-footer py-16 mt-auto', className)}>
+      <div className="mx-auto max-w-[1280px] px-6">
+        {/* Main Footer Content */}
+        <div className="grid gap-12 md:grid-cols-2 lg:grid-cols-4">
+          {/* Brand Column */}
+          <div>
+            <Link href="/" className="flex items-center gap-2">
+              <Image
+                src="/logos/ptp.svg"
+                alt="Parking Ticket Pal"
+                width={32}
+                height={32}
+                className="h-8 w-auto"
+              />
+              <span className="font-display font-bold text-lg text-white">
+                Parking Ticket Pal
+              </span>
+            </Link>
+            <p className="mt-4 text-sm text-white/60">
+              Fight unfair parking tickets with AI. Track, challenge, and win.
+            </p>
+
+            {/* App Store Badges */}
+            <div className="mt-6 flex flex-col gap-2">
+              <a
+                href={appStoreUrl({ source: 'footer' })}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={() =>
+                  track(TRACKING_EVENTS.APP_STORE_BUTTON_CLICKED, {
+                    platform: 'ios',
+                    location: 'footer',
+                  })
+                }
+                className="opacity-70 transition-opacity hover:opacity-100"
+              >
+                <div className="flex h-10 w-32 items-center gap-2 rounded-lg border border-white/20 bg-white/5 px-3">
+                  <FontAwesomeIcon
+                    icon={faApple}
+                    className="text-lg text-white"
+                  />
+                  <div className="flex flex-col text-left">
+                    <span className="text-[8px] leading-tight text-white/60">
+                      Download on the
+                    </span>
+                    <span className="text-xs font-semibold leading-tight text-white">
+                      App Store
+                    </span>
+                  </div>
                 </div>
-              </div>
-            </a>
-            <a
-              href={playStoreUrl({ source: 'footer' })}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="opacity-70 transition-opacity hover:opacity-100"
-            >
-              <div className="flex h-10 w-32 items-center gap-2 rounded-lg border border-white/20 bg-white/5 px-3">
-                <FontAwesomeIcon
-                  icon={faGooglePlay}
-                  className="text-sm text-white"
-                />
-                <div className="flex flex-col text-left">
-                  <span className="text-[8px] leading-tight text-white/60">
-                    GET IT ON
-                  </span>
-                  <span className="text-xs font-semibold leading-tight text-white">
-                    Google Play
-                  </span>
+              </a>
+              <a
+                href={playStoreUrl({ source: 'footer' })}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={() =>
+                  track(TRACKING_EVENTS.APP_STORE_BUTTON_CLICKED, {
+                    platform: 'android',
+                    location: 'footer',
+                  })
+                }
+                className="opacity-70 transition-opacity hover:opacity-100"
+              >
+                <div className="flex h-10 w-32 items-center gap-2 rounded-lg border border-white/20 bg-white/5 px-3">
+                  <FontAwesomeIcon
+                    icon={faGooglePlay}
+                    className="text-sm text-white"
+                  />
+                  <div className="flex flex-col text-left">
+                    <span className="text-[8px] leading-tight text-white/60">
+                      GET IT ON
+                    </span>
+                    <span className="text-xs font-semibold leading-tight text-white">
+                      Google Play
+                    </span>
+                  </div>
                 </div>
-              </div>
-            </a>
-            <a
-              href={chromeWebStoreUrl({ source: 'footer_badge' })}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="opacity-70 transition-opacity hover:opacity-100"
-            >
-              <div className="flex h-10 w-32 items-center gap-2 rounded-lg border border-white/20 bg-white/5 px-3">
-                <FontAwesomeIcon
-                  icon={faChrome}
-                  className="text-lg text-white"
-                />
-                <div className="flex flex-col text-left">
-                  <span className="text-[8px] leading-tight text-white/60">
-                    Available on
-                  </span>
-                  <span className="text-xs font-semibold leading-tight text-white">
-                    Chrome
-                  </span>
+              </a>
+              <a
+                href={chromeWebStoreUrl({ source: 'footer_badge' })}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={() =>
+                  track(TRACKING_EVENTS.CHROME_EXTENSION_CLICKED, {
+                    location: 'footer',
+                  })
+                }
+                className="opacity-70 transition-opacity hover:opacity-100"
+              >
+                <div className="flex h-10 w-32 items-center gap-2 rounded-lg border border-white/20 bg-white/5 px-3">
+                  <FontAwesomeIcon
+                    icon={faChrome}
+                    className="text-lg text-white"
+                  />
+                  <div className="flex flex-col text-left">
+                    <span className="text-[8px] leading-tight text-white/60">
+                      Available on
+                    </span>
+                    <span className="text-xs font-semibold leading-tight text-white">
+                      Chrome
+                    </span>
+                  </div>
                 </div>
-              </div>
-            </a>
+              </a>
+            </div>
           </div>
-        </div>
 
-        {/* Product Column */}
-        <div>
-          <h4 className="text-sm font-semibold text-white">Product</h4>
-          <ul className="mt-4 space-y-3">
-            {productLinks.map((link) => (
-              <li key={link.label}>
-                <Link
-                  href={link.href}
-                  className="text-sm text-white/60 transition-colors hover:text-white"
-                >
-                  {link.label}
-                </Link>
-              </li>
-            ))}
-          </ul>
-        </div>
-
-        {/* Resources Column */}
-        <div>
-          <h4 className="text-sm font-semibold text-white">Resources</h4>
-          <ul className="mt-4 space-y-3">
-            {resourceLinks.map((link) => (
-              <li key={link.label}>
-                <Link
-                  href={link.href}
-                  className="text-sm text-white/60 transition-colors hover:text-white"
-                >
-                  {link.label}
-                </Link>
-              </li>
-            ))}
-          </ul>
-        </div>
-
-        {/* Company Column */}
-        <div>
-          <h4 className="text-sm font-semibold text-white">Company</h4>
-          <ul className="mt-4 space-y-3">
-            {companyLinks.map((link) => (
-              <li key={link.label}>
-                {link.href.startsWith('mailto:') ? (
-                  <a
-                    href={link.href}
-                    className="text-sm text-white/60 transition-colors hover:text-white"
-                  >
-                    {link.label}
-                  </a>
-                ) : (
+          {/* Product Column */}
+          <div>
+            <h4 className="text-sm font-semibold text-white">Product</h4>
+            <ul className="mt-4 space-y-3">
+              {productLinks.map((link) => (
+                <li key={link.label}>
                   <Link
                     href={link.href}
                     className="text-sm text-white/60 transition-colors hover:text-white"
                   >
                     {link.label}
                   </Link>
-                )}
-              </li>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          {/* Resources Column */}
+          <div>
+            <h4 className="text-sm font-semibold text-white">Resources</h4>
+            <ul className="mt-4 space-y-3">
+              {resourceLinks.map((link) => (
+                <li key={link.label}>
+                  <Link
+                    href={link.href}
+                    className="text-sm text-white/60 transition-colors hover:text-white"
+                  >
+                    {link.label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          {/* Company Column */}
+          <div>
+            <h4 className="text-sm font-semibold text-white">Company</h4>
+            <ul className="mt-4 space-y-3">
+              {companyLinks.map((link) => (
+                <li key={link.label}>
+                  {link.href.startsWith('mailto:') ? (
+                    <a
+                      href={link.href}
+                      className="text-sm text-white/60 transition-colors hover:text-white"
+                    >
+                      {link.label}
+                    </a>
+                  ) : (
+                    <Link
+                      href={link.href}
+                      className="text-sm text-white/60 transition-colors hover:text-white"
+                    >
+                      {link.label}
+                    </Link>
+                  )}
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
+
+        {/* Divider */}
+        <div className="mt-12 h-px bg-white/10" />
+
+        {/* Bottom Footer */}
+        <div className="mt-8 flex flex-col items-center justify-between gap-6 md:flex-row">
+          {/* Social Links */}
+          <div className="flex items-center gap-6">
+            {socialLinks.map((social) => (
+              <a
+                key={social.label}
+                href={social.href}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-white/60 transition-colors duration-300 hover:text-teal"
+                aria-label={social.label}
+              >
+                <FontAwesomeIcon icon={social.icon} className="text-2xl" />
+              </a>
             ))}
-          </ul>
+          </div>
+
+          {/* Made in text */}
+          <p className="text-sm text-white/40">
+            Made with <span className="text-red-500 font-bold text-lg">♡</span>{' '}
+            in <span className="text-white font-bold">South London</span>
+          </p>
+
+          {/* Legal Links */}
+          <div className="flex items-center gap-4 text-sm text-white/60">
+            <span>© {new Date().getFullYear()} Parking Ticket Pal</span>
+            <span className="hidden md:inline">·</span>
+            <Link href="/privacy" className="hover:text-white">
+              Privacy Policy
+            </Link>
+            <span className="hidden md:inline">·</span>
+            <Link href="/terms" className="hover:text-white">
+              Terms of Service
+            </Link>
+          </div>
         </div>
       </div>
-
-      {/* Divider */}
-      <div className="mt-12 h-px bg-white/10" />
-
-      {/* Bottom Footer */}
-      <div className="mt-8 flex flex-col items-center justify-between gap-6 md:flex-row">
-        {/* Social Links */}
-        <div className="flex items-center gap-6">
-          {socialLinks.map((social) => (
-            <a
-              key={social.label}
-              href={social.href}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-white/60 transition-colors duration-300 hover:text-teal"
-              aria-label={social.label}
-            >
-              <FontAwesomeIcon icon={social.icon} className="text-2xl" />
-            </a>
-          ))}
-        </div>
-
-        {/* Made in text */}
-        <p className="text-sm text-white/40">
-          Made with <span className="text-red-500 font-bold text-lg">♡</span> in{' '}
-          <span className="text-white font-bold">South London</span>
-        </p>
-
-        {/* Legal Links */}
-        <div className="flex items-center gap-4 text-sm text-white/60">
-          <span>© {new Date().getFullYear()} Parking Ticket Pal</span>
-          <span className="hidden md:inline">·</span>
-          <Link href="/privacy" className="hover:text-white">
-            Privacy Policy
-          </Link>
-          <span className="hidden md:inline">·</span>
-          <Link href="/terms" className="hover:text-white">
-            Terms of Service
-          </Link>
-        </div>
-      </div>
-    </div>
-  </footer>
-);
+    </footer>
+  );
+};
 
 export default Footer;

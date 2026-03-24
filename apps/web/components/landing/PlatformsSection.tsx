@@ -19,6 +19,8 @@ import {
   playStoreUrl,
   chromeWebStoreUrl,
 } from '@/constants/links';
+import { useAnalytics } from '@/utils/analytics-client';
+import { TRACKING_EVENTS } from '@/constants/events';
 
 type Platform = {
   icon: IconDefinition;
@@ -69,6 +71,7 @@ const cardHover = {
 const PlatformsSection = () => {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, margin: '-100px' });
+  const { track } = useAnalytics();
 
   return (
     <section ref={ref} className="bg-white py-20 md:py-28">
@@ -136,16 +139,30 @@ const PlatformsSection = () => {
               icon: faApple,
               label: 'App Store',
               href: appStoreUrl({ source: 'platforms_section' }),
+              onClick: () =>
+                track(TRACKING_EVENTS.APP_STORE_BUTTON_CLICKED, {
+                  platform: 'ios' as const,
+                  location: 'platforms_section',
+                }),
             },
             {
               icon: faGooglePlay,
               label: 'Google Play',
               href: playStoreUrl({ source: 'platforms_section' }),
+              onClick: () =>
+                track(TRACKING_EVENTS.APP_STORE_BUTTON_CLICKED, {
+                  platform: 'android' as const,
+                  location: 'platforms_section',
+                }),
             },
             {
               icon: faChrome,
               label: 'Chrome Web Store',
               href: chromeWebStoreUrl({ source: 'platforms_section' }),
+              onClick: () =>
+                track(TRACKING_EVENTS.CHROME_EXTENSION_CLICKED, {
+                  location: 'platforms_section',
+                }),
             },
           ].map((badge) => (
             <a
@@ -153,6 +170,7 @@ const PlatformsSection = () => {
               href={badge.href}
               target={badge.href !== '#' ? '_blank' : undefined}
               rel={badge.href !== '#' ? 'noopener noreferrer' : undefined}
+              onClick={badge.onClick}
               className="flex items-center gap-2 rounded-full border border-border px-5 py-2.5 text-sm font-medium text-gray transition-colors hover:border-teal hover:text-dark"
             >
               <FontAwesomeIcon icon={badge.icon} className="text-base" />
