@@ -1,5 +1,6 @@
 import { Readable } from 'stream';
-import { generateText } from 'ai';
+import { generateText, Output } from 'ai';
+import { z } from 'zod';
 import { google } from 'googleapis';
 import { db } from '@parking-ticket-pal/db';
 import { createServerLogger } from '@/lib/logger';
@@ -58,18 +59,16 @@ const getPlatformGuidelines = (platform: string): string => {
 - Include searchable keywords naturally. 40% of young users search TikTok instead of Google
 - Do NOT use 20+ hashtags (algorithm treats as spam), do NOT write long paragraphs`,
 
-    youtube: `YouTube Shorts. Return as JSON with "title" and "description" fields (2026 best practices):
+    youtube: `YouTube Shorts (2026 best practices):
 - 70%+ of Shorts traffic now comes from SEARCH, not For You Page. Optimise for search queries
-- CRITICAL: Title MUST be under 100 characters total (including hashtags and spaces). YouTube API rejects titles of 100+ characters. Aim for 60-70 characters to leave room for hashtags
-- Title: keyword-frontloaded (e.g. "How to Challenge a Parking Fine in 2026 | UK Guide")
+- Title: keyword-frontloaded, under 100 characters (e.g. "How to Challenge a Parking Fine in 2026 | UK Guide"). Maximum 2 hashtags at END of title only. Use 1 broad + 1 niche (e.g. #UKDriving #PCN)
 - Description: 150-200 characters with keyword appearing twice, plus supporting context
 - Expert, factual British English. Informative and authoritative
 - NEVER use em dashes (—) in title or description. Use commas, full stops, or pipes instead
 - 1-2 emoji max in description, keep professional. Vary your emoji every post
 - CTA: "Subscribe for more UK driving law" or "Save this for later"
-- HASHTAGS: Maximum 2, placed ONLY at the END of the title (never in description, never at start of title). Keep title + hashtags under 100 characters total. Use 1 broad + 1 niche (e.g. #UKDriving #PCN)
-- Primary keyword must appear in title AND first line of description AND tags
-- Do NOT put hashtags in description, do NOT exceed 100 characters in the title`,
+- Primary keyword must appear in title AND first line of description
+- Do NOT put hashtags in description`,
 
     threads: `Threads post (2026 best practices):
 - 300-500 characters. Threads is text-first, audience expects conversational depth
@@ -189,6 +188,130 @@ ${platformGuidelines}`;
   });
 
   return text;
+};
+
+// ============================================================================
+// YouTube structured caption generators (title + description as typed object)
+// ============================================================================
+
+const YouTubeVideoSchema = z.object({
+  title: z
+    .string()
+    .describe(
+      'SEO-optimized YouTube Shorts title, under 100 characters including hashtags',
+    ),
+  description: z
+    .string()
+    .describe(
+      'YouTube Shorts description, 150-200 characters with keywords and CTA',
+    ),
+});
+
+type YouTubeCaption = z.infer<typeof YouTubeVideoSchema>;
+
+const generateTribunalYouTubeCaption = async (caseData: {
+  authority: string;
+  contravention: string;
+  appealDecision: string;
+  hook: string;
+  transcript?: string;
+  imageUrls?: string[];
+}): Promise<YouTubeCaption> => {
+  const platformGuidelines = getPlatformGuidelines('youtube');
+  const hasImages = caseData.imageUrls && caseData.imageUrls.length > 0;
+
+  const promptText = `Write a YouTube Shorts title and description for a short video about a parking tribunal case.
+
+Case: ${caseData.authority} - ${caseData.contravention}
+Decision: ${caseData.appealDecision === 'ALLOWED' ? 'Appeal won' : 'Appeal lost'}
+Hook: ${caseData.hook}
+${caseData.transcript ? `\nFull video transcript:\n${caseData.transcript}\n\nUse specific details from the transcript to write a more compelling caption. Do not just repeat the hook.` : ''}
+${hasImages ? '\nScene images from the video are attached. Use the visual context to inform the tone and content of the caption.' : ''}
+${platformGuidelines}`;
+
+  const { output } = await generateText({
+    model: getTracedModel(hasImages ? models.analytics : models.textFast, {
+      properties: { feature: 'tribunal_video_caption_youtube' },
+    }),
+    output: Output.object({
+      schema: YouTubeVideoSchema,
+      name: 'youtube_shorts',
+      description: 'YouTube Shorts title and description',
+    }),
+    messages: [
+      {
+        role: 'user',
+        content: [
+          { type: 'text', text: promptText },
+          ...(hasImages
+            ? caseData.imageUrls!.map((url) => ({
+                type: 'image' as const,
+                image: new URL(url),
+              }))
+            : []),
+        ],
+      },
+    ],
+  });
+
+  return {
+    title:
+      output?.title ||
+      `Tribunal Case: ${caseData.authority} | ${caseData.contravention}`,
+    description: output?.description || caseData.hook,
+  };
+};
+
+const generateNewsYouTubeCaption = async (article: {
+  headline: string;
+  source: string;
+  category: string;
+  hook: string;
+  transcript?: string;
+  imageUrls?: string[];
+}): Promise<YouTubeCaption> => {
+  const platformGuidelines = getPlatformGuidelines('youtube');
+  const hasImages = article.imageUrls && article.imageUrls.length > 0;
+
+  const promptText = `Write a YouTube Shorts title and description for a short video about a UK motorist news story.
+
+Story: ${article.headline}
+Source: ${article.source}
+Category: ${article.category}
+Hook: ${article.hook}
+${article.transcript ? `\nFull video transcript:\n${article.transcript}\n\nUse specific details from the transcript to write a more compelling caption. Do not just repeat the hook.` : ''}
+${hasImages ? '\nScene images from the video are attached. Use the visual context to inform the tone and content of the caption.' : ''}
+${platformGuidelines}`;
+
+  const { output } = await generateText({
+    model: getTracedModel(hasImages ? models.analytics : models.textFast, {
+      properties: { feature: 'news_video_caption_youtube' },
+    }),
+    output: Output.object({
+      schema: YouTubeVideoSchema,
+      name: 'youtube_shorts',
+      description: 'YouTube Shorts title and description',
+    }),
+    messages: [
+      {
+        role: 'user',
+        content: [
+          { type: 'text', text: promptText },
+          ...(hasImages
+            ? article.imageUrls!.map((url) => ({
+                type: 'image' as const,
+                image: new URL(url),
+              }))
+            : []),
+        ],
+      },
+    ],
+  });
+
+  return {
+    title: output?.title || `UK News: ${article.headline}`,
+    description: output?.description || article.hook,
+  };
 };
 
 // ============================================================================
@@ -693,7 +816,7 @@ export async function completeTribunalVideo(
     generateTribunalCaption('instagram', caseData).catch(() => null),
     generateTribunalCaption('facebook', caseData).catch(() => null),
     generateTribunalCaption('tiktok', caseData).catch(() => null),
-    generateTribunalCaption('youtube', caseData).catch(() => null),
+    generateTribunalYouTubeCaption(caseData).catch(() => null),
     generateTribunalCaption('threads', caseData).catch(() => null),
     generateTribunalCaption('linkedin', caseData).catch(() => null),
   ]);
@@ -725,16 +848,7 @@ export async function completeTribunalVideo(
   }
 
   if (youtubeCaption) {
-    const fallbackTitle = `Tribunal Case: ${caseData.authority} - ${caseData.contravention}`;
-    let ytTitle = fallbackTitle;
-    let ytDescription = youtubeCaption;
-    try {
-      const parsed = JSON.parse(youtubeCaption);
-      if (parsed.title) ytTitle = parsed.title;
-      if (parsed.description) ytDescription = parsed.description;
-    } catch {
-      // fallback already set
-    }
+    let ytTitle = youtubeCaption.title;
     // YouTube API rejects titles >= 100 characters
     if (ytTitle.length >= 100) {
       logger?.warn('YouTube title too long, truncating', {
@@ -746,7 +860,7 @@ export async function completeTribunalVideo(
     const ytResult = await postShortToYouTube(
       videoUrl,
       ytTitle,
-      ytDescription,
+      youtubeCaption.description,
       logger,
     );
     postingResults.youtube = ytResult;
@@ -784,7 +898,7 @@ export async function completeTribunalVideo(
     if (youtubeCaption) {
       digestCaptions.push({
         platform: 'youtubeShorts',
-        caption: youtubeCaption,
+        caption: `${youtubeCaption.title}\n\n${youtubeCaption.description}`,
         autoPosted: postingResults.youtube?.success ?? false,
         assetType: 'video',
       });
@@ -976,7 +1090,7 @@ export async function completeNewsVideo(
     generateNewsCaption('instagram', captionData).catch(() => null),
     generateNewsCaption('facebook', captionData).catch(() => null),
     generateNewsCaption('tiktok', captionData).catch(() => null),
-    generateNewsCaption('youtube', captionData).catch(() => null),
+    generateNewsYouTubeCaption(captionData).catch(() => null),
     generateNewsCaption('threads', captionData).catch(() => null),
     generateNewsCaption('linkedin', captionData).catch(() => null),
   ]);
@@ -1008,16 +1122,7 @@ export async function completeNewsVideo(
   }
 
   if (youtubeCaption) {
-    const fallbackTitle = `UK News: ${videoRecord.headline}`;
-    let ytTitle = fallbackTitle;
-    let ytDescription = youtubeCaption;
-    try {
-      const parsed = JSON.parse(youtubeCaption);
-      if (parsed.title) ytTitle = parsed.title;
-      if (parsed.description) ytDescription = parsed.description;
-    } catch {
-      // fallback already set
-    }
+    let ytTitle = youtubeCaption.title;
     // YouTube API rejects titles >= 100 characters
     if (ytTitle.length >= 100) {
       logger?.warn('YouTube title too long, truncating', {
@@ -1029,7 +1134,7 @@ export async function completeNewsVideo(
     const ytResult = await postShortToYouTube(
       videoUrl,
       ytTitle,
-      ytDescription,
+      youtubeCaption.description,
       logger,
     );
     postingResults.youtube = ytResult;
@@ -1067,7 +1172,7 @@ export async function completeNewsVideo(
     if (youtubeCaption) {
       digestCaptions.push({
         platform: 'youtubeShorts',
-        caption: youtubeCaption,
+        caption: `${youtubeCaption.title}\n\n${youtubeCaption.description}`,
         autoPosted: postingResults.youtube?.success ?? false,
         assetType: 'video',
       });
