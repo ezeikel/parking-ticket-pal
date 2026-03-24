@@ -23,68 +23,74 @@ const getPlatformGuidelines = (platform: string): string => {
   // drivers across all platforms. Semantic keywords matter more.
   const guidelines: Record<string, string> = {
     instagram: `Instagram Reels caption (2026 best practices):
-- Only the first 125 characters show before "See More" — front-load your hook and value prop there
+- Only the first 125 characters show before "See More". Front-load your hook and value prop there
 - Open with a specific, benefit-focused hook (e.g. "New parking rule saves drivers £500+ if you know this one change")
-- Conversational British English — like a trusted motoring expert, NOT corporate tone
-- 2-3 emoji max for functional emphasis (👉 for CTAs, ✅ for steps), not decorative
-- Structure: hook (first 125 chars) → key insight → engagement CTA
-- CTA: specific engagement prompts like "Which parking rule surprised you most?" or "Save this for your next drive" — these drive comments which the algorithm rewards most
+- Conversational British English. Like a trusted motoring expert, NOT corporate tone
+- 2-3 emoji max for functional emphasis, not decorative. Vary your emoji every post
+- NEVER use em dashes (—). Use commas, full stops, or line breaks instead
+- Structure: hook (first 125 chars), key insight, engagement CTA
+- CTA must be relevant to the specific video content. Good CTAs: "Save this for your next drive", "Which part surprised you?", "Follow for more UK parking law". Bad CTAs: asking people to share rare personal experiences
 - HASHTAGS: Max 3-5 (Instagram now caps this). Hashtags are topic verification ONLY, not distribution drivers (confirmed by Adam Mosseri). Use niche terms like #PCN #ParkingAppeals not broad ones like #cars
-- Weave keywords naturally into caption text — Instagram's algorithm uses NLP to categorise content, keywords matter more than hashtags
+- Weave keywords naturally into caption text. Instagram's algorithm uses NLP to categorise content, keywords matter more than hashtags
 - Do NOT use 10+ hashtags (platform penalises this), do NOT write press-release tone`,
 
     facebook: `Facebook Reels caption (2026 best practices):
-- Up to 250 characters — FB's older demographic reads more than Instagram's
+- Up to 250 characters. FB's older demographic reads more than Instagram's
 - Open with a problem-solution hook (e.g. "Avoid this £130 PCN trap that catches thousands of drivers")
-- Clear, direct British English — explain the reasoning, not just the rule. FB audience wants context
-- 2-3 subtle emoji for emphasis only (🅿️⚠️), keep it practical
-- Double line breaks between paragraphs; structure: hook → explanation → CTA
-- CTA: share-focused like "Share with anyone who drives" or "Comment your worst parking story"
+- Clear, direct British English. Explain the reasoning, not just the rule. FB audience wants context
+- 2-3 subtle emoji for emphasis only, keep it practical. Vary your emoji every post
+- NEVER use em dashes (—). Use commas, full stops, or line breaks instead
+- Double line breaks between paragraphs. Structure: hook, explanation, CTA
+- CTA must be relevant to the specific video content. Good CTAs: "Share with anyone who drives", "Save this for later". Bad CTAs: asking people to share rare personal experiences
 - HASHTAGS: 3-5 niche hashtags at end, but these are secondary to keyword-rich caption text. FB algorithm weights engagement signals and keyword relevance over hashtags
-- Include relevant keywords naturally — FB's NLP indexes caption text for search and recommendations
+- Include relevant keywords naturally. FB's NLP indexes caption text for search and recommendations
 - Do NOT overload emoji (feels too youthful for FB), do NOT use identical IG caption`,
 
     tiktok: `TikTok caption (2026 best practices):
 - 50-100 characters for maximum engagement (21% higher than longer captions). For educational content, can extend to 150-250 chars
-- Open with a shocking fact or question (e.g. "£200 fine in 10 seconds? Here's why 👀")
-- Fun, urgent, punchy British English — authentic, not corporate
-- 3-4 energetic emoji in the hook (🔥🚗❌👀)
+- Open with a shocking fact or question that makes people stop scrolling
+- Fun, urgent, punchy British English. Authentic, not corporate
+- 2-3 emoji max, chosen to match the specific topic. Vary your emoji every post. Do NOT default to the same set every time
+- NEVER use em dashes (—). Use commas, full stops, or line breaks instead
 - Single line or minimal breaks; hook + keywords + CTA
-- CTA: engagement-driving like "Comment if this has happened to you" or "Stitch this with your parking story" — questions get 44% more comments
+- CTA must be relevant to the video content and realistic for the audience. Good CTAs: "Save this for later", "Follow for more UK driving law", "Tag someone who needs to see this", "Drop a 🅿️ if you didn't know this". Bad CTAs: asking people to comment about rare personal experiences they almost certainly haven't had
 - HASHTAGS: 3-5 optimal (CapCut/ByteDance confirmed). Use the 3-3 strategy: 2 broad (#UKDriving #ParkingFine) + 3 niche content-specific (#PCNAppeal #ParkingTicketPal). Keywords in caption text are MORE powerful than hashtags for TikTok SEO
-- Include searchable keywords naturally — 40% of young users search TikTok instead of Google
+- Include searchable keywords naturally. 40% of young users search TikTok instead of Google
 - Do NOT use 20+ hashtags (algorithm treats as spam), do NOT write long paragraphs`,
 
-    youtube: `YouTube Shorts — return as JSON with "title" and "description" fields (2026 best practices):
+    youtube: `YouTube Shorts. Return as JSON with "title" and "description" fields (2026 best practices):
 - 70%+ of Shorts traffic now comes from SEARCH, not For You Page. Optimise for search queries
 - CRITICAL: Title MUST be under 100 characters total (including hashtags and spaces). YouTube API rejects titles of 100+ characters. Aim for 60-70 characters to leave room for hashtags
 - Title: keyword-frontloaded (e.g. "How to Challenge a Parking Fine in 2026 | UK Guide")
 - Description: 150-200 characters with keyword appearing twice, plus supporting context
-- Expert, factual British English — informative and authoritative
-- 1-2 emoji max in description (📍⚠️), keep professional
-- CTA: "Comment which parking rule confuses you most" or "Subscribe for more UK driving guides"
+- Expert, factual British English. Informative and authoritative
+- NEVER use em dashes (—) in title or description. Use commas, full stops, or pipes instead
+- 1-2 emoji max in description, keep professional. Vary your emoji every post
+- CTA: "Subscribe for more UK driving law" or "Save this for later"
 - HASHTAGS: Maximum 2, placed ONLY at the END of the title (never in description, never at start of title). Keep title + hashtags under 100 characters total. Use 1 broad + 1 niche (e.g. #UKDriving #PCN)
 - Primary keyword must appear in title AND first line of description AND tags
 - Do NOT put hashtags in description, do NOT exceed 100 characters in the title`,
 
     threads: `Threads post (2026 best practices):
-- 300-500 characters — Threads is text-first, audience expects conversational depth
-- Open with a story starter or hot take (e.g. "Just saw a driver get a £100 PCN for this — and honestly, the council was wrong")
-- Chatty, opinionated British English — like a motoring insider sharing a genuine take, NOT polished brand content
-- 1-2 supportive emoji (🤔⚠️), enhance tone without dominating
+- 300-500 characters. Threads is text-first, audience expects conversational depth
+- Open with a story starter or hot take (e.g. "Just saw a driver get a £100 PCN for this and honestly, the council was wrong")
+- Chatty, opinionated British English. Like a motoring insider sharing a genuine take, NOT polished brand content
+- NEVER use em dashes (—). Use commas, full stops, or line breaks instead
+- 1-2 supportive emoji, enhance tone without dominating. Vary your emoji every post
 - Use paragraph breaks and questions to invite thread replies
-- CTA: genuine discussion prompts like "What's your take on this?" or "Has anyone successfully appealed one of these?" — Threads rewards conversation, not broadcasting
+- CTA must be relevant to the specific content. Good CTAs: "What's your take?", "Thoughts?", "Follow for more UK parking law". Bad CTAs: asking people to share rare personal experiences
 - Use 2-3 topic tags for discoverability, but focus on writing interesting text that invites replies
-- Do NOT copy the Instagram caption — Threads audience expects different, more conversational content. Do NOT use salesy CTAs. Give depth and opinion, not teasers`,
+- Do NOT copy the Instagram caption. Threads audience expects different, more conversational content. Do NOT use salesy CTAs. Give depth and opinion, not teasers`,
 
     linkedin: `LinkedIn video post caption (2026 best practices):
-- First 210 characters show before "See More" — front-load the hook there
+- First 210 characters show before "See More". Front-load the hook there
 - Open with a question, stat, or bold claim (e.g. "Can a council really ignore the tribunal and get away with it?")
-- Professional but accessible British English — expert positioning, insightful, credible
+- Professional but accessible British English. Expert positioning, insightful, credible
+- NEVER use em dashes (—). Use commas, full stops, or line breaks instead
 - Line breaks every 1-2 sentences for scannability
-- 1-2 emoji max, only for functional emphasis (👉 for CTA)
-- CTA: networking-focused like "Has this happened to you?" or "What would you have done in this situation?" — NOT "follow for more". LinkedIn rewards genuine discussion
-- HASHTAGS: Do NOT use hashtags. LinkedIn has deprioritised hashtags entirely in 2026 — they actually SHRINK visibility. Instead, weave relevant keywords naturally into the caption text (e.g. "parking ticket appeal", "penalty charge notice", "council parking fine")
+- 1-2 emoji max, only for functional emphasis
+- CTA must be relevant to the specific content. Good CTAs: "What would you have done?", "Thoughts?", "Has your council done this?". NOT "follow for more". LinkedIn rewards genuine discussion
+- HASHTAGS: Do NOT use hashtags. LinkedIn has deprioritised hashtags entirely in 2026. They actually SHRINK visibility. Instead, weave relevant keywords naturally into the caption text (e.g. "parking ticket appeal", "penalty charge notice", "council parking fine")
 - Keywords in caption text are how LinkedIn's algorithm categorises and surfaces content
 - Do NOT use Instagram tone, do NOT include hashtags, do NOT write corporate press-release language`,
   };
@@ -99,21 +105,40 @@ const generateTribunalCaption = async (
     contravention: string;
     appealDecision: string;
     hook: string;
+    transcript?: string;
+    imageUrls?: string[];
   },
 ): Promise<string> => {
   const platformGuidelines = getPlatformGuidelines(platform);
+  const hasImages = caseData.imageUrls && caseData.imageUrls.length > 0;
 
-  const { text } = await generateText({
-    model: getTracedModel(models.textFast, {
-      properties: { feature: `tribunal_video_caption_${platform}` },
-    }),
-    prompt: `Write a ${platform} caption for a short video about a parking tribunal case.
+  const promptText = `Write a ${platform} caption for a short video about a parking tribunal case.
 
 Case: ${caseData.authority} - ${caseData.contravention}
 Decision: ${caseData.appealDecision === 'ALLOWED' ? 'Appeal won' : 'Appeal lost'}
 Hook: ${caseData.hook}
+${caseData.transcript ? `\nFull video transcript:\n${caseData.transcript}\n\nUse specific details from the transcript to write a more compelling caption. Do not just repeat the hook.` : ''}
+${hasImages ? '\nScene images from the video are attached. Use the visual context to inform the tone and content of the caption.' : ''}
+${platformGuidelines}`;
 
-${platformGuidelines}`,
+  const { text } = await generateText({
+    model: getTracedModel(hasImages ? models.analytics : models.textFast, {
+      properties: { feature: `tribunal_video_caption_${platform}` },
+    }),
+    messages: [
+      {
+        role: 'user',
+        content: [
+          { type: 'text', text: promptText },
+          ...(hasImages
+            ? caseData.imageUrls!.map((url) => ({
+                type: 'image' as const,
+                image: new URL(url),
+              }))
+            : []),
+        ],
+      },
+    ],
   });
 
   return text;
@@ -126,22 +151,41 @@ const generateNewsCaption = async (
     source: string;
     category: string;
     hook: string;
+    transcript?: string;
+    imageUrls?: string[];
   },
 ): Promise<string> => {
   const platformGuidelines = getPlatformGuidelines(platform);
+  const hasImages = article.imageUrls && article.imageUrls.length > 0;
 
-  const { text } = await generateText({
-    model: getTracedModel(models.textFast, {
-      properties: { feature: `news_video_caption_${platform}` },
-    }),
-    prompt: `Write a ${platform} caption for a short video about a UK motorist news story.
+  const promptText = `Write a ${platform} caption for a short video about a UK motorist news story.
 
 Story: ${article.headline}
 Source: ${article.source}
 Category: ${article.category}
 Hook: ${article.hook}
+${article.transcript ? `\nFull video transcript:\n${article.transcript}\n\nUse specific details from the transcript to write a more compelling caption. Do not just repeat the hook.` : ''}
+${hasImages ? '\nScene images from the video are attached. Use the visual context to inform the tone and content of the caption.' : ''}
+${platformGuidelines}`;
 
-${platformGuidelines}`,
+  const { text } = await generateText({
+    model: getTracedModel(hasImages ? models.analytics : models.textFast, {
+      properties: { feature: `news_video_caption_${platform}` },
+    }),
+    messages: [
+      {
+        role: 'user',
+        content: [
+          { type: 'text', text: promptText },
+          ...(hasImages
+            ? article.imageUrls!.map((url) => ({
+                type: 'image' as const,
+                image: new URL(url),
+              }))
+            : []),
+        ],
+      },
+    ],
   });
 
   return text;
@@ -612,12 +656,21 @@ export async function completeTribunalVideo(
     coverImageUrl,
   });
 
-  // Generate captions
+  // Generate captions — pass transcript + scene images for richer context
+  const sceneImages = (videoRecord.sceneImages as string[] | null) || [];
+  // Limit to 3 images to keep costs reasonable (cover + 2 key scenes)
+  const captionImageUrls = [
+    ...(coverImageUrl ? [coverImageUrl] : []),
+    ...sceneImages.slice(0, 2),
+  ];
+
   const caseData = {
     authority: videoRecord.case.authority,
     contravention: videoRecord.case.contravention || 'Parking contravention',
     appealDecision: videoRecord.case.appealDecision,
     hook: scriptSegments?.hook || '',
+    transcript: videoRecord.script,
+    imageUrls: captionImageUrls.length > 0 ? captionImageUrls : undefined,
   };
 
   const [
@@ -878,12 +931,21 @@ export async function completeNewsVideo(
     coverImageUrl,
   });
 
-  // Generate captions
+  // Generate captions — pass transcript + scene images for richer context
+  const newsSceneImages = (videoRecord.sceneImages as string[] | null) || [];
+  const newsCaptionImageUrls = [
+    ...(coverImageUrl ? [coverImageUrl] : []),
+    ...newsSceneImages.slice(0, 2),
+  ];
+
   const captionData = {
     headline: videoRecord.headline,
     source: videoRecord.source,
     category: videoRecord.category,
     hook: scriptSegments?.hook || '',
+    transcript: videoRecord.script,
+    imageUrls:
+      newsCaptionImageUrls.length > 0 ? newsCaptionImageUrls : undefined,
   };
 
   const [

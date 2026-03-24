@@ -566,8 +566,10 @@ Generate a social media post for {{PLATFORM}} promoting the blog post above.
 - Use appropriate character limits and formatting for {{PLATFORM}}
 - Include relevant hashtags (UK parking related)
 - Make it engaging and shareable
-- Include a clear call-to-action
+- Include a clear call-to-action that is relevant to the content
 - Match the platform's tone (professional for LinkedIn, casual for Twitter/X)
+- NEVER use em dashes. Use commas, full stops, or line breaks instead
+- Vary your emoji choices. Do not default to the same set every post
 </constraints>
 
 <output_format>

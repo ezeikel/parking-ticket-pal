@@ -404,10 +404,13 @@ const generateTikTokCaption = async (post: Post): Promise<string> => {
 Create a caption that:
 - Is SHORT (under 150 characters visible without tapping "more")
 - Starts with a strong hook/question
-- Uses casual, Gen-Z friendly tone
-- Includes 8-10 relevant hashtags
+- Uses casual, punchy British English. Authentic, not corporate
+- Includes 3-5 relevant hashtags (2 broad like #UKDriving #ParkingFine + 2-3 niche)
 - NO links (not clickable on TikTok)
 - Uses UK terminology
+- NEVER use em dashes. Use commas, full stops, or line breaks instead
+- 2-3 emoji max, chosen to match the specific topic. Vary your emoji, do NOT default to the same set every time
+- CTA must be relevant to the content. Good CTAs: "Save this for later", "Follow for more UK driving law", "Tag someone who needs this". Bad CTAs: asking people to comment about rare personal experiences
 
 Title: ${post.meta.title}
 Summary: ${post.meta.summary}`;
