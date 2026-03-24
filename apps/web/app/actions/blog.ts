@@ -138,8 +138,14 @@ const generateSlug = (title: string): string =>
 /**
  * Generate blog post metadata using AI structured outputs
  */
-const generateBlogMeta = async (topic: string): Promise<BlogPostMeta> => {
-  const prompt = BLOG_META_PROMPT.replace('{{TOPIC}}', topic);
+const generateBlogMeta = async (
+  topic: string,
+  existingPosts: string[] = [],
+): Promise<BlogPostMeta> => {
+  const prompt = BLOG_META_PROMPT.replace('{{TOPIC}}', topic).replace(
+    '{{EXISTING_POSTS}}',
+    existingPosts.length > 0 ? existingPosts.join(', ') : 'None yet',
+  );
 
   const { output: meta } = await generateText({
     model: getTracedModel(models.text, {
@@ -811,11 +817,14 @@ export const generateBlogPostForTopic = async (
   try {
     logger.info('Generating blog post for topic', { topic });
 
-    // 1. Generate metadata
-    const meta = await generateBlogMeta(topic);
+    // 1. Get existing posts for dedup (used in meta prompt + content prompt)
+    const coveredTopics = await getCoveredTopics();
+
+    // 2. Generate metadata (pass existing posts so AI avoids duplicate topics)
+    const meta = await generateBlogMeta(topic, coveredTopics);
     logger.info('Generated metadata', { title: meta.title, slug: meta.slug });
 
-    // 2. Check if post with this slug exists
+    // 3. Check if post with this exact slug exists
     const existingPost = await writeClient.fetch(
       `*[_type == "post" && slug.current == $slug][0]._id`,
       { slug: meta.slug },
@@ -824,9 +833,6 @@ export const generateBlogPostForTopic = async (
     if (existingPost) {
       throw new Error(`Post with slug "${meta.slug}" already exists`);
     }
-
-    // 3. Get existing posts to avoid duplication
-    const coveredTopics = await getCoveredTopics();
 
     // 4. Generate content
     logger.info('Generating content', { title: meta.title });

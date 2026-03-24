@@ -239,11 +239,15 @@ Return a JSON object with:
   "category": "one of: pcn-codes, appeals, private-parking, council-parking, enforcement, drivers-rights, payment-options, legal-advice"
 }
 
+Existing posts (DO NOT create titles that cover the same topic as any of these):
+{{EXISTING_POSTS}}
+
 Guidelines:
 - Focus on UK-specific terminology and laws
 - Make titles compelling and click-worthy
 - Include the main keyword naturally
-- Create slugs that are URL-friendly and descriptive`;
+- Create slugs that are URL-friendly and descriptive
+- CRITICAL: Check the existing posts list above. If a post already covers this topic, generate a substantially different angle or refuse`;
 
 export const BLOG_CONTENT_PROMPT = `You are a professional content writer specialising in UK parking and traffic law.
 
