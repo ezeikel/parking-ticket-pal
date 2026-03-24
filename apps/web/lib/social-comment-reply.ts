@@ -30,6 +30,36 @@ type ReplyResult = {
 };
 
 // ============================================================================
+// Post context builder
+// ============================================================================
+
+function buildPostContext({
+  postCaption,
+  postTranscript,
+  visualContext,
+}: {
+  postCaption: string | null;
+  postTranscript?: string | null;
+  visualContext?: string | null;
+}): string {
+  const parts: string[] = [`Post caption: ${postCaption || '(not available)'}`];
+
+  if (postTranscript) {
+    parts.push(
+      `Full voiceover transcript (what was said in the video):\n${postTranscript}`,
+    );
+  }
+
+  if (visualContext) {
+    parts.push(
+      `VISUAL NOTE: This is a video reel with AI-generated clay diorama illustrations. The visuals are illustrative and may not perfectly match every detail of the voiceover narrative. If a commenter points out the visuals don't match the story, acknowledge it honestly rather than arguing about what the visual shows. Never claim the visual shows something it doesn't.\n${visualContext}`,
+    );
+  }
+
+  return parts.join('\n\n');
+}
+
+// ============================================================================
 // Classification
 // ============================================================================
 
@@ -52,7 +82,17 @@ const classifySchema = z.object({
 export async function classifyComment(
   commentText: string,
   postCaption: string | null,
+  postContext?: {
+    postTranscript?: string | null;
+    visualContext?: string | null;
+  },
 ): Promise<ClassifyResult> {
+  const contextBlock = buildPostContext({
+    postCaption,
+    postTranscript: postContext?.postTranscript,
+    visualContext: postContext?.visualContext,
+  });
+
   const { object } = await generateObject({
     model: getTracedModel(models.analytics, {
       properties: { feature: 'social_comment_classify' },
@@ -60,7 +100,7 @@ export async function classifyComment(
     schema: classifySchema,
     prompt: `Classify this social media comment on a UK parking law content account.
 
-Post caption: ${postCaption || '(not available)'}
+${contextBlock}
 
 Comment: "${commentText}"
 
@@ -140,6 +180,8 @@ async function classifyThreadReply(
   commentText: string,
   ourPreviousReply: string,
   postCaption: string | null,
+  postTranscript?: string | null,
+  visualContext?: string | null,
 ): Promise<{
   action: 'LIKE_ONLY' | 'REPLY';
   commentType: CommentType;
@@ -152,7 +194,7 @@ async function classifyThreadReply(
     schema: threadClassifySchema,
     prompt: `This is a follow-up reply to one of our previous comments on a UK parking law post. We already engaged with this person once. Decide whether to just like their reply or respond with a text reply.
 
-Post caption: ${postCaption || '(not available)'}
+${buildPostContext({ postCaption, postTranscript, visualContext })}
 Our previous reply: "${ourPreviousReply}"
 Their follow-up: "${commentText}"
 
@@ -178,23 +220,34 @@ Choose LIKE_ONLY for: "thanks", "ok", "makes sense", general agreement, emojis, 
 export async function generateCommentReply({
   commentText,
   postCaption,
+  postTranscript,
+  visualContext,
   platform,
   threadContext,
 }: {
   commentText: string;
   postCaption: string | null;
+  postTranscript?: string | null;
+  visualContext?: string | null;
   platform: 'INSTAGRAM' | 'FACEBOOK';
   threadContext?: {
     isThreadReply: boolean;
     ourPreviousReply: string | null;
   };
 }): Promise<ReplyResult> {
+  const contextBlock = buildPostContext({
+    postCaption,
+    postTranscript,
+    visualContext,
+  });
   // Thread replies: classify with like-only bias
   if (threadContext?.isThreadReply && threadContext.ourPreviousReply) {
     const threadClassification = await classifyThreadReply(
       commentText,
       threadContext.ourPreviousReply,
       postCaption,
+      postTranscript,
+      visualContext,
     );
 
     if (threadClassification.action === 'LIKE_ONLY') {
@@ -215,7 +268,7 @@ export async function generateCommentReply({
       system: BRAND_VOICE,
       prompt: `Write a brief follow-up reply on ${platform.toLowerCase()}. This is a continued conversation — we already replied once so keep it SHORT (one sentence max). Don't repeat what you already said.
 
-Post caption: ${postCaption || '(not available)'}
+${contextBlock}
 Our previous reply: "${threadContext.ourPreviousReply}"
 Their follow-up: "${commentText}"
 
@@ -245,7 +298,10 @@ Reply with ONLY the reply text. If you can't add value, reply with exactly "SKIP
 
   // Standard top-level comment flow
   // Step 1: Classify
-  const classification = await classifyComment(commentText, postCaption);
+  const classification = await classifyComment(commentText, postCaption, {
+    postTranscript,
+    visualContext,
+  });
 
   if (!classification.shouldReply) {
     return {
@@ -282,7 +338,7 @@ Our post is ${factCheckResult.isOriginalPostCorrect ? 'correct' : 'INCORRECT —
 Comment type: ${classification.commentType}
 Guidance for this type: ${typeGuidance}
 
-Our post caption: ${postCaption || '(not available)'}
+${contextBlock}
 
 Their comment: "${commentText}"${factCheckContext}
 

@@ -66,6 +66,8 @@ async function processComments(request: Request) {
           const result = await generateCommentReply({
             commentText: comment.commentText,
             postCaption: comment.postCaption,
+            postTranscript: comment.postTranscript,
+            visualContext: comment.visualContext,
             platform: comment.platform,
             threadContext: comment.isThreadReply
               ? {

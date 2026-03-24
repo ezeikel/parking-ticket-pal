@@ -3,6 +3,7 @@ import { NextResponse } from 'next/server';
 import { db } from '@parking-ticket-pal/db';
 import { createServerLogger } from '@/lib/logger';
 import { fetchFacebookPostMessage } from '@/lib/instagram-automation';
+import { getVideoContextForPost } from '@/lib/social-video-context';
 
 export const maxDuration = 120;
 
@@ -136,6 +137,10 @@ async function catchUpComments(request: Request) {
     let scannedComments = 0;
     let queued = 0;
     const captionCache = new Map<string, string | null>();
+    const videoContextCache = new Map<
+      string,
+      { transcript: string | null; visualContext: string | null }
+    >();
 
     for (const post of posts) {
       const comments = await fetchPostComments(post.id);
@@ -165,6 +170,17 @@ async function catchUpComments(request: Request) {
           }
           const caption = captionCache.get(post.id) ?? null;
 
+          if (!videoContextCache.has(post.id)) {
+            videoContextCache.set(
+              post.id,
+              await getVideoContextForPost(post.id).catch(() => ({
+                transcript: null,
+                visualContext: null,
+              })),
+            );
+          }
+          const videoContext = videoContextCache.get(post.id)!;
+
           await db.socialCommentQueue.create({
             data: {
               platform: 'FACEBOOK',
@@ -174,6 +190,8 @@ async function catchUpComments(request: Request) {
               authorUsername: comment.from.name || null,
               commentText: message,
               postCaption: caption,
+              postTranscript: videoContext.transcript,
+              visualContext: videoContext.visualContext,
               processAfter,
             },
           });

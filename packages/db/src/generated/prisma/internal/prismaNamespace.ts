@@ -4004,6 +4004,8 @@ export const SocialCommentQueueScalarFieldEnum = {
   authorUsername: 'authorUsername',
   commentText: 'commentText',
   postCaption: 'postCaption',
+  postTranscript: 'postTranscript',
+  visualContext: 'visualContext',
   isThreadReply: 'isThreadReply',
   parentCommentId: 'parentCommentId',
   parentCommentText: 'parentCommentText',

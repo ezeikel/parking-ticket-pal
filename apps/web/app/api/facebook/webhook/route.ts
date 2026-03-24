@@ -8,6 +8,7 @@ import {
   fetchFacebookPostMessage,
   fetchFacebookCommentDetails,
 } from '@/lib/instagram-automation';
+import { getVideoContextForPost } from '@/lib/social-video-context';
 
 const log = createServerLogger({ action: 'facebook-webhook' });
 
@@ -56,6 +57,12 @@ async function queueCommentForReply({
     : (120 + Math.random() * 180) * 1000;
   const processAfter = new Date(Date.now() + delayMs);
 
+  // Look up transcript + visual context from the originating video
+  const videoContext = await getVideoContextForPost(postId).catch(() => ({
+    transcript: null,
+    visualContext: null,
+  }));
+
   try {
     await db.socialCommentQueue.create({
       data: {
@@ -66,6 +73,8 @@ async function queueCommentForReply({
         authorUsername,
         commentText,
         postCaption,
+        postTranscript: videoContext.transcript,
+        visualContext: videoContext.visualContext,
         isThreadReply,
         parentCommentId: parentCommentId || null,
         parentCommentText: parentCommentText || null,

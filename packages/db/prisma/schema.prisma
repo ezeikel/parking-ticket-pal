@@ -1108,6 +1108,8 @@ model SocialCommentQueue {
   authorUsername String?
   commentText    String
   postCaption    String?
+  postTranscript String?        @db.Text
+  visualContext  String?        @db.Text
 
   isThreadReply     Boolean @default(false)
   parentCommentId   String?
