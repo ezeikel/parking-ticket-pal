@@ -18,7 +18,8 @@
     "schedule": ["before 5am on the first day of the month"],
     "automerge": true
   },
-  "npmrc": "//npm.fontawesome.com/:_authToken=${FONTAWESOME_NPM_AUTH_TOKEN}",
+  "npmrc": "//npm.fontawesome.com/:_authToken=${FONTAWESOME_NPM_AUTH_TOKEN}\nnode-linker=hoisted\nshamefully-hoist=true\npublic-hoist-pattern=*",
+  "npmrcMerge": false,
   "ignoreDeps": [
     "expo",
     "expo-router",
