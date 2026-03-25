@@ -1,0 +1,47 @@
+name: AI Dependency Review
+
+on:
+  pull_request:
+    types: [opened, synchronize]
+
+jobs:
+  ai-review:
+    # Only run on Renovate PRs
+    if: startsWith(github.head_ref, 'renovate/')
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      pull-requests: write
+
+    steps:
+      - name: Checkout PR branch
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install script dependencies
+        run: npm install --no-save @anthropic-ai/sdk tsx
+
+      - name: Get package.json diff
+        id: diff
+        run: |
+          git diff origin/main...HEAD -- '**/package.json' > /tmp/pkg-diff.txt
+          echo "has_diff=true" >> $GITHUB_OUTPUT
+
+      - name: Run AI assessment
+        if: steps.diff.outputs.has_diff == 'true'
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: npx tsx .github/scripts/ai-dependency-review.ts --diff-file=/tmp/pkg-diff.txt --pr-title="${{ github.event.pull_request.title }}"
+
+      - name: Post review comment
+        if: steps.diff.outputs.has_diff == 'true'
+        uses: marocchino/sticky-pull-request-comment@v2
+        with:
+          header: ai-dependency-review
+          path: /tmp/ai-review-comment.md
