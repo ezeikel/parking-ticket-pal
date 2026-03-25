@@ -18,8 +18,8 @@ jobs:
         with:
           configurationFile: renovate.json
           token: ${{ secrets.RENOVATE_TOKEN }}
+          env-regex: "^(?:RENOVATE_|FONTAWESOME_|LOG_LEVEL).*"
         env:
           RENOVATE_REPOSITORIES: ${{ github.repository }}
-          RENOVATE_HOST_RULES: '[{"matchHost": "npm.fontawesome.com", "hostType": "npm", "token": "${{ secrets.FONTAWESOME_NPM_AUTH_TOKEN }}"}]'
           FONTAWESOME_NPM_AUTH_TOKEN: ${{ secrets.FONTAWESOME_NPM_AUTH_TOKEN }}
           LOG_LEVEL: info
