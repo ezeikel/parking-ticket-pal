@@ -390,10 +390,11 @@ export type TicketOrderByWithRelationInput = {
 
 export type TicketWhereUniqueInput = Prisma.AtLeast<{
   id?: string
-  pcnNumber?: string
+  pcnNumber_vehicleId?: Prisma.TicketPcnNumberVehicleIdCompoundUniqueInput
   AND?: Prisma.TicketWhereInput | Prisma.TicketWhereInput[]
   OR?: Prisma.TicketWhereInput[]
   NOT?: Prisma.TicketWhereInput | Prisma.TicketWhereInput[]
+  pcnNumber?: Prisma.StringFilter<"Ticket"> | string
   contraventionCode?: Prisma.StringNullableFilter<"Ticket"> | string | null
   location?: Prisma.JsonNullableFilter<"Ticket">
   extractedText?: Prisma.StringFilter<"Ticket"> | string
@@ -424,7 +425,7 @@ export type TicketWhereUniqueInput = Prisma.AtLeast<{
   vehicle?: Prisma.XOR<Prisma.VehicleScalarRelationFilter, Prisma.VehicleWhereInput>
   verification?: Prisma.XOR<Prisma.VerificationNullableScalarRelationFilter, Prisma.VerificationWhereInput> | null
   onboardingSequences?: Prisma.OnboardingSequenceListRelationFilter
-}, "id" | "pcnNumber">
+}, "id" | "pcnNumber_vehicleId">
 
 export type TicketOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
@@ -697,6 +698,11 @@ export type TicketListRelationFilter = {
 
 export type TicketOrderByRelationAggregateInput = {
   _count?: Prisma.SortOrder
+}
+
+export type TicketPcnNumberVehicleIdCompoundUniqueInput = {
+  pcnNumber: string
+  vehicleId: string
 }
 
 export type TicketCountOrderByAggregateInput = {

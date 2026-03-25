@@ -14,6 +14,7 @@ import { Gesture, GestureDetector, GestureHandlerRootView } from 'react-native-g
 import { router } from 'expo-router';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { faTicket } from '@fortawesome/pro-solid-svg-icons';
+import { useQueryClient } from '@tanstack/react-query';
 import Scanner from '@/components/Scanner/Scanner';
 import TicketWizard from '@/components/TicketWizard/TicketWizard';
 import LetterFlow from '@/components/LetterFlow/LetterFlow';
@@ -57,6 +58,7 @@ const CameraSheet = ({ isVisible, onClose, onboardingMode, onOCRComplete }: Came
   } = useCameraContext();
   const { user } = useAuthContext();
   const { trackEvent } = useAnalytics();
+  const queryClient = useQueryClient();
 
   // Internal phase state for non-onboarding flow
   const [phase, setPhase] = useState<CameraSheetPhase>('scanning');
@@ -204,6 +206,10 @@ const CameraSheet = ({ isVisible, onClose, onboardingMode, onOCRComplete }: Came
   }, []);
 
   const handleLetterComplete = useCallback((ticketId: string, isNewTicket: boolean) => {
+    // Invalidate ticket list so the new/updated ticket appears
+    queryClient.invalidateQueries({ queryKey: ['tickets'] });
+    queryClient.invalidateQueries({ queryKey: ['ticket', ticketId] });
+
     if (isNewTicket) {
       (async () => {
         await adService.showAd(user?.lastPremiumPurchaseAt);
@@ -214,7 +220,7 @@ const CameraSheet = ({ isVisible, onClose, onboardingMode, onOCRComplete }: Came
       handleClose();
       router.push(`/ticket/${ticketId}`);
     }
-  }, [handleClose, user?.lastPremiumPurchaseAt]);
+  }, [handleClose, user?.lastPremiumPurchaseAt, queryClient]);
 
   const handleLetterCancel = useCallback(() => {
     setOcrData(null);

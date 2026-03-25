@@ -93,7 +93,7 @@ model Vehicle {
 
 model Ticket {
   id                String  @id @default(cuid())
-  pcnNumber         String  @unique
+  pcnNumber         String
   contraventionCode String?
   location          Json?
   // example address:
@@ -139,6 +139,7 @@ model Ticket {
 
   onboardingSequences OnboardingSequence[]
 
+  @@unique([pcnNumber, vehicleId])
   @@map("tickets")
 }
 

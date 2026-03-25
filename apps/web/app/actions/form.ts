@@ -217,8 +217,8 @@ export const getFormFillDataFromTicket = async (
   userId?: string,
 ): Promise<PdfFormFields | null> => {
   try {
-    const ticket = await db.ticket.findUnique({
-      where: { pcnNumber },
+    const ticket = await db.ticket.findFirst({
+      where: { pcnNumber, ...(userId ? { vehicle: { userId } } : {}) },
       include: {
         vehicle: {
           include: {

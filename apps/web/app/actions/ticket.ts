@@ -1033,10 +1033,13 @@ export const getTicketByPcnNumber = async (pcnNumber: string) => {
 };
 
 export const verifyTicket = async (pcnNumber: string, ticketId?: string) => {
+  const userId = await getUserId('verify a ticket');
   try {
-    // Get ticket details for verification
+    // Get ticket details for verification, scoped to current user when looking up by PCN
     const ticket = await db.ticket.findFirst({
-      where: ticketId ? { id: ticketId } : { pcnNumber },
+      where: ticketId
+        ? { id: ticketId }
+        : { pcnNumber, vehicle: { userId: userId || undefined } },
       include: {
         vehicle: true,
       },
@@ -1119,11 +1122,12 @@ export const challengeTicket = async (
   challengeReason: string,
   additionalDetails?: string,
 ) => {
+  const userId = await getUserId('challenge a ticket');
   let ticket: any = null;
   try {
-    // Get the ticket with user details
-    ticket = await db.ticket.findUnique({
-      where: { pcnNumber },
+    // Get the ticket with user details, scoped to current user
+    ticket = await db.ticket.findFirst({
+      where: { pcnNumber, vehicle: { userId: userId || undefined } },
       include: {
         vehicle: {
           include: {

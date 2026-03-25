@@ -79,10 +79,51 @@ export const createLetter = async (
         },
       };
 
-  // Find or create the ticket associated with this PCN number
+  // Find or create the vehicle for the current user
+  const vehicle = await db.vehicle.upsert({
+    where: {
+      registrationNumber_userId: {
+        registrationNumber: validatedData.vehicleReg,
+        userId,
+      },
+    },
+    create: {
+      registrationNumber: validatedData.vehicleReg,
+      make: vehicleInfo.make,
+      model: vehicleInfo.model,
+      year: vehicleInfo.year,
+      bodyType: vehicleInfo.bodyType,
+      fuelType: vehicleInfo.fuelType,
+      color: vehicleInfo.color,
+      user: {
+        connect: {
+          id: userId,
+        },
+      },
+      verification:
+        vehicleInfo.verification.status === 'VERIFIED'
+          ? {
+              create: {
+                type: VerificationType.VEHICLE,
+                status: VerificationStatus.VERIFIED,
+                verifiedAt: new Date(),
+                metadata:
+                  (vehicleInfo.verification.metadata as Prisma.JsonValue) ||
+                  undefined,
+              },
+            }
+          : undefined,
+    },
+    update: {},
+  });
+
+  // Find or create the ticket for this user's vehicle + PCN
   const ticket = await db.ticket.upsert({
     where: {
-      pcnNumber: validatedData.pcnNumber,
+      pcnNumber_vehicleId: {
+        pcnNumber: validatedData.pcnNumber,
+        vehicleId: vehicle.id,
+      },
     },
     create: {
       pcnNumber: validatedData.pcnNumber,
@@ -96,43 +137,7 @@ export const createLetter = async (
       issuer: validatedData.issuer || 'Unknown',
       issuerType: resolvedIssuerType,
       extractedText: '',
-      vehicle: {
-        connectOrCreate: {
-          where: {
-            registrationNumber_userId: {
-              registrationNumber: validatedData.vehicleReg,
-              userId,
-            },
-          },
-          create: {
-            registrationNumber: validatedData.vehicleReg,
-            make: vehicleInfo.make,
-            model: vehicleInfo.model,
-            year: vehicleInfo.year,
-            bodyType: vehicleInfo.bodyType,
-            fuelType: vehicleInfo.fuelType,
-            color: vehicleInfo.color,
-            user: {
-              connect: {
-                id: userId,
-              },
-            },
-            verification:
-              vehicleInfo.verification.status === 'VERIFIED'
-                ? {
-                    create: {
-                      type: VerificationType.VEHICLE,
-                      status: VerificationStatus.VERIFIED,
-                      verifiedAt: new Date(),
-                      metadata:
-                        (vehicleInfo.verification
-                          .metadata as Prisma.JsonValue) || undefined,
-                    },
-                  }
-                : undefined,
-          },
-        },
-      },
+      vehicleId: vehicle.id,
     },
     update: {},
     select: {
@@ -350,10 +355,12 @@ export const getLetter = async (letterId: string) => {
  * Get all letters for a ticket by PCN number
  */
 export const getLettersByPcnNumber = async (pcnNumber: string) => {
+  const userId = await getUserId('get letters by PCN');
+
   try {
-    // First get the ticket
-    const ticket = await db.ticket.findUnique({
-      where: { pcnNumber },
+    // First get the ticket for the current user
+    const ticket = await db.ticket.findFirst({
+      where: { pcnNumber, vehicle: { userId: userId || undefined } },
     });
 
     if (!ticket) {
@@ -402,11 +409,15 @@ export const updateLetter = async (
       throw new Error(`Letter with ID ${letterId} not found`);
     }
 
-    // If pcnNumber is being updated, verify the new ticket exists
+    // If pcnNumber is being updated, verify the new ticket exists for this user
+    const userId = await getUserId('update a letter');
     let { ticketId } = existingLetter;
     if (validatedData.pcnNumber) {
-      const newTicket = await db.ticket.findUnique({
-        where: { pcnNumber: validatedData.pcnNumber },
+      const newTicket = await db.ticket.findFirst({
+        where: {
+          pcnNumber: validatedData.pcnNumber,
+          vehicle: { userId: userId || undefined },
+        },
       });
 
       if (!newTicket) {
@@ -783,9 +794,9 @@ export const generateChallengeLetterByPcn = async (
   userId: string,
   additionalDetails?: string,
 ) => {
-  // First, get the ticket by PCN number
-  const ticketLookup = await db.ticket.findUnique({
-    where: { pcnNumber },
+  // First, get the ticket by PCN number for this user
+  const ticketLookup = await db.ticket.findFirst({
+    where: { pcnNumber, vehicle: { userId } },
     select: {
       id: true,
       vehicle: {
