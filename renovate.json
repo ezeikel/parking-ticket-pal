@@ -162,7 +162,7 @@
     },
     {
       "description": "FontAwesome — disabled, private registry incompatible with Renovate lookups",
-      "matchPackageNames": ["@fortawesome/**"],
+      "matchPackagePatterns": ["^@fortawesome/"],
       "enabled": false
     },
     {
