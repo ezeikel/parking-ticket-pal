@@ -161,10 +161,9 @@
       "labels": ["dependencies", "database"]
     },
     {
-      "description": "FontAwesome — group together",
+      "description": "FontAwesome — disabled, private registry incompatible with Renovate lookups",
       "matchPackageNames": ["@fortawesome/**"],
-      "groupName": "fontawesome",
-      "automerge": false
+      "enabled": false
     },
     {
       "description": "Radix UI — group together, automerge",
