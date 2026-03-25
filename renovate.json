@@ -97,7 +97,7 @@
       "matchUpdateTypes": ["minor"],
       "groupName": "minor-web",
       "automerge": false,
-      "schedule": ["before 7am on the first and fifteenth day of the month"]
+      "schedule": ["before 7am on the 1st and 15th day of the month"]
     },
     {
       "description": "Minor updates for mobile app",
@@ -105,7 +105,7 @@
       "matchUpdateTypes": ["minor"],
       "groupName": "minor-mobile",
       "automerge": false,
-      "schedule": ["before 7am on the first and fifteenth day of the month"],
+      "schedule": ["before 7am on the 1st and 15th day of the month"],
       "labels": ["dependencies", "mobile", "needs-native-test"]
     },
     {
@@ -114,7 +114,7 @@
       "matchUpdateTypes": ["minor"],
       "groupName": "minor-shared",
       "automerge": false,
-      "schedule": ["before 7am on the first and fifteenth day of the month"]
+      "schedule": ["before 7am on the 1st and 15th day of the month"]
     },
     {
       "description": "Major updates — individual PRs, monthly",

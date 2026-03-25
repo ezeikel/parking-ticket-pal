@@ -19,5 +19,6 @@ jobs:
           configurationFile: renovate.json
           token: ${{ secrets.RENOVATE_TOKEN }}
         env:
+          RENOVATE_REPOSITORIES: ${{ github.repository }}
           FONTAWESOME_NPM_AUTH_TOKEN: ${{ secrets.FONTAWESOME_NPM_AUTH_TOKEN }}
           LOG_LEVEL: info
