@@ -63,16 +63,7 @@
     "react-native-css",
     "next-auth",
     "jest-expo",
-    "eslint-config-expo",
-    "@fortawesome/fontawesome-svg-core",
-    "@fortawesome/free-solid-svg-icons",
-    "@fortawesome/free-brands-svg-icons",
-    "@fortawesome/pro-light-svg-icons",
-    "@fortawesome/pro-regular-svg-icons",
-    "@fortawesome/pro-solid-svg-icons",
-    "@fortawesome/pro-duotone-svg-icons",
-    "@fortawesome/react-fontawesome",
-    "@fortawesome/react-native-fontawesome"
+    "eslint-config-expo"
   ],
   "packageRules": [
     {
@@ -161,9 +152,27 @@
       "labels": ["dependencies", "database"]
     },
     {
-      "description": "FontAwesome — disabled, private registry incompatible with Renovate lookups",
-      "matchPackagePatterns": ["^@fortawesome/"],
-      "enabled": false
+      "description": "FontAwesome free packages — look up from public npmjs.org",
+      "matchPackageNames": [
+        "@fortawesome/fontawesome-svg-core",
+        "@fortawesome/free-solid-svg-icons",
+        "@fortawesome/free-brands-svg-icons",
+        "@fortawesome/react-fontawesome",
+        "@fortawesome/react-native-fontawesome"
+      ],
+      "registryUrls": ["https://registry.npmjs.org"],
+      "groupName": "fontawesome-free"
+    },
+    {
+      "description": "FontAwesome Pro packages — look up from private registry",
+      "matchPackageNames": [
+        "@fortawesome/pro-light-svg-icons",
+        "@fortawesome/pro-regular-svg-icons",
+        "@fortawesome/pro-solid-svg-icons",
+        "@fortawesome/pro-duotone-svg-icons"
+      ],
+      "registryUrls": ["https://npm.fontawesome.com"],
+      "groupName": "fontawesome-pro"
     },
     {
       "description": "Radix UI — group together, automerge",
