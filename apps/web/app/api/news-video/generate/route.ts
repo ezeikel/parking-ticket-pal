@@ -20,9 +20,24 @@ const handleRequest = async (request: NextRequest) => {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
+    // Support forcing a specific article via query params or POST body
+    let forceArticle: Parameters<typeof generateAndPostNewsVideo>[0];
+    const url = request.nextUrl.searchParams.get('url');
+    if (url) {
+      log.info('Forcing specific article URL', { url });
+      forceArticle = {
+        url,
+        source: request.nextUrl.searchParams.get('source') || 'Manual',
+        headline: request.nextUrl.searchParams.get('headline') || '',
+        category: request.nextUrl.searchParams.get('category') || 'TRAFFIC',
+        summary: request.nextUrl.searchParams.get('summary') || '',
+        interestScore: 1,
+      };
+    }
+
     log.info('Starting news video generation pipeline');
 
-    const result = await generateAndPostNewsVideo();
+    const result = await generateAndPostNewsVideo(forceArticle);
 
     if ('skipped' in result && result.skipped) {
       log.info('No new articles found, skipped');

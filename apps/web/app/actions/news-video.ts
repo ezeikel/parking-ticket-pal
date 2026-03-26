@@ -13,6 +13,248 @@ import { getRandomMusicTrack, getRandomSfx } from '@/lib/music';
 
 const logger = createServerLogger({ action: 'news-video' });
 
+// ============================================================================
+// RSS Feed Configuration
+// ============================================================================
+
+/** Keywords that indicate an article is relevant to UK motorists/parking */
+const RSS_KEYWORDS = [
+  'parking',
+  'car park',
+  'pcn',
+  'penalty charge',
+  'speed camera',
+  'speeding',
+  'driving law',
+  'highway code',
+  'motoring',
+  'congestion charge',
+  'ulez',
+  'clean air zone',
+  'traffic warden',
+  'clamping',
+  'towing',
+  'ncp',
+  'apcoa',
+  'euro car parks',
+  'fuel price',
+  'petrol',
+  'diesel',
+  'electric vehicle',
+  'ev charging',
+  'road safety',
+  'dvla',
+  'mot test',
+  'car insurance',
+  'road tax',
+  'traffic fine',
+  'bus lane',
+  'yellow line',
+  'council parking',
+  'private parking',
+  'parking fine',
+  'parking ticket',
+  'driving licence',
+  'speed limit',
+  'traffic enforcement',
+  'road closure',
+  'transport for london',
+  'tfl',
+];
+
+/**
+ * RSS feeds grouped by type:
+ * - "motoring" feeds are topic-specific, every article is relevant
+ * - "general" feeds are broad UK news, need keyword filtering
+ */
+const RSS_FEEDS: {
+  url: string;
+  source: string;
+  type: 'motoring' | 'general';
+}[] = [
+  // Motoring-specific feeds (all articles relevant)
+  {
+    url: 'https://www.theguardian.com/uk/transport/rss',
+    source: 'The Guardian',
+    type: 'motoring',
+  },
+  {
+    url: 'https://www.theguardian.com/technology/motoring/rss',
+    source: 'The Guardian',
+    type: 'motoring',
+  },
+  {
+    url: 'https://www.independent.co.uk/life-style/motoring/rss',
+    source: 'The Independent',
+    type: 'motoring',
+  },
+  {
+    url: 'https://www.autoexpress.co.uk/feed/news',
+    source: 'AutoExpress',
+    type: 'motoring',
+  },
+  { url: 'https://www.autocar.co.uk/rss', source: 'Autocar', type: 'motoring' },
+  {
+    url: 'https://www.express.co.uk/posts/rss/35/uk-motoring-cars',
+    source: 'Daily Express',
+    type: 'motoring',
+  },
+  // General UK news feeds (keyword-filtered)
+  {
+    url: 'https://feeds.bbci.co.uk/news/uk/rss.xml',
+    source: 'BBC News',
+    type: 'general',
+  },
+  {
+    url: 'https://feeds.bbci.co.uk/news/england/rss.xml',
+    source: 'BBC News',
+    type: 'general',
+  },
+  {
+    url: 'https://feeds.skynews.com/feeds/rss/uk.xml',
+    source: 'Sky News',
+    type: 'general',
+  },
+  {
+    url: 'https://www.mirror.co.uk/news/uk-news/?service=rss',
+    source: 'Mirror',
+    type: 'general',
+  },
+  {
+    url: 'https://www.dailymail.co.uk/news/index.rss',
+    source: 'Daily Mail',
+    type: 'general',
+  },
+];
+
+type RssArticle = {
+  url: string;
+  source: string;
+  headline: string;
+  summary: string;
+  publishedDate: string;
+};
+
+/**
+ * Parse RSS XML and extract articles. Simple regex-based parser to avoid
+ * adding an XML dependency — RSS feeds are well-structured enough for this.
+ */
+const parseRssFeed = (
+  xml: string,
+  source: string,
+  type: 'motoring' | 'general',
+): RssArticle[] => {
+  const itemRegex = /<item>([\s\S]*?)<\/item>/g;
+  const items = [...xml.matchAll(itemRegex)];
+
+  return items.reduce<RssArticle[]>((articles, [, item]) => {
+    const title =
+      item
+        .match(/<title>(?:<!\[CDATA\[)?(.*?)(?:\]\]>)?<\/title>/)?.[1]
+        ?.trim() || '';
+    const link = item.match(/<link>(.*?)<\/link>/)?.[1]?.trim() || '';
+    const description =
+      item
+        .match(
+          /<description>(?:<!\[CDATA\[)?([\s\S]*?)(?:\]\]>)?<\/description>/,
+        )?.[1]
+        ?.replace(/<[^>]+>/g, '')
+        .trim() || '';
+    const pubDate = item.match(/<pubDate>(.*?)<\/pubDate>/)?.[1]?.trim() || '';
+
+    if (!title || !link) return articles;
+
+    // For general feeds, filter by keywords
+    if (type === 'general') {
+      const text = `${title} ${description}`.toLowerCase();
+      const isRelevant = RSS_KEYWORDS.some((kw) => text.includes(kw));
+      if (!isRelevant) return articles;
+    }
+
+    // Parse date
+    let isoDate = '';
+    if (pubDate) {
+      try {
+        [isoDate] = new Date(pubDate).toISOString().split('T');
+      } catch {
+        // ignore unparseable dates
+      }
+    }
+
+    articles.push({
+      url: link,
+      source,
+      headline: title,
+      summary: description.slice(0, 300),
+      publishedDate: isoDate,
+    });
+
+    return articles;
+  }, []);
+};
+
+/**
+ * Fetch articles from all configured RSS feeds.
+ * Returns deduplicated articles from the last 14 days.
+ */
+const discoverFromRss = async (): Promise<RssArticle[]> => {
+  logger.info(`Fetching ${RSS_FEEDS.length} RSS feeds`);
+
+  const results = await Promise.all(
+    RSS_FEEDS.map(async (feed) => {
+      try {
+        const res = await fetch(feed.url, {
+          signal: AbortSignal.timeout(10000),
+          headers: { 'User-Agent': 'ParkingTicketPal/1.0 (news aggregator)' },
+        });
+        if (!res.ok) {
+          logger.info(
+            `RSS feed ${feed.source} (${feed.url}) returned ${res.status}`,
+          );
+          return [];
+        }
+        const xml = await res.text();
+        const articles = parseRssFeed(xml, feed.source, feed.type);
+        logger.info(
+          `RSS feed ${feed.source}: ${articles.length} relevant articles`,
+        );
+        return articles;
+      } catch (error) {
+        logger.error(
+          `RSS feed ${feed.source} failed`,
+          {},
+          error instanceof Error ? error : new Error(String(error)),
+        );
+        return [];
+      }
+    }),
+  );
+
+  // Flatten and deduplicate by URL
+  const allArticles = results.flat();
+  const seen = new Set<string>();
+  const unique = allArticles.filter((a) => {
+    if (seen.has(a.url)) return false;
+    seen.add(a.url);
+    return true;
+  });
+
+  // Filter to last 14 days
+  const now = Date.now();
+  const MAX_AGE_MS = 14 * 24 * 60 * 60 * 1000;
+  const recent = unique.filter((a) => {
+    if (!a.publishedDate) return true;
+    const d = new Date(a.publishedDate);
+    if (Number.isNaN(d.getTime())) return true;
+    return now - d.getTime() <= MAX_AGE_MS;
+  });
+
+  logger.info(
+    `RSS discovery: ${recent.length} recent articles from ${unique.length} total`,
+  );
+  return recent;
+};
+
 // Worker API configuration
 const { WORKER_URL } = process.env;
 const { WORKER_SECRET } = process.env;
@@ -67,7 +309,7 @@ type DiscoveryResult = {
  * Returns the highest-scoring new article (or null) plus diagnostics.
  */
 const discoverNews = async (): Promise<DiscoveryResult> => {
-  logger.info('Discovering UK motorist news via Perplexity');
+  logger.info('Discovering UK motorist news via Perplexity + RSS');
 
   const diagnostics: DiscoveryDiagnostics = {
     searchPrompt: '',
@@ -78,6 +320,16 @@ const discoverNews = async (): Promise<DiscoveryResult> => {
     filteredOutSemantic: [],
     skipReason: null,
   };
+
+  // 0. Start RSS fetch in parallel with Perplexity searches
+  const rssPromise = discoverFromRss().catch((error) => {
+    logger.error(
+      'RSS discovery failed entirely',
+      {},
+      error instanceof Error ? error : new Error(String(error)),
+    );
+    return [] as RssArticle[];
+  });
 
   // 1. Run multiple targeted searches in parallel for better coverage
   const today = new Date().toLocaleDateString('en-GB', {
@@ -111,7 +363,15 @@ const discoverNews = async (): Promise<DiscoveryResult> => {
     },
     {
       label: 'parking-stories',
-      prompt: `UK parking news stories February ${year}. Find recent articles about parking wardens, clamping, towing, residents parking, parking disputes, supermarket parking fines, private parking companies. Include articles from any UK news source including local newspapers. Return article URLs, headlines, and 2-sentence summaries.`,
+      prompt: `UK parking news stories this week ${year}. Find recent articles about parking wardens, clamping, towing, residents parking, parking disputes, supermarket parking fines, private parking companies, car park operators. Include articles from any UK news source including local newspapers. Return article URLs, headlines, and 2-sentence summaries.`,
+    },
+    {
+      label: 'bbc-sky-motoring',
+      prompt: `BBC News and Sky News UK motoring articles this week ${year}. Search bbc.co.uk/news and news.sky.com specifically for any recent articles about driving, parking, car parks, speed cameras, road safety, motoring laws, fuel, electric vehicles, or transport. Return article URLs, headlines, and 2-sentence summaries.`,
+    },
+    {
+      label: 'industry-companies',
+      prompt: `UK car park and motoring industry news ${year}. Find recent articles about NCP, APCOA, Q-Park, Indigo, Euro Car Parks, JustPark, RingGo, PayByPhone, parking technology companies, car park operators, parking industry mergers, acquisitions, bankruptcies, administration. Include any UK news source. Return article URLs, headlines, and 2-sentence summaries.`,
     },
   ];
 
@@ -155,9 +415,27 @@ const discoverNews = async (): Promise<DiscoveryResult> => {
       .length,
   });
 
-  if (combinedResults.length === 0) {
-    logger.info('All searches returned empty results');
-    diagnostics.skipReason = 'All Perplexity searches returned empty results';
+  // Await RSS results (started earlier in parallel with Perplexity)
+  const rssArticles = await rssPromise;
+  logger.info(`RSS returned ${rssArticles.length} articles`);
+
+  // Format RSS articles as additional search results for the parser
+  const rssAsText =
+    rssArticles.length > 0
+      ? `=== rss-feeds ===\n${rssArticles
+          .map(
+            (a) =>
+              `Source: ${a.source}\nURL: ${a.url}\nHeadline: ${a.headline}\nSummary: ${a.summary}\nPublished: ${a.publishedDate}`,
+          )
+          .join('\n---\n')}`
+      : '';
+
+  const allResults = [combinedResults, rssAsText].filter(Boolean).join('\n\n');
+
+  if (allResults.length === 0) {
+    logger.info('All searches and RSS returned empty results');
+    diagnostics.skipReason =
+      'All Perplexity searches and RSS feeds returned empty results';
     return { article: null, diagnostics };
   }
 
@@ -201,12 +479,12 @@ Rules:
 - Today is ${new Date().toISOString().split('T')[0]}
 
 Search results:
-${combinedResults}`,
+${allResults}`,
   });
 
   if (parsed.articles.length === 0) {
-    logger.info('No articles found across all search results');
-    diagnostics.skipReason = `${searchQueries.length} Perplexity searches returned no parseable news articles`;
+    logger.info('No articles found across all search results and RSS feeds');
+    diagnostics.skipReason = `${searchQueries.length} Perplexity searches + ${RSS_FEEDS.length} RSS feeds returned no parseable news articles`;
     return { article: null, diagnostics };
   }
 
@@ -866,13 +1144,28 @@ const generateSceneImages = async (sceneImagePrompts: {
  * Generate and post a news video end-to-end.
  * This is the main entry point called by the cron endpoint.
  */
-export const generateAndPostNewsVideo = async () => {
+export const generateAndPostNewsVideo = async (
+  forceArticle?: DiscoveredArticle,
+) => {
   let videoRecordId: string | null = null;
   let articleHeadline: string | null = null;
 
   try {
-    // 1. Discover news article
-    const { article, diagnostics } = await discoverNews();
+    // 1. Discover news article (or use forced article)
+    let article: DiscoveredArticle | null;
+    let diagnostics: DiscoveryDiagnostics | undefined;
+
+    if (forceArticle) {
+      logger.info('Using forced article', {
+        url: forceArticle.url,
+        headline: forceArticle.headline,
+      });
+      article = forceArticle;
+    } else {
+      const discovery = await discoverNews();
+      article = discovery.article;
+      diagnostics = discovery.diagnostics;
+    }
 
     if (!article) {
       logger.info('No new articles found, skipping');
