@@ -996,8 +996,12 @@ const generateVoiceoverWithTimestamps = async (
     const startTime = alignment.character_start_times_seconds[i];
     const endTime = alignment.character_end_times_seconds[i];
 
-    if (char === ' ' || i === alignment.characters.length - 1) {
-      if (i === alignment.characters.length - 1 && char !== ' ') {
+    // Treat spaces and newlines as word separators
+    const isSeparator = char === ' ' || char === '\n';
+    const isLast = i === alignment.characters.length - 1;
+
+    if (isSeparator || isLast) {
+      if (isLast && !isSeparator) {
         currentWord += char;
         wordEnd = endTime;
       }
@@ -1018,6 +1022,23 @@ const generateVoiceoverWithTimestamps = async (
       currentWord += char;
       wordEnd = endTime;
     }
+  }
+
+  // Detect degenerate timestamps from ElevenLabs alignment bugs.
+  // If >5% of words have zero duration (startTime === endTime), the
+  // alignment data is unreliable — throw to trigger a retry.
+  const zeroDurationCount = wordTimestamps.filter(
+    (w) => w.startTime === w.endTime && w.endTime > 0,
+  ).length;
+  const zeroDurationPct =
+    wordTimestamps.length > 0
+      ? (zeroDurationCount / wordTimestamps.length) * 100
+      : 0;
+
+  if (zeroDurationPct > 5) {
+    throw new Error(
+      `ElevenLabs returned degenerate alignment: ${zeroDurationCount}/${wordTimestamps.length} words (${zeroDurationPct.toFixed(1)}%) have zero duration`,
+    );
   }
 
   const durationSeconds =
