@@ -4,7 +4,7 @@ import { createServerLogger } from '@/lib/logger';
 
 const log = createServerLogger({ action: 'admin-tokens' });
 
-export const maxDuration = 60;
+export const maxDuration = 300;
 
 export const GET = async (request: NextRequest) => {
   try {

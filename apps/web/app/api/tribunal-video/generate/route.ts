@@ -5,7 +5,7 @@ import { createServerLogger } from '@/lib/logger';
 const log = createServerLogger({ action: 'tribunal-video-generate' });
 
 // Pipeline now returns after dispatching async render (~90s)
-export const maxDuration = 120;
+export const maxDuration = 300;
 
 const handleRequest = async (request: NextRequest) => {
   try {

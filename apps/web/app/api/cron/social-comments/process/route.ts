@@ -8,7 +8,7 @@ import {
   likeComment,
 } from '@/lib/instagram-automation';
 
-export const maxDuration = 60;
+export const maxDuration = 300;
 
 const logger = createServerLogger({ action: 'cron-social-comments' });
 

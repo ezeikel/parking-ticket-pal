@@ -5,7 +5,7 @@ import { createServerLogger } from '@/lib/logger';
 import { fetchFacebookPostMessage } from '@/lib/instagram-automation';
 import { getVideoContextForPost } from '@/lib/social-video-context';
 
-export const maxDuration = 120;
+export const maxDuration = 300;
 
 const logger = createServerLogger({ action: 'cron-social-comments-catchup' });
 

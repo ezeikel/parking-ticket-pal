@@ -1,9 +1,4 @@
 {
-  "functions": {
-    "app/**/*.ts": {
-      "maxDuration": 300
-    }
-  },
   "crons": [
     {
       "path": "/api/reminders/send",

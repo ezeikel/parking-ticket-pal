@@ -5,7 +5,7 @@ import { createServerLogger } from '@/lib/logger';
 const log = createServerLogger({ action: 'highway-code-quiz-generate' });
 
 // Quiz slides are stills — pipeline should complete well within 60s
-export const maxDuration = 120;
+export const maxDuration = 300;
 
 const handleRequest = async (request: NextRequest) => {
   try {

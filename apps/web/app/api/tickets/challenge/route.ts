@@ -1,7 +1,7 @@
 import { challengeTicket } from '@/app/actions/ticket';
 
 // longer duration to account for openai api calls
-export const maxDuration = 30;
+export const maxDuration = 300;
 
 // TODO: Add authentication check — this endpoint currently has no auth guard.
 // Validate the user's session and verify ticket ownership before challenging.

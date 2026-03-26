@@ -1,6 +1,6 @@
 import { verifyTicket } from '@/app/actions/ticket';
 
-export const maxDuration = 120;
+export const maxDuration = 300;
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',

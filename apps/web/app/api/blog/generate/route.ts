@@ -9,7 +9,7 @@ import { createServerLogger } from '@/lib/logger';
 const log = createServerLogger({ action: 'blog-generate' });
 
 // set max duration to 3 minutes
-export const maxDuration = 180;
+export const maxDuration = 300;
 
 const handleRequest = async (request: NextRequest) => {
   try {

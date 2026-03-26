@@ -6,7 +6,7 @@ import {
 import { getUserId } from '@/utils/user';
 
 // longer duration to account for openai api calls
-export const maxDuration = 30;
+export const maxDuration = 300;
 
 export const GET = async (
   _req: Request,

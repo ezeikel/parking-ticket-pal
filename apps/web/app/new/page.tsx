@@ -1,9 +1,7 @@
 import { AddDocumentPage } from '@/components/add-document';
 
-export const maxDuration = 60;
+export const maxDuration = 300;
 
-const NewTicketPage = () => {
-  return <AddDocumentPage />;
-};
+const NewTicketPage = () => <AddDocumentPage />;
 
 export default NewTicketPage;

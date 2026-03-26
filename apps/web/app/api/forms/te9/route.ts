@@ -5,7 +5,7 @@ import { createServerLogger } from '@/lib/logger';
 
 const log = createServerLogger({ action: 'form-te9' });
 
-export const maxDuration = 60;
+export const maxDuration = 300;
 
 export const POST = async (req: NextRequest) => {
   try {

@@ -5,7 +5,7 @@ import { createServerLogger } from '@/lib/logger';
 
 const log = createServerLogger({ action: 'news-video-failed' });
 
-export const maxDuration = 30;
+export const maxDuration = 300;
 
 export async function POST(request: NextRequest) {
   try {

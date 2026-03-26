@@ -1,7 +1,7 @@
 import { extractOCRTextWithVision } from '@/app/actions/ocr';
 
 // longer duration to account for openai api calls
-export const maxDuration = 60;
+export const maxDuration = 300;
 
 export const POST = async (req: Request) => {
   // account for image upload via form data or as base64 string
