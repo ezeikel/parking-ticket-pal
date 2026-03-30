@@ -915,13 +915,19 @@ const generateVoiceoverWithTimestamps = async (
     scriptLength: script.length,
   });
 
-  let result;
   const maxRetries = 3;
+
+  // Retry loop covers both API errors AND degenerate alignment data.
+  // ElevenLabs occasionally returns alignment where many words have zero
+  // duration — we detect this and retry with a fresh TTS call.
+  let audioBuffer!: Buffer;
+  let uploadUrl!: string;
+  const wordTimestamps: WordTimestamp[] = [];
 
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
     try {
       // eslint-disable-next-line no-await-in-loop
-      result = await elevenlabs.textToSpeech.convertWithTimestamps(
+      const result = await elevenlabs.textToSpeech.convertWithTimestamps(
         ELEVENLABS_VOICE_ID,
         {
           text: script,
@@ -936,6 +942,86 @@ const generateVoiceoverWithTimestamps = async (
           },
         },
       );
+
+      const audioBase64 = result.audio_base64;
+      if (!audioBase64) {
+        throw new Error('No audio returned from ElevenLabs');
+      }
+      audioBuffer = Buffer.from(audioBase64, 'base64');
+
+      const { alignment } = result;
+      if (
+        !alignment ||
+        !alignment.characters ||
+        !alignment.character_start_times_seconds ||
+        !alignment.character_end_times_seconds
+      ) {
+        throw new Error('No alignment data returned from ElevenLabs');
+      }
+
+      // Derive word-level timestamps from character alignment
+      wordTimestamps.length = 0;
+      let currentWord = '';
+      let wordStart = 0;
+      let wordEnd = 0;
+
+      for (let i = 0; i < alignment.characters.length; i++) {
+        const char = alignment.characters[i];
+        const startTime = alignment.character_start_times_seconds[i];
+        const endTime = alignment.character_end_times_seconds[i];
+
+        const isSeparator = char === ' ' || char === '\n';
+        const isLast = i === alignment.characters.length - 1;
+
+        if (isSeparator || isLast) {
+          if (isLast && !isSeparator) {
+            currentWord += char;
+            wordEnd = endTime;
+          }
+
+          if (currentWord.trim()) {
+            wordTimestamps.push({
+              word: currentWord.trim(),
+              startTime: wordStart,
+              endTime: wordEnd,
+            });
+          }
+          currentWord = '';
+          wordStart = endTime;
+        } else {
+          if (currentWord === '') {
+            wordStart = startTime;
+          }
+          currentWord += char;
+          wordEnd = endTime;
+        }
+      }
+
+      // Detect degenerate timestamps from ElevenLabs alignment bugs.
+      // If >5% of words have zero duration, alignment is unreliable — retry.
+      const zeroDurationCount = wordTimestamps.filter(
+        (w) => w.startTime === w.endTime && w.endTime > 0,
+      ).length;
+      const zeroDurationPct =
+        wordTimestamps.length > 0
+          ? (zeroDurationCount / wordTimestamps.length) * 100
+          : 0;
+
+      if (zeroDurationPct > 5) {
+        throw new Error(
+          `ElevenLabs returned degenerate alignment: ${zeroDurationCount}/${wordTimestamps.length} words (${zeroDurationPct.toFixed(1)}%) have zero duration`,
+        );
+      }
+
+      // Upload to R2 only after validation passes
+      const timestamp = Date.now();
+      const r2Path = `social/voiceovers/news-${timestamp}.mp3`;
+      // eslint-disable-next-line no-await-in-loop
+      const uploaded = await put(r2Path, audioBuffer, {
+        contentType: 'audio/mpeg',
+      });
+      uploadUrl = uploaded.url;
+
       break;
     } catch (error) {
       const msg = error instanceof Error ? error.message : String(error);
@@ -959,100 +1045,18 @@ const generateVoiceoverWithTimestamps = async (
     }
   }
 
-  if (!result) {
-    throw new Error('ElevenLabs voiceover generation returned no result');
-  }
-
-  const audioBase64 = result.audio_base64;
-  if (!audioBase64) {
-    throw new Error('No audio returned from ElevenLabs');
-  }
-  const audioBuffer = Buffer.from(audioBase64, 'base64');
-
-  const timestamp = Date.now();
-  const r2Path = `social/voiceovers/news-${timestamp}.mp3`;
-  const { url } = await put(r2Path, audioBuffer, {
-    contentType: 'audio/mpeg',
-  });
-
-  // Derive word-level timestamps from character alignment
-  const { alignment } = result;
-  if (
-    !alignment ||
-    !alignment.characters ||
-    !alignment.character_start_times_seconds ||
-    !alignment.character_end_times_seconds
-  ) {
-    throw new Error('No alignment data returned from ElevenLabs');
-  }
-
-  const wordTimestamps: WordTimestamp[] = [];
-  let currentWord = '';
-  let wordStart = 0;
-  let wordEnd = 0;
-
-  for (let i = 0; i < alignment.characters.length; i++) {
-    const char = alignment.characters[i];
-    const startTime = alignment.character_start_times_seconds[i];
-    const endTime = alignment.character_end_times_seconds[i];
-
-    // Treat spaces and newlines as word separators
-    const isSeparator = char === ' ' || char === '\n';
-    const isLast = i === alignment.characters.length - 1;
-
-    if (isSeparator || isLast) {
-      if (isLast && !isSeparator) {
-        currentWord += char;
-        wordEnd = endTime;
-      }
-
-      if (currentWord.trim()) {
-        wordTimestamps.push({
-          word: currentWord.trim(),
-          startTime: wordStart,
-          endTime: wordEnd,
-        });
-      }
-      currentWord = '';
-      wordStart = endTime;
-    } else {
-      if (currentWord === '') {
-        wordStart = startTime;
-      }
-      currentWord += char;
-      wordEnd = endTime;
-    }
-  }
-
-  // Detect degenerate timestamps from ElevenLabs alignment bugs.
-  // If >5% of words have zero duration (startTime === endTime), the
-  // alignment data is unreliable — throw to trigger a retry.
-  const zeroDurationCount = wordTimestamps.filter(
-    (w) => w.startTime === w.endTime && w.endTime > 0,
-  ).length;
-  const zeroDurationPct =
-    wordTimestamps.length > 0
-      ? (zeroDurationCount / wordTimestamps.length) * 100
-      : 0;
-
-  if (zeroDurationPct > 5) {
-    throw new Error(
-      `ElevenLabs returned degenerate alignment: ${zeroDurationCount}/${wordTimestamps.length} words (${zeroDurationPct.toFixed(1)}%) have zero duration`,
-    );
-  }
-
   const durationSeconds =
     wordTimestamps.length > 0
       ? wordTimestamps[wordTimestamps.length - 1].endTime
       : 0;
 
   logger.info('Voiceover generated', {
-    url,
+    url: uploadUrl,
     durationSeconds,
     wordCount: wordTimestamps.length,
   });
 
-  return { url, durationSeconds, wordTimestamps };
+  return { url: uploadUrl, durationSeconds, wordTimestamps };
 };
 
 // ============================================================================
