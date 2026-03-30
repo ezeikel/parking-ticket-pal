@@ -320,6 +320,46 @@ export async function fetchFacebookCommentDetails(commentId: string): Promise<{
 }
 
 /**
+ * Fetch a Facebook comment's parent comment (if it's a threaded reply).
+ * Returns null if the comment is top-level (no parent) or on error.
+ * Uses `parent` field which returns the parent comment object for nested replies.
+ */
+export async function fetchFacebookCommentParent(commentId: string): Promise<{
+  parentId: string;
+  parentMessage: string;
+  parentFromId: string;
+} | null> {
+  try {
+    const response = await fetch(
+      `https://graph.facebook.com/v24.0/${commentId}?fields=parent.fields(id,message,from)&access_token=${PAGE_ACCESS_TOKEN}`,
+    );
+    const data = await response.json();
+
+    if (!response.ok) {
+      logger.warn('Failed to fetch FB comment parent', {
+        commentId,
+        error: JSON.stringify(data),
+      });
+      return null;
+    }
+
+    // Top-level comments have no parent field
+    if (!data.parent) {
+      return null;
+    }
+
+    return {
+      parentId: data.parent.id,
+      parentMessage: data.parent.message || '',
+      parentFromId: data.parent.from?.id || '',
+    };
+  } catch (_error) {
+    logger.warn('Error fetching FB comment parent', { commentId });
+    return null;
+  }
+}
+
+/**
  * Reply to a comment on Facebook.
  * POST /{comment-id}/comments (FB uses /comments not /replies)
  */
