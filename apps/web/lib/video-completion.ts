@@ -209,7 +209,7 @@ const YouTubeVideoSchema = z.object({
 
 type YouTubeCaption = z.infer<typeof YouTubeVideoSchema>;
 
-const generateTribunalYouTubeCaption = async (caseData: {
+export const generateTribunalYouTubeCaption = async (caseData: {
   authority: string;
   contravention: string;
   appealDecision: string;
@@ -262,7 +262,7 @@ ${platformGuidelines}`;
   };
 };
 
-const generateNewsYouTubeCaption = async (article: {
+export const generateNewsYouTubeCaption = async (article: {
   headline: string;
   source: string;
   category: string;
