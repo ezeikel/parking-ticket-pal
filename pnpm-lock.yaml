@@ -9,7 +9,7 @@ overrides:
   react-dom: 19.2.0
   '@types/react': ^19.2.10
   lightningcss: 1.30.1
-  '@expo/log-box': 55.0.7
+  '@expo/log-box': 55.0.10
 
 importers:
 
@@ -207,7 +207,7 @@ importers:
         version: 55.0.10(expo@55.0.3)(react-native@0.83.2(@babel/core@7.28.5)(@types/react@19.2.14)(bufferutil@4.1.0)(react@19.2.0))(react@19.2.0)(typescript@5.9.3)
       expo-router:
         specifier: 55.0.3
-        version: 55.0.3(baa7c36e4a5f0602da44909f39973850)
+        version: 55.0.3(daa73d20734a017932919ffc8ceb2812)
       expo-secure-store:
         specifier: ~55.0.8
         version: 55.0.8(expo@55.0.3)
@@ -2675,10 +2675,10 @@ packages:
   '@expo/local-build-cache-provider@55.0.6':
     resolution: {integrity: sha512-4kfdv48sKzokijMqi07fINYA9/XprshmPgSLf8i69XgzIv2YdRyBbb70SzrufB7PDneFoltz8N83icW8gOOj1g==}
 
-  '@expo/log-box@55.0.7':
-    resolution: {integrity: sha512-m7V1k2vlMp4NOj3fopjOg4zl/ANXyTRF3HMTMep2GZAKsPiDzgOQ41nm8CaU50/HlDIGXlCObss07gOn20UpHQ==}
+  '@expo/log-box@55.0.10':
+    resolution: {integrity: sha512-7jdikExgIrCIF5e3P1qMwcUZ2tcxrNdVqE9Y8kNMUHqZ+ipMlin+SiZwJKHM1+am4CYGjhdyrzbnIpvEcLDYcg==}
     peerDependencies:
-      '@expo/dom-webview': ^55.0.3
+      '@expo/dom-webview': ^55.0.5
       expo: '*'
       react: 19.2.0
       react-native: '*'
@@ -7161,10 +7161,12 @@ packages:
   '@xmldom/xmldom@0.8.11':
     resolution: {integrity: sha512-cQzWCtO6C8TQiYl1ruKNn2U6Ao4o4WBBcbL61yJl84x+j5sOWWFU9X7DpND8XZG3daDppSsigMdfAIl2upQBRw==}
     engines: {node: '>=10.0.0'}
+    deprecated: this version has critical issues, please update to the latest version
 
   '@xmldom/xmldom@0.9.8':
     resolution: {integrity: sha512-p96FSY54r+WJ50FIOsCOjyj/wavs8921hG5+kVMmZgKcvIKxMXHTrjNJvRgWa/zuX3B6t2lijLNFaOyuxUH+2A==}
     engines: {node: '>=14.6'}
+    deprecated: this version has critical issues, please update to the latest version
 
   '@xstate/react@6.0.0':
     resolution: {integrity: sha512-xXlLpFJxqLhhmecAXclBECgk+B4zYSrDTl8hTfPZBogkn82OHKbm9zJxox3Z/YXoOhAQhKFTRLMYGdlbhc6T9A==}
@@ -9329,7 +9331,7 @@ packages:
   expo-router@55.0.3:
     resolution: {integrity: sha512-B3MQAeZq9B2SS5kgEybGqXYR0AY7QYM7fQ5E4bJwtvZLJjWPmWhDALhBpD26ovK/i1k0fi9VgW47FKJODxM5Jg==}
     peerDependencies:
-      '@expo/log-box': 55.0.7
+      '@expo/log-box': 55.0.10
       '@expo/metro-runtime': ^55.0.6
       '@react-navigation/drawer': ^7.7.2
       '@testing-library/react-native': '>= 13.2.0'
@@ -17458,7 +17460,7 @@ snapshots:
       '@expo/env': 2.1.1
       '@expo/image-utils': 0.8.12
       '@expo/json-file': 10.0.12
-      '@expo/log-box': 55.0.7(@expo/dom-webview@55.0.3)(expo@55.0.3)(react-native@0.83.2(@babel/core@7.28.5)(@types/react@19.2.14)(bufferutil@4.1.0)(react@19.2.0))(react@19.2.0)
+      '@expo/log-box': 55.0.10(@expo/dom-webview@55.0.3)(expo@55.0.3)(react-native@0.83.2(@babel/core@7.28.5)(@types/react@19.2.14)(bufferutil@4.1.0)(react@19.2.0))(react@19.2.0)
       '@expo/metro': 54.2.0(bufferutil@4.1.0)
       '@expo/metro-config': 55.0.9(bufferutil@4.1.0)(expo@55.0.3)(typescript@5.9.3)
       '@expo/osascript': 2.4.2
@@ -17510,7 +17512,7 @@ snapshots:
       ws: 8.19.0(bufferutil@4.1.0)
       zod: 3.25.76
     optionalDependencies:
-      expo-router: 55.0.3(baa7c36e4a5f0602da44909f39973850)
+      expo-router: 55.0.3(daa73d20734a017932919ffc8ceb2812)
       react-native: 0.83.2(@babel/core@7.28.5)(@types/react@19.2.14)(bufferutil@4.1.0)(react@19.2.0)
     transitivePeerDependencies:
       - '@expo/dom-webview'
@@ -17633,7 +17635,7 @@ snapshots:
       - supports-color
       - typescript
 
-  '@expo/log-box@55.0.7(@expo/dom-webview@55.0.3)(expo@55.0.3)(react-native@0.83.2(@babel/core@7.28.5)(@types/react@19.2.14)(bufferutil@4.1.0)(react@19.2.0))(react@19.2.0)':
+  '@expo/log-box@55.0.10(@expo/dom-webview@55.0.3)(expo@55.0.3)(react-native@0.83.2(@babel/core@7.28.5)(@types/react@19.2.14)(bufferutil@4.1.0)(react@19.2.0))(react@19.2.0)':
     dependencies:
       '@expo/dom-webview': 55.0.3(expo@55.0.3)(react-native@0.83.2(@babel/core@7.28.5)(@types/react@19.2.14)(bufferutil@4.1.0)(react@19.2.0))(react@19.2.0)
       anser: 1.4.10
@@ -17683,7 +17685,7 @@ snapshots:
 
   '@expo/metro-runtime@55.0.5(@expo/dom-webview@55.0.3)(expo@55.0.3)(react-dom@19.2.0(react@19.2.0))(react-native@0.83.2(@babel/core@7.28.5)(@types/react@19.2.14)(bufferutil@4.1.0)(react@19.2.0))(react@19.2.0)':
     dependencies:
-      '@expo/log-box': 55.0.7(@expo/dom-webview@55.0.3)(expo@55.0.3)(react-native@0.83.2(@babel/core@7.28.5)(@types/react@19.2.14)(bufferutil@4.1.0)(react@19.2.0))(react@19.2.0)
+      '@expo/log-box': 55.0.10(@expo/dom-webview@55.0.3)(expo@55.0.3)(react-native@0.83.2(@babel/core@7.28.5)(@types/react@19.2.14)(bufferutil@4.1.0)(react@19.2.0))(react@19.2.0)
       anser: 1.4.10
       expo: 55.0.3(@babel/core@7.28.5)(@expo/dom-webview@55.0.3)(@expo/metro-runtime@55.0.5)(bufferutil@4.1.0)(expo-router@55.0.3)(react-dom@19.2.0(react@19.2.0))(react-native-webview@13.16.1(react-native@0.83.2(@babel/core@7.28.5)(@types/react@19.2.14)(bufferutil@4.1.0)(react@19.2.0))(react@19.2.0))(react-native@0.83.2(@babel/core@7.28.5)(@types/react@19.2.14)(bufferutil@4.1.0)(react@19.2.0))(react@19.2.0)(typescript@5.9.3)
       pretty-format: 29.7.0
@@ -17773,7 +17775,7 @@ snapshots:
       react: 19.2.0
     optionalDependencies:
       '@expo/metro-runtime': 55.0.5(@expo/dom-webview@55.0.3)(expo@55.0.3)(react-dom@19.2.0(react@19.2.0))(react-native@0.83.2(@babel/core@7.28.5)(@types/react@19.2.14)(bufferutil@4.1.0)(react@19.2.0))(react@19.2.0)
-      expo-router: 55.0.3(baa7c36e4a5f0602da44909f39973850)
+      expo-router: 55.0.3(daa73d20734a017932919ffc8ceb2812)
       react-dom: 19.2.0(react@19.2.0)
     transitivePeerDependencies:
       - supports-color
@@ -25688,9 +25690,9 @@ snapshots:
       - supports-color
       - typescript
 
-  expo-router@55.0.3(baa7c36e4a5f0602da44909f39973850):
+  expo-router@55.0.3(daa73d20734a017932919ffc8ceb2812):
     dependencies:
-      '@expo/log-box': 55.0.7(@expo/dom-webview@55.0.3)(expo@55.0.3)(react-native@0.83.2(@babel/core@7.28.5)(@types/react@19.2.14)(bufferutil@4.1.0)(react@19.2.0))(react@19.2.0)
+      '@expo/log-box': 55.0.10(@expo/dom-webview@55.0.3)(expo@55.0.3)(react-native@0.83.2(@babel/core@7.28.5)(@types/react@19.2.14)(bufferutil@4.1.0)(react@19.2.0))(react@19.2.0)
       '@expo/metro-runtime': 55.0.5(@expo/dom-webview@55.0.3)(expo@55.0.3)(react-dom@19.2.0(react@19.2.0))(react-native@0.83.2(@babel/core@7.28.5)(@types/react@19.2.14)(bufferutil@4.1.0)(react@19.2.0))(react@19.2.0)
       '@expo/schema-utils': 55.0.2
       '@radix-ui/react-slot': 1.2.4(@types/react@19.2.14)(react@19.2.0)
@@ -25833,7 +25835,7 @@ snapshots:
       '@expo/devtools': 55.0.2(react-native@0.83.2(@babel/core@7.28.5)(@types/react@19.2.14)(bufferutil@4.1.0)(react@19.2.0))(react@19.2.0)
       '@expo/fingerprint': 0.16.5
       '@expo/local-build-cache-provider': 55.0.6(typescript@5.9.3)
-      '@expo/log-box': 55.0.7(@expo/dom-webview@55.0.3)(expo@55.0.3)(react-native@0.83.2(@babel/core@7.28.5)(@types/react@19.2.14)(bufferutil@4.1.0)(react@19.2.0))(react@19.2.0)
+      '@expo/log-box': 55.0.10(@expo/dom-webview@55.0.3)(expo@55.0.3)(react-native@0.83.2(@babel/core@7.28.5)(@types/react@19.2.14)(bufferutil@4.1.0)(react@19.2.0))(react@19.2.0)
       '@expo/metro': 54.2.0(bufferutil@4.1.0)
       '@expo/metro-config': 55.0.9(bufferutil@4.1.0)(expo@55.0.3)(typescript@5.9.3)
       '@expo/vector-icons': 15.0.3(expo-font@55.0.4)(react-native@0.83.2(@babel/core@7.28.5)(@types/react@19.2.14)(bufferutil@4.1.0)(react@19.2.0))(react@19.2.0)
