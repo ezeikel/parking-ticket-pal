@@ -143,7 +143,7 @@ ${platformGuidelines}`;
   return text;
 };
 
-const generateNewsCaption = async (
+export const generateNewsCaption = async (
   platform: string,
   article: {
     headline: string;
@@ -318,91 +318,141 @@ ${platformGuidelines}`;
 // Social posting
 // ============================================================================
 
-const postReelToInstagram = async (
+// Single-attempt IG Reel publish: create container, poll for FINISHED, publish.
+// Throws on any failure; retry policy lives in the caller wrapper.
+const attemptInstagramReelPublish = async (
+  videoUrl: string,
+  caption: string,
+  coverUrl?: string | null,
+): Promise<string> => {
+  const createResponse = await fetch(
+    `https://graph.facebook.com/v24.0/${process.env.INSTAGRAM_ACCOUNT_ID}/media`,
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        video_url: videoUrl,
+        caption,
+        media_type: 'REELS',
+        share_to_feed: true,
+        ...(coverUrl ? { cover_url: coverUrl } : {}),
+        access_token: process.env.FACEBOOK_PAGE_ACCESS_TOKEN,
+      }),
+    },
+  );
+  const createData = await createResponse.json();
+  if (!createResponse.ok) {
+    throw new Error(`Instagram create failed: ${JSON.stringify(createData)}`);
+  }
+  const creationId = createData.id;
+
+  // 12 × 5s = 60s polling budget. Healthy IG containers transition to
+  // FINISHED in well under 30s; longer waits almost always end in ERROR
+  // or timeout anyway. Tight budget keeps the retry wrapper inside the
+  // route's 300s maxDuration even at maxAttempts.
+  let ready = false;
+  // eslint-disable-next-line no-plusplus
+  for (let i = 0; i < 12; i++) {
+    // eslint-disable-next-line no-await-in-loop, no-promise-executor-return
+    await new Promise((r) => setTimeout(r, 5000));
+    // eslint-disable-next-line no-await-in-loop
+    const statusResponse = await fetch(
+      `https://graph.facebook.com/v24.0/${creationId}?fields=status_code,status&access_token=${process.env.FACEBOOK_PAGE_ACCESS_TOKEN}`,
+    );
+    // eslint-disable-next-line no-await-in-loop
+    const statusData = await statusResponse.json();
+    if (statusData.status_code === 'FINISHED') {
+      ready = true;
+      break;
+    }
+    if (statusData.status_code === 'ERROR') {
+      throw new Error(
+        `Instagram media processing failed: ${JSON.stringify(statusData)}`,
+      );
+    }
+  }
+  if (!ready) {
+    throw new Error('Instagram media processing timed out');
+  }
+
+  const publishResponse = await fetch(
+    `https://graph.facebook.com/v24.0/${process.env.INSTAGRAM_ACCOUNT_ID}/media_publish`,
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        creation_id: creationId,
+        access_token: process.env.FACEBOOK_PAGE_ACCESS_TOKEN,
+      }),
+    },
+  );
+  const publishData = await publishResponse.json();
+  if (!publishResponse.ok) {
+    throw new Error(`Instagram publish failed: ${JSON.stringify(publishData)}`);
+  }
+
+  return publishData.id;
+};
+
+export const postReelToInstagram = async (
   videoUrl: string,
   caption: string,
   coverUrl?: string | null,
   logger?: ReturnType<typeof createServerLogger>,
 ): Promise<{ success: boolean; mediaId?: string; error?: string }> => {
-  try {
-    if (
-      !process.env.INSTAGRAM_ACCOUNT_ID ||
-      !process.env.FACEBOOK_PAGE_ACCESS_TOKEN
-    ) {
-      throw new Error('Instagram credentials not configured');
-    }
-
-    const createResponse = await fetch(
-      `https://graph.facebook.com/v24.0/${process.env.INSTAGRAM_ACCOUNT_ID}/media`,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          video_url: videoUrl,
-          caption,
-          media_type: 'REELS',
-          share_to_feed: true,
-          ...(coverUrl ? { cover_url: coverUrl } : {}),
-          access_token: process.env.FACEBOOK_PAGE_ACCESS_TOKEN,
-        }),
-      },
-    );
-    const createData = await createResponse.json();
-    if (!createResponse.ok) {
-      throw new Error(`Instagram create failed: ${JSON.stringify(createData)}`);
-    }
-    const creationId = createData.id;
-
-    let ready = false;
-    // eslint-disable-next-line no-plusplus
-    for (let i = 0; i < 30; i++) {
-      // eslint-disable-next-line no-await-in-loop, no-promise-executor-return
-      await new Promise((r) => setTimeout(r, 5000));
-      // eslint-disable-next-line no-await-in-loop
-      const statusResponse = await fetch(
-        `https://graph.facebook.com/v24.0/${creationId}?fields=status_code&access_token=${process.env.FACEBOOK_PAGE_ACCESS_TOKEN}`,
-      );
-      // eslint-disable-next-line no-await-in-loop
-      const statusData = await statusResponse.json();
-      if (statusData.status_code === 'FINISHED') {
-        ready = true;
-        break;
-      }
-      if (statusData.status_code === 'ERROR') {
-        throw new Error('Instagram media processing failed');
-      }
-    }
-    if (!ready) {
-      throw new Error('Instagram media processing timed out');
-    }
-
-    const publishResponse = await fetch(
-      `https://graph.facebook.com/v24.0/${process.env.INSTAGRAM_ACCOUNT_ID}/media_publish`,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          creation_id: creationId,
-          access_token: process.env.FACEBOOK_PAGE_ACCESS_TOKEN,
-        }),
-      },
-    );
-    const publishData = await publishResponse.json();
-    if (!publishResponse.ok) {
-      throw new Error(
-        `Instagram publish failed: ${JSON.stringify(publishData)}`,
-      );
-    }
-
-    return { success: true, mediaId: publishData.id };
-  } catch (error) {
-    const err = error instanceof Error ? error : new Error(String(error));
-    logger?.error('Instagram Reel posting failed', {}, err);
-    return { success: false, error: err.message };
+  if (
+    !process.env.INSTAGRAM_ACCOUNT_ID ||
+    !process.env.FACEBOOK_PAGE_ACCESS_TOKEN
+  ) {
+    return { success: false, error: 'Instagram credentials not configured' };
   }
+
+  // Meta's IG Reels API has been hitting intermittent 2207076 ("Media upload
+  // has failed") since late April 2026 — confirmed Meta-side regression
+  // affecting many third-party tools. Each attempt creates a fresh container
+  // since IG won't retry processing on an already-errored one.
+  //
+  // Budget: 2 attempts × 60s poll + 30s gap ≈ 150s. The route caps at 300s
+  // and FB + YouTube posting still need to run after this.
+  const maxAttempts = 2;
+  let lastError: Error | null = null;
+
+  // eslint-disable-next-line no-plusplus
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    try {
+      // eslint-disable-next-line no-await-in-loop
+      const mediaId = await attemptInstagramReelPublish(
+        videoUrl,
+        caption,
+        coverUrl,
+      );
+      if (attempt > 1) {
+        logger?.info('Instagram Reel posted after retry', {
+          attempt,
+          mediaId,
+        });
+      }
+      return { success: true, mediaId };
+    } catch (error) {
+      lastError = error instanceof Error ? error : new Error(String(error));
+      logger?.warn('Instagram Reel publish attempt failed', {
+        attempt,
+        maxAttempts,
+        error: lastError.message,
+      });
+      if (attempt < maxAttempts) {
+        // eslint-disable-next-line no-await-in-loop, no-promise-executor-return
+        await new Promise((r) => setTimeout(r, 30_000));
+      }
+    }
+  }
+
+  const err = lastError ?? new Error('Instagram Reel posting failed');
+  logger?.error('Instagram Reel posting failed after retries', {}, err);
+  return { success: false, error: err.message };
 };
 
-const postReelToFacebook = async (
+export const postReelToFacebook = async (
   videoUrl: string,
   caption: string,
   title: string,
