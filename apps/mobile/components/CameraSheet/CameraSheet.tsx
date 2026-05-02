@@ -15,7 +15,7 @@ import { router } from 'expo-router';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { faTicket } from '@fortawesome/pro-solid-svg-icons';
 import { useQueryClient } from '@tanstack/react-query';
-import Scanner from '@/components/Scanner/Scanner';
+import VisionCameraScanner from '@/components/VisionCameraScanner/VisionCameraScanner';
 import TicketWizard from '@/components/TicketWizard/TicketWizard';
 import LetterFlow from '@/components/LetterFlow/LetterFlow';
 import { Paywall } from '@/components/Paywall/Paywall';
@@ -443,7 +443,7 @@ const CameraSheet = ({ isVisible, onClose, onboardingMode, onOCRComplete }: Came
             </Text>
           </View>
         ) : shouldShowScanner ? (
-          <Scanner
+          <VisionCameraScanner
             key={`scanner-${scannerKey}`}
             onClose={handleClose}
             onImageScanned={() => {

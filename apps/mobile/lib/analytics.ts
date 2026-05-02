@@ -55,6 +55,7 @@ export type AnalyticsEvent =
   | "camera_denied_fallback_to_library"
   | "document_scanner_failed_fallback_to_library"
   | "document_scanner_retry"
+  | "ticket_scan_capture"
   | "image_picker_permission_requested"
   | "image_picker_permission_result"
   | "image_library_launching"
@@ -201,7 +202,7 @@ export type AnalyticsProperties = {
   // User interaction properties
   button_location?: string
   interaction_type?: "tap" | "long_press" | "swipe"
-  scan_method?: "document_scanner" | "image_picker"
+  scan_method?: "document_scanner" | "image_picker" | "vision_camera"
 
   // Search properties
   searchTerm?: string

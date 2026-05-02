@@ -197,6 +197,7 @@ export default ({ config }: ConfigContext): ExpoConfig => {
     },
     plugins: [
       "expo-router",
+      "./plugins/withGradleProperties",
       "expo-tracking-transparency",
       ["./plugins/withGoogleMapsIos", { apiKey: process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY }],
     [
@@ -213,6 +214,13 @@ export default ({ config }: ConfigContext): ExpoConfig => {
         "react-native-document-scanner-plugin",
         {
           "cameraPermission": "We need camera access, so you can scan documents"
+        }
+      ],
+      [
+        "react-native-vision-camera",
+        {
+          "cameraPermissionText": "This app uses your camera to scan parking tickets and related documents.",
+          "enableMicrophonePermission": false
         }
       ],
       "expo-secure-store",
@@ -236,6 +244,16 @@ export default ({ config }: ConfigContext): ExpoConfig => {
           ios: {
             useFrameworks: "static",
             deploymentTarget: "15.5.0",
+          },
+          android: {
+            packagingOptions: {
+              pickFirst: [
+                "lib/arm64-v8a/libworklets.so",
+                "lib/armeabi-v7a/libworklets.so",
+                "lib/x86/libworklets.so",
+                "lib/x86_64/libworklets.so",
+              ],
+            },
           },
         },
       ],

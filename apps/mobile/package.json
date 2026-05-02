@@ -35,7 +35,8 @@
     "test": "jest --watchAll",
     "lint": "expo lint",
     "check-types": "tsc --noEmit",
-    "env:pull": "eas env:pull --environment development"
+    "env:pull": "eas env:pull --environment development",
+    "postinstall": "npx install-skia"
   },
   "jest": {
     "preset": "jest-expo"
@@ -58,8 +59,9 @@
     "@react-native-google-signin/google-signin": "^16.0.0",
     "@react-native-picker/picker": "^2.11.1",
     "@react-navigation/native": "^7.0.0",
-    "@sentry/react-native": "^7.11.0",
+    "@sentry/react-native": "^7.13.0",
     "@shopify/flash-list": "2.0.2",
+    "@shopify/react-native-skia": "^2.2.10",
     "@tanstack/react-form": "^1.23.8",
     "@tanstack/react-query": "^5.62.0",
     "axios": "^1.7.8",
@@ -102,6 +104,7 @@
     "react-native-awesome-gallery": "^0.4.3",
     "react-native-css": "^3.0.4",
     "react-native-document-scanner-plugin": "^2.0.4",
+    "react-native-fast-opencv": "^0.4.7",
     "react-native-fbsdk-next": "^13.4.1",
     "react-native-gesture-handler": "~2.30.0",
     "react-native-google-mobile-ads": "^15.8.0",
@@ -114,10 +117,13 @@
     "react-native-screens": "~4.23.0",
     "react-native-streetview": "^0.4.4",
     "react-native-svg": "15.15.3",
+    "react-native-vision-camera": "^4.7.1",
     "react-native-web": "~0.21.1",
     "react-native-worklets": "^0.7.2",
+    "react-native-worklets-core": "^1.3.3",
     "sonner-native": "^0.23.1",
     "tailwind-merge": "^3.0.1",
+    "vision-camera-resize-plugin": "^3.0.2",
     "zod": "^3.25.76"
   },
   "devDependencies": {
