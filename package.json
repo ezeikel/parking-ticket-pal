@@ -22,6 +22,19 @@
   "engines": {
     "node": ">=18"
   },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "@shopify/react-native-skia",
+      "@sentry/cli",
+      "core-js",
+      "esbuild",
+      "prisma",
+      "@prisma/engines",
+      "protobufjs",
+      "sharp",
+      "unrs-resolver"
+    ]
+  },
   "resolutions": {
     "react": "19.2.0",
     "react-dom": "19.2.0",

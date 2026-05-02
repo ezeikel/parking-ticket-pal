@@ -1,0 +1,396 @@
+{
+  "timestamp": "2026-03-15T12:46:32.589Z",
+  "loggedIn": true,
+  "categories": [
+    {
+      "url": "https://penaltychargenotice.co.uk/parking/",
+      "title": "Parking"
+    },
+    {
+      "url": "https://penaltychargenotice.co.uk/parking/contraventions-for-parking/",
+      "title": "Contraventions for parking"
+    },
+    {
+      "url": "https://penaltychargenotice.co.uk/moving-traffic-contraventions/",
+      "title": "Moving Traffic Contraventions"
+    },
+    {
+      "url": "https://penaltychargenotice.co.uk/moving-traffic-contraventions/contraventions-for-moving-traffic/",
+      "title": "Contraventions for Moving Traffic"
+    },
+    {
+      "url": "https://penaltychargenotice.co.uk/bus-lanes/",
+      "title": "Bus Lanes"
+    },
+    {
+      "url": "https://penaltychargenotice.co.uk/congestion-charging/",
+      "title": "Congestion Charging & ULEZ"
+    },
+    {
+      "url": "https://penaltychargenotice.co.uk/private-land-enforcement/",
+      "title": "Private Land Enforcement"
+    },
+    {
+      "url": "https://penaltychargenotice.co.uk/cctv-enforcement/",
+      "title": "CCTV Enforcement"
+    },
+    {
+      "url": "https://penaltychargenotice.co.uk/free-letter-templates/",
+      "title": "Free Letter Templates"
+    },
+    {
+      "url": "https://penaltychargenotice.co.uk/parking/parking-faqs/",
+      "title": "Parking FAQs"
+    },
+    {
+      "url": "https://penaltychargenotice.co.uk/parking/received-a-parking-ticket/",
+      "title": "Received a parking ticket?"
+    },
+    {
+      "url": "https://penaltychargenotice.co.uk/traffic-signs-lines/",
+      "title": "Traffic Signs & Lines"
+    }
+  ],
+  "contraventionPages": [
+    {
+      "url": "https://penaltychargenotice.co.uk/parking/contraventions-for-parking/contravention-code-01-2/",
+      "title": "Contravention Code 01",
+      "code": "01"
+    },
+    {
+      "url": "https://penaltychargenotice.co.uk/parking/contraventions-for-parking/contravention-code-02/",
+      "title": "Contravention Code 02",
+      "code": "02"
+    },
+    {
+      "url": "https://penaltychargenotice.co.uk/parking/contraventions-for-parking/contravention-code-04/",
+      "title": "Contravention Code 04",
+      "code": "04"
+    },
+    {
+      "url": "https://penaltychargenotice.co.uk/parking/contraventions-for-parking/contravention-code-05/",
+      "title": "Contravention Code 05",
+      "code": "05"
+    },
+    {
+      "url": "https://penaltychargenotice.co.uk/parking/contraventions-for-parking/contravention-code-06/",
+      "title": "Contravention Code 06",
+      "code": "06"
+    },
+    {
+      "url": "https://penaltychargenotice.co.uk/parking/contraventions-for-parking/contravention-code-07/",
+      "title": "Contravention Code 07",
+      "code": "07"
+    },
+    {
+      "url": "https://penaltychargenotice.co.uk/parking/contraventions-for-parking/contravention-code-08/",
+      "title": "Contravention Code 08",
+      "code": "08"
+    },
+    {
+      "url": "https://penaltychargenotice.co.uk/parking/contraventions-for-parking/contravention-code-09/",
+      "title": "Contravention Code 09",
+      "code": "09"
+    },
+    {
+      "url": "https://penaltychargenotice.co.uk/parking/contraventions-for-parking/contravention-code-11/",
+      "title": "Contravention Code 11",
+      "code": "11"
+    },
+    {
+      "url": "https://penaltychargenotice.co.uk/parking/contraventions-for-parking/contravention-code-12/",
+      "title": "Contravention Code 12",
+      "code": "12"
+    },
+    {
+      "url": "https://penaltychargenotice.co.uk/parking/contraventions-for-parking/contravention-code-16/",
+      "title": "Contravention Code 16",
+      "code": "16"
+    },
+    {
+      "url": "https://penaltychargenotice.co.uk/congestion-charging/contraventions-for-congestion-charging/contravention-code-17/",
+      "title": "Contravention Code 17",
+      "code": "17"
+    },
+    {
+      "url": "https://penaltychargenotice.co.uk/parking/contraventions-for-parking/contravention-code-19/",
+      "title": "Contravention Code 19",
+      "code": "19"
+    },
+    {
+      "url": "https://penaltychargenotice.co.uk/parking/contraventions-for-parking/contravention-code-20/",
+      "title": "Contravention Code 20",
+      "code": "20"
+    },
+    {
+      "url": "https://penaltychargenotice.co.uk/parking/contraventions-for-parking/contravention-code-21/",
+      "title": "Contravention Code 21",
+      "code": "21"
+    },
+    {
+      "url": "https://penaltychargenotice.co.uk/parking/contraventions-for-parking/contravention-code-22/",
+      "title": "Contravention Code 22",
+      "code": "22"
+    },
+    {
+      "url": "https://penaltychargenotice.co.uk/parking/contraventions-for-parking/contravention-code-23/",
+      "title": "Contravention Code 23",
+      "code": "23"
+    },
+    {
+      "url": "https://penaltychargenotice.co.uk/parking/contraventions-for-parking/contravention-code-24/",
+      "title": "Contravention Code 24",
+      "code": "24"
+    },
+    {
+      "url": "https://penaltychargenotice.co.uk/parking/contraventions-for-parking/contravention-code-25/",
+      "title": "Contravention Code 25",
+      "code": "25"
+    },
+    {
+      "url": "https://penaltychargenotice.co.uk/parking/contraventions-for-parking/contravention-code-26/",
+      "title": "Contravention Code 26",
+      "code": "26"
+    },
+    {
+      "url": "https://penaltychargenotice.co.uk/parking/contraventions-for-parking/contravention-code-27/",
+      "title": "Contravention Code 27",
+      "code": "27"
+    },
+    {
+      "url": "https://penaltychargenotice.co.uk/parking/contraventions-for-parking/contravention-code-28/",
+      "title": "Contravention Code 28",
+      "code": "28"
+    },
+    {
+      "url": "https://penaltychargenotice.co.uk/parking/contraventions-for-parking/contravention-code-30/",
+      "title": "Contravention Code 30",
+      "code": "30"
+    },
+    {
+      "url": "https://penaltychargenotice.co.uk/parking/contraventions-for-parking/contravention-code-35/",
+      "title": "Contravention Code 35",
+      "code": "35"
+    },
+    {
+      "url": "https://penaltychargenotice.co.uk/parking/contraventions-for-parking/contravention-code-40/",
+      "title": "Contravention Code 40",
+      "code": "40"
+    },
+    {
+      "url": "https://penaltychargenotice.co.uk/parking/contraventions-for-parking/contravention-code-45/",
+      "title": "Contravention Code 45",
+      "code": "45"
+    },
+    {
+      "url": "https://penaltychargenotice.co.uk/parking/contraventions-for-parking/contravention-code-46/",
+      "title": "Contravention Code 46",
+      "code": "46"
+    },
+    {
+      "url": "https://penaltychargenotice.co.uk/parking/contraventions-for-parking/contravention-code-48/",
+      "title": "Contravention Code 48",
+      "code": "48"
+    },
+    {
+      "url": "https://penaltychargenotice.co.uk/parking/contraventions-for-parking/contravention-code-55/",
+      "title": "Contravention Code 55",
+      "code": "55"
+    },
+    {
+      "url": "https://penaltychargenotice.co.uk/parking/contraventions-for-parking/contravention-code-62/",
+      "title": "Contravention Code 62",
+      "code": "62"
+    },
+    {
+      "url": "https://penaltychargenotice.co.uk/parking/contraventions-for-parking/contravention-code-82/",
+      "title": "Contravention Code 82",
+      "code": "82"
+    },
+    {
+      "url": "https://penaltychargenotice.co.uk/parking/contraventions-for-parking/contravention-code-83/",
+      "title": "Contravention Code 83",
+      "code": "83"
+    },
+    {
+      "url": "https://penaltychargenotice.co.uk/parking/contraventions-for-parking/contravention-code-99/",
+      "title": "Contravention Code 99",
+      "code": "99"
+    },
+    {
+      "url": "https://penaltychargenotice.co.uk/moving-traffic-contraventions/contraventions-for-moving-traffic/contravention-code-none-issued/",
+      "title": "Contravention Code (none issued)",
+      "code": "unknown"
+    },
+    {
+      "url": "https://penaltychargenotice.co.uk/moving-traffic-contraventions/contraventions-for-moving-traffic/contravention-code-31/",
+      "title": "Contravention Code 31",
+      "code": "31"
+    },
+    {
+      "url": "https://penaltychargenotice.co.uk/moving-traffic-contraventions/contraventions-for-moving-traffic/contravention-code-32-38/",
+      "title": "Contravention Code 32",
+      "code": "32"
+    },
+    {
+      "url": "https://penaltychargenotice.co.uk/moving-traffic-contraventions/contraventions-for-moving-traffic/contravention-code-33/",
+      "title": "Contravention Code 33",
+      "code": "33"
+    },
+    {
+      "url": "https://penaltychargenotice.co.uk/moving-traffic-contraventions/contraventions-for-moving-traffic/contravention-code-34/",
+      "title": "Contravention Code 34",
+      "code": "34"
+    },
+    {
+      "url": "https://penaltychargenotice.co.uk/contravention-code-34/",
+      "title": "Contravention Code 34",
+      "code": "34"
+    },
+    {
+      "url": "https://penaltychargenotice.co.uk/moving-traffic-contraventions/contravention-code-37/",
+      "title": "Contravention Code 37",
+      "code": "37"
+    },
+    {
+      "url": "https://penaltychargenotice.co.uk/moving-traffic-contraventions/contraventions-for-moving-traffic/contravention-code-38/",
+      "title": "Contravention Code 38",
+      "code": "38"
+    },
+    {
+      "url": "https://penaltychargenotice.co.uk/moving-traffic-contraventions/contraventions-for-moving-traffic/contravention-code-50/",
+      "title": "Contravention Code 50",
+      "code": "50"
+    },
+    {
+      "url": "https://penaltychargenotice.co.uk/moving-traffic-contraventions/contraventions-for-moving-traffic/contravention-code-51/",
+      "title": "Contravention Code 51",
+      "code": "51"
+    },
+    {
+      "url": "https://penaltychargenotice.co.uk/moving-traffic-contraventions/contraventions-for-moving-traffic/contravention-code-52/",
+      "title": "Contravention Code 52",
+      "code": "52"
+    },
+    {
+      "url": "https://penaltychargenotice.co.uk/moving-traffic-contraventions/contraventions-for-moving-traffic/contravention-code-53/",
+      "title": "Contravention Code 53",
+      "code": "53"
+    },
+    {
+      "url": "https://penaltychargenotice.co.uk/moving-traffic-contraventions/contraventions-for-moving-traffic/contravention-code-54/",
+      "title": "Contravention Code 54",
+      "code": "54"
+    }
+  ],
+  "otherPages": [
+    {
+      "url": "https://penaltychargenotice.co.uk/about-us/successes-stories-of-parking-ticket-appeals/",
+      "title": "Successes stories"
+    },
+    {
+      "url": "https://penaltychargenotice.co.uk/parking/parking-adjudicators-decisions/",
+      "title": "Parking adjudicators decisions"
+    },
+    {
+      "url": "https://penaltychargenotice.co.uk/parking/parking-satutory-grounds-for-appeal/",
+      "title": "Parking statutory grounds for appeal"
+    },
+    {
+      "url": "https://penaltychargenotice.co.uk/parking/red-routes/red-routes-adjudicators-decisions/",
+      "title": "Red routes adjudicators decisions"
+    },
+    {
+      "url": "https://penaltychargenotice.co.uk/parking/clamping-and-towing/adjudicators-decisions/",
+      "title": "Adjudicators decisions"
+    },
+    {
+      "url": "https://penaltychargenotice.co.uk/parking/appealing-to-the-parking-adjudicator/",
+      "title": "Appealing to the parking adjudicator"
+    },
+    {
+      "url": "https://penaltychargenotice.co.uk/parking/appealing-to-the-parking-adjudicator/types-of-appeal/",
+      "title": "Types of appeal"
+    },
+    {
+      "url": "https://penaltychargenotice.co.uk/parking/appealing-to-the-parking-adjudicator/review-of-adjudicators-desisions/",
+      "title": "Review of adjudicator’s decisions"
+    },
+    {
+      "url": "https://penaltychargenotice.co.uk/parking-enforcement-process/parking-pcn-issued-at-the-scene/making-representations-pcn-issued-at-the-scene/",
+      "title": "Making representations"
+    },
+    {
+      "url": "https://penaltychargenotice.co.uk/parking-enforcement-process/parking-pcn-issued-at-the-scene/notice-of-appeal-pcn-issued-at-the-scene/",
+      "title": "Notice of Appeal"
+    },
+    {
+      "url": "https://penaltychargenotice.co.uk/parking-enforcement-process/parking-pcn-issued-by-post/making-representations-pcn-issued-by-post/",
+      "title": "Making Representations"
+    },
+    {
+      "url": "https://penaltychargenotice.co.uk/moving-traffic-contraventions/basic-checks-moving-traffic-contravention/statutory-grounds-for-appeal-moving-traffic-contravention/",
+      "title": "Statutory grounds for appeal"
+    },
+    {
+      "url": "https://penaltychargenotice.co.uk/moving-traffic-contraventions/adjudicators-decisions-moving-traffic-contraventions/",
+      "title": "Adjudicators decisions"
+    },
+    {
+      "url": "https://penaltychargenotice.co.uk/bus-lanes/information-suggestions-and-grounds-of-appeal-bus-lanes/",
+      "title": "Information suggestions and grounds of appeal"
+    },
+    {
+      "url": "https://penaltychargenotice.co.uk/bus-lanes/adjudicators-decisions-and-case-studies-bus-lanes/",
+      "title": "Adjudicators decisions and case studies"
+    },
+    {
+      "url": "https://penaltychargenotice.co.uk/bus-lanes/the-enforcement-process-bus-lane/appealing-to-the-bus-lane-adjudicator/",
+      "title": "Appealing to the adjudicator"
+    },
+    {
+      "url": "https://penaltychargenotice.co.uk/bus-lanes/the-enforcement-process-bus-lane/bus-lane-appeal-faqs/",
+      "title": "Bus Lane Appeal FAQs"
+    },
+    {
+      "url": "https://penaltychargenotice.co.uk/congestion-charging/appealing-to-the-congestion-charging-adjudicator/",
+      "title": "Appealing to the congestion charging adjudicator"
+    },
+    {
+      "url": "https://penaltychargenotice.co.uk/congestion-charging/adjudicators-decisions-on-congestion-charging/",
+      "title": "Adjudicators decisions on congestion charging"
+    },
+    {
+      "url": "https://penaltychargenotice.co.uk/cctv-enforcement/adjudicators-decisions-for-cctv/",
+      "title": "Adjudicators Decisions for CCTV"
+    },
+    {
+      "url": "https://penaltychargenotice.co.uk/private-land-enforcement/how-to-appeal-a-private-parking-ticket/",
+      "title": "How to appeal a private parking ticket"
+    },
+    {
+      "url": "https://penaltychargenotice.co.uk/private-land-enforcement/appeal-letter-template-private-land/",
+      "title": "Appeal letter template"
+    },
+    {
+      "url": "https://penaltychargenotice.co.uk/free-letter-templates/",
+      "title": "Free Letter Templates"
+    },
+    {
+      "url": "https://penaltychargenotice.co.uk/free-letter-templates/private-parking-ticket-appeal-letter-template/",
+      "title": "Private parking ticket appeal letter template"
+    },
+    {
+      "url": "https://penaltychargenotice.co.uk/free-letter-templates/letter-to-your-local-authority/",
+      "title": "Letter to your local authority"
+    },
+    {
+      "url": "https://penaltychargenotice.co.uk/free-letter-templates/letter-to-the-independent-adjudicator/",
+      "title": "Letter to the independent adjudicator"
+    },
+    {
+      "url": "https://penaltychargenotice.co.uk/free-letter-templates/information-commissioners-office-letter/",
+      "title": "Letter from the information commissioners office regarding signage"
+    }
+  ]
+}
