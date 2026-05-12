@@ -49,6 +49,7 @@ jobs:
 
       - name: Build web app
         env:
+          NODE_OPTIONS: --max-old-space-size=6144
           DATABASE_URL: ${{ secrets.E2E_DATABASE_URL }}
           DATABASE_URL_UNPOOLED: ${{ secrets.E2E_DATABASE_URL_UNPOOLED }}
           NEXT_AUTH_SECRET: ${{ secrets.E2E_NEXT_AUTH_SECRET }}
