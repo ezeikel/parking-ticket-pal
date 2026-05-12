@@ -39,8 +39,8 @@ jobs:
 
       - name: Build shared packages
         env:
-          DATABASE_URL: ${{ secrets.E2E_DATABASE_URL }}
-          DATABASE_URL_UNPOOLED: ${{ secrets.E2E_DATABASE_URL_UNPOOLED }}
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          DATABASE_URL_UNPOOLED: ${{ secrets.DATABASE_URL_UNPOOLED }}
         run: |
           pnpm --filter=@parking-ticket-pal/db run db:generate
           pnpm --filter=@parking-ticket-pal/db run build
@@ -50,9 +50,9 @@ jobs:
       - name: Build web app
         env:
           NODE_OPTIONS: --max-old-space-size=6144
-          DATABASE_URL: ${{ secrets.E2E_DATABASE_URL }}
-          DATABASE_URL_UNPOOLED: ${{ secrets.E2E_DATABASE_URL_UNPOOLED }}
-          NEXT_AUTH_SECRET: ${{ secrets.E2E_NEXT_AUTH_SECRET }}
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          DATABASE_URL_UNPOOLED: ${{ secrets.DATABASE_URL_UNPOOLED }}
+          NEXT_AUTH_SECRET: ${{ secrets.NEXT_AUTH_SECRET }}
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           GOOGLE_APPLICATION_CREDENTIALS_BASE64: ${{ secrets.GOOGLE_APPLICATION_CREDENTIALS_BASE64 }}
           NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN: ${{ secrets.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN }}
@@ -66,9 +66,9 @@ jobs:
 
       - name: Run E2E tests
         env:
-          DATABASE_URL: ${{ secrets.E2E_DATABASE_URL }}
-          DATABASE_URL_UNPOOLED: ${{ secrets.E2E_DATABASE_URL_UNPOOLED }}
-          NEXT_AUTH_SECRET: ${{ secrets.E2E_NEXT_AUTH_SECRET }}
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          DATABASE_URL_UNPOOLED: ${{ secrets.DATABASE_URL_UNPOOLED }}
+          NEXT_AUTH_SECRET: ${{ secrets.NEXT_AUTH_SECRET }}
           NEXTAUTH_URL: http://localhost:3000
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           GOOGLE_APPLICATION_CREDENTIALS_BASE64: ${{ secrets.GOOGLE_APPLICATION_CREDENTIALS_BASE64 }}
