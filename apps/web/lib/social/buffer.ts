@@ -237,9 +237,16 @@ export type SchedulePostParams = {
   platform: BufferPlatform;
   /** Full caption text (already includes hashtags). */
   text: string;
-  /** Public URL of the video to post. Must stay live until publish. */
-  videoUrl: string;
-  /** Optional public URL of a cover/thumbnail image for the video. */
+  /**
+   * Public URL of the video to post. Must stay live until publish.
+   * Provide exactly one of videoUrl OR imageUrl (Buffer's AssetInput is
+   * @oneOf — a post is a video post or an image post, not both).
+   */
+  videoUrl?: string;
+  /** Public URL of a single image to post (used for static surfaces like
+   * the daily carousel → LinkedIn). Mutually exclusive with videoUrl. */
+  imageUrl?: string;
+  /** Optional public URL of a cover/thumbnail image for a video. */
   thumbnailUrl?: string;
   /**
    * When the post should publish. ISO 8601 UTC. We use Buffer's
@@ -258,13 +265,25 @@ export const buildCreatePostVariables = (
   channelId: string,
   params: Pick<
     SchedulePostParams,
-    'text' | 'videoUrl' | 'thumbnailUrl' | 'dueAt'
+    'text' | 'videoUrl' | 'imageUrl' | 'thumbnailUrl' | 'dueAt'
   >,
 ) => {
-  const video: { url: string; thumbnailUrl?: string } = {
-    url: params.videoUrl,
-  };
-  if (params.thumbnailUrl) video.thumbnailUrl = params.thumbnailUrl;
+  // @oneOf: exactly one asset shape. Video wins if both are somehow set
+  // (a video post is the richer surface), but callers should pass one.
+  let asset: Record<string, unknown>;
+  if (params.videoUrl) {
+    const video: { url: string; thumbnailUrl?: string } = {
+      url: params.videoUrl,
+    };
+    if (params.thumbnailUrl) video.thumbnailUrl = params.thumbnailUrl;
+    asset = { video };
+  } else if (params.imageUrl) {
+    asset = { image: { url: params.imageUrl } };
+  } else {
+    throw new Error(
+      'buildCreatePostVariables: one of videoUrl or imageUrl is required',
+    );
+  }
 
   return {
     input: {
@@ -275,8 +294,8 @@ export const buildCreatePostVariables = (
       // ISO 8601 UTC, no milliseconds — Buffer expects second precision.
       dueAt: params.dueAt.toISOString().replace(/\.\d{3}Z$/, 'Z'),
       // New [AssetInput!]! @oneOf format (old grouped AssetsInput removed
-      // after 2026-05-25). One asset object, `video` key only.
-      assets: [{ video }],
+      // after 2026-05-25). Exactly one asset object.
+      assets: [asset],
     },
   };
 };
