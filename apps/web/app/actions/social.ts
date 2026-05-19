@@ -13,6 +13,7 @@ import { models, getTracedModel } from '@/lib/ai/models';
 import { sendSocialDigest, type SocialDigestCaption } from '@/lib/email';
 import { getRandomMusicTrack } from '@/lib/music';
 import { sanitizeCaption } from '@/lib/sanitize-caption';
+import { ptpVoice } from '@/lib/brand-voice';
 import {
   schedulePostViaBuffer,
   isBufferBridgeEnabled,
@@ -200,18 +201,9 @@ const uploadToTempStorage = async (
  * Generate Instagram caption
  */
 const generateInstagramCaption = async (post: Post): Promise<string> => {
-  const systemPrompt = `You are a social media expert creating Instagram captions for a UK parking and traffic law website called "Parking Ticket Pal".
+  const systemPrompt = `${ptpVoice('instagram', 'blog_promo')}
 
-Create an engaging Instagram caption that:
-- Starts with an attention-grabbing hook
-- Briefly explains the key takeaway from the blog post
-- Uses relevant emojis (but not too many)
-- Includes relevant hashtags (5-8 hashtags max)
-- Ends with "Link in bio for the full guide 📖"
-- Keeps it concise (under 150 words)
-- Uses UK terminology and context
-
-The caption should be informative but accessible, helping people understand their parking rights and responsibilities.`;
+Write the Instagram caption now. End with "Link in bio for the full guide 📖". Return ONLY the caption text, no labels or section headers.`;
 
   try {
     const tracedModel = getTracedModel(models.creative, {
@@ -248,20 +240,9 @@ const generateLinkedInCaption = async (
   post: Post,
   blogUrl: string,
 ): Promise<string> => {
-  const systemPrompt = `You are a social media expert creating LinkedIn posts for a UK parking and traffic law website called "Parking Ticket Pal".
+  const systemPrompt = `${ptpVoice('linkedin', 'blog_promo')}
 
-Create a professional LinkedIn post that:
-- Starts with a professional hook relevant to business owners/HR professionals
-- Focuses on how this affects businesses and employees
-- Provides 2-3 key professional insights
-- Uses professional tone with light business emojis
-- Includes relevant business hashtags
-- Ends with a clear call-to-action to read the full article
-- Is professional but engaging (150-200 words)
-- Uses UK business terminology
-- Focuses on compliance, employee rights, and business implications
-
-The post should position you as a thought leader in UK parking/traffic law.`;
+Angle it where it touches a work context (fleets, employees, HR, compliance) when the article supports it, otherwise keep it driver-relevant. End with a clear, low-key call to read the full article. Return ONLY the post text, no labels or section headers.`;
 
   try {
     const tracedModel = getTracedModel(models.creative, {
@@ -302,21 +283,12 @@ const generateFacebookCaption = async (
   post: Post,
   blogUrl: string,
 ): Promise<string> => {
-  const systemPrompt = `You are a social media expert creating Facebook posts for a UK parking and traffic law website called "Parking Ticket Pal".
+  // NOTE: PTP Facebook caption length is intentionally LONG (see the
+  // ptpPlatformAdapter('facebook') TODO + memory). FB is PTP's strongest
+  // channel; do not shorten on a research hypothesis without PTP's data.
+  const systemPrompt = `${ptpVoice('facebook', 'blog_promo')}
 
-Create an engaging Facebook post that:
-- Starts with an attention-grabbing question or statement
-- Provides a substantial preview of the blog content (2-3 key points)
-- Uses a conversational, helpful tone
-- Includes relevant emojis sparingly
-- Ends with a clear call-to-action to read the full article
-- Is longer than Instagram (200-300 words is fine)
-- Uses UK terminology and context
-- Focuses on helping people understand their rights
-- Uses PLAIN TEXT ONLY - NO markdown formatting (no **bold**, no *italic*, no # headers)
-- Use CAPS, line breaks, and emojis for emphasis instead of markdown
-
-The post should provide real value while encouraging clicks to read more.`;
+Give a substantial preview (2 to 3 key points from the article). End with the blog URL on its own line. Return ONLY the post text, no labels or section headers.`;
 
   try {
     const tracedModel = getTracedModel(models.creative, {
@@ -357,15 +329,9 @@ const generateFacebookReelCaption = async (
   post: Post,
   blogUrl: string,
 ): Promise<string> => {
-  const systemPrompt = `You are creating a Facebook video/Reel caption for a UK parking/traffic law website called "Parking Ticket Pal".
+  const systemPrompt = `${ptpVoice('facebook', 'reel')}
 
-Create a caption that:
-- Starts with a hook that references watching the video
-- Is concise (under 150 words)
-- Uses relevant emojis
-- Includes the blog URL for more info
-- Uses UK terminology
-- Uses PLAIN TEXT ONLY - NO markdown formatting
+Hook on watching the video. Include the blog URL for more info. Keep it concise. Return ONLY the caption text, no labels.
 
 Title: ${post.meta.title}
 Summary: ${post.meta.summary}
@@ -404,18 +370,9 @@ Blog URL: ${blogUrl}`;
  * Short, hashtag-heavy, trend-focused for younger audience
  */
 const generateTikTokCaption = async (post: Post): Promise<string> => {
-  const systemPrompt = `You are creating a TikTok caption for a UK parking/traffic law website called "Parking Ticket Pal".
+  const systemPrompt = `${ptpVoice('tiktok', 'reel')}
 
-Create a caption that:
-- Is SHORT (under 150 characters visible without tapping "more")
-- Starts with a strong hook/question
-- Uses casual, punchy British English. Authentic, not corporate
-- Includes 3-5 relevant hashtags (2 broad like #UKDriving #ParkingFine + 2-3 niche)
-- NO links (not clickable on TikTok)
-- Uses UK terminology
-- NEVER use em dashes. Use commas, full stops, or line breaks instead
-- 2-3 emoji max, chosen to match the specific topic. Vary your emoji, do NOT default to the same set every time
-- CTA must be relevant to the content. Good CTAs: "Save this for later", "Follow for more UK driving law", "Tag someone who needs this". Bad CTAs: asking people to comment about rare personal experiences
+Start with a strong hook or question. CTA relevant to the content (good: "Save this for later", "Follow for more UK driving law", "Tag someone who needs this"; bad: asking about rare personal experiences). Return ONLY the caption text, no labels.
 
 Title: ${post.meta.title}
 Summary: ${post.meta.summary}`;
@@ -461,14 +418,9 @@ const generateYouTubeShortsCaption = async (
   post: Post,
   blogUrl: string,
 ): Promise<{ title: string; description: string }> => {
-  const systemPrompt = `You are creating a YouTube Shorts title and description for a UK parking/traffic law website called "Parking Ticket Pal".
+  const systemPrompt = `${ptpVoice('youtube_shorts', 'reel')}
 
-Create content that:
-- Title: Under 100 characters, SEO-optimized, attention-grabbing
-- Description: Include the blog URL, relevant keywords, and hashtags
-- Include #Shorts hashtag (required for Shorts)
-- Uses UK terminology
-- Focus on search discoverability
+Description must include the blog URL and the #Shorts hashtag (required). Focus on search discoverability.
 
 Title: ${post.meta.title}
 Summary: ${post.meta.summary}
@@ -518,17 +470,9 @@ const generateThreadsCaption = async (
   post: Post,
   blogUrl: string,
 ): Promise<string> => {
-  const systemPrompt = `You are creating a Threads caption for a UK parking/traffic law website called "Parking Ticket Pal".
+  const systemPrompt = `${ptpVoice('threads', 'blog_promo')}
 
-Create a caption that:
-- Is conversational and opinion-driven
-- Can be longer form (200-300 words is fine)
-- NO hashtags (not widely used on Threads)
-- Mentions "also posted on Instagram" or cross-promotes
-- Includes the blog URL
-- Starts with a thought-provoking statement or question
-- Uses UK terminology
-- Feels personal and engaging
+Open with a thought-provoking statement or question. Include the blog URL. Return ONLY the caption text, no labels.
 
 Title: ${post.meta.title}
 Summary: ${post.meta.summary}
@@ -673,15 +617,9 @@ const generateVoiceover = async (text: string): Promise<string | null> => {
  * Generate Instagram Reel caption (different tone than static post)
  */
 const generateInstagramReelCaption = async (post: Post): Promise<string> => {
-  const systemPrompt = `You are creating an Instagram Reel caption for a UK parking/traffic law website called "Parking Ticket Pal".
+  const systemPrompt = `${ptpVoice('instagram', 'reel')}
 
-Create a caption that:
-- Starts with a hook that references the video (e.g., "Watch this before you...")
-- Is shorter than a regular post (under 100 words)
-- Uses relevant emojis
-- Includes 5-8 hashtags
-- Ends with "Link in bio for the full guide 📖"
-- Uses UK terminology
+Hook on watching the video ("Watch this before you..."). Keep it shorter than a feed post. End with "Link in bio for the full guide 📖". Return ONLY the caption text, no labels.
 
 Title: ${post.meta.title}
 Summary: ${post.meta.summary}`;
