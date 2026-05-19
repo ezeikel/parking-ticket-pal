@@ -173,11 +173,46 @@ LinkedIn API requires company/organization verification which is pending. The co
 
 ### Potential
 
-- [ ] **TikTok Integration**: Add TikTok posting
 - [ ] **X/Twitter Integration**: Add Twitter/X posting
 - [ ] **YouTube Shorts**: Repurpose Reels for YouTube Shorts
 - [ ] **Scheduling**: Post at optimal times per platform
 - [ ] **Analytics Dashboard**: Track engagement across platforms
+
+> Note: TikTok + LinkedIn posting is **already live via the Buffer API
+> bridge** (a temporary path until direct TikTok App Review / LinkedIn
+> approval lands). It fires inside the blog-promo `postToSocialMedia`
+> flow, gated by `BUFFER_ENABLE_TIKTOK` / `BUFFER_ENABLE_LINKEDIN`. See
+> the Buffer-bridge code in `lib/social/buffer.ts`.
+
+## TODO: Content-Pipeline Parity With Chunky Crayon (future)
+
+PTP's social pipeline is currently **blog-promo only**: one cron
+(`/api/social/post`, Tue/Thu/Sat) posts the latest blog to IG/FB/LI
+(+ TikTok/LinkedIn via Buffer). The `tribunal-video` and `news-video`
+crons today only **generate** videos; they do not post to social.
+
+Chunky Crayon's architecture is the reference (see memory
+`project-ptp-align-to-cc-arch`): per-content-type posting crons feeding
+one shared posting action, with the Buffer bridge applied per content
+type. PTP should move toward that. Concrete intended shape:
+
+1. **Generate most content early-morning, batch-style, like CC.** The
+   daily content (blog promo, tribunal reels) can be produced on a fixed
+   early cron rather than ad hoc.
+2. **News reels are the exception** — keep their periodic intra-day scan
+   (`/api/news-video/generate` already runs 08:00/11:00/14:00/17:00) so
+   timely news articles get picked up through the day, not just once.
+3. **Wire the video pipelines into social posting + the Buffer bridge.**
+   Tribunal reels and news reels are video, so they are a strong fit for
+   TikTok and LinkedIn via Buffer (same pattern CC uses for demo-reel
+   and content-reel). Blog promo continues as today.
+4. **Mirror CC's per-platform format rules**: video-only to TikTok;
+   LinkedIn can also take static/carousel; FB keeps its longer format
+   (PTP's strongest channel — see `ptpPlatformAdapter('facebook')` TODO).
+
+This is a feature build, not a config change. Not scheduled. Pick it up
+on the next structural PTP social work, alongside folding the PTP worker
+into the turborepo (memory `project-ptp-align-to-cc-arch`).
 
 ## Commits History
 
