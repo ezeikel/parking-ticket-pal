@@ -12,6 +12,7 @@ import { put } from '@/lib/storage';
 import { models, getTracedModel } from '@/lib/ai/models';
 import { sendSocialDigest, type SocialDigestCaption } from '@/lib/email';
 import { getRandomMusicTrack } from '@/lib/music';
+import { sanitizeCaption } from '@/lib/sanitize-caption';
 import {
   schedulePostViaBuffer,
   isBufferBridgeEnabled,
@@ -226,7 +227,7 @@ Summary: ${post.meta.summary}
 Tags: ${post.meta.tags.join(', ')}`,
     });
 
-    return text;
+    return sanitizeCaption(text);
   } catch (error) {
     logger.error(
       'Error generating Instagram caption',
@@ -279,7 +280,7 @@ Blog URL: ${blogUrl}
 Include the blog URL at the end of the post.`,
     });
 
-    return text;
+    return sanitizeCaption(text);
   } catch (error) {
     logger.error(
       'Error generating LinkedIn caption',
@@ -334,7 +335,7 @@ Blog URL: ${blogUrl}
 Include the blog URL at the end of the post.`,
     });
 
-    return text;
+    return sanitizeCaption(text);
   } catch (error) {
     logger.error(
       'Error generating Facebook caption',
@@ -384,7 +385,7 @@ Blog URL: ${blogUrl}`;
       prompt: 'Generate the Facebook video caption.',
     });
 
-    return text;
+    return sanitizeCaption(text);
   } catch (error) {
     logger.error(
       'Error generating Facebook Reel caption',
@@ -430,7 +431,7 @@ Summary: ${post.meta.summary}`;
       prompt: 'Generate the TikTok caption.',
     });
 
-    return text;
+    return sanitizeCaption(text);
   } catch (error) {
     logger.error(
       'Error generating TikTok caption',
@@ -493,8 +494,8 @@ Blog URL: ${blogUrl}`;
     });
 
     return {
-      title: output?.title || post.meta.title,
-      description: output?.description || post.meta.summary,
+      title: sanitizeCaption(output?.title || post.meta.title),
+      description: sanitizeCaption(output?.description || post.meta.summary),
     };
   } catch (error) {
     logger.error(
@@ -544,7 +545,7 @@ Blog URL: ${blogUrl}`;
       prompt: 'Generate the Threads caption.',
     });
 
-    return text;
+    return sanitizeCaption(text);
   } catch (error) {
     logger.error(
       'Error generating Threads caption',
@@ -699,7 +700,7 @@ Summary: ${post.meta.summary}`;
       prompt: 'Generate the Reel caption.',
     });
 
-    return text;
+    return sanitizeCaption(text);
   } catch (error) {
     logger.error(
       'Error generating Instagram Reel caption',
