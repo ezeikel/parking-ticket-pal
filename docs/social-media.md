@@ -186,32 +186,39 @@ LinkedIn API requires company/organization verification which is pending. The co
 
 ## TODO: Content-Pipeline Parity With Chunky Crayon (future)
 
-PTP's social pipeline is currently **blog-promo only**: one cron
-(`/api/social/post`, Tue/Thu/Sat) posts the latest blog to IG/FB/LI
-(+ TikTok/LinkedIn via Buffer). The `tribunal-video` and `news-video`
-crons today only **generate** videos; they do not post to social.
+PTP has three video-posting pipelines today:
 
-Chunky Crayon's architecture is the reference (see memory
-`project-ptp-align-to-cc-arch`): per-content-type posting crons feeding
-one shared posting action, with the Buffer bridge applied per content
-type. PTP should move toward that. Concrete intended shape:
+1. **Blog-promo** — `/api/social/post` cron (Tue/Thu/Sat 09:30 UTC) posts
+   the latest blog as IG/FB reels, with TikTok + LinkedIn via the Buffer
+   bridge. Latest blog is fetched at cron time.
+2. **Tribunal video** — generation cron (Mon-Fri 10:00 UTC) renders a
+   tribunal-case reel; the worker webhook (`completeTribunalVideo` in
+   `lib/video-completion.ts`) posts it to IG/FB and **also pushes
+   TT + LI via Buffer** (wired alongside the blog-promo Buffer work).
+3. **News video** — generation cron (4x/day, 08/11/14/17 UTC) renders
+   topical news reels; same webhook pattern (`completeNewsVideo`) posts
+   to IG/FB + TT/LI via Buffer.
+
+Chunky Crayon's architecture is still the reference for the deeper
+direction (see memory `project-ptp-align-to-cc-arch`): per-content-type
+posting crons feeding one shared posting action, with the Buffer bridge
+applied per content type. Open items for future PTP work:
 
 1. **Generate most content early-morning, batch-style, like CC.** The
-   daily content (blog promo, tribunal reels) can be produced on a fixed
-   early cron rather than ad hoc.
-2. **News reels are the exception** — keep their periodic intra-day scan
-   (`/api/news-video/generate` already runs 08:00/11:00/14:00/17:00) so
-   timely news articles get picked up through the day, not just once.
-3. **Wire the video pipelines into social posting + the Buffer bridge.**
-   Tribunal reels and news reels are video, so they are a strong fit for
-   TikTok and LinkedIn via Buffer (same pattern CC uses for demo-reel
-   and content-reel). Blog promo continues as today.
-4. **Mirror CC's per-platform format rules**: video-only to TikTok;
+   daily content (blog promo, tribunal reels) could be produced on a
+   fixed early cron rather than spread across the day. **News reels are
+   the exception** — keep their periodic intra-day scan (08/11/14/17 UTC)
+   so timely news articles get picked up through the day, not just once.
+2. **Fold the PTP worker into the turborepo** and promote
+   `lib/sanitize-caption.ts` + `lib/brand-voice.ts` + `lib/social/buffer.ts`
+   into shared packages (today they are duplicated by hand against CC's
+   `coloring-core` versions).
+3. **Mirror CC's per-platform format rules**: video-only to TikTok;
    LinkedIn can also take static/carousel; FB keeps its longer format
    (PTP's strongest channel — see `ptpPlatformAdapter('facebook')` TODO).
 
-This is a feature build, not a config change. Not scheduled. Pick it up
-on the next structural PTP social work, alongside folding the PTP worker
+Not scheduled. Pick it up on the next structural PTP social work,
+alongside folding the PTP worker
 into the turborepo (memory `project-ptp-align-to-cc-arch`).
 
 ## Commits History

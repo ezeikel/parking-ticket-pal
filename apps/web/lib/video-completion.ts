@@ -10,6 +10,11 @@ import {
   generateNewsBlogPost,
   generateTribunalBlogPost,
 } from '@/app/actions/blog';
+import {
+  schedulePostViaBuffer,
+  isBufferBridgeEnabled,
+} from '@/lib/social/buffer';
+import { sanitizeCaption } from '@/lib/sanitize-caption';
 import { SITE_URL as DEFAULT_SITE_URL } from '@/constants';
 
 const SITE_URL = process.env.NEXT_PUBLIC_APP_URL || DEFAULT_SITE_URL;
@@ -916,6 +921,53 @@ export async function completeTribunalVideo(
     postingResults.youtube = ytResult;
   }
 
+  // ── Buffer bridge (TEMPORARY) ──────────────────────────────────────
+  // TikTok and LinkedIn can't auto-post directly yet (TikTok App Review,
+  // LinkedIn rejected on first pass). The reel video + cover are already
+  // rendered, and the TT/LI captions are already generated above. Push
+  // to Buffer's queue so they publish instead of just landing in the
+  // digest for manual posting. Gated per-platform by BUFFER_ENABLE_*;
+  // no-ops cleanly when off. Mirrors the blog-promo pattern in
+  // app/actions/social.ts.
+  const bufferedVia = new Set<'tiktok' | 'linkedin'>();
+  const bufferDueAt = () => new Date(Date.now() + 5 * 60 * 1000);
+
+  if (isBufferBridgeEnabled('tiktok') && typeof tiktokCaption === 'string') {
+    const r = await schedulePostViaBuffer({
+      platform: 'tiktok',
+      text: sanitizeCaption(tiktokCaption),
+      videoUrl,
+      thumbnailUrl: coverImageUrl ?? undefined,
+      dueAt: bufferDueAt(),
+    });
+    if (r.scheduled) {
+      bufferedVia.add('tiktok');
+      logger?.info('TikTok scheduled via Buffer', { postId: r.postId });
+    } else if (!r.disabled) {
+      logger?.error('Buffer TikTok push failed', { error: r.error });
+    }
+  }
+
+  if (
+    isBufferBridgeEnabled('linkedin') &&
+    typeof linkedinCaption === 'string'
+  ) {
+    const r = await schedulePostViaBuffer({
+      platform: 'linkedin',
+      text: sanitizeCaption(linkedinCaption),
+      videoUrl,
+      thumbnailUrl: coverImageUrl ?? undefined,
+      dueAt: bufferDueAt(),
+    });
+    if (r.scheduled) {
+      bufferedVia.add('linkedin');
+      logger?.info('LinkedIn scheduled via Buffer', { postId: r.postId });
+    } else if (!r.disabled) {
+      logger?.error('Buffer LinkedIn push failed', { error: r.error });
+    }
+  }
+  // ───────────────────────────────────────────────────────────────────
+
   // Send email digest
   const digestEmail = process.env.SOCIAL_DIGEST_EMAIL;
   if (digestEmail) {
@@ -938,10 +990,13 @@ export async function completeTribunalVideo(
       });
     }
     if (tiktokCaption) {
+      // Buffer-scheduled → "auto-posted via Buffer" in the digest;
+      // otherwise stays manual with the caption surfaced for hand-posting.
       digestCaptions.push({
         platform: 'tiktok',
         caption: tiktokCaption,
-        autoPosted: false,
+        autoPosted: bufferedVia.has('tiktok'),
+        ...(bufferedVia.has('tiktok') ? { postedVia: 'buffer' as const } : {}),
         assetType: 'video',
       });
     }
@@ -965,7 +1020,10 @@ export async function completeTribunalVideo(
       digestCaptions.push({
         platform: 'linkedin',
         caption: linkedinCaption,
-        autoPosted: false,
+        autoPosted: bufferedVia.has('linkedin'),
+        ...(bufferedVia.has('linkedin')
+          ? { postedVia: 'buffer' as const }
+          : {}),
         assetType: 'video',
       });
     }
@@ -1190,6 +1248,53 @@ export async function completeNewsVideo(
     postingResults.youtube = ytResult;
   }
 
+  // ── Buffer bridge (TEMPORARY) ──────────────────────────────────────
+  // TikTok and LinkedIn can't auto-post directly yet (TikTok App Review,
+  // LinkedIn rejected on first pass). The reel video + cover are already
+  // rendered, and the TT/LI captions are already generated above. Push
+  // to Buffer's queue so they publish instead of just landing in the
+  // digest for manual posting. Gated per-platform by BUFFER_ENABLE_*;
+  // no-ops cleanly when off. Mirrors the blog-promo pattern in
+  // app/actions/social.ts.
+  const bufferedVia = new Set<'tiktok' | 'linkedin'>();
+  const bufferDueAt = () => new Date(Date.now() + 5 * 60 * 1000);
+
+  if (isBufferBridgeEnabled('tiktok') && typeof tiktokCaption === 'string') {
+    const r = await schedulePostViaBuffer({
+      platform: 'tiktok',
+      text: sanitizeCaption(tiktokCaption),
+      videoUrl,
+      thumbnailUrl: coverImageUrl ?? undefined,
+      dueAt: bufferDueAt(),
+    });
+    if (r.scheduled) {
+      bufferedVia.add('tiktok');
+      logger?.info('TikTok scheduled via Buffer', { postId: r.postId });
+    } else if (!r.disabled) {
+      logger?.error('Buffer TikTok push failed', { error: r.error });
+    }
+  }
+
+  if (
+    isBufferBridgeEnabled('linkedin') &&
+    typeof linkedinCaption === 'string'
+  ) {
+    const r = await schedulePostViaBuffer({
+      platform: 'linkedin',
+      text: sanitizeCaption(linkedinCaption),
+      videoUrl,
+      thumbnailUrl: coverImageUrl ?? undefined,
+      dueAt: bufferDueAt(),
+    });
+    if (r.scheduled) {
+      bufferedVia.add('linkedin');
+      logger?.info('LinkedIn scheduled via Buffer', { postId: r.postId });
+    } else if (!r.disabled) {
+      logger?.error('Buffer LinkedIn push failed', { error: r.error });
+    }
+  }
+  // ───────────────────────────────────────────────────────────────────
+
   // Send email digest
   const digestEmail = process.env.SOCIAL_DIGEST_EMAIL;
   if (digestEmail) {
@@ -1212,10 +1317,13 @@ export async function completeNewsVideo(
       });
     }
     if (tiktokCaption) {
+      // Buffer-scheduled → "auto-posted via Buffer" in the digest;
+      // otherwise stays manual with the caption surfaced for hand-posting.
       digestCaptions.push({
         platform: 'tiktok',
         caption: tiktokCaption,
-        autoPosted: false,
+        autoPosted: bufferedVia.has('tiktok'),
+        ...(bufferedVia.has('tiktok') ? { postedVia: 'buffer' as const } : {}),
         assetType: 'video',
       });
     }
@@ -1239,7 +1347,10 @@ export async function completeNewsVideo(
       digestCaptions.push({
         platform: 'linkedin',
         caption: linkedinCaption,
-        autoPosted: false,
+        autoPosted: bufferedVia.has('linkedin'),
+        ...(bufferedVia.has('linkedin')
+          ? { postedVia: 'buffer' as const }
+          : {}),
         assetType: 'video',
       });
     }
