@@ -9,11 +9,13 @@
     "check-types": "turbo run check-types",
     "clean": "rm -rf apps/*/node_modules packages/*/node_modules",
     "clean:deep": "rm -rf apps/*/node_modules packages/*/node_modules pnpm-lock.yaml && pnpm install",
-    "prepare": "husky"
+    "prepare": "husky",
+    "postinstall": "patch-package"
   },
   "devDependencies": {
     "husky": "^9.1.7",
     "lint-staged": "^16.2.7",
+    "patch-package": "^8.0.1",
     "prettier": "^3.6.2",
     "turbo": "^2.8.11",
     "typescript": "5.8.3"
