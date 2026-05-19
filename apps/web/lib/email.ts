@@ -281,6 +281,13 @@ export type SocialDigestCaption = {
   assetType: 'image' | 'video' | 'both';
   title?: string;
   description?: string;
+  /**
+   * 'buffer' when scheduled into Buffer's queue (the TikTok/LinkedIn
+   * bridge until direct API approval lands). The digest shows
+   * "Auto-posted via Buffer" so you know it's handled and don't post it
+   * by hand. Implies autoPosted is effectively true for display.
+   */
+  postedVia?: 'buffer';
 };
 
 export const sendSocialDigest = async (

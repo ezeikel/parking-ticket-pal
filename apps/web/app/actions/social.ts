@@ -12,6 +12,10 @@ import { put } from '@/lib/storage';
 import { models, getTracedModel } from '@/lib/ai/models';
 import { sendSocialDigest, type SocialDigestCaption } from '@/lib/email';
 import { getRandomMusicTrack } from '@/lib/music';
+import {
+  schedulePostViaBuffer,
+  isBufferBridgeEnabled,
+} from '@/lib/social/buffer';
 
 const logger = createServerLogger({ action: 'social' });
 
@@ -1478,6 +1482,84 @@ export const postToSocialMedia = async (params: {
       }
     }
 
+    // ── Buffer bridge (TEMPORARY) ──────────────────────────────────────
+    // TikTok and LinkedIn can't auto-post directly yet — TikTok is pending
+    // App Review, LinkedIn was rejected (postToLinkedInPage above stays
+    // dormant until approval lands). Until then, when the per-platform
+    // Buffer flag is on, push the rendered reel into Buffer's queue so it
+    // actually publishes instead of just landing in the digest for manual
+    // posting. The captions still appear in the digest (your call) but the
+    // badge flips to "Auto-posted via Buffer" for whatever Buffer accepted.
+    //
+    // When direct approval lands: flip BUFFER_ENABLE_TIKTOK /
+    // BUFFER_ENABLE_LINKEDIN off, then delete this block + lib/social/buffer.
+    const bufferedVia = new Set<'tiktok' | 'linkedin'>();
+    // Buffer needs a future dueAt; this action runs at the social cron
+    // slot, so "the slot" is effectively now — schedule a few minutes out
+    // for pipeline headroom. The reel is the same R2 asset the digest links.
+    const bufferDueAt = () => new Date(Date.now() + 5 * 60 * 1000);
+
+    if (reelVideoR2Url) {
+      if (
+        isBufferBridgeEnabled('tiktok') &&
+        typeof manualCaptions.tiktok === 'string'
+      ) {
+        const r = await schedulePostViaBuffer({
+          platform: 'tiktok',
+          text: manualCaptions.tiktok,
+          videoUrl: reelVideoR2Url,
+          dueAt: bufferDueAt(),
+        });
+        if (r.scheduled) {
+          bufferedVia.add('tiktok');
+          logger.info('TikTok scheduled via Buffer', {
+            slug: post.meta.slug,
+            postId: r.postId,
+          });
+        } else if (!r.disabled) {
+          logger.error(
+            'Buffer TikTok push failed',
+            { slug: post.meta.slug },
+            new Error(r.error ?? 'unknown'),
+          );
+        }
+      }
+
+      if (
+        isBufferBridgeEnabled('linkedin') &&
+        typeof manualCaptions.linkedin === 'string'
+      ) {
+        const r = await schedulePostViaBuffer({
+          platform: 'linkedin',
+          text: manualCaptions.linkedin,
+          videoUrl: reelVideoR2Url,
+          dueAt: bufferDueAt(),
+        });
+        if (r.scheduled) {
+          bufferedVia.add('linkedin');
+          logger.info('LinkedIn scheduled via Buffer', {
+            slug: post.meta.slug,
+            postId: r.postId,
+          });
+        } else if (!r.disabled) {
+          logger.error(
+            'Buffer LinkedIn push failed',
+            { slug: post.meta.slug },
+            new Error(r.error ?? 'unknown'),
+          );
+        }
+      }
+    } else if (
+      isBufferBridgeEnabled('tiktok') ||
+      isBufferBridgeEnabled('linkedin')
+    ) {
+      logger.warn(
+        'Buffer bridge enabled but no reel video available — skipping Buffer push',
+        { slug: post.meta.slug },
+      );
+    }
+    // ───────────────────────────────────────────────────────────────────
+
     // Send email digest if configured
     const digestEmail = process.env.SOCIAL_DIGEST_EMAIL;
     if (digestEmail) {
@@ -1530,20 +1612,26 @@ export const postToSocialMedia = async (params: {
           assetType: 'image',
         });
       } else if (typeof manualCaptions.linkedin === 'string') {
+        // Scheduled into Buffer as a reel (bridge) → show "via Buffer" and
+        // mark the asset as video, since that's what Buffer is posting.
+        const viaBuffer = bufferedVia.has('linkedin');
         digestCaptions.push({
           platform: 'linkedin',
           caption: manualCaptions.linkedin,
-          autoPosted: false,
-          assetType: 'image',
+          autoPosted: viaBuffer,
+          ...(viaBuffer ? { postedVia: 'buffer' as const } : {}),
+          assetType: viaBuffer ? 'video' : 'image',
         });
       }
 
       // Add manual platforms
       if (typeof manualCaptions.tiktok === 'string') {
+        const viaBuffer = bufferedVia.has('tiktok');
         digestCaptions.push({
           platform: 'tiktok',
           caption: manualCaptions.tiktok,
-          autoPosted: false,
+          autoPosted: viaBuffer,
+          ...(viaBuffer ? { postedVia: 'buffer' as const } : {}),
           assetType: 'video',
         });
       }

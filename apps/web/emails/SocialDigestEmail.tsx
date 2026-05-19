@@ -21,6 +21,8 @@ type PlatformCaption = {
   // For YouTube Shorts which has title + description
   title?: string;
   description?: string;
+  // 'buffer' when scheduled into Buffer's queue (TikTok/LinkedIn bridge).
+  postedVia?: 'buffer';
 };
 
 type SocialDigestEmailProps = {
@@ -193,6 +195,14 @@ const manualBadge = {
   color: '#92400e',
 };
 
+// Buffer-scheduled (TikTok/LinkedIn bridge). Blue — handled, but via
+// Buffer's queue rather than our own direct API.
+const bufferBadge = {
+  ...statusBadge,
+  backgroundColor: '#dbeafe',
+  color: '#1e40af',
+};
+
 const assetTypeBadge = {
   fontSize: '11px',
   color: '#6b7280',
@@ -270,6 +280,21 @@ const getAssetTypeLabel = (assetType: 'image' | 'video' | 'both'): string => {
     both: 'Image + Video',
   };
   return labels[assetType];
+};
+
+// Posting-status badge. Three states: scheduled into Buffer's queue
+// (TikTok/LinkedIn bridge), our own direct auto-post, or manual.
+const getStatusBadge = (item: {
+  postedVia?: 'buffer';
+  autoPosted: boolean;
+}): { style: typeof bufferBadge; label: string } => {
+  if (item.postedVia === 'buffer') {
+    return { style: bufferBadge, label: '✓ Auto-posted via Buffer' };
+  }
+  if (item.autoPosted) {
+    return { style: autoPostedBadge, label: '✓ Auto-posted' };
+  }
+  return { style: manualBadge, label: '📋 Manual' };
 };
 
 const SocialDigestEmail = ({
@@ -358,9 +383,10 @@ const SocialDigestEmail = ({
                   {getPlatformEmoji(item.platform)}{' '}
                   {getPlatformDisplayName(item.platform)}
                 </Text>
-                <span style={item.autoPosted ? autoPostedBadge : manualBadge}>
-                  {item.autoPosted ? '✓ Auto-posted' : '📋 Manual'}
-                </span>
+                {(() => {
+                  const badge = getStatusBadge(item);
+                  return <span style={badge.style}>{badge.label}</span>;
+                })()}
               </div>
               <Text style={assetTypeBadge}>
                 {getAssetTypeLabel(item.assetType)}
