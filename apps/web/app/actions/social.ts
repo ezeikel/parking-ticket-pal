@@ -32,6 +32,22 @@ const elevenlabs = process.env.ELEVENLABS_API_KEY
 const ELEVENLABS_VOICE_ID =
   process.env.ELEVENLABS_VOICE_ID || 'P6bTNc9ZMZitpFPNJFbo'; // Default: Custom voice
 
+// Caption system-prompt tails. Kept in a sibling module so the drift-guard
+// test (social.test.ts) can import them without pulling in this file's
+// 'use server' deps (Resend, ElevenLabs, sharp) which fail to module-load
+// in jsdom test env. See social-prompts.ts for the docstring + rules for
+// adding a new caption fn.
+import {
+  INSTAGRAM_CAPTION_TAIL,
+  LINKEDIN_CAPTION_TAIL,
+  FACEBOOK_CAPTION_TAIL,
+  FACEBOOK_REEL_CAPTION_TAIL,
+  TIKTOK_CAPTION_TAIL,
+  YOUTUBE_SHORTS_CAPTION_TAIL,
+  THREADS_CAPTION_TAIL,
+  INSTAGRAM_REEL_CAPTION_TAIL,
+} from './social-prompts';
+
 /**
  * Generate Instagram image by calling the OG image endpoint
  */
@@ -201,9 +217,7 @@ const uploadToTempStorage = async (
  * Generate Instagram caption
  */
 const generateInstagramCaption = async (post: Post): Promise<string> => {
-  const systemPrompt = `${ptpVoice('instagram', 'blog_promo')}
-
-Write the Instagram caption now. End with "Link in bio for the full guide 📖". Return ONLY the caption text, no labels or section headers.`;
+  const systemPrompt = ptpVoice('instagram', 'blog_promo') + INSTAGRAM_CAPTION_TAIL;
 
   try {
     const tracedModel = getTracedModel(models.creative, {
@@ -240,9 +254,7 @@ const generateLinkedInCaption = async (
   post: Post,
   blogUrl: string,
 ): Promise<string> => {
-  const systemPrompt = `${ptpVoice('linkedin', 'blog_promo')}
-
-Angle it where it touches a work context (fleets, employees, HR, compliance) when the article supports it, otherwise keep it driver-relevant. End with a clear, low-key call to read the full article. Return ONLY the post text, no labels or section headers.`;
+  const systemPrompt = ptpVoice('linkedin', 'blog_promo') + LINKEDIN_CAPTION_TAIL;
 
   try {
     const tracedModel = getTracedModel(models.creative, {
@@ -286,9 +298,7 @@ const generateFacebookCaption = async (
   // NOTE: PTP Facebook caption length is intentionally LONG (see the
   // ptpPlatformAdapter('facebook') TODO + memory). FB is PTP's strongest
   // channel; do not shorten on a research hypothesis without PTP's data.
-  const systemPrompt = `${ptpVoice('facebook', 'blog_promo')}
-
-Give a substantial preview (2 to 3 key points from the article). End with the blog URL on its own line. Return ONLY the post text, no labels or section headers.`;
+  const systemPrompt = ptpVoice('facebook', 'blog_promo') + FACEBOOK_CAPTION_TAIL;
 
   try {
     const tracedModel = getTracedModel(models.creative, {
@@ -329,9 +339,7 @@ const generateFacebookReelCaption = async (
   post: Post,
   blogUrl: string,
 ): Promise<string> => {
-  const systemPrompt = `${ptpVoice('facebook', 'reel')}
-
-Hook on watching the video. Include the blog URL for more info. Keep it concise. Return ONLY the caption text, no labels.
+  const systemPrompt = `${ptpVoice('facebook', 'reel')}${FACEBOOK_REEL_CAPTION_TAIL}
 
 Title: ${post.meta.title}
 Summary: ${post.meta.summary}
@@ -370,9 +378,7 @@ Blog URL: ${blogUrl}`;
  * Short, hashtag-heavy, trend-focused for younger audience
  */
 const generateTikTokCaption = async (post: Post): Promise<string> => {
-  const systemPrompt = `${ptpVoice('tiktok', 'reel')}
-
-Start with a strong hook or question. CTA relevant to the content (good: "Save this for later", "Follow for more UK parking tips", "Tag someone who needs this"; bad: asking about rare personal experiences). Return ONLY the caption text, no labels.
+  const systemPrompt = `${ptpVoice('tiktok', 'reel')}${TIKTOK_CAPTION_TAIL}
 
 Title: ${post.meta.title}
 Summary: ${post.meta.summary}`;
@@ -418,9 +424,7 @@ const generateYouTubeShortsCaption = async (
   post: Post,
   blogUrl: string,
 ): Promise<{ title: string; description: string }> => {
-  const systemPrompt = `${ptpVoice('youtube_shorts', 'reel')}
-
-Description must include the blog URL and the #Shorts hashtag (required). Focus on search discoverability.
+  const systemPrompt = `${ptpVoice('youtube_shorts', 'reel')}${YOUTUBE_SHORTS_CAPTION_TAIL}
 
 Title: ${post.meta.title}
 Summary: ${post.meta.summary}
@@ -532,11 +536,7 @@ const generateThreadsCaption = async (
   post: Post,
   blogUrl: string,
 ): Promise<string> => {
-  const systemPrompt = `${ptpVoice('threads', 'blog_promo')}
-
-Open with a thought-provoking statement or question. Include the blog URL. Return ONLY the caption text, no labels.
-
-CRITICAL: the post MUST be under 500 characters total (Threads rejects longer posts). Aim 200 to 400 characters. If you find yourself approaching 450, stop and trim.
+  const systemPrompt = `${ptpVoice('threads', 'blog_promo')}${THREADS_CAPTION_TAIL}
 
 Title: ${post.meta.title}
 Summary: ${post.meta.summary}
@@ -685,9 +685,7 @@ const generateVoiceover = async (text: string): Promise<string | null> => {
  * Generate Instagram Reel caption (different tone than static post)
  */
 const generateInstagramReelCaption = async (post: Post): Promise<string> => {
-  const systemPrompt = `${ptpVoice('instagram', 'reel')}
-
-Hook on watching the video ("Watch this before you..."). Keep it shorter than a feed post. End with "Link in bio for the full guide 📖". Return ONLY the caption text, no labels.
+  const systemPrompt = `${ptpVoice('instagram', 'reel')}${INSTAGRAM_REEL_CAPTION_TAIL}
 
 Title: ${post.meta.title}
 Summary: ${post.meta.summary}`;
