@@ -221,6 +221,56 @@ Not scheduled. Pick it up on the next structural PTP social work,
 alongside folding the PTP worker
 into the turborepo (memory `project-ptp-align-to-cc-arch`).
 
+## TODO: Replace Buffer with direct Threads API (future)
+
+TikTok, LinkedIn, and Threads currently post via the Buffer GraphQL API
+(`lib/social/buffer.ts`). It's a TEMPORARY bridge. Threads is the
+easiest of the three to migrate to direct because it lives on the same
+Meta developer platform as IG/FB — your existing Meta business app
+already has Tech Provider Verification (from the IG/FB approval).
+
+**What's needed:**
+
+1. **Meta App Review** for `threads_basic` + `threads_content_publish`
+   (+ `threads_manage_replies` for the link-in-reply pattern we use,
+   see `metadata.threads.thread` in `lib/social/buffer.ts`). Manual
+   review, ~2-4 weeks per permission per Meta's published timelines.
+   Screencast of the full publish flow is required.
+2. **OAuth grant flow** to mint a long-lived Threads token for PTP's
+   Threads account. Tokens are long-lived but expire after ~60 days;
+   refresh handling needed — mirror existing `lib/social-tokens.ts`.
+3. **Token storage**: `PARKING_TICKET_PAL_THREADS_ACCESS_TOKEN` env var
+   + refresh persistence in the existing token-cache pattern.
+4. **Direct posters** in `lib/threads-direct.ts` (new):
+   - `createThreadsContainer(text, opts)` — text-only or with media URL
+   - `waitForThreadsContainer(containerId)` — mirror the existing
+     Instagram media-ready polling pattern in `social.ts`
+   - `publishThreads(containerId)`
+   - `replyToThread(parentId, text)` for the link-in-reply pattern
+   - All against `https://graph.threads.net/v1.0/` (NOT `graph.facebook.com`).
+5. **Call-site swap** in `app/actions/social.ts` (blog-promo) +
+   `lib/video-completion.ts` (tribunal + news): drop the three
+   `schedulePostViaBuffer({ platform: 'threads', ... })` calls, replace
+   with the direct posters + a follow-up `replyToThread` call carrying
+   the URL. Keep the `linkAttachmentUrl` + `replyThread` business logic;
+   only the transport changes.
+6. **Decommission**: flip `BUFFER_ENABLE_THREADS=false` in PTP Vercel.
+   The CC repo can run on its own schedule.
+
+**Cost saving**: ~$6/mo per Buffer channel removed.
+
+**Reference**: [Threads API docs](https://developers.facebook.com/docs/threads/).
+Two-step container model (POST `/threads`, then POST `/threads_publish`)
+is identical to the Instagram reel-publish flow in `social.ts`, so the
+implementation is a fairly mechanical port of the existing IG posters.
+
+**Same-pattern future for TikTok and LinkedIn**: when their direct
+approvals land, the dormant `postToLinkedInPage` in `app/actions/social.ts`
+gets re-enabled and TikTok migrates from sandbox-drafts to the published
+endpoint. Same flip-the-env-var, swap-the-call-site, retire-Buffer
+pattern — Threads is the dress rehearsal because it's lowest-risk
+(your Meta app is already verified).
+
 ## Commits History
 
 Key commits implementing the video Reels feature:
