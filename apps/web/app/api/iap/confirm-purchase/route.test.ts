@@ -1,45 +1,56 @@
+// @vitest-environment node
+import {
+  describe,
+  it,
+  expect,
+  beforeEach,
+  vi,
+  type Mock,
+  type Mocked,
+  type MockedFunction,
+} from 'vitest';
 import { db } from '@parking-ticket-pal/db';
 import { verifyPurchase } from '@/lib/revenuecat';
 import { POST } from './route';
 
-jest.mock('@sentry/nextjs', () => ({
+vi.mock('@sentry/nextjs', () => ({
   startSpan: (_opts: any, fn: (span: any) => any) =>
-    fn({ setAttributes: jest.fn() }),
+    fn({ setAttributes: vi.fn() }),
 }));
 
-jest.mock('@parking-ticket-pal/db', () => ({
+vi.mock('@parking-ticket-pal/db', () => ({
   db: {
     ticket: {
-      findFirst: jest.fn(),
-      update: jest.fn(),
+      findFirst: vi.fn(),
+      update: vi.fn(),
     },
     user: {
-      update: jest.fn(),
+      update: vi.fn(),
     },
   },
   TicketTier: { FREE: 'FREE', PREMIUM: 'PREMIUM' },
   OnboardingExitReason: { UPGRADED: 'UPGRADED' },
 }));
 
-jest.mock('@/lib/revenuecat', () => ({
-  verifyPurchase: jest.fn(),
+vi.mock('@/lib/revenuecat', () => ({
+  verifyPurchase: vi.fn(),
 }));
 
-jest.mock('@/lib/logger', () => ({
+vi.mock('@/lib/logger', () => ({
   createServerLogger: () => ({
-    info: jest.fn(),
-    error: jest.fn(),
-    warn: jest.fn(),
-    debug: jest.fn(),
+    info: vi.fn(),
+    error: vi.fn(),
+    warn: vi.fn(),
+    debug: vi.fn(),
   }),
 }));
 
-jest.mock('@/services/onboarding-sequence', () => ({
-  exitOnboardingSequenceForTicket: jest.fn().mockResolvedValue(undefined),
+vi.mock('@/services/onboarding-sequence', () => ({
+  exitOnboardingSequenceForTicket: vi.fn().mockResolvedValue(undefined),
 }));
 
-const mockDb = db as jest.Mocked<typeof db>;
-const mockVerifyPurchase = verifyPurchase as jest.MockedFunction<
+const mockDb = db as Mocked<typeof db>;
+const mockVerifyPurchase = verifyPurchase as MockedFunction<
   typeof verifyPurchase
 >;
 
@@ -63,17 +74,17 @@ const freeTicket = {
 
 describe('POST /api/iap/confirm-purchase', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   it('upgrades ticket to PREMIUM and updates user', async () => {
-    (mockDb.ticket.findFirst as jest.Mock).mockResolvedValue(freeTicket);
+    (mockDb.ticket.findFirst as Mock).mockResolvedValue(freeTicket);
     mockVerifyPurchase.mockResolvedValue(true);
-    (mockDb.ticket.update as jest.Mock).mockResolvedValue({
+    (mockDb.ticket.update as Mock).mockResolvedValue({
       ...freeTicket,
       tier: 'PREMIUM',
     });
-    (mockDb.user.update as jest.Mock).mockResolvedValue({});
+    (mockDb.user.update as Mock).mockResolvedValue({});
 
     const res = await POST(
       makeRequest({ ticketId: 'ticket1', productId: 'premium_ticket_v1' }),
@@ -95,13 +106,13 @@ describe('POST /api/iap/confirm-purchase', () => {
   });
 
   it('accepts premium_ticket_internal_v1 product ID', async () => {
-    (mockDb.ticket.findFirst as jest.Mock).mockResolvedValue(freeTicket);
+    (mockDb.ticket.findFirst as Mock).mockResolvedValue(freeTicket);
     mockVerifyPurchase.mockResolvedValue(true);
-    (mockDb.ticket.update as jest.Mock).mockResolvedValue({
+    (mockDb.ticket.update as Mock).mockResolvedValue({
       ...freeTicket,
       tier: 'PREMIUM',
     });
-    (mockDb.user.update as jest.Mock).mockResolvedValue({});
+    (mockDb.user.update as Mock).mockResolvedValue({});
 
     const res = await POST(
       makeRequest({
@@ -115,7 +126,7 @@ describe('POST /api/iap/confirm-purchase', () => {
   });
 
   it('returns success idempotently when ticket already PREMIUM', async () => {
-    (mockDb.ticket.findFirst as jest.Mock).mockResolvedValue({
+    (mockDb.ticket.findFirst as Mock).mockResolvedValue({
       ...freeTicket,
       tier: 'PREMIUM',
     });
@@ -131,7 +142,7 @@ describe('POST /api/iap/confirm-purchase', () => {
   });
 
   it('rejects when RevenueCat verification fails', async () => {
-    (mockDb.ticket.findFirst as jest.Mock).mockResolvedValue(freeTicket);
+    (mockDb.ticket.findFirst as Mock).mockResolvedValue(freeTicket);
     mockVerifyPurchase.mockResolvedValue(false);
 
     const res = await POST(

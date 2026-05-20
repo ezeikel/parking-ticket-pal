@@ -1,44 +1,55 @@
+// @vitest-environment node
+import {
+  describe,
+  it,
+  expect,
+  beforeEach,
+  vi,
+  type Mock,
+  type Mocked,
+  type MockedFunction,
+} from 'vitest';
 import { db } from '@parking-ticket-pal/db';
 import { verifyPurchase } from '@/lib/revenuecat';
 import { decrypt } from '@/app/lib/session';
 import { POST } from './route';
 
-jest.mock('@parking-ticket-pal/db', () => ({
+vi.mock('@parking-ticket-pal/db', () => ({
   db: {
     draftTicket: {
-      findFirst: jest.fn(),
-      create: jest.fn(),
+      findFirst: vi.fn(),
+      create: vi.fn(),
     },
     user: {
-      update: jest.fn(),
+      update: vi.fn(),
     },
-    $transaction: jest.fn(),
+    $transaction: vi.fn(),
   },
   TicketTier: { FREE: 'FREE', PREMIUM: 'PREMIUM' },
 }));
 
-jest.mock('@/lib/revenuecat', () => ({
-  verifyPurchase: jest.fn(),
+vi.mock('@/lib/revenuecat', () => ({
+  verifyPurchase: vi.fn(),
 }));
 
-jest.mock('@/app/lib/session', () => ({
-  decrypt: jest.fn(),
+vi.mock('@/app/lib/session', () => ({
+  decrypt: vi.fn(),
 }));
 
-jest.mock('@/lib/logger', () => ({
+vi.mock('@/lib/logger', () => ({
   createServerLogger: () => ({
-    info: jest.fn(),
-    error: jest.fn(),
-    warn: jest.fn(),
-    debug: jest.fn(),
+    info: vi.fn(),
+    error: vi.fn(),
+    warn: vi.fn(),
+    debug: vi.fn(),
   }),
 }));
 
-const mockDb = db as jest.Mocked<typeof db>;
-const mockVerifyPurchase = verifyPurchase as jest.MockedFunction<
+const mockDb = db as Mocked<typeof db>;
+const mockVerifyPurchase = verifyPurchase as MockedFunction<
   typeof verifyPurchase
 >;
-const mockDecrypt = decrypt as jest.MockedFunction<typeof decrypt>;
+const mockDecrypt = decrypt as MockedFunction<typeof decrypt>;
 
 function makeRequest(body: Record<string, unknown>) {
   return new Request('http://localhost/api/iap/confirm-draft', {
@@ -53,14 +64,14 @@ function makeRequest(body: Record<string, unknown>) {
 
 describe('POST /api/iap/confirm-draft', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
     mockDecrypt.mockResolvedValue({ id: 'user1' });
   });
 
   it('creates draft ticket on valid purchase', async () => {
     mockVerifyPurchase.mockResolvedValue(true);
-    (mockDb.draftTicket.findFirst as jest.Mock).mockResolvedValue(null);
-    (mockDb.$transaction as jest.Mock).mockResolvedValue([
+    (mockDb.draftTicket.findFirst as Mock).mockResolvedValue(null);
+    (mockDb.$transaction as Mock).mockResolvedValue([
       { id: 'draft-new', tier: 'PREMIUM' },
       {},
     ]);
@@ -76,8 +87,8 @@ describe('POST /api/iap/confirm-draft', () => {
 
   it('accepts premium_ticket_internal_v1 product ID', async () => {
     mockVerifyPurchase.mockResolvedValue(true);
-    (mockDb.draftTicket.findFirst as jest.Mock).mockResolvedValue(null);
-    (mockDb.$transaction as jest.Mock).mockResolvedValue([
+    (mockDb.draftTicket.findFirst as Mock).mockResolvedValue(null);
+    (mockDb.$transaction as Mock).mockResolvedValue([
       { id: 'draft-internal', tier: 'PREMIUM' },
       {},
     ]);
@@ -92,7 +103,7 @@ describe('POST /api/iap/confirm-draft', () => {
 
   it('returns existing draft idempotently', async () => {
     mockVerifyPurchase.mockResolvedValue(true);
-    (mockDb.draftTicket.findFirst as jest.Mock).mockResolvedValue({
+    (mockDb.draftTicket.findFirst as Mock).mockResolvedValue({
       id: 'draft1',
       tier: 'PREMIUM',
     });
