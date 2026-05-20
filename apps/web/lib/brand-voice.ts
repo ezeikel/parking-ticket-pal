@@ -95,7 +95,8 @@ export function ptpPlatformAdapter(platform: PTPPlatform): string {
 - 3 to 5 hashtags (2 broad like #UKDriving #ParkingFine + 2-3 niche), no stuffing. 2 to 3 emojis, varied to the topic, never the same default set.`;
     case 'threads':
       return `THREADS is conversational, opinion-driven, Instagram-adjacent.
-- Personal, engaging, a clear take. No hashtags (not widely used on Threads). Plain text. Short.`;
+- Personal, engaging, a clear take. No hashtags (not widely used on Threads). Plain text.
+- HARD LIMIT: under 500 characters total. Threads rejects posts over 500 server-side; if you go over the post fails to publish. Aim 200 to 400 characters of body. Pick ONE specific point, do not try to cover the whole article.`;
     case 'youtube_shorts':
       return `YOUTUBE SHORTS is search-and-discovery. Title and description carry the SEO.
 - Title under 100 chars, attention-grabbing, keyword-front-loaded. Description includes the blog URL, keywords, and the #Shorts hashtag (required). British terminology.`;

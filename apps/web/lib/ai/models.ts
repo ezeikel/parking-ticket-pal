@@ -36,6 +36,7 @@ export const MODEL_IDS = {
 
   // Anthropic Claude models
   CLAUDE_SONNET_4_6: 'claude-sonnet-4-6',
+  CLAUDE_HAIKU_4_5: 'claude-haiku-4-5-20251001',
 
   // Perplexity Sonar models (search-augmented)
   PERPLEXITY_SONAR: 'sonar',
@@ -68,6 +69,12 @@ export const models = {
   // Creative writing model (Claude Sonnet 4.6)
   // Best for: engaging scripts, storytelling, creative content generation, legal writing
   creative: anthropic(MODEL_IDS.CLAUDE_SONNET_4_6),
+
+  // Fast Claude for mechanical text ops (shrink, rephrase short, classify)
+  // Best for: "rewrite under N chars keeping voice" retries, comment-type
+  // classification. Cheap + ~1-2s round trip; brand voice already proven
+  // to copy well on the comment classifier.
+  shrink: anthropic(MODEL_IDS.CLAUDE_HAIKU_4_5),
 
   // Search-augmented model (Perplexity Sonar)
   // Best for: discovering current news, research with citations

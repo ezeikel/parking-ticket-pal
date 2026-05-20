@@ -13,7 +13,7 @@ import { models, getTracedModel } from '@/lib/ai/models';
 import { sendSocialDigest, type SocialDigestCaption } from '@/lib/email';
 import { getRandomMusicTrack } from '@/lib/music';
 import { sanitizeCaption } from '@/lib/sanitize-caption';
-import { ptpVoice } from '@/lib/brand-voice';
+import { ptpVoice, PTP_BRAND_VOICE_CORE } from '@/lib/brand-voice';
 import {
   schedulePostViaBuffer,
   isBufferBridgeEnabled,
@@ -466,6 +466,68 @@ Blog URL: ${blogUrl}`;
  * Generate Threads caption
  * Conversational, Instagram-adjacent, opinion-driven
  */
+/**
+ * Threads has a HARD 500-char server limit; Buffer rejects over-limit
+ * posts at publish time. The primary defence is the prompt itself
+ * (ptpPlatformAdapter('threads') tells the model "under 500"). This is
+ * the safety net for the marginal-overrun case: if Sonnet produced 520
+ * chars, ask Haiku to rewrite under 480 preserving voice + the blog
+ * URL. ONE retry only; if still over, return as-is and let
+ * buildCreatePostVariables throw a clean publish-time failure rather
+ * than ship truncated copy.
+ */
+const shrinkThreadsCaptionIfOver = async (
+  caption: string,
+  context: { slug: string; blogUrl: string },
+): Promise<string> => {
+  if (caption.length <= 500) return caption;
+
+  logger.warn('Threads caption over 500 chars, asking Haiku to shrink', {
+    slug: context.slug,
+    originalLength: caption.length,
+  });
+
+  try {
+    const tracedModel = getTracedModel(models.shrink, {
+      properties: {
+        feature: 'social_threads_shrink',
+        slug: context.slug,
+        originalLength: caption.length,
+      },
+    });
+
+    const { text } = await generateText({
+      model: tracedModel,
+      system: `${PTP_BRAND_VOICE_CORE}
+
+You are tightening a Threads post that is over the 500-character platform limit. Your job: rewrite it to be UNDER 480 characters while preserving:
+- the voice (sharp, calm, credible, British English)
+- the opening hook (first 1-2 sentences)
+- the blog URL (must stay verbatim)
+- one specific takeaway
+
+Drop secondary points, qualifiers, and any phrasing the post can survive without. Return ONLY the rewritten caption, no labels, no quotes.`,
+      prompt: `Original (${caption.length} chars):\n\n${caption}\n\nBlog URL to preserve: ${context.blogUrl}\n\nRewrite under 480 characters.`,
+    });
+
+    const shrunk = sanitizeCaption(text);
+    if (shrunk.length > 500) {
+      logger.warn(
+        'Haiku shrink retry still over 500 chars; returning as-is, buffer.ts will fail loud',
+        { slug: context.slug, shrunkLength: shrunk.length },
+      );
+    }
+    return shrunk;
+  } catch (error) {
+    logger.error(
+      'Threads shrink retry failed; returning original',
+      { slug: context.slug },
+      error instanceof Error ? error : new Error(String(error)),
+    );
+    return caption;
+  }
+};
+
 const generateThreadsCaption = async (
   post: Post,
   blogUrl: string,
@@ -473,6 +535,8 @@ const generateThreadsCaption = async (
   const systemPrompt = `${ptpVoice('threads', 'blog_promo')}
 
 Open with a thought-provoking statement or question. Include the blog URL. Return ONLY the caption text, no labels.
+
+CRITICAL: the post MUST be under 500 characters total (Threads rejects longer posts). Aim 200 to 400 characters. If you find yourself approaching 450, stop and trim.
 
 Title: ${post.meta.title}
 Summary: ${post.meta.summary}
@@ -489,7 +553,11 @@ Blog URL: ${blogUrl}`;
       prompt: 'Generate the Threads caption.',
     });
 
-    return sanitizeCaption(text);
+    const sanitized = sanitizeCaption(text);
+    return shrinkThreadsCaptionIfOver(sanitized, {
+      slug: post.meta.slug,
+      blogUrl,
+    });
   } catch (error) {
     logger.error(
       'Error generating Threads caption',

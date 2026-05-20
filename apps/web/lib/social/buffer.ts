@@ -326,6 +326,20 @@ export const buildCreatePostVariables = (
     );
   }
 
+  // Threads enforces a hard 500-char server-side limit; Buffer surfaces
+  // over-limit posts as a publish error email. We do NOT truncate here:
+  // a silently cropped caption ("...the council's response was ̱…") ships
+  // bad-looking copy. Better to fail loud — the caller's error handling
+  // records `scheduled: false` and the digest still surfaces the full
+  // caption for manual posting. The real fix is at the prompt layer
+  // (every Threads caption prompt MUST tell the model "under 500" — see
+  // ptpPlatformAdapter / ccPlatformAdapter 'threads' for the live rule).
+  if (params.platform === 'threads' && params.text.length > 500) {
+    throw new Error(
+      `buildCreatePostVariables: Threads text is ${params.text.length} chars (max 500). Fix the prompt that produced this — do not truncate.`,
+    );
+  }
+
   // Map our generic metadata onto Buffer's per-platform metadata shape.
   const metadataBlock: Record<string, unknown> = {};
   if (params.metadata) {
