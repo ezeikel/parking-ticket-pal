@@ -35,7 +35,7 @@ const getPlatformGuidelines = (platform: string): string => {
 - 2-3 emoji max for functional emphasis, not decorative. Vary your emoji every post
 - NEVER use em dashes (—). Use commas, full stops, or line breaks instead
 - Structure: hook (first 125 chars), key insight, engagement CTA
-- CTA must be relevant to the specific video content. Good CTAs: "Save this for your next drive", "Which part surprised you?", "Follow for more UK parking law". Bad CTAs: asking people to share rare personal experiences
+- CTA must be relevant to the specific video content. Good CTAs: "Save this for your next drive", "Which part surprised you?", "Follow for more UK parking rules". Bad CTAs: asking people to share rare personal experiences
 - HASHTAGS: Max 3-5 (Instagram now caps this). Hashtags are topic verification ONLY, not distribution drivers (confirmed by Adam Mosseri). Use niche terms like #PCN #ParkingAppeals not broad ones like #cars
 - Weave keywords naturally into caption text. Instagram's algorithm uses NLP to categorise content, keywords matter more than hashtags
 - Do NOT use 10+ hashtags (platform penalises this), do NOT write press-release tone`,
@@ -59,7 +59,7 @@ const getPlatformGuidelines = (platform: string): string => {
 - 2-3 emoji max, chosen to match the specific topic. Vary your emoji every post. Do NOT default to the same set every time
 - NEVER use em dashes (—). Use commas, full stops, or line breaks instead
 - Single line or minimal breaks; hook + keywords + CTA
-- CTA must be relevant to the video content and realistic for the audience. Good CTAs: "Save this for later", "Follow for more UK driving law", "Tag someone who needs to see this", "Drop a 🅿️ if you didn't know this". Bad CTAs: asking people to comment about rare personal experiences they almost certainly haven't had
+- CTA must be relevant to the video content and realistic for the audience. Good CTAs: "Save this for later", "Follow for more UK parking tips", "Tag someone who needs to see this", "Drop a 🅿️ if you didn't know this". Bad CTAs: asking people to comment about rare personal experiences they almost certainly haven't had
 - HASHTAGS: 3-5 optimal (CapCut/ByteDance confirmed). Use the 3-3 strategy: 2 broad (#UKDriving #ParkingFine) + 3 niche content-specific (#PCNAppeal #ParkingTicketPal). Keywords in caption text are MORE powerful than hashtags for TikTok SEO
 - Include searchable keywords naturally. 40% of young users search TikTok instead of Google
 - Do NOT use 20+ hashtags (algorithm treats as spam), do NOT write long paragraphs`,
@@ -71,7 +71,7 @@ const getPlatformGuidelines = (platform: string): string => {
 - Expert, factual British English. Informative and authoritative
 - NEVER use em dashes (—) in title or description. Use commas, full stops, or pipes instead
 - 1-2 emoji max in description, keep professional. Vary your emoji every post
-- CTA: "Subscribe for more UK driving law" or "Save this for later"
+- CTA: "Subscribe for more UK parking tips" or "Save this for later"
 - Primary keyword must appear in title AND first line of description
 - Do NOT put hashtags in description`,
 
@@ -82,7 +82,7 @@ const getPlatformGuidelines = (platform: string): string => {
 - NEVER use em dashes (—). Use commas, full stops, or line breaks instead
 - 1-2 supportive emoji, enhance tone without dominating. Vary your emoji every post
 - Use paragraph breaks and questions to invite thread replies
-- CTA must be relevant to the specific content. Good CTAs: "What's your take?", "Thoughts?", "Follow for more UK parking law". Bad CTAs: asking people to share rare personal experiences
+- CTA must be relevant to the specific content. Good CTAs: "What's your take?", "Thoughts?", "Follow for more UK parking insights". Bad CTAs: asking people to share rare personal experiences
 - Use 2-3 topic tags for discoverability, but focus on writing interesting text that invites replies
 - Do NOT copy the Instagram caption. Threads audience expects different, more conversational content. Do NOT use salesy CTAs. Give depth and opinion, not teasers`,
 

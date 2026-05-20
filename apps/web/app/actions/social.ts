@@ -372,7 +372,7 @@ Blog URL: ${blogUrl}`;
 const generateTikTokCaption = async (post: Post): Promise<string> => {
   const systemPrompt = `${ptpVoice('tiktok', 'reel')}
 
-Start with a strong hook or question. CTA relevant to the content (good: "Save this for later", "Follow for more UK driving law", "Tag someone who needs this"; bad: asking about rare personal experiences). Return ONLY the caption text, no labels.
+Start with a strong hook or question. CTA relevant to the content (good: "Save this for later", "Follow for more UK parking tips", "Tag someone who needs this"; bad: asking about rare personal experiences). Return ONLY the caption text, no labels.
 
 Title: ${post.meta.title}
 Summary: ${post.meta.summary}`;
