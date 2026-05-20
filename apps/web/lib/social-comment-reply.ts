@@ -2,6 +2,7 @@ import { generateObject, generateText } from 'ai';
 import { z } from 'zod';
 import { models, getTracedModel } from '@/lib/ai/models';
 import { BRAND_VOICE, COMMENT_TYPE_GUIDANCE } from '@/lib/brand-voice';
+import { sanitizeCaption } from '@/lib/sanitize-caption';
 import type { CommentType } from '@parking-ticket-pal/db';
 
 // ============================================================================
@@ -105,11 +106,11 @@ ${contextBlock}
 Comment: "${commentText}"
 
 Classify the comment type and decide:
-1. shouldReply: Default to TRUE. Only set to false for: spam, non-English, just tagging another user with no substantive text, or genuinely offensive/hateful content. When in doubt, reply — engagement matters more than perfection. Questions should ALWAYS get a reply, even if we can only partially answer. Emoji-only comments should ALSO get a reply (shouldReply: true).
+1. shouldReply: Default to TRUE. Only set to false for: spam, non-English, just tagging another user with no substantive text, or genuinely offensive/hateful content. When in doubt, reply. Engagement matters more than perfection. Questions should ALWAYS get a reply, even if we can only partially answer. Emoji-only comments should ALSO get a reply (shouldReply: true).
 2. needsFactCheck: true ONLY when the comment disputes a specific fact in the post (dates, figures, legal references), claims something in the post is wrong, asks about specific legislation/regulations, or asks a factual question requiring current/accurate information. NOT for opinions, general agreement, appreciation, or combative comments without factual claims.
 3. commentType: the best-fit category.
 
-Be precise with needsFactCheck — most comments don't need it.`,
+Be precise with needsFactCheck: most comments don't need it.`,
   });
 
   return object as ClassifyResult;
@@ -266,7 +267,7 @@ export async function generateCommentReply({
         properties: { feature: 'social_thread_reply' },
       }),
       system: BRAND_VOICE,
-      prompt: `Write a brief follow-up reply on ${platform.toLowerCase()}. This is a continued conversation — we already replied once so keep it SHORT (one sentence max). Don't repeat what you already said.
+      prompt: `Write a brief follow-up reply on ${platform.toLowerCase()}. This is a continued conversation, we already replied once so keep it SHORT (one sentence max). Don't repeat what you already said.
 
 ${contextBlock}
 Our previous reply: "${threadContext.ourPreviousReply}"
@@ -277,7 +278,11 @@ Reply type: ${threadClassification.commentType}
 Reply with ONLY the reply text. If you can't add value, reply with exactly "SKIP".`,
     });
 
-    const trimmedReply = reply.trim();
+    // Sanitise: strip markdown the platform won't render and convert
+    // em/en dashes to commas. Was missing here, which is why em dashes
+    // occasionally shipped in posted replies even though the brand-voice
+    // rule forbids them.
+    const trimmedReply = sanitizeCaption(reply);
     if (trimmedReply === 'SKIP' || trimmedReply === '') {
       return {
         reply: null,
@@ -323,9 +328,9 @@ Reply with ONLY the reply text. If you can't add value, reply with exactly "SKIP
   const typeGuidance = COMMENT_TYPE_GUIDANCE[classification.commentType] || '';
 
   const factCheckContext = factCheckResult
-    ? `\n\nFACT-CHECK RESULTS (use these to inform your reply — do NOT mention "fact-checking" or "research"):
+    ? `\n\nFACT-CHECK RESULTS (use these to inform your reply. Do NOT mention "fact-checking" or "research"):
 Verified facts: ${factCheckResult.factCheckSummary}
-Our post is ${factCheckResult.isOriginalPostCorrect ? 'correct' : 'INCORRECT — acknowledge gracefully'}`
+Our post is ${factCheckResult.isOriginalPostCorrect ? 'correct' : 'INCORRECT, acknowledge gracefully'}`
     : '';
 
   const { text: reply } = await generateText({

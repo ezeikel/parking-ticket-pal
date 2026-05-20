@@ -53,12 +53,12 @@ NEVER
 - US spelling. American vocabulary (sidewalk, trunk, license plate).`;
 
 export type PTPPlatform =
-  | "instagram"
-  | "facebook"
-  | "linkedin"
-  | "tiktok"
-  | "threads"
-  | "youtube_shorts";
+  | 'instagram'
+  | 'facebook'
+  | 'linkedin'
+  | 'tiktok'
+  | 'threads'
+  | 'youtube_shorts';
 
 /**
  * Per-platform delta. 2026 norms from Phase 0 Perplexity research
@@ -72,12 +72,12 @@ export type PTPPlatform =
  */
 export function ptpPlatformAdapter(platform: PTPPlatform): string {
   switch (platform) {
-    case "instagram":
+    case 'instagram':
       return `INSTAGRAM. The visual carries the point; the caption rewards the tap.
-- Length: 70 to 150 words (2026 norm — short outperforms; do not pad).
+- Length: 70 to 150 words (2026 norm: short outperforms; do not pad).
 - A strong first line. One useful takeaway. "Link in bio for the full guide".
 - 2 to 3 emojis, naturally placed. 5 to 8 specific hashtags at the end.`;
-    case "facebook":
+    case 'facebook':
       // TODO(ptp-fb-length): FB is PTP's strongest channel (~1.6k vs ~70
       // IG). Length left LONG deliberately, not an oversight. Revisit only
       // if shortening proves out on CC FB or PTP IG first, then A/B here.
@@ -85,43 +85,40 @@ export function ptpPlatformAdapter(platform: PTPPlatform): string {
       return `FACEBOOK. Conversational, helpful, shareable. PTP's strongest channel, so this stays at its current working length.
 - Length: a fuller post is fine here (2 to 4 short paragraphs). Lead with the hook; the first sentence still has to stop the scroll.
 - Use CAPS, line breaks, and emojis sparingly for emphasis, never markdown. End with the blog URL on its own line. 0 to 2 specific hashtags.`;
-    case "linkedin":
+    case 'linkedin':
       return `LINKEDIN is a professional network: a point of view plus a practical takeaway, for people who deal with parking/transport/compliance professionally and for drivers in a work context.
 - 120 to 220 words. Confident, expert, useful, human. A counterintuitive or specific-lesson hook.
 - No marketing clichés, no buzzword soup. 0 to 2 emojis, structural not decorative. 0 to 3 hashtags. Plain text only, no markdown.`;
-    case "tiktok":
+    case 'tiktok':
       return `TIKTOK is fast, specific, lightly informal. The video carries it; the caption is short and search-reinforcing.
 - 50 to 150 characters of caption. Punchy British English, authentic not corporate. NO links (not clickable on TikTok).
 - 3 to 5 hashtags (2 broad like #UKDriving #ParkingFine + 2-3 niche), no stuffing. 2 to 3 emojis, varied to the topic, never the same default set.`;
-    case "threads":
+    case 'threads':
       return `THREADS is conversational, opinion-driven, Instagram-adjacent.
 - Personal, engaging, a clear take. No hashtags (not widely used on Threads). Plain text. Short.`;
-    case "youtube_shorts":
+    case 'youtube_shorts':
       return `YOUTUBE SHORTS is search-and-discovery. Title and description carry the SEO.
 - Title under 100 chars, attention-grabbing, keyword-front-loaded. Description includes the blog URL, keywords, and the #Shorts hashtag (required). British terminology.`;
     default:
-      return "";
+      return '';
   }
 }
 
-export type PTPContentType =
-  | "blog_promo"
-  | "reel"
-  | "comment_reply";
+export type PTPContentType = 'blog_promo' | 'reel' | 'comment_reply';
 
 /**
  * Per-content-type framing delta.
  */
 export function ptpContentTypeAdapter(content: PTPContentType): string {
   switch (content) {
-    case "blog_promo":
+    case 'blog_promo':
       return `This post promotes a PTP blog article. Lead with the driver's problem or a sharp, specific hook from the article, not "we wrote a post". Give one genuinely useful takeaway so the post stands on its own even if nobody clicks. Then point to the full guide.`;
-    case "reel":
+    case 'reel':
       return `This caption sits under a short video. The video carries the story; the caption reinforces it and aids search. Reference watching it where natural. Keep it tight, no link dumps.`;
-    case "comment_reply":
+    case 'comment_reply':
       return `This is a reply to a comment. Replies are SHORT: 1-2 sentences, sometimes a few words. Max 1 emoji, only if natural. Never start with "Hey" or "Hi", just get into it. Almost always reply (silence reads as ignoring people); only stay silent for genuinely unanswerable or irrelevant comments. Match the commenter's register. Don't end on a full stop (too formal for comments); ! or ? are fine. When corrected, judge genuine error vs pedantry: own a real mistake cleanly; if we used common shorthand deliberately (e.g. "fines" for parking charge notices), acknowledge the distinction warmly and explain the deliberate choice without apologising or being dismissive.`;
     default:
-      return "";
+      return '';
   }
 }
 
@@ -136,14 +133,14 @@ export function ptpVoice(
   const parts = [PTP_BRAND_VOICE_CORE];
   if (platform) parts.push(ptpPlatformAdapter(platform));
   parts.push(ptpContentTypeAdapter(content));
-  return parts.join("\n\n");
+  return parts.join('\n\n');
 }
 
 /**
  * Reply voice = core + reply adapter. Kept as the original named export so
  * the comment-reply consumer (lib/social-comment-reply.ts) is unchanged.
  */
-export const BRAND_VOICE = ptpVoice(null, "comment_reply");
+export const BRAND_VOICE = ptpVoice(null, 'comment_reply');
 
 export const COMMENT_TYPE_GUIDANCE: Record<string, string> = {
   AGREEMENT:
