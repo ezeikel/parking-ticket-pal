@@ -25,12 +25,22 @@
 
 const BUFFER_GRAPHQL_ENDPOINT = 'https://api.buffer.com';
 
-export type BufferPlatform = 'tiktok' | 'linkedin';
+export type BufferPlatform = 'tiktok' | 'linkedin' | 'threads';
 
 /** Buffer's `service` enum value for a channel, lowercased for matching. */
 const SERVICE_FOR_PLATFORM: Record<BufferPlatform, string> = {
   tiktok: 'tiktok',
   linkedin: 'linkedin',
+  threads: 'threads',
+};
+
+/** Env-var-name suffix per platform (kept uppercased to match the
+ *  BUFFER_ENABLE_<X> / BUFFER_CHANNEL_ID_<X> convention). Derive rather
+ *  than branch so a new platform is one entry, not three. */
+const ENV_SUFFIX: Record<BufferPlatform, string> = {
+  tiktok: 'TIKTOK',
+  linkedin: 'LINKEDIN',
+  threads: 'THREADS',
 };
 
 export type BufferBridgeResult = {
@@ -54,10 +64,7 @@ export type BufferBridgeResult = {
  */
 export const isBufferBridgeEnabled = (platform: BufferPlatform): boolean => {
   if (!process.env.BUFFER_API_KEY) return false;
-  const flag =
-    platform === 'tiktok'
-      ? process.env.BUFFER_ENABLE_TIKTOK
-      : process.env.BUFFER_ENABLE_LINKEDIN;
+  const flag = process.env[`BUFFER_ENABLE_${ENV_SUFFIX[platform]}`];
   return flag === 'true' || flag === '1';
 };
 
@@ -137,16 +144,15 @@ const GET_CHANNELS = /* GraphQL */ `
  * pick the first channel whose `service` matches the platform.
  *
  * If you have multiple channels of the same service across brands under one
- * Buffer account, set BUFFER_CHANNEL_ID_TIKTOK / BUFFER_CHANNEL_ID_LINKEDIN
- * to pin an exact channel id and skip discovery entirely.
+ * Buffer account, set BUFFER_CHANNEL_ID_<PLATFORM> (uppercased platform
+ * name, e.g. BUFFER_CHANNEL_ID_TIKTOK / BUFFER_CHANNEL_ID_LINKEDIN /
+ * BUFFER_CHANNEL_ID_THREADS) to pin an exact channel id and skip
+ * discovery entirely.
  */
 export const resolveChannelId = async (
   platform: BufferPlatform,
 ): Promise<string> => {
-  const pinned =
-    platform === 'tiktok'
-      ? process.env.BUFFER_CHANNEL_ID_TIKTOK
-      : process.env.BUFFER_CHANNEL_ID_LINKEDIN;
+  const pinned = process.env[`BUFFER_CHANNEL_ID_${ENV_SUFFIX[platform]}`];
   if (pinned) return pinned;
 
   const { account } = await bufferGraphQL<{
@@ -252,10 +258,14 @@ export type SchedulePostMetadata = {
   /** Brand-posted first comment, auto-added by Buffer right after the
    *  post publishes. LinkedIn + Facebook + Instagram support this. */
   firstComment?: string;
-  /** A URL to attach as a rich link-preview card. Currently emitted for
-   *  LinkedIn (Facebook + Threads also support it server-side; wire when
-   *  needed). Skipped for image posts where the image is the asset. */
+  /** A URL to attach as a rich link-preview card. Emitted for LinkedIn
+   *  and Threads. Skipped for image posts where the image is the asset. */
   linkAttachmentUrl?: string;
+  /** Threads only — text for a follow-up reply post. The usual play:
+   *  the main post has the take + linkAttachment for the card, the
+   *  reply carries the bare URL ("Read the full guide: <url>") since
+   *  Threads downranks link-in-body posts the same way LinkedIn does. */
+  replyThread?: string;
 };
 
 export type SchedulePostParams = {
@@ -295,37 +305,53 @@ export const buildCreatePostVariables = (
     'text' | 'videoUrl' | 'imageUrl' | 'thumbnailUrl' | 'metadata' | 'dueAt'
   > & { platform?: BufferPlatform },
 ) => {
-  // @oneOf: exactly one asset shape. Video wins if both are somehow set
-  // (a video post is the richer surface), but callers should pass one.
-  let asset: Record<string, unknown>;
+  // @oneOf: exactly one asset shape (video wins if both set). For
+  // Threads we also allow text-only posts — Buffer's `assets` LIST is
+  // non-null but the LIST itself can be empty.
+  const assets: Record<string, unknown>[] = [];
   if (params.videoUrl) {
     const video: { url: string; thumbnailUrl?: string } = {
       url: params.videoUrl,
     };
     if (params.thumbnailUrl) video.thumbnailUrl = params.thumbnailUrl;
-    asset = { video };
+    assets.push({ video });
   } else if (params.imageUrl) {
-    asset = { image: { url: params.imageUrl } };
-  } else {
+    assets.push({ image: { url: params.imageUrl } });
+  } else if (params.platform !== 'threads') {
+    // Non-Threads platforms (TikTok, LinkedIn) currently always carry an
+    // asset in our usage; keep the explicit error so a misconfigured
+    // caller fails loudly instead of posting an empty TikTok.
     throw new Error(
-      'buildCreatePostVariables: one of videoUrl or imageUrl is required',
+      'buildCreatePostVariables: one of videoUrl or imageUrl is required (Threads may post text-only)',
     );
   }
 
   // Map our generic metadata onto Buffer's per-platform metadata shape.
-  // Today: LinkedIn only (firstComment + linkAttachment). Add Facebook /
-  // Instagram firstComment here when callers start using them; the
-  // call-site API stays unchanged.
   const metadataBlock: Record<string, unknown> = {};
-  if (params.platform === 'linkedin' && params.metadata) {
-    const linkedin: Record<string, unknown> = {};
-    if (params.metadata.firstComment) {
-      linkedin.firstComment = params.metadata.firstComment;
+  if (params.metadata) {
+    if (params.platform === 'linkedin') {
+      const linkedin: Record<string, unknown> = {};
+      if (params.metadata.firstComment) {
+        linkedin.firstComment = params.metadata.firstComment;
+      }
+      if (params.metadata.linkAttachmentUrl) {
+        linkedin.linkAttachment = { url: params.metadata.linkAttachmentUrl };
+      }
+      if (Object.keys(linkedin).length > 0) metadataBlock.linkedin = linkedin;
+    } else if (params.platform === 'threads') {
+      const threads: Record<string, unknown> = {};
+      if (params.metadata.linkAttachmentUrl) {
+        threads.linkAttachment = { url: params.metadata.linkAttachmentUrl };
+      }
+      if (params.metadata.replyThread) {
+        // ThreadedPostInput requires non-null assets array; text-only
+        // reply posts use an empty list.
+        threads.thread = [{ text: params.metadata.replyThread, assets: [] }];
+      }
+      if (Object.keys(threads).length > 0) metadataBlock.threads = threads;
     }
-    if (params.metadata.linkAttachmentUrl) {
-      linkedin.linkAttachment = { url: params.metadata.linkAttachmentUrl };
-    }
-    if (Object.keys(linkedin).length > 0) metadataBlock.linkedin = linkedin;
+    // Facebook / Instagram firstComment etc. can be added here without
+    // touching call sites.
   }
   const hasMetadata = Object.keys(metadataBlock).length > 0;
 
@@ -337,9 +363,8 @@ export const buildCreatePostVariables = (
       mode: 'customScheduled',
       // ISO 8601 UTC, no milliseconds — Buffer expects second precision.
       dueAt: params.dueAt.toISOString().replace(/\.\d{3}Z$/, 'Z'),
-      // New [AssetInput!]! @oneOf format (old grouped AssetsInput removed
-      // after 2026-05-25). Exactly one asset object.
-      assets: [asset],
+      // [AssetInput!]! is non-null but can be empty (text-only Threads).
+      assets,
       ...(hasMetadata ? { metadata: metadataBlock } : {}),
     },
   };

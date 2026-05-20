@@ -929,7 +929,7 @@ export async function completeTribunalVideo(
   // digest for manual posting. Gated per-platform by BUFFER_ENABLE_*;
   // no-ops cleanly when off. Mirrors the blog-promo pattern in
   // app/actions/social.ts.
-  const bufferedVia = new Set<'tiktok' | 'linkedin'>();
+  const bufferedVia = new Set<'tiktok' | 'linkedin' | 'threads'>();
   const bufferDueAt = () => new Date(Date.now() + 5 * 60 * 1000);
 
   if (isBufferBridgeEnabled('tiktok') && typeof tiktokCaption === 'string') {
@@ -982,6 +982,31 @@ export async function completeTribunalVideo(
       logger?.error('Buffer LinkedIn push failed', { error: r.error });
     }
   }
+
+  if (isBufferBridgeEnabled('threads') && typeof threadsCaption === 'string') {
+    const r = await schedulePostViaBuffer({
+      platform: 'threads',
+      text: sanitizeCaption(threadsCaption),
+      videoUrl,
+      thumbnailUrl: coverImageUrl ?? undefined,
+      // Same homepage-attachment pattern as LinkedIn — per-case blog
+      // isn't generated until after posting. Threads + LinkedIn share
+      // the link-in-reply algo behaviour, so we use replyThread here
+      // (not firstComment, which is LinkedIn/FB/IG only on Buffer).
+      metadata: {
+        linkAttachmentUrl: 'https://parkingticketpal.com',
+        replyThread:
+          'More UK parking guides and tools at https://parkingticketpal.com',
+      },
+      dueAt: bufferDueAt(),
+    });
+    if (r.scheduled) {
+      bufferedVia.add('threads');
+      logger?.info('Threads scheduled via Buffer', { postId: r.postId });
+    } else if (!r.disabled) {
+      logger?.error('Buffer Threads push failed', { error: r.error });
+    }
+  }
   // ───────────────────────────────────────────────────────────────────
 
   // Send email digest
@@ -1028,7 +1053,8 @@ export async function completeTribunalVideo(
       digestCaptions.push({
         platform: 'threads',
         caption: threadsCaption,
-        autoPosted: false,
+        autoPosted: bufferedVia.has('threads'),
+        ...(bufferedVia.has('threads') ? { postedVia: 'buffer' as const } : {}),
         assetType: 'video',
       });
     }
@@ -1272,7 +1298,7 @@ export async function completeNewsVideo(
   // digest for manual posting. Gated per-platform by BUFFER_ENABLE_*;
   // no-ops cleanly when off. Mirrors the blog-promo pattern in
   // app/actions/social.ts.
-  const bufferedVia = new Set<'tiktok' | 'linkedin'>();
+  const bufferedVia = new Set<'tiktok' | 'linkedin' | 'threads'>();
   const bufferDueAt = () => new Date(Date.now() + 5 * 60 * 1000);
 
   if (isBufferBridgeEnabled('tiktok') && typeof tiktokCaption === 'string') {
@@ -1325,6 +1351,31 @@ export async function completeNewsVideo(
       logger?.error('Buffer LinkedIn push failed', { error: r.error });
     }
   }
+
+  if (isBufferBridgeEnabled('threads') && typeof threadsCaption === 'string') {
+    const r = await schedulePostViaBuffer({
+      platform: 'threads',
+      text: sanitizeCaption(threadsCaption),
+      videoUrl,
+      thumbnailUrl: coverImageUrl ?? undefined,
+      // Same homepage-attachment pattern as LinkedIn — per-case blog
+      // isn't generated until after posting. Threads + LinkedIn share
+      // the link-in-reply algo behaviour, so we use replyThread here
+      // (not firstComment, which is LinkedIn/FB/IG only on Buffer).
+      metadata: {
+        linkAttachmentUrl: 'https://parkingticketpal.com',
+        replyThread:
+          'More UK parking guides and tools at https://parkingticketpal.com',
+      },
+      dueAt: bufferDueAt(),
+    });
+    if (r.scheduled) {
+      bufferedVia.add('threads');
+      logger?.info('Threads scheduled via Buffer', { postId: r.postId });
+    } else if (!r.disabled) {
+      logger?.error('Buffer Threads push failed', { error: r.error });
+    }
+  }
   // ───────────────────────────────────────────────────────────────────
 
   // Send email digest
@@ -1371,7 +1422,8 @@ export async function completeNewsVideo(
       digestCaptions.push({
         platform: 'threads',
         caption: threadsCaption,
-        autoPosted: false,
+        autoPosted: bufferedVia.has('threads'),
+        ...(bufferedVia.has('threads') ? { postedVia: 'buffer' as const } : {}),
         assetType: 'video',
       });
     }

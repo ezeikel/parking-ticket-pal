@@ -1432,7 +1432,7 @@ export const postToSocialMedia = async (params: {
     //
     // When direct approval lands: flip BUFFER_ENABLE_TIKTOK /
     // BUFFER_ENABLE_LINKEDIN off, then delete this block + lib/social/buffer.
-    const bufferedVia = new Set<'tiktok' | 'linkedin'>();
+    const bufferedVia = new Set<'tiktok' | 'linkedin' | 'threads'>();
     // Buffer needs a future dueAt; this action runs at the social cron
     // slot, so "the slot" is effectively now — schedule a few minutes out
     // for pipeline headroom. The reel is the same R2 asset the digest links.
@@ -1507,9 +1507,44 @@ export const postToSocialMedia = async (params: {
           );
         }
       }
+
+      if (
+        isBufferBridgeEnabled('threads') &&
+        typeof manualCaptions.threads === 'string'
+      ) {
+        const r = await schedulePostViaBuffer({
+          platform: 'threads',
+          text: manualCaptions.threads,
+          videoUrl: reelVideoR2Url,
+          thumbnailUrl: instagramImageUrl ?? linkedinImageUrl ?? undefined,
+          // Threads: link card on the post + the URL in a follow-up
+          // reply. Same algo-aware play as LinkedIn (Threads also
+          // downranks link-in-body), via the buffer module's
+          // metadata.threads.thread passthrough.
+          metadata: {
+            linkAttachmentUrl: blogUrl,
+            replyThread: `Read the full article: ${blogUrl}`,
+          },
+          dueAt: bufferDueAt(),
+        });
+        if (r.scheduled) {
+          bufferedVia.add('threads');
+          logger.info('Threads scheduled via Buffer', {
+            slug: post.meta.slug,
+            postId: r.postId,
+          });
+        } else if (!r.disabled) {
+          logger.error(
+            'Buffer Threads push failed',
+            { slug: post.meta.slug },
+            new Error(r.error ?? 'unknown'),
+          );
+        }
+      }
     } else if (
       isBufferBridgeEnabled('tiktok') ||
-      isBufferBridgeEnabled('linkedin')
+      isBufferBridgeEnabled('linkedin') ||
+      isBufferBridgeEnabled('threads')
     ) {
       logger.warn(
         'Buffer bridge enabled but no reel video available — skipping Buffer push',
@@ -1607,10 +1642,12 @@ export const postToSocialMedia = async (params: {
         });
       }
       if (typeof manualCaptions.threads === 'string') {
+        const viaBuffer = bufferedVia.has('threads');
         digestCaptions.push({
           platform: 'threads',
           caption: manualCaptions.threads,
-          autoPosted: false,
+          autoPosted: viaBuffer,
+          ...(viaBuffer ? { postedVia: 'buffer' as const } : {}),
           assetType: 'both',
         });
       }
