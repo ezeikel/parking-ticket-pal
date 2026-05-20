@@ -497,6 +497,182 @@ export const postReelToFacebook = async (
   }
 };
 
+/**
+ * Post a reel video to the Instagram account's Story (24h placement).
+ *
+ * Only fires for tribunal + news reels: both are vertical 9:16, both have
+ * algorithmic reach upside on top of the feed post. Non-blocking — a
+ * failed Story never fails the feed post, which is canonical. Mirrors
+ * the Chunky Crayon demo-reel Story flow in
+ * apps/chunky-crayon-web/app/api/social/post/route.ts.
+ *
+ * Story auto-trims to 60s; PTP reels run ~30-60s so we fit comfortably.
+ */
+export const postReelToInstagramStory = async (
+  videoUrl: string,
+  logger?: ReturnType<typeof createServerLogger>,
+): Promise<{ success: boolean; mediaId?: string; error?: string }> => {
+  if (
+    !process.env.INSTAGRAM_ACCOUNT_ID ||
+    !process.env.FACEBOOK_PAGE_ACCESS_TOKEN
+  ) {
+    return { success: false, error: 'Instagram credentials not configured' };
+  }
+
+  try {
+    // Step 1: create Story container (media_type STORIES + video_url).
+    const createResponse = await fetch(
+      `https://graph.facebook.com/v24.0/${process.env.INSTAGRAM_ACCOUNT_ID}/media`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          media_type: 'STORIES',
+          video_url: videoUrl,
+          access_token: process.env.FACEBOOK_PAGE_ACCESS_TOKEN,
+        }),
+      },
+    );
+    const createData = await createResponse.json();
+    if (!createResponse.ok || !createData.id) {
+      throw new Error(
+        `Instagram Story create failed: ${JSON.stringify(createData)}`,
+      );
+    }
+    const creationId = createData.id;
+
+    // Step 2: poll for FINISHED (same 12 × 5s budget as the feed reel).
+    let ready = false;
+    // eslint-disable-next-line no-plusplus
+    for (let i = 0; i < 12; i++) {
+      // eslint-disable-next-line no-await-in-loop, no-promise-executor-return
+      await new Promise((r) => setTimeout(r, 5000));
+      // eslint-disable-next-line no-await-in-loop
+      const statusResponse = await fetch(
+        `https://graph.facebook.com/v24.0/${creationId}?fields=status_code,status&access_token=${process.env.FACEBOOK_PAGE_ACCESS_TOKEN}`,
+      );
+      // eslint-disable-next-line no-await-in-loop
+      const statusData = await statusResponse.json();
+      if (statusData.status_code === 'FINISHED') {
+        ready = true;
+        break;
+      }
+      if (statusData.status_code === 'ERROR') {
+        throw new Error(
+          `Instagram Story processing failed: ${JSON.stringify(statusData)}`,
+        );
+      }
+    }
+    if (!ready) throw new Error('Instagram Story processing timed out');
+
+    // Step 3: publish.
+    const publishResponse = await fetch(
+      `https://graph.facebook.com/v24.0/${process.env.INSTAGRAM_ACCOUNT_ID}/media_publish`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          creation_id: creationId,
+          access_token: process.env.FACEBOOK_PAGE_ACCESS_TOKEN,
+        }),
+      },
+    );
+    const publishData = await publishResponse.json();
+    if (!publishResponse.ok || !publishData.id) {
+      throw new Error(
+        `Instagram Story publish failed: ${JSON.stringify(publishData)}`,
+      );
+    }
+
+    return { success: true, mediaId: publishData.id };
+  } catch (error) {
+    const err = error instanceof Error ? error : new Error(String(error));
+    logger?.warn('Instagram Story posting failed (non-fatal)', {
+      error: err.message,
+    });
+    return { success: false, error: err.message };
+  }
+};
+
+/**
+ * Post a reel video to the Facebook Page's Story (24h placement).
+ *
+ * Two-step upload+finish flow per FB Graph API. Mirrors the helper in
+ * Chunky Crayon (apps/chunky-crayon-web/app/api/social/post/route.ts).
+ * Non-blocking — feed post stays canonical.
+ */
+export const postReelToFacebookStory = async (
+  videoUrl: string,
+  logger?: ReturnType<typeof createServerLogger>,
+): Promise<{ success: boolean; postId?: string; error?: string }> => {
+  if (
+    !process.env.FACEBOOK_PAGE_ID ||
+    !process.env.FACEBOOK_PAGE_ACCESS_TOKEN
+  ) {
+    return { success: false, error: 'Facebook credentials not configured' };
+  }
+
+  try {
+    const startRes = await fetch(
+      `https://graph.facebook.com/v24.0/${process.env.FACEBOOK_PAGE_ID}/video_stories`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          upload_phase: 'start',
+          access_token: process.env.FACEBOOK_PAGE_ACCESS_TOKEN,
+        }),
+      },
+    );
+    const startData = await startRes.json();
+    if (!startData.video_id || !startData.upload_url) {
+      throw new Error(
+        `FB Story start failed: ${JSON.stringify(startData)}`,
+      );
+    }
+
+    const uploadRes = await fetch(startData.upload_url, {
+      method: 'POST',
+      headers: {
+        Authorization: `OAuth ${process.env.FACEBOOK_PAGE_ACCESS_TOKEN}`,
+        file_url: videoUrl,
+      },
+    });
+    const uploadData = await uploadRes.json();
+    if (!uploadData.success) {
+      throw new Error(`FB Story upload failed: ${JSON.stringify(uploadData)}`);
+    }
+
+    const finishRes = await fetch(
+      `https://graph.facebook.com/v24.0/${process.env.FACEBOOK_PAGE_ID}/video_stories`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          upload_phase: 'finish',
+          video_id: startData.video_id,
+          access_token: process.env.FACEBOOK_PAGE_ACCESS_TOKEN,
+        }),
+      },
+    );
+    const finishData = await finishRes.json();
+    if (!finishData.success && !finishData.post_id) {
+      throw new Error(`FB Story finish failed: ${JSON.stringify(finishData)}`);
+    }
+
+    return {
+      success: true,
+      postId: finishData.post_id ?? startData.video_id,
+    };
+  } catch (error) {
+    const err = error instanceof Error ? error : new Error(String(error));
+    logger?.warn('Facebook Story posting failed (non-fatal)', {
+      error: err.message,
+    });
+    return { success: false, error: err.message };
+  }
+};
+
 export const postShortToYouTube = async (
   videoUrl: string,
   title: string,
@@ -890,6 +1066,18 @@ export async function completeTribunalVideo(
       logger,
     );
     postingResults.instagram = igResult;
+
+    // Also post to IG Story — non-blocking, feed post is canonical.
+    // Tribunal reels are vertical 9:16 + earn the 24h Story placement.
+    if (igResult.success) {
+      const igStoryResult = await postReelToInstagramStory(videoUrl, logger);
+      postingResults.instagramStory = igStoryResult;
+      if (igStoryResult.success) {
+        logger?.info('Tribunal IG Story posted', {
+          mediaId: igStoryResult.mediaId,
+        });
+      }
+    }
   }
 
   if (facebookCaption) {
@@ -900,6 +1088,17 @@ export async function completeTribunalVideo(
       logger,
     );
     postingResults.facebook = fbResult;
+
+    // Also post to FB Story — non-blocking, feed post is canonical.
+    if (fbResult.success) {
+      const fbStoryResult = await postReelToFacebookStory(videoUrl, logger);
+      postingResults.facebookStory = fbStoryResult;
+      if (fbStoryResult.success) {
+        logger?.info('Tribunal FB Story posted', {
+          postId: fbStoryResult.postId,
+        });
+      }
+    }
   }
 
   if (youtubeCaption) {
@@ -1259,6 +1458,18 @@ export async function completeNewsVideo(
       logger,
     );
     postingResults.instagram = igResult;
+
+    // Also post to IG Story — non-blocking, feed post is canonical.
+    // News reels are vertical 9:16 + earn the 24h Story placement.
+    if (igResult.success) {
+      const igStoryResult = await postReelToInstagramStory(videoUrl, logger);
+      postingResults.instagramStory = igStoryResult;
+      if (igStoryResult.success) {
+        logger?.info('News IG Story posted', {
+          mediaId: igStoryResult.mediaId,
+        });
+      }
+    }
   }
 
   if (facebookCaption) {
@@ -1269,6 +1480,17 @@ export async function completeNewsVideo(
       logger,
     );
     postingResults.facebook = fbResult;
+
+    // Also post to FB Story — non-blocking, feed post is canonical.
+    if (fbResult.success) {
+      const fbStoryResult = await postReelToFacebookStory(videoUrl, logger);
+      postingResults.facebookStory = fbStoryResult;
+      if (fbStoryResult.success) {
+        logger?.info('News FB Story posted', {
+          postId: fbStoryResult.postId,
+        });
+      }
+    }
   }
 
   if (youtubeCaption) {
