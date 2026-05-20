@@ -957,6 +957,22 @@ export async function completeTribunalVideo(
       text: sanitizeCaption(linkedinCaption),
       videoUrl,
       thumbnailUrl: coverImageUrl ?? undefined,
+      // LinkedIn: brand-posted first comment + rich link card. We don't
+      // have the per-case/per-news blog URL yet at this point in the
+      // pipeline (the blog post is generated AFTER posting; see
+      // generateTribunalBlogPost / generateNewsBlogPost below), so we
+      // attach the homepage. A generic card still beats no card for the
+      // click-through, and keeps the body link-free for the algorithm.
+      metadata: {
+        // Plain-English, driver-facing — matches PTP's brand voice
+        // ("knowledgeable friend, not a solicitor"). Covers both tribunal
+        // and news pipelines; not pipeline-specific. If we later have a
+        // per-case / per-news blog URL ready at posting time, swap this
+        // homepage for that.
+        firstComment:
+          'More UK parking guides and tools at https://parkingticketpal.com',
+        linkAttachmentUrl: 'https://parkingticketpal.com',
+      },
       dueAt: bufferDueAt(),
     });
     if (r.scheduled) {
@@ -1284,6 +1300,22 @@ export async function completeNewsVideo(
       text: sanitizeCaption(linkedinCaption),
       videoUrl,
       thumbnailUrl: coverImageUrl ?? undefined,
+      // LinkedIn: brand-posted first comment + rich link card. We don't
+      // have the per-case/per-news blog URL yet at this point in the
+      // pipeline (the blog post is generated AFTER posting; see
+      // generateTribunalBlogPost / generateNewsBlogPost below), so we
+      // attach the homepage. A generic card still beats no card for the
+      // click-through, and keeps the body link-free for the algorithm.
+      metadata: {
+        // Plain-English, driver-facing — matches PTP's brand voice
+        // ("knowledgeable friend, not a solicitor"). Covers both tribunal
+        // and news pipelines; not pipeline-specific. If we later have a
+        // per-case / per-news blog URL ready at posting time, swap this
+        // homepage for that.
+        firstComment:
+          'More UK parking guides and tools at https://parkingticketpal.com',
+        linkAttachmentUrl: 'https://parkingticketpal.com',
+      },
       dueAt: bufferDueAt(),
     });
     if (r.scheduled) {

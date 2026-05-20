@@ -1482,6 +1482,15 @@ export const postToSocialMedia = async (params: {
           // crop if IG didn't run); falls through to no cover if neither
           // is present, in which case Buffer/TT/LI auto-pick a frame.
           thumbnailUrl: instagramImageUrl ?? linkedinImageUrl ?? undefined,
+          // LinkedIn: blog URL in a brand-posted first comment + rich
+          // link-card preview. Keeps the body link-free (algorithm
+          // downranks link posts) while still giving the reader a tap-
+          // away click. blogUrl is in scope from the postToSocialMedia
+          // params.
+          metadata: {
+            firstComment: `Read the full article: ${blogUrl}`,
+            linkAttachmentUrl: blogUrl,
+          },
           dueAt: bufferDueAt(),
         });
         if (r.scheduled) {

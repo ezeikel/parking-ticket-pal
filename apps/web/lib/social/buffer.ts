@@ -233,6 +233,31 @@ const CREATE_POST = /* GraphQL */ `
   }
 `;
 
+/**
+ * Platform-specific extras the caller can set when relevant. Shaped
+ * generically here (e.g. `firstComment`, `linkAttachmentUrl`) and mapped
+ * to the right Buffer GraphQL `metadata.<platform>.*` field inside
+ * buildCreatePostVariables. Today only LinkedIn uses these — Facebook /
+ * Instagram firstComment also exists in Buffer's schema and can be added
+ * here without changing call sites (they pass the same metadata; the
+ * module emits the right shape).
+ *
+ * LinkedIn convention worth knowing: LinkedIn downranks posts that
+ * contain external links in the BODY. The standard play is to put the
+ * URL in a brand-posted first comment instead, paired with an explicit
+ * `linkAttachment.url` so the post still gets the rich blog-card preview.
+ * That's what `firstComment` + `linkAttachmentUrl` together do for us.
+ */
+export type SchedulePostMetadata = {
+  /** Brand-posted first comment, auto-added by Buffer right after the
+   *  post publishes. LinkedIn + Facebook + Instagram support this. */
+  firstComment?: string;
+  /** A URL to attach as a rich link-preview card. Currently emitted for
+   *  LinkedIn (Facebook + Threads also support it server-side; wire when
+   *  needed). Skipped for image posts where the image is the asset. */
+  linkAttachmentUrl?: string;
+};
+
 export type SchedulePostParams = {
   platform: BufferPlatform;
   /** Full caption text (already includes hashtags). */
@@ -248,6 +273,8 @@ export type SchedulePostParams = {
   imageUrl?: string;
   /** Optional public URL of a cover/thumbnail image for a video. */
   thumbnailUrl?: string;
+  /** Platform-specific extras (first comment, link attachment, etc.). */
+  metadata?: SchedulePostMetadata;
   /**
    * When the post should publish. ISO 8601 UTC. We use Buffer's
    * `customScheduled` mode so it goes out at exactly this time rather than
@@ -265,8 +292,8 @@ export const buildCreatePostVariables = (
   channelId: string,
   params: Pick<
     SchedulePostParams,
-    'text' | 'videoUrl' | 'imageUrl' | 'thumbnailUrl' | 'dueAt'
-  >,
+    'text' | 'videoUrl' | 'imageUrl' | 'thumbnailUrl' | 'metadata' | 'dueAt'
+  > & { platform?: BufferPlatform },
 ) => {
   // @oneOf: exactly one asset shape. Video wins if both are somehow set
   // (a video post is the richer surface), but callers should pass one.
@@ -285,6 +312,23 @@ export const buildCreatePostVariables = (
     );
   }
 
+  // Map our generic metadata onto Buffer's per-platform metadata shape.
+  // Today: LinkedIn only (firstComment + linkAttachment). Add Facebook /
+  // Instagram firstComment here when callers start using them; the
+  // call-site API stays unchanged.
+  const metadataBlock: Record<string, unknown> = {};
+  if (params.platform === 'linkedin' && params.metadata) {
+    const linkedin: Record<string, unknown> = {};
+    if (params.metadata.firstComment) {
+      linkedin.firstComment = params.metadata.firstComment;
+    }
+    if (params.metadata.linkAttachmentUrl) {
+      linkedin.linkAttachment = { url: params.metadata.linkAttachmentUrl };
+    }
+    if (Object.keys(linkedin).length > 0) metadataBlock.linkedin = linkedin;
+  }
+  const hasMetadata = Object.keys(metadataBlock).length > 0;
+
   return {
     input: {
       text: params.text,
@@ -296,6 +340,7 @@ export const buildCreatePostVariables = (
       // New [AssetInput!]! @oneOf format (old grouped AssetsInput removed
       // after 2026-05-25). Exactly one asset object.
       assets: [asset],
+      ...(hasMetadata ? { metadata: metadataBlock } : {}),
     },
   };
 };
