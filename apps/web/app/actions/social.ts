@@ -1447,6 +1447,11 @@ export const postToSocialMedia = async (params: {
           platform: 'tiktok',
           text: manualCaptions.tiktok,
           videoUrl: reelVideoR2Url,
+          // Cover for the TT/LI reel thumbnail. Reuse the OG-derived
+          // image already uploaded for the IG feed post (or the LinkedIn
+          // crop if IG didn't run); falls through to no cover if neither
+          // is present, in which case Buffer/TT/LI auto-pick a frame.
+          thumbnailUrl: instagramImageUrl ?? linkedinImageUrl ?? undefined,
           dueAt: bufferDueAt(),
         });
         if (r.scheduled) {
@@ -1472,6 +1477,11 @@ export const postToSocialMedia = async (params: {
           platform: 'linkedin',
           text: manualCaptions.linkedin,
           videoUrl: reelVideoR2Url,
+          // Cover for the TT/LI reel thumbnail. Reuse the OG-derived
+          // image already uploaded for the IG feed post (or the LinkedIn
+          // crop if IG didn't run); falls through to no cover if neither
+          // is present, in which case Buffer/TT/LI auto-pick a frame.
+          thumbnailUrl: instagramImageUrl ?? linkedinImageUrl ?? undefined,
           dueAt: bufferDueAt(),
         });
         if (r.scheduled) {
