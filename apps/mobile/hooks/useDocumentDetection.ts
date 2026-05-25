@@ -46,7 +46,9 @@ const validateRectangularShape = (points: DocumentCorner[]): boolean => {
   const shortSide = (sorted[0] + sorted[1]) / 2;
   const longSide = (sorted[2] + sorted[3]) / 2;
   const aspectRatio = longSide / shortSide;
-  if (aspectRatio > 4.0 || aspectRatio < 0.5) return false;
+  // UK parking ticket NTOs can be tall narrow receipts (5-6:1). A4 letters are ~1.4:1.
+  // Widening the cap to 7.0 covers both without admitting obviously-wrong elongated text blobs.
+  if (aspectRatio > 7.0 || aspectRatio < 0.5) return false;
 
   const side1Diff = Math.abs(distances[0] - distances[2]) / Math.max(distances[0], distances[2]);
   const side2Diff = Math.abs(distances[1] - distances[3]) / Math.max(distances[1], distances[3]);
@@ -118,6 +120,7 @@ export const useDocumentDetection = (callbacks?: DocumentDetectionCallbacks) => 
   const onStabilityUpdateJS = callbacks?.onStabilityUpdate
     ? Worklets.createRunOnJS(callbacks.onStabilityUpdate)
     : null;
+
 
   // Shared values for overlay (read by Skia Canvas on UI thread).
   // Reanimated SVs: their underlying _value lives in C++ shared memory and is addressable
@@ -249,9 +252,11 @@ export const useDocumentDetection = (callbacks?: DocumentDetectionCallbacks) => 
         const areaRatio = area / frameArea;
         if (areaRatio < MIN_AREA_RATIO || area > MAX_AREA) continue;
 
-        // Approximate polygon
+        // Approximate polygon. Widen the epsilon ladder so receipts/long narrow
+        // documents that don't collapse to exactly 4 points at low epsilon still get
+        // a chance at higher epsilon before we fall back.
         const { value: perimeter } = OpenCV.invoke('arcLength', contour, true);
-        const epsilons = [0.02, 0.025, 0.03, 0.035, 0.04, 0.05];
+        const epsilons = [0.02, 0.025, 0.03, 0.035, 0.04, 0.05, 0.06, 0.08, 0.1];
         let approxPoints: DocumentCorner[] | null = null;
 
         for (const mult of epsilons) {
@@ -263,15 +268,51 @@ export const useDocumentDetection = (callbacks?: DocumentDetectionCallbacks) => 
             approxPoints = pts.map((p: any) => ({ x: p.x, y: p.y }));
             break;
           }
+          // Once epsilon collapses to below 4 points, escalating further only loses detail.
           if (pts.length < 4) break;
         }
 
         if (!approxPoints) {
-          // Fallback: bounding rect
+          // Fallback: minAreaRect produces a rotated 4-point quad that hugs the
+          // contour tightly, much better than axis-aligned boundingRect for tilted
+          // documents.
+          // react-native-fast-opencv returns an object handle from invoke() — must
+          // call toJSValue() to get the underlying numbers. The previous code read
+          // `.value` directly which always returned undefined and silently failed.
           try {
-            const rectResult = OpenCV.invoke('boundingRect', contour) as any;
-            const rect = rectResult?.value || rectResult;
-            if (rect?.width > 0 && rect?.height > 0) {
+            const rotatedRectHandle = OpenCV.invoke('minAreaRect', contour) as any;
+            const minRect = OpenCV.toJSValue(rotatedRectHandle) as
+              | { centerX: number; centerY: number; width: number; height: number; angle: number }
+              | undefined;
+            if (minRect && minRect.width > 0 && minRect.height > 0) {
+              const cx = minRect.centerX;
+              const cy = minRect.centerY;
+              const w = minRect.width / 2;
+              const h = minRect.height / 2;
+              const a = (minRect.angle * Math.PI) / 180;
+              const cos = Math.cos(a);
+              const sin = Math.sin(a);
+              // Rotate the four corners around the center
+              approxPoints = [
+                { x: cx + (-w * cos - -h * sin), y: cy + (-w * sin + -h * cos) },
+                { x: cx + (w * cos - -h * sin), y: cy + (w * sin + -h * cos) },
+                { x: cx + (w * cos - h * sin), y: cy + (w * sin + h * cos) },
+                { x: cx + (-w * cos - h * sin), y: cy + (-w * sin + h * cos) },
+              ];
+            }
+          } catch {
+            // minAreaRect failed — try axis-aligned bounding rect
+          }
+        }
+
+        if (!approxPoints) {
+          // Last resort: axis-aligned bounding rect. Same toJSValue treatment as above.
+          try {
+            const rectHandle = OpenCV.invoke('boundingRect', contour) as any;
+            const rect = OpenCV.toJSValue(rectHandle) as
+              | { x: number; y: number; width: number; height: number }
+              | undefined;
+            if (rect && rect.width > 0 && rect.height > 0) {
               approxPoints = [
                 { x: rect.x, y: rect.y },
                 { x: rect.x + rect.width, y: rect.y },
