@@ -38,3 +38,61 @@ diff --git a/node_modules/react-native-vision-camera/ios/Core/CameraSession+Conf
    }
  
    // pragma MARK: Side-Props
+diff --git a/node_modules/react-native-vision-camera/ios/Core/Utils/FileUtils.swift b/node_modules/react-native-vision-camera/ios/Core/Utils/FileUtils.swift
+--- a/node_modules/react-native-vision-camera/ios/Core/Utils/FileUtils.swift
++++ b/node_modules/react-native-vision-camera/ios/Core/Utils/FileUtils.swift
+@@ -31,10 +31,22 @@ enum FileUtils {
+   }
+ 
+   static func writePhotoToFile(photo: AVCapturePhoto, metadataProvider: MetadataProvider, file: URL) throws {
+-    guard let data = photo.fileDataRepresentation(with: metadataProvider) else {
+-      throw CameraError.capture(.imageDataAccessError)
+-    }
+-    try writeDataToFile(data: data, file: file)
++    #if targetEnvironment(simulator)
++      // SimCam's virtual AVCapturePhoto returns nil for embeddedThumbnailPhotoFormat,
++      // which the metadata-customizer code path inside fileDataRepresentation(with:)
++      // dereferences, crashing the process. Plain fileDataRepresentation() takes a
++      // different internal path that skips the thumbnail lookup, so we use that on
++      // simulator and accept that EXIF customizations are dropped — capture still works.
++      guard let data = photo.fileDataRepresentation() else {
++        throw CameraError.capture(.imageDataAccessError)
++      }
++      try writeDataToFile(data: data, file: file)
++    #else
++      guard let data = photo.fileDataRepresentation(with: metadataProvider) else {
++        throw CameraError.capture(.imageDataAccessError)
++      }
++      try writeDataToFile(data: data, file: file)
++    #endif
+   }
+ 
+   static func writeUIImageToFile(image: UIImage, file: URL, compressionQuality: CGFloat = 1.0) throws {
+diff --git a/node_modules/react-native-vision-camera/ios/Core/PhotoCaptureDelegate.swift b/node_modules/react-native-vision-camera/ios/Core/PhotoCaptureDelegate.swift
+--- a/node_modules/react-native-vision-camera/ios/Core/PhotoCaptureDelegate.swift
++++ b/node_modules/react-native-vision-camera/ios/Core/PhotoCaptureDelegate.swift
+@@ -63,6 +63,15 @@ class PhotoCaptureDelegate: GlobalReferenceHolder, AVCapturePhotoCaptureDelegate
+       let orientation = getOrientation(forExifOrientation: cgOrientation)
+       let isMirrored = getIsMirrored(forExifOrientation: cgOrientation)
+ 
++      // SimCam's virtual AVCapturePhoto returns a bad pointer for
++      // embeddedThumbnailPhotoFormat which segfaults on access. Skip the field
++      // on simulator — capture still works, the EXIF thumbnail is just absent.
++      #if targetEnvironment(simulator)
++        let thumbnail: Any = NSNull()
++      #else
++        let thumbnail: Any = photo.embeddedThumbnailPhotoFormat as Any
++      #endif
++
+       promise.resolve([
+         "path": path.absoluteString,
+         "width": width as Any,
+@@ -71,7 +80,7 @@ class PhotoCaptureDelegate: GlobalReferenceHolder, AVCapturePhotoCaptureDelegate
+         "isMirrored": isMirrored,
+         "isRawPhoto": photo.isRawPhoto,
+         "metadata": photo.metadata,
+-        "thumbnail": photo.embeddedThumbnailPhotoFormat as Any,
++        "thumbnail": thumbnail,
+       ])
+     } catch let error as CameraError {
+       promise.reject(error: error)
