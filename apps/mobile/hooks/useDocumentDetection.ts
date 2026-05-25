@@ -11,6 +11,7 @@ import {
   RetrievalModes,
   ContourApproximationModes,
   BorderTypes,
+  ThresholdTypes,
 } from 'react-native-fast-opencv';
 
 export type DocumentCorner = {
@@ -215,42 +216,55 @@ export const useDocumentDetection = (callbacks?: DocumentDetectionCallbacks) => 
       // Grayscale
       OpenCV.invoke('cvtColor', source, source, ColorConversionCodes.COLOR_BGR2GRAY);
 
-      // Gaussian blur
+      // Gaussian blur to smooth out small text and printing artefacts before
+      // thresholding — keeps the document/background split clean.
       const blurKernel = OpenCV.createObject(ObjectType.Size, 5, 5);
       OpenCV.invoke('GaussianBlur', source, source, blurKernel, 0);
 
-      // Morphological closing
-      const morphKernel = OpenCV.createObject(ObjectType.Size, 3, 3);
-      const structElement = OpenCV.invoke('getStructuringElement', MorphShapes.MORPH_RECT, morphKernel);
-      if (structElement) {
-        OpenCV.invoke('morphologyEx', source, source, MorphTypes.MORPH_CLOSE, structElement);
+      // Otsu thresholding: cleanly separates light document from darker background
+      // regardless of internal text noise. Much more reliable than Canny for
+      // text-heavy documents where edge continuity is broken by lines of text.
+      // THRESH_BINARY | THRESH_OTSU = 0 | 8 = 8. The 'thresh' param is ignored
+      // for Otsu — it auto-selects the optimal threshold.
+      OpenCV.invoke(
+        'threshold',
+        source,
+        source,
+        0,
+        255,
+        (ThresholdTypes.THRESH_BINARY | ThresholdTypes.THRESH_OTSU) as ThresholdTypes,
+      );
+
+      // Aggressive morphological closing to bridge any holes inside the document
+      // (e.g. dark text on light page) so the document becomes a single white blob.
+      const closeKernel = OpenCV.createObject(ObjectType.Size, 9, 9);
+      const closeElement = OpenCV.invoke('getStructuringElement', MorphShapes.MORPH_RECT, closeKernel);
+      if (closeElement) {
+        OpenCV.invoke('morphologyEx', source, source, MorphTypes.MORPH_CLOSE, closeElement);
       }
 
-      // Canny edge detection (lower thresholds for parking tickets)
-      OpenCV.invoke('Canny', source, source, 30, 90);
-
-      // Dilate edges
+      // Dilate so the outer boundary is well-defined.
       const dilateKernel = OpenCV.createObject(ObjectType.Size, 3, 3);
       const dilateElement = OpenCV.invoke('getStructuringElement', MorphShapes.MORPH_RECT, dilateKernel);
       const anchor = OpenCV.createObject(ObjectType.Point, -1, -1);
       const borderValue = OpenCV.createObject(ObjectType.Scalar, 0, 0, 0, 0);
-      OpenCV.invoke('dilate', source, source, dilateElement, anchor, 2, BorderTypes.BORDER_DEFAULT, borderValue);
+      OpenCV.invoke('dilate', source, source, dilateElement, anchor, 1, BorderTypes.BORDER_DEFAULT, borderValue);
 
-      // Smooth edges
-      const smoothKernel = OpenCV.createObject(ObjectType.Size, 3, 3);
-      OpenCV.invoke('GaussianBlur', source, source, smoothKernel, 0);
-
-      // Find contours
+      // Find only the OUTERMOST contours (RETR_EXTERNAL) — we want the document's
+      // outer edge, not internal sub-regions like the receipt's header rectangle.
       const contours = OpenCV.createObject(ObjectType.MatVector);
-      OpenCV.invoke('findContours', source, contours, RetrievalModes.RETR_LIST, ContourApproximationModes.CHAIN_APPROX_SIMPLE);
+      OpenCV.invoke('findContours', source, contours, RetrievalModes.RETR_EXTERNAL, ContourApproximationModes.CHAIN_APPROX_SIMPLE);
       if (!contours) return;
 
       const contoursData = OpenCV.toJSValue(contours);
       let maxArea = 0;
       const frameArea = scaledWidth * scaledHeight;
-      const MAX_AREA = frameArea * 0.6;
+      // Allow documents that nearly fill the frame. We still cap below 100% so
+      // we don't accept the frame border itself or a giant noise blob covering
+      // the whole image — that'd snap the polygon to the screen edges.
+      const MAX_AREA = frameArea * 0.95;
       const MIN_AREA = 100;
-      const MIN_AREA_RATIO = 0.03;
+      const MIN_AREA_RATIO = 0.05;
 
       for (let i = 0; i < contoursData.array.length; i++) {
         const contour = OpenCV.copyObjectFromVector(contours, i);
@@ -289,7 +303,7 @@ export const useDocumentDetection = (callbacks?: DocumentDetectionCallbacks) => 
           // `.value` directly which always returned undefined and silently failed.
           try {
             const rotatedRectHandle = OpenCV.invoke('minAreaRect', contour) as any;
-            const minRect = OpenCV.toJSValue(rotatedRectHandle) as
+            const minRect = OpenCV.toJSValue(rotatedRectHandle) as unknown as
               | { centerX: number; centerY: number; width: number; height: number; angle: number }
               | undefined;
             if (minRect && minRect.width > 0 && minRect.height > 0) {
@@ -317,7 +331,7 @@ export const useDocumentDetection = (callbacks?: DocumentDetectionCallbacks) => 
           // Last resort: axis-aligned bounding rect. Same toJSValue treatment as above.
           try {
             const rectHandle = OpenCV.invoke('boundingRect', contour) as any;
-            const rect = OpenCV.toJSValue(rectHandle) as
+            const rect = OpenCV.toJSValue(rectHandle) as unknown as
               | { x: number; y: number; width: number; height: number }
               | undefined;
             if (rect && rect.width > 0 && rect.height > 0) {
@@ -339,13 +353,20 @@ export const useDocumentDetection = (callbacks?: DocumentDetectionCallbacks) => 
         maxArea = area;
         bestContour = approxPoints;
 
-        // Confidence based on area coverage
-        if (areaRatio >= 0.15 && areaRatio <= 0.45) {
+        // Confidence based on area coverage. With Otsu-based outer-contour
+        // detection, the document naturally fills 50-80% of the frame at a
+        // normal scanning distance — treat that as ideal.
+        if (areaRatio >= 0.30 && areaRatio <= 0.85) {
           detectionConfidence = 1.0;
-        } else if (areaRatio > 0.45 && areaRatio <= 0.5) {
+        } else if (areaRatio > 0.85 && areaRatio <= 0.95) {
+          // Too close
+          detectionConfidence = 0.8;
+        } else if (areaRatio >= 0.15 && areaRatio < 0.30) {
+          // Bit far but still usable
           detectionConfidence = 0.8;
         } else if (areaRatio >= 0.05 && areaRatio < 0.15) {
-          detectionConfidence = 0.7;
+          // Far
+          detectionConfidence = 0.65;
         } else {
           detectionConfidence = 0.6;
         }
