@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { StyleSheet, View, Text, type LayoutChangeEvent } from 'react-native';
-import { Canvas, Path, Circle, Group, PaintStyle } from '@shopify/react-native-skia';
+import { Canvas, Path, Circle, Group } from '@shopify/react-native-skia';
 import { useDerivedValue, useSharedValue, type SharedValue } from 'react-native-reanimated';
 import Animated, {
   useAnimatedStyle,
@@ -133,28 +133,13 @@ const DocumentOverlay = ({
     transform: [{ scale: pulseScale.value }],
   }));
 
-  const strokePaint = useDerivedValue(() => {
-    const paint = Skia.Paint();
-    paint.setColor(strokeColor.value);
-    paint.setStrokeWidth(3);
-    paint.setStyle(PaintStyle.Stroke);
-    return paint;
-  });
-
-  const fillPaint = useDerivedValue(() => {
-    const paint = Skia.Paint();
-    paint.setColor(fillColor.value);
-    paint.setStyle(PaintStyle.Fill);
-    return paint;
-  });
-
   return (
     <View style={StyleSheet.absoluteFill} pointerEvents="none" onLayout={handleLayout}>
       <Canvas style={StyleSheet.absoluteFill}>
         {/* Filled polygon */}
-        <Path path={documentPath} paint={fillPaint} />
+        <Path path={documentPath} color={fillColor} style="fill" />
         {/* Stroke border */}
-        <Path path={documentPath} paint={strokePaint} />
+        <Path path={documentPath} color={strokeColor} style="stroke" strokeWidth={3} />
         {/* Corner circles */}
         <Group>
           {[0, 1, 2, 3].map(idx => (
