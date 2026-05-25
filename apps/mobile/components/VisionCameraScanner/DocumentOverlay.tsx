@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import { StyleSheet, View, Text, type LayoutChangeEvent } from 'react-native';
 import { Canvas, Path, Circle, Group, PaintStyle } from '@shopify/react-native-skia';
-import { useDerivedValue, useSharedValue } from 'react-native-reanimated';
+import { useDerivedValue, useSharedValue, type SharedValue } from 'react-native-reanimated';
 import Animated, {
   useAnimatedStyle,
   withTiming,
@@ -10,13 +10,12 @@ import Animated, {
   Easing,
 } from 'react-native-reanimated';
 import { Skia } from '@shopify/react-native-skia';
-import type { ISharedValue } from 'react-native-worklets-core';
 import type { DocumentCorner } from '@/hooks/useDocumentDetection';
 
 type DocumentOverlayProps = {
-  cornersNormalized: ISharedValue<DocumentCorner[] | null>;
-  confidenceValue: ISharedValue<number>;
-  isDetected: ISharedValue<boolean>;
+  cornersNormalized: SharedValue<DocumentCorner[] | null>;
+  confidenceValue: SharedValue<number>;
+  isDetected: SharedValue<boolean>;
   stabilityProgress: number;
   autoCaptureEnabled: boolean;
 };
@@ -30,6 +29,13 @@ const DocumentOverlay = ({
   stabilityProgress,
   autoCaptureEnabled,
 }: DocumentOverlayProps) => {
+  console.log('[scanner-diag] DocumentOverlay render', {
+    hasCornersSV: !!cornersNormalized,
+    cornersIsReanimated: (cornersNormalized as any)?._isReanimatedSharedValue,
+    confidenceIsReanimated: (confidenceValue as any)?._isReanimatedSharedValue,
+    isDetectedIsReanimated: (isDetected as any)?._isReanimatedSharedValue,
+  });
+
   const canvasWidth = useSharedValue(0);
   const canvasHeight = useSharedValue(0);
   const pulseScale = useSharedValue(1);

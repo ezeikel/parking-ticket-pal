@@ -1,6 +1,7 @@
 import { useFrameProcessor } from 'react-native-vision-camera';
 import { useResizePlugin } from 'vision-camera-resize-plugin';
 import { useSharedValue, Worklets } from 'react-native-worklets-core';
+import { useSharedValue as useReanimatedSharedValue } from 'react-native-reanimated';
 import {
   OpenCV,
   ObjectType,
@@ -118,10 +119,14 @@ export const useDocumentDetection = (callbacks?: DocumentDetectionCallbacks) => 
     ? Worklets.createRunOnJS(callbacks.onStabilityUpdate)
     : null;
 
-  // Shared values for overlay (read by Skia Canvas on UI thread)
-  const cornersNormalized = useSharedValue<DocumentCorner[] | null>(null);
-  const confidenceValue = useSharedValue<number>(0);
-  const isDetected = useSharedValue<boolean>(false);
+  // Shared values for overlay (read by Skia Canvas on UI thread).
+  // Reanimated SVs: their underlying _value lives in C++ shared memory and is addressable
+  // from the VisionCamera/worklets-core frame processor runtime, so we can write to them
+  // directly inside the worklet. useDerivedValue in DocumentOverlay subscribes to these
+  // correctly because they carry _isReanimatedSharedValue.
+  const cornersNormalized = useReanimatedSharedValue<DocumentCorner[] | null>(null);
+  const confidenceValue = useReanimatedSharedValue<number>(0);
+  const isDetected = useReanimatedSharedValue<boolean>(false);
 
   // Internal state (frame processor worklet only)
   const smoothedCorners = useSharedValue<DocumentCorner[] | null>(null);
@@ -156,10 +161,17 @@ export const useDocumentDetection = (callbacks?: DocumentDetectionCallbacks) => 
   const AUTO_CAPTURE_MOVEMENT_THRESHOLD = 0.03;
   const AUTOCAPTURE_RESET_FRAMES = 60;
 
+  const logFirstFrameJS = Worklets.createRunOnJS(() => {
+    console.log('[scanner-diag] frame processor first tick');
+  });
+
   const frameProcessor = useFrameProcessor((frame) => {
     'worklet';
 
     frameCount.value += 1;
+    if (frameCount.value === 1) {
+      logFirstFrameJS();
+    }
 
     // Auto-capture reset countdown
     if (autoCaptureResetFrameCount.value > 0) {
