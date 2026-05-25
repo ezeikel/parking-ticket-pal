@@ -44,16 +44,6 @@ const VisionCameraScanner = ({ onClose, onImageScanned, onOCRComplete }: VisionC
   const { hasPermission, requestPermission } = useCameraPermission();
   const cameraRef = useRef<CameraType>(null);
 
-  console.log('[scanner-diag] render', {
-    hasDevice: !!device,
-    deviceId: device?.id,
-    deviceName: device?.name,
-    devicePosition: device?.position,
-    hasPermission,
-    isActive,
-    capturedImageUri: !!capturedImageUri,
-  });
-
   const ocrMutation = useOCR();
   const { trackEvent, trackError } = useAnalytics();
   const logger = useLogger();
@@ -234,7 +224,6 @@ const VisionCameraScanner = ({ onClose, onImageScanned, onOCRComplete }: VisionC
 
   // No camera device
   if (!device) {
-    console.log('[scanner-diag] no device — falling back', { __DEV__ });
     // Fallback to gallery picker if no camera (simulator)
     if (__DEV__) {
       handleGalleryPress();
@@ -249,8 +238,6 @@ const VisionCameraScanner = ({ onClose, onImageScanned, onOCRComplete }: VisionC
     return null;
   }
 
-  console.log('[scanner-diag] rendering Camera + DocumentOverlay', { deviceId: device.id });
-
   return (
     <View style={styles.container}>
       <Camera
@@ -262,12 +249,6 @@ const VisionCameraScanner = ({ onClose, onImageScanned, onOCRComplete }: VisionC
         frameProcessor={frameProcessor}
         torch={flashEnabled ? 'on' : 'off'}
         enableZoomGesture
-        onError={(e) => {
-          console.log('[scanner-diag] Camera onError', { code: e.code, message: e.message, cause: e.cause });
-        }}
-        onInitialized={() => {
-          console.log('[scanner-diag] Camera onInitialized');
-        }}
       />
 
       <DocumentOverlay

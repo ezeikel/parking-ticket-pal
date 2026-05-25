@@ -29,13 +29,6 @@ const DocumentOverlay = ({
   stabilityProgress,
   autoCaptureEnabled,
 }: DocumentOverlayProps) => {
-  console.log('[scanner-diag] DocumentOverlay render', {
-    hasCornersSV: !!cornersNormalized,
-    cornersIsReanimated: (cornersNormalized as any)?._isReanimatedSharedValue,
-    confidenceIsReanimated: (confidenceValue as any)?._isReanimatedSharedValue,
-    isDetectedIsReanimated: (isDetected as any)?._isReanimatedSharedValue,
-  });
-
   const canvasWidth = useSharedValue(0);
   const canvasHeight = useSharedValue(0);
   const pulseScale = useSharedValue(1);

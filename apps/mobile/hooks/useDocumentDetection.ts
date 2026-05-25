@@ -161,17 +161,10 @@ export const useDocumentDetection = (callbacks?: DocumentDetectionCallbacks) => 
   const AUTO_CAPTURE_MOVEMENT_THRESHOLD = 0.03;
   const AUTOCAPTURE_RESET_FRAMES = 60;
 
-  const logFirstFrameJS = Worklets.createRunOnJS(() => {
-    console.log('[scanner-diag] frame processor first tick');
-  });
-
   const frameProcessor = useFrameProcessor((frame) => {
     'worklet';
 
     frameCount.value += 1;
-    if (frameCount.value === 1) {
-      logFirstFrameJS();
-    }
 
     // Auto-capture reset countdown
     if (autoCaptureResetFrameCount.value > 0) {
