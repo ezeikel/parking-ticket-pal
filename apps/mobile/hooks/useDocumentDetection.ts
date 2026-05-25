@@ -19,7 +19,11 @@ export type DocumentCorner = {
 };
 
 export type DocumentDetectionCallbacks = {
-  onDetectionUpdate?: (corners: DocumentCorner[] | null, confidence: number) => void;
+  onDetectionUpdate?: (
+    corners: DocumentCorner[] | null,
+    confidence: number,
+    frameAspectRatio: number,
+  ) => void;
   onAutoCapture?: () => void;
   onStabilityUpdate?: (stabilityProgress: number) => void;
 };
@@ -130,6 +134,10 @@ export const useDocumentDetection = (callbacks?: DocumentDetectionCallbacks) => 
   const cornersNormalized = useReanimatedSharedValue<DocumentCorner[] | null>(null);
   const confidenceValue = useReanimatedSharedValue<number>(0);
   const isDetected = useReanimatedSharedValue<boolean>(false);
+  // Rotated frame aspect ratio (width / height as displayed). DocumentOverlay
+  // uses this to undo the cover-fit cropping that <Camera resizeMode="cover">
+  // does between the camera buffer and the on-screen preview.
+  const frameAspectRatio = useReanimatedSharedValue<number>(0);
 
   // Internal state (frame processor worklet only)
   const smoothedCorners = useSharedValue<DocumentCorner[] | null>(null);
@@ -460,18 +468,43 @@ export const useDocumentDetection = (callbacks?: DocumentDetectionCallbacks) => 
       confidenceValue.value = smoothedConfidence.value;
 
       if (isCurrentlyDetected && smoothedCorners.value) {
-        // Normalize to 0-1 range (scale up from processing resolution, then divide by frame size)
-        cornersNormalized.value = smoothedCorners.value.map(c => ({
-          x: (c.x * SCALE_FACTOR) / frame.width,
-          y: (c.y * SCALE_FACTOR) / frame.height,
-        }));
+        // Map corners from frame-space into "rotated frame" space — what the user
+        // sees BEFORE any cover-crop applied by the Camera preview. The cover-fit
+        // correction happens in DocumentOverlay using frameAspectRatio + canvas size.
+        const fw = frame.width;
+        const fh = frame.height;
+        const orientation = frame.orientation;
+        const isLandscape = orientation === 'landscape-left' || orientation === 'landscape-right';
+        // After rotation: rotated width × rotated height
+        const rotatedW = isLandscape ? fh : fw;
+        const rotatedH = isLandscape ? fw : fh;
+        frameAspectRatio.value = rotatedW / rotatedH;
+        cornersNormalized.value = smoothedCorners.value.map((c) => {
+          const fx = (c.x * SCALE_FACTOR) / fw; // 0-1 in frame x
+          const fy = (c.y * SCALE_FACTOR) / fh; // 0-1 in frame y
+          // For each orientation, rotate the [fx, fy] point so it lines up with
+          // the preview-as-displayed (in rotated-frame normalized space).
+          if (orientation === 'landscape-left') {
+            // Frame is rotated 90° CCW relative to display — counter-rotate 90° CW
+            return { x: 1 - fy, y: fx };
+          }
+          if (orientation === 'landscape-right') {
+            // Frame is rotated 90° CW relative to display — counter-rotate 90° CCW
+            return { x: fy, y: 1 - fx };
+          }
+          if (orientation === 'portrait-upside-down') {
+            return { x: 1 - fx, y: 1 - fy };
+          }
+          // 'portrait' — no rotation needed
+          return { x: fx, y: fy };
+        });
       } else {
         cornersNormalized.value = null;
       }
 
       // Callback to JS thread
       if (onDetectionUpdateJS) {
-        onDetectionUpdateJS(cornersNormalized.value, smoothedConfidence.value);
+        onDetectionUpdateJS(cornersNormalized.value, smoothedConfidence.value, frameAspectRatio.value);
       }
     } catch {
       // Reset on error
@@ -493,6 +526,7 @@ export const useDocumentDetection = (callbacks?: DocumentDetectionCallbacks) => 
     cornersNormalized,
     confidenceValue,
     isDetected,
+    frameAspectRatio,
     // Auto-capture controls
     setAutoCaptureEnabled: (enabled: boolean) => {
       autoCaptureEnabled.value = enabled;

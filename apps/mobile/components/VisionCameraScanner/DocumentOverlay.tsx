@@ -16,6 +16,9 @@ type DocumentOverlayProps = {
   cornersNormalized: SharedValue<DocumentCorner[] | null>;
   confidenceValue: SharedValue<number>;
   isDetected: SharedValue<boolean>;
+  // Rotated-frame aspect ratio (width/height) — lets us mirror <Camera resizeMode="cover">
+  // cropping when projecting normalized corners onto the on-screen canvas.
+  frameAspectRatio: SharedValue<number>;
   stabilityProgress: number;
   autoCaptureEnabled: boolean;
 };
@@ -26,6 +29,7 @@ const DocumentOverlay = ({
   cornersNormalized,
   confidenceValue,
   isDetected,
+  frameAspectRatio,
   stabilityProgress,
   autoCaptureEnabled,
 }: DocumentOverlayProps) => {
@@ -54,21 +58,48 @@ const DocumentOverlay = ({
     canvasHeight.value = e.nativeEvent.layout.height;
   };
 
+  // Project a normalized (rotated-frame) corner [0..1] onto the on-screen canvas,
+  // mirroring the <Camera resizeMode="cover"> behaviour: scale to fill the canvas,
+  // cropping the larger axis equally on both sides. Inline here because it has to
+  // run inside the useDerivedValue worklet (no closures over JS-side helpers).
+  const projectCorner = (c: DocumentCorner, w: number, h: number, fAspect: number) => {
+    'worklet';
+    if (fAspect <= 0) return { x: c.x * w, y: c.y * h };
+    const canvasAspect = w / h;
+    if (fAspect > canvasAspect) {
+      // Frame is wider than canvas → height fills, width overflows and is cropped.
+      const displayedW = h * fAspect;
+      const x = (c.x - 0.5) * displayedW + w / 2;
+      const y = c.y * h;
+      return { x, y };
+    }
+    // Frame is taller than canvas → width fills, height overflows and is cropped.
+    const displayedH = w / fAspect;
+    const x = c.x * w;
+    const y = (c.y - 0.5) * displayedH + h / 2;
+    return { x, y };
+  };
+
   // Build path from normalized corners
   const documentPath = useDerivedValue(() => {
     const corners = cornersNormalized.value;
     const w = canvasWidth.value;
     const h = canvasHeight.value;
+    const fAspect = frameAspectRatio.value;
 
     if (!corners || corners.length !== 4 || w === 0 || h === 0) {
       return Skia.Path.Make();
     }
 
+    const p0 = projectCorner(corners[0], w, h, fAspect);
+    const p1 = projectCorner(corners[1], w, h, fAspect);
+    const p2 = projectCorner(corners[2], w, h, fAspect);
+    const p3 = projectCorner(corners[3], w, h, fAspect);
     const path = Skia.Path.Make();
-    path.moveTo(corners[0].x * w, corners[0].y * h);
-    path.lineTo(corners[1].x * w, corners[1].y * h);
-    path.lineTo(corners[2].x * w, corners[2].y * h);
-    path.lineTo(corners[3].x * w, corners[3].y * h);
+    path.moveTo(p0.x, p0.y);
+    path.lineTo(p1.x, p1.y);
+    path.lineTo(p2.x, p2.y);
+    path.lineTo(p3.x, p3.y);
     path.close();
     return path;
   });
@@ -78,33 +109,36 @@ const DocumentOverlay = ({
     const corners = cornersNormalized.value;
     const w = canvasWidth.value;
     const h = canvasHeight.value;
+    const fAspect = frameAspectRatio.value;
 
     if (!corners || corners.length !== 4 || w === 0 || h === 0) {
       return null;
     }
 
-    return corners.map((c: DocumentCorner) => ({ x: c.x * w, y: c.y * h }));
+    return corners.map((c: DocumentCorner) => projectCorner(c, w, h, fAspect));
   });
 
-  // Stroke paint — green when detected, orange otherwise
+  // Stroke paint — green when detected, orange otherwise.
+  // 0.65 threshold accounts for EMA smoothing on raw 0.7 confidence asymptoting
+  // toward but never reaching 0.7. 1.0 = perfect, 0.7 = acceptable, 0.6 = far/close.
   const strokeColor = useDerivedValue(() => {
     const conf = confidenceValue.value;
-    if (conf > 0.7) return Skia.Color('rgba(76, 175, 80, 0.9)');
-    if (conf > 0.4) return Skia.Color('rgba(255, 152, 0, 0.9)');
+    if (conf >= 0.65) return Skia.Color('rgba(76, 175, 80, 0.9)');
+    if (conf >= 0.4) return Skia.Color('rgba(255, 152, 0, 0.9)');
     return Skia.Color('rgba(244, 67, 54, 0.9)');
   });
 
   const fillColor = useDerivedValue(() => {
     const conf = confidenceValue.value;
-    if (conf > 0.7) return Skia.Color('rgba(76, 175, 80, 0.15)');
-    if (conf > 0.4) return Skia.Color('rgba(255, 152, 0, 0.15)');
+    if (conf >= 0.65) return Skia.Color('rgba(76, 175, 80, 0.15)');
+    if (conf >= 0.4) return Skia.Color('rgba(255, 152, 0, 0.15)');
     return Skia.Color('rgba(244, 67, 54, 0.15)');
   });
 
   const cornerColor = useDerivedValue(() => {
     const conf = confidenceValue.value;
-    if (conf > 0.7) return Skia.Color('rgba(76, 175, 80, 1)');
-    if (conf > 0.4) return Skia.Color('rgba(255, 152, 0, 1)');
+    if (conf >= 0.65) return Skia.Color('rgba(76, 175, 80, 1)');
+    if (conf >= 0.4) return Skia.Color('rgba(255, 152, 0, 1)');
     return Skia.Color('rgba(244, 67, 54, 1)');
   });
 

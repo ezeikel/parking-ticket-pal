@@ -9,6 +9,7 @@ import {
 } from 'react-native-vision-camera';
 import * as ImagePicker from 'expo-image-picker';
 import * as LegacyFileSystem from 'expo-file-system/legacy';
+import { useSharedValue as useReanimatedSharedValue } from 'react-native-reanimated';
 
 import { useDocumentDetection, type DocumentCorner } from '@/hooks/useDocumentDetection';
 import { useDocumentScanHaptics } from '@/hooks/useDocumentScanHaptics';
@@ -52,18 +53,31 @@ const VisionCameraScanner = ({ onClose, onImageScanned, onOCRComplete }: VisionC
   // Ref to store latest corners for capture
   const latestCornersRef = useRef<DocumentCorner[] | null>(null);
 
+  // JS-side Reanimated SVs bridged from the frame processor's onDetectionUpdate
+  // callback. Reanimated's useDerivedValue inside DocumentOverlay reliably
+  // re-runs when these get written from JS — writes from the FP worklet runtime
+  // were updating the value but not triggering the UI-runtime observer chain.
+  const overlayCorners = useReanimatedSharedValue<DocumentCorner[] | null>(null);
+  const overlayConfidence = useReanimatedSharedValue<number>(0);
+  const overlayFrameAspect = useReanimatedSharedValue<number>(0);
+  const overlayIsDetected = useReanimatedSharedValue<boolean>(false);
+
   const {
     frameProcessor,
-    cornersNormalized,
-    confidenceValue,
-    isDetected,
     setAutoCaptureEnabled: setAutoCaptureInHook,
     resetAutoCapture,
   } = useDocumentDetection({
-    onDetectionUpdate: (corners, conf) => {
+    onDetectionUpdate: (corners, conf, aspect) => {
       const detected = corners !== null && conf > 0.3;
       setDocumentDetected(detected);
       latestCornersRef.current = corners;
+
+      // Mirror frame-processor state into JS-runtime Reanimated SVs so
+      // DocumentOverlay's useDerivedValue actually observes the updates.
+      overlayCorners.value = corners;
+      overlayConfidence.value = conf;
+      overlayFrameAspect.value = aspect;
+      overlayIsDetected.value = detected;
 
       if (detected && !documentDetected) {
         haptics.documentDetected();
@@ -252,9 +266,10 @@ const VisionCameraScanner = ({ onClose, onImageScanned, onOCRComplete }: VisionC
       />
 
       <DocumentOverlay
-        cornersNormalized={cornersNormalized}
-        confidenceValue={confidenceValue}
-        isDetected={isDetected}
+        cornersNormalized={overlayCorners}
+        confidenceValue={overlayConfidence}
+        isDetected={overlayIsDetected}
+        frameAspectRatio={overlayFrameAspect}
         stabilityProgress={stabilityProgress}
         autoCaptureEnabled={autoCaptureEnabled}
       />
