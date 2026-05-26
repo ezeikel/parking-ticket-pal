@@ -1,5 +1,11 @@
+/* eslint-disable no-restricted-syntax, no-await-in-loop --
+ * This is a batch retry admin endpoint that intentionally processes IDs
+ * sequentially to avoid hammering Facebook/Instagram APIs in parallel
+ * (which gets us rate-limited). The `for...of` + sequential `await`
+ * pattern is correct here, not a performance bug.
+ */
 import { NextRequest, NextResponse } from 'next/server';
-import { db } from '@parking-ticket-pal/db';
+import { db, Prisma } from '@parking-ticket-pal/db';
 import { createServerLogger } from '@/lib/logger';
 import {
   postCarouselToInstagram,
@@ -31,10 +37,7 @@ export const POST = async (request: NextRequest) => {
   const { type, ids } = await request.json();
 
   if (!type || !ids?.length) {
-    return NextResponse.json(
-      { error: 'Missing type or ids' },
-      { status: 400 },
-    );
+    return NextResponse.json({ error: 'Missing type or ids' }, { status: 400 });
   }
 
   const results: Record<string, unknown> = {};
@@ -47,10 +50,7 @@ export const POST = async (request: NextRequest) => {
         });
 
         const postingResults =
-          (quiz.postingResults as Record<
-            string,
-            { success: boolean }
-          >) || {};
+          (quiz.postingResults as Record<string, { success: boolean }>) || {};
         const retryResults: Record<string, unknown> = {};
 
         if (
@@ -83,7 +83,10 @@ export const POST = async (request: NextRequest) => {
         await db.highwayCodeQuizPost.update({
           where: { id },
           data: {
-            postingResults: { ...postingResults, ...retryResults },
+            postingResults: {
+              ...postingResults,
+              ...retryResults,
+            } as Prisma.InputJsonValue,
           },
         });
 
@@ -104,10 +107,7 @@ export const POST = async (request: NextRequest) => {
         });
 
         const postingResultsRaw =
-          (video.postingResults as Record<
-            string,
-            { success: boolean }
-          >) || {};
+          (video.postingResults as Record<string, { success: boolean }>) || {};
         const retryResults: Record<string, unknown> = {};
 
         const scriptSegments = video.scriptSegments as {
@@ -151,7 +151,10 @@ export const POST = async (request: NextRequest) => {
         await db.newsVideo.update({
           where: { id },
           data: {
-            postingResults: { ...postingResultsRaw, ...retryResults },
+            postingResults: {
+              ...postingResultsRaw,
+              ...retryResults,
+            } as Prisma.InputJsonValue,
           },
         });
 
