@@ -18,6 +18,37 @@ type SquishyPressableProps = PressableProps & {
   onPress?: () => void;
   scaleTo?: number;
   disabled?: boolean;
+  /**
+   * Layout styles for the touchable wrapper itself — `flex`, `width`, `marginX`, `alignSelf`, etc.
+   *
+   * **IMPORTANT — read this before reaching for `<SquishyPressable><View style={{ flex: 1 }}>`:**
+   *
+   * The bug we keep re-introducing: putting `flex: 1` on the *inner* `<View>` instead of on the
+   * SquishyPressable. The inner View can't fill a parent that has no defined size, so the button
+   * collapses to its children's intrinsic width and renders as a squashed pill with clipped icons.
+   *
+   * ✅ Correct: layout on the touchable, visuals inside.
+   * ```tsx
+   * <SquishyPressable onPress={...} style={{ flex: 1 }}>
+   *   <View style={{ padding: 12, backgroundColor: '#1ABC9C', borderRadius: 8 }}>
+   *     ...
+   *   </View>
+   * </SquishyPressable>
+   * ```
+   *
+   * ❌ Wrong: flex on the inner View does nothing because the outer Pressable has no width.
+   * ```tsx
+   * <SquishyPressable onPress={...}>
+   *   <View style={{ flex: 1, padding: 12, ... }}>  // collapses
+   *     ...
+   *   </View>
+   * </SquishyPressable>
+   * ```
+   *
+   * Prior fixes for this same bug: 5d7dc4f (Scanner buttons), 6562bc0 (scan preview),
+   * a561c4a (PostCapturePreview). If you find yourself fixing it a fourth time, escalate to
+   * a defensive refactor of SquishyPressable rather than fixing the call site again.
+   */
   style?: StyleProp<ViewStyle>;
 };
 
