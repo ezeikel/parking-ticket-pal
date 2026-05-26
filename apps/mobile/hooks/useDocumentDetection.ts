@@ -51,21 +51,22 @@ const validateRectangularShape = (points: DocumentCorner[]): boolean => {
   const shortSide = (sorted[0] + sorted[1]) / 2;
   const longSide = (sorted[2] + sorted[3]) / 2;
   const aspectRatio = longSide / shortSide;
-  // We only ever want to detect two things: A4-ish letters or narrow UK PCN
-  // receipts. Everything in between (notebooks, table corners, books) is
-  // background noise. Accept two distinct aspect-ratio bands:
-  //   - A4 / US Letter:       1.30 – 1.70  (portrait or landscape)
-  //   - Narrow PCN receipts:  2.40 – 6.50
-  // The 1.70-2.40 dead-zone is where random rectangles in the scene typically
-  // sit. Anything outside both bands gets rejected outright.
-  const isLetterShape = aspectRatio >= 1.30 && aspectRatio <= 1.70;
-  const isReceiptShape = aspectRatio >= 2.40 && aspectRatio <= 6.50;
-  if (!isLetterShape && !isReceiptShape) return false;
+  // We're scanning UK parking docs: A4 letters and NTO receipts. Floor at 1.10
+  // covers near-square views (e.g. A4 captured slightly tilted will compress
+  // toward squarer in the projected quad). Ceiling at 6.50 covers long narrow
+  // receipts. The previous 1.20 floor was rejecting real letters at angles.
+  if (aspectRatio < 1.10 || aspectRatio > 6.50) return false;
 
+  // Opposite-side length similarity. Loosened from 0.45 → 0.6 so a tilted /
+  // perspective-distorted A4 letter (where opposite sides foreshorten by
+  // different amounts) still passes. We have other defences (edge-touching,
+  // area cap) so we don't need this to be strict.
   const side1Diff = Math.abs(distances[0] - distances[2]) / Math.max(distances[0], distances[2]);
   const side2Diff = Math.abs(distances[1] - distances[3]) / Math.max(distances[1], distances[3]);
-  if (side1Diff > 0.45 || side2Diff > 0.45) return false;
+  if (side1Diff > 0.6 || side2Diff > 0.6) return false;
 
+  // Corner-angle plausibility. Loosened from [45°, 135°] → [30°, 150°] so
+  // strongly tilted documents still pass.
   for (let i = 0; i < 4; i++) {
     const p1 = points[(i - 1 + 4) % 4];
     const p2 = points[i];
@@ -76,7 +77,7 @@ const validateRectangularShape = (points: DocumentCorner[]): boolean => {
     const mag1 = Math.sqrt(v1x * v1x + v1y * v1y);
     const mag2 = Math.sqrt(v2x * v2x + v2y * v2y);
     const angle = Math.acos(dot / (mag1 * mag2)) * (180 / Math.PI);
-    if (angle < 45 || angle > 135) return false;
+    if (angle < 30 || angle > 150) return false;
   }
 
   return true;
@@ -362,18 +363,29 @@ export const useDocumentDetection = (callbacks?: DocumentDetectionCallbacks) => 
 
         if (!validateRectangularShape(approxPoints)) continue;
 
-        // Reject polygons that touch the frame edge — a real document scan
-        // always has visible margin around it. False detections on a uniform
-        // surface (wood floor, wall) typically extend to all four edges.
-        let touchingEdges = 0;
+        // Reject polygons that touch THREE OR MORE sides of the frame — a real
+        // hand-held document scan can touch one or even two sides (e.g. the
+        // user is close and only the left & right margins of an A4 letter
+        // overflow), but touching 3+ sides means the polygon is essentially
+        // the whole frame and we're locked onto a uniform surface, not a doc.
+        // Track distinct sides, not corner-axis intersections (a single corner
+        // at frame-corner would otherwise count twice).
+        let touchesLeft = false;
+        let touchesTop = false;
+        let touchesRight = false;
+        let touchesBottom = false;
         for (const p of approxPoints) {
-          if (p.x <= EDGE_MARGIN_PX) touchingEdges++;
-          if (p.y <= EDGE_MARGIN_PX) touchingEdges++;
-          if (p.x >= scaledWidth - EDGE_MARGIN_PX) touchingEdges++;
-          if (p.y >= scaledHeight - EDGE_MARGIN_PX) touchingEdges++;
+          if (p.x <= EDGE_MARGIN_PX) touchesLeft = true;
+          if (p.y <= EDGE_MARGIN_PX) touchesTop = true;
+          if (p.x >= scaledWidth - EDGE_MARGIN_PX) touchesRight = true;
+          if (p.y >= scaledHeight - EDGE_MARGIN_PX) touchesBottom = true;
         }
-        // Two or more corners pinned to the frame edge = not a hand-held document.
-        if (touchingEdges >= 2) continue;
+        const sidesTouched =
+          (touchesLeft ? 1 : 0) +
+          (touchesTop ? 1 : 0) +
+          (touchesRight ? 1 : 0) +
+          (touchesBottom ? 1 : 0);
+        if (sidesTouched >= 3) continue;
 
         maxArea = area;
         bestContour = approxPoints;
