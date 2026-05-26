@@ -422,19 +422,20 @@ const CameraSheet = ({ isVisible, onClose, onboardingMode, onOCRComplete }: Came
       );
     }
 
-    // Scanning phase
+    // Scanning phase — black background so the camera + PostCapturePreview
+    // appear edge-to-edge without white safe-area bleed at top/bottom.
     return (
-      <View style={{ flex: 1, backgroundColor: 'white' }}>
+      <View style={{ flex: 1, backgroundColor: '#000' }}>
         {isLoadingPermissions ? (
           <View style={{
             flex: 1,
             justifyContent: 'center',
             alignItems: 'center',
-            backgroundColor: 'white'
+            backgroundColor: '#000'
           }}>
-            <Loader size={48} color="#222222" />
+            <Loader size={48} color="#fff" />
             <Text style={{
-              color: '#6B7280',
+              color: '#9CA3AF',
               marginTop: 16,
               fontSize: 16,
               fontFamily: 'Inter18pt-Regular'
@@ -454,7 +455,7 @@ const CameraSheet = ({ isVisible, onClose, onboardingMode, onOCRComplete }: Came
         ) : (
           <View style={{
             flex: 1,
-            backgroundColor: 'white'
+            backgroundColor: '#000'
           }} />
         )}
       </View>
@@ -503,7 +504,11 @@ const CameraSheet = ({ isVisible, onClose, onboardingMode, onOCRComplete }: Came
               left: 0,
               right: 0,
               height: SCREEN_HEIGHT,
-              backgroundColor: 'white',
+              // 'scanning' phase covers both the live camera view AND the
+              // PostCapturePreview screen — both want a black background so
+              // their safe-area insets don't bleed white. The other phases
+              // (wizard, letter, duplicate, paywall) keep the white card.
+              backgroundColor: phase === 'scanning' ? '#000' : 'white',
               zIndex: 1002,
               borderTopLeftRadius: phase === 'scanning' ? 16 : 0,
               borderTopRightRadius: phase === 'scanning' ? 16 : 0,
@@ -532,7 +537,15 @@ const CameraSheet = ({ isVisible, onClose, onboardingMode, onOCRComplete }: Came
             </View>
           )}
 
-          <SafeAreaView style={{ flex: 1 }} edges={phase === 'scanning' ? ['bottom'] : []}>
+          {/* During the 'scanning' phase (live camera + PostCapturePreview),
+              apply NO safe-area insets — both go edge-to-edge and handle their
+              own safe areas internally. Other phases (wizard/letter/duplicate/
+              paywall) get top+bottom insets so their form content respects the
+              status bar and home indicator. */}
+          <SafeAreaView
+            style={{ flex: 1 }}
+            edges={phase === 'scanning' ? [] : ['top', 'bottom']}
+          >
             {renderContent()}
           </SafeAreaView>
         </Animated.View>
