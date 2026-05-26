@@ -259,9 +259,6 @@ importers:
       react-native-css:
         specifier: ^3.0.4
         version: 3.0.4(@expo/metro-config@55.0.9(bufferutil@4.1.0)(expo@55.0.3)(typescript@5.9.3))(lightningcss@1.30.2)(react-native@0.83.2(@babel/core@7.28.5)(@types/react@19.2.14)(bufferutil@4.1.0)(react@19.2.0))(react@19.2.0)
-      react-native-document-scanner-plugin:
-        specifier: ^2.0.4
-        version: 2.0.4(react-native@0.83.2(@babel/core@7.28.5)(@types/react@19.2.14)(bufferutil@4.1.0)(react@19.2.0))(react@19.2.0)
       react-native-fast-opencv:
         specifier: ^0.4.7
         version: 0.4.8(react-native@0.83.2(@babel/core@7.28.5)(@types/react@19.2.14)(bufferutil@4.1.0)(react@19.2.0))(react@19.2.0)
@@ -4878,6 +4875,7 @@ packages:
   '@react-email/components@1.0.10':
     resolution: {integrity: sha512-r/BnqfAjr3apcvn/NDx2DqNRD5BP5wZLRdjn2IVHXjt4KmQ5RHWSCAvFiXAzRHys1BWQ2zgIc7cpWePUcAl+nw==}
     engines: {node: '>=20.0.0'}
+    deprecated: Package no longer supported. Contact Support at https://www.npmjs.com/support for more info.
     peerDependencies:
       react: 19.2.0
 
@@ -12945,12 +12943,6 @@ packages:
       react: 19.2.0
       react-native: '>=0.81'
 
-  react-native-document-scanner-plugin@2.0.4:
-    resolution: {integrity: sha512-Y+tEP8qqgIseYw2T9NisT7+vaXJCM1QMj6KUqplNBQ3C+XivDwtyzp2vg03kH6Bjhg+ZxHzuEyu96ltBOax0iw==}
-    peerDependencies:
-      react: 19.2.0
-      react-native: '*'
-
   react-native-fast-opencv@0.4.8:
     resolution: {integrity: sha512-AH/2vydx7cPt8wyxdWWxXzFUD5Vq+TjlJgVVnkt/xTQOpZsn15WatzAuzX8rCaEroeCqGVaiv5ikeFtRIaxh7Q==}
     peerDependencies:
@@ -18694,8 +18686,8 @@ snapshots:
   '@modelcontextprotocol/sdk@1.26.0(@cfworker/json-schema@4.1.1)(zod@4.3.6)':
     dependencies:
       '@hono/node-server': 1.19.9(hono@4.11.9)
-      ajv: 8.18.0
-      ajv-formats: 3.0.1(ajv@8.18.0)
+      ajv: 8.17.1
+      ajv-formats: 3.0.1(ajv@8.17.1)
       content-type: 1.0.5
       cors: 2.8.5
       cross-spawn: 7.0.6
@@ -29901,11 +29893,6 @@ snapshots:
       react-native: 0.83.2(@babel/core@7.28.5)(@types/react@19.2.14)(bufferutil@4.1.0)(react@19.2.0)
     transitivePeerDependencies:
       - supports-color
-
-  react-native-document-scanner-plugin@2.0.4(react-native@0.83.2(@babel/core@7.28.5)(@types/react@19.2.14)(bufferutil@4.1.0)(react@19.2.0))(react@19.2.0):
-    dependencies:
-      react: 19.2.0
-      react-native: 0.83.2(@babel/core@7.28.5)(@types/react@19.2.14)(bufferutil@4.1.0)(react@19.2.0)
 
   react-native-fast-opencv@0.4.8(react-native@0.83.2(@babel/core@7.28.5)(@types/react@19.2.14)(bufferutil@4.1.0)(react@19.2.0))(react@19.2.0):
     dependencies:

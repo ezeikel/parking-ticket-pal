@@ -211,12 +211,6 @@ export default ({ config }: ConfigContext): ExpoConfig => {
     ],
       "expo-dev-client",
       [
-        "react-native-document-scanner-plugin",
-        {
-          "cameraPermission": "We need camera access, so you can scan documents"
-        }
-      ],
-      [
         "react-native-vision-camera",
         {
           "cameraPermissionText": "This app uses your camera to scan parking tickets and related documents.",
