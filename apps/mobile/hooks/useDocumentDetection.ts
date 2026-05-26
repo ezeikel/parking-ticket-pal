@@ -51,9 +51,16 @@ const validateRectangularShape = (points: DocumentCorner[]): boolean => {
   const shortSide = (sorted[0] + sorted[1]) / 2;
   const longSide = (sorted[2] + sorted[3]) / 2;
   const aspectRatio = longSide / shortSide;
-  // UK parking ticket NTOs can be tall narrow receipts (5-6:1). A4 letters are ~1.4:1.
-  // Widening the cap to 7.0 covers both without admitting obviously-wrong elongated text blobs.
-  if (aspectRatio > 7.0 || aspectRatio < 0.5) return false;
+  // We only ever want to detect two things: A4-ish letters or narrow UK PCN
+  // receipts. Everything in between (notebooks, table corners, books) is
+  // background noise. Accept two distinct aspect-ratio bands:
+  //   - A4 / US Letter:       1.30 – 1.70  (portrait or landscape)
+  //   - Narrow PCN receipts:  2.40 – 6.50
+  // The 1.70-2.40 dead-zone is where random rectangles in the scene typically
+  // sit. Anything outside both bands gets rejected outright.
+  const isLetterShape = aspectRatio >= 1.30 && aspectRatio <= 1.70;
+  const isReceiptShape = aspectRatio >= 2.40 && aspectRatio <= 6.50;
+  if (!isLetterShape && !isReceiptShape) return false;
 
   const side1Diff = Math.abs(distances[0] - distances[2]) / Math.max(distances[0], distances[2]);
   const side2Diff = Math.abs(distances[1] - distances[3]) / Math.max(distances[1], distances[3]);
@@ -259,12 +266,17 @@ export const useDocumentDetection = (callbacks?: DocumentDetectionCallbacks) => 
       const contoursData = OpenCV.toJSValue(contours);
       let maxArea = 0;
       const frameArea = scaledWidth * scaledHeight;
-      // Allow documents that nearly fill the frame. We still cap below 100% so
-      // we don't accept the frame border itself or a giant noise blob covering
-      // the whole image — that'd snap the polygon to the screen edges.
-      const MAX_AREA = frameArea * 0.95;
+      // Tightened from 0.95 → 0.85 so a uniform surface (wood, wall, desk) that
+      // Otsu binarises into one huge blob doesn't qualify as a "document". A
+      // real handheld ticket scan typically fills 30-80% of the frame with
+      // visible margin around it; anything past 85% is almost certainly noise.
+      const MAX_AREA = frameArea * 0.85;
       const MIN_AREA = 100;
-      const MIN_AREA_RATIO = 0.05;
+      const MIN_AREA_RATIO = 0.08;
+      // Reject contours whose bounding box touches the frame edge — a real
+      // document has visible margin around it. False detections on uniform
+      // surfaces nearly always produce a blob that extends to all four edges.
+      const EDGE_MARGIN_PX = Math.max(2, Math.floor(Math.min(scaledWidth, scaledHeight) * 0.02));
 
       for (let i = 0; i < contoursData.array.length; i++) {
         const contour = OpenCV.copyObjectFromVector(contours, i);
@@ -349,6 +361,19 @@ export const useDocumentDetection = (callbacks?: DocumentDetectionCallbacks) => 
         if (!approxPoints) continue;
 
         if (!validateRectangularShape(approxPoints)) continue;
+
+        // Reject polygons that touch the frame edge — a real document scan
+        // always has visible margin around it. False detections on a uniform
+        // surface (wood floor, wall) typically extend to all four edges.
+        let touchingEdges = 0;
+        for (const p of approxPoints) {
+          if (p.x <= EDGE_MARGIN_PX) touchingEdges++;
+          if (p.y <= EDGE_MARGIN_PX) touchingEdges++;
+          if (p.x >= scaledWidth - EDGE_MARGIN_PX) touchingEdges++;
+          if (p.y >= scaledHeight - EDGE_MARGIN_PX) touchingEdges++;
+        }
+        // Two or more corners pinned to the frame edge = not a hand-held document.
+        if (touchingEdges >= 2) continue;
 
         maxArea = area;
         bestContour = approxPoints;
