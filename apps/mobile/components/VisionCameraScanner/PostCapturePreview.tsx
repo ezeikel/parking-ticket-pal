@@ -70,14 +70,18 @@ const PostCapturePreview = ({
 
         {/* Action buttons */}
         <View style={styles.actions}>
-          <SquishyPressable onPress={onRetake} disabled={isProcessing}>
+          {/* flex:1 must live on the SquishyPressable itself so each button takes
+              half the row. Putting it only on the inner View leaves the Pressable
+              at intrinsic width and the buttons collapse — same bug fixed for
+              Scanner in 5d7dc4f. */}
+          <SquishyPressable onPress={onRetake} disabled={isProcessing} style={styles.buttonWrap}>
             <View style={styles.retakeButton}>
-              <FontAwesomeIcon icon={faRotateLeft} size={20} color="#222" />
+              <FontAwesomeIcon icon={faRotateLeft} size={20} color="#fff" />
               <Text style={styles.retakeText}>Retake</Text>
             </View>
           </SquishyPressable>
 
-          <SquishyPressable onPress={onAccept} disabled={isProcessing}>
+          <SquishyPressable onPress={onAccept} disabled={isProcessing} style={styles.buttonWrap}>
             <View style={[styles.acceptButton, isProcessing && styles.buttonDisabled]}>
               {isProcessing ? (
                 <Loader size={20} color="white" />
@@ -126,13 +130,15 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingTop: 16,
   },
+  buttonWrap: {
+    flex: 1,
+  },
   retakeButton: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     gap: 8,
     paddingVertical: 14,
-    paddingHorizontal: 24,
     borderWidth: 1,
     borderColor: '#555',
     borderRadius: 8,
@@ -144,7 +150,6 @@ const styles = StyleSheet.create({
     fontSize: 15,
   },
   acceptButton: {
-    flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
