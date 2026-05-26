@@ -6,7 +6,6 @@
  * Set DRY_RUN=false to actually post the reply to Facebook.
  */
 
-import { db, CommentQueueStatus } from '@parking-ticket-pal/db';
 import { generateCommentReply } from '../lib/social-comment-reply';
 import {
   likeComment,
@@ -54,7 +53,9 @@ async function main() {
 
   if (DRY_RUN) {
     console.log('--- DRY RUN - not posting to Facebook ---');
-    console.log('To post for real, run: DRY_RUN=false npx tsx scripts/test-social-reply.ts');
+    console.log(
+      'To post for real, run: DRY_RUN=false npx tsx scripts/test-social-reply.ts',
+    );
     process.exit(0);
   }
 
@@ -65,7 +66,10 @@ async function main() {
 
   // 4. Post the reply
   console.log('4. Posting reply...');
-  const replyResult = await replyToFacebookComment(COMMENT.commentId, result.reply);
+  const replyResult = await replyToFacebookComment(
+    COMMENT.commentId,
+    result.reply,
+  );
   console.log(`   Reply: ${replyResult.success ? 'OK' : replyResult.error}\n`);
 
   console.log('Done!');
