@@ -39,6 +39,12 @@ import numpy as np
 DEFAULT_SRC = Path("/Users/ezeikel/Library/Mobile Documents/com~apple~CloudDocs/Legal/Parking/Tickets 2026 dump")
 DEFAULT_OUT = Path("/tmp/scanner-sweep/out")
 
+# iPhone 17 Pro reported a portrait camera aspect ratio of ~0.462 (390 wide /
+# 844 tall) when we measured live. Same screen aspect for most modern iPhones.
+# Used by --cover-portrait to mimic what VisionCamera's `resizeMode="cover"`
+# does to a landscape source frame before it reaches the detection pipeline.
+PORTRAIT_ASPECT = 390 / 844
+
 SCALE_FACTOR = 4
 MIN_AREA_RATIO = 0.08
 MAX_AREA_RATIO = 0.85
@@ -85,6 +91,26 @@ def validate_shape(pts: np.ndarray) -> bool:
         if ang < ANGLE_MIN or ang > ANGLE_MAX:
             return False
     return True
+
+
+def cover_crop_to_aspect(img: np.ndarray, target_aspect: float) -> np.ndarray:
+    """Mimics `<Camera resizeMode='cover'>` by cropping the source image to the
+    target aspect (width / height), centred. Used by --cover-portrait so we
+    can A/B whether the in-app detection difference is explained by VisionCamera
+    cropping the document's margins off the edges of the preview frame."""
+    h, w = img.shape[:2]
+    src_aspect = w / h
+    if src_aspect > target_aspect:
+        # Source is wider than target → crop horizontally
+        new_w = int(h * target_aspect)
+        x = (w - new_w) // 2
+        return img[:, x : x + new_w]
+    if src_aspect < target_aspect:
+        # Source is taller than target → crop vertically
+        new_h = int(w / target_aspect)
+        y = (h - new_h) // 2
+        return img[y : y + new_h, :]
+    return img
 
 
 def detect(img: np.ndarray) -> dict:
@@ -194,22 +220,50 @@ def main() -> int:
                     help=f"Directory of ticket images (default: {DEFAULT_SRC})")
     ap.add_argument("--out", type=Path, default=DEFAULT_OUT,
                     help=f"Output directory for annotated images (default: {DEFAULT_OUT})")
+    ap.add_argument(
+        "--cover-portrait",
+        action="store_true",
+        help=(
+            "Preprocess each image with centre-crop to portrait phone aspect "
+            "(~0.462) before detection — mimics how VisionCamera's "
+            "resizeMode='cover' clips the document margins on the live "
+            "preview. Use this A/B to investigate the in-app vs sweep gap."
+        ),
+    )
+    ap.add_argument(
+        "--annotations-out",
+        type=Path,
+        default=None,
+        help=(
+            "Optional path to write a manifest of detected corners suitable "
+            "for fine-tuning a document-segmentation ML model. Emits one "
+            "JSON file per detected image plus a top-level manifest.json. "
+            "Corners are normalized [0..1] to the (optionally cover-cropped) "
+            "image dimensions."
+        ),
+    )
     args = ap.parse_args()
 
     src_dir: Path = args.src
     out_dir: Path = args.out
+    annot_dir: Path | None = args.annotations_out
     if not src_dir.is_dir():
         print(f"ERROR: source directory does not exist: {src_dir}", file=sys.stderr)
         return 2
     out_dir.mkdir(parents=True, exist_ok=True)
+    if annot_dir:
+        annot_dir.mkdir(parents=True, exist_ok=True)
 
     # Walk recursively so users can have subfolders (e.g. by year / by issuer)
     images = sorted(
         [p for p in src_dir.rglob("*") if p.suffix.lower() in (".jpg", ".jpeg", ".png")]
     )
     print(f"Found {len(images)} images in {src_dir}")
+    if args.cover_portrait:
+        print(f"Cover-portrait preprocessing enabled (target aspect={PORTRAIT_ASPECT:.3f})")
     results = []
     counts = {"detected": 0, "rejected": 0, "no-contour": 0, "too-small": 0, "error": 0}
+    annotation_manifest = []
     for i, p in enumerate(images, 1):
         try:
             img = cv2.imread(str(p))
@@ -217,11 +271,35 @@ def main() -> int:
                 results.append({"file": p.name, "verdict": "error", "msg": "imread failed"})
                 counts["error"] += 1
                 continue
+            if args.cover_portrait:
+                img = cover_crop_to_aspect(img, PORTRAIT_ASPECT)
             r = detect(img)
             r["file"] = str(p.relative_to(src_dir))
             counts[r["verdict"]] = counts.get(r["verdict"], 0) + 1
             results.append(r)
             annotate(img, r, out_dir / f"{i:03d}_{p.stem}_{r['verdict']}.jpg")
+
+            # Write per-image annotation JSON for any detected polygon. Corners
+            # are normalized to the (potentially cover-cropped) image so they
+            # can be used directly as training labels.
+            if annot_dir and r["verdict"] == "detected":
+                h, w = img.shape[:2]
+                norm_corners = [
+                    [float(c[0]) / w, float(c[1]) / h] for c in r["corners"]
+                ]
+                annot_entry = {
+                    "file": r["file"],
+                    "image_width": int(w),
+                    "image_height": int(h),
+                    "cover_portrait": args.cover_portrait,
+                    "corners_normalized": norm_corners,
+                    "corners_pixel": r["corners"],
+                    "area_ratio": r["area_ratio"],
+                    "source": "scanner_sweep_v1",
+                }
+                (annot_dir / f"{p.stem}.json").write_text(json.dumps(annot_entry, indent=2))
+                annotation_manifest.append(annot_entry)
+
             print(f"[{i:3d}/{len(images)}] {p.name:30s} → {r['verdict']:12s}"
                   + (f"  area={r['area_ratio']:.2f}" if r['verdict'] == 'detected' else ""))
         except Exception as e:
@@ -236,6 +314,16 @@ def main() -> int:
             print(f"  {k:12s}: {v:3d}  ({v / len(images) * 100:.1f}%)")
     (out_dir / "_results.json").write_text(json.dumps(results, indent=2))
     print(f"\nWrote per-image annotations to: {out_dir}")
+    if annot_dir:
+        manifest_path = annot_dir / "manifest.json"
+        manifest_path.write_text(json.dumps({
+            "version": "scanner_sweep_v1",
+            "cover_portrait": args.cover_portrait,
+            "count": len(annotation_manifest),
+            "entries": annotation_manifest,
+        }, indent=2))
+        print(f"Wrote ML-ready annotations ({len(annotation_manifest)}) to: {annot_dir}")
+        print(f"  → manifest: {manifest_path}")
     return 0
 
 
