@@ -27,6 +27,7 @@ Verdict categories:
 """
 from __future__ import annotations
 
+import argparse
 import json
 import math
 import sys
@@ -35,9 +36,8 @@ from pathlib import Path
 import cv2
 import numpy as np
 
-SRC_DIR = Path("/Users/ezeikel/Library/Mobile Documents/com~apple~CloudDocs/Legal/Parking/Tickets 2026 dump")
-OUT_DIR = Path("/tmp/scanner-sweep/out")
-OUT_DIR.mkdir(parents=True, exist_ok=True)
+DEFAULT_SRC = Path("/Users/ezeikel/Library/Mobile Documents/com~apple~CloudDocs/Legal/Parking/Tickets 2026 dump")
+DEFAULT_OUT = Path("/tmp/scanner-sweep/out")
 
 SCALE_FACTOR = 4
 MIN_AREA_RATIO = 0.08
@@ -189,8 +189,25 @@ def annotate(src: np.ndarray, result: dict, out_path: Path) -> None:
 
 
 def main() -> int:
-    images = sorted([p for p in SRC_DIR.iterdir() if p.suffix.lower() in (".jpg", ".jpeg", ".png")])
-    print(f"Found {len(images)} images")
+    ap = argparse.ArgumentParser(description="Headless scanner-quality sweep")
+    ap.add_argument("--src", type=Path, default=DEFAULT_SRC,
+                    help=f"Directory of ticket images (default: {DEFAULT_SRC})")
+    ap.add_argument("--out", type=Path, default=DEFAULT_OUT,
+                    help=f"Output directory for annotated images (default: {DEFAULT_OUT})")
+    args = ap.parse_args()
+
+    src_dir: Path = args.src
+    out_dir: Path = args.out
+    if not src_dir.is_dir():
+        print(f"ERROR: source directory does not exist: {src_dir}", file=sys.stderr)
+        return 2
+    out_dir.mkdir(parents=True, exist_ok=True)
+
+    # Walk recursively so users can have subfolders (e.g. by year / by issuer)
+    images = sorted(
+        [p for p in src_dir.rglob("*") if p.suffix.lower() in (".jpg", ".jpeg", ".png")]
+    )
+    print(f"Found {len(images)} images in {src_dir}")
     results = []
     counts = {"detected": 0, "rejected": 0, "no-contour": 0, "too-small": 0, "error": 0}
     for i, p in enumerate(images, 1):
@@ -201,10 +218,10 @@ def main() -> int:
                 counts["error"] += 1
                 continue
             r = detect(img)
-            r["file"] = p.name
+            r["file"] = str(p.relative_to(src_dir))
             counts[r["verdict"]] = counts.get(r["verdict"], 0) + 1
             results.append(r)
-            annotate(img, r, OUT_DIR / f"{i:03d}_{p.stem}_{r['verdict']}.jpg")
+            annotate(img, r, out_dir / f"{i:03d}_{p.stem}_{r['verdict']}.jpg")
             print(f"[{i:3d}/{len(images)}] {p.name:30s} → {r['verdict']:12s}"
                   + (f"  area={r['area_ratio']:.2f}" if r['verdict'] == 'detected' else ""))
         except Exception as e:
@@ -217,8 +234,8 @@ def main() -> int:
     for k, v in counts.items():
         if v > 0:
             print(f"  {k:12s}: {v:3d}  ({v / len(images) * 100:.1f}%)")
-    (OUT_DIR / "_results.json").write_text(json.dumps(results, indent=2))
-    print(f"\nWrote per-image annotations to: {OUT_DIR}")
+    (out_dir / "_results.json").write_text(json.dumps(results, indent=2))
+    print(f"\nWrote per-image annotations to: {out_dir}")
     return 0
 
 
