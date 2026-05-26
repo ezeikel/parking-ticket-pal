@@ -263,6 +263,7 @@ const VisionCameraScanner = ({ onClose, onImageScanned, onOCRComplete }: VisionC
         frameProcessor={frameProcessor}
         torch={flashEnabled ? 'on' : 'off'}
         enableZoomGesture
+        resizeMode="contain"
       />
 
       <DocumentOverlay

@@ -16,8 +16,8 @@ type DocumentOverlayProps = {
   cornersNormalized: SharedValue<DocumentCorner[] | null>;
   confidenceValue: SharedValue<number>;
   isDetected: SharedValue<boolean>;
-  // Rotated-frame aspect ratio (width/height) — lets us mirror <Camera resizeMode="cover">
-  // cropping when projecting normalized corners onto the on-screen canvas.
+  // Rotated-frame aspect ratio (width/height) — lets us mirror the <Camera resizeMode>
+  // projection when drawing normalized corners onto the on-screen canvas.
   frameAspectRatio: SharedValue<number>;
   stabilityProgress: number;
   autoCaptureEnabled: boolean;
@@ -59,24 +59,25 @@ const DocumentOverlay = ({
   };
 
   // Project a normalized (rotated-frame) corner [0..1] onto the on-screen canvas,
-  // mirroring the <Camera resizeMode="cover"> behaviour: scale to fill the canvas,
-  // cropping the larger axis equally on both sides. Inline here because it has to
-  // run inside the useDerivedValue worklet (no closures over JS-side helpers).
+  // mirroring <Camera resizeMode="contain">: scale to FIT inside the canvas,
+  // letterboxing the shorter axis. Frame fully visible — opposite of cover.
+  // Inline here because it has to run inside the useDerivedValue worklet
+  // (no closures over JS-side helpers).
   const projectCorner = (c: DocumentCorner, w: number, h: number, fAspect: number) => {
     'worklet';
     if (fAspect <= 0) return { x: c.x * w, y: c.y * h };
     const canvasAspect = w / h;
     if (fAspect > canvasAspect) {
-      // Frame is wider than canvas → height fills, width overflows and is cropped.
-      const displayedW = h * fAspect;
-      const x = (c.x - 0.5) * displayedW + w / 2;
-      const y = c.y * h;
+      // Frame is wider than canvas → width fills, height is letterboxed (bars top/bottom).
+      const displayedH = w / fAspect;
+      const x = c.x * w;
+      const y = c.y * displayedH + (h - displayedH) / 2;
       return { x, y };
     }
-    // Frame is taller than canvas → width fills, height overflows and is cropped.
-    const displayedH = w / fAspect;
-    const x = c.x * w;
-    const y = (c.y - 0.5) * displayedH + h / 2;
+    // Frame is taller than canvas → height fills, width is letterboxed (bars left/right).
+    const displayedW = h * fAspect;
+    const x = c.x * displayedW + (w - displayedW) / 2;
+    const y = c.y * h;
     return { x, y };
   };
 
