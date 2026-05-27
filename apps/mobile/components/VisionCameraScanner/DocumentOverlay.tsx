@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { StyleSheet, View, Text, ActivityIndicator, type LayoutChangeEvent } from 'react-native';
+import { StyleSheet, View, Text, type LayoutChangeEvent } from 'react-native';
 import { Canvas, Path, Circle, Group } from '@shopify/react-native-skia';
 import { useDerivedValue, useSharedValue, type SharedValue } from 'react-native-reanimated';
 import Animated, {
@@ -11,6 +11,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import { Skia } from '@shopify/react-native-skia';
 import type { DocumentCorner } from '@/hooks/useDocumentDetection';
+import Loader from '@/components/Loader/Loader';
 
 type DocumentOverlayProps = {
   cornersNormalized: SharedValue<DocumentCorner[] | null>;
@@ -172,7 +173,6 @@ const DocumentOverlay = ({
   }));
 
   const hasAnyOCR = Boolean(livePcn || liveVrm || liveIssuer);
-  const showOCRSpinner = liveOCRRecognizing && !hasAnyOCR;
 
   return (
     <View style={StyleSheet.absoluteFill} pointerEvents="none" onLayout={handleLayout}>
@@ -216,29 +216,41 @@ const DocumentOverlay = ({
         </View>
       )}
 
-      {/* Live OCR chip stack — fixed top-right of screen, independent of polygon */}
-      {(hasAnyOCR || showOCRSpinner) && (
+      {/* Live OCR chip stack — fixed top-right of screen, independent of polygon.
+       *  Each line is independent: if we have REG but no PCN yet and OCR is
+       *  still running, the PCN row shows a spinner instead of hiding. Once
+       *  OCR finishes (isRecognizing=false), missing fields stay hidden — we
+       *  tried, didn't find them. */}
+      {(hasAnyOCR || liveOCRRecognizing) && (
         <View style={styles.chipStack} pointerEvents="none">
-          {showOCRSpinner && (
-            <View style={styles.chip}>
-              <ActivityIndicator size="small" color="#fff" />
-            </View>
-          )}
-          {livePcn && (
+          {(livePcn || liveOCRRecognizing) && (
             <View style={styles.chip}>
               <Text style={styles.chipLabel}>PCN</Text>
-              <Text style={styles.chipValue}>{livePcn}</Text>
+              {livePcn ? (
+                <Text style={styles.chipValue}>{livePcn}</Text>
+              ) : (
+                <Loader size={12} color="#fff" />
+              )}
             </View>
           )}
-          {liveVrm && (
+          {(liveVrm || liveOCRRecognizing) && (
             <View style={styles.chip}>
               <Text style={styles.chipLabel}>Reg</Text>
-              <Text style={styles.chipValue}>{liveVrm}</Text>
+              {liveVrm ? (
+                <Text style={styles.chipValue}>{liveVrm}</Text>
+              ) : (
+                <Loader size={12} color="#fff" />
+              )}
             </View>
           )}
-          {liveIssuer && (
+          {(liveIssuer || liveOCRRecognizing) && (
             <View style={styles.chip}>
-              <Text style={styles.chipValue} numberOfLines={1}>{liveIssuer}</Text>
+              <Text style={styles.chipLabel}>Issuer</Text>
+              {liveIssuer ? (
+                <Text style={styles.chipValue} numberOfLines={1}>{liveIssuer}</Text>
+              ) : (
+                <Loader size={12} color="#fff" />
+              )}
             </View>
           )}
         </View>
