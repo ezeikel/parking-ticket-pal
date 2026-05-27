@@ -327,6 +327,11 @@ const VisionCameraScanner = ({ onClose, onImageScanned, onOCRComplete }: VisionC
         torch={flashEnabled ? 'on' : 'off'}
         enableZoomGesture
         resizeMode="cover"
+        // Bake the current device orientation into the captured pixels rather
+        // than relying on EXIF tags — expo-image's <Image> in PostCapture
+        // doesn't always honour EXIF orientation, so a portrait-held capture
+        // was rendering landscape. 'preview' = what the user sees on screen.
+        outputOrientation="preview"
       />
 
       <DocumentOverlay
