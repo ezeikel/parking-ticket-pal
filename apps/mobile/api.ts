@@ -272,9 +272,19 @@ export const mobileLogout = async (
   return response.data;
 };
 
-export const processImageWithOCR = async (scannedImage: string) => {
-  // Server-side maxDuration is 60s — allow extra time for base64 upload + network latency
-  const response = await api.post('/ocr/upload-image', { scannedImage }, { timeout: 120_000 });
+export const processImageWithOCR = async (
+  scannedImage: string,
+  ocrText?: string,
+) => {
+  // Server-side maxDuration is 60s — allow extra time for base64 upload + network latency.
+  // `ocrText` is an optional ML Kit hint: the server's existing OCR endpoint
+  // accepts it and can use it as a fallback or cross-check signal alongside
+  // OpenAI Vision (see apps/web/app/api/ocr/upload-image/route.ts).
+  const response = await api.post(
+    '/ocr/upload-image',
+    { scannedImage, ocrText },
+    { timeout: 120_000 },
+  );
   return response.data;
 };
 

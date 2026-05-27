@@ -24,6 +24,13 @@ type PostCapturePreviewProps = {
   onAccept: () => void;
   onRetake: () => void;
   isProcessing?: boolean;
+  // Live OCR fields carried over from the camera screen. We display them as
+  // chips so the user can sanity-check what the ML Kit pass extracted before
+  // committing to the heavier server-side OpenAI Vision call (which runs when
+  // they tap Process).
+  livePcn?: string;
+  liveVrm?: string;
+  liveIssuer?: string;
 };
 
 const PostCapturePreview = ({
@@ -32,6 +39,9 @@ const PostCapturePreview = ({
   onAccept,
   onRetake,
   isProcessing = false,
+  livePcn,
+  liveVrm,
+  liveIssuer,
 }: PostCapturePreviewProps) => {
   const [imageLayout, setImageLayout] = useState({ width: 0, height: 0 });
   // Editable copy of the corners. Initial value comes from detection; the user
@@ -118,6 +128,32 @@ const PostCapturePreview = ({
             <View style={styles.processingOverlay}>
               <Loader size={48} color="white" />
               <Text style={styles.processingText}>Processing with AI...</Text>
+            </View>
+          )}
+
+          {/* Carry-over OCR chips from the live preview. Same look as the
+              scanner overlay — gives the user one last "is this what I'm
+              uploading?" check before tapping Process. */}
+          {(livePcn || liveVrm || liveIssuer) && !isProcessing && (
+            <View style={styles.chipStack} pointerEvents="none">
+              {livePcn && (
+                <View style={styles.chip}>
+                  <Text style={styles.chipLabel}>PCN</Text>
+                  <Text style={styles.chipValue}>{livePcn}</Text>
+                </View>
+              )}
+              {liveVrm && (
+                <View style={styles.chip}>
+                  <Text style={styles.chipLabel}>Reg</Text>
+                  <Text style={styles.chipValue}>{liveVrm}</Text>
+                </View>
+              )}
+              {liveIssuer && (
+                <View style={styles.chip}>
+                  <Text style={styles.chipLabel}>Issuer</Text>
+                  <Text style={styles.chipValue} numberOfLines={1}>{liveIssuer}</Text>
+                </View>
+              )}
             </View>
           )}
         </View>
@@ -313,6 +349,38 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(76, 175, 80, 0.95)',
     borderWidth: 3,
     borderColor: '#fff',
+  },
+  // OCR chip stack — same look as DocumentOverlay's live chips, just
+  // positioned at the top-right of the photo preview here.
+  chipStack: {
+    position: 'absolute',
+    top: 16,
+    right: 16,
+    flexDirection: 'column',
+    alignItems: 'flex-end',
+    gap: 4,
+    maxWidth: 240,
+  },
+  chip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.75)',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 12,
+    gap: 6,
+  },
+  chipLabel: {
+    color: 'rgba(255, 255, 255, 0.6)',
+    fontSize: 10,
+    fontFamily: 'Inter18pt-Bold',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  chipValue: {
+    color: '#fff',
+    fontSize: 12,
+    fontFamily: 'Inter18pt-Bold',
   },
 });
 

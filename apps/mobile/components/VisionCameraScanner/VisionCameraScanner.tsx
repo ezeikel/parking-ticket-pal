@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { View, StyleSheet, Platform } from 'react-native';
 import {
   Camera,
@@ -32,7 +32,10 @@ type VisionCameraScannerProps = {
 const VisionCameraScanner = ({ onClose, onImageScanned, onOCRComplete }: VisionCameraScannerProps) => {
   const [isActive, setIsActive] = useState(true);
   const [flashEnabled, setFlashEnabled] = useState(false);
-  const [autoCaptureEnabled, setAutoCaptureEnabled] = useState(true);
+  // Default OFF so users have time to read the live OCR chips and confirm
+  // what the camera is seeing before committing to capture. Power users can
+  // re-enable via the CameraControls toggle for the original hold-steady UX.
+  const [autoCaptureEnabled, setAutoCaptureEnabled] = useState(false);
   const [stabilityProgress, setStabilityProgress] = useState(0);
   const [showShutter, setShowShutter] = useState(false);
   const [documentDetected, setDocumentDetected] = useState(false);
@@ -41,6 +44,10 @@ const VisionCameraScanner = ({ onClose, onImageScanned, onOCRComplete }: VisionC
   const [capturedImageUri, setCapturedImageUri] = useState<string | null>(null);
   const [capturedImageBase64, setCapturedImageBase64] = useState<string | null>(null);
   const [capturedCorners, setCapturedCorners] = useState<DocumentCorner[] | null>(null);
+  // Snapshot of liveOCR fields at capture time. The hook clears its own state
+  // when isActive flips to false, so we copy what we have just before that
+  // happens — the user still wants to see "what the camera read" on PostCapture.
+  const [capturedOCR, setCapturedOCR] = useState<{ pcn?: string; vrm?: string; issuer?: string }>({});
 
   const device = useCameraDevice('back');
   const { hasPermission, requestPermission } = useCameraPermission();
@@ -93,6 +100,13 @@ const VisionCameraScanner = ({ onClose, onImageScanned, onOCRComplete }: VisionC
     },
   });
 
+  // Sync the React-side default into the detection hook's SharedValue on mount.
+  // Hook defaults to true internally; we override to false so the chips have
+  // time to display and the user can confirm before tapping the shutter.
+  useEffect(() => {
+    setAutoCaptureInHook(autoCaptureEnabled);
+  }, [autoCaptureEnabled, setAutoCaptureInHook]);
+
   // Best-effort on-device OCR fired on the polygon's 0→stable transition.
   // Surfaces PCN/VRM/issuer chips in the overlay so the user sees what the
   // camera is reading before they capture. Server-side OCR at capture time
@@ -128,6 +142,9 @@ const VisionCameraScanner = ({ onClose, onImageScanned, onOCRComplete }: VisionC
       setCapturedImageUri(photoUri);
       setCapturedImageBase64(base64);
       setCapturedCorners(latestCornersRef.current);
+      // Freeze whatever ML Kit had extracted at capture time so PostCapture can
+      // surface it. The liveOCR state clears once isActive flips false.
+      setCapturedOCR({ pcn: liveOCR.pcn, vrm: liveOCR.vrm, issuer: liveOCR.issuer });
       onImageScanned?.();
 
       trackEvent('ticket_scan_success', { screen: 'scanner', scan_method: 'vision_camera' });
@@ -146,6 +163,7 @@ const VisionCameraScanner = ({ onClose, onImageScanned, onOCRComplete }: VisionC
     setCapturedImageUri(null);
     setCapturedImageBase64(null);
     setCapturedCorners(null);
+    setCapturedOCR({});
     setStabilityProgress(0);
     resetAutoCapture();
     setIsActive(true);
@@ -159,7 +177,12 @@ const VisionCameraScanner = ({ onClose, onImageScanned, onOCRComplete }: VisionC
       trackEvent('ocr_processing_started', { screen: 'scanner' });
       const startTime = Date.now();
 
-      const ocrResult = await ocrMutation.mutateAsync(capturedImageBase64);
+      // Pass along the ML Kit text from the live OCR pass so the server can
+      // use it as a hint / fallback alongside OpenAI Vision.
+      const ocrResult = await ocrMutation.mutateAsync({
+        scannedImage: capturedImageBase64,
+        ocrText: liveOCR.getLastOCRText() ?? undefined,
+      });
 
       if (ocrResult.success && ocrResult.data) {
         const processingTime = Date.now() - startTime;
@@ -243,6 +266,9 @@ const VisionCameraScanner = ({ onClose, onImageScanned, onOCRComplete }: VisionC
         onAccept={handleAccept}
         onRetake={handleRetake}
         isProcessing={ocrMutation.isPending}
+        livePcn={capturedOCR.pcn}
+        liveVrm={capturedOCR.vrm}
+        liveIssuer={capturedOCR.issuer}
       />
     );
   }

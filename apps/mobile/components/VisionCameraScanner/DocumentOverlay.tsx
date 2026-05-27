@@ -321,7 +321,10 @@ const styles = StyleSheet.create({
   },
   chipStack: {
     position: 'absolute',
-    top: 60,
+    // Below the top-right control buttons (close + auto-capture toggle), which
+    // sit around y=70. 130 keeps the chips clear of both the controls and the
+    // notch area on tall phones.
+    top: 130,
     right: 16,
     flexDirection: 'column',
     alignItems: 'flex-end',

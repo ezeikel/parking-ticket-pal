@@ -487,9 +487,11 @@ export const useDocumentDetection = (callbacks?: DocumentDetectionCallbacks) => 
         }
       }
 
-      // Auto-capture
+      // Stability tracking — runs whenever we have a confidently-detected
+      // document, regardless of the autoCaptureEnabled toggle. We need
+      // stabilityProgress to drive the live-OCR chip overlay even when the
+      // user has auto-capture disabled.
       if (
-        autoCaptureEnabled.value &&
         !autoCaptureTriggered.value &&
         detectionState.value === DetectionState.DOCUMENT_DETECTED &&
         smoothedConfidence.value >= AUTO_CAPTURE_CONFIDENCE_THRESHOLD &&
@@ -504,7 +506,11 @@ export const useDocumentDetection = (callbacks?: DocumentDetectionCallbacks) => 
           const progress = Math.min(stabilityCounter.value / AUTO_CAPTURE_STABILITY_FRAMES, 1.0);
           if (onStabilityUpdateJS) onStabilityUpdateJS(progress);
 
-          if (stabilityCounter.value >= AUTO_CAPTURE_STABILITY_FRAMES) {
+          // Only the auto-fire-the-shutter step is gated on autoCaptureEnabled.
+          if (
+            autoCaptureEnabled.value &&
+            stabilityCounter.value >= AUTO_CAPTURE_STABILITY_FRAMES
+          ) {
             autoCaptureTriggered.value = true;
             stabilityCounter.value = 0;
             if (onAutoCaptureJS) onAutoCaptureJS();

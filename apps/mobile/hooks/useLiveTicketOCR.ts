@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import type { RefObject } from 'react';
 import type { Camera as CameraType } from 'react-native-vision-camera';
-import TextRecognition from '@react-native-ml-kit/text-recognition';
 
 import {
   extractTicketFields,
@@ -18,9 +17,34 @@ type Options = {
 
 type LiveOCRState = ExtractedTicketFields & {
   isRecognizing: boolean;
+  // Stable getter for the last raw OCR text. Exposed via ref instead of state
+  // so it never triggers re-renders — only consumed at capture time when we
+  // POST to /api/ocr/upload-image with `ocrText` as a hint.
+  getLastOCRText: () => string | null;
 };
 
 const THROTTLE_MS = 1500;
+// Simulated OCR latency in dev to show the loader spin before the chips
+// populate. ML Kit on a real device returns in ~200ms.
+const MOCK_OCR_DELAY_MS = 600;
+
+// Mocked OCR text used in __DEV__ while we don't have a working on-device OCR
+// library on Apple-Silicon iOS simulators. The text is parsed by the same
+// extractTicketFields() that production uses, so the chip flow is exercised
+// end-to-end with realistic-looking values.
+//
+// On a real device we'll swap this for the actual ML Kit recognize() call
+// (or whichever OCR lib ends up shipping a proper Apple-Silicon-simulator
+// xcframework). Until then: simulator users see canned data; production
+// release builds simply skip live OCR — server-side OpenAI Vision at capture
+// time remains the source of truth either way.
+const MOCK_OCR_TEXT = `Penalty Charge Notice
+PCN No: ZY12501745
+Vehicle Registration: LV72 EPC
+Issued by London Borough of Lewisham
+Date: 03-09-2025
+Location: Torridon Road junction with Antioch Road
+Amount: £130.00`;
 
 const useLiveTicketOCR = ({
   cameraRef,
@@ -32,6 +56,7 @@ const useLiveTicketOCR = ({
   const lastFireRef = useRef(0);
   const inFlightRef = useRef(false);
   const prevStabilityRef = useRef(0);
+  const lastTextRef = useRef<string | null>(null);
 
   // Clear when camera goes inactive (e.g. after capture, when PostCapture mounts).
   useEffect(() => {
@@ -39,6 +64,7 @@ const useLiveTicketOCR = ({
       setFields({});
       setIsRecognizing(false);
       lastFireRef.current = 0;
+      lastTextRef.current = null;
     }
   }, [isActive]);
 
@@ -60,16 +86,24 @@ const useLiveTicketOCR = ({
       inFlightRef.current = true;
       setIsRecognizing(true);
       try {
-        const photo = await cameraRef.current!.takePhoto({
-          flash: 'off',
-          enableShutterSound: false,
-        });
-        const uri = photo.path.startsWith('file://') ? photo.path : `file://${photo.path}`;
-        const result = await TextRecognition.recognize(uri);
-        setFields(extractTicketFields(result.text ?? ''));
+        // TODO: replace this with a real on-device OCR call once we have a
+        // text-recognition library that ships an Apple-Silicon iOS-simulator
+        // xcframework. GoogleMLKit/MLKitTextRecognition 8.x ships only
+        // iOS-device + iOS-x86_64-simulator slices, which makes the app
+        // unbuildable for arm64 simulators (iOS 26+ are arm64-only).
+        if (__DEV__) {
+          await new Promise<void>((r) => setTimeout(r, MOCK_OCR_DELAY_MS));
+          lastTextRef.current = MOCK_OCR_TEXT;
+          setFields(extractTicketFields(MOCK_OCR_TEXT));
+        } else {
+          // Production: no on-device OCR available. The server-side OCR
+          // endpoint runs OpenAI Vision at capture time and remains the
+          // source of truth, so we just leave the chips empty here.
+          lastTextRef.current = null;
+        }
       } catch {
         // Live OCR is best-effort. Silently drop failures so a transient
-        // takePhoto/recognize hiccup doesn't disturb the scanning UX.
+        // hiccup doesn't disturb the scanning UX.
       } finally {
         inFlightRef.current = false;
         setIsRecognizing(false);
@@ -79,7 +113,11 @@ const useLiveTicketOCR = ({
     run();
   }, [stabilityProgress, isActive, cameraRef]);
 
-  return { ...fields, isRecognizing };
+  return {
+    ...fields,
+    isRecognizing,
+    getLastOCRText: () => lastTextRef.current,
+  };
 };
 
 export default useLiveTicketOCR;

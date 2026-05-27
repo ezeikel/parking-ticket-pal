@@ -164,11 +164,17 @@ const styles = StyleSheet.create({
     width: 68,
     height: 68,
     borderRadius: 34,
-    backgroundColor: 'white',
+    // Semi-transparent dark fill so the live camera preview shows through —
+    // matches the other circular buttons (gallery, flash, etc.) for a
+    // consistent look on the camera screen.
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
     justifyContent: 'center',
     alignItems: 'center',
   },
   captureInnerActive: {
-    backgroundColor: '#000',
+    // Slightly more opaque + green tint when the polygon is locked, so the
+    // user gets visual feedback that capture is ready without going full
+    // opaque black.
+    backgroundColor: 'rgba(0, 255, 0, 0.3)',
   },
 });

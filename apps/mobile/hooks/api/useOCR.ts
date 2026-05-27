@@ -36,9 +36,15 @@ export type OCRProcessingResult = {
   ocrText?: string;
 };
 
+type OCRMutationArgs = {
+  scannedImage: string;
+  ocrText?: string;
+};
+
 const useOCR = () =>
-  useMutation<OCRProcessingResult, Error, string>({
-    mutationFn: processImageWithOCR,
+  useMutation<OCRProcessingResult, Error, OCRMutationArgs>({
+    mutationFn: ({ scannedImage, ocrText }) =>
+      processImageWithOCR(scannedImage, ocrText),
   });
 
 export default useOCR;
