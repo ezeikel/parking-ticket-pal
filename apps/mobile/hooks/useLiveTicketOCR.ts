@@ -155,7 +155,26 @@ const useLiveTicketOCR = ({
           // remains the source of truth.
           lastTextRef.current = null;
         }
-      } catch {
+      } catch (err) {
+        // Surface the failure to Sentry so we can see why live OCR fails on
+        // real devices without enabling verbose logging. The chip flow still
+        // fails soft — production users just see empty chips, not a crash —
+        // but we get a breadcrumb to debug from. `import` is lazy so this
+        // doesn't pull Sentry into the dev-mock path.
+        try {
+          // eslint-disable-next-line @typescript-eslint/no-require-imports, global-require
+          const Sentry = require('@sentry/react-native');
+          Sentry.captureException(err, { tags: { source: 'useLiveTicketOCR' } });
+        } catch {
+          // Sentry not available — swallow, original silent-drop behavior.
+        }
+        // Also write to debug global for in-app inspection via debugger.
+        const g = globalThis as { __scannerDebug?: Record<string, unknown> };
+        g.__scannerDebug = {
+          ...(g.__scannerDebug ?? {}),
+          lastOCRError: String(err),
+          lastOCRErrorAt: new Date().toISOString(),
+        };
         // Live OCR is best-effort. Silently drop failures so a transient
         // hiccup doesn't disturb the scanning UX.
       } finally {
