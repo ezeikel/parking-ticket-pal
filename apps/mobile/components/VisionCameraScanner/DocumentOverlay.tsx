@@ -91,26 +91,34 @@ const DocumentOverlay = ({
     canvasHeight.value = e.nativeEvent.layout.height;
   };
 
-  // Project a normalized (rotated-frame) corner [0..1] onto the on-screen canvas,
-  // mirroring <Camera resizeMode="contain">: scale to FIT inside the canvas,
-  // letterboxing the shorter axis. Frame fully visible — opposite of cover.
-  // Inline here because it has to run inside the useDerivedValue worklet
-  // (no closures over JS-side helpers).
+  // Project a normalized (rotated-frame) corner [0..1] onto the on-screen
+  // canvas, mirroring <Camera resizeMode="cover">: scale so the SHORTER axis
+  // fills the canvas and the longer axis overflows (gets cropped). Opposite
+  // of "contain". Inline because it has to run inside the useDerivedValue
+  // worklet (no closures over JS-side helpers).
+  //
+  // Math: pick the scale factor that fills the canvas on the limiting axis.
+  // If the frame is wider than the canvas (relative to height), height fills
+  // and width overflows symmetrically off both sides. A corner at normalized
+  // (c.x, c.y) ∈ [0,1] maps onto the displayed area shifted by the overflow.
   const projectCorner = (c: DocumentCorner, w: number, h: number, fAspect: number) => {
     'worklet';
     if (fAspect <= 0) return { x: c.x * w, y: c.y * h };
     const canvasAspect = w / h;
     if (fAspect > canvasAspect) {
-      // Frame is wider than canvas → width fills, height is letterboxed (bars top/bottom).
-      const displayedH = w / fAspect;
-      const x = c.x * w;
-      const y = c.y * displayedH + (h - displayedH) / 2;
+      // Frame is wider than canvas → height fills, width overflows both sides.
+      // Displayed frame width = h * fAspect, which is > w.
+      const displayedW = h * fAspect;
+      const overflowX = (displayedW - w) / 2;
+      const x = c.x * displayedW - overflowX;
+      const y = c.y * h;
       return { x, y };
     }
-    // Frame is taller than canvas → height fills, width is letterboxed (bars left/right).
-    const displayedW = h * fAspect;
-    const x = c.x * displayedW + (w - displayedW) / 2;
-    const y = c.y * h;
+    // Frame is taller than canvas → width fills, height overflows top + bottom.
+    const displayedH = w / fAspect;
+    const overflowY = (displayedH - h) / 2;
+    const x = c.x * w;
+    const y = c.y * displayedH - overflowY;
     return { x, y };
   };
 
