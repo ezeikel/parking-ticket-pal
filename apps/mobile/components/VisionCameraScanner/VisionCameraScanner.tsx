@@ -13,6 +13,7 @@ import { useSharedValue as useReanimatedSharedValue } from 'react-native-reanima
 
 import { useDocumentDetection, type DocumentCorner } from '@/hooks/useDocumentDetection';
 import { useDocumentScanHaptics } from '@/hooks/useDocumentScanHaptics';
+import useLiveTicketOCR from '@/hooks/useLiveTicketOCR';
 import useOCR, { type OCRProcessingResult } from '@/hooks/api/useOCR';
 import { useAnalytics } from '@/lib/analytics';
 import { useLogger } from '@/lib/logger';
@@ -90,6 +91,16 @@ const VisionCameraScanner = ({ onClose, onImageScanned, onOCRComplete }: VisionC
     onStabilityUpdate: (progress) => {
       setStabilityProgress(progress);
     },
+  });
+
+  // Best-effort on-device OCR fired on the polygon's 0→stable transition.
+  // Surfaces PCN/VRM/issuer chips in the overlay so the user sees what the
+  // camera is reading before they capture. Server-side OCR at capture time
+  // remains the source of truth.
+  const liveOCR = useLiveTicketOCR({
+    cameraRef,
+    isActive,
+    stabilityProgress,
   });
 
   const handleCapture = useCallback(async () => {
@@ -273,6 +284,10 @@ const VisionCameraScanner = ({ onClose, onImageScanned, onOCRComplete }: VisionC
         frameAspectRatio={overlayFrameAspect}
         stabilityProgress={stabilityProgress}
         autoCaptureEnabled={autoCaptureEnabled}
+        livePcn={liveOCR.pcn}
+        liveVrm={liveOCR.vrm}
+        liveIssuer={liveOCR.issuer}
+        liveOCRRecognizing={liveOCR.isRecognizing}
       />
 
       <ShutterAnimation visible={showShutter} />

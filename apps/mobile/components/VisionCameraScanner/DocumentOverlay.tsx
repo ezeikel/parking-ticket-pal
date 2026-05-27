@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { StyleSheet, View, Text, type LayoutChangeEvent } from 'react-native';
+import { StyleSheet, View, Text, ActivityIndicator, type LayoutChangeEvent } from 'react-native';
 import { Canvas, Path, Circle, Group } from '@shopify/react-native-skia';
 import { useDerivedValue, useSharedValue, type SharedValue } from 'react-native-reanimated';
 import Animated, {
@@ -21,6 +21,12 @@ type DocumentOverlayProps = {
   frameAspectRatio: SharedValue<number>;
   stabilityProgress: number;
   autoCaptureEnabled: boolean;
+  // Live on-device OCR results, surfaced as floating chips next to the polygon
+  // so the user can see what the camera is reading before they capture.
+  livePcn?: string;
+  liveVrm?: string;
+  liveIssuer?: string;
+  liveOCRRecognizing?: boolean;
 };
 
 const CORNER_RADIUS = 8;
@@ -32,6 +38,10 @@ const DocumentOverlay = ({
   frameAspectRatio,
   stabilityProgress,
   autoCaptureEnabled,
+  livePcn,
+  liveVrm,
+  liveIssuer,
+  liveOCRRecognizing = false,
 }: DocumentOverlayProps) => {
   const canvasWidth = useSharedValue(0);
   const canvasHeight = useSharedValue(0);
@@ -161,6 +171,9 @@ const DocumentOverlay = ({
     transform: [{ scale: pulseScale.value }],
   }));
 
+  const hasAnyOCR = Boolean(livePcn || liveVrm || liveIssuer);
+  const showOCRSpinner = liveOCRRecognizing && !hasAnyOCR;
+
   return (
     <View style={StyleSheet.absoluteFill} pointerEvents="none" onLayout={handleLayout}>
       <Canvas style={StyleSheet.absoluteFill}>
@@ -200,6 +213,34 @@ const DocumentOverlay = ({
               </View>
             )}
           </Animated.View>
+        </View>
+      )}
+
+      {/* Live OCR chip stack — fixed top-right of screen, independent of polygon */}
+      {(hasAnyOCR || showOCRSpinner) && (
+        <View style={styles.chipStack} pointerEvents="none">
+          {showOCRSpinner && (
+            <View style={styles.chip}>
+              <ActivityIndicator size="small" color="#fff" />
+            </View>
+          )}
+          {livePcn && (
+            <View style={styles.chip}>
+              <Text style={styles.chipLabel}>PCN</Text>
+              <Text style={styles.chipValue}>{livePcn}</Text>
+            </View>
+          )}
+          {liveVrm && (
+            <View style={styles.chip}>
+              <Text style={styles.chipLabel}>Reg</Text>
+              <Text style={styles.chipValue}>{liveVrm}</Text>
+            </View>
+          )}
+          {liveIssuer && (
+            <View style={styles.chip}>
+              <Text style={styles.chipValue} numberOfLines={1}>{liveIssuer}</Text>
+            </View>
+          )}
         </View>
       )}
     </View>
@@ -265,6 +306,36 @@ const styles = StyleSheet.create({
     height: '100%',
     backgroundColor: '#fff',
     borderRadius: 2,
+  },
+  chipStack: {
+    position: 'absolute',
+    top: 60,
+    right: 16,
+    flexDirection: 'column',
+    alignItems: 'flex-end',
+    gap: 4,
+    maxWidth: 240,
+  },
+  chip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.75)',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 12,
+    gap: 6,
+  },
+  chipLabel: {
+    color: 'rgba(255, 255, 255, 0.6)',
+    fontSize: 10,
+    fontFamily: 'Inter18pt-Bold',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  chipValue: {
+    color: '#fff',
+    fontSize: 12,
+    fontFamily: 'Inter18pt-Bold',
   },
 });
 

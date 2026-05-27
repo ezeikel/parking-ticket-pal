@@ -57,6 +57,7 @@
     "@react-native-community/datetimepicker": "^8.6.0",
     "@react-native-community/netinfo": "^11.5.2",
     "@react-native-google-signin/google-signin": "^16.0.0",
+    "@react-native-ml-kit/text-recognition": "^2.0.0",
     "@react-native-picker/picker": "^2.11.1",
     "@react-navigation/native": "^7.0.0",
     "@sentry/react-native": "^7.13.0",
