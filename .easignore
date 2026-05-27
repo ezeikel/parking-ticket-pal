@@ -1,0 +1,35 @@
+# .easignore — controls what gets uploaded to the EAS cloud build runner.
+# Same syntax as .gitignore. EAS uses .gitignore by default; .easignore
+# overrides that when present.
+#
+# Why this exists: this monorepo has several workspaces (apps/web,
+# apps/extension, packages/db) that the mobile app does NOT depend on.
+# Uploading them anyway makes the EAS runner run `pnpm install` against
+# their dependencies too, including native modules like `sharp` (used by
+# the web app for image optimisation). sharp's postinstall fails on the
+# EAS Linux runner because no prebuild matches its Node version → the
+# whole install fails before iOS native build even starts.
+#
+# Mobile's actual workspace deps are:
+#   - @parking-ticket-pal/constants  (packages/constants)
+#   - @parking-ticket-pal/types      (packages/types)
+# Everything else can be excluded.
+
+# Other apps — mobile doesn't import any code from these
+apps/web/
+apps/extension/
+
+# Other packages — mobile doesn't import these either
+packages/db/
+
+# Local artifacts and caches that are useless to a clean cloud build
+apps/mobile/build-*.ipa
+apps/mobile/build-*.apk
+apps/mobile/ios/
+apps/mobile/android/
+apps/mobile/.expo/
+
+# Editor + tooling junk
+.vscode/
+.claude/
+.cursor/
