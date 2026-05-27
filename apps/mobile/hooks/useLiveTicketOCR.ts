@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import type { RefObject } from 'react';
+import { NativeModules } from 'react-native';
 import type { Camera as CameraType } from 'react-native-vision-camera';
 
 import {
@@ -57,6 +58,11 @@ type Recognizer = {
   recognize: (uri: string) => Promise<RecognizerResult>;
 };
 const loadRecognizer = (): Recognizer | null => {
+  // First check the native side. The npm package's JS shim happily resolves
+  // even when its native module isn't linked (dev sim builds), and only
+  // throws once .recognize() is called. Probe NativeModules directly so we
+  // fall back to the mock without firing a doomed native call.
+  if (!NativeModules?.MLKitTextRecognition) return null;
   try {
     // eslint-disable-next-line @typescript-eslint/no-require-imports, global-require
     const mod = require('@react-native-ml-kit/text-recognition');
@@ -114,6 +120,15 @@ const useLiveTicketOCR = ({
       setIsRecognizing(true);
       try {
         const recognizer = loadRecognizer();
+        if (__DEV__) {
+          const g = globalThis as { __scannerDebug?: Record<string, unknown> };
+          g.__scannerDebug = {
+            ...(g.__scannerDebug ?? {}),
+            recognizerLoaded: recognizer !== null,
+            recognizerType: typeof recognizer,
+            hasCameraRef: !!cameraRef.current,
+          };
+        }
         if (recognizer && cameraRef.current) {
           // Real on-device OCR path (preview/prod EAS builds on physical
           // devices). Snap a low-quality throwaway photo and pipe its URI
