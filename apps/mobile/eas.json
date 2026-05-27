@@ -49,14 +49,6 @@
       "autoIncrement": true,
       "channel": "production"
     },
-    "beta": {
-      "extends": "production",
-      "env": {
-        "EXPO_PUBLIC_ENVIRONMENT": "beta"
-      },
-      "autoIncrement": true,
-      "channel": "beta"
-    },
     "e2e-test": {
       "extends": "base",
       "distribution": "internal",
@@ -79,17 +71,6 @@
       "android": {
         "serviceAccountKeyPath": "./google-service-account.json",
         "track": "production"
-      },
-      "ios": {
-        "appleId": "developer@chewybytes.com",
-        "ascAppId": "6753653055",
-        "appleTeamId": "HGX827L49J"
-      }
-    },
-    "beta": {
-      "android": {
-        "serviceAccountKeyPath": "./google-service-account.json",
-        "track": "internal"
       },
       "ios": {
         "appleId": "developer@chewybytes.com",
