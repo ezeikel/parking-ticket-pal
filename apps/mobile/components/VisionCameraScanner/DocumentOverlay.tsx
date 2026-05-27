@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { StyleSheet, View, Text, type LayoutChangeEvent } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Canvas, Path, Circle, Group } from '@shopify/react-native-skia';
 import { useDerivedValue, useSharedValue, type SharedValue } from 'react-native-reanimated';
 import Animated, {
@@ -12,6 +13,15 @@ import Animated, {
 import { Skia } from '@shopify/react-native-skia';
 import type { DocumentCorner } from '@/hooks/useDocumentDetection';
 import Loader from '@/components/Loader/Loader';
+
+// Layout constants — kept in sync with CameraControls so overlay elements
+// can position themselves relative to the same safe-area math.
+//   CameraControls top button row sits at `max(insets.top, 20) + 10`
+//   and is `48pt` tall (iconButtonInner). The chip stack lives below it.
+const TOP_CONTROL_HEIGHT = 48;
+const TOP_CONTROL_PADDING_BASE = 10;
+const CHIP_STACK_GAP_BELOW_CONTROLS = 12;
+const HINT_FROM_TOP_BASE = 30;
 
 type DocumentOverlayProps = {
   cornersNormalized: SharedValue<DocumentCorner[] | null>;
@@ -44,6 +54,18 @@ const DocumentOverlay = ({
   liveIssuer,
   liveOCRRecognizing = false,
 }: DocumentOverlayProps) => {
+  const insets = useSafeAreaInsets();
+  // Top of the camera control button row — kept in sync with the math in
+  // CameraControls.tsx so anything that needs to sit below the controls can
+  // compute its own offset from a single source of truth.
+  const topControlsTop = Math.max(insets.top, 20) + TOP_CONTROL_PADDING_BASE;
+  // Chip stack: directly below the control row with a small gap so it never
+  // overlaps the close / auto-capture buttons or the dynamic island.
+  const chipStackTop = topControlsTop + TOP_CONTROL_HEIGHT + CHIP_STACK_GAP_BELOW_CONTROLS;
+  // Hint badge: sits in the upper-middle area, low enough to clear the
+  // dynamic island on tall phones without colliding with the chip stack.
+  const hintContainerTop = topControlsTop + TOP_CONTROL_HEIGHT + HINT_FROM_TOP_BASE;
+
   const canvasWidth = useSharedValue(0);
   const canvasHeight = useSharedValue(0);
   const pulseScale = useSharedValue(1);
@@ -196,7 +218,7 @@ const DocumentOverlay = ({
 
       {/* Hint text overlay */}
       {hintText && (
-        <View style={styles.hintContainer}>
+        <View style={[styles.hintContainer, { top: hintContainerTop }]}>
           <Animated.View
             style={[
               styles.hintBadge,
@@ -222,7 +244,7 @@ const DocumentOverlay = ({
        *  OCR finishes (isRecognizing=false), missing fields stay hidden — we
        *  tried, didn't find them. */}
       {(hasAnyOCR || liveOCRRecognizing) && (
-        <View style={styles.chipStack} pointerEvents="none">
+        <View style={[styles.chipStack, { top: chipStackTop }]} pointerEvents="none">
           {(livePcn || liveOCRRecognizing) && (
             <View style={styles.chip}>
               <Text style={styles.chipLabel}>PCN</Text>
@@ -282,7 +304,8 @@ const CornerDot = ({ index, positions, color }: CornerDotProps) => {
 const styles = StyleSheet.create({
   hintContainer: {
     position: 'absolute',
-    top: 100,
+    // `top` is set inline at render time so it can react to safe-area insets
+    // (dynamic island, status bar) instead of hard-coding pixels.
     left: 0,
     right: 0,
     alignItems: 'center',
@@ -321,10 +344,9 @@ const styles = StyleSheet.create({
   },
   chipStack: {
     position: 'absolute',
-    // Below the top-right control buttons (close + auto-capture toggle), which
-    // sit around y=70. 130 keeps the chips clear of both the controls and the
-    // notch area on tall phones.
-    top: 130,
+    // `top` is set inline at render time, computed from safe-area insets +
+    // the height of the CameraControls top row, so the chips always sit
+    // just below the close / auto-capture buttons regardless of device.
     right: 16,
     flexDirection: 'column',
     alignItems: 'flex-end',
