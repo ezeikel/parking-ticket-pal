@@ -97,6 +97,12 @@ const VisionCameraScanner = ({ onClose, onImageScanned, onOCRComplete }: VisionC
     },
     onStabilityUpdate: (progress) => {
       setStabilityProgress(progress);
+      if (__DEV__) {
+        const g = globalThis as {
+          __scannerDebug?: Record<string, unknown>;
+        };
+        g.__scannerDebug = { ...(g.__scannerDebug ?? {}), stabilityProgress: progress };
+      }
     },
   });
 
@@ -116,6 +122,26 @@ const VisionCameraScanner = ({ onClose, onImageScanned, onOCRComplete }: VisionC
     isActive,
     stabilityProgress,
   });
+
+  // Dev-only state probe. Read via `globalThis.__scannerDebug` from the JS
+  // debugger to inspect the scanner's internals without adding console.log
+  // noise. Stripped from prod bundles by the __DEV__ guard.
+  if (__DEV__) {
+    const g = globalThis as { __scannerDebug?: Record<string, unknown> };
+    g.__scannerDebug = {
+      ...(g.__scannerDebug ?? {}),
+      isActive,
+      autoCaptureEnabled,
+      documentDetected,
+      stabilityProgress,
+      liveOCR: {
+        isRecognizing: liveOCR.isRecognizing,
+        pcn: liveOCR.pcn,
+        vrm: liveOCR.vrm,
+        issuer: liveOCR.issuer,
+      },
+    };
+  }
 
   const handleCapture = useCallback(async () => {
     if (!cameraRef.current || !isActive) return;
