@@ -510,32 +510,17 @@ const CameraSheet = ({ isVisible, onClose, onboardingMode, onOCRComplete }: Came
               // (wizard, letter, duplicate, paywall) keep the white card.
               backgroundColor: phase === 'scanning' ? '#000' : 'white',
               zIndex: 1002,
-              borderTopLeftRadius: phase === 'scanning' ? 16 : 0,
-              borderTopRightRadius: phase === 'scanning' ? 16 : 0,
               borderCurve: 'continuous',
             },
             sheetAnimatedStyle,
           ]}
         >
-          {/* Drag Handle - only show during scanning */}
-          {phase === 'scanning' && (
-            <View
-              style={{
-                alignItems: 'center',
-                paddingTop: 8,
-                paddingBottom: 4,
-              }}
-            >
-              <View
-                style={{
-                  width: 36,
-                  height: 4,
-                  backgroundColor: '#D1D5DB',
-                  borderRadius: 2,
-                }}
-              />
-            </View>
-          )}
+          {/* Drag handle is intentionally NOT rendered during the scanning
+              phase — the camera is fullscreen and a sheet grabber at the top
+              would overlap the live preview and read as a half-sheet. Dismiss
+              is handled by the on-screen X button (and the pan gesture still
+              works without a visible handle). Other phases that present as a
+              card render their own affordances. */}
 
           {/* During the 'scanning' phase (live camera + PostCapturePreview),
               apply NO safe-area insets — both go edge-to-edge and handle their
