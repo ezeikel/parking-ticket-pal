@@ -27,6 +27,14 @@ export type DocumentDetectionCallbacks = {
   ) => void;
   onAutoCapture?: () => void;
   onStabilityUpdate?: (stabilityProgress: number) => void;
+  // Fires once when a document has been continuously detected and held
+  // ROUGHLY steady for a short window — a much looser bar than the auto-capture
+  // stability above (which needs near-pixel-perfect stillness for 8 frames and
+  // realistically never triggers handheld). This is the signal the live-OCR
+  // chip overlay listens to: "a document is in frame and the user is settling
+  // on it — good moment to run OCR." Re-fires only after the document leaves
+  // and re-enters frame.
+  onDocumentSteady?: () => void;
 };
 
 enum DetectionState {
@@ -133,6 +141,9 @@ export const useDocumentDetection = (callbacks?: DocumentDetectionCallbacks) => 
   const onStabilityUpdateJS = callbacks?.onStabilityUpdate
     ? Worklets.createRunOnJS(callbacks.onStabilityUpdate)
     : null;
+  const onDocumentSteadyJS = callbacks?.onDocumentSteady
+    ? Worklets.createRunOnJS(callbacks.onDocumentSteady)
+    : null;
 
 
   // Shared values for overlay (read by Skia Canvas on UI thread).
@@ -165,6 +176,13 @@ export const useDocumentDetection = (callbacks?: DocumentDetectionCallbacks) => 
   const autoCaptureEnabled = useSharedValue<boolean>(true);
   const autoCaptureResetFrameCount = useSharedValue<number>(0);
 
+  // Live-OCR trigger state (independent of auto-capture). Counts consecutive
+  // frames where a document is detected and held within a LOOSE tolerance, and
+  // latches once fired so we only run OCR once per "framing session".
+  const ocrSteadyCounter = useSharedValue<number>(0);
+  const ocrSteadyCorners = useSharedValue<DocumentCorner[] | null>(null);
+  const ocrTriggered = useSharedValue<boolean>(false);
+
   // Constants
   const SCALE_FACTOR = 4;
   const CORNER_SMOOTHING = 0.3;
@@ -180,6 +198,13 @@ export const useDocumentDetection = (callbacks?: DocumentDetectionCallbacks) => 
   const AUTO_CAPTURE_STABILITY_FRAMES = 8;
   const AUTO_CAPTURE_MOVEMENT_THRESHOLD = 0.03;
   const AUTOCAPTURE_RESET_FRAMES = 60;
+
+  // Live-OCR trigger thresholds — deliberately looser than auto-capture so the
+  // chip overlay actually fires when held by hand. ~4 frames (~0.25s at 15fps)
+  // of a detected doc within 12% movement is enough to say "settling".
+  const OCR_STEADY_FRAMES = 4;
+  const OCR_MOVEMENT_THRESHOLD = 0.12;
+  const OCR_CONFIDENCE_THRESHOLD = 0.6;
 
   const frameProcessor = useFrameProcessor((frame) => {
     'worklet';
@@ -526,6 +551,45 @@ export const useDocumentDetection = (callbacks?: DocumentDetectionCallbacks) => 
         if (onStabilityUpdateJS) onStabilityUpdateJS(0);
       }
 
+      // Live-OCR trigger — independent of, and much looser than, the
+      // auto-capture stability above. Fires onDocumentSteady() once the
+      // document has been detected and held within OCR_MOVEMENT_THRESHOLD for
+      // OCR_STEADY_FRAMES, then latches (ocrTriggered) so OCR runs once per
+      // framing session. Resets when the document leaves the frame so a new
+      // framing re-fires. This is what drives the live chip overlay; the
+      // strict auto-capture stability rarely triggers handheld.
+      if (
+        detectionState.value === DetectionState.DOCUMENT_DETECTED &&
+        smoothedConfidence.value >= OCR_CONFIDENCE_THRESHOLD &&
+        smoothedCorners.value
+      ) {
+        const ocrSteady = ocrSteadyCorners.value
+          ? areCornersSimular(smoothedCorners.value, ocrSteadyCorners.value, OCR_MOVEMENT_THRESHOLD)
+          : false;
+
+        if (ocrSteady) {
+          ocrSteadyCounter.value++;
+          if (
+            !ocrTriggered.value &&
+            ocrSteadyCounter.value >= OCR_STEADY_FRAMES
+          ) {
+            ocrTriggered.value = true;
+            if (onDocumentSteadyJS) onDocumentSteadyJS();
+          }
+        } else {
+          // Moved too much — reset the steadiness baseline but DON'T clear the
+          // latch (we still only want one OCR pass until the doc leaves frame).
+          ocrSteadyCounter.value = 0;
+          ocrSteadyCorners.value = smoothedCorners.value.map(c => ({ ...c }));
+        }
+      } else {
+        // Document left the frame — reset everything so the next framing
+        // session can fire OCR again.
+        ocrSteadyCounter.value = 0;
+        ocrSteadyCorners.value = null;
+        ocrTriggered.value = false;
+      }
+
       // Update shared values for Skia Canvas overlay
       const isCurrentlyDetected = detectionState.value === DetectionState.DOCUMENT_DETECTED;
       isDetected.value = isCurrentlyDetected;
@@ -582,7 +646,7 @@ export const useDocumentDetection = (callbacks?: DocumentDetectionCallbacks) => 
         // Ignore cleanup errors
       }
     }
-  }, [onDetectionUpdateJS, onAutoCaptureJS, onStabilityUpdateJS]);
+  }, [onDetectionUpdateJS, onAutoCaptureJS, onStabilityUpdateJS, onDocumentSteadyJS]);
 
   return {
     frameProcessor,

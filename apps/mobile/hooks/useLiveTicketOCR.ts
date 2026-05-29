@@ -11,9 +11,10 @@ import {
 type Options = {
   cameraRef: RefObject<CameraType | null>;
   isActive: boolean;
-  // Bumps from 0 → >0 when the polygon has held still long enough to consider
-  // the user as actively framing. We treat the 0 → >0 transition as the trigger.
-  stabilityProgress: number;
+  // Monotonic counter that increments each time the detector decides a
+  // document has been held roughly steady (a loose, handheld-friendly signal).
+  // We run one OCR pass each time this value increases.
+  triggerCount: number;
 };
 
 type LiveOCRState = ExtractedTicketFields & {
@@ -82,13 +83,13 @@ const loadRecognizer = (): Recognizer | null => {
 const useLiveTicketOCR = ({
   cameraRef,
   isActive,
-  stabilityProgress,
+  triggerCount,
 }: Options): LiveOCRState => {
   const [fields, setFields] = useState<ExtractedTicketFields>({});
   const [isRecognizing, setIsRecognizing] = useState(false);
   const lastFireRef = useRef(0);
   const inFlightRef = useRef(false);
-  const prevStabilityRef = useRef(0);
+  const prevTriggerRef = useRef(0);
   const lastTextRef = useRef<string | null>(null);
 
   // Clear when camera goes inactive (e.g. after capture, when PostCapture mounts).
@@ -102,12 +103,11 @@ const useLiveTicketOCR = ({
   }, [isActive]);
 
   useEffect(() => {
-    const prev = prevStabilityRef.current;
-    prevStabilityRef.current = stabilityProgress;
+    const prev = prevTriggerRef.current;
+    prevTriggerRef.current = triggerCount;
 
-    // Trigger on the 0 → >0 transition. Subsequent ticks while stable don't re-fire;
-    // the user must lose then regain stability for another OCR pass.
-    if (!(prev === 0 && stabilityProgress > 0)) return;
+    // Fire one OCR pass each time the trigger counter increases.
+    if (triggerCount <= prev) return;
     if (!isActive || !cameraRef.current) return;
     if (inFlightRef.current) return;
 
@@ -184,7 +184,7 @@ const useLiveTicketOCR = ({
     };
 
     run();
-  }, [stabilityProgress, isActive, cameraRef]);
+  }, [triggerCount, isActive, cameraRef]);
 
   return {
     ...fields,

@@ -39,6 +39,11 @@ const VisionCameraScanner = ({ onClose, onImageScanned, onOCRComplete }: VisionC
   const [stabilityProgress, setStabilityProgress] = useState(0);
   const [showShutter, setShowShutter] = useState(false);
   const [documentDetected, setDocumentDetected] = useState(false);
+  // Monotonic counter bumped each time the detector reports a document held
+  // roughly steady (onDocumentSteady). useLiveTicketOCR fires when this
+  // increments — a far looser, handheld-friendly trigger than auto-capture
+  // stability, which realistically never fires off a tripod.
+  const [ocrTrigger, setOcrTrigger] = useState(0);
 
   // Post-capture state
   const [capturedImageUri, setCapturedImageUri] = useState<string | null>(null);
@@ -104,6 +109,18 @@ const VisionCameraScanner = ({ onClose, onImageScanned, onOCRComplete }: VisionC
         g.__scannerDebug = { ...(g.__scannerDebug ?? {}), stabilityProgress: progress };
       }
     },
+    onDocumentSteady: () => {
+      // Looser, handheld-friendly trigger for live OCR. Bump a counter so the
+      // OCR hook fires once per framing session.
+      setOcrTrigger((n) => n + 1);
+      if (__DEV__) {
+        const g = globalThis as { __scannerDebug?: Record<string, unknown> };
+        g.__scannerDebug = {
+          ...(g.__scannerDebug ?? {}),
+          ocrTriggerFired: new Date().toISOString(),
+        };
+      }
+    },
   });
 
   // Sync the React-side default into the detection hook's SharedValue on mount.
@@ -113,14 +130,14 @@ const VisionCameraScanner = ({ onClose, onImageScanned, onOCRComplete }: VisionC
     setAutoCaptureInHook(autoCaptureEnabled);
   }, [autoCaptureEnabled, setAutoCaptureInHook]);
 
-  // Best-effort on-device OCR fired on the polygon's 0→stable transition.
-  // Surfaces PCN/VRM/issuer chips in the overlay so the user sees what the
-  // camera is reading before they capture. Server-side OCR at capture time
-  // remains the source of truth.
+  // Best-effort on-device OCR fired when the detector reports a document held
+  // roughly steady (ocrTrigger increments). Surfaces PCN/VRM/issuer chips in
+  // the overlay so the user sees what the camera is reading before capture.
+  // Server-side OCR at capture time remains the source of truth.
   const liveOCR = useLiveTicketOCR({
     cameraRef,
     isActive,
-    stabilityProgress,
+    triggerCount: ocrTrigger,
   });
 
   // Dev-only state probe. Read via `globalThis.__scannerDebug` from the JS
