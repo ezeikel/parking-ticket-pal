@@ -14,6 +14,74 @@ import { getRandomMusicTrack, getRandomSfx } from '@/lib/music';
 const logger = createServerLogger({ action: 'news-video' });
 
 // ============================================================================
+// Article grounding — fetch the real article text so the script is written
+// from the source, not just the 2-sentence summary (which let the model
+// invent specifics the article never stated). Dependency-free extractor.
+// ============================================================================
+
+const MAX_ARTICLE_CHARS = 12000;
+
+const stripHtmlBlock = (html: string, tag: string): string =>
+  html.replace(new RegExp(`<${tag}\\b[^>]*>[\\s\\S]*?</${tag}>`, 'gi'), ' ');
+
+/** Best-effort readable-text extraction from an HTML document. */
+const extractReadableText = (html: string): string => {
+  let s = html;
+  for (const tag of [
+    'script',
+    'style',
+    'noscript',
+    'nav',
+    'header',
+    'footer',
+    'aside',
+    'form',
+    'svg',
+  ]) {
+    s = stripHtmlBlock(s, tag);
+  }
+  s = s.replace(/<[^>]+>/g, ' ');
+  s = s
+    .replace(/&nbsp;/gi, ' ')
+    .replace(/&amp;/gi, '&')
+    .replace(/&quot;/gi, '"')
+    .replace(/&#39;|&apos;/gi, "'")
+    .replace(/&lt;/gi, '<')
+    .replace(/&gt;/gi, '>')
+    .replace(/&[a-z]+;/gi, ' ');
+  s = s.replace(/\s+/g, ' ').trim();
+  return s.slice(0, MAX_ARTICLE_CHARS);
+};
+
+/**
+ * Fetch an article URL and return its readable text, or null on any failure
+ * (non-200, non-HTML, timeout, too little text). Null → caller falls back to
+ * the summary-only script path, so behaviour never gets worse than before.
+ */
+const fetchArticleText = async (url: string): Promise<string | null> => {
+  try {
+    const res = await fetch(url, {
+      headers: {
+        'User-Agent':
+          'Mozilla/5.0 (compatible; ParkingTicketPalBot/1.0; +https://parkingticketpal.com)',
+        Accept: 'text/html,application/xhtml+xml',
+      },
+      redirect: 'follow',
+      signal: AbortSignal.timeout(12_000),
+    });
+    if (!res.ok) return null;
+    const contentType = res.headers.get('content-type') ?? '';
+    if (!contentType.includes('html')) return null;
+    const html = await res.text();
+    const text = extractReadableText(html);
+    if (text.length < 400) return null;
+    return text;
+  } catch {
+    return null;
+  }
+};
+
+// ============================================================================
 // RSS Feed Configuration
 // ============================================================================
 
@@ -795,6 +863,12 @@ const generateNewsScript = async (article: {
   source: string;
   category: string;
   summary: string;
+  /**
+   * Real article body text (from fetchArticleText). When present, the script
+   * is GROUNDED on it and may only state facts/numbers it contains. When
+   * absent (fetch failed), we fall back to the summary-only behaviour.
+   */
+  articleText?: string;
 }): Promise<NewsScriptSegments> => {
   const todayStr = new Date().toLocaleDateString('en-GB', {
     weekday: 'long',
@@ -802,6 +876,14 @@ const generateNewsScript = async (article: {
     month: 'long',
     year: 'numeric',
   });
+
+  const groundingBlock = article.articleText
+    ? `\nARTICLE TEXT (the only facts you may use for specifics):\n"""\n${article.articleText}\n"""\n
+HARD GROUNDING RULES:
+- Use ONLY facts, numbers, dates, fines, locations, and names that appear in the ARTICLE TEXT above.
+- NEVER invent or estimate a figure (a fine amount, a percentage, a date, a count). If the article has no specific number, do not state one — stay general.
+- If you are not sure a specific is in the article text, leave it out.\n`
+    : `\n(No full article text was available — write from the summary only. Do NOT state specific figures, fines, dates, or statistics that are not in the summary; stay general where you are unsure.)\n`;
 
   const scriptPrompt = `You are writing a script for a 60-90 second social media video (Instagram Reel / TikTok / YouTube Short) about a real UK motorist news story.
 
@@ -814,7 +896,7 @@ ARTICLE:
 - Source: ${article.source}
 - Category: ${article.category}
 - Summary: ${article.summary}
-
+${groundingBlock}
 WRITING GUIDELINES:
 - Conversational but informative British English
 - Third person ("drivers could face...", "councils are now...", "a motorist was fined...")
@@ -885,6 +967,50 @@ For each segment, write a short image prompt (1-2 sentences) describing a specif
   });
 
   return script;
+};
+
+/**
+ * Verify the generated script's specific claims (fines, figures, dates,
+ * counts) are supported by the real article text. Returns true if supported
+ * or if there are no risky specifics. Fails OPEN (returns true) on verifier
+ * error so a transient model issue doesn't block the daily video — the
+ * grounding prompt is the primary guard; this is a backstop.
+ */
+const verifyNewsGrounding = async (
+  script: NewsScriptSegments,
+  articleText: string,
+): Promise<{ supported: boolean; reason: string }> => {
+  try {
+    const { output } = await generateText({
+      model: getTracedModel(models.analytics, {
+        properties: { feature: 'news_video_grounding_check' },
+      }),
+      output: Output.object({
+        schema: z.object({ supported: z.boolean(), reason: z.string() }),
+      }),
+      maxRetries: 1,
+      prompt: `You are a strict fact-checker. Verify that the SPECIFIC claims in this video script (especially any fine amount, figure, percentage, date, or count) are directly supported by the SOURCE TEXT. General/well-known statements are fine. A specific figure NOT in the source is NOT supported.
+
+SOURCE TEXT:
+"""
+${articleText}
+"""
+
+SCRIPT:
+${script.fullScript}
+
+Is every specific claim supported by the source text? Reply JSON only: { "supported": boolean, "reason": string }.`,
+    });
+    return {
+      supported: !!output?.supported,
+      reason: output?.reason ?? 'no reason',
+    };
+  } catch (err) {
+    logger.warn('Grounding verification failed (treating as supported)', {
+      error: err instanceof Error ? err.message : String(err),
+    });
+    return { supported: true, reason: 'verifier unavailable' };
+  }
 };
 
 // ============================================================================
@@ -1224,8 +1350,38 @@ export const generateAndPostNewsVideo = async (
 
     logger.info('Created news video record', { videoId: videoRecord.id });
 
-    // 3. Generate script
-    const script = await generateNewsScript(article);
+    // 3. Generate script — grounded on the real article text when we can
+    // fetch it, so specifics (fines, dates, figures) come from the source,
+    // not the model. Falls back to summary-only if the fetch fails.
+    const articleText = await fetchArticleText(article.url);
+    logger.info('Article text for grounding', {
+      url: article.url,
+      grounded: !!articleText,
+      chars: articleText?.length ?? 0,
+    });
+    let script = await generateNewsScript({
+      ...article,
+      articleText: articleText ?? undefined,
+    });
+
+    // If grounded, verify the specifics are actually in the source. If not,
+    // fall back to a summary-only script (forced general — no invented
+    // figures) rather than publish an unverified claim.
+    if (articleText) {
+      const check = await verifyNewsGrounding(script, articleText);
+      if (!check.supported) {
+        logger.warn(
+          'Grounded script had unsupported claims, regenerating summary-only',
+          {
+            reason: check.reason,
+          },
+        );
+        script = await generateNewsScript({
+          ...article,
+          articleText: undefined,
+        });
+      }
+    }
 
     await db.newsVideo.update({
       where: { id: videoRecord.id },
