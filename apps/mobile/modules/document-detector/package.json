@@ -1,0 +1,7 @@
+{
+  "name": "document-detector",
+  "version": "0.1.0",
+  "description": "Local Expo module: Apple Vision document segmentation for the scanner spike",
+  "main": "index.ts",
+  "private": true
+}

@@ -2,6 +2,11 @@
   "name": "@parking-ticket-pal/mobile",
   "main": "expo-router/entry",
   "version": "1.0.3",
+  "expo": {
+    "autolinking": {
+      "nativeModulesDir": "./modules"
+    }
+  },
   "scripts": {
     "clean": "git clean -xdf .expo node_modules",
     "start": "expo start",
