@@ -198,6 +198,7 @@ export default ({ config }: ConfigContext): ExpoConfig => {
     plugins: [
       "expo-router",
       "./plugins/withGradleProperties",
+      "./plugins/withAdMobStaticFramework",
       "expo-tracking-transparency",
       ["./plugins/withGoogleMapsIos", { apiKey: process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY }],
     [
@@ -236,7 +237,12 @@ export default ({ config }: ConfigContext): ExpoConfig => {
         "expo-build-properties",
         {
           ios: {
-            useFrameworks: "static",
+            // NOTE: do NOT set useFrameworks: "static" here. Under SDK 56 /
+            // RN 0.85 global static frameworks break header visibility for
+            // Skia, @expo/dom-webview, etc. AdMob's static-framework need is
+            // handled surgically by ./plugins/withAdMobStaticFramework
+            // ($RNGoogleMobileAdsAsStaticFramework), leaving everything else
+            // on the default dynamic linkage.
             deploymentTarget: "16.4",
           },
           android: {
