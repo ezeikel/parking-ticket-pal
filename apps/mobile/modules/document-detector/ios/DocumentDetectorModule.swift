@@ -29,6 +29,32 @@ public class DocumentDetectorModule: Module {
         return
       }
 
+      // The decoded cgImage holds RAW sensor pixels; the JPEG's orientation is
+      // carried separately in uiImage.imageOrientation. If we hand the raw
+      // cgImage to Vision without that orientation, Vision analyses sideways
+      // pixels and returns corners in raw-pixel space — but PostCapture renders
+      // the photo with orientation applied, so the quad lands rotated/offset.
+      // Map UIImage.Orientation → CGImagePropertyOrientation and pass it to the
+      // handler so Vision works in DISPLAY orientation, matching the preview.
+      func cgOrientation(from o: UIImage.Orientation) -> CGImagePropertyOrientation {
+        switch o {
+        case .up: return .up
+        case .down: return .down
+        case .left: return .left
+        case .right: return .right
+        case .upMirrored: return .upMirrored
+        case .downMirrored: return .downMirrored
+        case .leftMirrored: return .leftMirrored
+        case .rightMirrored: return .rightMirrored
+        @unknown default: return .up
+        }
+      }
+      let orientation = cgOrientation(from: uiImage.imageOrientation)
+      // Displayed dimensions = the UIImage's size (already orientation-aware),
+      // not the raw cgImage.width/height which are pre-rotation.
+      let displayWidth = Int(uiImage.size.width)
+      let displayHeight = Int(uiImage.size.height)
+
       if #available(iOS 15.0, *) {
         let request = VNDetectDocumentSegmentationRequest { request, error in
           if let error = error {
@@ -67,12 +93,16 @@ public class DocumentDetectorModule: Module {
           promise.resolve([
             "corners": corners,
             "confidence": doc.confidence,
-            "imageWidth": cgImage.width,
-            "imageHeight": cgImage.height,
+            // Report orientation-aware (displayed) dimensions so the JS side's
+            // aspect-fit projection matches how the photo is rendered.
+            "imageWidth": displayWidth,
+            "imageHeight": displayHeight,
           ])
         }
 
-        let handler = VNImageRequestHandler(cgImage: cgImage, options: [:])
+        // Pass the image orientation so Vision's normalized corners come back
+        // in the same display space the photo is shown in.
+        let handler = VNImageRequestHandler(cgImage: cgImage, orientation: orientation, options: [:])
         // ExpoModulesCore dispatches AsyncFunction bodies off the main queue,
         // so performing the (synchronous) Vision request directly here is fine.
         do {
