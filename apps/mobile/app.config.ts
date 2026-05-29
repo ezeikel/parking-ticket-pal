@@ -237,7 +237,7 @@ export default ({ config }: ConfigContext): ExpoConfig => {
         {
           ios: {
             useFrameworks: "static",
-            deploymentTarget: "15.5.0",
+            deploymentTarget: "16.4",
           },
           android: {
             packagingOptions: {

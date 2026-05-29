@@ -10,6 +10,12 @@ import { usePostHog } from 'posthog-react-native';
  * initialized, so getCurrentRoute() may return undefined on first render.
  * The state listener handles tracking once navigation is ready.
  */
+// expo-router's useNavigationContainerRef() resolves getCurrentRoute() to a
+// `never`-typed result without an explicit param-list generic (SDK 56 types
+// change). The runtime shape is the standard navigation route, so we narrow
+// to just the fields we read.
+type TrackedRoute = { name?: string; params?: Record<string, unknown> } | undefined;
+
 export const PostHogNavigationTracker = () => {
   const navigationRef = useNavigationContainerRef();
   const posthog = usePostHog();
@@ -19,7 +25,7 @@ export const PostHogNavigationTracker = () => {
 
     // Navigation may not be ready on initial render — guard safely
     try {
-      const currentRoute = navigationRef.getCurrentRoute();
+      const currentRoute = navigationRef.getCurrentRoute() as TrackedRoute;
       if (currentRoute?.name) {
         posthog.screen(currentRoute.name, currentRoute.params as Record<string, string> | undefined);
       }
@@ -30,7 +36,7 @@ export const PostHogNavigationTracker = () => {
 
     // Subscribe to navigation state changes
     const unsubscribe = navigationRef.addListener('state', () => {
-      const newRoute = navigationRef.getCurrentRoute();
+      const newRoute = navigationRef.getCurrentRoute() as TrackedRoute;
       if (newRoute?.name) {
         posthog.screen(newRoute.name, newRoute.params as Record<string, string> | undefined);
       }

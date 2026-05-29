@@ -47,7 +47,7 @@ function TabLayoutInner() {
               <FontAwesomeIcon
                 icon={focused ? faCardsBlankSolid : faCardsBlankRegular}
                 size={22}
-                color={color}
+                color={color as string}
               />
             ),
           }}
@@ -60,7 +60,7 @@ function TabLayoutInner() {
               <FontAwesomeIcon
                 icon={focused ? faCarSolid : faCarRegular}
                 size={22}
-                color={color}
+                color={color as string}
               />
             ),
           }}
@@ -79,7 +79,7 @@ function TabLayoutInner() {
               <FontAwesomeIcon
                 icon={focused ? faGearSolid : faGearRegular}
                 size={22}
-                color={color}
+                color={color as string}
               />
             ),
           }}
