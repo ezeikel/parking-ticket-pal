@@ -4,7 +4,10 @@
   "version": "1.0.3",
   "expo": {
     "autolinking": {
-      "nativeModulesDir": "./modules"
+      "nativeModulesDir": "./modules",
+      "exclude": [
+        "@expo/dom-webview"
+      ]
     },
     "doctor": {
       "reactNativeDirectoryCheck": {
