@@ -14,6 +14,7 @@ import Animated, {
 import SquishyPressable from '@/components/SquishyPressable/SquishyPressable';
 import Loader from '@/components/Loader/Loader';
 import type { DocumentCorner } from '@/hooks/useDocumentDetection';
+import DocumentDetector from '@/modules/document-detector';
 
 const CORNER_DOT_SIZE = 28;
 const CORNER_HIT_PAD = 16; // extra invisible hit area around the visible dot
@@ -72,6 +73,68 @@ const PostCapturePreview = ({
     });
   }, []);
 
+  // SPIKE: run Apple Vision document segmentation on the captured still and
+  // keep its quad so we can draw it alongside the OpenCV/Otsu quad for a
+  // visual A/B on real photos. `visionCorners` are in image-normalized [0,1]
+  // space (NOT container space) so projection has to account for the
+  // contain-letterbox. `visionImageAspect` = imageWidth / imageHeight.
+  const [visionCorners, setVisionCorners] = useState<DocumentCorner[] | null>(null);
+  const [visionImageAspect, setVisionImageAspect] = useState<number | null>(null);
+  const [visionConfidence, setVisionConfidence] = useState<number | null>(null);
+  const [visionRan, setVisionRan] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const result = await DocumentDetector.detectDocument(imageUri);
+        if (cancelled) return;
+        setVisionRan(true);
+        if (result && result.corners?.length === 4) {
+          setVisionCorners(result.corners);
+          setVisionImageAspect(result.imageWidth / result.imageHeight);
+          setVisionConfidence(result.confidence);
+        }
+      } catch {
+        if (!cancelled) setVisionRan(true);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [imageUri]);
+
+  // Project Vision's image-normalized corners onto the displayed (contain-
+  // letterboxed) image inside imageContainer. The image is centered with bars
+  // on whichever axis is the limiting one.
+  const visionPolygonPoints = useMemo(() => {
+    if (
+      !visionCorners ||
+      visionImageAspect == null ||
+      imageLayout.width === 0 ||
+      imageLayout.height === 0
+    ) {
+      return null;
+    }
+    const containerAspect = imageLayout.width / imageLayout.height;
+    let displayedW: number;
+    let displayedH: number;
+    if (visionImageAspect > containerAspect) {
+      // Image wider than container → width fills, bars top/bottom.
+      displayedW = imageLayout.width;
+      displayedH = imageLayout.width / visionImageAspect;
+    } else {
+      // Image taller than container → height fills, bars left/right.
+      displayedH = imageLayout.height;
+      displayedW = imageLayout.height * visionImageAspect;
+    }
+    const offsetX = (imageLayout.width - displayedW) / 2;
+    const offsetY = (imageLayout.height - displayedH) / 2;
+    return visionCorners
+      .map((c) => `${offsetX + c.x * displayedW},${offsetY + c.y * displayedH}`)
+      .join(' ');
+  }, [visionCorners, visionImageAspect, imageLayout]);
+
   // Build SVG polygon points from current editable corners
   const polygonPoints = editableCorners && imageLayout.width > 0
     ? editableCorners
@@ -105,6 +168,7 @@ const PostCapturePreview = ({
           />
           {polygonPoints && imageLayout.width > 0 && (
             <Svg style={StyleSheet.absoluteFill} pointerEvents="none">
+              {/* OpenCV / Otsu quad — green (existing) */}
               <Polygon
                 points={polygonPoints}
                 fill="rgba(76, 175, 80, 0.15)"
@@ -112,6 +176,31 @@ const PostCapturePreview = ({
                 strokeWidth={2}
               />
             </Svg>
+          )}
+          {/* SPIKE: Apple Vision quad — magenta, drawn on top for A/B compare */}
+          {visionPolygonPoints && imageLayout.width > 0 && (
+            <Svg style={StyleSheet.absoluteFill} pointerEvents="none">
+              <Polygon
+                points={visionPolygonPoints}
+                fill="rgba(233, 30, 99, 0.12)"
+                stroke="rgba(233, 30, 99, 0.95)"
+                strokeWidth={2}
+              />
+            </Svg>
+          )}
+          {/* SPIKE: tiny legend + Vision confidence readout */}
+          {visionRan && (
+            <View style={styles.spikeLegend} pointerEvents="none">
+              <Text style={styles.spikeLegendText}>
+                {'■'} green = OpenCV{'   '}
+                {'■'} magenta = Vision
+              </Text>
+              <Text style={styles.spikeLegendText}>
+                {visionCorners
+                  ? `Vision conf: ${(visionConfidence ?? 0).toFixed(2)}`
+                  : 'Vision: no document found'}
+              </Text>
+            </View>
           )}
           {/* Draggable corner handles — rendered after the SVG so they sit on top */}
           {editableCorners && imageLayout.width > 0 && !isProcessing && editableCorners.map((c, i) => (
@@ -271,6 +360,23 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'space-between',
     paddingVertical: 16,
+  },
+  // SPIKE-only styles for the OpenCV-vs-Vision comparison overlay.
+  spikeLegend: {
+    position: 'absolute',
+    bottom: 8,
+    left: 8,
+    right: 8,
+    backgroundColor: 'rgba(0,0,0,0.6)',
+    borderRadius: 6,
+    paddingHorizontal: 8,
+    paddingVertical: 6,
+    gap: 2,
+  },
+  spikeLegendText: {
+    color: 'white',
+    fontSize: 11,
+    fontFamily: 'PlusJakartaSans-Medium',
   },
   imageContainer: {
     flex: 1,

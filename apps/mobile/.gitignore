@@ -37,9 +37,11 @@ yarn-error.*
 expo-env.d.ts
 app-example
 
-# Expo prebuild
-ios/
-android/
+# Expo prebuild — anchored to the app root so they only match the generated
+# apps/mobile/ios and apps/mobile/android, NOT the native source dirs inside
+# local Expo modules (modules/*/ios, modules/*/android), which must be tracked.
+/ios/
+/android/
 
 .env.local
 
