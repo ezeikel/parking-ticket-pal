@@ -81,7 +81,12 @@ const VisionCameraScanner = ({ onClose, onImageScanned, onOCRComplete }: VisionC
     resetAutoCapture,
   } = useDocumentDetection({
     onDetectionUpdate: (corners, conf, aspect) => {
-      const detected = corners !== null && conf > 0.3;
+      // `corners` is already null whenever the detector's hysteresis state
+      // machine isn't in DOCUMENT_DETECTED, so it IS the debounced signal. Don't
+      // re-threshold on the instantaneous smoothed `conf` — during the exit ramp
+      // it can dip below a fixed cutoff for one frame while the doc is still
+      // clearly framed, which would flicker `documentDetected` and wipe votes.
+      const detected = corners !== null;
       setDocumentDetected(detected);
       latestCornersRef.current = corners;
 
@@ -91,6 +96,19 @@ const VisionCameraScanner = ({ onClose, onImageScanned, onOCRComplete }: VisionC
       overlayConfidence.value = conf;
       overlayFrameAspect.value = aspect;
       overlayIsDetected.value = detected;
+
+      if (__DEV__) {
+        // Dev probe: the exact corners/aspect/confidence handed to the overlay,
+        // so we can tell projection issues from detection issues on a real device.
+        const g = globalThis as { __scannerDebug?: Record<string, unknown> };
+        g.__scannerDebug = {
+          ...(g.__scannerDebug ?? {}),
+          detCorners: corners,
+          detConf: conf,
+          detAspect: aspect,
+          detAt: new Date().toISOString(),
+        };
+      }
 
       if (detected && !documentDetected) {
         haptics.documentDetected();
@@ -139,6 +157,40 @@ const VisionCameraScanner = ({ onClose, onImageScanned, onOCRComplete }: VisionC
     isActive,
     triggerCount: ocrTrigger,
   });
+  const { reset: resetLiveOCR } = liveOCR;
+
+  // Re-read the live chips a few times while a document is held, so the per-field
+  // consensus vote in useLiveTicketOCR has more than one read to weigh — a weak
+  // or wrong first read gets outvoted, and a better angle is corroborated. The
+  // first read comes from the detector's onDocumentSteady; this gathers a few
+  // more (each bump = one throttled OCR pass). Stops once PCN + Reg are settled
+  // (present after >=2 extra reads of agreement) or after a small cap so a
+  // stubbornly-unreadable ticket doesn't loop forever.
+  const [ocrReadCount, setOcrReadCount] = useState(0);
+  const ocrSettled = Boolean(liveOCR.pcn && liveOCR.vrm) && ocrReadCount >= 2;
+  useEffect(() => {
+    if (!isActive || !documentDetected || ocrSettled || ocrReadCount >= 5) return;
+    const id = setTimeout(() => {
+      setOcrTrigger((n) => n + 1);
+      setOcrReadCount((c) => c + 1);
+    }, 1600);
+    return () => clearTimeout(id);
+  }, [isActive, documentDetected, ocrSettled, ocrReadCount]);
+
+  // New framing session: when the document leaves frame, clear the accumulated
+  // votes/chips + read budget so pointing at a different ticket reads fresh
+  // instead of voting on top of the previous one. Debounced ~600ms so a brief
+  // detection blip (or the gap while repositioning the same ticket) doesn't wipe
+  // the running consensus; if the doc returns within the window the timer is
+  // cancelled and the session continues.
+  useEffect(() => {
+    if (documentDetected) return;
+    const id = setTimeout(() => {
+      resetLiveOCR();
+      setOcrReadCount(0);
+    }, 600);
+    return () => clearTimeout(id);
+  }, [documentDetected, resetLiveOCR]);
 
   // Dev-only state probe. Read via `globalThis.__scannerDebug` from the JS
   // debugger to inspect the scanner's internals without adding console.log
@@ -157,6 +209,7 @@ const VisionCameraScanner = ({ onClose, onImageScanned, onOCRComplete }: VisionC
         vrm: liveOCR.vrm,
         issuer: liveOCR.issuer,
       },
+      lastOCRText: liveOCR.getLastOCRText(),
     };
   }
 
@@ -185,9 +238,12 @@ const VisionCameraScanner = ({ onClose, onImageScanned, onOCRComplete }: VisionC
       setCapturedImageUri(photoUri);
       setCapturedImageBase64(base64);
       setCapturedCorners(latestCornersRef.current);
-      // Freeze whatever ML Kit had extracted at capture time so PostCapture can
-      // surface it. The liveOCR state clears once isActive flips false.
-      setCapturedOCR({ pcn: liveOCR.pcn, vrm: liveOCR.vrm, issuer: liveOCR.issuer });
+      // Freeze whatever the live OCR had extracted at capture time so PostCapture
+      // can surface it. Read via getFields() (a stable ref) — reading
+      // liveOCR.pcn directly here captures a stale closure (liveOCR isn't a dep
+      // of this callback), which is why the chips were blank on the review screen.
+      const liveFields = liveOCR.getFields();
+      setCapturedOCR({ pcn: liveFields.pcn, vrm: liveFields.vrm, issuer: liveFields.issuer });
       onImageScanned?.();
 
       trackEvent('ticket_scan_success', { screen: 'scanner', scan_method: 'vision_camera' });

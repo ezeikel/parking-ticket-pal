@@ -1,12 +1,14 @@
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import type { RefObject } from 'react';
-import { NativeModules } from 'react-native';
+import { NativeModules, Platform } from 'react-native';
 import type { Camera as CameraType } from 'react-native-vision-camera';
 
 import {
-  extractTicketFields,
+  extractTicketFieldCandidates,
   type ExtractedTicketFields,
+  type OCRLine,
 } from '@/utils/extractTicketFields';
+import DocumentDetector from '@/modules/document-detector';
 
 type Options = {
   cameraRef: RefObject<CameraType | null>;
@@ -23,37 +25,50 @@ type LiveOCRState = ExtractedTicketFields & {
   // so it never triggers re-renders — only consumed at capture time when we
   // POST to /api/ocr/upload-image with `ocrText` as a hint.
   getLastOCRText: () => string | null;
+  // Stable getter for the latest merged fields. Read at capture time so the
+  // chip values aren't lost to a stale callback closure (`fields` is state and
+  // changes identity every render, so a memoised handler would otherwise
+  // snapshot empty values).
+  getFields: () => ExtractedTicketFields;
+  // Clear the accumulated fields — call when the document leaves frame so the
+  // next ticket starts a fresh read instead of merging onto the previous one.
+  reset: () => void;
 };
 
 const THROTTLE_MS = 1500;
-// Simulated OCR latency in dev to show the loader spin before the chips
-// populate. ML Kit on a real device returns in ~200ms.
-const MOCK_OCR_DELAY_MS = 600;
 
-// Mocked OCR text used when the native ML Kit module isn't linked (iOS
-// simulator dev builds). The text is parsed by the same extractTicketFields()
-// that production uses, so the chip-rendering path is exercised end-to-end on
-// the sim.
-//
-// Why we need a mock: @react-native-ml-kit/text-recognition pulls in
-// GoogleMLKit, which ships only iOS-device + iOS-x86_64-simulator slices —
-// no arm64-simulator slice — making the whole app unbuildable for
-// Apple-Silicon iOS simulators (iOS 26+ are arm64-only). We strip the pod
-// from autolinking when EXPO_PUBLIC_ENVIRONMENT === 'development' (see
-// react-native.config.js). At runtime we feature-detect by requiring the
-// module inside try/catch — if linked, real OCR fires; if not, mock.
-const MOCK_OCR_TEXT = `Penalty Charge Notice
-PCN No: ZY12501745
-Vehicle Registration: LV72 EPC
-Issued by London Borough of Lewisham
-Date: 03-09-2025
-Location: Torridon Road junction with Antioch Road
-Amount: £130.00`;
+// Per-field weighted vote tallies (value → accumulated confidence) accumulated
+// across the reads of one framing session. reset() empties them between tickets.
+type FieldVotes = {
+  pcn: Map<string, number>;
+  vrm: Map<string, number>;
+  issuer: Map<string, number>;
+};
 
-// Lazy, defensive load of the ML Kit text recognizer. Returns null on sim
-// dev builds where autolinking has stripped the pod (or any other reason the
-// native side isn't available). The require() is wrapped because evaluating
-// it at module top-level would throw before the hook even runs.
+const emptyVotes = (): FieldVotes => ({
+  pcn: new Map(),
+  vrm: new Map(),
+  issuer: new Map(),
+});
+
+// The value with the most accumulated weight wins (ties resolve to the first
+// value that reached the max, i.e. earliest-seen).
+const winner = (tally: Map<string, number>): string | undefined => {
+  let best: string | undefined;
+  let bestWeight = 0;
+  for (const [value, weight] of tally) {
+    if (weight > bestWeight) {
+      bestWeight = weight;
+      best = value;
+    }
+  }
+  return best;
+};
+
+// Lazy, defensive load of the Google ML Kit text recognizer — the ANDROID OCR
+// engine (iOS uses Apple Vision via the document-detector module instead).
+// Returns null if the native side isn't available. The require() is wrapped
+// because evaluating it at module top-level would throw before the hook runs.
 type RecognizerResult = { text: string };
 type Recognizer = {
   recognize: (uri: string) => Promise<RecognizerResult>;
@@ -91,10 +106,34 @@ const useLiveTicketOCR = ({
   const inFlightRef = useRef(false);
   const prevTriggerRef = useRef(0);
   const lastTextRef = useRef<string | null>(null);
+  // Mirror of `fields` for synchronous, stale-closure-proof reads (capture time)
+  // and so the winners can be recomputed without depending on React's async state.
+  const fieldsRef = useRef<ExtractedTicketFields>({});
+  // Cross-read weighted vote tallies for the current framing session.
+  const votesRef = useRef<FieldVotes>(emptyVotes());
+  // Session generation. Bumped whenever the session is cleared (reset / camera
+  // inactive) so an OCR read that was already in flight when that happened is
+  // DISCARDED instead of writing the old ticket's values back into the fresh
+  // (or post-capture) session.
+  const genRef = useRef(0);
+
+  const reset = useCallback(() => {
+    genRef.current += 1;
+    votesRef.current = emptyVotes();
+    fieldsRef.current = {};
+    lastTextRef.current = null;
+    lastFireRef.current = 0;
+    setFields({});
+  }, []);
+
+  const getFields = useCallback(() => fieldsRef.current, []);
 
   // Clear when camera goes inactive (e.g. after capture, when PostCapture mounts).
   useEffect(() => {
     if (!isActive) {
+      genRef.current += 1;
+      votesRef.current = emptyVotes();
+      fieldsRef.current = {};
       setFields({});
       setIsRecognizing(false);
       lastFireRef.current = 0;
@@ -118,42 +157,93 @@ const useLiveTicketOCR = ({
     const run = async () => {
       inFlightRef.current = true;
       setIsRecognizing(true);
+      // Snapshot the session this read belongs to; if it changes during the
+      // awaits below (reset / inactive), we discard the result.
+      const myGen = genRef.current;
       try {
-        const recognizer = loadRecognizer();
+        if (!cameraRef.current) return;
+
+        // Snap a low-quality throwaway still and OCR it with the platform's
+        // native engine:
+        //   iOS     → Apple Vision (VNRecognizeTextRequest) — works on device
+        //             AND simulator, returns per-line confidence.
+        //   Android → Google ML Kit (bundled model) — plain text, no confidence.
+        // ~200–400 ms on modern hardware. Server OCR at capture time stays the
+        // source of truth.
+        const photo = await cameraRef.current.takePhoto({
+          flash: 'off',
+          enableShutterSound: false,
+        });
+        const uri = photo.path.startsWith('file://')
+          ? photo.path
+          : `file://${photo.path}`;
+
+        let lines: OCRLine[] = [];
+        let engine: 'vision' | 'mlkit' | 'none' = 'none';
+        if (Platform.OS === 'ios') {
+          engine = 'vision';
+          const result = await DocumentDetector.recognizeText(uri);
+          lines = result.map((l) => ({ text: l.text, confidence: l.confidence }));
+        } else {
+          const recognizer = loadRecognizer();
+          if (recognizer) {
+            engine = 'mlkit';
+            const result = await recognizer.recognize(uri);
+            // ML Kit's plain-text path has no per-line confidence — split into
+            // lines (weight 1 each → count-based voting).
+            lines = (result.text ?? '')
+              .split('\n')
+              .map((t) => t.trim())
+              .filter((t) => t.length > 0)
+              .map((t) => ({ text: t }));
+          }
+        }
+
+        // The framing session ended (document left / camera went inactive) while
+        // this read was in flight — discard it so it can't repopulate a cleared
+        // tally or resurrect chips after capture.
+        if (myGen !== genRef.current) return;
+
+        const rawText = lines.map((l) => l.text).join('\n');
+        lastTextRef.current = rawText.length > 0 ? rawText : null;
+
+        // Accumulate this read's weighted candidates into the running vote
+        // tallies, then pick the best-supported value per field. A one-frame
+        // misread is outvoted by the consistent value; a sharper/later read (and
+        // within-read repeats, e.g. a VRM printed in several places) builds
+        // weight; reset() clears the tallies between tickets.
+        const candidates = extractTicketFieldCandidates(lines);
+        const votes = votesRef.current;
+        (['pcn', 'vrm', 'issuer'] as const).forEach((field) => {
+          for (const candidate of candidates[field]) {
+            votes[field].set(
+              candidate.value,
+              (votes[field].get(candidate.value) ?? 0) + candidate.weight,
+            );
+          }
+        });
+        const winners: ExtractedTicketFields = {
+          pcn: winner(votes.pcn),
+          vrm: winner(votes.vrm),
+          issuer: winner(votes.issuer),
+        };
+        fieldsRef.current = winners;
+        setFields(winners);
+
         if (__DEV__) {
           const g = globalThis as { __scannerDebug?: Record<string, unknown> };
           g.__scannerDebug = {
             ...(g.__scannerDebug ?? {}),
-            recognizerLoaded: recognizer !== null,
-            recognizerType: typeof recognizer,
-            hasCameraRef: !!cameraRef.current,
+            ocrEngine: engine,
+            ocrTextLen: rawText.length,
+            ocrText: rawText,
+            ocrVotes: {
+              pcn: Object.fromEntries(votes.pcn),
+              vrm: Object.fromEntries(votes.vrm),
+              issuer: Object.fromEntries(votes.issuer),
+            },
+            ocrAt: new Date().toISOString(),
           };
-        }
-        if (recognizer && cameraRef.current) {
-          // Real on-device OCR path (preview/prod EAS builds on physical
-          // devices). Snap a low-quality throwaway photo and pipe its URI
-          // into ML Kit. ~200–400 ms total on modern iPhones.
-          const photo = await cameraRef.current.takePhoto({
-            flash: 'off',
-            enableShutterSound: false,
-          });
-          const uri = photo.path.startsWith('file://')
-            ? photo.path
-            : `file://${photo.path}`;
-          const result = await recognizer.recognize(uri);
-          lastTextRef.current = result.text ?? null;
-          setFields(extractTicketFields(result.text ?? ''));
-        } else if (__DEV__) {
-          // Sim dev build — pod stripped via react-native.config.js. Show
-          // mock chips so the UI flow can still be exercised on SimCam.
-          await new Promise<void>((r) => setTimeout(r, MOCK_OCR_DELAY_MS));
-          lastTextRef.current = MOCK_OCR_TEXT;
-          setFields(extractTicketFields(MOCK_OCR_TEXT));
-        } else {
-          // Native module missing in a non-dev build (shouldn't happen, but
-          // fail soft rather than break capture). Server OCR at capture time
-          // remains the source of truth.
-          lastTextRef.current = null;
         }
       } catch (err) {
         // Surface the failure to Sentry so we can see why live OCR fails on
@@ -190,6 +280,8 @@ const useLiveTicketOCR = ({
     ...fields,
     isRecognizing,
     getLastOCRText: () => lastTextRef.current,
+    getFields,
+    reset,
   };
 };
 

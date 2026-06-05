@@ -76,3 +76,65 @@ export const extractTicketFields = (text: string): ExtractedTicketFields => {
     issuer: extractIssuer(text),
   };
 };
+
+// One recognized OCR line. `confidence` is the engine's 0–1 score (Apple Vision
+// provides it; ML Kit's plain-text path leaves it undefined → treated as 1).
+export type OCRLine = { text: string; confidence?: number };
+
+// A candidate field value from a single read, with the weight (confidence) of
+// the line it was extracted from. A value appearing on multiple lines (e.g. a
+// VRM printed in several places on a ticket) yields multiple candidates — that
+// within-read multiplicity strengthens its vote.
+export type FieldCandidate = { value: string; weight: number };
+
+export type TicketFieldCandidates = {
+  pcn: FieldCandidate[];
+  vrm: FieldCandidate[];
+  issuer: FieldCandidate[];
+};
+
+// Floor for a real (numeric) confidence so a low/zero-confidence candidate still
+// counts as a vote (just a weak one) rather than vanishing at weight 0.
+const MIN_CANDIDATE_WEIGHT = 0.01;
+
+// Extract weighted field candidates from a single OCR pass's lines. Per-line so
+// each candidate carries that line's confidence and repeated values vote more.
+// The caller (useLiveTicketOCR) accumulates these weights across reads and picks
+// the best-supported value per field — robust to a one-frame misread, and a
+// sharper/later read can overtake an earlier weak one.
+export const extractTicketFieldCandidates = (
+  lines: OCRLine[],
+): TicketFieldCandidates => {
+  const out: TicketFieldCandidates = { pcn: [], vrm: [], issuer: [] };
+
+  for (const line of lines) {
+    // `undefined` = the engine gives no confidence (ML Kit) → neutral weight 1,
+    // so Android votes by count. A real numeric confidence (Apple Vision, incl.
+    // a genuine low/0 for a poor read) is kept as-is, floored to a tiny epsilon
+    // so a candidate is never invisible (weight 0) — but a worst-quality read
+    // still votes far weaker than a confident one, which is the whole point.
+    const weight =
+      line.confidence == null
+        ? 1
+        : Math.max(line.confidence, MIN_CANDIDATE_WEIGHT);
+
+    const pcn = extractPcn(line.text);
+    if (pcn) out.pcn.push({ value: pcn, weight });
+
+    const vrm = extractVrm(line.text);
+    if (vrm) out.vrm.push({ value: vrm, weight });
+
+    const issuer = extractIssuer(line.text);
+    if (issuer) out.issuer.push({ value: issuer, weight });
+  }
+
+  // An issuer name can straddle two OCR lines ("London Borough of" / "Lewisham").
+  // If per-line matching found nothing, fall back to the whole-blob substring so
+  // we don't miss it entirely.
+  if (out.issuer.length === 0) {
+    const issuer = extractIssuer(lines.map((l) => l.text).join('\n'));
+    if (issuer) out.issuer.push({ value: issuer, weight: 1 });
+  }
+
+  return out;
+};
