@@ -1,4 +1,6 @@
-import { useFrameProcessor } from 'react-native-vision-camera';
+import { useMemo } from 'react';
+import { Platform } from 'react-native';
+import { useFrameProcessor, VisionCameraProxy } from 'react-native-vision-camera';
 import { useResizePlugin } from 'vision-camera-resize-plugin';
 import { useSharedValue, Worklets } from 'react-native-worklets-core';
 import { useSharedValue as useReanimatedSharedValue } from 'react-native-reanimated';
@@ -132,6 +134,29 @@ const smoothCorners = (
 export const useDocumentDetection = (callbacks?: DocumentDetectionCallbacks) => {
   const { resize } = useResizePlugin();
 
+  // iOS-only premium detector: Apple Vision document segmentation, exposed as a
+  // VisionCamera frame-processor plugin (modules/document-detector/ios/
+  // VisionDocumentPlugin.mm). Null on Android (plugin not registered there), so
+  // the worklet falls back to the OpenCV path everywhere it's unavailable.
+  const visionDocPlugin = useMemo(
+    () =>
+      Platform.OS === 'ios'
+        ? VisionCameraProxy.initFrameProcessorPlugin('detectDocumentFrame', {})
+        : null,
+    [],
+  );
+
+  if (__DEV__) {
+    // Did the native Vision frame-processor plugin actually register? null here
+    // => we're silently running OpenCV instead of Vision (e.g. dead-stripped, or
+    // on Android). Read via `globalThis.__scannerDebug.visionPluginLinked`.
+    const g = globalThis as { __scannerDebug?: Record<string, unknown> };
+    g.__scannerDebug = {
+      ...(g.__scannerDebug ?? {}),
+      visionPluginLinked: visionDocPlugin != null,
+    };
+  }
+
   const onDetectionUpdateJS = callbacks?.onDetectionUpdate
     ? Worklets.createRunOnJS(callbacks.onDetectionUpdate)
     : null;
@@ -145,6 +170,15 @@ export const useDocumentDetection = (callbacks?: DocumentDetectionCallbacks) => 
     ? Worklets.createRunOnJS(callbacks.onDocumentSteady)
     : null;
 
+  // Dev-only probe of the RAW Vision plugin output + frame meta (orientation,
+  // pixel format, dims). Read via `globalThis.__scannerDebug.visionRaw`. Lets us
+  // confirm on a real device that Vision is running and inspect its corners.
+  const debugVisionJS = __DEV__
+    ? Worklets.createRunOnJS((info: unknown) => {
+        const g = globalThis as { __scannerDebug?: Record<string, unknown> };
+        g.__scannerDebug = { ...(g.__scannerDebug ?? {}), visionRaw: info };
+      })
+    : null;
 
   // Shared values for overlay (read by Skia Canvas on UI thread).
   // Reanimated SVs: their underlying _value lives in C++ shared memory and is addressable
@@ -206,6 +240,10 @@ export const useDocumentDetection = (callbacks?: DocumentDetectionCallbacks) => 
   const OCR_MOVEMENT_THRESHOLD = 0.12;
   const OCR_CONFIDENCE_THRESHOLD = 0.6;
 
+  // Apple Vision (iOS) is trusted as the detector when it reports at least this
+  // confidence; otherwise we fall back to the OpenCV path for that frame.
+  const VISION_CONFIDENCE_THRESHOLD = 0.5;
+
   const frameProcessor = useFrameProcessor((frame) => {
     'worklet';
 
@@ -226,7 +264,76 @@ export const useDocumentDetection = (callbacks?: DocumentDetectionCallbacks) => 
     let bestContour: DocumentCorner[] | null = null;
     let detectionConfidence = 0;
 
+    // iOS premium path: Apple Vision document segmentation. When it confidently
+    // finds the document we use its corners and skip OpenCV/Otsu entirely; the
+    // downstream pipeline (voting, smoothing, state machine, normalization,
+    // OCR trigger) runs identically on `bestContour`. visionDocPlugin is null on
+    // Android, so OpenCV always runs there.
+    let visionUsed = false;
+    if (visionDocPlugin != null) {
+      // Pass the frame orientation so the native plugin can rotate the buffer
+      // upright before running Vision. Vision returns corners in UPRIGHT
+      // (display) normalized space.
+      const v = visionDocPlugin.call(frame, { orientation: frame.orientation }) as
+        | {
+            corners?: { x: number; y: number }[];
+            confidence?: number;
+            dbgReceivedOri?: string;
+            dbgAppliedOri?: number;
+            dbgPixelFormat?: string;
+            dbgBufW?: number;
+            dbgBufH?: number;
+          }
+        | null;
+      if (
+        v != null &&
+        (v.confidence ?? 0) >= VISION_CONFIDENCE_THRESHOLD &&
+        v.corners != null &&
+        v.corners.length === 4
+      ) {
+        // Inverse-rotate Vision's display-space corners back into raw-sensor
+        // space so the downstream pipeline (and the cornersNormalized rotation
+        // below) treats them exactly like OpenCV's output. This is the inverse
+        // of the per-orientation raw->display map applied in the overlay step.
+        const sw = Math.floor(frame.width / SCALE_FACTOR);
+        const sh = Math.floor(frame.height / SCALE_FACTOR);
+        const ori = frame.orientation;
+        bestContour = v.corners.map((c) => {
+          let fx = c.x;
+          let fy = c.y;
+          if (ori === 'landscape-right') {
+            fx = 1 - c.y;
+            fy = c.x;
+          } else if (ori === 'landscape-left') {
+            fx = c.y;
+            fy = 1 - c.x;
+          } else if (ori === 'portrait-upside-down') {
+            fx = 1 - c.x;
+            fy = 1 - c.y;
+          }
+          return { x: fx * sw, y: fy * sh };
+        });
+        detectionConfidence = 1.0;
+        visionUsed = true;
+        if (debugVisionJS) {
+          debugVisionJS({
+            corners: v.corners,
+            conf: v.confidence,
+            ori: frame.orientation,
+            fw: frame.width,
+            fh: frame.height,
+            dbgReceivedOri: v.dbgReceivedOri,
+            dbgAppliedOri: v.dbgAppliedOri,
+            dbgPixelFormat: v.dbgPixelFormat,
+            dbgBufW: v.dbgBufW,
+            dbgBufH: v.dbgBufH,
+          });
+        }
+      }
+    }
+
     try {
+      if (!visionUsed) {
       const scaledWidth = Math.floor(frame.width / SCALE_FACTOR);
       const scaledHeight = Math.floor(frame.height / SCALE_FACTOR);
       if (scaledWidth <= 0 || scaledHeight <= 0) return;
@@ -433,6 +540,8 @@ export const useDocumentDetection = (callbacks?: DocumentDetectionCallbacks) => 
           detectionConfidence = 0.6;
         }
       }
+
+      } // end OpenCV detection (skipped when Apple Vision supplies the corners)
 
       if (!bestContour || bestContour.length !== 4) {
         detectionConfidence = 0;
@@ -646,7 +755,7 @@ export const useDocumentDetection = (callbacks?: DocumentDetectionCallbacks) => 
         // Ignore cleanup errors
       }
     }
-  }, [onDetectionUpdateJS, onAutoCaptureJS, onStabilityUpdateJS, onDocumentSteadyJS]);
+  }, [onDetectionUpdateJS, onAutoCaptureJS, onStabilityUpdateJS, onDocumentSteadyJS, visionDocPlugin, debugVisionJS]);
 
   return {
     frameProcessor,
