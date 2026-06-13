@@ -13,7 +13,9 @@ import { createServerLogger } from '@/lib/logger';
 import createUTCDate from '@/utils/createUTCDate';
 import getVehicleInfo from '@/utils/getVehicleInfo';
 import { createOnboardingSequence } from '@/services/onboarding-sequence';
+import { afterTicketCreation } from '@/services/ticket-service';
 import { createLetter } from '@/app/actions/letter';
+import stripe from '@/lib/stripe';
 
 const logger = createServerLogger({ action: 'guest' });
 
@@ -198,6 +200,35 @@ export const claimPendingTicket = async (
       },
     });
 
+    // For PREMIUM (paid) pending tickets, record the purchase on the user so
+    // they're correctly tracked as a paying customer. The guest Stripe webhook
+    // only writes the PendingTicket (keyed by email) and never these fields, so
+    // without this a paid guest ends up with stripeCustomerId/lastPremiumPurchaseAt
+    // both null. We resolve the Stripe customer by the email the checkout used.
+    if (pendingTicket.tier === 'PREMIUM') {
+      try {
+        const customers = await stripe.customers.list({
+          email: user.email,
+          limit: 1,
+        });
+        const stripeCustomerId = customers.data[0]?.id;
+
+        await db.user.update({
+          where: { id: userId },
+          data: {
+            lastPremiumPurchaseAt: new Date(),
+            ...(stripeCustomerId ? { stripeCustomerId } : {}),
+          },
+        });
+      } catch (err) {
+        logger.error(
+          'Failed to record premium purchase on user after claim',
+          { pendingTicketId, userId },
+          err instanceof Error ? err : new Error(String(err)),
+        );
+      }
+    }
+
     logger.info('Claimed pending ticket', {
       pendingTicketId,
       ticketId: result.ticketId,
@@ -362,6 +393,18 @@ export const createTicketFromGuestData = async (
       userId,
       pcnNumber: input.pcnNumber,
     });
+
+    // Run the standard post-creation pipeline (success-score prediction,
+    // auto-verify against the issuer portal, street-view prefetch).
+    // The guest/claim flow previously skipped this, so guest tickets ended
+    // up with no prediction and unverified. Non-blocking on failure.
+    await afterTicketCreation(ticket).catch((err) =>
+      logger.error(
+        'Failed to run post-creation pipeline for guest ticket',
+        { ticketId: ticket.id },
+        err instanceof Error ? err : new Error(String(err)),
+      ),
+    );
 
     // Start onboarding email sequence for FREE tier tickets
     if (ticketTier === 'FREE') {
