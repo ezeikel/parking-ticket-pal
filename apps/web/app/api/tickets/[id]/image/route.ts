@@ -106,11 +106,18 @@ export const POST = async (
       permanentPath,
     });
 
-    // Auto-trigger re-extraction if any key fields are missing
+    // Auto-trigger re-extraction if any key fields are missing.
+    // The guest/claim flow seeds sentinel placeholders ("UNKNOWN" contravention
+    // code, "Location to be confirmed") rather than leaving fields empty, so we
+    // treat those sentinels as missing — otherwise extraction never fires and
+    // the ticket keeps the placeholders forever.
     const location = ticket.location as Record<string, unknown> | null;
-    const hasLocation = location?.line1 && location.line1 !== '';
+    const line1 = (location?.line1 as string | undefined) ?? '';
+    const hasLocation = line1 !== '' && line1 !== 'Location to be confirmed';
+    const hasContraventionCode =
+      !!ticket.contraventionCode && ticket.contraventionCode !== 'UNKNOWN';
     if (
-      !ticket.contraventionCode ||
+      !hasContraventionCode ||
       !ticket.issuer ||
       !hasLocation ||
       !ticket.initialAmount

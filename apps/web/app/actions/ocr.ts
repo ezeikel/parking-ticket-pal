@@ -829,10 +829,19 @@ export const reExtractFromImage = async (ticketId: string) => {
     }
     const updatedFields: string[] = [];
 
-    // Build update object — only fill in missing fields
+    // Build update object — only fill in missing fields. Treat the guest-flow
+    // sentinel placeholders ("UNKNOWN" code, "Location to be confirmed") as
+    // missing so a guest ticket gets its real values backfilled from the image.
     const updateData: Record<string, unknown> = {};
 
-    if (!ticket.contraventionCode && data.contraventionCode) {
+    const currentLocation = ticket.location as Record<string, unknown> | null;
+    const currentLine1 = (currentLocation?.line1 as string | undefined) ?? '';
+    const hasRealCode =
+      !!ticket.contraventionCode && ticket.contraventionCode !== 'UNKNOWN';
+    const hasRealLocation =
+      currentLine1 !== '' && currentLine1 !== 'Location to be confirmed';
+
+    if (!hasRealCode && data.contraventionCode) {
       updateData.contraventionCode = data.contraventionCode;
       updatedFields.push('contraventionCode');
     }
@@ -848,7 +857,7 @@ export const reExtractFromImage = async (ticketId: string) => {
       updateData.initialAmount = data.initialAmount;
       updatedFields.push('initialAmount');
     }
-    if (!ticket.location && (fullAddress || data.location)) {
+    if (!hasRealLocation && (fullAddress || data.location)) {
       updateData.location = fullAddress || {
         line1: data.location,
         city: '',
