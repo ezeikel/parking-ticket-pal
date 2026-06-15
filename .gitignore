@@ -59,6 +59,16 @@ android/.gradle/
 # Cursor IDE
 .cursor/
 
+# Local agent/editor MCP config
+.claude/
+.codex/
+.mcp.json
+.vscode/
+.zed/
+
+# Stray/generated local icon asset
+apps/mobile/assets/images/ios-light.png
+
 # Large uncompressed data files (use .gz versions)
 packages/db/data/tribunal-seed/*.json
 !packages/db/data/tribunal-seed/*.json.gz
