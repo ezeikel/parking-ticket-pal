@@ -18,6 +18,12 @@ import DocumentDetector from '@/modules/document-detector';
 
 const CORNER_DOT_SIZE = 28;
 const CORNER_HIT_PAD = 16; // extra invisible hit area around the visible dot
+const OPENCV_COLOR = 'rgba(76, 175, 80, 0.9)';
+const OPENCV_FILL = 'rgba(76, 175, 80, 0.15)';
+const VISION_COLOR = 'rgba(233, 30, 99, 0.95)';
+const VISION_FILL = 'rgba(233, 30, 99, 0.12)';
+
+type CornerSource = 'vision' | 'opencv' | 'manual';
 
 type PostCapturePreviewProps = {
   imageUri: string;
@@ -26,9 +32,8 @@ type PostCapturePreviewProps = {
   onRetake: () => void;
   isProcessing?: boolean;
   // Live OCR fields carried over from the camera screen. We display them as
-  // chips so the user can sanity-check what the ML Kit pass extracted before
-  // committing to the heavier server-side OpenAI Vision call (which runs when
-  // they tap Process).
+  // chips so the user can sanity-check what the on-device OCR pass extracted
+  // before committing to the heavier server-side OpenAI Vision call.
   livePcn?: string;
   liveVrm?: string;
   liveIssuer?: string;
@@ -49,22 +54,8 @@ const PostCapturePreview = ({
   // can drag any of the four dots to nudge the polygon. Stored normalized
   // [0..1] just like detectedCorners so the SVG / handoff code stays simple.
   const [editableCorners, setEditableCorners] = useState<DocumentCorner[] | null>(null);
-
-  useEffect(() => {
-    if (detectedCorners && detectedCorners.length === 4) {
-      setEditableCorners(detectedCorners);
-    } else if (imageLayout.width > 0 && !editableCorners) {
-      // No detection — drop default corners with a margin so the user can still
-      // adjust manually. Normalized space, so just use fixed insets.
-      setEditableCorners([
-        { x: 0.1, y: 0.1 },
-        { x: 0.9, y: 0.1 },
-        { x: 0.9, y: 0.9 },
-        { x: 0.1, y: 0.9 },
-      ]);
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [detectedCorners, imageLayout.width]);
+  const [cornerSource, setCornerSource] = useState<CornerSource>('manual');
+  const [hasUserAdjustedCorners, setHasUserAdjustedCorners] = useState(false);
 
   const handleImageLayout = useCallback((e: { nativeEvent: { layout: { width: number; height: number } } }) => {
     setImageLayout({
@@ -73,11 +64,9 @@ const PostCapturePreview = ({
     });
   }, []);
 
-  // SPIKE: run Apple Vision document segmentation on the captured still and
-  // keep its quad so we can draw it alongside the OpenCV/Otsu quad for a
-  // visual A/B on real photos. `visionCorners` are in image-normalized [0,1]
-  // space (NOT container space) so projection has to account for the
-  // contain-letterbox. `visionImageAspect` = imageWidth / imageHeight.
+  // Run Apple Vision document segmentation on the captured still. Vision is the
+  // preferred crop source on iOS; OpenCV/Otsu stays visible as the green
+  // comparison and Android/fallback detector.
   const [visionCorners, setVisionCorners] = useState<DocumentCorner[] | null>(null);
   const [visionImageAspect, setVisionImageAspect] = useState<number | null>(null);
   const [visionConfidence, setVisionConfidence] = useState<number | null>(null);
@@ -104,10 +93,16 @@ const PostCapturePreview = ({
     };
   }, [imageUri]);
 
-  // Project Vision's image-normalized corners onto the displayed (contain-
-  // letterboxed) image inside imageContainer. The image is centered with bars
-  // on whichever axis is the limiting one.
-  const visionPolygonPoints = useMemo(() => {
+  const openCVPolygonPoints = detectedCorners && imageLayout.width > 0
+    ? detectedCorners
+        .map(c => `${c.x * imageLayout.width},${c.y * imageLayout.height}`)
+        .join(' ')
+    : null;
+
+  // Project Vision's image-normalized corners onto the displayed contain-fitted
+  // image inside imageContainer. The result is container-normalized so it can
+  // drive the same editable handles as the fallback detector.
+  const visionContainerCorners = useMemo(() => {
     if (
       !visionCorners ||
       visionImageAspect == null ||
@@ -130,13 +125,41 @@ const PostCapturePreview = ({
     }
     const offsetX = (imageLayout.width - displayedW) / 2;
     const offsetY = (imageLayout.height - displayedH) / 2;
-    return visionCorners
-      .map((c) => `${offsetX + c.x * displayedW},${offsetY + c.y * displayedH}`)
-      .join(' ');
-  }, [visionCorners, visionImageAspect, imageLayout]);
+    return visionCorners.map((c) => ({
+      x: (offsetX + c.x * displayedW) / imageLayout.width,
+      y: (offsetY + c.y * displayedH) / imageLayout.height,
+    }));
+  }, [visionCorners, visionImageAspect, imageLayout.width, imageLayout.height]);
 
-  // Build SVG polygon points from current editable corners
-  const polygonPoints = editableCorners && imageLayout.width > 0
+  useEffect(() => {
+    if (imageLayout.width === 0 || hasUserAdjustedCorners) return;
+
+    if (visionContainerCorners?.length === 4) {
+      setEditableCorners(visionContainerCorners);
+      setCornerSource('vision');
+      return;
+    }
+
+    if (detectedCorners?.length === 4) {
+      setEditableCorners(detectedCorners);
+      setCornerSource('opencv');
+      return;
+    }
+
+    if (!editableCorners) {
+      // No detection — drop default corners with a margin so the user can still
+      // adjust manually. Normalized space, so just use fixed insets.
+      setEditableCorners([
+        { x: 0.1, y: 0.1 },
+        { x: 0.9, y: 0.1 },
+        { x: 0.9, y: 0.9 },
+        { x: 0.1, y: 0.9 },
+      ]);
+      setCornerSource('manual');
+    }
+  }, [visionContainerCorners, detectedCorners, imageLayout.width, hasUserAdjustedCorners, editableCorners]);
+
+  const cropPolygonPoints = editableCorners && imageLayout.width > 0
     ? editableCorners
         .map(c => `${c.x * imageLayout.width},${c.y * imageLayout.height}`)
         .join(' ')
@@ -144,6 +167,7 @@ const PostCapturePreview = ({
 
   // Per-corner drag handler. Updates the normalized corner at `index`.
   const handleCornerDrag = useCallback((index: number, normX: number, normY: number) => {
+    setHasUserAdjustedCorners(true);
     setEditableCorners((prev) => {
       if (!prev) return prev;
       const next = [...prev];
@@ -166,36 +190,35 @@ const PostCapturePreview = ({
             style={StyleSheet.absoluteFill}
             contentFit="contain"
           />
-          {polygonPoints && imageLayout.width > 0 && (
+          {openCVPolygonPoints && imageLayout.width > 0 && cornerSource === 'vision' && (
             <Svg style={StyleSheet.absoluteFill} pointerEvents="none">
-              {/* OpenCV / Otsu quad — green (existing) */}
+              {/* OpenCV / Otsu fallback quad — green comparison */}
               <Polygon
-                points={polygonPoints}
-                fill="rgba(76, 175, 80, 0.15)"
-                stroke="rgba(76, 175, 80, 0.9)"
+                points={openCVPolygonPoints}
+                fill={OPENCV_FILL}
+                stroke={OPENCV_COLOR}
                 strokeWidth={2}
               />
             </Svg>
           )}
-          {/* SPIKE: Apple Vision quad — magenta, drawn on top for A/B compare */}
-          {visionPolygonPoints && imageLayout.width > 0 && (
+          {cropPolygonPoints && imageLayout.width > 0 && (
             <Svg style={StyleSheet.absoluteFill} pointerEvents="none">
               <Polygon
-                points={visionPolygonPoints}
-                fill="rgba(233, 30, 99, 0.12)"
-                stroke="rgba(233, 30, 99, 0.95)"
+                points={cropPolygonPoints}
+                fill={cornerSource === 'vision' ? VISION_FILL : OPENCV_FILL}
+                stroke={cornerSource === 'vision' ? VISION_COLOR : OPENCV_COLOR}
                 strokeWidth={2}
               />
             </Svg>
           )}
-          {/* SPIKE: tiny legend + Vision confidence readout */}
+          {/* Detector comparison legend + Vision confidence readout */}
           {visionRan && (
-            <View style={styles.spikeLegend} pointerEvents="none">
-              <Text style={styles.spikeLegendText}>
-                {'■'} green = OpenCV{'   '}
-                {'■'} magenta = Vision
+            <View style={styles.detectorLegend} pointerEvents="none">
+              <Text style={styles.detectorLegendText}>
+                <Text style={styles.openCVSwatch}>{'■'}</Text> OpenCV fallback{'   '}
+                <Text style={styles.visionSwatch}>{'■'}</Text> Vision crop
               </Text>
-              <Text style={styles.spikeLegendText}>
+              <Text style={styles.detectorLegendText}>
                 {visionCorners
                   ? `Vision conf: ${(visionConfidence ?? 0).toFixed(2)}`
                   : 'Vision: no document found'}
@@ -210,6 +233,7 @@ const PostCapturePreview = ({
               corner={c}
               containerWidth={imageLayout.width}
               containerHeight={imageLayout.height}
+              color={cornerSource === 'vision' ? VISION_COLOR : OPENCV_COLOR}
               onDrag={handleCornerDrag}
             />
           ))}
@@ -287,6 +311,7 @@ type CornerHandleProps = {
   corner: DocumentCorner;
   containerWidth: number;
   containerHeight: number;
+  color: string;
   onDrag: (index: number, normX: number, normY: number) => void;
 };
 
@@ -295,6 +320,7 @@ const CornerHandle = ({
   corner,
   containerWidth,
   containerHeight,
+  color,
   onDrag,
 }: CornerHandleProps) => {
   // Absolute pixel position of the dot. Drives Animated.View's transform.
@@ -349,7 +375,7 @@ const CornerHandle = ({
   return (
     <GestureDetector gesture={pan}>
       <Animated.View style={[styles.cornerHit, animatedStyle]}>
-        <View style={styles.cornerDot} />
+        <View style={[styles.cornerDot, { backgroundColor: color }]} />
       </Animated.View>
     </GestureDetector>
   );
@@ -361,8 +387,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingVertical: 16,
   },
-  // SPIKE-only styles for the OpenCV-vs-Vision comparison overlay.
-  spikeLegend: {
+  detectorLegend: {
     position: 'absolute',
     bottom: 8,
     left: 8,
@@ -373,10 +398,16 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
     gap: 2,
   },
-  spikeLegendText: {
+  detectorLegendText: {
     color: 'white',
     fontSize: 11,
     fontFamily: 'PlusJakartaSans-Medium',
+  },
+  openCVSwatch: {
+    color: OPENCV_COLOR,
+  },
+  visionSwatch: {
+    color: VISION_COLOR,
   },
   imageContainer: {
     flex: 1,
