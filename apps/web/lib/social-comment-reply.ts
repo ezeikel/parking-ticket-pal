@@ -362,7 +362,12 @@ Their comment: "${commentText}"${factCheckContext}
 Reply with ONLY the reply text. If you genuinely can't add value, reply with exactly "SKIP".`,
   });
 
-  const trimmedReply = reply.trim();
+  // Sanitise at the output boundary, same as the thread-reply path above.
+  // The earlier fix wired sanitizeCaption() into the thread path but left
+  // this standard top-level path on reply.trim(), so em dashes (and any
+  // markdown) shipped verbatim on the bulk of replies. sanitizeCaption
+  // leaves a bare "SKIP" untouched, so the SKIP check below still works.
+  const trimmedReply = sanitizeCaption(reply);
 
   if (trimmedReply === 'SKIP' || trimmedReply === '') {
     return {

@@ -121,7 +121,8 @@ export function ptpContentTypeAdapter(content: PTPContentType): string {
     case 'reel':
       return `This caption sits under a short video. The video carries the story; the caption reinforces it and aids search. Reference watching it where natural. Keep it tight, no link dumps.`;
     case 'comment_reply':
-      return `This is a reply to a comment. Replies are SHORT: 1-2 sentences, sometimes a few words. Max 1 emoji, only if natural. Never start with "Hey" or "Hi", just get into it. Almost always reply (silence reads as ignoring people); only stay silent for genuinely unanswerable or irrelevant comments. Match the commenter's register. Don't end on a full stop (too formal for comments); ! or ? are fine. When corrected, judge genuine error vs pedantry: own a real mistake cleanly; if we used common shorthand deliberately (e.g. "fines" for parking charge notices), acknowledge the distinction warmly and explain the deliberate choice without apologising or being dismissive.`;
+      return `This is a reply to a comment. Replies are SHORT: 1-2 sentences, sometimes a few words. Max 1 emoji, only if natural. Never start with "Hey" or "Hi", just get into it. Almost always reply (silence reads as ignoring people); only stay silent for genuinely unanswerable or irrelevant comments. Match the commenter's register. Don't end on a full stop (too formal for comments); ! or ? are fine. When corrected, judge genuine error vs pedantry: own a real mistake cleanly; if we used common shorthand deliberately (e.g. "fines" for parking charge notices), acknowledge the distinction warmly and explain the deliberate choice without apologising or being dismissive.
+- Plain text only, no markdown (it shows up literally on FB/IG). Never use em dashes (—); they read as AI-generated. Use commas or split into separate sentences instead.`;
     default:
       return '';
   }
