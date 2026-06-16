@@ -199,6 +199,7 @@ export default ({ config }: ConfigContext): ExpoConfig => {
       "expo-router",
       "./plugins/withGradleProperties",
       "./plugins/withAdMobStaticFramework",
+      "./plugins/withModularHeaders",
       "expo-tracking-transparency",
       ["./plugins/withGoogleMapsIos", { apiKey: process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY }],
     [
