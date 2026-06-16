@@ -21,6 +21,7 @@
         "image": "latest"
       },
       "env": {
+        "SHARP_IGNORE_GLOBAL_LIBVIPS": "1",
         "EXPO_PUBLIC_ENVIRONMENT": "development"
       },
       "autoIncrement": false
@@ -36,6 +37,7 @@
         "simulator": false
       },
       "env": {
+        "SHARP_IGNORE_GLOBAL_LIBVIPS": "1",
         "EXPO_PUBLIC_ENVIRONMENT": "preview"
       },
       "autoIncrement": true
@@ -44,6 +46,7 @@
       "extends": "base",
       "distribution": "store",
       "env": {
+        "SHARP_IGNORE_GLOBAL_LIBVIPS": "1",
         "EXPO_PUBLIC_ENVIRONMENT": "production"
       },
       "autoIncrement": true,
@@ -61,6 +64,7 @@
         "image": "latest"
       },
       "env": {
+        "SHARP_IGNORE_GLOBAL_LIBVIPS": "1",
         "EXPO_PUBLIC_ENVIRONMENT": "development"
       },
       "autoIncrement": false
