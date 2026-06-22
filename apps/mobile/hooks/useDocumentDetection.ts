@@ -15,11 +15,15 @@ import {
   BorderTypes,
   ThresholdTypes,
 } from 'react-native-fast-opencv';
+import {
+  validateRectangularShape,
+  isPlausibleVisionQuad,
+  type DocumentCorner,
+} from '@/lib/documentQuad';
 
-export type DocumentCorner = {
-  x: number;
-  y: number;
-};
+// Re-exported for existing importers (e.g. PostCapturePreview, DocumentOverlay)
+// that import the type from this hook. Canonical definition lives in lib/documentQuad.
+export type { DocumentCorner };
 
 export type DocumentDetectionCallbacks = {
   onDetectionUpdate?: (
@@ -45,53 +49,11 @@ enum DetectionState {
 }
 
 // --- Worklet helpers ---
-
-const validateRectangularShape = (points: DocumentCorner[]): boolean => {
-  'worklet';
-  if (points.length !== 4) return false;
-
-  const distances: number[] = [];
-  for (let i = 0; i < 4; i++) {
-    const p1 = points[i];
-    const p2 = points[(i + 1) % 4];
-    distances.push(Math.sqrt((p2.x - p1.x) ** 2 + (p2.y - p1.y) ** 2));
-  }
-
-  const sorted = [...distances].sort((a, b) => a - b);
-  const shortSide = (sorted[0] + sorted[1]) / 2;
-  const longSide = (sorted[2] + sorted[3]) / 2;
-  const aspectRatio = longSide / shortSide;
-  // We're scanning UK parking docs: A4 letters and NTO receipts. Floor at 1.10
-  // covers near-square views (e.g. A4 captured slightly tilted will compress
-  // toward squarer in the projected quad). Ceiling at 6.50 covers long narrow
-  // receipts. The previous 1.20 floor was rejecting real letters at angles.
-  if (aspectRatio < 1.10 || aspectRatio > 6.50) return false;
-
-  // Opposite-side length similarity. Loosened from 0.45 → 0.6 so a tilted /
-  // perspective-distorted A4 letter (where opposite sides foreshorten by
-  // different amounts) still passes. We have other defences (edge-touching,
-  // area cap) so we don't need this to be strict.
-  const side1Diff = Math.abs(distances[0] - distances[2]) / Math.max(distances[0], distances[2]);
-  const side2Diff = Math.abs(distances[1] - distances[3]) / Math.max(distances[1], distances[3]);
-  if (side1Diff > 0.6 || side2Diff > 0.6) return false;
-
-  // Corner-angle plausibility. Loosened from [45°, 135°] → [30°, 150°] so
-  // strongly tilted documents still pass.
-  for (let i = 0; i < 4; i++) {
-    const p1 = points[(i - 1 + 4) % 4];
-    const p2 = points[i];
-    const p3 = points[(i + 1) % 4];
-    const v1x = p1.x - p2.x, v1y = p1.y - p2.y;
-    const v2x = p3.x - p2.x, v2y = p3.y - p2.y;
-    const dot = v1x * v2x + v1y * v2y;
-    const mag1 = Math.sqrt(v1x * v1x + v1y * v1y);
-    const mag2 = Math.sqrt(v2x * v2x + v2y * v2y);
-    const angle = Math.acos(dot / (mag1 * mag2)) * (180 / Math.PI);
-    if (angle < 30 || angle > 150) return false;
-  }
-
-  return true;
-};
+//
+// validateRectangularShape + the Vision quad gate now live in lib/documentQuad
+// so the live frame processor and the post-capture preview share one tested
+// implementation. The OpenCV path below calls validateRectangularShape with the
+// default OPENCV_ASPECT_FLOOR (1.10) — unchanged behaviour.
 
 const areCornersSimular = (
   newCorners: DocumentCorner[],
@@ -285,12 +247,22 @@ export const useDocumentDetection = (callbacks?: DocumentDetectionCallbacks) => 
             dbgBufH?: number;
           }
         | null;
-      if (
+      // Gate Vision on geometry, not just confidence. Vision can report a high
+      // confidence on a degenerate quad (e.g. the simulator's full-width bottom
+      // band, or a fan-shaped misdetection), which would otherwise win over the
+      // OpenCV path and draw a wrong box. isPlausibleVisionQuad runs the shared
+      // validators on the display-normalized corners with the Vision aspect floor
+      // (1.0 — a real PCN/NTK is near-square). Measured to pass 37/38 real
+      // tickets; the 1 reject is a genuinely malformed detection. If Vision fails
+      // the gate, visionUsed stays false and OpenCV runs for this frame.
+      const visionCorners = v?.corners;
+      const visionQuadOk =
         v != null &&
         (v.confidence ?? 0) >= VISION_CONFIDENCE_THRESHOLD &&
-        v.corners != null &&
-        v.corners.length === 4
-      ) {
+        visionCorners != null &&
+        visionCorners.length === 4 &&
+        isPlausibleVisionQuad(visionCorners);
+      if (visionQuadOk) {
         // Inverse-rotate Vision's display-space corners back into raw-sensor
         // space so the downstream pipeline (and the cornersNormalized rotation
         // below) treats them exactly like OpenCV's output. This is the inverse
@@ -298,7 +270,7 @@ export const useDocumentDetection = (callbacks?: DocumentDetectionCallbacks) => 
         const sw = Math.floor(frame.width / SCALE_FACTOR);
         const sh = Math.floor(frame.height / SCALE_FACTOR);
         const ori = frame.orientation;
-        bestContour = v.corners.map((c) => {
+        bestContour = visionCorners.map((c) => {
           let fx = c.x;
           let fy = c.y;
           if (ori === 'landscape-right') {

@@ -13,7 +13,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import SquishyPressable from '@/components/SquishyPressable/SquishyPressable';
 import Loader from '@/components/Loader/Loader';
-import type { DocumentCorner } from '@/hooks/useDocumentDetection';
+import { isPlausibleVisionQuad, type DocumentCorner } from '@/lib/documentQuad';
 import DocumentDetector from '@/modules/document-detector';
 
 const CORNER_DOT_SIZE = 28;
@@ -50,12 +50,10 @@ const PostCapturePreview = ({
   liveIssuer,
 }: PostCapturePreviewProps) => {
   const [imageLayout, setImageLayout] = useState({ width: 0, height: 0 });
-  // Editable copy of the corners. Initial value comes from detection; the user
-  // can drag any of the four dots to nudge the polygon. Stored normalized
+  // User-adjusted corners. null until the user drags a dot; once set, it wins
+  // over the auto-detected corners (see editableCorners below). Stored normalized
   // [0..1] just like detectedCorners so the SVG / handoff code stays simple.
-  const [editableCorners, setEditableCorners] = useState<DocumentCorner[] | null>(null);
-  const [cornerSource, setCornerSource] = useState<CornerSource>('manual');
-  const [hasUserAdjustedCorners, setHasUserAdjustedCorners] = useState(false);
+  const [userCorners, setUserCorners] = useState<DocumentCorner[] | null>(null);
 
   const handleImageLayout = useCallback((e: { nativeEvent: { layout: { width: number; height: number } } }) => {
     setImageLayout({
@@ -131,33 +129,45 @@ const PostCapturePreview = ({
     }));
   }, [visionCorners, visionImageAspect, imageLayout.width, imageLayout.height]);
 
-  useEffect(() => {
-    if (imageLayout.width === 0 || hasUserAdjustedCorners) return;
+  // Gate Vision on geometry before it wins as the primary crop. Vision can be
+  // confident but degenerate (full-frame band, fan-shaped quad); without this a
+  // bad Vision quad would override the OpenCV fallback. Validate in IMAGE-
+  // normalized space (visionCorners) — the same space the gate was measured in —
+  // not the letterboxed container space, where the area fraction would be off.
+  const visionQuadIsPlausible = useMemo(
+    () => (visionCorners?.length === 4 ? isPlausibleVisionQuad(visionCorners) : false),
+    [visionCorners],
+  );
 
-    if (visionContainerCorners?.length === 4) {
-      setEditableCorners(visionContainerCorners);
-      setCornerSource('vision');
-      return;
+  // Auto-detected corners + their source, derived (no effect/setState). Vision
+  // wins when it passes the geometry gate; else OpenCV; else a default inset box
+  // the user can still drag. Null until the image has laid out.
+  const autoCornerResult = useMemo<{ corners: DocumentCorner[]; source: CornerSource } | null>(() => {
+    if (imageLayout.width === 0) return null;
+
+    if (visionContainerCorners?.length === 4 && visionQuadIsPlausible) {
+      return { corners: visionContainerCorners, source: 'vision' };
     }
-
     if (detectedCorners?.length === 4) {
-      setEditableCorners(detectedCorners);
-      setCornerSource('opencv');
-      return;
+      return { corners: detectedCorners, source: 'opencv' };
     }
-
-    if (!editableCorners) {
-      // No detection — drop default corners with a margin so the user can still
-      // adjust manually. Normalized space, so just use fixed insets.
-      setEditableCorners([
+    // No detection — default corners with a margin so the user can still adjust.
+    return {
+      corners: [
         { x: 0.1, y: 0.1 },
         { x: 0.9, y: 0.1 },
         { x: 0.9, y: 0.9 },
         { x: 0.1, y: 0.9 },
-      ]);
-      setCornerSource('manual');
-    }
-  }, [visionContainerCorners, detectedCorners, imageLayout.width, hasUserAdjustedCorners, editableCorners]);
+      ],
+      source: 'manual',
+    };
+  }, [visionContainerCorners, visionQuadIsPlausible, detectedCorners, imageLayout.width]);
+
+  // The corners actually rendered/edited: the user's drag override wins once they
+  // touch a dot; otherwise the auto-detected corners. cornerSource follows suit
+  // ('manual' once the user has adjusted) and drives the overlay colour.
+  const editableCorners = userCorners ?? autoCornerResult?.corners ?? null;
+  const cornerSource: CornerSource = userCorners ? 'manual' : (autoCornerResult?.source ?? 'manual');
 
   const cropPolygonPoints = editableCorners && imageLayout.width > 0
     ? editableCorners
@@ -165,12 +175,13 @@ const PostCapturePreview = ({
         .join(' ')
     : null;
 
-  // Per-corner drag handler. Updates the normalized corner at `index`.
+  // Per-corner drag handler. Seeds the user override from the current corners on
+  // first touch, then updates the dragged corner. Once set, userCorners wins.
   const handleCornerDrag = useCallback((index: number, normX: number, normY: number) => {
-    setHasUserAdjustedCorners(true);
-    setEditableCorners((prev) => {
-      if (!prev) return prev;
-      const next = [...prev];
+    setUserCorners((prev) => {
+      const base = prev ?? editableCorners;
+      if (!base) return prev;
+      const next = [...base];
       // Clamp to [0..1] so dots can't be dragged outside the image bounds.
       next[index] = {
         x: Math.max(0, Math.min(1, normX)),
@@ -178,7 +189,7 @@ const PostCapturePreview = ({
       };
       return next;
     });
-  }, []);
+  }, [editableCorners]);
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: '#000' }}>
